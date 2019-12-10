@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
 func resourceDataset() *schema.Resource {
@@ -47,8 +48,8 @@ func resourceDataset() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					oldPipeline := SanitizePipeline(old)
-					newPipeline := SanitizePipeline(new)
+					oldPipeline := observe.SanitizePipeline(old)
+					newPipeline := observe.SanitizePipeline(new)
 
 					if len(oldPipeline) != len(newPipeline) {
 						return false
@@ -66,10 +67,10 @@ func resourceDataset() *schema.Resource {
 	}
 }
 
-func resourceDatasetCreate(d *schema.ResourceData, c interface{}) error {
-	client := c.(*Client)
+func resourceDatasetCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*observe.Client)
 
-	var createDatasetInput CreateDatasetInput
+	var createDatasetInput observe.CreateDatasetInput
 
 	if v, ok := d.GetOk("workspace"); ok {
 		createDatasetInput.WorkspaceID = v.(string)
@@ -80,7 +81,7 @@ func resourceDatasetCreate(d *schema.ResourceData, c interface{}) error {
 	}
 
 	if v, ok := d.GetOk("pipeline"); ok {
-		createDatasetInput.Pipeline = SanitizePipeline(v.(string))
+		createDatasetInput.Pipeline = observe.SanitizePipeline(v.(string))
 	}
 
 	if v, ok := d.GetOk("input"); ok {
@@ -92,7 +93,7 @@ func resourceDatasetCreate(d *schema.ResourceData, c interface{}) error {
 				el["name"] = fmt.Sprintf("%d", n)
 			}
 
-			createDatasetInput.Inputs = append(createDatasetInput.Inputs, Input{
+			createDatasetInput.Inputs = append(createDatasetInput.Inputs, observe.Input{
 				InputName: el["name"].(string),
 				DatasetID: el["dataset"].(string),
 			})
@@ -111,8 +112,8 @@ func resourceDatasetCreate(d *schema.ResourceData, c interface{}) error {
 	return nil
 }
 
-func resourceDatasetRead(d *schema.ResourceData, c interface{}) error {
-	client := c.(*Client)
+func resourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*observe.Client)
 
 	dataset, err := client.GetDataset(d.Id())
 	if err != nil {
@@ -125,9 +126,9 @@ func resourceDatasetRead(d *schema.ResourceData, c interface{}) error {
 	return nil
 }
 
-func renameInputs(inputs []Input) (renamed []Input) {
+func renameInputs(inputs []observe.Input) (renamed []observe.Input) {
 	for n, i := range inputs {
-		el := Input{
+		el := observe.Input{
 			DatasetID: i.DatasetID,
 		}
 		if i.InputName != fmt.Sprintf("%d", n) {
@@ -146,7 +147,7 @@ func resourceDatasetUpdate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceDatasetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*Client)
+	client := meta.(*observe.Client)
 	client.DeleteDataset(d.Id())
 	return nil
 }

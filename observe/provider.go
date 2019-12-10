@@ -22,9 +22,11 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
-			url := d.Get("url").(string)
-			key := d.Get("key").(string)
-			return NewClient(url, key)
+			config := Config{
+				BaseURL: d.Get("url").(string),
+				ApiKey:  d.Get("key").(string),
+			}
+			return config.Client()
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"observe_dataset": dataSourceDataset(),

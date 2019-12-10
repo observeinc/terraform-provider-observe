@@ -2,6 +2,7 @@ package observe
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/observeinc/terraform-provider-observe/client"
 )
 
 func dataSourceDataset() *schema.Resource {
@@ -22,14 +23,14 @@ func dataSourceDataset() *schema.Resource {
 }
 
 func dataSourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*Client)
+	c := meta.(*client.Client)
 
 	var (
 		workspaceID = d.Get("workspace").(string)
 		label       = d.Get("label").(string)
 	)
 
-	dataset, err := client.LookupDataset(workspaceID, label)
+	dataset, err := c.LookupDataset(workspaceID, label)
 	if err != nil {
 		return err
 	}

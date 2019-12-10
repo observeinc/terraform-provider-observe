@@ -1,14 +1,9 @@
-package observe
+package client
 
 import (
 	"context"
-	//"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/machinebox/graphql"
@@ -16,7 +11,6 @@ import (
 
 var (
 	ErrDatasetNotFound = errors.New("dataset not found")
-	ErrUnauthorized    = errors.New("authorization error")
 )
 
 type Dataset struct {
@@ -57,11 +51,6 @@ type Input struct {
 	DatasetID string `json:"datasetId"`
 }
 
-type authTripper struct {
-	http.RoundTripper
-	key string
-}
-
 func SanitizePipeline(p string) (result []string) {
 	for _, line := range strings.Split(strings.TrimSpace(p), "\n") {
 		for _, stmt := range strings.Split(line, "|") {
@@ -69,64 +58,6 @@ func SanitizePipeline(p string) (result []string) {
 		}
 	}
 	return result
-}
-
-func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	if t.key != "" {
-		req.Header.Set("Authorization", "Bearer "+t.key)
-	}
-
-	if t.RoundTripper == nil {
-		t.RoundTripper = http.DefaultTransport
-	}
-	s, _ := httputil.DumpRequest(req, true)
-	log.Printf("%s\n", s)
-
-	resp, err := t.RoundTripper.RoundTrip(req)
-	if err != nil {
-		return resp, err
-	}
-	s, _ = httputil.DumpResponse(resp, true)
-	log.Printf("%s\n", s)
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return resp, err
-	case http.StatusUnprocessableEntity:
-		s, _ := httputil.DumpResponse(resp, true)
-		panic(string(s))
-		return resp, err
-	case http.StatusUnauthorized:
-		return nil, ErrUnauthorized
-	default:
-		return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
-	}
-}
-
-type Client struct {
-	client *graphql.Client
-}
-
-// Verify checks if we can connect to API.
-func (c *Client) Verify() error {
-	req := graphql.NewRequest(`
-	{
-		currentUser {
-			id
-		}
-	}`)
-
-	var respData struct {
-		Response struct {
-			Id string `json:"id"`
-		} `json:"currentUser"`
-	}
-
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func convertDataset(d *backendDataset) (*Dataset, error) {
@@ -297,21 +228,4 @@ func (c *Client) DeleteDataset(id string) error {
 	}
 
 	return nil
-}
-
-func NewClient(baseURL string, key string) (*Client, error) {
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	authed := &http.Client{
-		Transport: &authTripper{key: key},
-	}
-
-	c := &Client{
-		client: graphql.NewClient(u.String(), graphql.WithHTTPClient(authed)),
-	}
-
-	return c, c.Verify()
 }
