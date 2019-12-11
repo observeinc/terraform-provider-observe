@@ -2,8 +2,6 @@ package observe
 
 import (
 	"fmt"
-	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -20,6 +18,7 @@ func resourceDataset() *schema.Resource {
 			"label": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"workspace": &schema.Schema{
 				Type:     schema.TypeString,
@@ -30,14 +29,13 @@ func resourceDataset() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:        schema.TypeString,
-							Description: "",
-							Optional:    true,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
 						},
 						"dataset": {
-							Type:        schema.TypeString,
-							Description: "",
-							Required:    true,
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
@@ -47,20 +45,11 @@ func resourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				StateFunc: func(v interface{}) string {
+					return observe.NewPipeline(v.(string)).String()
+				},
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					oldPipeline := observe.SanitizePipeline(old)
-					newPipeline := observe.SanitizePipeline(new)
-
-					if len(oldPipeline) != len(newPipeline) {
-						return false
-					}
-
-					for i := range oldPipeline {
-						if oldPipeline[i] != newPipeline[i] {
-							return false
-						}
-					}
-					return true
+					return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
 				},
 			},
 		},
@@ -81,7 +70,7 @@ func resourceDatasetCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("pipeline"); ok {
-		createDatasetInput.Pipeline = observe.SanitizePipeline(v.(string))
+		createDatasetInput.Pipeline = observe.NewPipeline(v.(string))
 	}
 
 	if v, ok := d.GetOk("input"); ok {
@@ -105,10 +94,15 @@ func resourceDatasetCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	d.SetId(dataset.ID)
-	d.Set("label", dataset.Label)
-	d.Set("inputs", renameInputs(dataset.Transform.Inputs))
-	d.Set("pipeline", strings.Join(dataset.Transform.Pipeline, "\n"))
+
+	if err := d.Set("label", dataset.Label); err != nil {
+		return err
+	}
+	if err := d.Set("pipeline", dataset.Transform.Pipeline.String()); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -120,25 +114,13 @@ func resourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.Set("label", dataset.Label)
-	d.Set("inputs", renameInputs(dataset.Transform.Inputs))
-	d.Set("pipeline", strings.Join(dataset.Transform.Pipeline, "\n"))
-	return nil
-}
-
-func renameInputs(inputs []observe.Input) (renamed []observe.Input) {
-	for n, i := range inputs {
-		el := observe.Input{
-			DatasetID: i.DatasetID,
-		}
-		if i.InputName != fmt.Sprintf("%d", n) {
-			el.InputName = i.InputName
-		} else {
-			log.Printf("dumping name")
-		}
-		renamed = append(renamed, el)
+	if err := d.Set("label", dataset.Label); err != nil {
+		return err
 	}
-	return renamed
+	if err := d.Set("pipeline", dataset.Transform.Pipeline.String()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func resourceDatasetUpdate(d *schema.ResourceData, m interface{}) error {

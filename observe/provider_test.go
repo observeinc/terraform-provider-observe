@@ -32,7 +32,7 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("OBSERVE_URL"); v == "" {
 		t.Fatal("OBSERVE_URL must be set for acceptance tests")
 	}
-	if v := os.Getenv("OBSERVE_TOKEN"); v == "" {
-		t.Fatal("OBSERVE_TOKEN must be set for acceptance tests")
+	if v := os.Getenv("OBSERVE_KEY"); v == "" {
+		t.Fatal("OBSERVE_KEY must be set for acceptance tests")
 	}
 }

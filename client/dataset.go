@@ -2,11 +2,12 @@ package client
 
 import (
 	"context"
+	//"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/machinebox/graphql"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -20,59 +21,46 @@ type Dataset struct {
 	Transform   *Transform `json:"transform"`
 }
 
-type backendDataset struct {
-	ID        string `json:"id"`
-	Label     string `json:"label"`
-	Transform struct {
-		Current struct {
-			Stages []struct {
-				Pipeline string  `json:"pipeline"`
-				Input    []Input `json:"input"`
-			} `json:"stages"`
-		} `json:"current"`
-	} `json:"transform"`
-}
-
-// Transform is simplified - we support only one stage
-type Transform struct {
-	Inputs   []Input  `json:"inputs"`
-	Pipeline []string `json:"pipeline"`
-}
-
-type CreateDatasetInput struct {
-	WorkspaceID string   `json:"workspaceId"`
-	Label       string   `json:"label"`
-	Inputs      []Input  `json:"inputs"`
-	Pipeline    []string `json:"pipeline"`
-}
-
-type Input struct {
-	InputName string `json:"inputName"`
-	DatasetID string `json:"datasetId"`
-}
-
-func SanitizePipeline(p string) (result []string) {
-	for _, line := range strings.Split(strings.TrimSpace(p), "\n") {
-		for _, stmt := range strings.Split(line, "|") {
-			result = append(result, strings.TrimSpace(stmt))
-		}
-	}
-	return result
-}
-
-func convertDataset(d *backendDataset) (*Dataset, error) {
-	if d == nil {
+func decodeDataset(input interface{}) (*Dataset, error) {
+	if input == nil {
 		return nil, ErrDatasetNotFound
 	}
 
-	var t *Transform
+	backendDefinition := struct {
+		Dataset struct {
+			ID          string `json:"id"`
+			Label       string `json:"label"`
+			WorkspaceID string `json:"workspaceId"`
+			Transform   struct {
+				Current struct {
+					Stages []struct {
+						Pipeline string  `json:"pipeline"`
+						Input    []Input `json:"input"`
+					} `json:"stages"`
+				} `json:"current"`
+			} `json:"transform"`
+		} `json:"dataset"`
+	}{}
 
-	switch len(d.Transform.Current.Stages) {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:      &backendDefinition,
+		ErrorUnused: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decoder.Decode(input); err != nil {
+		return nil, err
+	}
+
+	var t *Transform
+	switch len(backendDefinition.Dataset.Transform.Current.Stages) {
 	case 0:
 	case 1:
-		stage := d.Transform.Current.Stages[0]
+		stage := backendDefinition.Dataset.Transform.Current.Stages[0]
 		t = &Transform{
-			Pipeline: SanitizePipeline(stage.Pipeline),
+			Pipeline: NewPipeline(stage.Pipeline),
 			Inputs:   stage.Input,
 		}
 	default:
@@ -80,76 +68,89 @@ func convertDataset(d *backendDataset) (*Dataset, error) {
 	}
 
 	dataset := &Dataset{
-		WorkspaceID: "1", // hack
-		ID:          d.ID,
-		Label:       d.Label,
+		WorkspaceID: backendDefinition.Dataset.WorkspaceID,
+		ID:          backendDefinition.Dataset.ID,
+		Label:       backendDefinition.Dataset.Label,
 		Transform:   t,
 	}
 
 	return dataset, nil
 }
 
+// Transform is simplified - we support only one stage
+type Transform struct {
+	Inputs   []Input   `json:"inputs"`
+	Pipeline *Pipeline `json:"pipeline"`
+}
+
+type CreateDatasetInput struct {
+	WorkspaceID string    `json:"workspaceId"`
+	Label       string    `json:"label"`
+	Inputs      []Input   `json:"inputs"`
+	Pipeline    *Pipeline `json:"pipeline"`
+}
+
+type Input struct {
+	InputName string `json:"inputName"`
+	DatasetID string `json:"datasetId"`
+}
+
 func (c *Client) CreateDataset(input CreateDatasetInput) (*Dataset, error) {
-	req := graphql.NewRequest(`
-mutation ($workspaceId: ObjectId!, $datasetId: ObjectId, $label: String!, $pipeline: String!, $inputs: [InputDefinitionInput!]!) {
-	  saveDataset(
-	  workspaceId:$workspaceId
-	  dataset: {
-		id: $datasetId
-		label: $label
-		deleted: false
-	  }
-	  transform: {
-		outputStage: "0"
-		stages: [{
-		  stageID: "0"
-		  pipeline: $pipeline
-		  input: $inputs
-		}]
-	  }) {
-		dataset {
-		  id
-		  label
-		  transform {
-			id
-			current {
-			  stages {
-				pipeline
-			  }
+	result, err := c.Run(`
+	mutation CreateDataset($workspaceId: ObjectId!, $datasetId: ObjectId, $label: String!, $pipeline: String!, $inputs: [InputDefinitionInput!]!) {
+		saveDataset(
+			workspaceId:$workspaceId
+			dataset: {
+				id: $datasetId
+				label: $label
+				deleted: false
 			}
-		  }
+			transform: {
+				outputStage: "0"
+				stages: [{
+					stageID: "0"
+					pipeline: $pipeline
+					input: $inputs
+				}]
+			}
+		) {
+			dataset {
+				id
+				workspaceId
+				label
+				transform {
+					current {
+						stages {
+							pipeline
+						}
+					}
+				}
+			}
 		}
-	  }
-	}`)
+	}`, map[string]interface{}{
+		"workspaceId": input.WorkspaceID,
+		"label":       input.Label,
+		"pipeline":    input.Pipeline.Canonical(),
+		"inputs":      input.Inputs,
+	})
 
-	req.Var("workspaceId", input.WorkspaceID)
-	req.Var("label", input.Label)
-	req.Var("pipeline", strings.Join(input.Pipeline, " | "))
-	req.Var("inputs", input.Inputs)
-
-	var respData struct {
-		Response struct {
-			Dataset *backendDataset `json:"dataset"`
-		} `json:"saveDataset"`
-	}
-
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	return convertDataset(respData.Response.Dataset)
+	return decodeDataset(result["saveDataset"])
 }
 
 func (c *Client) LookupDataset(workspaceID string, label string) (*Dataset, error) {
 	// TODO: we need an endpoint to lookup dataset by label
 	req := graphql.NewRequest(`
 	query ($workspaceId: ObjectId!) {
-	  project(projectId:$workspaceId) {
-		datasets {
-			id
-		  label
+		project(projectId:$workspaceId) {
+			datasets {
+				id
+				label
+			}
 		}
-	  }
 	}`)
 
 	req.Var("workspaceId", workspaceID)
@@ -177,7 +178,8 @@ func (c *Client) LookupDataset(workspaceID string, label string) (*Dataset, erro
 }
 
 func (c *Client) GetDataset(id string) (*Dataset, error) {
-	req := graphql.NewRequest(`
+
+	result, err := c.Run(`
 	query GetDataset($id: ObjectId!) {
 		dataset(id:$id) {
 			id
@@ -194,38 +196,36 @@ func (c *Client) GetDataset(id string) (*Dataset, error) {
 				}
 			}
 		}
-	}`)
+	}`, map[string]interface{}{
+		"id": id,
+	})
 
-	req.Var("id", id)
-
-	var respData struct {
-		Dataset *backendDataset `json:"dataset"`
-	}
-
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	return convertDataset(respData.Dataset)
+	return decodeDataset(result)
 }
 
 func (c *Client) DeleteDataset(id string) error {
-	req := graphql.NewRequest(`
+	result, err := c.Run(`
 	mutation ($id: ObjectId!) {
 		deleteDataset(dsid: $id) {
 			success
 			errorMessage
 		}
-	}`)
+	}`, map[string]interface{}{
+		"id": id,
+	})
 
-	req.Var("id", id)
-	var respData struct {
-		Success bool `json:"success"`
-	}
-
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err != nil {
 		return err
 	}
 
-	return nil
+	var status ResultStatus
+	if err := mapstructure.Decode(result["deleteDataset"], &status); err != nil {
+		return err
+	}
+
+	return status.Error()
 }

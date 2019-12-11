@@ -16,6 +16,21 @@ var (
 	ErrUnauthorized = errors.New("authorization error")
 )
 
+type ResultStatus struct {
+	Success      bool                   `json:"success"`
+	ErrorMessage string                 `json:"errorMessage"`
+	DetailedInfo map[string]interface{} `json:"detailedInfo"`
+}
+
+func (s *ResultStatus) Error() error {
+	if s.ErrorMessage != "" {
+		return fmt.Errorf("request failed: %q", s.ErrorMessage)
+	} else if !s.Success {
+		return errors.New("request failed")
+	}
+	return nil
+}
+
 type authTripper struct {
 	http.RoundTripper
 	key string
@@ -42,16 +57,20 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		return resp, err
 	}
 
+	s, _ := httputil.DumpResponse(resp, true)
 	switch resp.StatusCode {
 	case http.StatusOK:
+		log.Printf("[DEBUG] %s\n", s)
 		return resp, err
 	case http.StatusUnprocessableEntity:
-		s, _ := httputil.DumpResponse(resp, true)
 		log.Printf("[WARN] %s\n", s)
 		return resp, err
 	case http.StatusUnauthorized:
+		log.Printf("[WARN] %s\n", s)
+		panic(string(s))
 		return nil, ErrUnauthorized
 	default:
+		log.Printf("[INFO] %s\n", s)
 		return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
 	}
 }
@@ -74,6 +93,18 @@ func (c *Client) Verify() error {
 	}
 
 	return nil
+}
+
+// Run raw GraphQL query against API
+func (c *Client) Run(reqBody string, vars map[string]interface{}) (map[string]interface{}, error) {
+	req := graphql.NewRequest(reqBody)
+	for k, v := range vars {
+		req.Var(k, v)
+	}
+
+	var result map[string]interface{}
+	err := c.client.Run(context.Background(), req, &result)
+	return result, err
 }
 
 func NewClient(baseURL string, key string) (*Client, error) {

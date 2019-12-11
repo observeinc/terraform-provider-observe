@@ -11,13 +11,13 @@ func Provider() terraform.ResourceProvider {
 			"key": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_API_KEY", nil),
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_KEY", nil),
 				Description: "Observe API Key from https://app.observeinc.com/#account",
 			},
 			"url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_API_URL", "https://118647111237.observe-eng.com/v1/meta"),
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_URL", "https://118647111237.observe-eng.com/v1/meta"),
 				Description: "Observe API URL",
 			},
 		},
