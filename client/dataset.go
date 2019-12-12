@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	//"encoding/json"
 	"errors"
 	"fmt"
 
@@ -14,6 +13,77 @@ var (
 	ErrDatasetNotFound = errors.New("dataset not found")
 )
 
+type backendInput struct {
+	InputName string `json:"inputName"`
+	StageID   string `json:"stageID,omitempty"`
+	DatasetID string `json:"datasetId,omitempty"`
+}
+
+type backendStage struct {
+	StageID  string         `json:"stageID"`
+	Input    []backendInput `json:"input"`
+	Pipeline string         `json:"pipeline"`
+}
+
+type backendDataset struct {
+	ID          string `json:"id"`
+	Label       string `json:"label"`
+	WorkspaceID string `json:"workspaceId"`
+	Transform   struct {
+		Current struct {
+			Stages []backendStage `json:"stages"`
+		} `json:"current"`
+	} `json:"transform"`
+}
+
+var (
+	backendDatasetFragment = `
+	fragment datasetFields on Dataset {
+		id
+		label
+		workspaceId
+		transform {
+			current {
+				stages {
+					stageID
+					pipeline
+					input {
+						inputName
+						datasetId
+					}
+				}
+			}
+		}
+	}`
+	saveDatasetQuery = `
+	mutation SaveDataset($workspaceId: ObjectId!, $datasetId: ObjectId, $label: String!, $transform: TransformInput!) {
+		saveDataset(
+			workspaceId:$workspaceId
+			dataset: {
+				id: $datasetId
+				label: $label
+				deleted: false
+			}
+			transform: $transform
+		) {
+			dataset {
+				...datasetFields
+			}
+		}
+	}`
+)
+
+func getNested(i interface{}, keys ...string) interface{} {
+	for _, k := range keys {
+		v, ok := i.(map[string]interface{})
+		if !ok {
+			return nil
+		}
+		i = v[k]
+	}
+	return i
+}
+
 type Dataset struct {
 	WorkspaceID string     `json:"workspaceId"`
 	ID          string     `json:"id"`
@@ -21,29 +91,14 @@ type Dataset struct {
 	Transform   *Transform `json:"transform"`
 }
 
-func decodeDataset(input interface{}) (*Dataset, error) {
+func newDataset(input interface{}) (*Dataset, error) {
 	if input == nil {
 		return nil, ErrDatasetNotFound
 	}
 
-	backendDefinition := struct {
-		Dataset struct {
-			ID          string `json:"id"`
-			Label       string `json:"label"`
-			WorkspaceID string `json:"workspaceId"`
-			Transform   struct {
-				Current struct {
-					Stages []struct {
-						Pipeline string  `json:"pipeline"`
-						Input    []Input `json:"input"`
-					} `json:"stages"`
-				} `json:"current"`
-			} `json:"transform"`
-		} `json:"dataset"`
-	}{}
-
+	var result backendDataset
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:      &backendDefinition,
+		Result:      &result,
 		ErrorUnused: true,
 	})
 	if err != nil {
@@ -54,24 +109,32 @@ func decodeDataset(input interface{}) (*Dataset, error) {
 		return nil, err
 	}
 
-	var t *Transform
-	switch len(backendDefinition.Dataset.Transform.Current.Stages) {
-	case 0:
-	case 1:
-		stage := backendDefinition.Dataset.Transform.Current.Stages[0]
-		t = &Transform{
-			Pipeline: NewPipeline(stage.Pipeline),
-			Inputs:   stage.Input,
+	var inputs []Input
+	var stages []Stage
+	for _, s := range result.Transform.Current.Stages {
+		stages = append(stages, Stage{
+			Name:     s.StageID,
+			Pipeline: NewPipeline(s.Pipeline),
+		})
+
+		if len(inputs) == 0 {
+			for _, i := range s.Input {
+				inputs = append(inputs, Input{
+					Name:      i.InputName,
+					DatasetID: i.DatasetID,
+				})
+			}
 		}
-	default:
-		return nil, fmt.Errorf("unsupported transform, more than one stage defined")
 	}
 
 	dataset := &Dataset{
-		WorkspaceID: backendDefinition.Dataset.WorkspaceID,
-		ID:          backendDefinition.Dataset.ID,
-		Label:       backendDefinition.Dataset.Label,
-		Transform:   t,
+		WorkspaceID: result.WorkspaceID,
+		ID:          result.ID,
+		Label:       result.Label,
+		Transform: &Transform{
+			Inputs: inputs,
+			Stages: stages,
+		},
 	}
 
 	return dataset, nil
@@ -79,66 +142,88 @@ func decodeDataset(input interface{}) (*Dataset, error) {
 
 // Transform is simplified - we support only one stage
 type Transform struct {
-	Inputs   []Input   `json:"inputs"`
-	Pipeline *Pipeline `json:"pipeline"`
+	Inputs []Input `json:"inputs"`
+	Stages []Stage `json:"stages"`
 }
 
-type CreateDatasetInput struct {
-	WorkspaceID string    `json:"workspaceId"`
-	Label       string    `json:"label"`
-	Inputs      []Input   `json:"inputs"`
-	Pipeline    *Pipeline `json:"pipeline"`
+type DatasetInput struct {
+	WorkspaceID string  `json:"workspaceId"`
+	Label       string  `json:"label"`
+	Inputs      []Input `json:"inputs"`
+	Stages      []Stage `json:"stages"`
+}
+
+func (d *DatasetInput) transform() interface{} {
+	var inputs []backendInput
+	for _, i := range d.Inputs {
+		inputs = append(inputs, backendInput{
+			InputName: i.Name,
+			DatasetID: i.DatasetID,
+		})
+	}
+
+	var stages []backendStage
+
+	for _, s := range d.Stages {
+		currentInputs := inputs
+		stages = append(stages, backendStage{
+			StageID:  s.Name,
+			Pipeline: s.Pipeline.Canonical(),
+			Input:    currentInputs,
+		})
+
+		inputs = append(inputs, backendInput{
+			InputName: s.Name,
+			StageID:   s.Name,
+		})
+	}
+
+	return struct {
+		OutputStage string         `json:"outputStage"`
+		Stages      []backendStage `json:"stages"`
+	}{
+		OutputStage: stages[len(stages)-1].StageID,
+		Stages:      stages,
+	}
 }
 
 type Input struct {
-	InputName string `json:"inputName"`
+	Name      string `json:"name"`
 	DatasetID string `json:"datasetId"`
 }
 
-func (c *Client) CreateDataset(input CreateDatasetInput) (*Dataset, error) {
-	result, err := c.Run(`
-	mutation CreateDataset($workspaceId: ObjectId!, $datasetId: ObjectId, $label: String!, $pipeline: String!, $inputs: [InputDefinitionInput!]!) {
-		saveDataset(
-			workspaceId:$workspaceId
-			dataset: {
-				id: $datasetId
-				label: $label
-				deleted: false
-			}
-			transform: {
-				outputStage: "0"
-				stages: [{
-					stageID: "0"
-					pipeline: $pipeline
-					input: $inputs
-				}]
-			}
-		) {
-			dataset {
-				id
-				workspaceId
-				label
-				transform {
-					current {
-						stages {
-							pipeline
-						}
-					}
-				}
-			}
-		}
-	}`, map[string]interface{}{
+type Stage struct {
+	Name     string    `json:"name"`
+	Pipeline *Pipeline `json:"pipeline"`
+}
+
+func (c *Client) CreateDataset(input DatasetInput) (*Dataset, error) {
+	result, err := c.Run(backendDatasetFragment+saveDatasetQuery, map[string]interface{}{
 		"workspaceId": input.WorkspaceID,
 		"label":       input.Label,
-		"pipeline":    input.Pipeline.Canonical(),
-		"inputs":      input.Inputs,
+		"transform":   input.transform(),
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	return decodeDataset(result["saveDataset"])
+	return newDataset(getNested(result, "saveDataset", "dataset"))
+}
+
+func (c *Client) UpdateDataset(id string, input DatasetInput) (*Dataset, error) {
+	result, err := c.Run(backendDatasetFragment+saveDatasetQuery, map[string]interface{}{
+		"datasetId":   id,
+		"workspaceId": input.WorkspaceID,
+		"label":       input.Label,
+		"transform":   input.transform(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return newDataset(getNested(result, "saveDataset", "dataset"))
 }
 
 func (c *Client) LookupDataset(workspaceID string, label string) (*Dataset, error) {
@@ -178,23 +263,10 @@ func (c *Client) LookupDataset(workspaceID string, label string) (*Dataset, erro
 }
 
 func (c *Client) GetDataset(id string) (*Dataset, error) {
-
-	result, err := c.Run(`
+	result, err := c.Run(backendDatasetFragment+`
 	query GetDataset($id: ObjectId!) {
 		dataset(id:$id) {
-			id
-			label
-			transform {
-				current {
-					stages {
-						pipeline
-						input {
-							inputName
-							datasetId
-						}
-					}
-				}
-			}
+			...datasetFields
 		}
 	}`, map[string]interface{}{
 		"id": id,
@@ -204,8 +276,47 @@ func (c *Client) GetDataset(id string) (*Dataset, error) {
 		return nil, err
 	}
 
-	return decodeDataset(result)
+	return newDataset(getNested(result, "dataset"))
 }
+
+func (c *Client) ListDatasets() ([]*Dataset, error) {
+	return nil, fmt.Errorf("nope")
+}
+
+/*
+	workspaces := []struct {
+		ID       string `json:"id"`
+		Datasets []struct {
+			ID    string `json:"id"`
+			Label string `json:"label"`
+		} `json:"datasets"`
+	}{}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		ErrorUnused: true,
+		Result:      &workspaces,
+	})
+
+	for _, w := range workspaces {
+		for _, d := range w.Datasets {
+			datasets = append(datasets, &Dataset{})
+		}
+	}
+}
+
+/*
+	client, err := sharedClient()
+	if err != nil {
+		t.Fatalf("failed to load client:", err)
+	}
+
+
+
+	if err := decoder.Decode(result["projects"]); err != nil {
+		t.Fatal(err)
+	}
+
+*/
 
 func (c *Client) DeleteDataset(id string) error {
 	result, err := c.Run(`

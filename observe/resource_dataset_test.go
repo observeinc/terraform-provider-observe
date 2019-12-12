@@ -2,16 +2,31 @@ package observe
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/mitchellh/mapstructure"
 )
 
+/*
+func init() {
+	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
+		Name: "observe_dataset",
+		F:    testSweepObserveDataset,
+	})
+}
+
+func testSweepObserveDataset(r string) error {
+	client, err := sharedClient()
+	if err != nil {
+		log.Printf("[ERROR] Failed to create Observe client: %s", err)
+	}
+
+	return nil
+}
+*/
+
 func TestAccObserveDatasetBasic(t *testing.T) {
-	name := "observe_dataset.tf-acc-basic-dataset"
-	resourceName := strings.Split(name, ".")[1]
 	workspaceID, datasetID := testAccGetWorkspaceAndDataset(t)
 
 	resource.Test(t, resource.TestCase{
@@ -19,12 +34,18 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testDatasetConfig(resourceName, workspaceID, datasetID, "filter true"),
+				Config: testDatasetConfig(workspaceID, datasetID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "workspace", workspaceID),
-					resource.TestCheckResourceAttr(name, "label", "dataset"),
-					resource.TestCheckResourceAttr(name, "input.0.name", "0"),
-					resource.TestCheckResourceAttr(name, "pipeline", "filter true"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.second", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.second", "label", "ny-label"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "input.0.name", "i0"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "input.0.dataset", datasetID),
+					resource.TestCheckResourceAttr("observe_dataset.second", "input.0.name", "i0"),
+					resource.TestCheckResourceAttr("observe_dataset.second", "input.0.dataset", datasetID),
+					resource.TestCheckResourceAttr("observe_dataset.second", "input.1.name", "alt"),
+					resource.TestCheckResourceAttr("observe_dataset.second", "stage.0.pipeline", "filter true"),
+					resource.TestCheckResourceAttr("observe_dataset.second", "stage.1.pipeline", "filter false"),
 				),
 			},
 		},
@@ -32,7 +53,11 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 }
 
 func testAccGetWorkspaceAndDataset(t *testing.T) (string, string) {
-	client := sharedClient(t)
+	client, err := sharedClient()
+	if err != nil {
+		t.Fatal("failed to load client:", err)
+	}
+
 	result, err := client.Run(`
 	query {
 		projects {
@@ -73,15 +98,45 @@ func testAccGetWorkspaceAndDataset(t *testing.T) (string, string) {
 	return workspaces[0].ID, workspaces[0].Datasets[0].ID
 }
 
-func testDatasetConfig(resourceID string, workspaceID string, inputID string, pipeline string) string {
+func testDatasetConfig(workspaceID string, inputID string) string {
 	return fmt.Sprintf(`
-	resource "observe_dataset" "%[1]s" {
-		workspace = "%[2]s"
+	resource "observe_dataset" "first" {
+		workspace = "%[1]s"
+
 		input {
-			dataset = "%[3]s"
+			dataset = "%[2]s"
 		}
-		pipeline = <<-EOF
-			%[4]s
-		EOF
-	}`, resourceID, workspaceID, inputID, pipeline)
+
+		stage {
+			pipeline = <<-EOF
+				filter false
+			EOF
+		}
+	}
+
+	resource "observe_dataset" "second" {
+		workspace = "%[1]s"
+		label     = "ny-label"
+
+		input {
+			dataset = "%[2]s"
+		}
+
+		input {
+			name    = "alt"
+			dataset = "${observe_dataset.first.id}"
+		}
+
+		stage {
+			pipeline = <<-EOF
+				filter true
+			EOF
+		}
+
+		stage {
+			pipeline = <<-EOF
+				filter false
+			EOF
+		}
+	}`, workspaceID, inputID)
 }

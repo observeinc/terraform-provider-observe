@@ -3,6 +3,7 @@ module github.com/observeinc/terraform-provider-observe
 go 1.13
 
 require (
+	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/hashicorp/terraform-plugin-sdk v1.4.0
 	github.com/hashicorp/tf-sdk-migrator v1.0.0 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect

@@ -12,10 +12,6 @@ func TestMain(m *testing.M) {
 	resource.TestMain(m)
 }
 
-func sharedClient(t *testing.T) *observe.Client {
-	client, err := observe.NewClient(os.Getenv("OBSERVE_URL"), os.Getenv("OBSERVE_KEY"))
-	if err != nil {
-		t.Fatal("could not create client", err)
-	}
-	return client
+func sharedClient() (*observe.Client, error) {
+	return observe.NewClient(os.Getenv("OBSERVE_URL"), os.Getenv("OBSERVE_KEY"))
 }
