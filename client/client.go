@@ -67,7 +67,6 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		return resp, err
 	case http.StatusUnauthorized:
 		log.Printf("[WARN] %s\n", s)
-		panic(string(s))
 		return nil, ErrUnauthorized
 	default:
 		log.Printf("[INFO] %s\n", s)

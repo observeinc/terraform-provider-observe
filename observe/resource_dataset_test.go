@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/mitchellh/mapstructure"
 )
 
 /*
@@ -27,7 +26,7 @@ func testSweepObserveDataset(r string) error {
 */
 
 func TestAccObserveDatasetBasic(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDataset(t)
+	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -37,65 +36,31 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				Config: testDatasetConfig(workspaceID, datasetID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.import", datasetID),
 					resource.TestCheckResourceAttr("observe_dataset.second", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.second", "label", "ny-label"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "input.0.name", "i0"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "input.0.dataset", datasetID),
-					resource.TestCheckResourceAttr("observe_dataset.second", "input.0.name", "i0"),
-					resource.TestCheckResourceAttr("observe_dataset.second", "input.0.dataset", datasetID),
-					resource.TestCheckResourceAttr("observe_dataset.second", "input.1.name", "alt"),
-					resource.TestCheckResourceAttr("observe_dataset.second", "stage.0.pipeline", "filter true"),
-					resource.TestCheckResourceAttr("observe_dataset.second", "stage.1.pipeline", "filter false"),
+					resource.TestCheckResourceAttr("observe_dataset.second", "stage.0.import", datasetID),
 				),
 			},
 		},
 	})
 }
 
-func testAccGetWorkspaceAndDataset(t *testing.T) (string, string) {
+func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	client, err := sharedClient()
 	if err != nil {
 		t.Fatal("failed to load client:", err)
 	}
 
-	result, err := client.Run(`
-	query {
-		projects {
-			id
-			datasets {
-				id
-				label
-			}
-		}
-	}`, nil)
+	datasets, err := client.ListDatasets()
 	if err != nil {
-		t.Fatal("request failed:", err)
+		t.Fatal("failed to list datasets:", err)
 	}
 
-	workspaces := []struct {
-		ID       string `json:"id"`
-		Datasets []struct {
-			ID    string `json:"id"`
-			Label string `json:"label"`
-		} `json:"datasets"`
-	}{}
-
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		ErrorUnused: true,
-		Result:      &workspaces,
-	})
-
-	if err := decoder.Decode(result["projects"]); err != nil {
-		t.Fatal(err)
+	if len(datasets) == 0 {
+		t.Fatal("no datasets available")
 	}
 
-	if len(workspaces) == 0 {
-		t.Fatal("could not find a workspace to use for testing")
-	} else if len(workspaces[0].Datasets) == 0 {
-		t.Fatal("could not find a dataset to use as root for testing")
-	}
-
-	return workspaces[0].ID, workspaces[0].Datasets[0].ID
+	return datasets[0].WorkspaceID, datasets[0].ID
 }
 
 func testDatasetConfig(workspaceID string, inputID string) string {
@@ -103,13 +68,10 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 	resource "observe_dataset" "first" {
 		workspace = "%[1]s"
 
-		input {
-			dataset = "%[2]s"
-		}
-
 		stage {
+			import = "%[2]s"
 			pipeline = <<-EOF
-				filter false
+				filter true
 			EOF
 		}
 	}
@@ -118,13 +80,9 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 		workspace = "%[1]s"
 		label     = "ny-label"
 
-		input {
-			dataset = "%[2]s"
-		}
-
-		input {
-			name    = "alt"
-			dataset = "${observe_dataset.first.id}"
+		stage {
+			label  = "alt"
+			import = "${observe_dataset.first.id}"
 		}
 
 		stage {

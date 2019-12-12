@@ -1,6 +1,8 @@
 package observe
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -15,21 +17,17 @@ func resourceWorkspace() *schema.Resource {
 }
 
 func resourceWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
-	panic("not yet implemented")
-	return nil
+	return fmt.Errorf("not yet implemented")
 }
 
 func resourceWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	panic("not yet implemented")
-	return nil
+	return fmt.Errorf("not yet implemented")
 }
 
 func resourceWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
-	panic("not yet implemented")
-	return nil
+	return fmt.Errorf("not yet implemented")
 }
 
 func resourceWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	panic("not yet implemented")
-	return nil
+	return fmt.Errorf("not yet implemented")
 }

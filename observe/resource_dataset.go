@@ -1,12 +1,15 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/dustinkirkland/golang-petname"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
@@ -20,45 +23,43 @@ func resourceDataset() *schema.Resource {
 		Delete: resourceDatasetDelete,
 
 		Schema: map[string]*schema.Schema{
+			"workspace": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"label": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-			"workspace": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"input": &schema.Schema{
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"dataset": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Required: true,
-						},
-					},
-				},
-				Required: true,
+			"freshness": &schema.Schema{
+				Type:         schema.TypeInt,
+				Description:  "Desired freshness in seconds",
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"stage": &schema.Schema{
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
+						"label": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+						"follow": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"stage.import"},
+						},
+						"import": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"stage.follow"},
+						},
 						"pipeline": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							StateFunc: func(v interface{}) string {
 								return observe.NewPipeline(v.(string)).String()
@@ -78,52 +79,17 @@ func resourceDataset() *schema.Resource {
 func resourceDatasetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*observe.Client)
 
-	var datasetInput observe.DatasetInput
-
-	if v, ok := d.GetOk("workspace"); ok {
-		datasetInput.WorkspaceID = v.(string)
+	datasetConfig, err := getDatasetConfig(d)
+	if err != nil {
+		return err
 	}
 
-	if v, ok := d.GetOk("label"); ok {
-		datasetInput.Label = v.(string)
-	} else {
-		datasetInput.Label = strings.ToLower(petname.Generate(2, "-"))
+	transformConfig, err := getTransformConfig(d)
+	if err != nil {
+		return err
 	}
 
-	if v, ok := d.GetOk("input"); ok {
-		inputs := v.([]interface{})
-		for n, i := range inputs {
-			el := i.(map[string]interface{})
-
-			if v, ok := el["name"]; !ok || v.(string) == "" {
-				el["name"] = fmt.Sprintf("i%d", n)
-			}
-
-			datasetInput.Inputs = append(datasetInput.Inputs, observe.Input{
-				Name:      el["name"].(string),
-				DatasetID: el["dataset"].(string),
-			})
-		}
-
-	}
-
-	if v, ok := d.GetOk("stage"); ok {
-		inputs := v.([]interface{})
-		for n, i := range inputs {
-			el := i.(map[string]interface{})
-
-			if v, ok := el["name"]; !ok || v.(string) == "" {
-				el["name"] = fmt.Sprintf("s%d", n)
-			}
-
-			datasetInput.Stages = append(datasetInput.Stages, observe.Stage{
-				Name:     el["name"].(string),
-				Pipeline: observe.NewPipeline(el["pipeline"].(string)),
-			})
-		}
-	}
-
-	dataset, err := client.CreateDataset(datasetInput)
+	dataset, err := client.CreateDataset(d.Get("workspace").(string), datasetConfig, transformConfig)
 	if err != nil {
 		return err
 	}
@@ -143,29 +109,60 @@ func resourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
 	return datasetToResource(dataset, d)
 }
 
+func getDatasetConfig(d *schema.ResourceData) (c observe.DatasetConfig, err error) {
+	if v, ok := d.GetOk("label"); ok {
+		c.Label = v.(string)
+	} else {
+		c.Label = strings.ToLower(petname.Generate(2, "-"))
+	}
+
+	if v, ok := d.GetOk("freshness"); ok {
+		value := int64(v.(int)) * 1000000000
+		c.FreshnessDesired = &value
+	}
+	return
+}
+
+func getTransformConfig(d *schema.ResourceData) (c observe.TransformConfig, err error) {
+	if v, ok := d.GetOk("stage"); ok {
+		stages := v.([]interface{})
+
+		for _, i := range stages {
+			var s observe.Stage
+			if err = mapstructure.Decode(i, &s); err != nil {
+				return
+			}
+
+			if err = c.AddStage(&s); err != nil {
+				return
+			}
+		}
+		return
+	}
+	return
+}
+
 func datasetToResource(o *observe.Dataset, d *schema.ResourceData) error {
-	if err := d.Set("label", o.Label); err != nil {
+	if err := d.Set("label", o.Config.Label); err != nil {
 		return err
 	}
 
-	var inputs []interface{}
-	for _, i := range o.Transform.Inputs {
-		inputs = append(inputs, map[string]interface{}{
-			"name":    i.Name,
-			"dataset": i.DatasetID,
-		})
-	}
-
-	if err := d.Set("input", inputs); err != nil {
-		return err
+	if o.Config.FreshnessDesired != nil {
+		secs := int(*o.Config.FreshnessDesired / 1000000000)
+		if err := d.Set("freshness", secs); err != nil {
+			return err
+		}
 	}
 
 	var stages []interface{}
 	for _, s := range o.Transform.Stages {
-		stages = append(stages, map[string]interface{}{
-			"name":     s.Name,
-			"pipeline": s.Pipeline.String(),
-		})
+		var m map[string]interface{}
+		if data, err := json.Marshal(s); err != nil {
+			return fmt.Errorf("failed to marshal stage: %w", err)
+		} else if err := json.Unmarshal(data, &m); err != nil {
+			return fmt.Errorf("failed to unmarshal stage: %w", err)
+		}
+		stages = append(stages, m)
 	}
 
 	if err := d.Set("stage", stages); err != nil {
@@ -178,52 +175,17 @@ func datasetToResource(o *observe.Dataset, d *schema.ResourceData) error {
 func resourceDatasetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*observe.Client)
 
-	var datasetInput observe.DatasetInput
-
-	if v, ok := d.GetOk("workspace"); ok {
-		datasetInput.WorkspaceID = v.(string)
+	datasetConfig, err := getDatasetConfig(d)
+	if err != nil {
+		return err
 	}
 
-	if v, ok := d.GetOk("label"); ok {
-		datasetInput.Label = v.(string)
-	} else {
-		datasetInput.Label = strings.ToLower(petname.Generate(2, "-"))
+	transformConfig, err := getTransformConfig(d)
+	if err != nil {
+		return err
 	}
 
-	if v, ok := d.GetOk("input"); ok {
-		inputs := v.([]interface{})
-		for n, i := range inputs {
-			el := i.(map[string]interface{})
-
-			if v, ok := el["name"]; !ok || v.(string) == "" {
-				el["name"] = fmt.Sprintf("i%d", n)
-			}
-
-			datasetInput.Inputs = append(datasetInput.Inputs, observe.Input{
-				Name:      el["name"].(string),
-				DatasetID: el["dataset"].(string),
-			})
-		}
-
-	}
-
-	if v, ok := d.GetOk("stage"); ok {
-		inputs := v.([]interface{})
-		for n, i := range inputs {
-			el := i.(map[string]interface{})
-
-			if v, ok := el["name"]; !ok || v.(string) == "" {
-				el["name"] = fmt.Sprintf("s%d", n)
-			}
-
-			datasetInput.Stages = append(datasetInput.Stages, observe.Stage{
-				Name:     el["name"].(string),
-				Pipeline: observe.NewPipeline(el["pipeline"].(string)),
-			})
-		}
-	}
-
-	dataset, err := client.UpdateDataset(d.Id(), datasetInput)
+	dataset, err := client.UpdateDataset(d.Get("workspace").(string), d.Id(), datasetConfig, transformConfig)
 	if err != nil {
 		return err
 	}
@@ -233,6 +195,5 @@ func resourceDatasetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceDatasetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*observe.Client)
-	client.DeleteDataset(d.Id())
-	return nil
+	return client.DeleteDataset(d.Id())
 }

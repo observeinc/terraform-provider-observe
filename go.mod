@@ -11,5 +11,5 @@ require (
 	github.com/matryer/is v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pkg/errors v0.8.1 // indirect
-	golang.org/x/tools v0.0.0-20191210221141-98df12377212 // indirect
+	golang.org/x/tools v0.0.0-20191212224101-0f69de236bb7 // indirect
 )
