@@ -50,9 +50,6 @@ func resourceDataset() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
-							StateFunc: func(v interface{}) string {
-								return observe.NewPipeline(v.(string)).String()
-							},
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
 							},
@@ -142,11 +139,11 @@ func getDatasetConfig(d *schema.ResourceData) (c observe.DatasetConfig, err erro
 		}
 		m = datasets[0].(map[string]interface{})
 
-		if v, ok := m["label"]; ok {
+		if v, ok := m["label"]; ok && v != "" {
 			c.Label = v.(string)
 		}
 
-		if v, ok := m["freshness"]; ok {
+		if v, ok := m["freshness"]; ok && v != "" {
 			freshness, _ := time.ParseDuration(v.(string))
 			c.FreshnessDesired = &freshness
 		}

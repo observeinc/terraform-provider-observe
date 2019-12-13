@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -141,8 +142,13 @@ func (d *Dataset) fromBackend(b *backendDataset) error {
 		d.Config.IconURL = &b.IconURL
 	}
 
-	if i, err := strconv.Atoi(b.FreshnessDesired); err == nil {
+	if b.FreshnessDesired != "" {
+		i, err := strconv.Atoi(b.FreshnessDesired)
+		if err != nil {
+			return fmt.Errorf("could not convert freshness: %w", err)
+		}
 		freshness := time.Duration(int64(i))
+		log.Printf("[DEBUG] receiving freshness %s", freshness.String())
 		d.Config.FreshnessDesired = &freshness
 	}
 
@@ -161,6 +167,7 @@ func (c *DatasetConfig) toBackend(id string) *backendDatasetConfig {
 	}
 
 	b.ID = id
+	log.Printf("[DEBUG] setting freshness %s, %s", b.FreshnessDesired, c.FreshnessDesired)
 	return &b
 }
 
@@ -220,8 +227,15 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 		previousStage = t.Stages[n-1]
 	}
 
-	if s.Import != "" && previousStage != nil && firstInput.InputName != previousStage.Label {
-		s.Follow = firstInput.InputName
+	// FML, super confusing. We only want to assign Follow if it's not the default.
+	if s.Import == "" && previousStage != nil {
+		var label string
+		if label = previousStage.Label; label == "" {
+			label = fmt.Sprintf("stage%d", len(t.Stages)-1)
+		}
+		if firstInput.InputName != label {
+			s.Follow = firstInput.InputName
+		}
 	}
 
 	t.Stages = append(t.Stages, s)

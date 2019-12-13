@@ -9,8 +9,8 @@ import (
 
 /*
 func init() {
-	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
-		Name: "observe_dataset",
+	resource.AddTestSweepers("observe_transform", &resource.Sweeper{
+		Name: "observe_transform",
 		F:    testSweepObserveDataset,
 	})
 }
@@ -35,10 +35,10 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 			{
 				Config: testDatasetConfig(workspaceID, datasetID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.import", datasetID),
-					resource.TestCheckResourceAttr("observe_dataset.second", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.second", "stage.0.import", datasetID),
+					resource.TestCheckResourceAttr("observe_transform.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_transform.first", "stage.0.import", datasetID),
+					resource.TestCheckResourceAttr("observe_transform.second", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_transform.second", "stage.1.import", datasetID),
 				),
 			},
 		},
@@ -65,7 +65,7 @@ func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 
 func testDatasetConfig(workspaceID string, inputID string) string {
 	return fmt.Sprintf(`
-	resource "observe_dataset" "first" {
+	resource "observe_transform" "first" {
 		workspace = "%[1]s"
 
 		stage {
@@ -76,16 +76,16 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 		}
 	}
 
-	resource "observe_dataset" "second" {
+	resource "observe_transform" "second" {
 		workspace = "%[1]s"
-		label     = "ny-label"
 
 		stage {
 			label  = "alt"
-			import = "${observe_dataset.first.id}"
+			import = "${observe_transform.first.id}"
 		}
 
 		stage {
+			import = "%[2]s"
 			pipeline = <<-EOF
 				filter true
 			EOF
@@ -95,6 +95,9 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 			pipeline = <<-EOF
 				filter false
 			EOF
+		}
+		dataset {
+			label = "ny-label"
 		}
 	}`, workspaceID, inputID)
 }

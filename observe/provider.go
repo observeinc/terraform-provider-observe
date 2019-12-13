@@ -33,7 +33,7 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_workspace": resourceWorkspace(),
-			"observe_dataset":   resourceDataset(),
+			"observe_transform": resourceDataset(),
 		},
 	}
 }
