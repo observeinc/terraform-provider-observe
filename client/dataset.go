@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -148,7 +147,6 @@ func (d *Dataset) fromBackend(b *backendDataset) error {
 			return fmt.Errorf("could not convert freshness: %w", err)
 		}
 		freshness := time.Duration(int64(i))
-		log.Printf("[DEBUG] receiving freshness %s", freshness.String())
 		d.Config.FreshnessDesired = &freshness
 	}
 
@@ -167,7 +165,6 @@ func (c *DatasetConfig) toBackend(id string) *backendDatasetConfig {
 	}
 
 	b.ID = id
-	log.Printf("[DEBUG] setting freshness %s, %s", b.FreshnessDesired, c.FreshnessDesired)
 	return &b
 }
 
@@ -216,9 +213,14 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 				if i.InputName != fmt.Sprintf("stage%d", len(t.Stages)) {
 					inputStage.Label = i.InputName
 				}
+
 				t.Stages = append(t.Stages, inputStage)
 			}
 		}
+	}
+
+	if b.StageID != fmt.Sprintf("stage%d", len(t.Stages)) {
+		s.Label = b.StageID
 	}
 
 	firstInput := b.Input[0]
