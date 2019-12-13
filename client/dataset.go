@@ -3,6 +3,8 @@ package client
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -21,12 +23,11 @@ type Dataset struct {
 
 // DatasetConfig declares configuration options for the Dataset. Use pointers to denote optional fields
 type DatasetConfig struct {
-	ID               string  `json:"id,omitempty"` // XXX: this should be part of Dataset, not properties
-	Label            string  `json:"label,omitempty"`
-	Deleted          *bool   `json:"deleted,omitempty"`
-	LatencyDesired   *int64  `json:"latencyDesired,omitempty"`
-	FreshnessDesired *int64  `json:"freshnessDesired,omitempty"`
-	IconURL          *string `json:"iconUrl,omitempty"`
+	ID               string         `json:"id,omitempty"` // XXX: this should be part of Dataset, not properties
+	Label            string         `json:"label,omitempty"`
+	Deleted          *bool          `json:"deleted,omitempty"`
+	FreshnessDesired *time.Duration `json:"freshnessDesired,omitempty"`
+	IconURL          *string        `json:"iconUrl,omitempty"`
 }
 
 // TransformConfig describes a sequence of stages
@@ -48,7 +49,7 @@ type backendDatasetConfig struct {
 	ID               string `json:"id,omitempty"`
 	Label            string `json:"label,omitempty"`
 	FreshnessDesired string `json:"freshnessDesired,omitempty"`
-	LatencyDesired   string `json:"latencyDesired,omitempty"`
+	IconURL          string `json:"iconUrl,omitempty"`
 }
 
 type backendInput struct {
@@ -74,7 +75,7 @@ type backendDataset struct {
 
 	Label            string `json:"label"`
 	FreshnessDesired string `json:"freshnessDesired"`
-	LatencyDesired   string `json:"latencyDesired"`
+	IconURL          string `json:"iconUrl"`
 
 	Transform struct {
 		Current struct {
@@ -89,6 +90,8 @@ var (
 		id
 		label
 		workspaceId
+		freshnessDesired
+		iconUrl
 		transform {
 			current {
 				stages {
@@ -133,6 +136,15 @@ func (d *Dataset) fromBackend(b *backendDataset) error {
 	d.WorkspaceID = b.WorkspaceID
 	d.ID = b.ID
 	d.Config.Label = b.Label
+
+	if b.IconURL != "" {
+		d.Config.IconURL = &b.IconURL
+	}
+
+	if i, err := strconv.Atoi(b.FreshnessDesired); err == nil {
+		freshness := time.Duration(int64(i))
+		d.Config.FreshnessDesired = &freshness
+	}
 
 	for _, s := range b.Transform.Current.Stages {
 		if err := d.Transform.addStage(&s); err != nil {

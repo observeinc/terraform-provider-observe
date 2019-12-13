@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dustinkirkland/golang-petname"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
@@ -26,17 +26,6 @@ func resourceDataset() *schema.Resource {
 			"workspace": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"label": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"freshness": &schema.Schema{
-				Type:         schema.TypeInt,
-				Description:  "Desired freshness in seconds",
-				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"stage": &schema.Schema{
 				Type: schema.TypeList,
@@ -71,6 +60,40 @@ func resourceDataset() *schema.Resource {
 					},
 				},
 				Required: true,
+			},
+			"dataset": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"label": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"icon_url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"freshness": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: func(i interface{}, k string) ([]string, []error) {
+								s := i.(string)
+								if _, err := time.ParseDuration(s); err != nil {
+									return nil, []error{err}
+								}
+								return nil, nil
+							},
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								o, _ := time.ParseDuration(old)
+								n, _ := time.ParseDuration(new)
+								return o == n
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -110,16 +133,32 @@ func resourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func getDatasetConfig(d *schema.ResourceData) (c observe.DatasetConfig, err error) {
-	if v, ok := d.GetOk("label"); ok {
-		c.Label = v.(string)
+	var m map[string]interface{}
+
+	if v, ok := d.GetOk("dataset"); ok {
+		datasets := v.([]interface{})
+		if len(datasets) == 0 {
+			return
+		}
+		m = datasets[0].(map[string]interface{})
+
+		if v, ok := m["label"]; ok {
+			c.Label = v.(string)
+		}
+
+		if v, ok := m["freshness"]; ok {
+			freshness, _ := time.ParseDuration(v.(string))
+			c.FreshnessDesired = &freshness
+		}
+
+		if v, ok := m["icon_url"]; ok {
+			icon := v.(string)
+			c.IconURL = &icon
+		}
 	} else {
 		c.Label = strings.ToLower(petname.Generate(2, "-"))
 	}
 
-	if v, ok := d.GetOk("freshness"); ok {
-		value := int64(v.(int)) * 1000000000
-		c.FreshnessDesired = &value
-	}
 	return
 }
 
@@ -143,15 +182,22 @@ func getTransformConfig(d *schema.ResourceData) (c observe.TransformConfig, err 
 }
 
 func datasetToResource(o *observe.Dataset, d *schema.ResourceData) error {
-	if err := d.Set("label", o.Config.Label); err != nil {
-		return err
+	m := make(map[string]interface{})
+
+	if label := o.Config.Label; label != "" {
+		m["label"] = label
 	}
 
-	if o.Config.FreshnessDesired != nil {
-		secs := int(*o.Config.FreshnessDesired / 1000000000)
-		if err := d.Set("freshness", secs); err != nil {
-			return err
-		}
+	if freshness := o.Config.FreshnessDesired; freshness != nil {
+		m["freshness"] = freshness.String()
+	}
+
+	if iconURL := o.Config.IconURL; iconURL != nil {
+		m["icon_url"] = *iconURL
+	}
+
+	if err := d.Set("dataset", []interface{}{m}); err != nil {
+		return err
 	}
 
 	var stages []interface{}
