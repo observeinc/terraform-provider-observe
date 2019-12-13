@@ -36,7 +36,7 @@ func resourceDataset() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"follow": {
+						"linked": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"stage.import"},
@@ -44,7 +44,7 @@ func resourceDataset() *schema.Resource {
 						"import": {
 							Type:          schema.TypeString,
 							Optional:      true,
-							ConflictsWith: []string{"stage.follow"},
+							ConflictsWith: []string{"stage.linked"},
 						},
 						"pipeline": {
 							Type:     schema.TypeString,

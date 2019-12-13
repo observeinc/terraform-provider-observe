@@ -40,7 +40,7 @@ type TransformConfig struct {
 // Stage declares a source to operate on, and a pipeline to execute
 type Stage struct {
 	Name     string `json:"name,omitempty"`
-	Follow   string `json:"follow,omitempty"`
+	Linked   string `json:"linked,omitempty"`
 	Import   string `json:"import,omitempty"`
 	Pipeline string `json:"pipeline,omitempty"`
 }
@@ -229,14 +229,14 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 		previousStage = t.Stages[n-1]
 	}
 
-	// FML, super confusing. We only want to assign Follow if it's not the default.
+	// FML, super confusing. We only want to assign Linked if it's not the default.
 	if s.Import == "" && previousStage != nil {
 		var name string
 		if name = previousStage.Name; name == "" {
 			name = fmt.Sprintf("stage%d", len(t.Stages)-1)
 		}
 		if firstInput.InputName != name {
-			s.Follow = firstInput.InputName
+			s.Linked = firstInput.InputName
 		}
 	}
 
@@ -259,12 +259,12 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 	switch {
 	case len(t.Stages) == 0 && s.Import == "":
 		err = fmt.Errorf("first stage must declare an import")
-	case s.Import != "" && s.Follow != "":
-		err = fmt.Errorf("stage has both import and follow attributes")
+	case s.Import != "" && s.Linked != "":
+		err = fmt.Errorf("stage has both import and linked attributes")
 	case s.Pipeline == "" && s.Import == "":
 		err = fmt.Errorf("stage must declare either an import or a pipeline")
-	case s.Follow != "" && t.inputs[s.Follow] == nil:
-		err = fmt.Errorf("stage follows undeclared stage %s", s.Follow)
+	case s.Linked != "" && t.inputs[s.Linked] == nil:
+		err = fmt.Errorf("stage linked to undeclared stage %s", s.Linked)
 	case s.Name != "" && t.inputs[s.Name] != nil:
 		err = fmt.Errorf("stage %s already declared", s.Name)
 	}
@@ -295,8 +295,8 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 		}
 	}
 
-	if s.Follow != "" {
-		stageInput = t.inputs[s.Follow]
+	if s.Linked != "" {
+		stageInput = t.inputs[s.Linked]
 	}
 
 	stage := &backendStage{
