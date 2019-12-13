@@ -39,7 +39,7 @@ type TransformConfig struct {
 
 // Stage declares a source to operate on, and a pipeline to execute
 type Stage struct {
-	Label    string `json:"label,omitempty"`
+	Name     string `json:"name,omitempty"`
 	Follow   string `json:"follow,omitempty"`
 	Import   string `json:"import,omitempty"`
 	Pipeline string `json:"pipeline,omitempty"`
@@ -169,14 +169,14 @@ func (c *DatasetConfig) toBackend(id string) *backendDatasetConfig {
 }
 
 func (t *TransformConfig) toBackend() *backendTransform {
-	var outputStage string
+	var outputStageName string
 
 	if len(t.Stages) > 0 {
-		outputStage = t.Stages[len(t.Stages)-1].Label
+		outputStageName = t.Stages[len(t.Stages)-1].Name
 	}
 
 	return &backendTransform{
-		OutputStage: outputStage,
+		OutputStage: outputStageName,
 		Stages:      t.stages,
 	}
 }
@@ -211,7 +211,7 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 
 				inputStage := &Stage{Import: i.DatasetID}
 				if i.InputName != fmt.Sprintf("stage%d", len(t.Stages)) {
-					inputStage.Label = i.InputName
+					inputStage.Name = i.InputName
 				}
 
 				t.Stages = append(t.Stages, inputStage)
@@ -220,7 +220,7 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 	}
 
 	if b.StageID != fmt.Sprintf("stage%d", len(t.Stages)) {
-		s.Label = b.StageID
+		s.Name = b.StageID
 	}
 
 	firstInput := b.Input[0]
@@ -231,11 +231,11 @@ func (t *TransformConfig) addStage(b *backendStage) (err error) {
 
 	// FML, super confusing. We only want to assign Follow if it's not the default.
 	if s.Import == "" && previousStage != nil {
-		var label string
-		if label = previousStage.Label; label == "" {
-			label = fmt.Sprintf("stage%d", len(t.Stages)-1)
+		var name string
+		if name = previousStage.Name; name == "" {
+			name = fmt.Sprintf("stage%d", len(t.Stages)-1)
 		}
-		if firstInput.InputName != label {
+		if firstInput.InputName != name {
 			s.Follow = firstInput.InputName
 		}
 	}
@@ -265,8 +265,8 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 		err = fmt.Errorf("stage must declare either an import or a pipeline")
 	case s.Follow != "" && t.inputs[s.Follow] == nil:
 		err = fmt.Errorf("stage follows undeclared stage %s", s.Follow)
-	case s.Label != "" && t.inputs[s.Label] != nil:
-		err = fmt.Errorf("stage %s already declared", s.Label)
+	case s.Name != "" && t.inputs[s.Name] != nil:
+		err = fmt.Errorf("stage %s already declared", s.Name)
 	}
 
 	if err != nil {
@@ -275,14 +275,14 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 
 	var stageInput *backendInput
 
-	if s.Label == "" {
-		s.Label = fmt.Sprintf("stage%d", len(t.Stages))
+	if s.Name == "" {
+		s.Name = fmt.Sprintf("stage%d", len(t.Stages))
 	}
 
 	// input only stage
 	if s.Import != "" && s.Pipeline == "" {
-		t.inputs[s.Label] = &backendInput{
-			InputName: s.Label,
+		t.inputs[s.Name] = &backendInput{
+			InputName: s.Name,
 			DatasetID: s.Import,
 		}
 		return
@@ -300,7 +300,7 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 	}
 
 	stage := &backendStage{
-		StageID:  s.Label,
+		StageID:  s.Name,
 		Pipeline: NewPipeline(s.Pipeline).Canonical(),
 	}
 
@@ -309,15 +309,15 @@ func (t *TransformConfig) AddStage(s *Stage) (err error) {
 	}
 
 	for i := len(t.Stages) - 1; i >= 0; i-- {
-		label := t.Stages[i].Label
-		if stageInput == nil || label != stageInput.InputName {
-			stage.Input = append(stage.Input, t.inputs[label])
+		name := t.Stages[i].Name
+		if stageInput == nil || name != stageInput.InputName {
+			stage.Input = append(stage.Input, t.inputs[name])
 		}
 	}
 
-	t.inputs[s.Label] = &backendInput{
-		InputName: s.Label,
-		StageID:   s.Label,
+	t.inputs[s.Name] = &backendInput{
+		InputName: s.Name,
+		StageID:   s.Name,
 	}
 
 	t.stages = append(t.stages, stage)

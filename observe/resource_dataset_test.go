@@ -80,7 +80,7 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 		workspace = "%[1]s"
 
 		stage {
-			label  = "alt"
+			name   = "alt"
 			import = "${observe_transform.first.id}"
 		}
 
@@ -97,7 +97,7 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 			EOF
 		}
 		dataset {
-			label = "ny-label"
+			name = "ny-label"
 		}
 	}`, workspaceID, inputID)
 }

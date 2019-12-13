@@ -8,23 +8,30 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"key": {
+			"customer": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_KEY", nil),
-				Description: "Observe API Key from https://app.observeinc.com/#account",
-			},
-			"url": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_URL", "https://118647111237.observe-eng.com/v1/meta"),
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
 				Description: "Observe API URL",
+			},
+			"token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_TOKEN", nil),
+				Description: "Observe Token",
+			},
+			"domain": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_DOMAIN", "observeinc.com"),
+				Description: "Observe root domain",
 			},
 		},
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
 			config := Config{
-				BaseURL: d.Get("url").(string),
-				ApiKey:  d.Get("key").(string),
+				CustomerID: d.Get("customer").(string),
+				Token:      d.Get("token").(string),
+				Domain:     d.Get("domain").(string),
 			}
 			return config.Client()
 		},

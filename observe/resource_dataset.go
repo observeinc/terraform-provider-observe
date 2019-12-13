@@ -31,7 +31,7 @@ func resourceDataset() *schema.Resource {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"label": {
+						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -65,7 +65,7 @@ func resourceDataset() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"label": {
+						"name": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -139,7 +139,7 @@ func getDatasetConfig(d *schema.ResourceData) (c observe.DatasetConfig, err erro
 		}
 		m = datasets[0].(map[string]interface{})
 
-		if v, ok := m["label"]; ok && v != "" {
+		if v, ok := m["name"]; ok && v != "" {
 			c.Label = v.(string)
 		}
 
@@ -181,8 +181,8 @@ func getTransformConfig(d *schema.ResourceData) (c observe.TransformConfig, err 
 func datasetToResource(o *observe.Dataset, d *schema.ResourceData) error {
 	m := make(map[string]interface{})
 
-	if label := o.Config.Label; label != "" {
-		m["label"] = label
+	if name := o.Config.Label; name != "" {
+		m["name"] = name
 	}
 
 	if freshness := o.Config.FreshnessDesired; freshness != nil {

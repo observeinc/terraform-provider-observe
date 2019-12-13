@@ -14,7 +14,7 @@ func dataSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"label": {
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -27,10 +27,10 @@ func dataSourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
 
 	var (
 		workspaceID = d.Get("workspace").(string)
-		label       = d.Get("label").(string)
+		name        = d.Get("name").(string)
 	)
 
-	dataset, err := c.LookupDataset(workspaceID, label)
+	dataset, err := c.LookupDataset(workspaceID, name)
 	if err != nil {
 		return err
 	}

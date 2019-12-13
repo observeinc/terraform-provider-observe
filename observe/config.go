@@ -1,14 +1,20 @@
 package observe
 
 import (
+	"fmt"
 	"github.com/observeinc/terraform-provider-observe/client"
 )
 
 type Config struct {
-	BaseURL string
-	ApiKey  string
+	CustomerID string
+	Token      string
+	Domain     string
 }
 
 func (c *Config) Client() (*client.Client, error) {
-	return client.NewClient(c.BaseURL, c.ApiKey)
+	var (
+		baseURL = fmt.Sprintf("https://%s.%s/v1/meta", c.CustomerID, c.Domain)
+		key     = fmt.Sprintf("%s %s", c.CustomerID, c.Token)
+	)
+	return client.NewClient(baseURL, key)
 }
