@@ -39,6 +39,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_transform.first", "stage.0.import", datasetID),
 					resource.TestCheckResourceAttr("observe_transform.second", "workspace", workspaceID),
 					resource.TestCheckResourceAttr("observe_transform.second", "stage.1.import", datasetID),
+					resource.TestCheckResourceAttr("observe_transform.second", "dataset.0.icon_url", "test"),
 				),
 			},
 		},
@@ -97,7 +98,8 @@ func testDatasetConfig(workspaceID string, inputID string) string {
 			EOF
 		}
 		dataset {
-			name = "ny-label"
+			name     = "ny-label"
+			icon_url = "test"
 		}
 	}`, workspaceID, inputID)
 }

@@ -29,10 +29,11 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("OBSERVE_URL"); v == "" {
-		t.Fatal("OBSERVE_URL must be set for acceptance tests")
-	}
-	if v := os.Getenv("OBSERVE_KEY"); v == "" {
-		t.Fatal("OBSERVE_KEY must be set for acceptance tests")
+	requiredEnvVars := []string{"OBSERVE_CUSTOMER", "OBSERVE_DOMAIN", "OBSERVE_TOKEN"}
+
+	for _, k := range requiredEnvVars {
+		if v := os.Getenv(k); v == "" {
+			t.Fatalf("%s must be set for acceptance tests", k)
+		}
 	}
 }

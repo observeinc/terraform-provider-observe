@@ -13,5 +13,10 @@ func TestMain(m *testing.M) {
 }
 
 func sharedClient() (*observe.Client, error) {
-	return observe.NewClient(os.Getenv("OBSERVE_URL"), os.Getenv("OBSERVE_KEY"))
+	c := &Config{
+		CustomerID: os.Getenv("OBSERVE_CUSTOMER"),
+		Token:      os.Getenv("OBSERVE_TOKEN"),
+		Domain:     os.Getenv("OBSERVE_DOMAIN"),
+	}
+	return c.Client()
 }

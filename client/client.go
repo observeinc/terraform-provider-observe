@@ -69,7 +69,6 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		log.Printf("[WARN] %s\n", s)
 		return nil, ErrUnauthorized
 	default:
-		log.Printf("[INFO] %s\n", s)
 		return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
 	}
 }
@@ -115,6 +114,8 @@ func NewClient(baseURL string, key string) (*Client, error) {
 	authed := &http.Client{
 		Transport: &authTripper{key: key},
 	}
+
+	log.Printf("[DEBUG] using %s", baseURL)
 
 	c := &Client{
 		client: graphql.NewClient(u.String(), graphql.WithHTTPClient(authed)),
