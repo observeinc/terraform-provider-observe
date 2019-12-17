@@ -49,7 +49,6 @@ func resourceDataset() *schema.Resource {
 						"pipeline": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
 							},
