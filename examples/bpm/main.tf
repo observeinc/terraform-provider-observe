@@ -5,15 +5,15 @@ variable "workspace_id" {
 }
 
 data "observe_dataset" "observation_table" {
-  workspace = "${var.workspace_id}"
+  workspace = var.workspace_id
   name      = "Observation"
 }
 
 resource "observe_transform" "http_posts" {
-  workspace = "${var.workspace_id}"
+  workspace = var.workspace_id
 
   stage {
-    import = "${data.observe_dataset.observation_table.id}"
+    import = data.observe_dataset.observation_table.id
     pipeline = <<-EOF
       filter OBSERVATION_KIND="httpjson"
       colmake path:string(EXTRA.path)
@@ -26,11 +26,11 @@ resource "observe_transform" "http_posts" {
 }
 
 resource "observe_transform" "http_endpoint" {
-  workspace = "${var.workspace_id}"
+  workspace = var.workspace_id
 
   stage {
     name   = "http_posts"
-    import = "${observe_transform.http_posts.id}"
+    import = observe_transform.http_posts.id
   }
 
   stage {
