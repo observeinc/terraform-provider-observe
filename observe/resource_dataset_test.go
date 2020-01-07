@@ -26,20 +26,17 @@ func testSweepObserveDataset(r string) error {
 */
 
 func TestAccObserveDatasetBasic(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
+	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testDatasetConfig(workspaceID, datasetID),
+				Config: testDatasetConfig(workspaceID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_transform.first", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_transform.first", "stage.0.import", datasetID),
-					resource.TestCheckResourceAttr("observe_transform.second", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_transform.second", "stage.1.import", datasetID),
-					resource.TestCheckResourceAttr("observe_transform.second", "dataset.0.icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "Test Dataset"),
 				),
 			},
 		},
@@ -64,42 +61,12 @@ func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	return datasets[0].WorkspaceID, datasets[0].ID
 }
 
-func testDatasetConfig(workspaceID string, inputID string) string {
+func testDatasetConfig(workspaceID string) string {
 	return fmt.Sprintf(`
-	resource "observe_transform" "first" {
+	resource "observe_dataset" "first" {
 		workspace = "%[1]s"
-
-		stage {
-			import = "%[2]s"
-			pipeline = <<-EOF
-				filter true
-			EOF
-		}
-	}
-
-	resource "observe_transform" "second" {
-		workspace = "%[1]s"
-
-		stage {
-			name   = "alt"
-			import = "${observe_transform.first.id}"
-		}
-
-		stage {
-			import = "%[2]s"
-			pipeline = <<-EOF
-				filter true
-			EOF
-		}
-
-		stage {
-			pipeline = <<-EOF
-				filter false
-			EOF
-		}
-		dataset {
-			name     = "ny-label"
-			icon_url = "test"
-		}
-	}`, workspaceID, inputID)
+		name 	  = "Test Dataset"
+		freshness = "1m"
+		icon_url  = "input"
+	}`, workspaceID)
 }

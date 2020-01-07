@@ -13,36 +13,29 @@ var (
 	ErrDatasetNotFound = errors.New("dataset not found")
 )
 
+var FieldTypes = []string{
+	"array",
+	"bool",
+	"float64",
+	"int64",
+	"object",
+	"string",
+	"timestamp",
+}
+
 // Dataset is published within a workspace, is the output of a transform.
 type Dataset struct {
-	WorkspaceID string          `json:"workspaceId"`
-	ID          string          `json:"id"`
-	Config      DatasetConfig   `json:"config"`
-	Transform   TransformConfig `json:"transform"`
+	WorkspaceID string        `json:"workspaceId"`
+	ID          string        `json:"id"`
+	Config      DatasetConfig `json:"config"`
 }
 
 // DatasetConfig declares configuration options for the Dataset. Use pointers to denote optional fields
 type DatasetConfig struct {
 	ID               string         `json:"id,omitempty"` // XXX: this should be part of Dataset, not properties
 	Label            string         `json:"label,omitempty"`
-	Deleted          *bool          `json:"deleted,omitempty"`
 	FreshnessDesired *time.Duration `json:"freshnessDesired,omitempty"`
 	IconURL          *string        `json:"iconUrl,omitempty"`
-}
-
-// TransformConfig describes a sequence of stages
-type TransformConfig struct {
-	Stages []*Stage `json:"stages"`
-	inputs map[string]*backendInput
-	stages []*backendStage
-}
-
-// Stage declares a source to operate on, and a pipeline to execute
-type Stage struct {
-	Name     string `json:"name,omitempty"`
-	Linked   string `json:"linked,omitempty"`
-	Import   string `json:"import,omitempty"`
-	Pipeline string `json:"pipeline,omitempty"`
 }
 
 type backendDatasetConfig struct {
@@ -52,23 +45,6 @@ type backendDatasetConfig struct {
 	IconURL          string `json:"iconUrl,omitempty"`
 }
 
-type backendInput struct {
-	InputName string `json:"inputName"`
-	StageID   string `json:"stageID,omitempty"`
-	DatasetID string `json:"datasetId,omitempty"`
-}
-
-type backendStage struct {
-	Input    []*backendInput `json:"input"`
-	StageID  string          `json:"stageID"`
-	Pipeline string          `json:"pipeline"`
-}
-
-type backendTransform struct {
-	OutputStage string          `json:"outputStage"`
-	Stages      []*backendStage `json:"stages"`
-}
-
 type backendDataset struct {
 	ID          string `json:"id"`
 	WorkspaceID string `json:"workspaceId"`
@@ -76,35 +52,16 @@ type backendDataset struct {
 	Label            string `json:"label"`
 	FreshnessDesired string `json:"freshnessDesired"`
 	IconURL          string `json:"iconUrl"`
-
-	Transform struct {
-		Current struct {
-			Stages []backendStage `json:"stages"`
-		} `json:"current"`
-	} `json:"transform"`
 }
 
 var (
 	backendDatasetFragment = `
 	fragment datasetFields on Dataset {
+		workspaceId
 		id
 		label
-		workspaceId
 		freshnessDesired
 		iconUrl
-		transform {
-			current {
-				stages {
-					stageID
-					pipeline
-					input {
-						inputName
-						datasetId
-						stageID
-					}
-				}
-			}
-		}
 	}`
 	saveDatasetQuery = `
 	mutation SaveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $transform: TransformInput!) {
@@ -120,19 +77,7 @@ var (
 	}`
 )
 
-func getNested(i interface{}, keys ...string) interface{} {
-	for _, k := range keys {
-		v, ok := i.(map[string]interface{})
-		if !ok {
-			return nil
-		}
-		i = v[k]
-	}
-	return i
-}
-
 func (d *Dataset) fromBackend(b *backendDataset) error {
-
 	d.WorkspaceID = b.WorkspaceID
 	d.ID = b.ID
 	d.Config.Label = b.Label
@@ -150,11 +95,6 @@ func (d *Dataset) fromBackend(b *backendDataset) error {
 		d.Config.FreshnessDesired = &freshness
 	}
 
-	for _, s := range b.Transform.Current.Stages {
-		if err := d.Transform.addStage(&s); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -168,171 +108,26 @@ func (c *DatasetConfig) toBackend(id string) *backendDatasetConfig {
 	return &b
 }
 
-func (t *TransformConfig) toBackend() *backendTransform {
-	var outputStageName string
+func (c *Client) CreateDataset(workspaceID string, config DatasetConfig) (*Dataset, error) {
 
-	if len(t.Stages) > 0 {
-		outputStageName = t.Stages[len(t.Stages)-1].Name
-	}
-
-	return &backendTransform{
-		OutputStage: outputStageName,
-		Stages:      t.stages,
-	}
-}
-
-func (t *TransformConfig) addStage(b *backendStage) (err error) {
-	defer func() {
-		if err == nil {
-			t.stages = append(t.stages, b)
-		}
-	}()
-
-	if len(b.Input) == 0 {
-		return nil
-	}
-
-	if t.inputs == nil {
-		t.inputs = make(map[string]*backendInput)
-	}
-
-	s := &Stage{
-		Pipeline: NewPipeline(b.Pipeline).String(),
-	}
-
-	for n, i := range b.Input {
-		if i.DatasetID != "" {
-			if n == 0 && i.InputName == i.DatasetID {
-				// we declared an import within the stage stanza
-				s.Import = i.DatasetID
-			} else if t.inputs[i.InputName] == nil {
-				// if name doesn't match, we must have implicitly declared an input
-				t.inputs[i.InputName] = i
-
-				inputStage := &Stage{Import: i.DatasetID}
-				if i.InputName != fmt.Sprintf("stage%d", len(t.Stages)) {
-					inputStage.Name = i.InputName
-				}
-
-				t.Stages = append(t.Stages, inputStage)
-			}
-		}
-	}
-
-	if b.StageID != fmt.Sprintf("stage%d", len(t.Stages)) {
-		s.Name = b.StageID
-	}
-
-	firstInput := b.Input[0]
-	var previousStage *Stage
-	if n := len(t.Stages); n > 0 {
-		previousStage = t.Stages[n-1]
-	}
-
-	// FML, super confusing. We only want to assign Linked if it's not the default.
-	if s.Import == "" && previousStage != nil {
-		var name string
-		if name = previousStage.Name; name == "" {
-			name = fmt.Sprintf("stage%d", len(t.Stages)-1)
-		}
-		if firstInput.InputName != name {
-			s.Linked = firstInput.InputName
-		}
-	}
-
-	t.Stages = append(t.Stages, s)
-	return nil
-}
-
-func (t *TransformConfig) AddStage(s *Stage) (err error) {
-	defer func() {
-		if err == nil {
-			t.Stages = append(t.Stages, s)
-		}
-	}()
-
-	if t.inputs == nil {
-		t.inputs = make(map[string]*backendInput)
-	}
-
-	// validate input
-	switch {
-	case len(t.Stages) == 0 && s.Import == "":
-		err = fmt.Errorf("first stage must declare an import")
-	case s.Import != "" && s.Linked != "":
-		err = fmt.Errorf("stage has both import and linked attributes")
-	case s.Pipeline == "" && s.Import == "":
-		err = fmt.Errorf("stage must declare either an import or a pipeline")
-	case s.Linked != "" && t.inputs[s.Linked] == nil:
-		err = fmt.Errorf("stage linked to undeclared stage %s", s.Linked)
-	case s.Name != "" && t.inputs[s.Name] != nil:
-		err = fmt.Errorf("stage %s already declared", s.Name)
-	}
-
+	// XXX: need a placeholder for now, just create a stage from observation table
+	dataset, err := c.LookupDataset(workspaceID, "Observation")
 	if err != nil {
-		return
+		return nil, fmt.Errorf("failed to lookup observation table: %w", err)
 	}
 
-	var stageInput *backendInput
-
-	if s.Name == "" {
-		s.Name = fmt.Sprintf("stage%d", len(t.Stages))
+	transformConfig, err := NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: "filter true"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create transform config: %w", err)
 	}
 
-	// input only stage
-	if s.Import != "" && s.Pipeline == "" {
-		t.inputs[s.Name] = &backendInput{
-			InputName: s.Name,
-			DatasetID: s.Import,
-		}
-		return
-	}
-
-	if s.Import != "" {
-		stageInput = &backendInput{
-			InputName: s.Import, // name is mandatory for backend
-			DatasetID: s.Import,
-		}
-	}
-
-	if s.Linked != "" {
-		stageInput = t.inputs[s.Linked]
-	}
-
-	stage := &backendStage{
-		StageID:  s.Name,
-		Pipeline: NewPipeline(s.Pipeline).Canonical(),
-	}
-
-	if stageInput != nil {
-		stage.Input = append(stage.Input, stageInput)
-	}
-
-	for i := len(t.Stages) - 1; i >= 0; i-- {
-		name := t.Stages[i].Name
-		if stageInput == nil || name != stageInput.InputName {
-			stage.Input = append(stage.Input, t.inputs[name])
-		}
-	}
-
-	t.inputs[s.Name] = &backendInput{
-		InputName: s.Name,
-		StageID:   s.Name,
-	}
-
-	t.stages = append(t.stages, stage)
-
-	return nil
-}
-
-func (c *Client) CreateDataset(workspaceID string, datasetConfig DatasetConfig, transformConfig TransformConfig) (*Dataset, error) {
 	result, err := c.Run(backendDatasetFragment+saveDatasetQuery, map[string]interface{}{
 		"workspaceId": workspaceID,
-		"dataset":     datasetConfig.toBackend(""),
+		"dataset":     config.toBackend(""),
 		"transform":   transformConfig.toBackend(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create dataset: %w", err)
 	}
 
 	var b backendDataset
@@ -344,23 +139,10 @@ func (c *Client) CreateDataset(workspaceID string, datasetConfig DatasetConfig, 
 	return &d, d.fromBackend(&b)
 }
 
-func decode(input interface{}, output interface{}) error {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		ErrorUnused: true,
-		Result:      output,
-	})
-	if err != nil {
-		return err
-	}
-	return decoder.Decode(input)
-}
-
-func (c *Client) UpdateDataset(workspaceID string, ID string, datasetConfig DatasetConfig, transformConfig TransformConfig) (*Dataset, error) {
-
+func (c *Client) UpdateDataset(workspaceID string, ID string, config DatasetConfig) (*Dataset, error) {
 	result, err := c.Run(backendDatasetFragment+saveDatasetQuery, map[string]interface{}{
 		"workspaceId": workspaceID,
-		"dataset":     datasetConfig.toBackend(ID),
-		"transform":   transformConfig.toBackend(),
+		"dataset":     config.toBackend(ID),
 	})
 
 	if err != nil {
