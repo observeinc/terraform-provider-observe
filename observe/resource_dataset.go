@@ -1,10 +1,12 @@
 package observe
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/mitchellh/mapstructure"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
@@ -85,7 +87,11 @@ func (d *datasetResourceData) GetConfig() (observe.DatasetConfig, error) {
 		c.IconURL = &icon
 	}
 
-	// TODO: fields
+	if v, ok := d.GetOk("field"); ok {
+		if err := mapstructure.Decode(v, &c.Fields); err != nil {
+			return c, fmt.Errorf("failed to decode fields: %w", err)
+		}
+	}
 
 	return c, nil
 }

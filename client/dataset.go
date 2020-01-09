@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -28,6 +29,7 @@ type Dataset struct {
 	WorkspaceID string        `json:"workspaceId"`
 	ID          string        `json:"id"`
 	Config      DatasetConfig `json:"config"`
+	fields      map[string]string
 }
 
 // DatasetConfig declares configuration options for the Dataset. Use pointers to denote optional fields
@@ -36,6 +38,12 @@ type DatasetConfig struct {
 	Label            string         `json:"label,omitempty"`
 	FreshnessDesired *time.Duration `json:"freshnessDesired,omitempty"`
 	IconURL          *string        `json:"iconUrl,omitempty"`
+	Fields           []*Field       `json:"fields,omitempty"`
+}
+
+type Field struct {
+	Name string `json:"field,omitempty"`
+	Type string `json:"type,omitempty"`
 }
 
 type backendDatasetConfig struct {
@@ -45,6 +53,9 @@ type backendDatasetConfig struct {
 	IconURL          string `json:"iconUrl,omitempty"`
 }
 
+type backendTypedef struct {
+}
+
 type backendDataset struct {
 	ID          string `json:"id"`
 	WorkspaceID string `json:"workspaceId"`
@@ -52,6 +63,22 @@ type backendDataset struct {
 	Label            string `json:"label"`
 	FreshnessDesired string `json:"freshnessDesired"`
 	IconURL          string `json:"iconUrl"`
+	Typedef          struct {
+		Definition struct {
+			Fields []backendField `json:"fields,omitempty"`
+		} `json:"definition,omitempty"`
+	} `json:"typedef,omitempty"`
+}
+
+type backendField struct {
+	Name         string  `json:"name,omitempty"`
+	IsHidden     *bool   `json:"isHidden,omitempty"`
+	IsSearchable *bool   `json:"isSearchable,omitempty"`
+	Label        *string `json:"label,omitempty"`
+	Type         struct {
+		Rep      string `json:"rep"`
+		Nullable *bool  `json:"nullable,omitempty"`
+	} `json:"type"`
 }
 
 var (
@@ -62,6 +89,9 @@ var (
 		label
 		freshnessDesired
 		iconUrl
+		typedef {
+		  definition
+		}
 	}`
 	saveDatasetQuery = `
 	mutation SaveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $transform: TransformInput!) {
@@ -95,6 +125,11 @@ func (d *Dataset) fromBackend(b *backendDataset) error {
 		d.Config.FreshnessDesired = &freshness
 	}
 
+	d.fields = make(map[string]string)
+	for _, f := range b.Typedef.Definition.Fields {
+		d.fields[f.Name] = f.Type.Rep
+	}
+
 	return nil
 }
 
@@ -109,14 +144,26 @@ func (c *DatasetConfig) toBackend(id string) *backendDatasetConfig {
 }
 
 func (c *Client) CreateDataset(workspaceID string, config DatasetConfig) (*Dataset, error) {
-
 	// XXX: need a placeholder for now, just create a stage from observation table
 	dataset, err := c.LookupDataset(workspaceID, "Observation")
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup observation table: %w", err)
 	}
 
-	transformConfig, err := NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: "filter true"})
+	var pipeline string
+	if len(config.Fields) > 0 {
+		var p []string
+		for _, f := range config.Fields {
+			p = append(p, fmt.Sprintf("%s:%s", f.Name, map[string]string{
+				"string": "\"placeholder\"",
+			}[f.Type]))
+		}
+		pipeline = fmt.Sprintf("colmake %s", strings.Join(p, ", "))
+	} else {
+		pipeline = "filter true"
+	}
+
+	transformConfig, err := NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: pipeline})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create transform config: %w", err)
 	}
