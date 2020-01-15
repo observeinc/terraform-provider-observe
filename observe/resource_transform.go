@@ -1,9 +1,7 @@
 package observe
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mitchellh/mapstructure"
@@ -92,9 +90,6 @@ func (d *transformResourceData) GetConfig() (*observe.TransformConfig, error) {
 	} else if err := mapstructure.Decode(v, &stages); err != nil {
 		return nil, fmt.Errorf("failed to decode stages: %w", err)
 	}
-
-	s, _ := json.Marshal(stages)
-	log.Printf("my stages: %s\n", string(s))
 
 	return observe.NewTransformConfig(inputs, references, stages...)
 }

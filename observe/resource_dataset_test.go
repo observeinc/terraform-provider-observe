@@ -33,10 +33,83 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testDatasetConfig(workspaceID),
+				Config: fmt.Sprintf(`
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "tf_test_dataset"
+					freshness = "1m"
+					icon_url  = "input"
+				}`, workspaceID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "Test Dataset"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_dataset"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveDatasetSchema(t *testing.T) {
+	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "tf_test_schema"
+
+					field { name = "column" }
+					field {
+						name = "number"
+						type = "int64"
+					}
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_schema"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "field.0.name", "column"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveDatasetUpdate(t *testing.T) {
+	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "tf_test_update"
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "tf_test_update"
+					freshness = "1m"
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
 				),
 			},
 		},
@@ -59,14 +132,4 @@ func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	}
 
 	return datasets[0].WorkspaceID, datasets[0].ID
-}
-
-func testDatasetConfig(workspaceID string) string {
-	return fmt.Sprintf(`
-	resource "observe_dataset" "first" {
-		workspace = "%[1]s"
-		name 	  = "Test Dataset"
-		freshness = "1m"
-		icon_url  = "input"
-	}`, workspaceID)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 )
 
 // TransformConfig describes a sequence of stages
@@ -11,6 +12,7 @@ type TransformConfig struct {
 	Inputs        map[string]string `json:"inputs"`
 	References    map[string]string `json:"references"`
 	Stages        []*Stage          `json:"stages"`
+	Metadata      map[string]string
 	inputs        map[string]*backendInput
 	backendStages []*backendStage
 }
@@ -41,17 +43,14 @@ type backendStage struct {
 }
 
 type backendTransform struct {
-	OutputStage string          `json:"outputStage"`
-	Stages      []*backendStage `json:"stages"`
+	OutputStage string                 `json:"outputStage"`
+	Stages      []*backendStage        `json:"stages"`
+	Layout      map[string]interface{} `json:"layout,omitempty"`
 }
 
 type backendDatasetWithTransform struct {
 	ID          string `json:"id"`
 	WorkspaceID string `json:"workspaceId"`
-
-	Label            string `json:"label"`
-	FreshnessDesired string `json:"freshnessDesired"`
-	IconURL          string `json:"iconUrl"`
 
 	Transform struct {
 		Current backendTransform `json:"current"`
@@ -62,13 +61,11 @@ var (
 	backendTransformFragment = `
 	fragment datasetFields on Dataset {
 		id
-		label
 		workspaceId
-		freshnessDesired
-		iconUrl
 		transform {
 			id
 			current {
+				layout
 				outputStage
 				stages {
 					stageID
@@ -82,12 +79,11 @@ var (
 			}
 		}
 	}`
-	saveTransformQuery = `
-	mutation SaveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $transform: TransformInput!) {
-		saveDataset(
-			workspaceId:$workspaceId
-			dataset: $dataset
-			transform: $transform
+	publishTransformQuery = `
+	mutation publish($datasetId: ObjectId!, $transform: TransformInput!) {
+		publishDatasetTransform(
+			datasetId:$datasetId,
+			transform:$transform,
 		) {
 			dataset {
 				...datasetFields
@@ -181,9 +177,15 @@ func (t *TransformConfig) toBackend() *backendTransform {
 		outputStageName = t.backendStages[len(t.backendStages)-1].StageID
 	}
 
+	var layout map[string]interface{}
+	if t.Metadata != nil {
+		layout = map[string]interface{}{"terraform": t.Metadata}
+	}
+
 	return &backendTransform{
 		OutputStage: outputStageName,
 		Stages:      t.backendStages,
+		Layout:      layout,
 	}
 }
 
@@ -192,9 +194,6 @@ func (t *TransformConfig) fromBackend(b *backendTransform) error {
 	t.Inputs = make(map[string]string)
 
 	t.backendStages = b.Stages
-
-	s, _ := json.Marshal(b.Stages)
-	log.Printf("backend stages: %s\n", string(s))
 
 	for i, backendStage := range b.Stages {
 		var s Stage
@@ -238,34 +237,70 @@ func (t *TransformConfig) fromBackend(b *backendTransform) error {
 }
 
 func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Transform, error) {
-	dataset, err := c.GetDataset(datasetID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve dataset: %w", err)
-	}
-
 	if config == nil {
-		// delete by resetting transform to something else
-		dataset, err := c.LookupDataset(dataset.WorkspaceID, "Observation")
+		// delete by resetting transform to something else for now
+		dataset, err := c.GetDataset(datasetID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve dataset: %w", err)
+		}
+
+		var cmds, args []string
+		for _, f := range dataset.Config.Fields {
+			value := map[string]string{
+				"any":       "parsejson(\"{}\")",
+				"bool":      "true",
+				"string":    "\"string\"",
+				"int64":     "int64(1)",
+				"float64":   "float64(1)",
+				"object":    "object(parsejson(\"{}\"))",
+				"timestamp": "seconds(1)",
+			}[f.Type]
+
+			if value == "" {
+				panic(fmt.Sprintf("unsupported field type %s", f.Type))
+			}
+			args = append(args, fmt.Sprintf("\"%s\":%s", f.Name, value))
+
+			if f.ValidFrom {
+				cmds = append(cmds, fmt.Sprintf("setvf @.\"%s\"", f.Name))
+			}
+			if f.ValidTo {
+				cmds = append(cmds, fmt.Sprintf("setvt @.\"%s\"", f.Name))
+			}
+		}
+
+		cmd := "filter false"
+		if len(args) > 0 {
+			cmds = append([]string{fmt.Sprintf("colpick %s", strings.Join(args, ", "))}, cmds...)
+			cmd = strings.Join(cmds, "\n")
+		}
+
+		dataset, err = c.LookupDataset(dataset.WorkspaceID, "Observation")
 		if err != nil {
 			return nil, fmt.Errorf("failed to lookup observation table: %w", err)
 		}
-		config, err = NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: "filter true"})
+
+		log.Printf("[DEBUG] CMD %s\n", cmd)
+
+		config, err = NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: cmd})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create transform config: %w", err)
 		}
 	}
 
-	result, err := c.Run(backendTransformFragment+saveTransformQuery, map[string]interface{}{
-		"workspaceId": dataset.WorkspaceID,
-		"dataset":     dataset.Config.toBackend(dataset.ID),
-		"transform":   config.toBackend(),
+	result, err := c.Run(backendTransformFragment+publishTransformQuery, map[string]interface{}{
+		"datasetId": datasetID,
+		"transform": config.toBackend(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure transform: %w", err)
 	}
 
+	s, _ := json.Marshal(config.toBackend())
+	log.Printf("HELO %s\n", s)
+
 	var b backendTransform
-	if err := decode(getNested(result, "saveDataset", "dataset", "transform", "current"), &b); err != nil {
+	if err := decode(getNested(result, "publishDatasetTransform", "dataset", "transform", "current"), &b); err != nil {
 		return nil, err
 	}
 
@@ -275,7 +310,7 @@ func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Trans
 	}
 
 	return &Transform{
-		ID:              dataset.ID,
+		ID:              datasetID,
 		TransformConfig: &t,
 	}, nil
 }

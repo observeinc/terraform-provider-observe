@@ -64,6 +64,16 @@ func resourceDataset() *schema.Resource {
 				},
 				Optional: true,
 			},
+			"keys": &schema.Schema{
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeList,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				Optional: true,
+			},
 		},
 	}
 }
@@ -74,7 +84,7 @@ type datasetResourceData struct {
 
 func (d *datasetResourceData) GetConfig() (observe.DatasetConfig, error) {
 	c := observe.DatasetConfig{
-		Label: d.Get("name").(string),
+		Name: d.Get("name").(string),
 	}
 
 	if v, ok := d.GetOk("freshness"); ok {
@@ -96,21 +106,44 @@ func (d *datasetResourceData) GetConfig() (observe.DatasetConfig, error) {
 	return c, nil
 }
 
-func (d *datasetResourceData) SetState(o *observe.Dataset) (err error) {
+func (d *datasetResourceData) SetState(o *observe.Dataset) error {
 	d.SetId(o.ID)
 
-	err = d.Set("name", o.Config.Label)
+	c := o.Config
 
-	if freshness := o.Config.FreshnessDesired; err != nil && freshness != nil {
-		err = d.Set("freshness", freshness.String())
+	if err := d.Set("name", c.Name); err != nil {
+		return err
 	}
 
-	if iconURL := o.Config.IconURL; err != nil && iconURL != nil {
-		err = d.Set("icon_url", *iconURL)
+	if freshness := c.FreshnessDesired; freshness != nil {
+		if err := d.Set("freshness", freshness.String()); err != nil {
+			return err
+		}
 	}
 
-	// TODO: fields
-	return err
+	if iconURL := c.IconURL; iconURL != nil {
+		if err := d.Set("icon_url", *iconURL); err != nil {
+			return err
+		}
+	}
+
+	/* XXX: missing, because we don't yet know what fields we pre-declared.
+	var fields []interface{}
+	for _, f := range c.Fields {
+		field := map[string]interface{}{
+			"name": f.Name,
+			"type": f.Type,
+		}
+
+		fields = append(fields, field)
+	}
+
+	if err := d.Set("field", fields); err != nil {
+		return err
+	}
+	*/
+
+	return nil
 }
 
 func resourceDatasetCreate(data *schema.ResourceData, meta interface{}) error {
@@ -128,7 +161,6 @@ func resourceDatasetCreate(data *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return dataset.SetState(result)
 }
 
