@@ -20,7 +20,9 @@ func NewPipeline(s string) *Pipeline {
 	var ops []string
 	for _, line := range strings.Split(strings.TrimSpace(s), "\n") {
 		for _, stmt := range strings.Split(line, "|") {
-			ops = append(ops, strings.TrimSpace(stmt))
+			if op := strings.TrimSpace(stmt); op != "" && !strings.HasPrefix(op, "//") {
+				ops = append(ops, op)
+			}
 		}
 	}
 	return &Pipeline{ops}
