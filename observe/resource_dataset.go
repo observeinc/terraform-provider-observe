@@ -10,6 +10,19 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+func mergeSchema(kvs ...map[string]*schema.Schema) map[string]*schema.Schema {
+	result := make(map[string]*schema.Schema)
+	for _, schema := range kvs {
+		for k, v := range schema {
+			if _, ok := result[k]; ok {
+				panic(fmt.Sprintf("schema defines multiple values for %s", k))
+			}
+			result[k] = v
+		}
+	}
+	return result
+}
+
 func resourceDataset() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDatasetCreate,
@@ -17,7 +30,7 @@ func resourceDataset() *schema.Resource {
 		Update: resourceDatasetUpdate,
 		Delete: resourceDatasetDelete,
 
-		Schema: map[string]*schema.Schema{
+		Schema: mergeSchema(map[string]*schema.Schema{
 			"workspace": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -74,7 +87,7 @@ func resourceDataset() *schema.Resource {
 				},
 				Optional: true,
 			},
-		},
+		}, getTransformSchema(true)),
 	}
 }
 

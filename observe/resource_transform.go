@@ -8,59 +8,69 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+// transformSchema can be embedded in dataset resource, or declared on its own
+func getTransformSchema(embedded bool) map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"inputs": &schema.Schema{
+			Type: schema.TypeMap,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+			Optional: true,
+		},
+		"references": &schema.Schema{
+			Type: schema.TypeMap,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+			Optional: true,
+		},
+		"stage": &schema.Schema{
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"input": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"pipeline": {
+						Type:     schema.TypeString,
+						Optional: true,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
+						},
+						StateFunc: func(val interface{}) string {
+							return observe.NewPipeline(val.(string)).String()
+						},
+					},
+				},
+			},
+			Required: !embedded,
+			Optional: embedded,
+		},
+	}
+
+	if !embedded {
+		s["dataset"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		}
+	}
+
+	return s
+}
+
 func resourceTransform() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceTransformCreate,
 		Read:   resourceTransformRead,
 		Update: resourceTransformUpdate,
 		Delete: resourceTransformDelete,
-
-		Schema: map[string]*schema.Schema{
-			"dataset": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"inputs": &schema.Schema{
-				Type: schema.TypeMap,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Optional: true,
-			},
-			"references": &schema.Schema{
-				Type: schema.TypeMap,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Optional: true,
-			},
-			"stage": &schema.Schema{
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"input": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"pipeline": {
-							Type:     schema.TypeString,
-							Optional: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
-							},
-							StateFunc: func(val interface{}) string {
-								return observe.NewPipeline(val.(string)).String()
-							},
-						},
-					},
-				},
-				Required: true,
-			},
-		},
+		Schema: getTransformSchema(false),
 	}
 }
 
