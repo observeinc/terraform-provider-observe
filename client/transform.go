@@ -92,11 +92,12 @@ var (
 	}`
 )
 
-func NewTransformConfig(inputs map[string]string, references map[string]string, stages ...*Stage) (*TransformConfig, error) {
+func NewTransformConfig(inputs map[string]string, references, metadata map[string]string, stages ...*Stage) (*TransformConfig, error) {
 	t := &TransformConfig{
 		Inputs:     inputs,
 		References: references,
 		Stages:     stages,
+		Metadata:   metadata,
 	}
 
 	t.inputs = make(map[string]*backendInput)
@@ -282,7 +283,7 @@ func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Trans
 
 		log.Printf("[DEBUG] CMD %s\n", cmd)
 
-		config, err = NewTransformConfig(nil, nil, &Stage{Input: dataset.ID, Pipeline: cmd})
+		config, err = NewTransformConfig(nil, nil, nil, &Stage{Input: dataset.ID, Pipeline: cmd})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create transform config: %w", err)
 		}
@@ -340,7 +341,7 @@ func (c *Client) GetTransform(id string) (*Transform, error) {
 	}
 
 	if len(t.Stages) == 0 {
-		return nil, fmt.Errorf("no stages found for transform %s", id)
+		return nil, nil
 	}
 
 	return &Transform{

@@ -161,11 +161,20 @@ func (d *datasetResourceData) SetState(o *observe.Dataset) error {
 
 func resourceDatasetCreate(data *schema.ResourceData, meta interface{}) error {
 	var (
-		client  = meta.(*observe.Client)
-		dataset = &datasetResourceData{data}
+		client    = meta.(*observe.Client)
+		dataset   = &datasetResourceData{data}
+		transform = &transformResourceData{
+			ResourceData: data,
+			Embedded:     true,
+		}
 	)
 
 	config, err := dataset.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	transformConfig, err := transform.GetConfig()
 	if err != nil {
 		return err
 	}
@@ -174,13 +183,30 @@ func resourceDatasetCreate(data *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	return dataset.SetState(result)
+
+	if err := dataset.SetState(result); err != nil {
+		return err
+	}
+
+	if transformConfig != nil {
+		transformResult, err := client.SetTransform(result.ID, transformConfig)
+		if err != nil {
+			return err
+		}
+		return transform.SetState(transformResult)
+	}
+
+	return nil
 }
 
 func resourceDatasetRead(data *schema.ResourceData, meta interface{}) error {
 	var (
-		client  = meta.(*observe.Client)
-		dataset = &datasetResourceData{data}
+		client    = meta.(*observe.Client)
+		dataset   = &datasetResourceData{data}
+		transform = &transformResourceData{
+			ResourceData: data,
+			Embedded:     true,
+		}
 	)
 
 	result, err := client.GetDataset(dataset.Id())
@@ -188,16 +214,38 @@ func resourceDatasetRead(data *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return dataset.SetState(result)
+	if err := dataset.SetState(result); err != nil {
+		return err
+	}
+
+	transformResult, err := client.GetTransform(dataset.Id())
+	if err != nil {
+		return err
+	}
+
+	if transformResult != nil {
+		return transform.SetState(transformResult)
+	}
+
+	return nil
 }
 
 func resourceDatasetUpdate(data *schema.ResourceData, meta interface{}) error {
 	var (
-		client  = meta.(*observe.Client)
-		dataset = &datasetResourceData{data}
+		client    = meta.(*observe.Client)
+		dataset   = &datasetResourceData{data}
+		transform = &transformResourceData{
+			ResourceData: data,
+			Embedded:     true,
+		}
 	)
 
 	config, err := dataset.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	transformConfig, err := transform.GetConfig()
 	if err != nil {
 		return err
 	}
@@ -207,7 +255,19 @@ func resourceDatasetUpdate(data *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return dataset.SetState(result)
+	if err := dataset.SetState(result); err != nil {
+		return err
+	}
+
+	if transformConfig != nil || data.HasChange("stage") {
+		transformResult, err := client.SetTransform(result.ID, transformConfig)
+		if err != nil {
+			return err
+		}
+		return transform.SetState(transformResult)
+	}
+
+	return nil
 }
 
 func resourceDatasetDelete(data *schema.ResourceData, meta interface{}) error {

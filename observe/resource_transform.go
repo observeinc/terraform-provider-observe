@@ -76,12 +76,18 @@ func resourceTransform() *schema.Resource {
 
 type transformResourceData struct {
 	*schema.ResourceData
+	Embedded bool // whether or not this schema is embedded in datasete
 }
 
 func (d *transformResourceData) GetConfig() (*observe.TransformConfig, error) {
 	inputs := make(map[string]string)
 	references := make(map[string]string)
 	var stages []*observe.Stage
+
+	if _, ok := d.GetOk("stage"); !ok && d.Embedded {
+		// we're embedded in dataset, no stage means no transform
+		return nil, nil
+	}
 
 	if v, ok := d.GetOk("inputs"); ok {
 		for name, id := range v.(map[string]interface{}) {
@@ -101,13 +107,26 @@ func (d *transformResourceData) GetConfig() (*observe.TransformConfig, error) {
 		return nil, fmt.Errorf("failed to decode stages: %w", err)
 	}
 
-	return observe.NewTransformConfig(inputs, references, stages...)
+	metadata := make(map[string]string)
+	if d.Embedded {
+		metadata["embedded"] = "true"
+	}
+
+	return observe.NewTransformConfig(inputs, references, metadata, stages...)
 }
 
 func (d *transformResourceData) SetState(o *observe.Transform) error {
-	if err := d.Set("dataset", o.ID); err != nil {
-		return fmt.Errorf("failed to set dataset: %w", err)
+	if d.Embedded {
+		if s, ok := o.TransformConfig.Metadata["embedded"]; !ok || s != "true" {
+			return nil
+		}
+	} else {
+		if err := d.Set("dataset", o.ID); err != nil {
+			return fmt.Errorf("failed to set dataset: %w", err)
+		}
 	}
+
+	// XXX: inputs? references?
 
 	var stages []interface{}
 	for _, s := range o.Stages {
@@ -127,7 +146,7 @@ func (d *transformResourceData) SetState(o *observe.Transform) error {
 func resourceTransformCreate(data *schema.ResourceData, meta interface{}) error {
 	var (
 		client    = meta.(*observe.Client)
-		transform = &transformResourceData{data}
+		transform = &transformResourceData{ResourceData: data}
 		datasetID = data.Get("dataset").(string)
 	)
 
@@ -148,7 +167,7 @@ func resourceTransformCreate(data *schema.ResourceData, meta interface{}) error 
 func resourceTransformRead(data *schema.ResourceData, meta interface{}) error {
 	var (
 		client    = meta.(*observe.Client)
-		transform = &transformResourceData{data}
+		transform = &transformResourceData{ResourceData: data}
 	)
 
 	result, err := client.GetTransform(transform.Id())
@@ -162,7 +181,7 @@ func resourceTransformRead(data *schema.ResourceData, meta interface{}) error {
 func resourceTransformUpdate(data *schema.ResourceData, meta interface{}) error {
 	var (
 		client    = meta.(*observe.Client)
-		transform = &transformResourceData{data}
+		transform = &transformResourceData{ResourceData: data}
 		datasetID = data.Get("dataset").(string)
 	)
 

@@ -116,6 +116,53 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 	})
 }
 
+func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
+	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				data "observe_dataset" "observation" {
+					workspace = "%[1]s"
+					name      = "Observation"
+				}
+
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "some test dataset"
+
+					stage {
+						input 	 = data.observe_dataset.observation.id
+						pipeline = "filter true"
+				  	}
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", datasetID),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				data "observe_dataset" "observation" {
+					workspace = "%[1]s"
+					name      = "Observation"
+				}
+
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "some test dataset"
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "stage"),
+				),
+			},
+		},
+	})
+}
 func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	client, err := sharedClient()
 	if err != nil {
