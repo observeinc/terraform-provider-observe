@@ -39,7 +39,7 @@ func getTransformSchema(embedded bool) map[string]*schema.Schema {
 					},
 					"pipeline": {
 						Type:     schema.TypeString,
-						Optional: true,
+						Required: true,
 						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 							return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
 						},
@@ -117,6 +117,10 @@ func (d *transformResourceData) GetConfig() (*observe.TransformConfig, error) {
 
 func (d *transformResourceData) SetState(o *observe.Transform) error {
 	if d.Embedded {
+		if o == nil || o.TransformConfig == nil {
+			return nil
+		}
+
 		if s, ok := o.TransformConfig.Metadata["embedded"]; !ok || s != "true" {
 			return nil
 		}
@@ -200,6 +204,14 @@ func resourceTransformUpdate(data *schema.ResourceData, meta interface{}) error 
 
 func resourceTransformDelete(data *schema.ResourceData, meta interface{}) error {
 	client := meta.(*observe.Client)
-	_, err := client.SetTransform(data.Id(), nil)
+
+	result, err := client.GetTransform(data.Id())
+	if err != nil {
+		return err
+	}
+
+	if len(result.Stages) > 0 {
+		_, err = client.SetTransform(data.Id(), nil)
+	}
 	return err
 }

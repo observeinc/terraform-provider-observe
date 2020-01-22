@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 )
 
 // TransformConfig describes a sequence of stages
@@ -239,54 +238,26 @@ func (t *TransformConfig) fromBackend(b *backendTransform) error {
 
 func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Transform, error) {
 	if config == nil {
-		// delete by resetting transform to something else for now
-		dataset, err := c.GetDataset(datasetID)
+		// Unpublish transform
+		result, err := c.Run(`
+			mutation ($datasetId: ObjectId!) {
+				unpublishDatasetTransform(datasetId: $datasetId) {
+					success
+					errorMessage
+				}
+			}`, map[string]interface{}{
+			"datasetId": datasetID,
+		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve dataset: %w", err)
+			return nil, err
 		}
 
-		var cmds, args []string
-		for _, f := range dataset.Config.Fields {
-			value := map[string]string{
-				"any":       "parsejson(\"{}\")",
-				"bool":      "true",
-				"string":    "\"string\"",
-				"int64":     "int64(1)",
-				"float64":   "float64(1)",
-				"object":    "object(parsejson(\"{}\"))",
-				"timestamp": "seconds(1)",
-			}[f.Type]
-
-			if value == "" {
-				panic(fmt.Sprintf("unsupported field type %s", f.Type))
-			}
-			args = append(args, fmt.Sprintf("\"%s\":%s", f.Name, value))
-
-			if f.ValidFrom {
-				cmds = append(cmds, fmt.Sprintf("setvf @.\"%s\"", f.Name))
-			}
-			if f.ValidTo {
-				cmds = append(cmds, fmt.Sprintf("setvt @.\"%s\"", f.Name))
-			}
+		var status ResultStatus
+		if err := decode(getNested(result, "unpublishDatasetTransform"), &status); err != nil {
+			return nil, err
 		}
 
-		cmd := "filter false"
-		if len(args) > 0 {
-			cmds = append([]string{fmt.Sprintf("colpick %s", strings.Join(args, ", "))}, cmds...)
-			cmd = strings.Join(cmds, "\n")
-		}
-
-		dataset, err = c.LookupDataset(dataset.WorkspaceID, "Observation")
-		if err != nil {
-			return nil, fmt.Errorf("failed to lookup observation table: %w", err)
-		}
-
-		log.Printf("[DEBUG] CMD %s\n", cmd)
-
-		config, err = NewTransformConfig(nil, nil, nil, &Stage{Input: dataset.ID, Pipeline: cmd})
-		if err != nil {
-			return nil, fmt.Errorf("failed to create transform config: %w", err)
-		}
+		return nil, status.Error()
 	}
 
 	result, err := c.Run(backendTransformFragment+publishTransformQuery, map[string]interface{}{

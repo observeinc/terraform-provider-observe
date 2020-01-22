@@ -163,6 +163,7 @@ func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
 		},
 	})
 }
+
 func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	client, err := sharedClient()
 	if err != nil {
@@ -178,5 +179,11 @@ func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 		t.Fatal("no datasets available")
 	}
 
-	return datasets[0].WorkspaceID, datasets[0].ID
+	for _, d := range datasets {
+		if d.Config.Name == "Observation" {
+			return d.WorkspaceID, d.ID
+		}
+	}
+	t.Fatal("failed to find observation table")
+	return "", ""
 }
