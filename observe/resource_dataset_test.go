@@ -164,6 +164,57 @@ func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
 	})
 }
 
+func TestAccObserveDatasetRemoveColFromSchema(t *testing.T) {
+	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				data "observe_dataset" "observation" {
+					workspace = "%[1]s"
+					name      = "Observation"
+				}
+
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "another test dataset"
+
+					stage {
+						input 	 = data.observe_dataset.observation.id
+						pipeline = "colmake col1:true"
+				  	}
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", datasetID),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				data "observe_dataset" "observation" {
+					workspace = "%[1]s"
+					name      = "Observation"
+				}
+
+				resource "observe_dataset" "first" {
+					workspace = "%[1]s"
+					name 	  = "another test dataset"
+
+					stage {
+						input 	 = data.observe_dataset.observation.id
+						pipeline = "colmake col1:\"test\""
+					}
+				}`, workspaceID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+				),
+			},
+		},
+	})
+}
 func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
 	client, err := sharedClient()
 	if err != nil {

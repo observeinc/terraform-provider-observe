@@ -214,6 +214,11 @@ func resourceDatasetRead(data *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	// no dataset found
+	if result == nil {
+		return nil
+	}
+
 	if err := dataset.SetState(result); err != nil {
 		return err
 	}

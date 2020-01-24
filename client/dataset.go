@@ -264,7 +264,11 @@ func (c *Client) GetDataset(id string) (*Dataset, error) {
 	}
 
 	var d Dataset
-	return &d, d.fromBackend(getNested(result, "dataset"))
+	value := getNested(result, "dataset")
+	if value == nil {
+		return nil, nil
+	}
+	return &d, d.fromBackend(value)
 }
 
 // ListDatasets retrieves all datasets across workspaces. No filtering provided for now.

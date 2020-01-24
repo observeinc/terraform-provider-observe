@@ -116,11 +116,11 @@ func (d *transformResourceData) GetConfig() (*observe.TransformConfig, error) {
 }
 
 func (d *transformResourceData) SetState(o *observe.Transform) error {
-	if d.Embedded {
-		if o == nil || o.TransformConfig == nil {
-			return nil
-		}
+	if o == nil || o.TransformConfig == nil {
+		return nil
+	}
 
+	if d.Embedded {
 		if s, ok := o.TransformConfig.Metadata["embedded"]; !ok || s != "true" {
 			return nil
 		}
@@ -210,7 +210,7 @@ func resourceTransformDelete(data *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if len(result.Stages) > 0 {
+	if result != nil && len(result.Stages) > 0 {
 		_, err = client.SetTransform(data.Id(), nil)
 	}
 	return err
