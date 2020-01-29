@@ -29,7 +29,9 @@ func resourceDataset() *schema.Resource {
 		Read:   resourceDatasetRead,
 		Update: resourceDatasetUpdate,
 		Delete: resourceDatasetDelete,
-
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: mergeSchema(map[string]*schema.Schema{
 			"workspace": &schema.Schema{
 				Type:     schema.TypeString,

@@ -40,6 +40,7 @@ func getTransformSchema(embedded bool) map[string]*schema.Schema {
 					"pipeline": {
 						Type:     schema.TypeString,
 						Required: true,
+						//ForceNew: true,
 						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 							return observe.NewPipeline(old).String() == observe.NewPipeline(new).String()
 						},
@@ -70,6 +71,9 @@ func resourceTransform() *schema.Resource {
 		Read:   resourceTransformRead,
 		Update: resourceTransformUpdate,
 		Delete: resourceTransformDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: getTransformSchema(false),
 	}
 }
