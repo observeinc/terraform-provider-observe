@@ -73,7 +73,7 @@ func resourceDataset() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "string",
-							ValidateFunc: validation.StringInSlice(observe.FieldTypes, true),
+							ValidateFunc: validation.StringInSlice(observe.FieldTypes, false),
 						},
 					},
 				},
