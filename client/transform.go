@@ -134,7 +134,7 @@ func NewTransformConfig(inputs map[string]string, references, metadata map[strin
 
 		t.backendStages = append(t.backendStages, &backendStage{
 			StageID:  stageName,
-			Pipeline: NewPipeline(s.Pipeline).Canonical(),
+			Pipeline: s.Pipeline,
 			Input:    t.constructStageInputs(defaultBinding),
 		})
 
@@ -202,7 +202,7 @@ func (t *TransformConfig) fromBackend(b *backendTransform) error {
 			s.Name = backendStage.StageID
 		}
 
-		s.Pipeline = NewPipeline(backendStage.Pipeline).String()
+		s.Pipeline = backendStage.Pipeline
 
 		defaultInput := backendStage.Input[0]
 

@@ -60,6 +60,8 @@ func TestAccObserveTransformEmptyReference(t *testing.T) {
 				resource "observe_dataset" "first" {
 					workspace = "%[1]s"
 					name 	  = "tf_first"
+
+					field { name = "OBSERVATION_KIND" }
 				}
 
 				resource "observe_dataset" "second" {
@@ -114,6 +116,8 @@ func TestAccObserveTransformTeardown(t *testing.T) {
 				resource "observe_dataset" "second" {
 					workspace = "%[1]s"
 					name 	  = "tf_second"
+
+					field { name = "OBSERVATION_KIND" }
 				}
 
 
