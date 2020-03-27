@@ -98,7 +98,7 @@ func (f *Field) toBackend() interface{} {
 
 func (f *Field) fromBackend(data interface{}) error {
 	var backend fieldDef
-	if err := decode(data, &backend); err != nil {
+	if err := decodeLoose(data, &backend); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func (d *Dataset) fromBackend(data interface{}) error {
 	}
 
 	var backend Dataset
-	if err := decode(data, &backend); err != nil {
+	if err := decodeStrict(data, &backend); err != nil {
 		return err
 	}
 
@@ -288,7 +288,8 @@ func (c *Client) ListDatasets() (ds []*Dataset, err error) {
 
 	for _, elem := range result["projects"].([]interface{}) {
 		var bs []map[string]interface{}
-		if err := decode(getNested(elem, "datasets"), &bs); err != nil {
+		nested := getNested(elem, "datasets")
+		if err := decodeStrict(nested, &bs); err != nil {
 			return nil, err
 		}
 
@@ -320,7 +321,8 @@ func (c *Client) DeleteDataset(id string) error {
 	}
 
 	var status ResultStatus
-	if err := decode(getNested(result, "deleteDataset"), &status); err != nil {
+	nested := getNested(result, "deleteDataset")
+	if err := decodeStrict(nested, &status); err != nil {
 		return err
 	}
 

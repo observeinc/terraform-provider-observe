@@ -253,7 +253,7 @@ func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Trans
 		}
 
 		var status ResultStatus
-		if err := decode(getNested(result, "unpublishDatasetTransform"), &status); err != nil {
+		if err := decodeStrict(getNested(result, "unpublishDatasetTransform"), &status); err != nil {
 			return nil, err
 		}
 
@@ -272,7 +272,8 @@ func (c *Client) SetTransform(datasetID string, config *TransformConfig) (*Trans
 	log.Printf("HELO %s\n", s)
 
 	var b backendTransform
-	if err := decode(getNested(result, "publishDatasetTransform", "dataset", "transform", "current"), &b); err != nil {
+	nested := getNested(result, "publishDatasetTransform", "dataset", "transform", "current")
+	if err := decodeStrict(nested, &b); err != nil {
 		return nil, err
 	}
 
@@ -301,7 +302,8 @@ func (c *Client) GetTransform(id string) (*Transform, error) {
 	}
 
 	var b backendTransform
-	if err := decode(getNested(result, "dataset", "transform", "current"), &b); err != nil {
+	nested := getNested(result, "dataset", "transform", "current")
+	if err := decodeStrict(nested, &b); err != nil {
 		return nil, err
 	}
 
