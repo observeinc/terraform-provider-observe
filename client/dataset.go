@@ -79,6 +79,7 @@ type fieldType struct {
 
 type fieldDef struct {
 	Name         string     `json:"name,omitempty"`
+	IsConst      *bool      `json:"isConst,omitempty"`
 	IsEnum       *bool      `json:"isEnum,omitempty"`
 	IsHidden     *bool      `json:"isHidden,omitempty"`
 	IsSearchable *bool      `json:"isSearchable,omitempty"`
