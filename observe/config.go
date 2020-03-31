@@ -9,6 +9,7 @@ type Config struct {
 	CustomerID string
 	Token      string
 	Domain     string
+	Insecure   bool
 }
 
 func (c *Config) Client() (*client.Client, error) {
@@ -16,5 +17,5 @@ func (c *Config) Client() (*client.Client, error) {
 		baseURL = fmt.Sprintf("https://%s.%s/v1/meta", c.CustomerID, c.Domain)
 		key     = fmt.Sprintf("%s %s", c.CustomerID, c.Token)
 	)
-	return client.NewClient(baseURL, key)
+	return client.NewClient(baseURL, key, c.Insecure)
 }

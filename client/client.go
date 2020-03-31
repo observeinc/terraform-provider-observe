@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -105,14 +106,23 @@ func (c *Client) Run(reqBody string, vars map[string]interface{}) (map[string]in
 	return result, err
 }
 
-func NewClient(baseURL string, key string) (*Client, error) {
+func NewClient(baseURL string, key string, insecure bool) (*Client, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
 
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	if t.TLSClientConfig == nil {
+		t.TLSClientConfig = &tls.Config{}
+	}
+	t.TLSClientConfig.InsecureSkipVerify = insecure
+
 	authed := &http.Client{
-		Transport: &authTripper{key: key},
+		Transport: &authTripper{
+			RoundTripper: t,
+			key:          key,
+		},
 	}
 
 	log.Printf("[DEBUG] using %s", baseURL)

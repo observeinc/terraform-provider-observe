@@ -26,12 +26,19 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_DOMAIN", "observeinc.com"),
 				Description: "Observe root domain",
 			},
+			"insecure": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Skip TLS verification",
+			},
 		},
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
 			config := Config{
 				CustomerID: d.Get("customer").(string),
 				Token:      d.Get("token").(string),
 				Domain:     d.Get("domain").(string),
+				Insecure:   d.Get("insecure").(bool),
 			}
 			return config.Client()
 		},
