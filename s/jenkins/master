@@ -1,0 +1,13 @@
+#!/bin/bash -xe
+git clean -f -d
+git fetch origin
+
+#make jenkins
+
+git update-index -q --refresh
+if ! git diff-index --exit-code --no-ext-diff HEAD --; then
+  echo "The following files are dirty in the tree"
+  git diff --stat
+  git diff
+  exit 1
+fi

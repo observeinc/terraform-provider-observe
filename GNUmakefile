@@ -6,6 +6,19 @@ VERSION=$(shell git describe --tags --always)
 
 default: build
 
+latest: release
+	aws s3 cp s3://observeinc/terraform-provider-observe/darwin_amd64/terraform-provider-observe-${VERSION} s3://observeinc/terraform-provider-observe/darwin_amd64/terraform-provider-observe-latest
+	aws s3 cp s3://observeinc/terraform-provider-observe/linux_amd64/terraform-provider-observe-${VERSION} s3://observeinc/terraform-provider-observe/linux_amd64/terraform-provider-observe-latest
+
+release: jenkins-build
+	aws s3 cp bin/darwin_amd64/terraform-provider-observe s3://observeinc/terraform-provider-observe/darwin_amd64/terraform-provider-observe-${VERSION} && \
+	aws s3 cp bin/terraform-provider-observe s3://observeinc/terraform-provider-observe/linux_amd64/terraform-provider-observe-${VERSION}
+
+jenkins-build:
+	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	--rm golang:latest \
+	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && rm -rf bin && GOOS=darwin GOARCH=amd64 make && GOOS=linux GOARCH=amd64 make && cp -r /go/bin ."
+
 build: fmtcheck
 	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
 
