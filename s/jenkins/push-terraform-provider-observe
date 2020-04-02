@@ -1,0 +1,9 @@
+#!/bin/bash -xe
+set -uxe
+set -o pipefail
+
+mydir=$(dirname $0)
+git fetch origin
+cd "$mydir/../.."
+make latest
+
