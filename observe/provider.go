@@ -43,7 +43,8 @@ func Provider() terraform.ResourceProvider {
 			return config.Client()
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"observe_dataset": dataSourceDataset(),
+			"observe_workspace": dataSourceWorkspace(),
+			"observe_dataset":   dataSourceDataset(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_workspace": resourceWorkspace(),

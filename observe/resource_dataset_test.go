@@ -1,7 +1,6 @@
 package observe
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -26,22 +25,24 @@ func testSweepObserveDataset(r string) error {
 */
 
 func TestAccObserveDatasetBasic(t *testing.T) {
-	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_test_dataset"
 					freshness = "1m"
 					icon_url  = "input"
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_dataset"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
 				),
@@ -51,16 +52,18 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 }
 
 func TestAccObserveDatasetSchema(t *testing.T) {
-	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_test_schema"
 
 					field { name = "column" }
@@ -68,9 +71,9 @@ func TestAccObserveDatasetSchema(t *testing.T) {
 						name = "number"
 						type = "int64"
 					}
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_schema"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "field.0.name", "column"),
@@ -81,33 +84,39 @@ func TestAccObserveDatasetSchema(t *testing.T) {
 }
 
 func TestAccObserveDatasetUpdate(t *testing.T) {
-	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_test_update"
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_test_update"
 					freshness = "1m"
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
 				),
@@ -117,46 +126,51 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 }
 
 func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "some test dataset"
 
 					stage {
 						input 	 = data.observe_dataset.observation.id
 						pipeline = "filter true"
 				  	}
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", datasetID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "stage.0.input"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "some test dataset"
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "stage"),
 				),
 			},
@@ -165,51 +179,59 @@ func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
 }
 
 func TestAccObserveDatasetRemoveColFromSchema(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
-
+	t.Skip("not currently supported")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "another test dataset"
 
 					stage {
 						input 	 = data.observe_dataset.observation.id
 						pipeline = "colmake col1:true"
 				  	}
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", datasetID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "stage.0.input"),
+					// TODO: what behavior do we want here?
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.name", ""),
 				),
 			},
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "another test dataset"
 
 					stage {
 						input 	 = data.observe_dataset.observation.id
 						pipeline = "colmake col1:\"test\""
 					}
-				}`, workspaceID),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "workspace", workspaceID),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 				),
 			},
 		},

@@ -1,28 +1,29 @@
 package observe
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccObserveTransformBasic(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "some test dataset"
 				}
 
@@ -33,39 +34,38 @@ func TestAccObserveTransformBasic(t *testing.T) {
 						input 	 = data.observe_dataset.observation.id
 						pipeline = "filter true"
 				  	}
-				}`, workspaceID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_transform.first", "stage.0.input", datasetID),
-				),
+				}`,
 			},
 		},
 	})
 }
 
 func TestAccObserveTransformEmptyReference(t *testing.T) {
-	workspaceID, datasetID := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				// no transform is associated to this dataset
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_first"
 
 					field { name = "OBSERVATION_KIND" }
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_reference_first"
 				}
 
@@ -84,10 +84,7 @@ func TestAccObserveTransformEmptyReference(t *testing.T) {
 							addfk "Test", OBSERVATION_KIND:@test.OBSERVATION_KIND
 						EOF
 				  	}
-				}`, workspaceID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_transform.second", "stage.0.input", datasetID),
-				),
+				}`,
 			},
 		},
 	})
@@ -95,26 +92,28 @@ func TestAccObserveTransformEmptyReference(t *testing.T) {
 
 // TestAccObserveTransformTeardown verifies we correctly delete transforms which reference each other
 func TestAccObserveTransformTeardown(t *testing.T) {
-	workspaceID, _ := testAccGetWorkspaceAndDatasetID(t)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_first"
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_second"
 
 					field { name = "OBSERVATION_KIND" }
@@ -147,19 +146,23 @@ func TestAccObserveTransformTeardown(t *testing.T) {
 							filter false
 						EOF
 				  	}
-				}`, workspaceID),
+				}`,
 			},
 			{
-				Config: fmt.Sprintf(`
+				Config: `
+				data "observe_workspace" "kubernetes" {
+					name = "Kubernetes"
+				}
+
 				data "observe_dataset" "observation" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name      = "Observation"
 				}
 
 				resource "observe_dataset" "first" {
-					workspace = "%[1]s"
+					workspace = data.observe_workspace.kubernetes.id
 					name 	  = "tf_first"
-				}`, workspaceID),
+				}`,
 			},
 		},
 	})

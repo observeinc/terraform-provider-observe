@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccObserveSourceDataset(t *testing.T) {
+func TestAccObserveSourceWorkspace(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -15,14 +15,10 @@ func TestAccObserveSourceDataset(t *testing.T) {
 				Config: `
 				data "observe_workspace" "kubernetes" {
 				  name = "Kubernetes"
-				}
-
-				data "observe_dataset" "observation" {
-				  workspace = data.observe_workspace.kubernetes.id
-				  name      = "Observation"
 				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_dataset.observation", "id"),
+					resource.TestCheckResourceAttrSet("data.observe_workspace.kubernetes", "id"),
+					resource.TestCheckResourceAttr("data.observe_workspace.kubernetes", "name", "Kubernetes"),
 				),
 			},
 		},
