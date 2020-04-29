@@ -31,9 +31,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// Name of ENV variable which (if not empty) prefers panic over error
-const PanicOnErr = "TF_SCHEMA_PANIC_ON_ERROR"
-
 // Schema is used to describe the structure of a value.
 //
 // Read the documentation of the struct elements for important details.
@@ -471,18 +468,7 @@ type InternalMap = schemaMap
 type schemaMap map[string]*Schema
 
 func (m schemaMap) panicOnError() bool {
-	if env := os.Getenv(PanicOnErr); env == "" {
-		// default to true
-		return true
-	} else if b, err := strconv.ParseBool(env); err == nil {
-		// allow opt out
-		return b
-	} else {
-		// default to true for anything set, this is backwards compatible
-		// with the previous implementation
-		log.Printf("[WARN] %s=%s not parsable: %s, defaulting to true", PanicOnErr, env, err)
-		return true
-	}
+	return os.Getenv("TF_ACC") != ""
 }
 
 // Data returns a ResourceData for the given schema, state, and diff.
@@ -742,28 +728,28 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 		}
 
 		if len(v.ConflictsWith) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.ConflictsWith, topSchemaMap, v)
+			err := checkKeysAgainstSchemaFlags(k, v.ConflictsWith, topSchemaMap, v, false)
 			if err != nil {
 				return fmt.Errorf("ConflictsWith: %+v", err)
 			}
 		}
 
 		if len(v.RequiredWith) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.RequiredWith, topSchemaMap, v)
+			err := checkKeysAgainstSchemaFlags(k, v.RequiredWith, topSchemaMap, v, true)
 			if err != nil {
 				return fmt.Errorf("RequiredWith: %+v", err)
 			}
 		}
 
 		if len(v.ExactlyOneOf) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.ExactlyOneOf, topSchemaMap, v)
+			err := checkKeysAgainstSchemaFlags(k, v.ExactlyOneOf, topSchemaMap, v, true)
 			if err != nil {
 				return fmt.Errorf("ExactlyOneOf: %+v", err)
 			}
 		}
 
 		if len(v.AtLeastOneOf) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.AtLeastOneOf, topSchemaMap, v)
+			err := checkKeysAgainstSchemaFlags(k, v.AtLeastOneOf, topSchemaMap, v, true)
 			if err != nil {
 				return fmt.Errorf("AtLeastOneOf: %+v", err)
 			}
@@ -889,12 +875,12 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 	return nil
 }
 
-func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap, self *Schema) error {
+func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap, self *Schema, allowSelfReference bool) error {
 	for _, key := range keys {
 		parts := strings.Split(key, ".")
 		sm := topSchemaMap
 		var target *Schema
-		for _, part := range parts {
+		for idx, part := range parts {
 			// Skip index fields if 0
 			partInt, err := strconv.Atoi(part)
 
@@ -917,7 +903,8 @@ func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap
 				continue
 			}
 
-			if target.Type == TypeSet || target.MaxItems != 1 {
+			// Skip Type/MaxItems check if not the last element
+			if (target.Type == TypeSet || target.MaxItems != 1) && idx+1 != len(parts) {
 				return fmt.Errorf("%s configuration block reference (%s) can only be used with TypeList and MaxItems: 1 configuration blocks", k, key)
 			}
 
@@ -928,7 +915,7 @@ func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap
 			return fmt.Errorf("%s cannot find target attribute (%s), sm: %#v", k, key, sm)
 		}
 
-		if target == self {
+		if target == self && !allowSelfReference {
 			return fmt.Errorf("%s cannot reference self (%s)", k, key)
 		}
 
@@ -940,6 +927,7 @@ func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap
 			return fmt.Errorf("%s cannot contain Computed(When) attribute (%s)", k, key)
 		}
 	}
+
 	return nil
 }
 

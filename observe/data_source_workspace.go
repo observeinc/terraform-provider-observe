@@ -1,43 +1,52 @@
 package observe
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/observeinc/terraform-provider-observe/client"
 )
 
 func dataSourceWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceWorkspaceRead,
+		ReadContext: dataSourceWorkspaceRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"oid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func dataSourceWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	c := meta.(*client.Client)
-
+func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var (
-		name = d.Get("name").(string)
+		observe = meta.(*client.Client)
+		name    = data.Get("name").(string)
 	)
 
-	workspaces, err := c.ListWorkspaces()
+	workspace, err := observe.LookupWorkspace(name)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve workspaces: %w", err)
+		err = fmt.Errorf("failed to retrieve workspaces: %w", err)
+		return diag.FromErr(err)
 	}
 
-	for _, w := range workspaces {
-		if w.Label == name {
-			d.SetId(w.ID)
-			return nil
-		}
+	if workspace == nil {
+		err = fmt.Errorf("workspace not found")
+		return diag.FromErr(err)
 	}
 
-	return fmt.Errorf("workspace not found")
+	if err := data.Set("oid", workspace.OID().String()); err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(workspace.ID)
+	return nil
 }

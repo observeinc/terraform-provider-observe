@@ -13,27 +13,14 @@ import (
 	"strings"
 
 	"github.com/machinebox/graphql"
+	"github.com/observeinc/terraform-provider-observe/client/internal/api"
 )
 
 var (
+	// ErrUnauthorized is returned on 401
 	ErrUnauthorized = errors.New("authorization error")
 	defaultDomain   = "observeinc.com"
 )
-
-type ResultStatus struct {
-	Success      bool                   `json:"success"`
-	ErrorMessage string                 `json:"errorMessage"`
-	DetailedInfo map[string]interface{} `json:"detailedInfo"`
-}
-
-func (s *ResultStatus) Error() error {
-	if s.ErrorMessage != "" {
-		return fmt.Errorf("request failed: %q", s.ErrorMessage)
-	} else if !s.Success {
-		return errors.New("request failed")
-	}
-	return nil
-}
 
 type authTripper struct {
 	http.RoundTripper
@@ -42,11 +29,11 @@ type authTripper struct {
 
 func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// log request before adding authorization header
-	if s, err := httputil.DumpRequest(req, true); err != nil {
+	s, err := httputil.DumpRequest(req, true)
+	if err != nil {
 		return nil, err
-	} else {
-		log.Printf("[DEBUG] %s\n", s)
 	}
+	log.Printf("[DEBUG] %s\n", s)
 
 	if t.key != "" {
 		req.Header.Set("Authorization", "Bearer "+t.key)
@@ -61,7 +48,7 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		return resp, err
 	}
 
-	s, _ := httputil.DumpResponse(resp, true)
+	s, _ = httputil.DumpResponse(resp, true)
 	switch resp.StatusCode {
 	case http.StatusOK:
 		log.Printf("[DEBUG] %s\n", s)
@@ -77,6 +64,7 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 }
 
+// Client implements a grossly simplified API client for Observe
 type Client struct {
 	customerID string
 	domain     string
@@ -85,17 +73,13 @@ type Client struct {
 
 	httpClient *http.Client
 	gqlClient  *graphql.Client
+	api        *api.Client
 }
 
 // Verify checks if we can connect to API.
 func (c *Client) Verify() error {
 	req := graphql.NewRequest(`{ currentUser { id } }`)
-	var respData struct {
-		Response struct {
-			Id string `json:"id"`
-		} `json:"currentUser"`
-	}
-
+	var respData interface{}
 	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
 		return err
 	}
@@ -140,6 +124,7 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 
 	gqlURL := fmt.Sprintf("https://%s.%s/v1/meta", c.customerID, c.domain)
 	c.gqlClient = graphql.NewClient(gqlURL, graphql.WithHTTPClient(c.httpClient))
+	c.api = api.New(c)
 	return c, c.Verify()
 }
 
@@ -153,7 +138,6 @@ func (c *Client) login(user, password string) (string, error) {
 		"user_email":    user,
 		"user_password": password,
 	}, &result)
-
 	if err != nil {
 		return "", fmt.Errorf("login request failed: %w", err)
 	}

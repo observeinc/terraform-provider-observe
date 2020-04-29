@@ -18,6 +18,7 @@ func TestAccObserveSourceWorkspace(t *testing.T) {
 				}`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_workspace.kubernetes", "id"),
+					resource.TestCheckResourceAttrSet("data.observe_workspace.kubernetes", "oid"),
 					resource.TestCheckResourceAttr("data.observe_workspace.kubernetes", "name", "Kubernetes"),
 				),
 			},

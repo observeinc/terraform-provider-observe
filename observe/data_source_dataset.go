@@ -1,39 +1,51 @@
 package observe
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/observeinc/terraform-provider-observe/client"
+	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
 func dataSourceDataset() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDatasetRead,
+		ReadContext: dataSourceDatasetRead,
 
 		Schema: map[string]*schema.Schema{
 			"workspace": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"oid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func dataSourceDatasetRead(d *schema.ResourceData, meta interface{}) error {
-	c := meta.(*client.Client)
-
+func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var (
-		workspaceID = d.Get("workspace").(string)
-		name        = d.Get("name").(string)
+		client = meta.(*observe.Client)
+		name   = data.Get("name").(string)
 	)
 
-	dataset, err := c.LookupDataset(workspaceID, name)
+	oid, _ := observe.NewOID(data.Get("workspace").(string))
+
+	d, err := client.LookupDataset(oid.ID, name)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	d.SetId(dataset.ID)
+	data.SetId(d.ID)
+
+	if err := data.Set("oid", d.OID().String()); err != nil {
+		return diag.FromErr(err)
+	}
 	return nil
 }

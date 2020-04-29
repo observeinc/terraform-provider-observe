@@ -1,0 +1,40 @@
+{
+    "datasetInput": {
+        "label": "test",
+        "deleted": false,
+        "latencyDesired": null,
+        "freshnessDesired": "6000000000",
+        "iconUrl": null
+    },
+    "transformInput": {
+        "queryLanguage": "",
+        "outputStage": "stage-1",
+        "stages": [
+            {
+                "input": [
+                    {
+                        "inputName": "default",
+                        "inputRole": null,
+                        "datasetId": "4100000",
+                        "datasetPath": null,
+                        "stageID": ""
+                    }
+                ],
+                "stageID": "stage-0",
+                "pipeline": "filter true\n"
+            },
+            {
+                "input": [
+                    {
+                        "inputName": "stage-0",
+                        "inputRole": null,
+                        "datasetPath": null,
+                        "stageID": "stage-0"
+                    }
+                ],
+                "stageID": "stage-1",
+                "pipeline": "filter true\n"
+            }
+        ]
+    }
+}

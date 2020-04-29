@@ -18,7 +18,7 @@ func TestAccObserveSourceDataset(t *testing.T) {
 				}
 
 				data "observe_dataset" "observation" {
-				  workspace = data.observe_workspace.kubernetes.id
+				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "Observation"
 				}`,
 				Check: resource.ComposeTestCheckFunc(

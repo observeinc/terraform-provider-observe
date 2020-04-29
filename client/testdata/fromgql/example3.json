@@ -1,0 +1,135 @@
+{
+    "id": "41023551",
+    "workspaceId": "41000011",
+    "version": "",
+    "label": "Kubernetes Endpoints",
+    "latencyDesired": null,
+    "freshnessDesired": null,
+    "typedef": {
+        "definition": null
+    },
+    "iconUrl": null,
+    "transform": {
+        "dataset": null,
+        "id": "0",
+        "current": {
+            "transform": null,
+            "outputStage": "stage2",
+            "stages": [
+                {
+                    "stageID": "ports",
+                    "input": [
+                        {
+                            "inputName": "41023543",
+                            "inputRole": "Data",
+                            "datasetId": "41023543",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "pod",
+                            "inputRole": "Reference",
+                            "datasetId": "41023510",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "service",
+                            "inputRole": "Reference",
+                            "datasetId": "41023537",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "node",
+                            "inputRole": "Reference",
+                            "datasetId": "41023514",
+                            "datasetPath": null,
+                            "stageId": ""
+                        }
+                    ],
+                    "pipeline": "filter _c_subsets_path ~ /^\\[\\d+\\].ports\\[\\d+\\]$/\n\ncolmake _:clusterUid\ncoldrop clusterUid\ncolmake clusterUid:_\ncoldrop _\n\ncolpick timestamp, clusterUid, uid, _c_subsets_flattenid, portName:string(_c_subsets_value.name), port:int64(_c_subsets_value.port), protocol:string(_c_subsets_value.protocol)\n"
+                },
+                {
+                    "stageID": "stage1",
+                    "input": [
+                        {
+                            "inputName": "41023543",
+                            "inputRole": "Data",
+                            "datasetId": "41023543",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "pod",
+                            "inputRole": "Reference",
+                            "datasetId": "41023510",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "service",
+                            "inputRole": "Reference",
+                            "datasetId": "41023537",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "node",
+                            "inputRole": "Reference",
+                            "datasetId": "41023514",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "ports",
+                            "inputRole": "Data",
+                            "datasetPath": null,
+                            "stageId": "ports"
+                        }
+                    ],
+                    "pipeline": "colmake ready:case(regex_match(_c_subsets_path, /^\\[\\d+\\].addresses\\[\\d+\\]$/), true, regex_match(_c_subsets_path, /^\\[\\d+\\].notReadyAddresses\\[\\d+\\]$/), false)\nfilter not isnull(ready)\ncoldrop _c_subsets_path\n\njoin timestamp=@ports.timestamp, clusterUid=@ports.clusterUid, uid=@ports.uid, portName:@ports.portName, port:@ports.port, protocol:@ports.protocol\n\n// we now have a dataset of {address, port} tuples with readiness flag.\ncolpick timestamp, clusterUid, name, namespace, uid, ready, ttl, deleted, address:@._c_subsets_value, portName, port, protocol\ncolmake ip:string(address.ip), targetKind:string(address.targetRef.kind)\ncolmake nodeName:case(targetKind = \"Node\", string(address.targetRef.name), targetKind != \"Node\", string(address.nodeName))\ncolmake podName:case(targetKind = \"Pod\", string(address.targetRef.name))\n\nmakeresource options(expiry:duration_min(90)),\n  name,\n  namespace,\n  ready,\n  uid,\n  podName,\n  nodeName,\n  portName,\n  primarykey(ip, port, protocol, clusterUid),\n  validfor(ttl)\n"
+                },
+                {
+                    "stageID": "stage2",
+                    "input": [
+                        {
+                            "inputName": "stage1",
+                            "inputRole": "Data",
+                            "datasetPath": null,
+                            "stageId": "stage1"
+                        },
+                        {
+                            "inputName": "service",
+                            "inputRole": "Reference",
+                            "datasetId": "41023537",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "node",
+                            "inputRole": "Reference",
+                            "datasetId": "41023514",
+                            "datasetPath": null,
+                            "stageId": ""
+                        },
+                        {
+                            "inputName": "ports",
+                            "inputRole": "Data",
+                            "datasetPath": null,
+                            "stageId": "ports"
+                        },
+                        {
+                            "inputName": "pod",
+                            "inputRole": "Reference",
+                            "datasetId": "41023510",
+                            "datasetPath": null,
+                            "stageId": ""
+                        }
+                    ],
+                    "pipeline": "colshow uid:false\nsetlabel name\naddfk \"Service\", name:@service.name, namespace:@service.namespace, clusterUid:@service.clusterUid\naddfk \"Pod\", podName:@pod.name, namespace:@pod.namespace, clusterUid:@pod.clusterUid\naddfk \"Node\", nodeName:@node.name, clusterUid:@node.clusterUid\n"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "test",
+    "icon_url": null,
+    "freshness": null,
+    "inputs": {
+        "default": {
+            "dataset": "4100000"
+        }
+    },
+    "stages": [
+        {
+            "input": "default",
+            "pipeline": "filter true\n"
+        }
+    ]
+}

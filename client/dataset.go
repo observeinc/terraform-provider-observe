@@ -3,329 +3,283 @@ package client
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/observeinc/terraform-provider-observe/client/internal/api"
 )
 
 var (
-	ErrDatasetNotFound = errors.New("dataset not found")
-
-	backendDatasetFragment = `
-	fragment datasetFields on Dataset {
-		workspaceId
-		id
-		label
-		freshnessDesired
-		iconUrl
-		typedef {
-		  definition
-		}
-		validFromField
-		validToField
-		labelField
-	}`
-
-	defineDatasetQuery = `
-	mutation DefineDataset($workspaceId: ObjectId!, $definition: DatasetDefinitionInput!) {
-		defineDataset(
-			workspaceId:$workspaceId
-			definition: $definition
-		) {
-			...datasetFields
-		}
-	}`
+	errObjectIDInvalid      = errors.New("object id is invalid")
+	errNameMissing          = errors.New("name not set")
+	errInputsMissing        = errors.New("no inputs defined")
+	errStagesMissing        = errors.New("no stages defined")
+	errInputNameMissing     = errors.New("name not set")
+	errInputEmpty           = errors.New("dataset not set")
+	errNameConflict         = errors.New("name already declared")
+	errStageInputUnresolved = errors.New("input could not be resolved")
+	errStageInputMissing    = errors.New("input missing")
+	errStagePipelineMissing = errors.New("pipeline not set")
 )
 
-// Dataset is published within a workspace
+// Dataset is the output of a sequence of stages operating on a collection of inputs
 type Dataset struct {
-	WorkspaceID string        `json:"workspaceId"`
-	ID          string        `json:"id"`
-	Config      DatasetConfig `json:"config"`
+	ID          string         `json:"id"`
+	WorkspaceID string         `json:"workspace_id"`
+	Version     string         `json:"version"`
+	Config      *DatasetConfig `json:"config"`
 }
 
-// DatasetConfig contains all the configurable elements of a dataset.
+// DatasetConfig contains configurable elements associated to Dataset
 type DatasetConfig struct {
-	Name             string         `json:"name,omitempty"`
-	FreshnessDesired *time.Duration `json:"freshnessDesired,omitempty"`
-	IconURL          *string        `json:"iconUrl,omitempty"`
-
-	// schema
-	Fields []*Field `json:"fields,omitempty"`
+	Name      string            `json:"name"`
+	IconURL   *string           `json:"icon_url"`
+	Freshness *time.Duration    `json:"freshness"`
+	Inputs    map[string]*Input `json:"inputs"`
+	Stages    []*Stage          `json:"stages"`
 }
 
-type Field struct {
-	Name string `json:"field,omitempty"`
-	Type string `json:"type,omitempty"`
-
-	ValidTo   bool `json:"valid_to,omitempty"`
-	ValidFrom bool `json:"valid_from,omitempty"`
-	Label     bool `json:"label,omitempty"`
+// Stage applies a pipeline to an input
+// If no input is provided, stage will follow on from previous stage
+// An alias must be provided for callers to be able to reference this stage in OPAL
+// Internally, the alias does not map to the stageID - it is the input name we
+// use when refering to this stage
+type Stage struct {
+	Alias    *string `json:"alias,omitempty"`
+	Input    *string `json:"input,omitempty"`
+	Pipeline string  `json:"pipeline"`
 }
 
-var FieldTypes = []string{
-	"array",
-	"bool",
-	"float64",
-	"int64",
-	"object",
-	"string",
-	"timestamp",
+// Input references an existing data source
+type Input struct {
+	Dataset *string ` json:"dataset,omitempty"`
 }
 
-type fieldType struct {
-	Rep      string `json:"rep"`
-	Nullable *bool  `json:"nullable,omitempty"`
-}
-
-type fieldDef struct {
-	Name         string     `json:"name,omitempty"`
-	IsConst      *bool      `json:"isConst,omitempty"`
-	IsEnum       *bool      `json:"isEnum,omitempty"`
-	IsHidden     *bool      `json:"isHidden,omitempty"`
-	IsSearchable *bool      `json:"isSearchable,omitempty"`
-	Label        *string    `json:"label,omitempty"`
-	Type         *fieldType `json:"type"`
-}
-
-func (f *Field) toBackend() interface{} {
-	return &fieldDef{
-		Name:  f.Name,
-		Label: &f.Name,
-		Type: &fieldType{
-			Rep: f.Type,
-		},
+func (d *Dataset) OID() *OID {
+	return &OID{
+		Type:    TypeDataset,
+		ID:      d.ID,
+		Version: &d.Version,
 	}
 }
 
-func (f *Field) fromBackend(data interface{}) error {
-	var backend fieldDef
-	if err := decodeLoose(data, &backend); err != nil {
-		return err
-	}
-
-	f.Name = backend.Name
-	f.Type = backend.Type.Rep
-	return nil
-}
-
-func (d *Dataset) fromBackend(data interface{}) error {
-	type Dataset struct {
-		ID          string `json:"id"`
-		WorkspaceID string `json:"workspaceId"`
-
-		Label            string `json:"label"`
-		FreshnessDesired string `json:"freshnessDesired"`
-		IconURL          string `json:"iconUrl"`
-		Typedef          struct {
-			Definition struct {
-				Fields []interface{} `json:"fields,omitempty"`
-			} `json:"definition,omitempty"`
-		} `json:"typedef,omitempty"`
-		ValidFromField *string `json:"validFromField"`
-		ValidToField   *string `json:"validToField"`
-		LabelField     *string `json:"labelField"`
-	}
-
-	var backend Dataset
-	if err := decodeStrict(data, &backend); err != nil {
-		return err
-	}
-
-	d.WorkspaceID = backend.WorkspaceID
-	d.ID = backend.ID
-	d.Config.Name = backend.Label
-
-	if backend.IconURL != "" {
-		d.Config.IconURL = &backend.IconURL
-	}
-
-	if backend.FreshnessDesired != "" {
-		i, err := strconv.Atoi(backend.FreshnessDesired)
-		if err != nil {
-			return fmt.Errorf("could not convert freshness: %w", err)
-		}
-		freshness := time.Duration(int64(i))
-		d.Config.FreshnessDesired = &freshness
-	}
-
-	for _, f := range backend.Typedef.Definition.Fields {
-		var field Field
-		if err := field.fromBackend(f); err != nil {
-			return fmt.Errorf("failed to decode field: %w", err)
-		}
-
-		if backend.ValidFromField != nil && *backend.ValidFromField == field.Name {
-			field.ValidFrom = true
-		}
-
-		if backend.ValidToField != nil && *backend.ValidToField == field.Name {
-			field.ValidTo = true
-		}
-
-		if backend.LabelField != nil && *backend.LabelField == field.Name {
-			field.Label = true
-		}
-
-		d.Config.Fields = append(d.Config.Fields, &field)
-	}
-
-	return nil
-}
-
-func (c *DatasetConfig) toDatasetDefinition(id string) interface{} {
-	type DatasetInput struct {
-		ID               string `json:"id,omitempty"`
-		Label            string `json:"label,omitempty"`
-		FreshnessDesired string `json:"freshnessDesired,omitempty"`
-		IconURL          string `json:"iconUrl,omitempty"`
-	}
-
-	type DatasetDefinition struct {
-		Dataset DatasetInput  `json:"dataset,omitempty"`
-		Schema  []interface{} `json:"schema,omitempty"`
-		//Metadata *backendDefinitionMetadataInput `json:"metadata,omitempty"`
-	}
-
-	backend := &DatasetDefinition{
-		Dataset: DatasetInput{
-			ID:    id,
-			Label: c.Name,
+func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
+	d := &Dataset{
+		ID:          gqlDataset.ID.String(),
+		WorkspaceID: gqlDataset.WorkspaceId.String(),
+		Version:     gqlDataset.Version,
+		Config: &DatasetConfig{
+			Name:      gqlDataset.Label,
+			IconURL:   gqlDataset.IconURL,
+			Freshness: gqlDataset.FreshnessDesired,
 		},
 	}
 
-	if c.FreshnessDesired != nil {
-		backend.Dataset.FreshnessDesired = fmt.Sprintf("%d", c.FreshnessDesired.Nanoseconds())
-	}
-	if c.IconURL != nil {
-		backend.Dataset.IconURL = *c.IconURL
-	}
-	for _, f := range c.Fields {
-		backend.Schema = append(backend.Schema, f.toBackend())
+	if gqlDataset.Transform.Current == nil {
+		// Observation table has no transform, is still valid
+		return d, nil
 	}
 
-	return &backend
-}
-
-func (c *Client) CreateDataset(workspaceID string, config DatasetConfig) (*Dataset, error) {
-	result, err := c.Run(backendDatasetFragment+defineDatasetQuery, map[string]interface{}{
-		"workspaceId": workspaceID,
-		"definition":  config.toDatasetDefinition(""),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create dataset: %w", err)
-	}
-
-	var d Dataset
-	return &d, d.fromBackend(getNested(result, "defineDataset"))
-}
-
-func (c *Client) UpdateDataset(workspaceID string, ID string, config DatasetConfig) (*Dataset, error) {
-	result, err := c.Run(backendDatasetFragment+defineDatasetQuery, map[string]interface{}{
-		"workspaceId": workspaceID,
-		"definition":  config.toDatasetDefinition(ID),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to update dataset: %w", err)
-	}
-
-	var d Dataset
-	return &d, d.fromBackend(getNested(result, "defineDataset"))
-}
-
-func (c *Client) LookupDataset(workspaceID string, label string) (*Dataset, error) {
-	// TODO: we need an endpoint to lookup dataset by label
-	// For now be lazy and reuse list function
-
-	datasets, err := c.ListDatasets()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, d := range datasets {
-		if d.WorkspaceID == workspaceID && d.Config.Name == label {
-			return d, nil
-		}
-	}
-
-	return nil, ErrDatasetNotFound
-}
-
-func (c *Client) GetDataset(id string) (*Dataset, error) {
-	result, err := c.Run(backendDatasetFragment+`
-	query GetDataset($id: ObjectId!) {
-		dataset(id:$id) {
-			...datasetFields
-		}
-	}`, map[string]interface{}{
-		"id": id,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	var d Dataset
-	value := getNested(result, "dataset")
-	if value == nil {
-		return nil, nil
-	}
-	return &d, d.fromBackend(value)
-}
-
-// ListDatasets retrieves all datasets across workspaces. No filtering provided for now.
-func (c *Client) ListDatasets() (ds []*Dataset, err error) {
-	result, err := c.Run(backendDatasetFragment+`
-	query {
-		projects {
-			datasets {
-				...datasetFields
+	// first reconstruct all inputs
+	stageIDs := make(map[string]string)
+	d.Config.Inputs = make(map[string]*Input)
+	for _, stageQuery := range gqlDataset.Transform.Current.Stages {
+		for _, i := range stageQuery.Input {
+			if i.DatasetID != nil {
+				datasetID := i.DatasetID.String()
+				d.Config.Inputs[i.InputName] = &Input{Dataset: &datasetID}
+			}
+			if i.StageID != "" {
+				stageIDs[i.StageID] = i.InputName
 			}
 		}
-	}`, nil)
-
-	if err != nil {
-		return nil, err
 	}
 
-	for _, elem := range result["projects"].([]interface{}) {
-		var bs []map[string]interface{}
-		nested := getNested(elem, "datasets")
-		if err := decodeStrict(nested, &bs); err != nil {
-			return nil, err
+	for i, gqlStage := range gqlDataset.Transform.Current.Stages {
+		stage := &Stage{
+			Pipeline: gqlStage.Pipeline,
 		}
 
-		for _, b := range bs {
-			var d Dataset
-			if err := d.fromBackend(&b); err != nil {
-				return nil, fmt.Errorf("failed to convert dataset: %w", err)
-			}
-			ds = append(ds, &d)
+		if name, ok := stageIDs[gqlStage.StageID]; ok && name != gqlStage.StageID {
+			stage.Alias = &name
 		}
+
+		inputName := gqlStage.Input[0].InputName
+
+		switch {
+		case i == 0 && len(d.Config.Inputs) == 1:
+			// defaulted to first input
+		case i > 0 && d.Config.Stages[i-1].Alias != nil && inputName == *(d.Config.Stages[i-1].Alias):
+			// follow on from aliased stage
+		case stageIDs[inputName] != "":
+			// follow on from anonymous stage
+		default:
+			stage.Input = &inputName
+		}
+
+		d.Config.Stages = append(d.Config.Stages, stage)
 	}
-	return ds, nil
+
+	return d, nil
 }
 
-// DeleteDataset deletes dataset by ID.
-func (c *Client) DeleteDataset(id string) error {
-	result, err := c.Run(`
-	mutation ($id: ObjectId!) {
-		deleteDataset(dsid: $id) {
-			success
-			errorMessage
+// Validate verifies dataset config
+func (c *DatasetConfig) Validate() error {
+	_, _, err := c.toGQL()
+	return err
+}
+
+func (c *DatasetConfig) validateInput(i *Input) error {
+	switch {
+	case invalidObjectID(i.Dataset):
+		return fmt.Errorf("dataset: %w", errObjectIDInvalid)
+	case i.Dataset == nil:
+		return errInputEmpty
+	}
+	return nil
+}
+
+func (c *DatasetConfig) toGQLDatasetInput() (*api.DatasetInput, error) {
+	if c.Name == "" {
+		return nil, errNameMissing
+	}
+
+	datasetInput := &api.DatasetInput{
+		Label:   c.Name,
+		IconURL: c.IconURL,
+	}
+
+	if c.Freshness != nil {
+		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())
+		datasetInput.FreshnessDesired = &i
+	}
+	return datasetInput, nil
+}
+
+func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
+	var transformInput api.TransformInput
+
+	// validate and convert all inputs
+	var sortedNames []string
+	gqlInputs := make(map[string]*api.InputDefinitionInput, len(c.Inputs))
+	for name, input := range c.Inputs {
+		if err := c.validateInput(input); err != nil {
+			return nil, fmt.Errorf("invalid input: %w", err)
 		}
-	}`, map[string]interface{}{
-		"id": id,
-	})
+		gqlInputs[name] = &api.InputDefinitionInput{
+			InputName: name,
+			DatasetID: toObjectPointer(input.Dataset),
+		}
+		sortedNames = append(sortedNames, name)
+	}
+	sort.Strings(sortedNames)
 
+	var defaultInput *api.InputDefinitionInput
+	switch len(c.Inputs) {
+	case 0:
+		return nil, errInputsMissing
+	case 1:
+		// in only one input is provided, use it as input for first stage
+		defaultInput = gqlInputs[sortedNames[0]]
+	}
+
+	// We're now ready to convert stages
+	// If a stage is named, it can be used as an input for every subsequent stage.
+	// If a stage is anonymous, it can still be used as a default input on the next stage.
+	for i, stage := range c.Stages {
+		if stage.Pipeline == "" {
+			return nil, fmt.Errorf("stage %d: %w", i, errStagePipelineMissing)
+		}
+
+		// Each stage will be given an ID based on the hash of all preceeding pipelines
+		gqlStage := &api.StageQueryInput{
+			StageID:  fmt.Sprintf("stage-%d", i),
+			Pipeline: stage.Pipeline,
+		}
+
+		// if stage has a declared input, update defaultInput
+		if stage.Input != nil {
+			v, ok := gqlInputs[*stage.Input]
+			if !ok {
+				return nil, fmt.Errorf("stage-%d: %q: %w", i, *stage.Input, errStageInputUnresolved)
+			}
+			defaultInput = v
+		}
+
+		if defaultInput == nil {
+			return nil, fmt.Errorf("stage-%d: %w", i, errStageInputMissing)
+		}
+
+		// construct stage inputs, first default, then any declared input that
+		// is referenced in pipeline.
+		gqlStage.Input = append(gqlStage.Input, *defaultInput)
+
+		for _, name := range sortedNames {
+			gqlInput := gqlInputs[name]
+			// don't add defaultInput a second time
+			if gqlInput != defaultInput && strings.Contains(stage.Pipeline, "@"+gqlInput.InputName) {
+				gqlStage.Input = append(gqlStage.Input, *gqlInput)
+			}
+		}
+
+		// stage is done, append to transform
+		transformInput.Stages = append(transformInput.Stages, gqlStage)
+		transformInput.OutputStage = gqlStage.StageID
+
+		// prepare for next iteration of loop
+		// this stage will become defaultInput for the next
+		defaultInput = &api.InputDefinitionInput{
+			InputName: gqlStage.StageID,
+			StageID:   gqlStage.StageID,
+		}
+
+		// if explicitly named, this stage can be also be an input for the next
+		if stage.Alias != nil {
+			defaultInput.InputName = *stage.Alias
+			// conflict?
+			gqlInputs[*stage.Alias] = defaultInput
+			sortedNames = append(sortedNames, *stage.Alias)
+		}
+	}
+
+	// a transform must have at least one stage
+	if transformInput.OutputStage == "" {
+		return nil, errStagesMissing
+	}
+
+	return &transformInput, nil
+}
+
+func (c *DatasetConfig) toGQL() (*api.DatasetInput, *api.TransformInput, error) {
+	datasetInput, err := c.toGQLDatasetInput()
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	var status ResultStatus
-	nested := getNested(result, "deleteDataset")
-	if err := decodeStrict(nested, &status); err != nil {
-		return err
+	transformInput, err := c.toGQLTransformInput()
+	if err != nil {
+		return nil, nil, err
 	}
+	return datasetInput, transformInput, nil
+}
 
-	return status.Error()
+func invalidObjectID(s *string) bool {
+	if s == nil {
+		return false
+	}
+	_, err := strconv.ParseInt(*s, 10, 64)
+	return err != nil
+}
+
+func toObjectPointer(s *string) *api.ObjectIdScalar {
+	if s == nil {
+		return nil
+	}
+	i, err := strconv.ParseInt(*s, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return api.ObjectIdScalarPointer(i)
 }

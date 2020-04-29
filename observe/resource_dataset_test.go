@@ -1,262 +1,433 @@
 package observe
 
 import (
+	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-/*
-func init() {
-	resource.AddTestSweepers("observe_transform", &resource.Sweeper{
-		Name: "observe_transform",
-		F:    testSweepObserveDataset,
-	})
-}
-
-func testSweepObserveDataset(r string) error {
-	client, err := sharedClient()
-	if err != nil {
-		log.Printf("[ERROR] Failed to create Observe client: %s", err)
-	}
-
-	return nil
-}
-*/
-
-func TestAccObserveDatasetBasic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: `
+var (
+	// common to all configs
+	configPreamble = `
 				data "observe_workspace" "kubernetes" {
 					name = "Kubernetes"
 				}
 
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "tf_test_dataset"
-					freshness = "1m"
-					icon_url  = "input"
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_dataset"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
-				),
-			},
-		},
-	})
-}
+				data "observe_dataset" "observation" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name      = "Observation"
+				}`
+)
 
-func TestAccObserveDatasetSchema(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "tf_test_schema"
-
-					field { name = "column" }
-					field {
-						name = "number"
-						type = "int64"
-					}
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_schema"),
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "field.0.name", "column"),
-				),
-			},
-		},
-	})
-}
-
+// Verify we can change dataset properties: e.g. name and freshness
 func TestAccObserveDatasetUpdate(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
+				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "tf_test_update"
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
-				),
-			},
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
 
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "tf_test_update"
-					freshness = "1m"
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "tf_test_update"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccObserveDatasetEmbeddedTransform(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
-				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.kubernetes.id
-					name      = "Observation"
-				}
-
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "some test dataset"
-
-					stage {
-						input 	 = data.observe_dataset.observation.id
-						pipeline = "filter true"
-				  	}
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "stage.0.input"),
-				),
-			},
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
-				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.kubernetes.id
-					name      = "Observation"
-				}
-
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "some test dataset"
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "stage"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccObserveDatasetRemoveColFromSchema(t *testing.T) {
-	t.Skip("not currently supported")
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
-				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.kubernetes.id
-					name      = "Observation"
-				}
-
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "another test dataset"
-
-					stage {
-						input 	 = data.observe_dataset.observation.id
-						pipeline = "colmake col1:true"
-				  	}
-				}`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "stage.0.input"),
-					// TODO: what behavior do we want here?
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.name", ""),
-				),
-			},
-			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
-				}
-
-				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.kubernetes.id
-					name      = "Observation"
-				}
-
-				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.id
-					name 	  = "another test dataset"
-
-					stage {
-						input 	 = data.observe_dataset.observation.id
-						pipeline = "colmake col1:\"test\""
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
 					}
-				}`,
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "rename-%s"
+					freshness = "1m"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "rename-"+randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
 			},
 		},
 	})
 }
-func testAccGetWorkspaceAndDatasetID(t *testing.T) (string, string) {
-	client, err := sharedClient()
-	if err != nil {
-		t.Fatal("failed to load client:", err)
-	}
 
-	datasets, err := client.ListDatasets()
-	if err != nil {
-		t.Fatal("failed to list datasets:", err)
-	}
+// Changing input name should not break implicit stage reference to input
+func TestAccObserveDatasetChangeInputName(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
 
-	if len(datasets) == 0 {
-		t.Fatal("no datasets available")
-	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
 
-	for _, d := range datasets {
-		if d.Config.Name == "Observation" {
-			return d.WorkspaceID, d.ID
-		}
-	}
-	t.Fatal("failed to find observation table")
-	return "", ""
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "test" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+				),
+			},
+		},
+	})
+}
+
+// Changing stage name from default should not break implicit stage reference to stage
+func TestAccObserveDatasetChangeStageName(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.input", ""),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  alias    = "first"
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  input    = "observation"
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	union @first
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", "first"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.input", "observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.input", ""),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.alias", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.input", ""),
+				),
+			},
+		},
+	})
+}
+
+// Verify we can coldrop if no downstream affected
+func TestAccObserveDatasetSchemaChange(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-1"
+
+					inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}
+
+				resource "observe_dataset" "second" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-2"
+
+					inputs = { "first" = observe_dataset.first.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+			},
+			{
+				// coldrop with no downstream breakage
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-1"
+
+					inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	coldrop FIELDS
+					  EOF
+					}
+				}
+
+				resource "observe_dataset" "second" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-2"
+
+					inputs = { "first" = observe_dataset.first.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+			},
+			{
+				// downstream with breakage
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-1"
+
+					inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	coldrop EXTRA
+					  EOF
+					}
+				}
+
+				resource "observe_dataset" "second" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-2"
+
+					inputs = { "first" = observe_dataset.first.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	colmake test:EXTRA.tags
+					  EOF
+					}
+				}`, randomPrefix),
+				ExpectError: regexp.MustCompile(`
+graphql: errors in stage "stage-0": 1,14: \[\] non-existent path "EXTRA" among
+fields \[BUNDLE_TIMESTAMP, OBSERVER_ID, OBSERVATION_KIND, FIELDS, METADATA\]
+`),
+			},
+			{
+				// we should always have a diff when applying after error.
+				// in this case, we know second dataset has less recent version
+				// than one of its dependencies, so we force recomputation.
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-1"
+
+					inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	coldrop EXTRA
+					  EOF
+					}
+				}
+
+				resource "observe_dataset" "second" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-2"
+
+					inputs = { "first" = observe_dataset.first.oid }
+
+					stage {
+					  pipeline = <<-EOF
+					  	colmake test:EXTRA.tags
+					  EOF
+					}
+				}`, randomPrefix),
+			},
+		},
+	})
+}
+
+// Verify configuration errors
+func TestAccObserveDatasetErrors(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%[1]s-1"
+
+					inputs = { 
+						"observation" = data.observe_dataset.observation.oid
+						"other" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+				}`, randomPrefix),
+				ExpectError: regexp.MustCompile(`stage-0: input missing`),
+			},
+		},
+	})
 }

@@ -1,0 +1,28 @@
+{
+    "datasetInput": {
+        "label": "test",
+        "deleted": false,
+        "latencyDesired": null,
+        "freshnessDesired": null,
+        "iconUrl": null
+    },
+    "transformInput": {
+        "queryLanguage": "",
+        "outputStage": "stage-0",
+        "stages": [
+            {
+                "input": [
+                    {
+                        "inputName": "default",
+                        "inputRole": null,
+                        "datasetId": "4100000",
+                        "datasetPath": null,
+                        "stageID": ""
+                    }
+                ],
+                "stageID": "stage-0",
+                "pipeline": "filter true\n"
+            }
+        ]
+    }
+}

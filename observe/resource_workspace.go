@@ -1,33 +1,35 @@
 package observe
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceWorkspaceCreate,
-		Read:   resourceWorkspaceRead,
-		Delete: resourceWorkspaceDelete,
+		CreateContext: resourceWorkspaceCreate,
+		ReadContext:   resourceWorkspaceRead,
+		DeleteContext: resourceWorkspaceDelete,
 
 		Schema: map[string]*schema.Schema{},
 	}
 }
 
-func resourceWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("not yet implemented")
+func resourceWorkspaceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.FromErr(fmt.Errorf("not yet implemented"))
 }
 
-func resourceWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("not yet implemented")
+func resourceWorkspaceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.FromErr(fmt.Errorf("not yet implemented"))
 }
 
-func resourceWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("not yet implemented")
+func resourceWorkspaceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.FromErr(fmt.Errorf("not yet implemented"))
 }
 
-func resourceWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("not yet implemented")
+func resourceWorkspaceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.FromErr(fmt.Errorf("not yet implemented"))
 }

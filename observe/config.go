@@ -4,6 +4,7 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client"
 )
 
+// Config for provider
 type Config struct {
 	CustomerID   string
 	Token        string
@@ -13,6 +14,7 @@ type Config struct {
 	Insecure     bool
 }
 
+// Client returns an instantiated api client
 func (c *Config) Client() (*client.Client, error) {
 	var options []client.Option
 

@@ -1,80 +1,39 @@
 package client
 
 import (
-	"context"
-	"errors"
-
-	"github.com/machinebox/graphql"
+	"github.com/observeinc/terraform-provider-observe/client/internal/api"
 )
 
-var (
-	ErrWorkspaceNotFound = errors.New("workspace not found")
-)
-
+// Workspace acts as top-level grouping
 type Workspace struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	ID       string            `json:"id"`
+	Config   *WorkspaceConfig  `json:"config"`
+	Datasets map[string]string `json:"datasets"`
 }
 
-type backendWorkspace = Workspace
-
-func (w *backendWorkspace) Convert() (*Workspace, error) {
-	if w == nil {
-		return nil, ErrWorkspaceNotFound
+func (w *Workspace) OID() *OID {
+	return &OID{
+		Type: TypeWorkspace,
+		ID:   w.ID,
 	}
-
-	return &Workspace{
-		ID:    w.ID,
-		Label: w.Label,
-	}, nil
 }
 
-func (c *Client) ListWorkspaces() ([]*Workspace, error) {
-	req := graphql.NewRequest(`
-	query {
-	  projects {
-		id
-		label
-	  }
-	}`)
-
-	var respData struct {
-		Projects []*backendWorkspace `json:"projects"`
-	}
-
-	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
-		return nil, err
-	}
-
-	var result []*Workspace
-	for _, i := range respData.Projects {
-		el, err := i.Convert()
-		if err != nil {
-			return result, err
-		}
-		result = append(result, el)
-	}
-	return result, nil
+// WorkspaceConfig contains configurable elements associated to Workspace
+type WorkspaceConfig struct {
+	Name string `json:"name"`
 }
 
-func (c *Client) GetWorkspace(id string) (*Workspace, error) {
-	req := graphql.NewRequest(`
-	query GetWorkspace($id: ObjectId!){
-	  workspace(id:$id) {
-		id
-		label
-	  }
-	}`)
-
-	req.Var("id", id)
-
-	var respData struct {
-		Workspace *backendWorkspace `json:"workspace"`
+func newWorkspace(w *api.Workspace) (*Workspace, error) {
+	ws := &Workspace{
+		ID: w.ID.String(),
+		Config: &WorkspaceConfig{
+			Name: w.Label,
+		},
+		Datasets: make(map[string]string, len(w.Datasets)),
 	}
 
-	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
-		return nil, err
+	for _, gqlDataset := range w.Datasets {
+		ws.Datasets[gqlDataset.Label] = gqlDataset.ID.String()
 	}
-
-	return respData.Workspace.Convert()
+	return ws, nil
 }

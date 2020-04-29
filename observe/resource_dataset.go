@@ -1,41 +1,36 @@
 package observe
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mitchellh/mapstructure"
+
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
-func mergeSchema(kvs ...map[string]*schema.Schema) map[string]*schema.Schema {
-	result := make(map[string]*schema.Schema)
-	for _, schema := range kvs {
-		for k, v := range schema {
-			if _, ok := result[k]; ok {
-				panic(fmt.Sprintf("schema defines multiple values for %s", k))
-			}
-			result[k] = v
-		}
-	}
-	return result
-}
-
 func resourceDataset() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDatasetCreate,
-		Read:   resourceDatasetRead,
-		Update: resourceDatasetUpdate,
-		Delete: resourceDatasetDelete,
+		CreateContext: resourceDatasetCreate,
+		ReadContext:   resourceDatasetRead,
+		UpdateContext: resourceDatasetUpdate,
+		DeleteContext: resourceDatasetDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
-		Schema: mergeSchema(map[string]*schema.Schema{
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			if datasetRecomputeOID(d) {
+				return d.SetNewComputed("oid")
+			}
+			return nil
+		},
+		Schema: map[string]*schema.Schema{
 			"workspace": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -45,239 +40,236 @@ func resourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"freshness": &schema.Schema{
+			"oid": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(i interface{}, k string) ([]string, []error) {
-					s := i.(string)
-					if _, err := time.ParseDuration(s); err != nil {
-						return nil, []error{err}
-					}
-					return nil, nil
-				},
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					o, _ := time.ParseDuration(old)
-					n, _ := time.ParseDuration(new)
-					return o == n
-				},
+				Computed: true,
 			},
-			"field": &schema.Schema{
-				Type: schema.TypeList,
+			"freshness": &schema.Schema{
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
+			},
+			"inputs": {
+				Type:             schema.TypeMap,
+				Required:         true,
+				ValidateDiagFunc: validateMapValues(validateOID()),
+			},
+			"stage": &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 1,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
+						"alias": {
+							Type:     schema.TypeString,
+							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// ignore alias for last stage, because it won't be set anyway
+								stage := d.Get("stage").([]interface{})
+								return k == fmt.Sprintf("stage.%d.alias", len(stage)-1)
+							},
+						},
+						"input": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"pipeline": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"type": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "string",
-							ValidateFunc: validation.StringInSlice(observe.FieldTypes, false),
-						},
 					},
 				},
-				Optional: true,
 			},
-			"keys": &schema.Schema{
-				Type: schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeList,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				Optional: true,
-			},
-		}, getTransformSchema(true)),
+		},
 	}
 }
 
-type datasetResourceData struct {
-	*schema.ResourceData
-}
-
-func (d *datasetResourceData) GetConfig() (observe.DatasetConfig, error) {
-	c := observe.DatasetConfig{
-		Name: d.Get("name").(string),
+func newDatasetConfig(data *schema.ResourceData) (config *observe.DatasetConfig, diags diag.Diagnostics) {
+	config = &observe.DatasetConfig{
+		Name:   data.Get("name").(string),
+		Inputs: make(map[string]*observe.Input),
 	}
 
-	if v, ok := d.GetOk("freshness"); ok {
-		freshness, _ := time.ParseDuration(v.(string))
-		c.FreshnessDesired = &freshness
+	if v, ok := data.GetOk("freshness"); ok {
+		// we already validated in schema
+		t, _ := time.ParseDuration(v.(string))
+		config.Freshness = &t
 	}
 
-	if v, ok := d.GetOk("icon_url"); ok {
+	if v, ok := data.GetOk("icon_url"); ok {
 		icon := v.(string)
-		c.IconURL = &icon
+		config.IconURL = &icon
 	}
 
-	if v, ok := d.GetOk("field"); ok {
-		if err := mapstructure.Decode(v, &c.Fields); err != nil {
-			return c, fmt.Errorf("failed to decode fields: %w", err)
+	for k, v := range data.Get("inputs").(map[string]interface{}) {
+		oid, _ := observe.NewOID(v.(string))
+		config.Inputs[k] = &observe.Input{
+			Dataset: &oid.ID,
 		}
 	}
 
-	return c, nil
+	for i := range data.Get("stage").([]interface{}) {
+		var stage observe.Stage
+
+		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.alias", i)); ok {
+			s := v.(string)
+			stage.Alias = &s
+		}
+
+		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.input", i)); ok {
+			s := v.(string)
+			stage.Input = &s
+		}
+
+		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.pipeline", i)); ok {
+			stage.Pipeline = v.(string)
+		}
+		config.Stages = append(config.Stages, &stage)
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	return config, diags
 }
 
-func (d *datasetResourceData) SetState(o *observe.Dataset) error {
-	d.SetId(o.ID)
-
-	c := o.Config
-
-	if err := d.Set("name", c.Name); err != nil {
-		return err
+func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Config.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if freshness := c.FreshnessDesired; freshness != nil {
-		if err := d.Set("freshness", freshness.String()); err != nil {
-			return err
+	if d.Config.Freshness != nil {
+		if err := data.Set("freshness", d.Config.Freshness.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if iconURL := c.IconURL; iconURL != nil {
-		if err := d.Set("icon_url", *iconURL); err != nil {
-			return err
+	if d.Config.IconURL != nil {
+		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	/* XXX: missing, because we don't yet know what fields we pre-declared.
-	var fields []interface{}
-	for _, f := range c.Fields {
-		field := map[string]interface{}{
-			"name": f.Name,
-			"type": f.Type,
-		}
-
-		fields = append(fields, field)
+	if diags.HasError() {
+		return diags
 	}
 
-	if err := d.Set("field", fields); err != nil {
-		return err
+	if err := data.Set("inputs", flattenObserveInputs(data, d.Config.Inputs)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
-	*/
 
-	return nil
+	if err := data.Set("stage", flattenObserveStages(data, d.Config.Stages)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("oid", d.OID().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }
 
-func resourceDatasetCreate(data *schema.ResourceData, meta interface{}) error {
-	var (
-		client    = meta.(*observe.Client)
-		dataset   = &datasetResourceData{data}
-		transform = &transformResourceData{
-			ResourceData: data,
-			Embedded:     true,
+func flattenObserveStages(data *schema.ResourceData, stages []*observe.Stage) (result []interface{}) {
+	for i, stage := range stages {
+		s := map[string]interface{}{
+			"pipeline": stage.Pipeline,
 		}
-	)
-
-	config, err := dataset.GetConfig()
-	if err != nil {
-		return err
-	}
-
-	transformConfig, err := transform.GetConfig()
-	if err != nil {
-		return err
-	}
-
-	result, err := client.CreateDataset(data.Get("workspace").(string), config)
-	if err != nil {
-		return err
-	}
-
-	if err := dataset.SetState(result); err != nil {
-		return err
-	}
-
-	if transformConfig != nil {
-		transformResult, err := client.SetTransform(result.ID, transformConfig)
-		if err != nil {
-			return err
+		if stage.Alias != nil {
+			s["alias"] = stage.Alias
 		}
-		return transform.SetState(transformResult)
+		if stage.Input != nil {
+			s["input"] = stage.Input
+		} else if i == 0 {
+			s["input"] = data.Get("stage.0.input")
+		}
+		result = append(result, s)
 	}
-
-	return nil
+	return result
 }
 
-func resourceDatasetRead(data *schema.ResourceData, meta interface{}) error {
-	var (
-		client    = meta.(*observe.Client)
-		dataset   = &datasetResourceData{data}
-		transform = &transformResourceData{
-			ResourceData: data,
-			Embedded:     true,
+func flattenObserveInputs(data *schema.ResourceData, inputs map[string]*observe.Input) map[string]interface{} {
+	result := make(map[string]interface{}, len(inputs))
+	for name, input := range inputs {
+		oid := observe.OID{
+			Type: observe.TypeDataset,
+			ID:   *input.Dataset,
 		}
-	)
 
-	result, err := client.GetDataset(dataset.Id())
-	if err != nil {
-		return err
+		// check for existing version timestamp we can maintain
+		if v, ok := data.GetOk(fmt.Sprintf("inputs.%s", name)); ok {
+			prv, err := observe.NewOID(v.(string))
+			if err == nil && oid.ID == prv.ID {
+				oid.Version = prv.Version
+			}
+		}
+		result[name] = oid.String()
 	}
-
-	// no dataset found
-	if result == nil {
-		return nil
-	}
-
-	if err := dataset.SetState(result); err != nil {
-		return err
-	}
-
-	transformResult, err := client.GetTransform(dataset.Id())
-	if err != nil {
-		return err
-	}
-
-	if transformResult != nil {
-		return transform.SetState(transformResult)
-	}
-
-	return nil
+	return result
 }
 
-func resourceDatasetUpdate(data *schema.ResourceData, meta interface{}) error {
-	var (
-		client    = meta.(*observe.Client)
-		dataset   = &datasetResourceData{data}
-		transform = &transformResourceData{
-			ResourceData: data,
-			Embedded:     true,
-		}
-	)
-
-	config, err := dataset.GetConfig()
-	if err != nil {
-		return err
-	}
-
-	transformConfig, err := transform.GetConfig()
-	if err != nil {
-		return err
-	}
-
-	result, err := client.UpdateDataset(data.Get("workspace").(string), dataset.Id(), config)
-	if err != nil {
-		return err
-	}
-
-	if err := dataset.SetState(result); err != nil {
-		return err
-	}
-
-	if transformConfig != nil || data.HasChange("stage") {
-		transformResult, err := client.SetTransform(result.ID, transformConfig)
-		if err != nil {
-			return err
-		}
-		return transform.SetState(transformResult)
-	}
-
-	return nil
-}
-
-func resourceDatasetDelete(data *schema.ResourceData, meta interface{}) error {
+func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	return client.DeleteDataset(data.Id())
+	config, diags := newDatasetConfig(data)
+	if diags.HasError() {
+		return diags
+	}
+
+	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateDataset(oid.ID, config)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "failed to create dataset",
+			Detail:   err.Error(),
+		})
+		return diags
+	}
+
+	data.SetId(result.ID)
+	return append(diags, resourceDatasetRead(ctx, data, meta)...)
+}
+
+func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	client := meta.(*observe.Client)
+	result, err := client.GetDataset(data.Id())
+	if err != nil {
+		return append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),
+			Detail:   err.Error(),
+		})
+	}
+
+	return datasetToResourceData(result, data)
+}
+
+func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	client := meta.(*observe.Client)
+	config, diags := newDatasetConfig(data)
+	if diags.HasError() {
+		return diags
+	}
+
+	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	result, err := client.UpdateDataset(oid.ID, data.Id(), config)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
+			Detail:   err.Error(),
+		})
+		return diags
+	}
+
+	return datasetToResourceData(result, data)
+}
+
+func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	client := meta.(*observe.Client)
+	if err := client.DeleteDataset(data.Id()); err != nil {
+		return diag.Errorf("failed to delete dataset: %s", err)
+	}
+	return diags
 }

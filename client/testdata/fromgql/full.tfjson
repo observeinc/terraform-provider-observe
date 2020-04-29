@@ -1,0 +1,18 @@
+{
+    "name": "FK1 (no label)",
+    "icon_url": null,
+    "freshness": 120000000000,
+    "inputs": {
+        "IoT Raw Events": {
+            "dataset": "41021424"
+        }
+    },
+    "stages": [
+        {
+            "pipeline": "filter (not isnull(fields.roomInfo))\ncolmake name:string(fields.roomInfo.name), roomId:string(fields.roomInfo.roomId)\naddfk \"RoomId\", roomId:@stage-bb4ss0h0.roomId"
+        },
+        {
+            "pipeline": "makeresource name:name, primarykey(roomId)\ncolmake origName:name\ncolmake name:case(not startswith(roomId, \"e8\"), name)"
+        }
+    ]
+}

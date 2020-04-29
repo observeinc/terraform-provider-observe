@@ -1,9 +1,13 @@
 package observe
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Provider returns observe terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -47,26 +51,42 @@ func Provider() *schema.Provider {
 				Description: "Skip TLS verification",
 			},
 		},
-		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
-
+		ConfigureContextFunc: func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
 			c := Config{
-				CustomerID:   d.Get("customer").(string),
-				Token:        d.Get("token").(string),
-				UserEmail:    d.Get("user_email").(string),
-				UserPassword: d.Get("user_password").(string),
-				Domain:       d.Get("domain").(string),
-				Insecure:     d.Get("insecure").(bool),
+				CustomerID:   data.Get("customer").(string),
+				Token:        data.Get("token").(string),
+				UserEmail:    data.Get("user_email").(string),
+				UserPassword: data.Get("user_password").(string),
+				Domain:       data.Get("domain").(string),
+				Insecure:     data.Get("insecure").(bool),
 			}
-			return c.Client()
+
+			if c.Insecure {
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Insecure API session",
+				})
+			}
+
+			client, err := c.Client()
+			if err != nil {
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Failed to create client",
+					Detail:   err.Error(),
+				})
+				return nil, diags
+			}
+			return client, diags
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"observe_workspace": dataSourceWorkspace(),
 			"observe_dataset":   dataSourceDataset(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"observe_workspace": resourceWorkspace(),
 			"observe_dataset":   resourceDataset(),
-			"observe_transform": resourceTransform(),
+			"observe_fk":        resourceForeignKey(),
+			"observe_workspace": resourceWorkspace(),
 		},
 	}
 }
