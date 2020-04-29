@@ -2,7 +2,7 @@
 git clean -f -d
 git fetch origin
 
-make jenkins-integration
+make docker-integration
 
 git update-index -q --refresh
 if ! git diff-index --exit-code --no-ext-diff HEAD --; then

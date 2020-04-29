@@ -1,9 +1,32 @@
 #!/bin/bash -xe
 set -uxe
 set -o pipefail
+VERSION=`git describe --tags --always`
 
 mydir=$(dirname $0)
 git fetch origin
 cd "$mydir/../.."
-make latest
 
+# Terraform infers plugin version from filename. For this reason, it is more
+# convenient to package plugins in a zip in order to maintain version integrity
+# while being able to pull "latest"
+function publish() {
+    local SRC="$1"
+    local GOOS="$2"
+    local OUTPUT="$3"
+    cp ${SRC} ${SRC}_${VERSION}
+    zip -mqj ${OUTPUT} ${SRC}_${VERSION}
+    aws s3 cp ${OUTPUT} s3://observeinc/terraform-provider-observe/${GOOS}/${OUTPUT}
+    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS}/${OUTPUT} --acl public-read
+}
+
+make docker-build
+
+publish bin/darwin_amd64/terraform-provider-observe darwin_amd64 terraform-provider-observe_${VERSION}.zip
+publish bin/terraform-provider-observe linux_amd64 terraform-provideer-observe_${VERSION}.zip
+
+# only link latest to tagged releases
+if [[ $VERSION =~ "." ]]; then
+    publish bin/darwin_amd64/terraform-provider-observe darwin_amd64 terraform-provider-observe.zip
+    publish bin/terraform-provider-observe linux_amd64 terraform-provider-observe.zip
+fi
