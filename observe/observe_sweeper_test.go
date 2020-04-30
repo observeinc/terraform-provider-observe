@@ -2,14 +2,13 @@ package observe
 
 import (
 	"os"
-	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/acctest"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
-func TestMain(m *testing.M) {
-	resource.TestMain(m)
+func init() {
+	acctest.UseBinaryDriver("observe", Provider)
 }
 
 func sharedClient() (*observe.Client, error) {
