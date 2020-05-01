@@ -17,12 +17,15 @@ docker-package:
 	--rm golang:latest \
 	    /bin/bash -c " \
 		cd src/github.com/observeinc/terraform-provider-observe && \
+		apt-get update && \
+		apt-get install -y zip && \
 		rm -rf bin && \
 		GOOS=darwin GOARCH=amd64 make package && \
 		GOOS=linux GOARCH=amd64 make package"
 
 package: fmtcheck
 	go build -o bin/$(GOOS)_$(GOARCH)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
+	zip -mgq bin/$(GOOS)_$(GOARCH)/terraform-provider-observe_$(VERSION).zip bin/$(GOOS)_$(GOARCH)/terraform-provider-observe_$(VERSION)
 
 build: fmtcheck
 	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"

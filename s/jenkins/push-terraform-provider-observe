@@ -12,11 +12,11 @@ cd "$mydir/../.."
 # while being able to pull "latest"
 function publish() {
     local GOOS_GOARCH="$1"
-    local OUTPUT="terraform-provider-observe_${2}.zip"
-    zip -mqj $OUTPUT bin/${GOOS_GOARCH}/terraform-provider-observe_${VERSION}
-    aws s3 cp ${OUTPUT} s3://observeinc/terraform-provider-observe/${GOOS_GOARCH}/${OUTPUT}
-    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS_GOARCH}/${OUTPUT} --acl public-read
-    rm ${OUTPUT}
+    local ALIAS="$2"
+    local REMOTE="terraform-provider-observe_${ALIAS}.zip"
+    local LOCAL="terraform-provider-observe_${VERSION}.zip"
+    aws s3 cp bin/${GOOS_GOARCH}/${LOCAL} s3://observeinc/terraform-provider-observe/${GOOS_GOARCH}/${REMOTE}
+    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS_GOARCH}/${REMOTE} --acl public-read
 }
 
 make docker-package
