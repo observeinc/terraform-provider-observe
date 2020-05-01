@@ -12,10 +12,17 @@ docker-integration:
 	--rm golang:latest \
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make testacc"
 
-docker-build:
+docker-package:
 	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
-	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && rm -rf bin && GOOS=darwin GOARCH=amd64 make && GOOS=linux GOARCH=amd64 make && cp -r /go/bin ."
+	    /bin/bash -c " \
+		cd src/github.com/observeinc/terraform-provider-observe && \
+		rm -rf bin && \
+		GOOS=darwin GOARCH=amd64 make package && \
+		GOOS=linux GOARCH=amd64 make package"
+
+package: fmtcheck
+	go build -o bin/$(GOOS)_$(GOARCH)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
 
 build: fmtcheck
 	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"

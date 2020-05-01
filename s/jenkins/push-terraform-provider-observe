@@ -11,22 +11,21 @@ cd "$mydir/../.."
 # convenient to package plugins in a zip in order to maintain version integrity
 # while being able to pull "latest"
 function publish() {
-    local SRC="$1"
-    local GOOS="$2"
-    local OUTPUT="$3"
-    cp ${SRC} ${SRC}_${VERSION}
-    zip -mqj ${OUTPUT} ${SRC}_${VERSION}
-    aws s3 cp ${OUTPUT} s3://observeinc/terraform-provider-observe/${GOOS}/${OUTPUT}
-    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS}/${OUTPUT} --acl public-read
+    local GOOS_GOARCH="$1"
+    local OUTPUT="terraform-provider-observe_${2}.zip"
+    zip -mqj $OUTPUT bin/${GOOS_GOARCH}/terraform-provider-observe_${VERSION}
+    aws s3 cp ${OUTPUT} s3://observeinc/terraform-provider-observe/${GOOS_GOARCH}/${OUTPUT}
+    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS_GOARCH}/${OUTPUT} --acl public-read
+    rm ${OUTPUT}
 }
 
-make docker-build
+make docker-package
 
-publish bin/darwin_amd64/terraform-provider-observe darwin_amd64 terraform-provider-observe_${VERSION}.zip
-publish bin/terraform-provider-observe linux_amd64 terraform-provideer-observe_${VERSION}.zip
+publish darwin_amd64 ${VERSION}
+publish linux_amd64 ${VERSION}
 
 # only link latest to tagged releases
 if [[ $VERSION =~ "." ]]; then
-    publish bin/darwin_amd64/terraform-provider-observe darwin_amd64 terraform-provider-observe.zip
-    publish bin/terraform-provider-observe linux_amd64 terraform-provider-observe.zip
+    publish darwin_amd64 latest
+    publish linux_amd64 latest
 fi
