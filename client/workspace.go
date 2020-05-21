@@ -42,7 +42,7 @@ func (c *Client) ListWorkspaces() ([]*Workspace, error) {
 		Projects []*backendWorkspace `json:"projects"`
 	}
 
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (c *Client) GetWorkspace(id string) (*Workspace, error) {
 		Workspace *backendWorkspace `json:"workspace"`
 	}
 
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
 		return nil, err
 	}
 

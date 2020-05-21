@@ -1,20 +1,23 @@
 package client
 
 import (
+	"bytes"
 	"context"
-	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
+	"strings"
 
 	"github.com/machinebox/graphql"
 )
 
 var (
 	ErrUnauthorized = errors.New("authorization error")
+	defaultDomain   = "observeinc.com"
 )
 
 type ResultStatus struct {
@@ -75,7 +78,13 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 type Client struct {
-	client *graphql.Client
+	customerID string
+	domain     string
+	token      string
+	insecure   bool
+
+	httpClient *http.Client
+	gqlClient  *graphql.Client
 }
 
 // Verify checks if we can connect to API.
@@ -87,7 +96,7 @@ func (c *Client) Verify() error {
 		} `json:"currentUser"`
 	}
 
-	if err := c.client.Run(context.Background(), req, &respData); err != nil {
+	if err := c.gqlClient.Run(context.Background(), req, &respData); err != nil {
 		return err
 	}
 
@@ -102,34 +111,98 @@ func (c *Client) Run(reqBody string, vars map[string]interface{}) (map[string]in
 	}
 
 	var result map[string]interface{}
-	err := c.client.Run(context.Background(), req, &result)
+	err := c.gqlClient.Run(context.Background(), req, &result)
 	return result, err
 }
 
-func NewClient(baseURL string, key string, insecure bool) (*Client, error) {
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	if t.TLSClientConfig == nil {
-		t.TLSClientConfig = &tls.Config{}
-	}
-	t.TLSClientConfig.InsecureSkipVerify = insecure
-
-	authed := &http.Client{
-		Transport: &authTripper{
-			RoundTripper: t,
-			key:          key,
+func NewClient(customerID string, options ...Option) (*Client, error) {
+	c := &Client{
+		customerID: customerID,
+		domain:     defaultDomain,
+		httpClient: &http.Client{
+			Transport: http.DefaultTransport.(*http.Transport).Clone(),
 		},
 	}
 
-	log.Printf("[DEBUG] using %s", baseURL)
-
-	c := &Client{
-		client: graphql.NewClient(u.String(), graphql.WithHTTPClient(authed)),
+	for _, o := range options {
+		if err := o(c); err != nil {
+			return nil, fmt.Errorf("failed to configure client: %w", err)
+		}
 	}
 
+	if c.token != "" {
+		wrapped := c.httpClient.Transport
+		c.httpClient.Transport = &authTripper{
+			RoundTripper: wrapped,
+			key:          fmt.Sprintf("%s %s", c.customerID, c.token),
+		}
+	}
+
+	gqlURL := fmt.Sprintf("https://%s.%s/v1/meta", c.customerID, c.domain)
+	c.gqlClient = graphql.NewClient(gqlURL, graphql.WithHTTPClient(c.httpClient))
 	return c, c.Verify()
+}
+
+func (c *Client) login(user, password string) (string, error) {
+	var result struct {
+		AccessKey string `json:"access_key"`
+		Ok        bool   `json:"ok"`
+	}
+
+	err := c.do("POST", "/v1/login", map[string]interface{}{
+		"user_email":    user,
+		"user_password": password,
+	}, &result)
+
+	if err != nil {
+		return "", fmt.Errorf("login request failed: %w", err)
+	}
+
+	return result.AccessKey, nil
+}
+
+// do is a helper to run HTTP request
+func (c *Client) do(method string, path string, body map[string]interface{}, result interface{}) error {
+
+	var (
+		endpoint = fmt.Sprintf("https://%s.%s%s", c.customerID, c.domain, path)
+		reqBody  io.Reader
+	)
+
+	if body != nil {
+		data, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("failed to marshal request body: %w", err)
+		}
+		reqBody = bytes.NewBuffer(data)
+	}
+
+	req, err := http.NewRequest(method, endpoint, reqBody)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if s, err := httputil.DumpRequest(req, true); err != nil {
+		return err
+	} else {
+		log.Printf("[DEBUG] %s\n", s)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+	default:
+		return fmt.Errorf(strings.ToLower(http.StatusText(resp.StatusCode)))
+	}
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(&result); err != nil {
+		return fmt.Errorf("error decoding response: %w", err)
+	}
+	return nil
 }
