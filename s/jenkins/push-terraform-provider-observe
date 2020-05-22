@@ -25,7 +25,7 @@ publish darwin_amd64 ${VERSION}
 publish linux_amd64 ${VERSION}
 
 # only link latest to tagged releases
-if [[ $VERSION =~ "." ]]; then
+if [[ $VERSION =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
     publish darwin_amd64 latest
     publish linux_amd64 latest
 fi
