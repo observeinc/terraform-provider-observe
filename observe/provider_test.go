@@ -24,7 +24,7 @@ func TestProvider(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	requiredEnvVars := []string{"OBSERVE_CUSTOMER", "OBSERVE_DOMAIN", "OBSERVE_TOKEN"}
+	requiredEnvVars := []string{"OBSERVE_CUSTOMER", "OBSERVE_DOMAIN"}
 
 	for _, k := range requiredEnvVars {
 		if v := os.Getenv(k); v == "" {

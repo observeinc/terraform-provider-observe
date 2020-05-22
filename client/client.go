@@ -182,7 +182,7 @@ func (c *Client) do(method string, path string, body map[string]interface{}, res
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	if s, err := httputil.DumpRequest(req, true); err != nil {
+	if s, err := httputil.DumpRequest(req, false); err != nil {
 		return err
 	} else {
 		log.Printf("[DEBUG] %s\n", s)

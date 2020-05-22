@@ -13,9 +13,11 @@ func init() {
 
 func sharedClient() (*observe.Client, error) {
 	c := &Config{
-		CustomerID: os.Getenv("OBSERVE_CUSTOMER"),
-		Token:      os.Getenv("OBSERVE_TOKEN"),
-		Domain:     os.Getenv("OBSERVE_DOMAIN"),
+		CustomerID:   os.Getenv("OBSERVE_CUSTOMER"),
+		UserEmail:    os.Getenv("OBSERVE_USER_EMAIL"),
+		UserPassword: os.Getenv("OBSERVE_USER_PASSWORD"),
+		Token:        os.Getenv("OBSERVE_TOKEN"),
+		Domain:       os.Getenv("OBSERVE_DOMAIN"),
 	}
 	return c.Client()
 }
