@@ -87,6 +87,7 @@ func (c *Client) DeleteDeferredForeignKey(id string) error {
 		deleteDeferredForeignKey(id: $id) {
         	success
             errorMessage
+            detailedInfo
         }
     }`, map[string]interface{}{
 		"id": id,

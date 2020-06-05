@@ -82,6 +82,7 @@ func (c *Client) DeleteDataset(id string) error {
         deleteDataset(dsid: $id, dependencyHandling:$dep) {
             success
             errorMessage
+            detailedInfo
         }
     }`, map[string]interface{}{
 		"id":  id,
