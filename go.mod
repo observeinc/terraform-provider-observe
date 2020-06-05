@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.3.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/hashicorp/hcl/v2 v2.5.1 // indirect
+	github.com/hashicorp/hcl/v2 v2.6.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.0-rc.1.0.20200527224342-79b4af5fffc8
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/machinebox/graphql v0.2.2
@@ -26,6 +26,6 @@ require (
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
-	google.golang.org/genproto v0.0.0-20200603110839-e855014d5736 // indirect
+	google.golang.org/genproto v0.0.0-20200605102947-12044bf5ea91 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 )
