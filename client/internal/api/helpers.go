@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"time"
@@ -31,6 +32,10 @@ func stringToTimeScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}
 }
 
 func decode(input interface{}, output interface{}, strict bool) error {
+	if input == nil {
+		return fmt.Errorf("not found")
+	}
+
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		ErrorUnused: strict,
 		Result:      output,
@@ -43,10 +48,6 @@ func decode(input interface{}, output interface{}, strict bool) error {
 		return err
 	}
 	return decoder.Decode(input)
-}
-
-func decodeLoose(input interface{}, output interface{}) error {
-	return decode(input, output, false)
 }
 
 func decodeStrict(input interface{}, output interface{}) error {

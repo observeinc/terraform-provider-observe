@@ -12,6 +12,8 @@ import (
 func TestAccObserveForeignKeyCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
+	t.Skip("skipping due to OBS-2267.")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
