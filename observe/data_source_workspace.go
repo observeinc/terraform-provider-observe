@@ -34,12 +34,7 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 
 	workspace, err := observe.LookupWorkspace(name)
 	if err != nil {
-		err = fmt.Errorf("failed to retrieve workspaces: %w", err)
-		return diag.FromErr(err)
-	}
-
-	if workspace == nil {
-		err = fmt.Errorf("workspace not found")
+		err = fmt.Errorf("failed to retrieve workspace %q: %w", name, err)
 		return diag.FromErr(err)
 	}
 
