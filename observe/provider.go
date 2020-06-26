@@ -3,13 +3,15 @@ package observe
 import (
 	"context"
 
+	"github.com/observeinc/terraform-provider-observe/version"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Provider returns observe terraform provider
 func Provider() *schema.Provider {
-	return &schema.Provider{
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"customer": {
 				Type:        schema.TypeString,
@@ -51,34 +53,7 @@ func Provider() *schema.Provider {
 				Description: "Skip TLS verification",
 			},
 		},
-		ConfigureContextFunc: func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
-			c := Config{
-				CustomerID:   data.Get("customer").(string),
-				Token:        data.Get("token").(string),
-				UserEmail:    data.Get("user_email").(string),
-				UserPassword: data.Get("user_password").(string),
-				Domain:       data.Get("domain").(string),
-				Insecure:     data.Get("insecure").(bool),
-			}
 
-			if c.Insecure {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "Insecure API session",
-				})
-			}
-
-			client, err := c.Client()
-			if err != nil {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.Error,
-					Summary:  "Failed to create client",
-					Detail:   err.Error(),
-				})
-				return nil, diags
-			}
-			return client, diags
-		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"observe_workspace": dataSourceWorkspace(),
 			"observe_dataset":   dataSourceDataset(),
@@ -88,5 +63,44 @@ func Provider() *schema.Provider {
 			"observe_fk":        resourceForeignKey(),
 			"observe_workspace": resourceWorkspace(),
 		},
+	}
+
+	// this is a bit circular: we need a client for the provider, but we need
+	// userAgent to create the client, and we need the provider to get
+	// userAgent. So we create provider, grab userAgent, and finally attach the
+	// ConfigureContextFunc.
+	userAgent := provider.UserAgent("terraform-provider-observe", version.ProviderVersion)
+	provider.ConfigureContextFunc = getConfigureContextFunc(userAgent)
+	return provider
+}
+
+func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
+	return func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
+		c := Config{
+			CustomerID:   data.Get("customer").(string),
+			Token:        data.Get("token").(string),
+			UserEmail:    data.Get("user_email").(string),
+			UserPassword: data.Get("user_password").(string),
+			Domain:       data.Get("domain").(string),
+			Insecure:     data.Get("insecure").(bool),
+		}
+
+		if c.Insecure {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Insecure API session",
+			})
+		}
+
+		client, err := c.Client(userAgent)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Failed to create client",
+				Detail:   err.Error(),
+			})
+			return nil, diags
+		}
+		return client, diags
 	}
 }

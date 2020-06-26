@@ -24,12 +24,17 @@ var (
 
 type authTripper struct {
 	http.RoundTripper
-	key string
+	key       string
+	userAgent string
 }
 
 func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// log request before adding authorization header
-	s, err := httputil.DumpRequest(req, true)
+	if t.userAgent != "" {
+		req.Header.Set("User-Agent", t.userAgent)
+	}
+
+	s, err := httputil.DumpRequestOut(req, true)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +75,7 @@ type Client struct {
 	domain     string
 	token      string
 	insecure   bool
+	userAgent  string
 
 	httpClient *http.Client
 	gqlClient  *graphql.Client
@@ -119,6 +125,7 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 		c.httpClient.Transport = &authTripper{
 			RoundTripper: wrapped,
 			key:          fmt.Sprintf("%s %s", c.customerID, c.token),
+			userAgent:    c.userAgent,
 		}
 	}
 

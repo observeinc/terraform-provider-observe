@@ -60,3 +60,10 @@ func WithUserCredentials(user, password string) Option {
 		return err
 	}
 }
+
+func WithUserAgent(userAgent string) Option {
+	return func(c *Client) (err error) {
+		c.userAgent = userAgent
+		return nil
+	}
+}

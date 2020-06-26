@@ -15,8 +15,10 @@ type Config struct {
 }
 
 // Client returns an instantiated api client
-func (c *Config) Client() (*client.Client, error) {
+func (c *Config) Client(userAgent string) (*client.Client, error) {
 	var options []client.Option
+
+	options = append(options, client.WithUserAgent(userAgent))
 
 	if c.Domain != "" {
 		options = append(options, client.WithDomain(c.Domain))
