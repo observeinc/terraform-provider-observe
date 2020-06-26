@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/go-plugin v1.3.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl/v2 v2.6.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.0-rc.1.0.20200527224342-79b4af5fffc8
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.0-rc.2
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/machinebox/graphql v0.2.2
 	github.com/mattn/go-colorable v0.1.6 // indirect
