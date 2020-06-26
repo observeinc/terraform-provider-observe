@@ -28,5 +28,6 @@
         {
             "pipeline": "colshow uid:false\nsetlabel name\naddfk \"Service\", name:@service.name, namespace:@service.namespace, clusterUid:@service.clusterUid\naddfk \"Pod\", podName:@pod.name, namespace:@pod.namespace, clusterUid:@pod.clusterUid\naddfk \"Node\", nodeName:@node.name, clusterUid:@node.clusterUid\n"
         }
-    ]
+    ],
+    "path_cost": 0
 }

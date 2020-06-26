@@ -37,10 +37,12 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
 
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "icon_url"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", "observation"),
@@ -50,6 +52,34 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 			{
 				// you can elide the stage input if only one input is available
 				// you can update dataset properties
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s"
+
+					icon_url  = "test-tube"
+					freshness = "2m"
+					path_cost = 50
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "path_cost", "50"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "icon_url", "test-tube"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "2m0s"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+				),
+			},
+			{
+				// change it all back
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.kubernetes.oid
@@ -71,6 +101,8 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "icon_url", "test-tube"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "2m0s"),
+					// ideally path_cost shouldn't be set, but more work than it is worth to make that happen
+					resource.TestCheckResourceAttr("observe_dataset.first", "path_cost", "0"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
 			},

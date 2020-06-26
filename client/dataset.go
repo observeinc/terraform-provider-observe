@@ -39,6 +39,9 @@ type DatasetConfig struct {
 	Freshness *time.Duration    `json:"freshness"`
 	Inputs    map[string]*Input `json:"inputs"`
 	Stages    []*Stage          `json:"stages"`
+
+	// in practice PathCost is mandatory, since it cannot be set to null
+	PathCost int64 `json:"path_cost"`
 }
 
 // Stage applies a pipeline to an input
@@ -66,6 +69,12 @@ func (d *Dataset) OID() *OID {
 }
 
 func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
+
+	var pathCost int64
+	if gqlDataset.PathCost != nil {
+		pathCost = *gqlDataset.PathCost
+	}
+
 	d := &Dataset{
 		ID:          gqlDataset.ID.String(),
 		WorkspaceID: gqlDataset.WorkspaceId.String(),
@@ -74,6 +83,7 @@ func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
 			Name:      gqlDataset.Label,
 			IconURL:   gqlDataset.IconURL,
 			Freshness: gqlDataset.FreshnessDesired,
+			PathCost:  pathCost,
 		},
 	}
 
@@ -150,6 +160,9 @@ func (c *DatasetConfig) toGQLDatasetInput() (*api.DatasetInput, error) {
 		Label:   c.Name,
 		IconURL: c.IconURL,
 	}
+
+	i := fmt.Sprintf("%d", c.PathCost)
+	datasetInput.PathCost = &i
 
 	if c.Freshness != nil {
 		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())

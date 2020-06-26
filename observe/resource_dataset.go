@@ -40,6 +40,10 @@ func resourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"path_cost": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -102,6 +106,10 @@ func newDatasetConfig(data *schema.ResourceData) (config *observe.DatasetConfig,
 		config.IconURL = &icon
 	}
 
+	if v, ok := data.GetOk("path_cost"); ok {
+		config.PathCost = int64(v.(int))
+	}
+
 	for k, v := range data.Get("inputs").(map[string]interface{}) {
 		oid, _ := observe.NewOID(v.(string))
 		config.Inputs[k] = &observe.Input{
@@ -148,6 +156,17 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 
 	if d.Config.IconURL != nil {
 		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	var currentCost int64
+	if v, ok := data.GetOk("path_cost"); ok {
+		currentCost = int64(v.(int))
+	}
+
+	if d.Config.PathCost != currentCost {
+		if err := data.Set("path_cost", d.Config.PathCost); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

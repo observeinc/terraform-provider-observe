@@ -9,6 +9,7 @@ var (
 		freshnessDesired
 		iconUrl
 		version
+		pathCost
 		transform {
 			current {
 				outputStage

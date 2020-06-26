@@ -7,6 +7,7 @@ type DatasetInput struct {
 	LatencyDesired   *string         `json:"latencyDesired"`
 	FreshnessDesired *string         `json:"freshnessDesired"`
 	IconURL          *string         `json:"iconUrl"`
+	PathCost         *string         `json:"pathCost"`
 }
 
 type DeferredDatasetReferenceInput struct {

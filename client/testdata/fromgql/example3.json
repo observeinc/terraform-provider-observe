@@ -9,6 +9,7 @@
         "definition": null
     },
     "iconUrl": null,
+    "pathCost": null,
     "transform": {
         "dataset": null,
         "id": "0",

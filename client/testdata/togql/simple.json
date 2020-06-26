@@ -4,7 +4,8 @@
         "deleted": false,
         "latencyDesired": null,
         "freshnessDesired": null,
-        "iconUrl": null
+        "iconUrl": null,
+        "pathCost": "0"
     },
     "transformInput": {
         "queryLanguage": "",

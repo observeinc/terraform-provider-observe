@@ -12,5 +12,6 @@
             "input": "default",
             "pipeline": "filter true\n"
         }
-    ]
+    ],
+    "path_cost": 0
 }

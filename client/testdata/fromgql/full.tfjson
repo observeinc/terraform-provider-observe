@@ -14,5 +14,6 @@
         {
             "pipeline": "makeresource name:name, primarykey(roomId)\ncolmake origName:name\ncolmake name:case(not startswith(roomId, \"e8\"), name)"
         }
-    ]
+    ],
+    "path_cost": 0
 }
