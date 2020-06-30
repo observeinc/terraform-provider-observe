@@ -1,11 +1,8 @@
-## 0.2.0 (Unreleased)
+## 0.3.0-rc2 (2020-06-30)
 
-## 0.1.1 (May 22, 2020)
-
-* provider: support `user_email` and `user_password` attributes
-
-## 0.1.0 (April 29, 2020)
-
-NOTES:
-
-* provider: first attempt at a versioned release.
+* client: add user-agent to all graphql requests.
+* vendor: update go mod
+* provider: add debug info on lookup failure.
+* provider: add support for path_cost
+* provider: fix nil pointer dereference if dataset missing.
+* provider: request detailedInfo for ResultStatus
