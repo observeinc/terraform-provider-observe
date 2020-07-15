@@ -22,6 +22,10 @@ func dataSourceWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"datasets": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -39,6 +43,10 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	if err := data.Set("oid", workspace.OID().String()); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := data.Set("datasets", workspace.Datasets); err != nil {
 		return diag.FromErr(err)
 	}
 
