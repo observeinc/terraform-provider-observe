@@ -23,9 +23,49 @@ func dataSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			// computed values
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"icon_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"path_cost": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"freshness": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"inputs": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
+			"stage": &schema.Schema{
+				Type:     schema.TypeList,
+				Computed: true,
+				// we need to declare optional, otherwise we won't get block
+				// formatting in state
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"alias": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"input": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"pipeline": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -56,9 +96,5 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 	data.SetId(d.ID)
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
-		diags = diag.FromErr(err)
-		return
-	}
-	return nil
+	return datasetToResourceData(d, data)
 }
