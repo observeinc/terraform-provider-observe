@@ -26,10 +26,11 @@ var (
 
 // Dataset is the output of a sequence of stages operating on a collection of inputs
 type Dataset struct {
-	ID          string         `json:"id"`
-	WorkspaceID string         `json:"workspace_id"`
-	Version     string         `json:"version"`
-	Config      *DatasetConfig `json:"config"`
+	ID          string             `json:"id"`
+	WorkspaceID string             `json:"workspace_id"`
+	Version     string             `json:"version"`
+	Config      *DatasetConfig     `json:"config"`
+	ForeignKeys []ForeignKeyConfig `json:"foreign_keys"`
 }
 
 // DatasetConfig contains configurable elements associated to Dataset
@@ -85,6 +86,19 @@ func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
 			Freshness: gqlDataset.FreshnessDesired,
 			PathCost:  pathCost,
 		},
+	}
+
+	// foreignKeys attribute is read only, but we'll re-use the
+	// ForeignKeyConfig struct to populate the list
+	for _, gqlFk := range gqlDataset.ForeignKeys {
+		id := api.ObjectIdScalarPointer(*gqlFk.TargetDataset).String()
+		fk := ForeignKeyConfig{
+			Label:     gqlFk.Label,
+			Target:    &id,
+			SrcFields: gqlFk.SrcFields,
+			DstFields: gqlFk.DstFields,
+		}
+		d.ForeignKeys = append(d.ForeignKeys, fk)
 	}
 
 	if gqlDataset.Transform.Current == nil {

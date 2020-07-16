@@ -38,30 +38,10 @@ func resourceForeignKey() *schema.Resource {
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
 			},
 			"fields": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if old == new {
-						return true
-					}
-
-					/* fields accepts a pair of source / target column names,
-					* e.g.: "id:fooId"
-					* If both source and target column names are the same, the
-					* target can be elided, therefore "id:id" and "id" are
-					* equivalent.
-					 */
-					if tuple := strings.SplitN(new, ":", 2); len(tuple) == 2 {
-						return tuple[0] == tuple[1] && tuple[0] == old
-					}
-
-					if tuple := strings.SplitN(old, ":", 2); len(tuple) == 2 {
-						return tuple[0] == tuple[1] && tuple[0] == new
-					}
-
-					return false
-				},
+				Type:             schema.TypeList,
+				Required:         true,
+				Elem:             &schema.Schema{Type: schema.TypeString},
+				DiffSuppressFunc: diffSuppressFields,
 			},
 			"label": {
 				Type:     schema.TypeString,
@@ -89,16 +69,7 @@ func newForeignKeyConfig(data *schema.ResourceData) (config *observe.ForeignKeyC
 		config.Label = &s
 	}
 
-	for _, field := range fields {
-		s := field.(string)
-		if tuple := strings.SplitN(s, ":", 2); len(tuple) == 1 {
-			config.SrcFields = append(config.SrcFields, s)
-			config.DstFields = append(config.DstFields, s)
-		} else {
-			config.SrcFields = append(config.SrcFields, tuple[0])
-			config.DstFields = append(config.DstFields, tuple[1])
-		}
-	}
+	config.SrcFields, config.DstFields = unpackFields(fields)
 	return
 }
 
@@ -201,4 +172,40 @@ func resourceForeignKeyDelete(ctx context.Context, data *schema.ResourceData, me
 		})
 	}
 	return diags
+}
+
+func unpackFields(fields []interface{}) (srcFields, dstFields []string) {
+	for _, field := range fields {
+		s := field.(string)
+		if tuple := strings.SplitN(s, ":", 2); len(tuple) == 1 {
+			srcFields = append(srcFields, s)
+			dstFields = append(dstFields, s)
+		} else {
+			srcFields = append(srcFields, tuple[0])
+			dstFields = append(dstFields, tuple[1])
+		}
+	}
+	return
+}
+
+func diffSuppressFields(k, old, new string, d *schema.ResourceData) bool {
+	if old == new {
+		return true
+	}
+
+	/* fields accepts a pair of source / target column names,
+	* e.g.: "id:fooId"
+	* If both source and target column names are the same, the
+	* target can be elided, therefore "id:id" and "id" are
+	* equivalent.
+	 */
+	if tuple := strings.SplitN(new, ":", 2); len(tuple) == 2 {
+		return tuple[0] == tuple[1] && tuple[0] == old
+	}
+
+	if tuple := strings.SplitN(old, ":", 2); len(tuple) == 2 {
+		return tuple[0] == tuple[1] && tuple[0] == new
+	}
+
+	return false
 }

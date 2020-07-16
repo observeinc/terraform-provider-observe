@@ -27,6 +27,7 @@ type Dataset struct {
 	IconURL          *string        `json:"iconUrl"`
 	PathCost         *int64         `json:"pathCost"`
 	Transform        *Transform     `json:"transform"`
+	ForeignKeys      []ForeignKey   `json:"foreignKeys"`
 }
 
 func (d *Dataset) Decode(v interface{}) error {
@@ -99,6 +100,15 @@ func (s *ResultStatus) Error() error {
 		return fmt.Errorf("request failed: %q", s.ErrorMessage)
 	}
 	return errors.New("request failed")
+}
+
+type ForeignKey struct {
+	TargetDataset        *int64   `json:"targetDataset,string"`
+	TargetStageLabel     *string  `json:"targetStageLabel"`
+	Label                *string  `json:"label"`
+	TargetLabelFieldName *string  `json:"targetLabelFieldName"`
+	SrcFields            []string `json:"srcFields"`
+	DstFields            []string `json:"dstFields"`
 }
 
 type DeferredForeignKey struct {

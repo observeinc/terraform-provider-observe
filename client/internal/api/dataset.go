@@ -10,6 +10,12 @@ var (
 		iconUrl
 		version
 		pathCost
+		foreignKeys {
+			label
+			targetDataset
+			srcFields
+			dstFields
+		}
 		transform {
 			current {
 				outputStage

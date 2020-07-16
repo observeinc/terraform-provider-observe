@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 var (
@@ -133,6 +134,41 @@ func (c *Client) GetForeignKey(id string) (*ForeignKey, error) {
 	}
 
 	return newForeignKey(result)
+}
+
+// LookupForeignKey by source, target and fields
+func (c *Client) LookupForeignKey(source string, target string, srcFields []string, dstFields []string) (*ForeignKey, error) {
+	dataset, err := c.GetDataset(source)
+	if err != nil {
+		return nil, err
+	}
+
+	var matched *ForeignKeyConfig
+
+	for _, fk := range dataset.ForeignKeys {
+		switch {
+		case fk.Target == nil || *fk.Target != target:
+			continue
+		case !reflect.DeepEqual(fk.SrcFields, srcFields):
+			continue
+		case !reflect.DeepEqual(fk.DstFields, dstFields):
+			continue
+		default:
+			matched = &fk
+			break
+		}
+	}
+
+	if matched == nil {
+		return nil, ErrNotFound
+	}
+
+	matched.Source = &dataset.ID
+
+	return &ForeignKey{
+		Workspace: dataset.WorkspaceID,
+		Config:    matched,
+	}, nil
 }
 
 // DeleteForeignKey
