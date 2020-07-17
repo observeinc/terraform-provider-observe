@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/machinebox/graphql"
 	"github.com/observeinc/terraform-provider-observe/client/internal/api"
@@ -29,6 +30,9 @@ type Client struct {
 	insecure   bool
 	userAgent  string
 	flags      map[string]bool
+
+	// our API does not allow concurrent FK creation, so we use a lock as a workaround
+	obs2110 sync.Mutex
 
 	httpClient *http.Client
 	gqlClient  *graphql.Client

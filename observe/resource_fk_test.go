@@ -198,3 +198,48 @@ func TestAccOBS2432(t *testing.T) {
 		},
 	})
 }
+
+func TestAccOBS2110(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(fkConfigPreamble+`
+				resource "observe_fk" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key"]
+					label     = "%[1]s-first"
+				}
+
+				resource "observe_fk" "second" {
+					workspace = data.observe_workspace.kubernetes.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key"]
+					label     = "%[1]s-second"
+				}
+
+				data "observe_fk" "verify_first" {
+					source     = observe_dataset.a.oid
+					target     = observe_dataset.b.oid
+					fields     = ["key"]
+					depends_on = [observe_fk.first]
+				}
+
+				data "observe_fk" "verify_second" {
+					source     = observe_dataset.a.oid
+					target     = observe_dataset.b.oid
+					fields     = ["key"]
+					depends_on = [observe_fk.second]
+				}
+				`, randomPrefix),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}

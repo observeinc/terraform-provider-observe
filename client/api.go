@@ -8,6 +8,8 @@ import (
 
 var (
 	ErrNotFound = errors.New("not found")
+
+	flagObs2110 = "obs2110" // when set, allow concurrent API calls for foreign keys
 )
 
 // GetDataset returns dataset by ID
@@ -34,6 +36,10 @@ func (c *Client) CreateDataset(workspaceId string, config *DatasetConfig) (*Data
 
 // UpdateDataset updates existing dataset
 func (c *Client) UpdateDataset(workspaceId string, id string, config *DatasetConfig) (*Dataset, error) {
+	if !c.flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	datasetInput, transformInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -49,6 +55,10 @@ func (c *Client) UpdateDataset(workspaceId string, id string, config *DatasetCon
 
 // DeleteDataset by ID
 func (c *Client) DeleteDataset(id string) error {
+	if !c.flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	return c.api.DeleteDataset(id)
 }
 
@@ -111,6 +121,10 @@ func (c *Client) LookupDataset(workspaceID string, name string) (*Dataset, error
 
 // CreateForeignKey
 func (c *Client) CreateForeignKey(workspaceID string, config *ForeignKeyConfig) (*ForeignKey, error) {
+	if !c.flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	foreignKeyInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -121,7 +135,8 @@ func (c *Client) CreateForeignKey(workspaceID string, config *ForeignKeyConfig) 
 	}
 
 	if result.Status.ErrorText != "" {
-		c.DeleteForeignKey(result.ID.String())
+		// call internal API directly since DeleteForeignKey() acquires lock
+		c.api.DeleteDeferredForeignKey(result.ID.String())
 		return nil, fmt.Errorf(result.Status.ErrorText)
 	}
 	return newForeignKey(result)
@@ -129,6 +144,10 @@ func (c *Client) CreateForeignKey(workspaceID string, config *ForeignKeyConfig) 
 
 // UpdateForeignKey by ID
 func (c *Client) UpdateForeignKey(id string, config *ForeignKeyConfig) (*ForeignKey, error) {
+	if !c.flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	foreignKeyInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -191,5 +210,9 @@ func (c *Client) LookupForeignKey(source string, target string, srcFields []stri
 
 // DeleteForeignKey
 func (c *Client) DeleteForeignKey(id string) error {
+	if !c.flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	return c.api.DeleteDeferredForeignKey(id)
 }
