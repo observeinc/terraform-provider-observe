@@ -48,8 +48,8 @@ func Provider() *schema.Provider {
 			},
 			"insecure": {
 				Type:        schema.TypeBool,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_INSECURE", false),
 				Optional:    true,
-				Default:     false,
 				Description: "Skip TLS verification",
 			},
 		},
