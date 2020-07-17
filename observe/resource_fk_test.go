@@ -130,3 +130,71 @@ func TestAccObserveForeignKeyErrors(t *testing.T) {
 		},
 	})
 }
+
+func TestAccOBS2432(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(fkConfigPreamble+`
+				resource "observe_fk" "example" {
+					workspace = data.observe_workspace.kubernetes.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key"]
+					label     = "%[1]s-fk"
+				}
+
+				data "observe_fk" "verify_example" {
+					source     = observe_dataset.a.oid
+					target     = observe_dataset.b.oid
+					fields     = ["key"]
+					depends_on = [observe_fk.example]
+				}
+				`, randomPrefix),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: fmt.Sprintf(fkConfigPreamble+`
+				resource "observe_fk" "example" {
+					workspace = data.observe_workspace.kubernetes.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key"]
+					label     = "%[1]s-fk"
+				}
+
+				data "observe_fk" "check_example" {
+					source     = observe_dataset.a.oid
+					target     = observe_dataset.b.oid
+					fields     = ["key"]
+					depends_on = [observe_fk.example]
+				}
+
+				resource "observe_dataset" "c" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name      = "%[1]s-C"
+
+					inputs = { "a" = observe_dataset.a.oid }
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+					depends_on = [observe_fk.example]
+				}
+
+				data "observe_fk" "check_propagated" {
+					source     = observe_dataset.c.oid
+					target     = observe_dataset.b.oid
+					fields     = ["key"]
+				}
+				`, randomPrefix),
+			},
+		},
+	})
+}
