@@ -58,7 +58,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.kubernetes.oid
-					name 	  = "rename-%s"
+					name 	  = "%s-rename"
 					freshness = "1m"
 
 					inputs = {
@@ -73,7 +73,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", "rename-"+randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-rename"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),

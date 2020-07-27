@@ -87,6 +87,9 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 	wrapped := c.httpClient.Transport
 	c.httpClient.Transport = RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		resp, err := wrapped.RoundTrip(req)
+		if err != nil {
+			return resp, err
+		}
 		switch resp.StatusCode {
 		case http.StatusOK, http.StatusUnprocessableEntity:
 			return resp, err

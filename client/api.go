@@ -77,6 +77,24 @@ func (c *Client) LookupWorkspace(name string) (*Workspace, error) {
 	return nil, ErrNotFound
 }
 
+// ListWorkspaces.
+func (c *Client) ListWorkspaces() (workspaces []*Workspace, err error) {
+	result, err := c.api.ListWorkspaces()
+	if err != nil {
+		return
+	}
+
+	for _, w := range result {
+		if ws, err := newWorkspace(w); err != nil {
+			return nil, err
+		} else {
+			workspaces = append(workspaces, ws)
+		}
+	}
+
+	return
+}
+
 // LookupDataset by name.
 func (c *Client) LookupDataset(workspaceID string, name string) (*Dataset, error) {
 	workspace, err := c.GetWorkspace(workspaceID)
