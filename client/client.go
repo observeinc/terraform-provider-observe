@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"time"
 
 	"github.com/machinebox/graphql"
 	"github.com/observeinc/terraform-provider-observe/client/internal/api"
@@ -26,6 +28,9 @@ type authTripper struct {
 	http.RoundTripper
 	key       string
 	userAgent string
+
+	retryCount int
+	retryWait  time.Duration
 }
 
 func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -49,20 +54,29 @@ func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	resp, err := t.RoundTripper.RoundTrip(req)
+
+	for retry := 0; err != nil && isTemporary(err) && retry < t.retryCount; retry++ {
+		log.Printf("[WARN] request failed with temporary error: %s\n", err)
+		time.Sleep(t.retryWait)
+		log.Printf("[WARN] attempting recovery (%d/%d)\n", retry+1, t.retryCount)
+		resp, err = t.RoundTripper.RoundTrip(req)
+	}
+
+	if resp != nil {
+		s, _ = httputil.DumpResponse(resp, true)
+		log.Printf("[DEBUG] %s\n", s)
+	}
+
 	if err != nil {
 		return resp, err
 	}
 
-	s, _ = httputil.DumpResponse(resp, true)
 	switch resp.StatusCode {
 	case http.StatusOK:
-		log.Printf("[DEBUG] %s\n", s)
 		return resp, err
 	case http.StatusUnprocessableEntity:
-		log.Printf("[WARN] %s\n", s)
 		return resp, err
 	case http.StatusUnauthorized:
-		log.Printf("[WARN] %s\n", s)
 		return nil, ErrUnauthorized
 	default:
 		return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
@@ -105,6 +119,17 @@ func (c *Client) Run(reqBody string, vars map[string]interface{}) (map[string]in
 	return result, err
 }
 
+// recursively unwrap error to figure out if it is temporary
+func isTemporary(err error) bool {
+	if t, ok := err.(net.Error); ok {
+		return t.Temporary()
+	}
+	if unwrapped := errors.Unwrap(err); unwrapped != nil {
+		return isTemporary(unwrapped)
+	}
+	return false
+}
+
 func NewClient(customerID string, options ...Option) (*Client, error) {
 	c := &Client{
 		customerID: customerID,
@@ -126,6 +151,9 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 			RoundTripper: wrapped,
 			key:          fmt.Sprintf("%s %s", c.customerID, c.token),
 			userAgent:    c.userAgent,
+
+			retryCount: 3,
+			retryWait:  3 * time.Second,
 		}
 	}
 
