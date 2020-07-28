@@ -7,12 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"strings"
-	"time"
 
 	"github.com/machinebox/graphql"
 	"github.com/observeinc/terraform-provider-observe/client/internal/api"
@@ -23,65 +20,6 @@ var (
 	ErrUnauthorized = errors.New("authorization error")
 	defaultDomain   = "observeinc.com"
 )
-
-type authTripper struct {
-	http.RoundTripper
-	key       string
-	userAgent string
-
-	retryCount int
-	retryWait  time.Duration
-}
-
-func (t *authTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	// log request before adding authorization header
-	if t.userAgent != "" {
-		req.Header.Set("User-Agent", t.userAgent)
-	}
-
-	s, err := httputil.DumpRequestOut(req, true)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] %s\n", s)
-
-	if t.key != "" {
-		req.Header.Set("Authorization", "Bearer "+t.key)
-	}
-
-	if t.RoundTripper == nil {
-		t.RoundTripper = http.DefaultTransport
-	}
-
-	resp, err := t.RoundTripper.RoundTrip(req)
-
-	for retry := 0; err != nil && isTemporary(err) && retry < t.retryCount; retry++ {
-		log.Printf("[WARN] request failed with temporary error: %s\n", err)
-		time.Sleep(t.retryWait)
-		log.Printf("[WARN] attempting recovery (%d/%d)\n", retry+1, t.retryCount)
-		resp, err = t.RoundTripper.RoundTrip(req)
-	}
-
-	if resp != nil {
-		s, _ = httputil.DumpResponse(resp, true)
-		log.Printf("[DEBUG] %s\n", s)
-	}
-
-	if err != nil {
-		return resp, err
-	}
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return resp, err
-	case http.StatusUnprocessableEntity:
-		return resp, err
-	case http.StatusUnauthorized:
-		return nil, ErrUnauthorized
-	default:
-		return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
-	}
-}
 
 // Client implements a grossly simplified API client for Observe
 type Client struct {
@@ -145,17 +83,19 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 		}
 	}
 
-	if c.token != "" {
-		wrapped := c.httpClient.Transport
-		c.httpClient.Transport = &authTripper{
-			RoundTripper: wrapped,
-			key:          fmt.Sprintf("%s %s", c.customerID, c.token),
-			userAgent:    c.userAgent,
-
-			retryCount: 3,
-			retryWait:  3 * time.Second,
+	// raise any unexpected status code from API as error
+	wrapped := c.httpClient.Transport
+	c.httpClient.Transport = RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		resp, err := wrapped.RoundTrip(req)
+		switch resp.StatusCode {
+		case http.StatusOK, http.StatusUnprocessableEntity:
+			return resp, err
+		case http.StatusUnauthorized:
+			return resp, ErrUnauthorized
+		default:
+			return resp, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
 		}
-	}
+	})
 
 	gqlURL := fmt.Sprintf("https://%s.%s/v1/meta", c.customerID, c.domain)
 	c.gqlClient = graphql.NewClient(gqlURL, graphql.WithHTTPClient(c.httpClient))
@@ -199,12 +139,6 @@ func (c *Client) do(method string, path string, body map[string]interface{}, res
 	req, err := http.NewRequest(method, endpoint, reqBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	if s, err := httputil.DumpRequest(req, false); err != nil {
-		return err
-	} else {
-		log.Printf("[DEBUG] %s\n", s)
 	}
 
 	req.Header.Set("Content-Type", "application/json")

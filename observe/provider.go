@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"time"
 
 	"github.com/observeinc/terraform-provider-observe/version"
 
@@ -52,6 +53,20 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "Skip TLS verification",
 			},
+			"retry_count": {
+				Type:        schema.TypeInt,
+				Default:     3,
+				Optional:    true,
+				Description: "Maximum number of retries on temporary network failures",
+			},
+			"retry_wait": {
+				Type:             schema.TypeString,
+				Default:          "3s",
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
+				Description:      "Time between retries",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -84,6 +99,13 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			UserPassword: data.Get("user_password").(string),
 			Domain:       data.Get("domain").(string),
 			Insecure:     data.Get("insecure").(bool),
+			RetryCount:   data.Get("retry_count").(int),
+			UserAgent:    userAgent,
+		}
+
+		if retryWait := data.Get("retry_wait").(string); retryWait != "" {
+			// already validated format
+			c.RetryWait, _ = time.ParseDuration(retryWait)
 		}
 
 		if c.Insecure {
@@ -93,7 +115,7 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			})
 		}
 
-		client, err := c.Client(userAgent)
+		client, err := c.Client()
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
