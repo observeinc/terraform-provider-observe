@@ -28,6 +28,7 @@ type Client struct {
 	token      string
 	insecure   bool
 	userAgent  string
+	flags      map[string]bool
 
 	httpClient *http.Client
 	gqlClient  *graphql.Client
@@ -72,6 +73,7 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 	c := &Client{
 		customerID: customerID,
 		domain:     defaultDomain,
+		flags:      make(map[string]bool),
 		httpClient: &http.Client{
 			Transport: http.DefaultTransport.(*http.Transport).Clone(),
 		},

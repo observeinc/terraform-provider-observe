@@ -67,6 +67,13 @@ func Provider() *schema.Provider {
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      "Time between retries",
 			},
+			"flags": {
+				Type:             schema.TypeString,
+				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_FLAGS", ""),
+				ValidateDiagFunc: validateFlags,
+				Optional:         true,
+				Description:      "Toggle feature flags",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -104,6 +111,8 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			RetryCount:   data.Get("retry_count").(int),
 			UserAgent:    userAgent,
 		}
+
+		c.Flags, _ = convertFlags(data.Get("flags").(string))
 
 		if retryWait := data.Get("retry_wait").(string); retryWait != "" {
 			// already validated format

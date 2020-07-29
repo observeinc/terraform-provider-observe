@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -65,6 +66,36 @@ func validateTimeDuration(i interface{}, path cty.Path) diag.Diagnostics {
 		}}
 	}
 	return nil
+}
+
+func validateFlags(i interface{}, path cty.Path) diag.Diagnostics {
+	if _, err := convertFlags(i.(string)); err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
+}
+
+// input is a list of comma separated lowercase identifiers which may be negated, e.g. "feature-a,!enable-b"
+func convertFlags(s string) (map[string]bool, error) {
+	flags := make(map[string]bool)
+	if s == "" {
+		return flags, nil
+	}
+
+	pattern := `^\!?[a-z][0-9a-z-]+$`
+	isFlag := regexp.MustCompile(pattern).MatchString
+
+	for _, substr := range strings.Split(s, ",") {
+		if !isFlag(substr) {
+			return nil, fmt.Errorf("flag %q not match regexp %q", substr, pattern)
+		}
+
+		key := strings.Trim(substr, "!")
+		value := substr[0] != byte('!')
+		flags[key] = value
+	}
+
+	return flags, nil
 }
 
 // determine whether we expect a new dataset version

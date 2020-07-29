@@ -130,3 +130,13 @@ func WithLogging(dumpRequestBody, dumpResponseBody bool) Option {
 		return nil
 	}
 }
+
+// WithFlags enables feature flags. Multiple calls will overwrite previous settings
+func WithFlags(flags map[string]bool) Option {
+	return func(c *Client) (err error) {
+		for k, v := range flags {
+			c.flags[k] = v
+		}
+		return nil
+	}
+}

@@ -17,11 +17,14 @@ type Config struct {
 	UserAgent    string
 	RetryCount   int
 	RetryWait    time.Duration
+	Flags        map[string]bool
 }
 
 // Client returns an instantiated api client
 func (c *Config) Client() (*client.Client, error) {
 	var options []client.Option
+
+	options = append(options, client.WithFlags(c.Flags))
 
 	if c.Insecure {
 		options = append(options, client.WithInsecure())
