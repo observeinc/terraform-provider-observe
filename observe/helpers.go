@@ -82,7 +82,7 @@ func convertFlags(s string) (map[string]bool, error) {
 		return flags, nil
 	}
 
-	pattern := `^\!?[a-z][0-9a-z-]+$`
+	pattern := `^\!?[a-z][0-9a-z-]*$`
 	isFlag := regexp.MustCompile(pattern).MatchString
 
 	for _, substr := range strings.Split(s, ",") {
