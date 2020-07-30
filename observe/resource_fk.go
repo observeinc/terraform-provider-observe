@@ -84,12 +84,7 @@ func resourceForeignKeyCreate(ctx context.Context, data *schema.ResourceData, me
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateForeignKey(oid.ID, config)
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to create foreign key",
-			Detail:   err.Error(),
-		})
-		return diags
+		return diag.Errorf("failed to create foreign key: %s", err.Error())
 	}
 
 	data.SetId(result.ID)
@@ -106,12 +101,7 @@ func resourceForeignKeyUpdate(ctx context.Context, data *schema.ResourceData, me
 
 	_, err := client.UpdateForeignKey(data.Id(), config)
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to update foreign key",
-			Detail:   err.Error(),
-		})
-		return diags
+		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
 
 	return append(diags, resourceForeignKeyRead(ctx, data, meta)...)
@@ -122,11 +112,7 @@ func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta
 
 	fk, err := client.GetForeignKey(data.Id())
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to read foreign key",
-			Detail:   err.Error(),
-		})
+		return diag.Errorf("failed to read foreign key: %s", err.Error())
 	}
 
 	var fields []string
@@ -165,11 +151,7 @@ func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta
 func resourceForeignKeyDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteForeignKey(data.Id()); err != nil {
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to delete foreign key",
-			Detail:   err.Error(),
-		})
+		return diag.Errorf("failed to delete foreign key: %s", err.Error())
 	}
 	return diags
 }
