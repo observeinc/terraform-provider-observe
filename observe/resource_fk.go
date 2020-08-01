@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -31,11 +32,13 @@ func resourceForeignKey() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				DiffSuppressFunc: diffSuppressVersion,
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				DiffSuppressFunc: diffSuppressVersion,
 			},
 			"fields": {
 				Type:             schema.TypeList,
@@ -190,4 +193,25 @@ func diffSuppressFields(k, old, new string, d *schema.ResourceData) bool {
 	}
 
 	return false
+}
+
+func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
+	if old == new {
+		return true
+	}
+
+	oldOID, err := observe.NewOID(old)
+	if err != nil {
+		log.Printf("[WARN] could not convert old %s %q to OID: %s\n", k, old, err)
+		return false
+	}
+
+	newOID, err := observe.NewOID(new)
+	if err != nil {
+		log.Printf("[WARN] could not convert new %s %q to OID: %s\n", k, new, err)
+		return false
+	}
+
+	// ignore version
+	return oldOID.Type == newOID.Type && oldOID.ID == newOID.ID
 }

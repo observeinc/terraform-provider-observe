@@ -243,3 +243,71 @@ func TestAccOBS2110(t *testing.T) {
 		},
 	})
 }
+
+func TestLinkSuppression(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	/* Without suppression, reapplying this config repeatedly will never converge.
+	 *
+	 * This config creates datasets: A, B and C, where B and C are derived from A.
+	 * We then create two links: A -> B and A -> C
+	 *
+	 * On a first apply, the links case a version increment in A, which causes
+	 * the links to be reapplied.
+	 *
+	 * If we reapply links whenever a source or target change version, this
+	 * cycle will repeat itself, and our infrastructure will never converge to
+	 * the intended state.
+	 *
+	 * Our current workaround is to ignore dataset version when determining
+	 * whether we need to reapply a link.
+	 */
+	config := fmt.Sprintf(fkConfigPreamble+`
+		resource "observe_dataset" "c" {
+			workspace = data.observe_workspace.kubernetes.oid
+			name      = "%[1]s-C"
+
+			inputs = { "a" = observe_dataset.a.oid }
+
+			stage {
+				pipeline = <<-EOF
+					makeresource primarykey(key)
+				EOF
+			}
+		}
+
+		resource "observe_fk" "a_to_b" {
+			workspace = data.observe_workspace.kubernetes.oid
+			source    = observe_dataset.a.oid
+			target    = observe_dataset.b.oid
+			fields    = ["key"]
+			label     = "%[1]s-b"
+
+		}
+
+		resource "observe_fk" "a_to_c" {
+			workspace = data.observe_workspace.kubernetes.oid
+			source    = observe_dataset.a.oid
+			target    = observe_dataset.c.oid
+			fields    = ["key"]
+			label     = "%[1]s-c"
+		}`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// first time round, all datasets will have version increment
+				// increment in A will force recomputation of B and C
+				ExpectNonEmptyPlan: true,
+				Config:             config,
+			},
+			{
+				// on second apply, things should converge
+				ExpectNonEmptyPlan: false,
+				Config:             config,
+			},
+		},
+	})
+}
