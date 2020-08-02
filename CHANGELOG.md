@@ -1,3 +1,7 @@
+## 0.3.0-rc4 (2020-08-02)
+
+* observe_link: ignore dataset version
+
 ## 0.3.0-rc3 (2020-07-30)
 
 * provider: add testcase for flag parsing
