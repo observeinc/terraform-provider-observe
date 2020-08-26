@@ -14,6 +14,7 @@ type Config struct {
 	UserPassword string
 	Domain       string
 	Insecure     bool
+	Proxy        string
 	UserAgent    string
 	RetryCount   int
 	RetryWait    time.Duration
@@ -28,6 +29,10 @@ func (c *Config) Client() (*client.Client, error) {
 
 	if c.Insecure {
 		options = append(options, client.WithInsecure())
+	}
+
+	if c.Proxy != "" {
+		options = append(options, client.WithProxy(c.Proxy))
 	}
 
 	if c.Domain != "" {

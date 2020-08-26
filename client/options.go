@@ -18,6 +18,15 @@ type RoundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (r RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) { return r(req) }
 
+// WithProxy sets URL requests should be proxied through
+func WithProxy(proxy string) Option {
+	return func(c *Client) error {
+		c.proxy = proxy
+		_, err := url.Parse(c.proxy)
+		return err
+	}
+}
+
 // WithDomain overrides domain name used
 func WithDomain(domain string) Option {
 	return func(c *Client) error {

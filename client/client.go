@@ -27,6 +27,7 @@ type Client struct {
 	customerID string
 	domain     string
 	token      string
+	proxy      string
 	insecure   bool
 	userAgent  string
 	flags      map[string]bool
@@ -92,6 +93,7 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 	// raise any unexpected status code from API as error
 	wrapped := c.httpClient.Transport
 	c.httpClient.Transport = RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		req.Host = c.getHost()
 		resp, err := wrapped.RoundTrip(req)
 		if err != nil {
 			return resp, err
@@ -106,8 +108,7 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 		}
 	})
 
-	gqlURL := fmt.Sprintf("https://%s.%s/v1/meta", c.customerID, c.domain)
-	c.gqlClient = graphql.NewClient(gqlURL, graphql.WithHTTPClient(c.httpClient))
+	c.gqlClient = graphql.NewClient(c.getURL("/v1/meta"), graphql.WithHTTPClient(c.httpClient))
 	c.api = api.New(c)
 	return c, c.Verify()
 }
@@ -129,11 +130,22 @@ func (c *Client) login(user, password string) (string, error) {
 	return result.AccessKey, nil
 }
 
+func (c *Client) getHost() string {
+	return fmt.Sprintf("%s.%s", c.customerID, c.domain)
+}
+
+func (c *Client) getURL(path string) string {
+	if c.proxy != "" {
+		return fmt.Sprintf("%s%s", c.proxy, path)
+	}
+	return fmt.Sprintf("https://%s%s", c.getHost(), path)
+}
+
 // do is a helper to run HTTP request
 func (c *Client) do(method string, path string, body map[string]interface{}, result interface{}) error {
 
 	var (
-		endpoint = fmt.Sprintf("https://%s.%s%s", c.customerID, c.domain, path)
+		endpoint = c.getURL(path)
 		reqBody  io.Reader
 	)
 
@@ -150,7 +162,9 @@ func (c *Client) do(method string, path string, body map[string]interface{}, res
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
+	req.Host = c.getHost()
 	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)

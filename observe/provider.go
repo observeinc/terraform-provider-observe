@@ -53,6 +53,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "Skip TLS verification",
 			},
+			"proxy": {
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_PROXY", nil),
+				Optional:    true,
+				Description: "URL to proxy requests through",
+			},
 			"retry_count": {
 				Type:        schema.TypeInt,
 				Default:     3,
@@ -108,6 +114,7 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			UserPassword: data.Get("user_password").(string),
 			Domain:       data.Get("domain").(string),
 			Insecure:     data.Get("insecure").(bool),
+			Proxy:        data.Get("proxy").(string),
 			RetryCount:   data.Get("retry_count").(int),
 			UserAgent:    userAgent,
 		}
