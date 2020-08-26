@@ -96,15 +96,15 @@ func NewClient(customerID string, options ...Option) (*Client, error) {
 		req.Host = c.getHost()
 		resp, err := wrapped.RoundTrip(req)
 		if err != nil {
-			return resp, err
+			return nil, err
 		}
 		switch resp.StatusCode {
 		case http.StatusOK, http.StatusUnprocessableEntity:
-			return resp, err
+			return resp, nil
 		case http.StatusUnauthorized:
-			return resp, ErrUnauthorized
+			return nil, ErrUnauthorized
 		default:
-			return resp, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
+			return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
 		}
 	})
 
