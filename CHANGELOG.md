@@ -1,3 +1,11 @@
+## 0.3.0 (2020-08-27)
+
+* makefile: modify upload directory structure.
+* makefile: set test parallelism
+* global: go mod update, bump to 1.15
+* client: fix roundtripper return value
+* client: add proxy option
+
 ## 0.3.0-rc4 (2020-08-02)
 
 * observe_link: ignore dataset version
