@@ -25,8 +25,8 @@ docker-package:
 		GOOS=linux GOARCH=amd64 make package"
 
 package: fmtcheck
-	go build -o bin/$(GOOS)_$(GOARCH)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
-	cd bin/$(GOOS)_$(GOARCH); zip -mgq terraform-provider-observe_$(VERSION).zip terraform-provider-observe_$(VERSION)
+	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
+	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH)
 
 build: fmtcheck
 	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"

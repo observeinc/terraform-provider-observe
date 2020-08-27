@@ -7,25 +7,5 @@ mydir=$(dirname $0)
 git fetch origin
 cd "$mydir/../.."
 
-# Terraform infers plugin version from filename. For this reason, it is more
-# convenient to package plugins in a zip in order to maintain version integrity
-# while being able to pull "latest"
-function publish() {
-    local GOOS_GOARCH="$1"
-    local ALIAS="$2"
-    local REMOTE="terraform-provider-observe_${ALIAS}.zip"
-    local LOCAL="terraform-provider-observe_${VERSION}.zip"
-    aws s3 cp bin/${GOOS_GOARCH}/${LOCAL} s3://observeinc/terraform-provider-observe/${GOOS_GOARCH}/${REMOTE}
-    aws s3api put-object-acl --bucket observeinc --key terraform-provider-observe/${GOOS_GOARCH}/${REMOTE} --acl public-read
-}
-
 make docker-package
-
-publish darwin_amd64 ${VERSION}
-publish linux_amd64 ${VERSION}
-
-# only link latest to tagged releases
-if [[ $VERSION =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    publish darwin_amd64 latest
-    publish linux_amd64 latest
-fi
+aws s3 cp --acl public-read --recursive bin/${VERSION} s3://observeinc/terraform-provider-observe/${VERSION}
