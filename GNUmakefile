@@ -3,6 +3,7 @@ GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
 VERSION=$(shell git describe --tags --always)
+TESTARGS?=-parallel 2
 
 default: build
 
