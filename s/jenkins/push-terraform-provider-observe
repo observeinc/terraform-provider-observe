@@ -8,4 +8,7 @@ git fetch origin
 cd "$mydir/../.."
 
 make docker-package
+aws secretsmanager get-secret-value --secret-id devinfra/jenkins-pgp-terraform | jq -r .SecretString > private.pgp
+make docker-sign
+rm private.pgp
 aws s3 cp --acl public-read --recursive bin/${VERSION} s3://observeinc/terraform-provider-observe/${VERSION}

@@ -24,9 +24,20 @@ docker-package:
 		GOOS=darwin GOARCH=amd64 make package && \
 		GOOS=linux GOARCH=amd64 make package"
 
+docker-sign:
+	docker run -it -v `pwd`:/root/build -e GPG_TTY=/dev/console \
+    --rm ubuntu:20.04 /bin/bash -c "\
+		apt-get update && apt-get install --yes gpg && \
+		gpg --import /root/build/private.pgp && \
+		cd /root/build/bin/$(VERSION) && \
+		sha256sum *.zip > terraform-provider-observe_$(VERSION)_SHA256SUMS && \
+		gpg --yes \
+			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
+			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
+
 package: fmtcheck
-	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
-	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH)
+	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
+	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
 
 build: fmtcheck
 	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
