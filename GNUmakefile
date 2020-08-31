@@ -25,7 +25,7 @@ docker-package:
 		GOOS=linux GOARCH=amd64 make package"
 
 docker-sign:
-	docker run -it -v `pwd`:/root/build \
+	docker run -v `pwd`:/root/build \
     --rm ubuntu:20.04 /bin/bash -c "\
 		apt-get update && apt-get install --yes gpg && \
 		gpg --import /root/build/private.pgp && \
