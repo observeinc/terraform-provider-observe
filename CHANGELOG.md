@@ -1,3 +1,9 @@
+## 0.3.1 (2020-08-31)
+
+* jenkins: make docker-sign non interactive
+* jenkins: remove GPG_TTY, fix upload path.
+* jenkins: add ability to sign provider plugins
+
 ## 0.3.0 (2020-08-27)
 
 * makefile: modify upload directory structure.
