@@ -31,7 +31,7 @@ func stringToTimeScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}
 	return time.ParseDuration(data.(string) + "ns")
 }
 
-func stringToInt64(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+func stringToInt64HookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 	if f.Kind() != reflect.String {
 		return data, nil
 	}
@@ -53,7 +53,7 @@ func decode(input interface{}, output interface{}, strict bool) error {
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			stringToObjectIdScalarHookFunc,
 			stringToTimeScalarHookFunc,
-			stringToInt64,
+			stringToInt64HookFunc,
 		),
 	})
 	if err != nil {

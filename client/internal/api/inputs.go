@@ -57,3 +57,22 @@ const (
 	SaveModePreflightDataset                              = "PreflightDataset"
 	SaveModePreflightDatasetAndDependencies               = "PreflightDatasetAndDependencies"
 )
+
+type BookmarkGroupInput struct {
+	Name         *string                    `json:"name,omitempty"`
+	IconURL      *string                    `json:"iconUrl,omitempty"`
+	WorkspaceID  *ObjectIdScalar            `json:"workspaceId,omitempty"`
+	Presentation *BookmarkGroupPresentation `json:"presentation,omitempty"`
+}
+
+// BookmarkGroupPresentation is an int in backend definition, but we'd have to
+// convert it from string to int, back into string when serializing to GQL.
+// Might as well just define it as a string enum.
+type BookmarkGroupPresentation string
+
+const (
+	BookmarkGroupPresentationHidden               BookmarkGroupPresentation = "Hidden"
+	BookmarkGroupPresentationPerUser              BookmarkGroupPresentation = "PerUser"
+	BookmarkGroupPresentationPerUserWorkspace     BookmarkGroupPresentation = "PerUserWorkspace"
+	BookmarkGroupPresentationPerCustomerWorkspace BookmarkGroupPresentation = "PerCustomerWorkspace"
+)

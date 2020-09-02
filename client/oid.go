@@ -14,13 +14,14 @@ var (
 type Type string
 
 const (
-	TypeDataset   Type = "dataset"
-	TypeWorkspace      = "workspace"
+	TypeDataset       Type = "dataset"
+	TypeWorkspace          = "workspace"
+	TypeBookmarkGroup      = "bookmarkgroup"
 )
 
 func (t Type) IsValid() bool {
 	switch t {
-	case TypeDataset, TypeWorkspace:
+	case TypeDataset, TypeWorkspace, TypeBookmarkGroup:
 		return true
 	default:
 		return false

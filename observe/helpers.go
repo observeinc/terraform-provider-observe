@@ -55,6 +55,23 @@ func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
 	}
 }
 
+func validateStringInSlice(valid []string, ignoreCase bool) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		v, ok := i.(string)
+		if !ok {
+			return diag.Errorf("expected type of %s to be string", i)
+		}
+
+		for _, str := range valid {
+			if v == str || (ignoreCase && strings.ToLower(v) == strings.ToLower(str)) {
+				return nil
+			}
+		}
+
+		return diag.Errorf("expected %s to be one of %v, got %s", i, valid, v)
+	}
+}
+
 func validateTimeDuration(i interface{}, path cty.Path) diag.Diagnostics {
 	s := i.(string)
 	if _, err := time.ParseDuration(s); err != nil {

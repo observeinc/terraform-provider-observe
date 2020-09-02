@@ -216,3 +216,46 @@ func (c *Client) DeleteForeignKey(id string) error {
 	}
 	return c.api.DeleteDeferredForeignKey(id)
 }
+
+// GetBookmarkGroup returns bookmarkGroup by ID
+func (c *Client) GetBookmarkGroup(id string) (*BookmarkGroup, error) {
+	result, err := c.api.GetBookmarkGroup(id)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmarkGroup(result)
+}
+
+// CreateBookmarkGroup creates a bookmark group
+func (c *Client) CreateBookmarkGroup(workspaceId string, config *BookmarkGroupConfig) (*BookmarkGroup, error) {
+	bookmarkGroupInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	bookmarkGroupInput.WorkspaceID = toObjectPointer(&workspaceId)
+	result, err := c.api.CreateOrUpdateBookmarkGroup(nil, bookmarkGroupInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmarkGroup(result)
+}
+
+// UpdateBookmarkGroup updates a bookmark group
+func (c *Client) UpdateBookmarkGroup(id string, config *BookmarkGroupConfig) (*BookmarkGroup, error) {
+	bookmarkGroupInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.api.CreateOrUpdateBookmarkGroup(&id, bookmarkGroupInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmarkGroup(result)
+}
+
+// DeleteBookmarkGroup
+func (c *Client) DeleteBookmarkGroup(id string) error {
+	return c.api.DeleteBookmarkGroup(id)
+}

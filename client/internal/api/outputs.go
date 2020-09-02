@@ -147,3 +147,11 @@ type DeferredDatasetReference struct {
 	DatasetID   *ObjectIdScalar `json:"datasetId,omitempty"`
 	DatasetPath *string         `json:"datasetPath,omitempty"`
 }
+
+type BookmarkGroup struct {
+	ID           ObjectIdScalar            `json:"id"`
+	Name         string                    `json:"name"`
+	IconURL      string                    `json:"iconUrl"`
+	WorkspaceID  ObjectIdScalar            `json:"workspaceId"`
+	Presentation BookmarkGroupPresentation `json:"presentation"`
+}
