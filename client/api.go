@@ -259,3 +259,45 @@ func (c *Client) UpdateBookmarkGroup(id string, config *BookmarkGroupConfig) (*B
 func (c *Client) DeleteBookmarkGroup(id string) error {
 	return c.api.DeleteBookmarkGroup(id)
 }
+
+// GetBookmark returns bookmark by ID
+func (c *Client) GetBookmark(id string) (*Bookmark, error) {
+	result, err := c.api.GetBookmark(id)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmark(result)
+}
+
+// CreateBookmark creates a bookmark group
+func (c *Client) CreateBookmark(config *BookmarkConfig) (*Bookmark, error) {
+	bookmarkInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.api.CreateOrUpdateBookmark(nil, bookmarkInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmark(result)
+}
+
+// UpdateBookmark updates a bookmark
+func (c *Client) UpdateBookmark(id string, config *BookmarkConfig) (*Bookmark, error) {
+	bookmarkInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.api.CreateOrUpdateBookmark(&id, bookmarkInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBookmark(result)
+}
+
+// DeleteBookmark
+func (c *Client) DeleteBookmark(id string) error {
+	return c.api.DeleteBookmark(id)
+}

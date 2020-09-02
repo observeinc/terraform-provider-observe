@@ -94,6 +94,7 @@ func Provider() *schema.Provider {
 			"observe_link":           resourceForeignKey(),
 			"observe_workspace":      resourceWorkspace(),
 			"observe_bookmark_group": resourceBookmarkGroup(),
+			"observe_bookmark":       resourceBookmark(),
 		},
 	}
 

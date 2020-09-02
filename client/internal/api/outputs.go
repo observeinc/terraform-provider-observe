@@ -155,3 +155,13 @@ type BookmarkGroup struct {
 	WorkspaceID  ObjectIdScalar            `json:"workspaceId"`
 	Presentation BookmarkGroupPresentation `json:"presentation"`
 }
+
+type Bookmark struct {
+	ID       ObjectIdScalar `json:"id"`
+	Name     string         `json:"name"`
+	IconURL  string         `json:"iconUrl"`
+	TargetID ObjectIdScalar `json:"targetId"`
+	// TODO: use ObjectKind
+	TargetIDKind string         `json:"targetIdKind"`
+	GroupID      ObjectIdScalar `json:"groupId"`
+}

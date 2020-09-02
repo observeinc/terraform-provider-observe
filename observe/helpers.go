@@ -140,3 +140,17 @@ func diffSuppressTimeDuration(k, old, new string, d *schema.ResourceData) bool {
 	n, _ := time.ParseDuration(new)
 	return o == n
 }
+
+func diffSuppressOIDVersion(k, old, new string, d *schema.ResourceData) bool {
+	o, err := observe.NewOID(old)
+	if err != nil {
+		return false
+	}
+
+	n, err := observe.NewOID(new)
+	if err != nil {
+		return false
+	}
+
+	return o.Type == n.Type && o.ID == n.ID
+}

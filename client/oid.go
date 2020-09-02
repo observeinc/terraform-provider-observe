@@ -17,6 +17,7 @@ const (
 	TypeDataset       Type = "dataset"
 	TypeWorkspace          = "workspace"
 	TypeBookmarkGroup      = "bookmarkgroup"
+	TypeBookmark           = "bookmark"
 )
 
 func (t Type) IsValid() bool {

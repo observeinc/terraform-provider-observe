@@ -76,3 +76,10 @@ const (
 	BookmarkGroupPresentationPerUserWorkspace     BookmarkGroupPresentation = "PerUserWorkspace"
 	BookmarkGroupPresentationPerCustomerWorkspace BookmarkGroupPresentation = "PerCustomerWorkspace"
 )
+
+type BookmarkInput struct {
+	Name     *string         `json:"name,omitempty"`
+	IconURL  *string         `json:"iconUrl,omitempty"`
+	TargetID *ObjectIdScalar `json:"targetId,omitempty"`
+	GroupID  *ObjectIdScalar `json:"groupId,omitempty"`
+}
