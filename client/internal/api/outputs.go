@@ -24,6 +24,7 @@ type Dataset struct {
 	LatencyDesired   *time.Duration `json:"latencyDesired"`
 	FreshnessDesired *time.Duration `json:"freshnessDesired"`
 	Typedef          Typedef        `json:"typedef"`
+	Description      *string        `json:"description"`
 	IconURL          *string        `json:"iconUrl"`
 	PathCost         *int64         `json:"pathCost"`
 	Transform        *Transform     `json:"transform"`

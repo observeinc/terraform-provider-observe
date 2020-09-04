@@ -36,6 +36,10 @@ func resourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"icon_url": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -101,6 +105,12 @@ func newDatasetConfig(data *schema.ResourceData) (config *observe.DatasetConfig,
 		config.Freshness = &t
 	}
 
+	{
+		// always reset to empty string if description not set
+		description := data.Get("description").(string)
+		config.Description = &description
+	}
+
 	if v, ok := data.GetOk("icon_url"); ok {
 		icon := v.(string)
 		config.IconURL = &icon
@@ -150,6 +160,12 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 
 	if d.Config.Freshness != nil {
 		if err := data.Set("freshness", d.Config.Freshness.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.Config.Description != nil {
+		if err := data.Set("description", d.Config.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

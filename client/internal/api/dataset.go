@@ -7,6 +7,7 @@ var (
 		id
 		label
 		freshnessDesired
+		description
 		iconUrl
 		version
 		pathCost

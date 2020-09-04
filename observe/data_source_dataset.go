@@ -28,6 +28,10 @@ func dataSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"icon_url": {
 				Type:     schema.TypeString,
 				Computed: true,

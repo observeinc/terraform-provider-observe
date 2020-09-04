@@ -6,6 +6,7 @@ type DatasetInput struct {
 	Deleted          bool            `json:"deleted"`
 	LatencyDesired   *string         `json:"latencyDesired"`
 	FreshnessDesired *string         `json:"freshnessDesired"`
+	Description      *string         `json:"description"`
 	IconURL          *string         `json:"iconUrl"`
 	PathCost         *string         `json:"pathCost"`
 }

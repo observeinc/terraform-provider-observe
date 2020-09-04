@@ -35,11 +35,12 @@ type Dataset struct {
 
 // DatasetConfig contains configurable elements associated to Dataset
 type DatasetConfig struct {
-	Name      string            `json:"name"`
-	IconURL   *string           `json:"icon_url"`
-	Freshness *time.Duration    `json:"freshness"`
-	Inputs    map[string]*Input `json:"inputs"`
-	Stages    []*Stage          `json:"stages"`
+	Name        string            `json:"name"`
+	Description *string           `json:"description"`
+	IconURL     *string           `json:"icon_url"`
+	Freshness   *time.Duration    `json:"freshness"`
+	Inputs      map[string]*Input `json:"inputs"`
+	Stages      []*Stage          `json:"stages"`
 
 	// in practice PathCost is mandatory, since it cannot be set to null
 	PathCost int64 `json:"path_cost"`
@@ -81,10 +82,11 @@ func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
 		WorkspaceID: gqlDataset.WorkspaceId.String(),
 		Version:     gqlDataset.Version,
 		Config: &DatasetConfig{
-			Name:      gqlDataset.Label,
-			IconURL:   gqlDataset.IconURL,
-			Freshness: gqlDataset.FreshnessDesired,
-			PathCost:  pathCost,
+			Name:        gqlDataset.Label,
+			Description: gqlDataset.Description,
+			IconURL:     gqlDataset.IconURL,
+			Freshness:   gqlDataset.FreshnessDesired,
+			PathCost:    pathCost,
 		},
 	}
 
@@ -171,8 +173,9 @@ func (c *DatasetConfig) toGQLDatasetInput() (*api.DatasetInput, error) {
 	}
 
 	datasetInput := &api.DatasetInput{
-		Label:   c.Name,
-		IconURL: c.IconURL,
+		Label:       c.Name,
+		Description: c.Description,
+		IconURL:     c.IconURL,
 	}
 
 	i := fmt.Sprintf("%d", c.PathCost)

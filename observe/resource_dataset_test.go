@@ -431,3 +431,109 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveDatasetDescription(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// We use a data source to read the value of description back in.
+		// This assures us that the value is correctly set and read from
+		// backend, rather than just being set in local state.
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace   = data.observe_workspace.kubernetes.oid
+					name 	    = "%s"
+					description = "test"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					    filter true
+					  EOF
+					}
+				}
+
+				data "observe_dataset" "first" {
+					workspace  = data.observe_workspace.kubernetes.oid
+					name 	   = "%[1]s"
+					depends_on = [observe_dataset.first]
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "description", "test"),
+					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", "test"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace   = data.observe_workspace.kubernetes.oid
+					name 	    = "%s"
+					description = "updated"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					    filter true
+					  EOF
+					}
+				}
+
+				data "observe_dataset" "first" {
+					workspace  = data.observe_workspace.kubernetes.oid
+					name 	   = "%[1]s"
+					depends_on = [observe_dataset.first]
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "description", "updated"),
+					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", "updated"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace   = data.observe_workspace.kubernetes.oid
+					name 	    = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					    filter true
+					  EOF
+					}
+				}
+
+				data "observe_dataset" "first" {
+					workspace  = data.observe_workspace.kubernetes.oid
+					name 	   = "%[1]s"
+					depends_on = [observe_dataset.first]
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "description", ""),
+					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", ""),
+				),
+			},
+		},
+	})
+}
