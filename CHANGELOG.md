@@ -1,3 +1,9 @@
+## 0.4.0 (2020-09-04)
+
+* provider: add description to observe_dataset
+* provider: add observe_bookmark resource
+* provider: add observe_bookmark_group resource
+
 ## 0.3.1 (2020-08-31)
 
 * jenkins: make docker-sign non interactive
