@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"context"
+)
+
 var (
 	backendForeignKeyFragment = `
 	fragment foreignKeyFields on DeferredForeignKey {
@@ -15,8 +19,8 @@ var (
 	}`
 )
 
-func (c *Client) GetDeferredForeignKey(id string) (*DeferredForeignKey, error) {
-	result, err := c.Run(backendForeignKeyFragment+`
+func (c *Client) GetDeferredForeignKey(ctx context.Context, id string) (*DeferredForeignKey, error) {
+	result, err := c.Run(ctx, backendForeignKeyFragment+`
 	query getDeferredForeignKey($id: ObjectId!) {
 		deferredForeignKey(id: $id) {
 			...foreignKeyFields
@@ -36,8 +40,8 @@ func (c *Client) GetDeferredForeignKey(id string) (*DeferredForeignKey, error) {
 	return &dfk, nil
 }
 
-func (c *Client) CreateDeferredForeignKey(workspaceid string, config *DeferredForeignKeyInput) (*DeferredForeignKey, error) {
-	result, err := c.Run(backendForeignKeyFragment+`
+func (c *Client) CreateDeferredForeignKey(ctx context.Context, workspaceid string, config *DeferredForeignKeyInput) (*DeferredForeignKey, error) {
+	result, err := c.Run(ctx, backendForeignKeyFragment+`
 	mutation createDeferredForeignKey($workspaceId: ObjectId!, $data: DeferredForeignKeyInput!) {
 		createDeferredForeignKey(workspaceId:$workspaceId, data: $data) {
 			...foreignKeyFields
@@ -58,8 +62,8 @@ func (c *Client) CreateDeferredForeignKey(workspaceid string, config *DeferredFo
 	return &dfk, nil
 }
 
-func (c *Client) UpdateDeferredForeignKey(id string, config *DeferredForeignKeyInput) (*DeferredForeignKey, error) {
-	result, err := c.Run(backendForeignKeyFragment+`
+func (c *Client) UpdateDeferredForeignKey(ctx context.Context, id string, config *DeferredForeignKeyInput) (*DeferredForeignKey, error) {
+	result, err := c.Run(ctx, backendForeignKeyFragment+`
 	mutation updateDeferredForeignKey($id: ObjectId!, $data: DeferredForeignKeyInput!) {
 		updateDeferredForeignKey(id:$id, data: $data) {
 			...foreignKeyFields
@@ -81,8 +85,8 @@ func (c *Client) UpdateDeferredForeignKey(id string, config *DeferredForeignKeyI
 }
 
 // DeleteDeferredForeignKey deletes dfk by ID.
-func (c *Client) DeleteDeferredForeignKey(id string) error {
-	result, err := c.Run(`
+func (c *Client) DeleteDeferredForeignKey(ctx context.Context, id string) error {
+	result, err := c.Run(ctx, `
     mutation ($id: ObjectId!) {
 		deleteDeferredForeignKey(id: $id) {
         	success

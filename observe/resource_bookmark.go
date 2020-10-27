@@ -108,7 +108,7 @@ func resourceBookmarkCreate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	result, err := client.CreateBookmark(config)
+	result, err := client.CreateBookmark(ctx, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -124,7 +124,7 @@ func resourceBookmarkCreate(ctx context.Context, data *schema.ResourceData, meta
 
 func resourceBookmarkRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	result, err := client.GetBookmark(data.Id())
+	result, err := client.GetBookmark(ctx, data.Id())
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -143,7 +143,7 @@ func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	result, err := client.UpdateBookmark(data.Id(), config)
+	result, err := client.UpdateBookmark(ctx, data.Id(), config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -158,7 +158,7 @@ func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta
 
 func resourceBookmarkDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	if err := client.DeleteBookmark(data.Id()); err != nil {
+	if err := client.DeleteBookmark(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete dataset: %s", err)
 	}
 	return diags

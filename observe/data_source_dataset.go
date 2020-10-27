@@ -92,7 +92,7 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
 
-	d, err := client.LookupDataset(oid.ID, name)
+	d, err := client.LookupDataset(ctx, oid.ID, name)
 
 	if err != nil {
 		diags = diag.FromErr(err)

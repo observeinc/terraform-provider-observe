@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"context"
+)
+
 var (
 	backendBookmarkGroupFragment = `
 	fragment bookmarkGroupFields on BookmarkGroup {
@@ -10,8 +14,8 @@ var (
 	}`
 )
 
-func (c *Client) GetBookmarkGroup(id string) (*BookmarkGroup, error) {
-	result, err := c.Run(backendBookmarkGroupFragment+`
+func (c *Client) GetBookmarkGroup(ctx context.Context, id string) (*BookmarkGroup, error) {
+	result, err := c.Run(ctx, backendBookmarkGroupFragment+`
 	query getBookmarkGroup($id: ObjectId!) {
 		bookmarkGroup(id: $id) {
 			...bookmarkGroupFields
@@ -31,8 +35,8 @@ func (c *Client) GetBookmarkGroup(id string) (*BookmarkGroup, error) {
 	return &bg, nil
 }
 
-func (c *Client) CreateOrUpdateBookmarkGroup(id *string, config *BookmarkGroupInput) (*BookmarkGroup, error) {
-	result, err := c.Run(backendBookmarkGroupFragment+`
+func (c *Client) CreateOrUpdateBookmarkGroup(ctx context.Context, id *string, config *BookmarkGroupInput) (*BookmarkGroup, error) {
+	result, err := c.Run(ctx, backendBookmarkGroupFragment+`
 	mutation createOrUpdateBookmarkGroup($id: ObjectId, $data: BookmarkGroupInput!) {
 		createOrUpdateBookmarkGroup(id:$id, group: $data) {
 			...bookmarkGroupFields
@@ -53,8 +57,8 @@ func (c *Client) CreateOrUpdateBookmarkGroup(id *string, config *BookmarkGroupIn
 	return &bg, nil
 }
 
-func (c *Client) DeleteBookmarkGroup(id string) error {
-	result, err := c.Run(`
+func (c *Client) DeleteBookmarkGroup(ctx context.Context, id string) error {
+	result, err := c.Run(ctx, `
     mutation ($id: ObjectId!) {
         deleteBookmarkGroup(id: $id) {
             success

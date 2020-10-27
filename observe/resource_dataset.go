@@ -252,7 +252,7 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateDataset(oid.ID, config)
+	result, err := client.CreateDataset(ctx, oid.ID, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -268,7 +268,7 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 
 func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	result, err := client.GetDataset(data.Id())
+	result, err := client.GetDataset(ctx, data.Id())
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -288,7 +288,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateDataset(oid.ID, data.Id(), config)
+	result, err := client.UpdateDataset(ctx, oid.ID, data.Id(), config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -303,7 +303,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	if err := client.DeleteDataset(data.Id()); err != nil {
+	if err := client.DeleteDataset(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete dataset: %s", err)
 	}
 	return diags

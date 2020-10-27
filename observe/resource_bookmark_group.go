@@ -105,7 +105,7 @@ func resourceBookmarkGroupCreate(ctx context.Context, data *schema.ResourceData,
 	}
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateBookmarkGroup(oid.ID, config)
+	result, err := client.CreateBookmarkGroup(ctx, oid.ID, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -121,7 +121,7 @@ func resourceBookmarkGroupCreate(ctx context.Context, data *schema.ResourceData,
 
 func resourceBookmarkGroupRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	result, err := client.GetBookmarkGroup(data.Id())
+	result, err := client.GetBookmarkGroup(ctx, data.Id())
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -140,7 +140,7 @@ func resourceBookmarkGroupUpdate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	result, err := client.UpdateBookmarkGroup(data.Id(), config)
+	result, err := client.UpdateBookmarkGroup(ctx, data.Id(), config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -155,7 +155,7 @@ func resourceBookmarkGroupUpdate(ctx context.Context, data *schema.ResourceData,
 
 func resourceBookmarkGroupDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	if err := client.DeleteBookmarkGroup(data.Id()); err != nil {
+	if err := client.DeleteBookmarkGroup(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete dataset: %s", err)
 	}
 	return diags

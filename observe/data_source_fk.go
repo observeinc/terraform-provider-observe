@@ -53,7 +53,7 @@ func dataSourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, me
 	}()
 
 	srcFields, dstFields := unpackFields(fields)
-	fk, err := client.LookupForeignKey(source.ID, target.ID, srcFields, dstFields)
+	fk, err := client.LookupForeignKey(ctx, source.ID, target.ID, srcFields, dstFields)
 	if err != nil {
 		return diag.FromErr(err)
 	}

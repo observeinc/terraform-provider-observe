@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"context"
+)
+
 var (
 	backendWorkspaceFragment = `
 	fragment workspaceFields on Project {
@@ -12,8 +16,8 @@ var (
 	}`
 )
 
-func (c *Client) GetWorkspace(id string) (*Workspace, error) {
-	result, err := c.Run(backendWorkspaceFragment+`
+func (c *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error) {
+	result, err := c.Run(ctx, backendWorkspaceFragment+`
 	query getWorkspace($id: ObjectId!) {
 		workspace(id: $id) {
 			...workspaceFields
@@ -33,8 +37,8 @@ func (c *Client) GetWorkspace(id string) (*Workspace, error) {
 	return &workspace, nil
 }
 
-func (c *Client) ListWorkspaces() ([]*Workspace, error) {
-	result, err := c.Run(backendWorkspaceFragment+`
+func (c *Client) ListWorkspaces(ctx context.Context) ([]*Workspace, error) {
+	result, err := c.Run(ctx, backendWorkspaceFragment+`
 	query ListWorkspaces() {
 		projects {
 			...workspaceFields

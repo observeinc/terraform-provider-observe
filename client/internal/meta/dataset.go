@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"context"
+)
+
 var (
 	backendDatasetFragment = `
 	fragment datasetFields on Dataset {
@@ -37,8 +41,8 @@ var (
 )
 
 // SaveDataset creates and updates datasets
-func (c *Client) SaveDataset(workspaceID string, d *DatasetInput, t *TransformInput) (*Dataset, error) {
-	result, err := c.Run(backendDatasetFragment+`
+func (c *Client) SaveDataset(ctx context.Context, workspaceID string, d *DatasetInput, t *TransformInput) (*Dataset, error) {
+	result, err := c.Run(ctx, backendDatasetFragment+`
 	mutation saveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $transform: TransformInput!, $dep: DependencyHandlingInput) {
 		saveDataset(workspaceId:$workspaceId, dataset:$dataset, transform:$transform, dependencyHandling:$dep) {
 			dataset {
@@ -62,8 +66,8 @@ func (c *Client) SaveDataset(workspaceID string, d *DatasetInput, t *TransformIn
 }
 
 // GetDataset retrieves dataset.
-func (c *Client) GetDataset(id string) (*Dataset, error) {
-	result, err := c.Run(backendDatasetFragment+`
+func (c *Client) GetDataset(ctx context.Context, id string) (*Dataset, error) {
+	result, err := c.Run(ctx, backendDatasetFragment+`
 	query getDataset($id: ObjectId!) {
         dataset(id: $id) {
             ...datasetFields
@@ -84,8 +88,8 @@ func (c *Client) GetDataset(id string) (*Dataset, error) {
 }
 
 // DeleteDataset deletes dataset by ID.
-func (c *Client) DeleteDataset(id string) error {
-	result, err := c.Run(`
+func (c *Client) DeleteDataset(ctx context.Context, id string) error {
+	result, err := c.Run(ctx, `
     mutation ($id: ObjectId!,  $dep: DependencyHandlingInput) {
         deleteDataset(dsid: $id, dependencyHandling:$dep) {
             success
@@ -110,8 +114,8 @@ func (c *Client) DeleteDataset(id string) error {
 }
 
 // ListDatasets retrieves all datasets across workspaces. No filtering provided for now.
-func (c *Client) ListDatasets() (ds []*Dataset, err error) {
-	result, err := c.Run(backendDatasetFragment+`
+func (c *Client) ListDatasets(ctx context.Context) (ds []*Dataset, err error) {
+	result, err := c.Run(ctx, backendDatasetFragment+`
 	query {
         projects {
             datasets {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/observeinc/terraform-provider-observe/client"
+	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
 func dataSourceWorkspace() *schema.Resource {
@@ -32,11 +32,11 @@ func dataSourceWorkspace() *schema.Resource {
 
 func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var (
-		observe = meta.(*client.Client)
-		name    = data.Get("name").(string)
+		client = meta.(*observe.Client)
+		name   = data.Get("name").(string)
 	)
 
-	workspace, err := observe.LookupWorkspace(name)
+	workspace, err := client.LookupWorkspace(ctx, name)
 	if err != nil {
 		err = fmt.Errorf("failed to retrieve workspace %q: %w", name, err)
 		return diag.FromErr(err)

@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"context"
+)
+
 var (
 	backendBookmarkFragment = `
 	fragment bookmarkFields on Bookmark {
@@ -12,8 +16,8 @@ var (
 	}`
 )
 
-func (c *Client) GetBookmark(id string) (*Bookmark, error) {
-	result, err := c.Run(backendBookmarkFragment+`
+func (c *Client) GetBookmark(ctx context.Context, id string) (*Bookmark, error) {
+	result, err := c.Run(ctx, backendBookmarkFragment+`
 	query getBookmark($id: ObjectId!) {
 		bookmark(id: $id) {
 			...bookmarkFields
@@ -33,8 +37,8 @@ func (c *Client) GetBookmark(id string) (*Bookmark, error) {
 	return &bg, nil
 }
 
-func (c *Client) CreateOrUpdateBookmark(id *string, config *BookmarkInput) (*Bookmark, error) {
-	result, err := c.Run(backendBookmarkFragment+`
+func (c *Client) CreateOrUpdateBookmark(ctx context.Context, id *string, config *BookmarkInput) (*Bookmark, error) {
+	result, err := c.Run(ctx, backendBookmarkFragment+`
 	mutation createOrUpdateBookmark($id: ObjectId, $bookmark: BookmarkInput!) {
 		createOrUpdateBookmark(id:$id, bookmark: $bookmark) {
 			...bookmarkFields
@@ -55,8 +59,8 @@ func (c *Client) CreateOrUpdateBookmark(id *string, config *BookmarkInput) (*Boo
 	return &bg, nil
 }
 
-func (c *Client) DeleteBookmark(id string) error {
-	result, err := c.Run(`
+func (c *Client) DeleteBookmark(ctx context.Context, id string) error {
+	result, err := c.Run(ctx, `
     mutation ($id: ObjectId!) {
         deleteBookmark(id: $id) {
             success

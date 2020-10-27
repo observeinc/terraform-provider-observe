@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"context"
 	"log"
 	"os"
 	"regexp"
@@ -39,7 +40,9 @@ func datasetSweeperFunc(s string) error {
 		return err
 	}
 
-	workspaces, err := client.ListWorkspaces()
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
 	if err != nil {
 		return err
 	}
@@ -48,7 +51,7 @@ func datasetSweeperFunc(s string) error {
 		for name, id := range workspace.Datasets {
 			if prefixRe.MatchString(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
-				if err := client.DeleteDataset(id); err != nil {
+				if err := client.DeleteDataset(ctx, id); err != nil {
 					return err
 				}
 			}

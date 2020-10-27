@@ -85,7 +85,7 @@ func resourceForeignKeyCreate(ctx context.Context, data *schema.ResourceData, me
 	}
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateForeignKey(oid.ID, config)
+	result, err := client.CreateForeignKey(ctx, oid.ID, config)
 	if err != nil {
 		return diag.Errorf("failed to create foreign key: %s", err.Error())
 	}
@@ -102,7 +102,7 @@ func resourceForeignKeyUpdate(ctx context.Context, data *schema.ResourceData, me
 		return diags
 	}
 
-	_, err := client.UpdateForeignKey(data.Id(), config)
+	_, err := client.UpdateForeignKey(ctx, data.Id(), config)
 	if err != nil {
 		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
@@ -113,7 +113,7 @@ func resourceForeignKeyUpdate(ctx context.Context, data *schema.ResourceData, me
 func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	fk, err := client.GetForeignKey(data.Id())
+	fk, err := client.GetForeignKey(ctx, data.Id())
 	if err != nil {
 		return diag.Errorf("failed to read foreign key: %s", err.Error())
 	}
@@ -153,7 +153,7 @@ func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta
 
 func resourceForeignKeyDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	if err := client.DeleteForeignKey(data.Id()); err != nil {
+	if err := client.DeleteForeignKey(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete foreign key: %s", err.Error())
 	}
 	return diags
