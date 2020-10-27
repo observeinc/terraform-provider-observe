@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
 type ForeignKey struct {
@@ -18,12 +18,12 @@ type ForeignKeyConfig struct {
 	Label     *string  `json:"label"`
 }
 
-func (fk *ForeignKeyConfig) toGQL() (*api.DeferredForeignKeyInput, error) {
-	dfkInput := &api.DeferredForeignKeyInput{
-		SourceDataset: api.DeferredDatasetReferenceInput{
+func (fk *ForeignKeyConfig) toGQL() (*meta.DeferredForeignKeyInput, error) {
+	dfkInput := &meta.DeferredForeignKeyInput{
+		SourceDataset: meta.DeferredDatasetReferenceInput{
 			DatasetID: toObjectPointer(fk.Source),
 		},
-		TargetDataset: api.DeferredDatasetReferenceInput{
+		TargetDataset: meta.DeferredDatasetReferenceInput{
 			DatasetID: toObjectPointer(fk.Target),
 		},
 		SrcFields: fk.SrcFields,
@@ -34,7 +34,7 @@ func (fk *ForeignKeyConfig) toGQL() (*api.DeferredForeignKeyInput, error) {
 	return dfkInput, nil
 }
 
-func newForeignKey(dfk *api.DeferredForeignKey) (*ForeignKey, error) {
+func newForeignKey(dfk *meta.DeferredForeignKey) (*ForeignKey, error) {
 	fkconfig := &ForeignKeyConfig{
 		SrcFields: dfk.SrcFields,
 		DstFields: dfk.DstFields,

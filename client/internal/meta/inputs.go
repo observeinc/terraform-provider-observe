@@ -1,4 +1,4 @@
-package api
+package meta
 
 type DatasetInput struct {
 	ID               *ObjectIdScalar `json:"id,omitempty"`

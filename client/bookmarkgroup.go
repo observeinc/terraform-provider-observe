@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
-type BookmarkGroupPresentation = api.BookmarkGroupPresentation
+type BookmarkGroupPresentation = meta.BookmarkGroupPresentation
 
 type BookmarkGroup struct {
 	ID        string               `json:"id"`
@@ -25,8 +25,8 @@ type BookmarkGroupConfig struct {
 	IconURL      *string                    `json:"iconUrl"`
 }
 
-func (bg *BookmarkGroupConfig) toGQL() (*api.BookmarkGroupInput, error) {
-	bgInput := &api.BookmarkGroupInput{
+func (bg *BookmarkGroupConfig) toGQL() (*meta.BookmarkGroupInput, error) {
+	bgInput := &meta.BookmarkGroupInput{
 		Name:         &bg.Name,
 		IconURL:      bg.IconURL,
 		Presentation: bg.Presentation,
@@ -34,7 +34,7 @@ func (bg *BookmarkGroupConfig) toGQL() (*api.BookmarkGroupInput, error) {
 	return bgInput, nil
 }
 
-func newBookmarkGroup(bg *api.BookmarkGroup) (*BookmarkGroup, error) {
+func newBookmarkGroup(bg *meta.BookmarkGroup) (*BookmarkGroup, error) {
 	bgconfig := &BookmarkGroupConfig{
 		Name: bg.Name,
 	}

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
 // TestDatasetConfig starts with a valid dataset and breaks it repeatedly to verify resulting error
@@ -113,8 +113,8 @@ func TestDatasetConfigToGQL(t *testing.T) {
 		tt := testcase
 
 		type tuple struct {
-			D *api.DatasetInput   `json:"datasetInput"`
-			T *api.TransformInput `json:"transformInput"`
+			D *meta.DatasetInput   `json:"datasetInput"`
+			T *meta.TransformInput `json:"transformInput"`
 		}
 
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestDatasetFromGQL(t *testing.T) {
 			t.Parallel()
 
 			// Read dataset in, we need to rely on mapstructure
-			var dataset api.Dataset
+			var dataset meta.Dataset
 			var raw map[string]interface{}
 			readJSONFile(t, tt.InputFile, &raw)
 			if err := dataset.Decode(&raw); err != nil {

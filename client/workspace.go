@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
 // Workspace acts as top-level grouping
@@ -23,7 +23,7 @@ type WorkspaceConfig struct {
 	Name string `json:"name"`
 }
 
-func newWorkspace(w *api.Workspace) (*Workspace, error) {
+func newWorkspace(w *meta.Workspace) (*Workspace, error) {
 	ws := &Workspace{
 		ID: w.ID.String(),
 		Config: &WorkspaceConfig{

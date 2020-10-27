@@ -3,7 +3,7 @@ package client
 import (
 	"strings"
 
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
 type Bookmark struct {
@@ -44,8 +44,8 @@ type BookmarkConfig struct {
 	GroupID  string  `json:"groupId"`
 }
 
-func (bm *BookmarkConfig) toGQL() (*api.BookmarkInput, error) {
-	bmInput := &api.BookmarkInput{
+func (bm *BookmarkConfig) toGQL() (*meta.BookmarkInput, error) {
+	bmInput := &meta.BookmarkInput{
 		Name:     &bm.Name,
 		IconURL:  bm.IconURL,
 		TargetID: toObjectPointer(&bm.TargetID),
@@ -54,7 +54,7 @@ func (bm *BookmarkConfig) toGQL() (*api.BookmarkInput, error) {
 	return bmInput, nil
 }
 
-func newBookmark(bm *api.Bookmark) (*Bookmark, error) {
+func newBookmark(bm *meta.Bookmark) (*Bookmark, error) {
 	bmconfig := &BookmarkConfig{
 		Name:     bm.Name,
 		TargetID: bm.TargetID.String(),

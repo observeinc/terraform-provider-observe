@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/observeinc/terraform-provider-observe/client/internal/api"
+	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
 var (
@@ -70,7 +70,7 @@ func (d *Dataset) OID() *OID {
 	}
 }
 
-func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
+func newDataset(gqlDataset *meta.Dataset) (*Dataset, error) {
 
 	var pathCost int64
 	if gqlDataset.PathCost != nil {
@@ -93,7 +93,7 @@ func newDataset(gqlDataset *api.Dataset) (*Dataset, error) {
 	// foreignKeys attribute is read only, but we'll re-use the
 	// ForeignKeyConfig struct to populate the list
 	for _, gqlFk := range gqlDataset.ForeignKeys {
-		id := api.ObjectIdScalarPointer(*gqlFk.TargetDataset).String()
+		id := meta.ObjectIdScalarPointer(*gqlFk.TargetDataset).String()
 		fk := ForeignKeyConfig{
 			Label:     gqlFk.Label,
 			Target:    &id,
@@ -167,12 +167,12 @@ func (c *DatasetConfig) validateInput(i *Input) error {
 	return nil
 }
 
-func (c *DatasetConfig) toGQLDatasetInput() (*api.DatasetInput, error) {
+func (c *DatasetConfig) toGQLDatasetInput() (*meta.DatasetInput, error) {
 	if c.Name == "" {
 		return nil, errNameMissing
 	}
 
-	datasetInput := &api.DatasetInput{
+	datasetInput := &meta.DatasetInput{
 		Label:       c.Name,
 		Description: c.Description,
 		IconURL:     c.IconURL,
@@ -188,17 +188,17 @@ func (c *DatasetConfig) toGQLDatasetInput() (*api.DatasetInput, error) {
 	return datasetInput, nil
 }
 
-func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
-	var transformInput api.TransformInput
+func (c *DatasetConfig) toGQLTransformInput() (*meta.TransformInput, error) {
+	var transformInput meta.TransformInput
 
 	// validate and convert all inputs
 	var sortedNames []string
-	gqlInputs := make(map[string]*api.InputDefinitionInput, len(c.Inputs))
+	gqlInputs := make(map[string]*meta.InputDefinitionInput, len(c.Inputs))
 	for name, input := range c.Inputs {
 		if err := c.validateInput(input); err != nil {
 			return nil, fmt.Errorf("invalid input: %w", err)
 		}
-		gqlInputs[name] = &api.InputDefinitionInput{
+		gqlInputs[name] = &meta.InputDefinitionInput{
 			InputName: name,
 			DatasetID: toObjectPointer(input.Dataset),
 		}
@@ -206,7 +206,7 @@ func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
 	}
 	sort.Strings(sortedNames)
 
-	var defaultInput *api.InputDefinitionInput
+	var defaultInput *meta.InputDefinitionInput
 	switch len(c.Inputs) {
 	case 0:
 		return nil, errInputsMissing
@@ -224,7 +224,7 @@ func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
 		}
 
 		// Each stage will be given an ID based on the hash of all preceeding pipelines
-		gqlStage := &api.StageQueryInput{
+		gqlStage := &meta.StageQueryInput{
 			StageID:  fmt.Sprintf("stage-%d", i),
 			Pipeline: stage.Pipeline,
 		}
@@ -260,7 +260,7 @@ func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
 
 		// prepare for next iteration of loop
 		// this stage will become defaultInput for the next
-		defaultInput = &api.InputDefinitionInput{
+		defaultInput = &meta.InputDefinitionInput{
 			InputName: gqlStage.StageID,
 			StageID:   gqlStage.StageID,
 		}
@@ -282,7 +282,7 @@ func (c *DatasetConfig) toGQLTransformInput() (*api.TransformInput, error) {
 	return &transformInput, nil
 }
 
-func (c *DatasetConfig) toGQL() (*api.DatasetInput, *api.TransformInput, error) {
+func (c *DatasetConfig) toGQL() (*meta.DatasetInput, *meta.TransformInput, error) {
 	datasetInput, err := c.toGQLDatasetInput()
 	if err != nil {
 		return nil, nil, err
@@ -303,7 +303,7 @@ func invalidObjectID(s *string) bool {
 	return err != nil
 }
 
-func toObjectPointer(s *string) *api.ObjectIdScalar {
+func toObjectPointer(s *string) *meta.ObjectIdScalar {
 	if s == nil {
 		return nil
 	}
@@ -311,5 +311,5 @@ func toObjectPointer(s *string) *api.ObjectIdScalar {
 	if err != nil {
 		panic(err)
 	}
-	return api.ObjectIdScalarPointer(i)
+	return meta.ObjectIdScalarPointer(i)
 }

@@ -1,4 +1,4 @@
-package api
+package meta
 
 var (
 	backendBookmarkGroupFragment = `
