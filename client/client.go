@@ -1,45 +1,78 @@
 package client
 
 import (
+	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"sync"
+	"time"
 
+	"github.com/observeinc/terraform-provider-observe/client/internal/collect"
 	"github.com/observeinc/terraform-provider-observe/client/internal/customer"
 	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
-var (
-	// ErrUnauthorized is returned on 401
-	ErrUnauthorized = errors.New("authorization error")
-	defaultDomain   = "observeinc.com"
-)
+// RoundTripperFunc implements http.RoundTripper
+type RoundTripperFunc func(*http.Request) (*http.Response, error)
 
-// Client implements a grossly simplified API client for Observe
+func (r RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) { return r(req) }
+
+// Client handles interacting with our API(s)
 type Client struct {
-	customerID string
-	domain     string
-	token      string
-	proxy      string
-	insecure   bool
-	userAgent  string
-	flags      map[string]bool
+	*Config
+
+	login sync.Once
 
 	// our API does not allow concurrent FK creation, so we use a lock as a workaround
 	obs2110 sync.Mutex
 
-	httpClient *http.Client
-
-	metaAPI     *meta.Client
-	customerAPI *customer.Client
+	Meta     *meta.Client
+	Customer *customer.Client
+	Collect  *collect.Client
 }
 
-// login using whatever HTTP client we've assembled so far
-func (c *Client) login(user string, password string) (string, error) {
-	api := customer.New(c.getURL(""), c.httpClient)
-	return api.Login(user, password)
+// login to retrieve a valid token, only need to do this once
+func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
+	if isAuthed(ctx) && c.Token == nil && c.UserEmail != nil {
+		c.login.Do(func() {
+			ctx = setSensitive(ctx, true)
+			ctx = setAuthed(ctx, false)
+
+			token, err := c.Customer.Login(ctx, *c.UserEmail, *c.UserPassword)
+			if err != nil {
+				loginErr = fmt.Errorf("failed to retrieve token: %w", err)
+			} else {
+				c.Token = &token
+			}
+		})
+	}
+	return
+}
+
+func (c *Client) logRequest(ctx context.Context, req *http.Request) {
+	sensitive := isSensitive(ctx)
+	if sensitive {
+		log.Printf("[DEBUG] sensitive payload, omitting request body")
+	}
+
+	s, err := httputil.DumpRequest(req, !sensitive)
+	if err != nil {
+		log.Printf("[WARN] failed to dump request: %s\n", err)
+	}
+	log.Printf("[DEBUG] %s\n", s)
+}
+
+func (c *Client) logResponse(ctx context.Context, resp *http.Response) {
+	if resp != nil {
+		s, _ := httputil.DumpResponse(resp, !isSensitive(ctx))
+		log.Printf("[DEBUG] %s\n", s)
+	}
 }
 
 // recursively unwrap error to figure out if it is temporary
@@ -53,52 +86,88 @@ func isTemporary(err error) bool {
 	return false
 }
 
-func NewClient(customerID string, options ...Option) (*Client, error) {
-	c := &Client{
-		customerID: customerID,
-		domain:     defaultDomain,
-		flags:      make(map[string]bool),
-		httpClient: &http.Client{
-			Transport: http.DefaultTransport.(*http.Transport).Clone(),
-		},
-	}
+// withMiddelware adds logging, auth handling to all outgoing requests
+func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
+	return RoundTripperFunc(func(req *http.Request) (resp *http.Response, err error) {
+		ctx := req.Context()
 
-	for _, o := range options {
-		if err := o(c); err != nil {
-			return nil, fmt.Errorf("failed to configure client: %w", err)
+		if c.UserAgent != nil {
+			req.Header.Set("User-Agent", *c.UserAgent)
 		}
-	}
 
-	// raise any unexpected status code from API as error
-	wrapped := c.httpClient.Transport
-	c.httpClient.Transport = RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		req.Host = c.getHost()
-		resp, err := wrapped.RoundTrip(req)
-		if err != nil {
-			return nil, err
+		// log request and response
+		c.logRequest(ctx, req)
+		defer func() {
+			c.logResponse(ctx, resp)
+		}()
+
+		// obtain token if needed - only first request requiring auth will login
+		if err := c.loginOnFirstRun(ctx); err != nil {
+			return nil, fmt.Errorf("failed to login: %w", err)
 		}
-		switch resp.StatusCode {
-		case http.StatusOK, http.StatusUnprocessableEntity:
-			return resp, nil
-		case http.StatusUnauthorized:
-			return nil, ErrUnauthorized
-		default:
-			return nil, fmt.Errorf("received unexpected status code %d", resp.StatusCode)
+
+		// set auth header only after having logged request
+		if c.Token != nil {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.Token))
 		}
+
+		resp, err = wrapped.RoundTrip(req)
+		waitBeforeRetry := c.RetryWait
+		for retry := 0; err != nil && isTemporary(err) && retry < c.RetryCount; retry++ {
+			log.Printf("[WARN] request failed with temporary error: %s\n", err)
+			time.Sleep(waitBeforeRetry)
+			waitBeforeRetry += c.RetryWait
+			log.Printf("[WARN] attempting recovery (%d/%d)\n", retry+1, c.RetryCount)
+			resp, err = wrapped.RoundTrip(req)
+		}
+		return
 	})
-
-	c.metaAPI = meta.New(c.getURL("/v1/meta"), c.httpClient)
-	c.customerAPI = customer.New(c.getURL(""), c.httpClient)
-	return c, c.metaAPI.Verify()
 }
 
-func (c *Client) getHost() string {
-	return fmt.Sprintf("%s.%s", c.customerID, c.domain)
-}
-
-func (c *Client) getURL(path string) string {
-	if c.proxy != "" {
-		return fmt.Sprintf("%s%s", c.proxy, path)
+// New returns a new client
+func New(c *Config) (*Client, error) {
+	if err := c.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate configuration: %w", err)
 	}
-	return fmt.Sprintf("https://%s%s", c.getHost(), path)
+
+	// first we must create an HTTP client for all subsequent requests
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if c.Proxy != nil {
+		proxyURL, _ := url.Parse(*c.Proxy)
+		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+
+	// disable TLS verification if necessary
+	if c.Insecure {
+		if transport.TLSClientConfig == nil {
+			transport.TLSClientConfig = &tls.Config{}
+		}
+		transport.TLSClientConfig.InsecureSkipVerify = true
+	}
+
+	// create APIs
+	httpClient := &http.Client{Timeout: c.HTTPClientTimeout}
+
+	customerURL := fmt.Sprintf("https://%s.%s", c.CustomerID, c.Domain)
+	collectURL := fmt.Sprintf("https://collect.%s", c.Domain)
+
+	collectAPI, err := collect.New(collectURL, httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure collect API: %w", err)
+	}
+
+	metaAPI, err := meta.New(customerURL+"/v1/meta", httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure meta API: %w", err)
+	}
+
+	client := &Client{
+		Config:   c,
+		Meta:     metaAPI,
+		Customer: customer.New(customerURL, httpClient),
+		Collect:  collectAPI,
+	}
+
+	httpClient.Transport = client.withMiddleware(transport)
+	return client, nil
 }

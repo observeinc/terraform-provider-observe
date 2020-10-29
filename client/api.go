@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"reflect"
 )
 
@@ -15,7 +17,7 @@ var (
 
 // GetDataset returns dataset by ID
 func (c *Client) GetDataset(ctx context.Context, id string) (*Dataset, error) {
-	result, err := c.metaAPI.GetDataset(ctx, id)
+	result, err := c.Meta.GetDataset(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +30,7 @@ func (c *Client) CreateDataset(ctx context.Context, workspaceId string, config *
 	if err != nil {
 		return nil, err
 	}
-	result, err := c.metaAPI.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
+	result, err := c.Meta.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +39,7 @@ func (c *Client) CreateDataset(ctx context.Context, workspaceId string, config *
 
 // UpdateDataset updates existing dataset
 func (c *Client) UpdateDataset(ctx context.Context, workspaceId string, id string, config *DatasetConfig) (*Dataset, error) {
-	if !c.flags[flagObs2110] {
+	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
@@ -47,7 +49,7 @@ func (c *Client) UpdateDataset(ctx context.Context, workspaceId string, id strin
 	}
 
 	datasetInput.ID = toObjectPointer(&id)
-	result, err := c.metaAPI.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
+	result, err := c.Meta.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +58,16 @@ func (c *Client) UpdateDataset(ctx context.Context, workspaceId string, id strin
 
 // DeleteDataset by ID
 func (c *Client) DeleteDataset(ctx context.Context, id string) error {
-	if !c.flags[flagObs2110] {
+	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.metaAPI.DeleteDataset(ctx, id)
+	return c.Meta.DeleteDataset(ctx, id)
 }
 
 // GetWorkspace by ID
 func (c *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error) {
-	result, err := c.metaAPI.GetWorkspace(ctx, id)
+	result, err := c.Meta.GetWorkspace(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspace: %w", err)
 	}
@@ -74,7 +76,7 @@ func (c *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error
 
 // LookupWorkspace by name.
 func (c *Client) LookupWorkspace(ctx context.Context, name string) (*Workspace, error) {
-	workspaces, err := c.metaAPI.ListWorkspaces(ctx)
+	workspaces, err := c.Meta.ListWorkspaces(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup workspace: %w", err)
 	}
@@ -90,7 +92,7 @@ func (c *Client) LookupWorkspace(ctx context.Context, name string) (*Workspace, 
 
 // ListWorkspaces.
 func (c *Client) ListWorkspaces(ctx context.Context) (workspaces []*Workspace, err error) {
-	result, err := c.metaAPI.ListWorkspaces(ctx)
+	result, err := c.Meta.ListWorkspaces(ctx)
 	if err != nil {
 		return
 	}
@@ -122,7 +124,7 @@ func (c *Client) LookupDataset(ctx context.Context, workspaceID string, name str
 
 // CreateForeignKey
 func (c *Client) CreateForeignKey(ctx context.Context, workspaceID string, config *ForeignKeyConfig) (*ForeignKey, error) {
-	if !c.flags[flagObs2110] {
+	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
@@ -130,14 +132,14 @@ func (c *Client) CreateForeignKey(ctx context.Context, workspaceID string, confi
 	if err != nil {
 		return nil, err
 	}
-	result, err := c.metaAPI.CreateDeferredForeignKey(ctx, workspaceID, foreignKeyInput)
+	result, err := c.Meta.CreateDeferredForeignKey(ctx, workspaceID, foreignKeyInput)
 	if err != nil {
 		return nil, err
 	}
 
 	if result.Status.ErrorText != "" {
 		// call internal API directly since DeleteForeignKey() acquires lock
-		c.metaAPI.DeleteDeferredForeignKey(ctx, result.ID.String())
+		c.Meta.DeleteDeferredForeignKey(ctx, result.ID.String())
 		return nil, fmt.Errorf(result.Status.ErrorText)
 	}
 	return newForeignKey(result)
@@ -145,7 +147,7 @@ func (c *Client) CreateForeignKey(ctx context.Context, workspaceID string, confi
 
 // UpdateForeignKey by ID
 func (c *Client) UpdateForeignKey(ctx context.Context, id string, config *ForeignKeyConfig) (*ForeignKey, error) {
-	if !c.flags[flagObs2110] {
+	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
@@ -153,7 +155,7 @@ func (c *Client) UpdateForeignKey(ctx context.Context, id string, config *Foreig
 	if err != nil {
 		return nil, err
 	}
-	result, err := c.metaAPI.UpdateDeferredForeignKey(ctx, id, foreignKeyInput)
+	result, err := c.Meta.UpdateDeferredForeignKey(ctx, id, foreignKeyInput)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +168,7 @@ func (c *Client) UpdateForeignKey(ctx context.Context, id string, config *Foreig
 
 // GetForeignKey returns deferred foreign key
 func (c *Client) GetForeignKey(ctx context.Context, id string) (*ForeignKey, error) {
-	result, err := c.metaAPI.GetDeferredForeignKey(ctx, id)
+	result, err := c.Meta.GetDeferredForeignKey(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -211,16 +213,16 @@ func (c *Client) LookupForeignKey(ctx context.Context, source string, target str
 
 // DeleteForeignKey
 func (c *Client) DeleteForeignKey(ctx context.Context, id string) error {
-	if !c.flags[flagObs2110] {
+	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.metaAPI.DeleteDeferredForeignKey(ctx, id)
+	return c.Meta.DeleteDeferredForeignKey(ctx, id)
 }
 
 // GetBookmarkGroup returns bookmarkGroup by ID
 func (c *Client) GetBookmarkGroup(ctx context.Context, id string) (*BookmarkGroup, error) {
-	result, err := c.metaAPI.GetBookmarkGroup(ctx, id)
+	result, err := c.Meta.GetBookmarkGroup(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +237,7 @@ func (c *Client) CreateBookmarkGroup(ctx context.Context, workspaceId string, co
 	}
 
 	bookmarkGroupInput.WorkspaceID = toObjectPointer(&workspaceId)
-	result, err := c.metaAPI.CreateOrUpdateBookmarkGroup(ctx, nil, bookmarkGroupInput)
+	result, err := c.Meta.CreateOrUpdateBookmarkGroup(ctx, nil, bookmarkGroupInput)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +251,7 @@ func (c *Client) UpdateBookmarkGroup(ctx context.Context, id string, config *Boo
 		return nil, err
 	}
 
-	result, err := c.metaAPI.CreateOrUpdateBookmarkGroup(ctx, &id, bookmarkGroupInput)
+	result, err := c.Meta.CreateOrUpdateBookmarkGroup(ctx, &id, bookmarkGroupInput)
 	if err != nil {
 		return nil, err
 	}
@@ -258,12 +260,12 @@ func (c *Client) UpdateBookmarkGroup(ctx context.Context, id string, config *Boo
 
 // DeleteBookmarkGroup
 func (c *Client) DeleteBookmarkGroup(ctx context.Context, id string) error {
-	return c.metaAPI.DeleteBookmarkGroup(ctx, id)
+	return c.Meta.DeleteBookmarkGroup(ctx, id)
 }
 
 // GetBookmark returns bookmark by ID
 func (c *Client) GetBookmark(ctx context.Context, id string) (*Bookmark, error) {
-	result, err := c.metaAPI.GetBookmark(ctx, id)
+	result, err := c.Meta.GetBookmark(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +279,7 @@ func (c *Client) CreateBookmark(ctx context.Context, config *BookmarkConfig) (*B
 		return nil, err
 	}
 
-	result, err := c.metaAPI.CreateOrUpdateBookmark(ctx, nil, bookmarkInput)
+	result, err := c.Meta.CreateOrUpdateBookmark(ctx, nil, bookmarkInput)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +293,7 @@ func (c *Client) UpdateBookmark(ctx context.Context, id string, config *Bookmark
 		return nil, err
 	}
 
-	result, err := c.metaAPI.CreateOrUpdateBookmark(ctx, &id, bookmarkInput)
+	result, err := c.Meta.CreateOrUpdateBookmark(ctx, &id, bookmarkInput)
 	if err != nil {
 		return nil, err
 	}
@@ -300,5 +302,10 @@ func (c *Client) UpdateBookmark(ctx context.Context, id string, config *Bookmark
 
 // DeleteBookmark
 func (c *Client) DeleteBookmark(ctx context.Context, id string) error {
-	return c.metaAPI.DeleteBookmark(ctx, id)
+	return c.Meta.DeleteBookmark(ctx, id)
+}
+
+// Observe submits observations
+func (c *Client) Observe(ctx context.Context, path string, body io.Reader, tags map[string]string, options ...func(*http.Request)) error {
+	return c.Collect.Observe(ctx, path, body, tags, options...)
 }

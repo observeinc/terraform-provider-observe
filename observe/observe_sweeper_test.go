@@ -19,15 +19,23 @@ func init() {
 }
 
 func sharedClient(s string) (*observe.Client, error) {
-	c := &Config{
-		CustomerID:   os.Getenv("OBSERVE_CUSTOMER"),
-		UserEmail:    os.Getenv("OBSERVE_USER_EMAIL"),
-		UserPassword: os.Getenv("OBSERVE_USER_PASSWORD"),
-		Token:        os.Getenv("OBSERVE_TOKEN"),
-		Domain:       os.Getenv("OBSERVE_DOMAIN"),
-		Insecure:     os.Getenv("OBSERVE_INSECURE") == "true",
+	config := &observe.Config{
+		CustomerID: os.Getenv("OBSERVE_CUSTOMER"),
+		Domain:     os.Getenv("OBSERVE_DOMAIN"),
+		Insecure:   os.Getenv("OBSERVE_INSECURE") == "true",
 	}
-	return c.Client()
+
+	if userEmail := os.Getenv("OBSERVE_USER_EMAIL"); userEmail != "" {
+		userPassword := os.Getenv("OBSERVE_USER_PASSWORD")
+		config.UserEmail = &userEmail
+		config.UserPassword = &userPassword
+	}
+
+	if token := os.Getenv("OBSERVE_TOKEN"); token != "" {
+		config.Token = &token
+	}
+
+	return observe.New(config)
 }
 
 var (

@@ -1,32 +1,48 @@
-package api
+package collect
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
-
-	"github.com/machinebox/graphql"
+	"net/url"
+	"path"
+	"strings"
 )
 
-// Client implements our current API given an interface that can speak GraphQL
-type Client struct {
-	gqlClient *graphql.Client
-}
+// Submit data
+func (c *Client) Observe(ctx context.Context, s string, body io.Reader, tags map[string]string, options ...func(*http.Request)) error {
+	u, _ := url.Parse(c.endpoint)
+	u.Path = path.Join(u.Path, s)
 
-// Run raw GraphQL query against API
-func (c *Client) Run(reqBody string, vars map[string]interface{}) (map[string]interface{}, error) {
-	req := graphql.NewRequest(reqBody)
-	for k, v := range vars {
-		req.Var(k, v)
+	values := make(url.Values)
+	for k, v := range tags {
+		values.Add(k, v)
+	}
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), body)
+	if err != nil {
+		return fmt.Errorf("failed to build new request: %s", err)
 	}
 
-	var result map[string]interface{}
-	err := c.gqlClient.Run(context.Background(), req, &result)
-	return result, err
-}
+	// set defaults before overriding with options
+	req.Header.Set("Content-Type", "application/json")
 
-// New returns client to meta API
-func New(endpoint string, client *http.Client) *Client {
-	return &Client{
-		gqlClient: graphql.NewClient(endpoint, graphql.WithHTTPClient(client)),
+	for _, o := range options {
+		o(req)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusAccepted, http.StatusNoContent:
+		return nil
+	default:
+		return fmt.Errorf(strings.ToLower(http.StatusText(resp.StatusCode)))
 	}
 }

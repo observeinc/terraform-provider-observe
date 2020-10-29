@@ -2,6 +2,7 @@ package customer
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,7 +18,7 @@ type Client struct {
 }
 
 // do is a helper to run HTTP request for a JSON API
-func (c *Client) do(method string, path string, body map[string]interface{}, result interface{}) error {
+func (c *Client) do(ctx context.Context, method string, path string, body map[string]interface{}, result interface{}) error {
 	var (
 		endpoint = fmt.Sprintf("%s%s", c.endpoint, path)
 		reqBody  io.Reader
@@ -31,7 +32,7 @@ func (c *Client) do(method string, path string, body map[string]interface{}, res
 		reqBody = bytes.NewBuffer(data)
 	}
 
-	req, err := http.NewRequest(method, endpoint, reqBody)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, reqBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

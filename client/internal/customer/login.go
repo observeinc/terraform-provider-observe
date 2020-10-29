@@ -1,16 +1,17 @@
 package customer
 
 import (
+	"context"
 	"fmt"
 )
 
-func (c *Client) Login(user, password string) (string, error) {
+func (c *Client) Login(ctx context.Context, user, password string) (string, error) {
 	var result struct {
 		AccessKey string `json:"access_key"`
 		Ok        bool   `json:"ok"`
 	}
 
-	err := c.do("POST", "/v1/login", map[string]interface{}{
+	err := c.do(ctx, "POST", "/v1/login", map[string]interface{}{
 		"user_email":    user,
 		"user_password": password,
 	}, &result)

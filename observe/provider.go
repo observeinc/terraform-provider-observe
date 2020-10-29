@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/version"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -80,6 +81,14 @@ func Provider() *schema.Provider {
 				Optional:         true,
 				Description:      "Toggle feature flags",
 			},
+			"http_client_timeout": {
+				Type:             schema.TypeString,
+				Default:          "60s",
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
+				Description:      "HTTP client timeout",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -109,33 +118,55 @@ func Provider() *schema.Provider {
 
 func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 	return func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
-		c := Config{
-			CustomerID:   data.Get("customer").(string),
-			Token:        data.Get("token").(string),
-			UserEmail:    data.Get("user_email").(string),
-			UserPassword: data.Get("user_password").(string),
-			Domain:       data.Get("domain").(string),
-			Insecure:     data.Get("insecure").(bool),
-			Proxy:        data.Get("proxy").(string),
-			RetryCount:   data.Get("retry_count").(int),
-			UserAgent:    userAgent,
+		config := &observe.Config{
+			CustomerID: data.Get("customer").(string),
+			Domain:     data.Get("domain").(string),
+			UserAgent:  &userAgent,
+			RetryCount: data.Get("retry_count").(int),
 		}
 
-		c.Flags, _ = convertFlags(data.Get("flags").(string))
-
-		if retryWait := data.Get("retry_wait").(string); retryWait != "" {
-			// already validated format
-			c.RetryWait, _ = time.ParseDuration(retryWait)
+		if v, ok := data.GetOk("token"); ok {
+			s := v.(string)
+			config.Token = &s
 		}
 
-		if c.Insecure {
+		if v, ok := data.GetOk("user_email"); ok {
+			s := v.(string)
+			config.UserEmail = &s
+		}
+
+		if v, ok := data.GetOk("user_password"); ok {
+			s := v.(string)
+			config.UserPassword = &s
+		}
+
+		if v, ok := data.GetOk("insecure"); ok {
+			config.Insecure = v.(bool)
+		}
+
+		if v, ok := data.GetOk("proxy"); ok {
+			s := v.(string)
+			config.Proxy = &s
+		}
+
+		if v, ok := data.GetOk("retry_wait"); ok {
+			config.RetryWait, _ = time.ParseDuration(v.(string))
+		}
+
+		if v, ok := data.GetOk("http_client_timeout"); ok {
+			config.HTTPClientTimeout, _ = time.ParseDuration(v.(string))
+		}
+
+		config.Flags, _ = convertFlags(data.Get("flags").(string))
+
+		if config.Insecure {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Insecure API session",
 			})
 		}
 
-		client, err := c.Client()
+		client, err := observe.New(config)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
