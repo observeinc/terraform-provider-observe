@@ -77,3 +77,47 @@ func TestFlags(t *testing.T) {
 		})
 	}
 }
+
+func TestPath(t *testing.T) {
+	testcases := []struct {
+		Input    string
+		HasError bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "test/path",
+		},
+		{
+			Input: "/test/path",
+		},
+		{
+			Input:    "/test/path?hello",
+			HasError: true,
+		},
+		{
+			Input:    "wrong#",
+			HasError: true,
+		},
+	}
+
+	for _, tt := range testcases {
+		tt := tt
+		t.Run(tt.Input, func(t *testing.T) {
+			err := validatePath(tt.Input, nil)
+
+			if tt.HasError && err != nil {
+				return
+			}
+
+			if tt.HasError && err == nil {
+				t.Fatalf("expected error")
+			}
+
+			if !tt.HasError && err != nil {
+				t.Fatalf("unexpected error")
+			}
+		})
+	}
+}

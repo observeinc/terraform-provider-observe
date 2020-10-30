@@ -1,7 +1,9 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -21,6 +23,22 @@ func validateMapValues(fn schema.SchemaValidateDiagFunc) schema.SchemaValidateDi
 		}
 		return diags
 	}
+}
+
+// Verify we were provided a valid URL path, without query parameters or bogus input
+func validatePath(i interface{}, path cty.Path) (diags diag.Diagnostics) {
+	v := i.(string)
+	u, err := url.Parse(v)
+	if err != nil {
+		return diag.Errorf("failed to parse as URL: %s", err)
+	}
+
+	if u.Path != v {
+		// query parameters would be overwritten by tags
+		return diag.Errorf("path must not contain query parameters or other directives")
+	}
+
+	return nil
 }
 
 // Verify OID matches type
@@ -88,6 +106,20 @@ func validateTimeDuration(i interface{}, path cty.Path) diag.Diagnostics {
 func validateFlags(i interface{}, path cty.Path) diag.Diagnostics {
 	if _, err := convertFlags(i.(string)); err != nil {
 		return diag.FromErr(err)
+	}
+	return nil
+}
+
+func validateStringIsJSON(i interface{}, path cty.Path) diag.Diagnostics {
+	v, ok := i.(string)
+	if !ok {
+		return diag.Errorf("expected type of %s to be string", i)
+	}
+
+	var j interface{}
+	err := json.Unmarshal([]byte(v), &j)
+	if err != nil {
+		return diag.Errorf("%q contains an invalid JSON: %s", v, err)
 	}
 	return nil
 }
