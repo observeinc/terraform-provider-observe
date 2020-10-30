@@ -39,10 +39,10 @@ type Client struct {
 
 // login to retrieve a valid token, only need to do this once
 func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
-	if isAuthed(ctx) && c.Token == nil && c.UserEmail != nil {
+	if requiresAuth(ctx) && c.Token == nil && c.UserEmail != nil {
 		c.login.Do(func() {
 			ctx = setSensitive(ctx, true)
-			ctx = setAuthed(ctx, false)
+			ctx = requireAuth(ctx, false)
 
 			token, err := c.Customer.Login(ctx, *c.UserEmail, *c.UserPassword)
 			if err != nil {
