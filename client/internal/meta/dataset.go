@@ -23,16 +23,18 @@ var (
 		}
 		transform {
 			current {
-				outputStage
-				stages {
-					stageID
-					pipeline
-					input {
-						inputName
-						inputRole
-						datasetId
-						datasetPath
+				query {
+					outputStage
+					stages {
 						stageID
+						pipeline
+						input {
+							inputName
+							inputRole
+							datasetId
+							datasetPath
+							stageID
+						}
 					}
 				}
 			}
@@ -41,10 +43,10 @@ var (
 )
 
 // SaveDataset creates and updates datasets
-func (c *Client) SaveDataset(ctx context.Context, workspaceID string, d *DatasetInput, t *TransformInput) (*Dataset, error) {
+func (c *Client) SaveDataset(ctx context.Context, workspaceID string, d *DatasetInput, q *MultiStageQueryInput) (*Dataset, error) {
 	result, err := c.Run(ctx, backendDatasetFragment+`
-	mutation saveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $transform: TransformInput!, $dep: DependencyHandlingInput) {
-		saveDataset(workspaceId:$workspaceId, dataset:$dataset, transform:$transform, dependencyHandling:$dep) {
+	mutation saveDataset($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
+		saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
 			dataset {
 				...datasetFields
 			}
@@ -52,7 +54,7 @@ func (c *Client) SaveDataset(ctx context.Context, workspaceID string, d *Dataset
 	}`, map[string]interface{}{
 		"workspaceId": workspaceID,
 		"dataset":     d,
-		"transform":   t,
+		"query":       q,
 		"dep":         &DependencyHandlingInput{SaveMode: SaveModeUpdateDataset},
 	})
 

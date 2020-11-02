@@ -1,5 +1,6 @@
 {
     "name": "test",
+    "description": null,
     "icon_url": null,
     "freshness": null,
     "inputs": {

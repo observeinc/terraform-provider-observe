@@ -113,8 +113,8 @@ func TestDatasetConfigToGQL(t *testing.T) {
 		tt := testcase
 
 		type tuple struct {
-			D *meta.DatasetInput   `json:"datasetInput"`
-			T *meta.TransformInput `json:"transformInput"`
+			D *meta.DatasetInput         `json:"datasetInput"`
+			T *meta.MultiStageQueryInput `json:"queryInput"`
 		}
 
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {

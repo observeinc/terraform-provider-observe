@@ -8,6 +8,7 @@
     "typedef": {
         "definition": null
     },
+    "description": null,
     "iconUrl": null,
     "pathCost": null,
     "transform": {
@@ -15,40 +16,43 @@
         "id": "0",
         "current": {
             "transform": null,
-            "outputStage": "stage-bb4ss0h0",
-            "stages": [
-                {
-                    "stageID": "stage-tkvnc4t7",
-                    "input": [
-                        {
-                            "inputName": "IoT Raw Events",
-                            "inputRole": "Data",
-                            "datasetId": "41021424",
-                            "datasetPath": null,
-                            "stageId": ""
-                        },
-                        {
-                            "inputName": "stage-bb4ss0h0",
-                            "inputRole": "Reference",
-                            "datasetPath": null,
-                            "stageId": "stage-bb4ss0h0"
-                        }
-                    ],
-                    "pipeline": "filter (not isnull(fields.roomInfo))\ncolmake name:string(fields.roomInfo.name), roomId:string(fields.roomInfo.roomId)\naddfk \"RoomId\", roomId:@stage-bb4ss0h0.roomId"
-                },
-                {
-                    "stageID": "stage-bb4ss0h0",
-                    "input": [
-                        {
-                            "inputName": "stage-tkvnc4t7",
-                            "inputRole": "Data",
-                            "datasetPath": null,
-                            "stageId": "stage-tkvnc4t7"
-                        }
-                    ],
-                    "pipeline": "makeresource name:name, primarykey(roomId)\ncolmake origName:name\ncolmake name:case(not startswith(roomId, \"e8\"), name)"
-                }
-            ]
+            "query": {
+                "outputStage": "stage-bb4ss0h0",
+                "stages": [
+                    {
+                        "stageID": "stage-tkvnc4t7",
+                        "input": [
+                            {
+                                "inputName": "IoT Raw Events",
+                                "inputRole": "Data",
+                                "datasetId": "41021424",
+                                "datasetPath": null,
+                                "stageId": ""
+                            },
+                            {
+                                "inputName": "stage-bb4ss0h0",
+                                "inputRole": "Reference",
+                                "datasetPath": null,
+                                "stageId": "stage-bb4ss0h0"
+                            }
+                        ],
+                        "pipeline": "filter (not isnull(fields.roomInfo))\ncolmake name:string(fields.roomInfo.name), roomId:string(fields.roomInfo.roomId)\naddfk \"RoomId\", roomId:@stage-bb4ss0h0.roomId"
+                    },
+                    {
+                        "stageID": "stage-bb4ss0h0",
+                        "input": [
+                            {
+                                "inputName": "stage-tkvnc4t7",
+                                "inputRole": "Data",
+                                "datasetPath": null,
+                                "stageId": "stage-tkvnc4t7"
+                            }
+                        ],
+                        "pipeline": "makeresource name:name, primarykey(roomId)\ncolmake origName:name\ncolmake name:case(not startswith(roomId, \"e8\"), name)"
+                    }
+                ]
+            }
         }
-    }
+    },
+    "foreignKeys": null
 }

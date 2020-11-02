@@ -1,5 +1,6 @@
 {
     "name": "FK1 (no label)",
+    "description": null,
     "icon_url": null,
     "freshness": 120000000000,
     "inputs": {

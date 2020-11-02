@@ -24,10 +24,9 @@ type DeferredForeignKeyInput struct {
 	Label         *string                       `json:"label,omitempty"`
 }
 
-type TransformInput struct {
-	QueryLanguage string             `json:"queryLanguage"`
-	OutputStage   string             `json:"outputStage"`
-	Stages        []*StageQueryInput `json:"stages"`
+type MultiStageQueryInput struct {
+	OutputStage string             `json:"outputStage"`
+	Stages      []*StageQueryInput `json:"stages"`
 }
 
 type StageQueryInput struct {

@@ -46,7 +46,11 @@ type Transform struct {
 }
 
 type TransformVersion struct {
-	Transform   *Transform    `json:"transform"`
+	Transform *Transform       `json:"transform"`
+	Query     *MultiStageQuery `json:"query"`
+}
+
+type MultiStageQuery struct {
 	OutputStage string        `json:"outputStage"`
 	Stages      []*StageQuery `json:"stages"`
 }

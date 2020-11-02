@@ -111,7 +111,7 @@ func newDataset(gqlDataset *meta.Dataset) (*Dataset, error) {
 	// first reconstruct all inputs
 	stageIDs := make(map[string]string)
 	d.Config.Inputs = make(map[string]*Input)
-	for _, stageQuery := range gqlDataset.Transform.Current.Stages {
+	for _, stageQuery := range gqlDataset.Transform.Current.Query.Stages {
 		for _, i := range stageQuery.Input {
 			if i.DatasetID != nil {
 				datasetID := i.DatasetID.String()
@@ -123,7 +123,7 @@ func newDataset(gqlDataset *meta.Dataset) (*Dataset, error) {
 		}
 	}
 
-	for i, gqlStage := range gqlDataset.Transform.Current.Stages {
+	for i, gqlStage := range gqlDataset.Transform.Current.Query.Stages {
 		stage := &Stage{
 			Pipeline: gqlStage.Pipeline,
 		}
@@ -188,8 +188,8 @@ func (c *DatasetConfig) toGQLDatasetInput() (*meta.DatasetInput, error) {
 	return datasetInput, nil
 }
 
-func (c *DatasetConfig) toGQLTransformInput() (*meta.TransformInput, error) {
-	var transformInput meta.TransformInput
+func (c *DatasetConfig) toGQLMultiStageQueryInput() (*meta.MultiStageQueryInput, error) {
+	var transformInput meta.MultiStageQueryInput
 
 	// validate and convert all inputs
 	var sortedNames []string
@@ -282,13 +282,13 @@ func (c *DatasetConfig) toGQLTransformInput() (*meta.TransformInput, error) {
 	return &transformInput, nil
 }
 
-func (c *DatasetConfig) toGQL() (*meta.DatasetInput, *meta.TransformInput, error) {
+func (c *DatasetConfig) toGQL() (*meta.DatasetInput, *meta.MultiStageQueryInput, error) {
 	datasetInput, err := c.toGQLDatasetInput()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	transformInput, err := c.toGQLTransformInput()
+	transformInput, err := c.toGQLMultiStageQueryInput()
 	if err != nil {
 		return nil, nil, err
 	}

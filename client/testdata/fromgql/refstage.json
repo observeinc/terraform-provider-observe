@@ -8,6 +8,7 @@
     "typedef": {
         "definition": null
     },
+    "description": null,
     "iconUrl": null,
     "pathCost": 0,
     "transform": {
@@ -15,34 +16,37 @@
         "id": "0",
         "current": {
             "transform": null,
-            "outputStage": "stage-98916e3d",
-            "stages": [
-                {
-                    "stageID": "stage-f3fb2657",
-                    "input": [
-                        {
-                            "inputName": "default",
-                            "inputRole": null,
-                            "datasetId": "4100000",
-                            "datasetPath": null,
-                            "stageId": ""
-                        }
-                    ],
-                    "pipeline": "filter true\n"
-                },
-                {
-                    "stageID": "stage-98916e3d",
-                    "input": [
-                        {
-                            "inputName": "stage-f3fb2657",
-                            "inputRole": null,
-                            "datasetPath": null,
-                            "stageId": "stage-f3fb2657"
-                        }
-                    ],
-                    "pipeline": "filter true\n"
-                }
-            ]
+            "query": {
+                "outputStage": "stage-98916e3d",
+                "stages": [
+                    {
+                        "stageID": "stage-f3fb2657",
+                        "input": [
+                            {
+                                "inputName": "default",
+                                "inputRole": null,
+                                "datasetId": "4100000",
+                                "datasetPath": null,
+                                "stageId": ""
+                            }
+                        ],
+                        "pipeline": "filter true\n"
+                    },
+                    {
+                        "stageID": "stage-98916e3d",
+                        "input": [
+                            {
+                                "inputName": "stage-f3fb2657",
+                                "inputRole": null,
+                                "datasetPath": null,
+                                "stageId": "stage-f3fb2657"
+                            }
+                        ],
+                        "pipeline": "filter true\n"
+                    }
+                ]
+            }
         }
-    }
+    },
+    "foreignKeys": null
 }

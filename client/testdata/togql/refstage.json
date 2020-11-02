@@ -4,11 +4,11 @@
         "deleted": false,
         "latencyDesired": null,
         "freshnessDesired": "6000000000",
+        "description": null,
         "iconUrl": null,
         "pathCost": "0"
     },
-    "transformInput": {
-        "queryLanguage": "",
+    "queryInput": {
         "outputStage": "stage-1",
         "stages": [
             {
