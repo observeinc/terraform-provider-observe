@@ -3,7 +3,7 @@ GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
 VERSION=$(shell git describe --tags --always)
-TESTARGS?=-parallel 2
+TESTARGS?=
 
 default: build
 
@@ -52,7 +52,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC_TERRAFORM_VERSION=0.12.28 TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+	TF_ACC_TERRAFORM_CACHE_DIR=/tmp TF_ACC_TERRAFORM_VERSION=0.13.5 TF_LOG=TRACE TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 vet:
 	@echo "go vet ."
