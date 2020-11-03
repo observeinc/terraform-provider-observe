@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"time"
+
+	"github.com/mitchellh/hashstructure"
 )
 
 var (
@@ -16,6 +18,12 @@ var (
 	ErrMissingRetryDuration = errors.New("retry duration must be larger than 0")
 )
 
+// Config contains all configuration attributes for our client.
+//
+// Clients sharing a same config may end up using the same underlying HTTP
+// client in order to reuse connections more efficiently. We use Hash() to
+// cache clients. Do not introduce private fields to this struct without
+// adjusting how the hash function is computed.
 type Config struct {
 	CustomerID string `json:"customer_id"`
 	Domain     string `json:"domain"`
@@ -35,6 +43,14 @@ type Config struct {
 
 	HTTPClientTimeout time.Duration `json:"http_timeout"`
 	Flags             map[string]bool
+}
+
+func (c *Config) Hash() uint64 {
+	v, err := hashstructure.Hash(c, nil)
+	if err != nil {
+		panic(fmt.Sprintf("failed to hash configuration: %s", err))
+	}
+	return v
 }
 
 func (c *Config) Validate() error {

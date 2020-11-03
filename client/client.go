@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/http/httputil"
 	"net/url"
 	"sync"
@@ -86,6 +87,19 @@ func isTemporary(err error) bool {
 	return false
 }
 
+// setTrace adds logging info to every outbound request
+func (c *Client) setTrace(req *http.Request) *http.Request {
+	trace := &httptrace.ClientTrace{
+		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
+			log.Printf("[TRACE] DNS Info: %+v\n", dnsInfo)
+		},
+		GotConn: func(connInfo httptrace.GotConnInfo) {
+			log.Printf("[TRACE] Got Conn: %+v\n", connInfo)
+		},
+	}
+	return req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+}
+
 // withMiddelware adds logging, auth handling to all outgoing requests
 func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 	return RoundTripperFunc(func(req *http.Request) (resp *http.Response, err error) {
@@ -111,7 +125,7 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.Token))
 		}
 
-		resp, err = wrapped.RoundTrip(req)
+		resp, err = wrapped.RoundTrip(c.setTrace(req))
 		waitBeforeRetry := c.RetryWait
 		for retry := 0; err != nil && isTemporary(err) && retry < c.RetryCount; retry++ {
 			log.Printf("[WARN] request failed with temporary error: %s\n", err)

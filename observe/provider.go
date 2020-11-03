@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -9,6 +10,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	flagCacheClient = "cache-client"
 )
 
 // Provider returns observe terraform provider
@@ -83,7 +88,7 @@ func Provider() *schema.Provider {
 			},
 			"http_client_timeout": {
 				Type:             schema.TypeString,
-				Default:          "60s",
+				Default:          "5m",
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
@@ -112,11 +117,18 @@ func Provider() *schema.Provider {
 	// userAgent. So we create provider, grab userAgent, and finally attach the
 	// ConfigureContextFunc.
 	userAgent := provider.UserAgent("terraform-provider-observe", version.ProviderVersion)
+
 	provider.ConfigureContextFunc = getConfigureContextFunc(userAgent)
 	return provider
 }
 
 func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
+
+	// configure call is often called multiple times for same provider config,
+	// causing poor reuse of underlying HTTP client. If provider config doesn't
+	// change, we can reuse client.
+	var cachedClients sync.Map
+
 	return func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
 		config := &observe.Config{
 			CustomerID: data.Get("customer").(string),
@@ -164,6 +176,26 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 				Severity: diag.Warning,
 				Summary:  "Insecure API session",
 			})
+		}
+
+		// by omission, cache client
+		useCache := true
+		if v, ok := config.Flags[flagCacheClient]; ok {
+			useCache = v
+		}
+
+		if useCache {
+			id := config.Hash()
+			if client, ok := cachedClients.Load(id); ok {
+				return client.(*observe.Client), diags
+			}
+
+			// cache whatever client we end up returning
+			defer func() {
+				if !diags.HasError() {
+					cachedClients.Store(id, client)
+				}
+			}()
 		}
 
 		client, err := observe.New(config)
