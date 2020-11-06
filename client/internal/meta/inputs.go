@@ -83,3 +83,33 @@ type BookmarkInput struct {
 	TargetID *ObjectIdScalar `json:"targetId,omitempty"`
 	GroupID  *ObjectIdScalar `json:"groupId,omitempty"`
 }
+
+type ChannelActionInput struct {
+	Name        *string `json:"name"`
+	IconURL     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+	//RateLimit   *string `json:"rateLimit"`
+
+	Email   *EmailActionInput   `json:"email"`
+	Webhook *WebhookActionInput `json:"webhook"`
+}
+
+type EmailActionInput struct {
+	//TargetUsers     []UserIdScalar `json:"targetUsers"`
+	TargetAddresses []string `json:"targetAddresses"`
+	SubjectTemplate *string  `json:"subjectTemplate"`
+	BodyTemplate    *string  `json:"bodyTemplate"`
+	IsHTML          *bool    `json:"isHtml"`
+}
+
+type WebhookActionInput struct {
+	URLTemplate  *string          `json:"urlTemplate"`
+	Method       *string          `json:"method"`
+	Headers      *[]WebhookHeader `json:"headers"`
+	BodyTemplate *string          `json:"bodyTemplate"`
+}
+
+type WebhookHeader struct {
+	Header        string `json:"header"`
+	ValueTemplate string `json:"valueTemplate"`
+}

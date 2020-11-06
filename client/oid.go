@@ -18,11 +18,12 @@ const (
 	TypeWorkspace          = "workspace"
 	TypeBookmarkGroup      = "bookmarkgroup"
 	TypeBookmark           = "bookmark"
+	TypeChannelAction      = "channelaction"
 )
 
 func (t Type) IsValid() bool {
 	switch t {
-	case TypeDataset, TypeWorkspace, TypeBookmarkGroup:
+	case TypeDataset, TypeWorkspace, TypeBookmarkGroup, TypeChannelAction:
 		return true
 	default:
 		return false

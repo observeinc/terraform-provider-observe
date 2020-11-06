@@ -110,6 +110,7 @@ func Provider() *schema.Provider {
 			"observe_bookmark_group": resourceBookmarkGroup(),
 			"observe_bookmark":       resourceBookmark(),
 			"observe_http_post":      resourceHTTPPost(),
+			"observe_channel_action": resourceChannelAction(),
 		},
 	}
 

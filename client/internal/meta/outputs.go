@@ -170,3 +170,34 @@ type Bookmark struct {
 	TargetIDKind string         `json:"targetIdKind"`
 	GroupID      ObjectIdScalar `json:"groupId"`
 }
+
+type ChannelAction struct {
+	ID          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	IconURL     *string        `json:"iconUrl"`
+	Description *string        `json:"description"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	//CreatedBy   UserIdScalar   `json:"createdBy"`
+	//CreatedDate TimeScalar     `json:"createdDate"`
+	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
+	//UpdatedDate TimeScalar     `json:"updatedDate"`
+	//RateLimit   *time.Duration `json:"rateLimit"`
+	LastTimeRun *time.Time `json:"lastTimeRun"`
+
+	Webhook *WebhookChannelAction `json:"webhook"`
+	Email   *EmailChannelAction   `json:"email"`
+}
+
+type WebhookChannelAction struct {
+	URLTemplate  *string          `json:"urlTemplate"`
+	Method       *string          `json:"method"`
+	BodyTemplate *string          `json:"bodyTemplate"`
+	Headers      []*WebhookHeader `json:"headers"`
+}
+
+type EmailChannelAction struct {
+	TargetAddresses []string `json:"targetAddresses"`
+	SubjectTemplate *string  `json:"subjectTemplate"`
+	BodyTemplate    *string  `json:"bodyTemplate"`
+	IsHTML          bool     `json:"isHtml"`
+}

@@ -20,7 +20,7 @@ func stringToObjectIdScalarHookFunc(f reflect.Type, t reflect.Type, data interfa
 	return strconv.ParseInt(dataVal.String(), 10, 64)
 }
 
-func stringToTimeScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+func stringToDurationScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 	if f.Kind() != reflect.String {
 		return data, nil
 	}
@@ -29,6 +29,16 @@ func stringToTimeScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}
 	}
 	// Convert it by parsing
 	return time.ParseDuration(data.(string) + "ns")
+}
+
+func stringToTimeScalarHookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
+	}
+	if t != reflect.TypeOf(time.Now()) {
+		return data, nil
+	}
+	return time.Parse(time.RFC3339, data.(string))
 }
 
 func stringToInt64HookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
@@ -52,6 +62,7 @@ func decode(input interface{}, output interface{}, strict bool) error {
 		Result:      output,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			stringToObjectIdScalarHookFunc,
+			stringToDurationScalarHookFunc,
 			stringToTimeScalarHookFunc,
 			stringToInt64HookFunc,
 		),
@@ -64,6 +75,10 @@ func decode(input interface{}, output interface{}, strict bool) error {
 
 func decodeStrict(input interface{}, output interface{}) error {
 	return decode(input, output, true)
+}
+
+func decodeLoose(input interface{}, output interface{}) error {
+	return decode(input, output, false)
 }
 
 func getNested(i interface{}, keys ...string) interface{} {

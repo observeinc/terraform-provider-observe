@@ -309,3 +309,45 @@ func (c *Client) DeleteBookmark(ctx context.Context, id string) error {
 func (c *Client) Observe(ctx context.Context, path string, body io.Reader, tags map[string]string, options ...func(*http.Request)) error {
 	return c.Collect.Observe(ctx, path, body, tags, options...)
 }
+
+// CreateChannelAction creates a channel action
+func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, config *ChannelActionConfig) (*ChannelAction, error) {
+	channelActionInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateChannelAction(ctx, workspaceId, channelActionInput)
+	if err != nil {
+		return nil, err
+	}
+	return newChannelAction(result)
+}
+
+// UpdateChannelAction updates a bookmark
+func (c *Client) UpdateChannelAction(ctx context.Context, id string, config *ChannelActionConfig) (*ChannelAction, error) {
+	channelActionInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateChannelAction(ctx, id, channelActionInput)
+	if err != nil {
+		return nil, err
+	}
+	return newChannelAction(result)
+}
+
+// DeleteChannelAction
+func (c *Client) DeleteChannelAction(ctx context.Context, id string) error {
+	return c.Meta.DeleteChannelAction(ctx, id)
+}
+
+// GetChannelAction returns channelAction by ID
+func (c *Client) GetChannelAction(ctx context.Context, id string) (*ChannelAction, error) {
+	result, err := c.Meta.GetChannelAction(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newChannelAction(result)
+}
