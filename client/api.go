@@ -351,3 +351,45 @@ func (c *Client) GetChannelAction(ctx context.Context, id string) (*ChannelActio
 	}
 	return newChannelAction(result)
 }
+
+// CreateChannel creates a channel
+func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *ChannelConfig) (*Channel, error) {
+	channelInput, actions, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateChannel(ctx, workspaceId, channelInput, actions)
+	if err != nil {
+		return nil, err
+	}
+	return newChannel(result)
+}
+
+// UpdateChannel updates a bookmark
+func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelConfig) (*Channel, error) {
+	channelInput, actions, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateChannel(ctx, id, channelInput, actions)
+	if err != nil {
+		return nil, err
+	}
+	return newChannel(result)
+}
+
+// DeleteChannel
+func (c *Client) DeleteChannel(ctx context.Context, id string) error {
+	return c.Meta.DeleteChannel(ctx, id)
+}
+
+// GetChannel returns channel by ID
+func (c *Client) GetChannel(ctx context.Context, id string) (*Channel, error) {
+	result, err := c.Meta.GetChannel(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newChannel(result)
+}

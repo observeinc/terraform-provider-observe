@@ -113,3 +113,9 @@ type WebhookHeader struct {
 	Header        string `json:"header"`
 	ValueTemplate string `json:"valueTemplate"`
 }
+
+type ChannelInput struct {
+	Name        string  `json:"name"`
+	IconURL     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+}

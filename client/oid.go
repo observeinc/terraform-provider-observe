@@ -19,6 +19,7 @@ const (
 	TypeBookmarkGroup      = "bookmarkgroup"
 	TypeBookmark           = "bookmark"
 	TypeChannelAction      = "channelaction"
+	TypeChannel            = "channel"
 )
 
 func (t Type) IsValid() bool {

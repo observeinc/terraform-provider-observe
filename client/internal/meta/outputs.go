@@ -201,3 +201,16 @@ type EmailChannelAction struct {
 	BodyTemplate    *string  `json:"bodyTemplate"`
 	IsHTML          bool     `json:"isHtml"`
 }
+
+type Channel struct {
+	ID          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	IconURL     *string        `json:"iconUrl"`
+	Description *string        `json:"description"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	// in theory, we could use *ChannelAction, but unmarshalling is a pain
+	// because of subtypes
+	Actions []struct {
+		ID ObjectIdScalar `json:"id"`
+	} `json:"actions"`
+}
