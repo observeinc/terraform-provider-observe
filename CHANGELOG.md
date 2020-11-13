@@ -1,3 +1,16 @@
+## 0.4.1 (2020-11-13)
+
+* provider: add observe_channel resource
+* provider: add observe_channel_action resource type
+* provider: add observe_http_post resource
+* internal: OB-3402: migrate to MultiStageQueryInput
+* perf: use cached client
+* internal: fix requiresAuth context accessor name
+* testing: cache terraform binary between test runs
+* internal: implement collect API, streamline client configs
+* internal: propagate context.
+* internal: split out API by type.
+
 ## 0.4.0 (2020-09-04)
 
 * provider: add description to observe_dataset
