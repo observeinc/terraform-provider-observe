@@ -93,10 +93,19 @@ func resourceDataset() *schema.Resource {
 	}
 }
 
-func newDatasetConfig(data *schema.ResourceData) (config *observe.DatasetConfig, diags diag.Diagnostics) {
-	config = &observe.DatasetConfig{
-		Name:   data.Get("name").(string),
-		Inputs: make(map[string]*observe.Input),
+func newDatasetConfig(data *schema.ResourceData) (*observe.DatasetConfig, diag.Diagnostics) {
+	query, diags := newQuery(data)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if query == nil {
+		return nil, diag.Errorf("no query provided")
+	}
+
+	config := &observe.DatasetConfig{
+		Name:  data.Get("name").(string),
+		Query: query,
 	}
 
 	if v, ok := data.GetOk("freshness"); ok {
@@ -118,32 +127,6 @@ func newDatasetConfig(data *schema.ResourceData) (config *observe.DatasetConfig,
 
 	if v, ok := data.GetOk("path_cost"); ok {
 		config.PathCost = int64(v.(int))
-	}
-
-	for k, v := range data.Get("inputs").(map[string]interface{}) {
-		oid, _ := observe.NewOID(v.(string))
-		config.Inputs[k] = &observe.Input{
-			Dataset: &oid.ID,
-		}
-	}
-
-	for i := range data.Get("stage").([]interface{}) {
-		var stage observe.Stage
-
-		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.alias", i)); ok {
-			s := v.(string)
-			stage.Alias = &s
-		}
-
-		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.input", i)); ok {
-			s := v.(string)
-			stage.Input = &s
-		}
-
-		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.pipeline", i)); ok {
-			stage.Pipeline = v.(string)
-		}
-		config.Stages = append(config.Stages, &stage)
 	}
 
 	if err := config.Validate(); err != nil {
@@ -191,11 +174,7 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 		return diags
 	}
 
-	if err := data.Set("inputs", flattenObserveInputs(data, d.Config.Inputs)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("stage", flattenObserveStages(data, d.Config.Stages)); err != nil {
+	if err := flattenAndSetQuery(data, d.Config.Query); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -206,27 +185,13 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 	return diags
 }
 
-func flattenObserveStages(data *schema.ResourceData, stages []*observe.Stage) (result []interface{}) {
-	for i, stage := range stages {
-		s := map[string]interface{}{
-			"pipeline": stage.Pipeline,
-		}
-		if stage.Alias != nil {
-			s["alias"] = stage.Alias
-		}
-		if stage.Input != nil {
-			s["input"] = stage.Input
-		} else if i == 0 {
-			s["input"] = data.Get("stage.0.input")
-		}
-		result = append(result, s)
+func flattenAndSetQuery(data *schema.ResourceData, query *observe.Query) error {
+	if query == nil {
+		return nil
 	}
-	return result
-}
 
-func flattenObserveInputs(data *schema.ResourceData, inputs map[string]*observe.Input) map[string]interface{} {
-	result := make(map[string]interface{}, len(inputs))
-	for name, input := range inputs {
+	inputs := make(map[string]interface{}, len(query.Inputs))
+	for name, input := range query.Inputs {
 		oid := observe.OID{
 			Type: observe.TypeDataset,
 			ID:   *input.Dataset,
@@ -239,9 +204,34 @@ func flattenObserveInputs(data *schema.ResourceData, inputs map[string]*observe.
 				oid.Version = prv.Version
 			}
 		}
-		result[name] = oid.String()
+		inputs[name] = oid.String()
 	}
-	return result
+
+	if err := data.Set("inputs", inputs); err != nil {
+		return err
+	}
+
+	stages := make([]interface{}, len(query.Stages))
+	for i, stage := range query.Stages {
+		s := map[string]interface{}{
+			"pipeline": stage.Pipeline,
+		}
+		if stage.Alias != nil {
+			s["alias"] = stage.Alias
+		}
+		if stage.Input != nil {
+			s["input"] = stage.Input
+		} else if i == 0 {
+			s["input"] = data.Get("stage.0.input")
+		}
+		stages[i] = s
+	}
+
+	if err := data.Set("stage", stages); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
