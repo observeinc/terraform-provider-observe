@@ -1,5 +1,9 @@
 package meta
 
+import (
+	"time"
+)
+
 type DatasetInput struct {
 	ID               *ObjectIdScalar `json:"id,omitempty"`
 	Label            string          `json:"label"`
@@ -119,3 +123,32 @@ type ChannelInput struct {
 	IconURL     *string `json:"iconUrl"`
 	Description *string `json:"description"`
 }
+
+type StageInput struct {
+	Input        []InputDefinitionInput  `json:"inputs"`
+	StageID      string                  `json:"stageId"`
+	Pipeline     string                  `json:"pipeline"`
+	Presentation *StagePresentationInput `json:"presentation"`
+}
+
+type StagePresentationInput struct {
+	Limit       *int64        `json:"limit,string"`
+	ResultKinds []*ResultKind `json:"resultKinds"`
+}
+
+type QueryParams struct {
+	StartTime           *time.Time `json:"startTime"`
+	EndTime             *time.Time `json:"endTime"`
+	ProgressiveInterval int        `json:"progressiveInterval,omitempty"`
+	ProgressiveSliceIdx string     `json:"progressiveSliceIdx,omitempty"`
+}
+
+type ResultKind string
+
+const (
+	ResultKindResultKindSchema   ResultKind = "ResultKindSchema"
+	ResultKindResultKindData     ResultKind = "ResultKindData"
+	ResultKindResultKindStats    ResultKind = "ResultKindStats"
+	ResultKindResultKindSuppress ResultKind = "ResultKindSuppress"
+	ResultKindResultKindProgress ResultKind = "ResultKindProgress"
+)

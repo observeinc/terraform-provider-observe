@@ -1,9 +1,12 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
@@ -176,4 +179,130 @@ func (q *Query) toGQL() (*meta.MultiStageQueryInput, error) {
 	}
 
 	return &gqlQuery, nil
+}
+
+type QueryConfig struct {
+	*Query
+	Limit int64     `json:"limit"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
+func (q *QueryConfig) toGQL() ([]*meta.StageInput, *meta.QueryParams, error) {
+	multiStageQueryInput, err := q.Query.toGQL()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// This is insane. StageQueryInput is a subset of StageInput, but differs
+	// in the key of the input field: one has "input", the other "inputs".
+	// Convert here rather than replicating all the conversion logic.
+	stages := make([]*meta.StageInput, len(multiStageQueryInput.Stages))
+
+	var (
+		resultKindData     = meta.ResultKindResultKindData
+		resultKindSchema   = meta.ResultKindResultKindSchema
+		resultKindSuppress = meta.ResultKindResultKindSuppress
+	)
+
+	for i, s := range multiStageQueryInput.Stages {
+		stages[i] = &meta.StageInput{
+			Input:    s.Input,
+			StageID:  s.StageID,
+			Pipeline: s.Pipeline,
+			Presentation: &meta.StagePresentationInput{
+				ResultKinds: []*meta.ResultKind{&resultKindSuppress},
+			},
+		}
+	}
+
+	outputStage := stages[len(stages)-1]
+	outputStage.Presentation.ResultKinds = []*meta.ResultKind{&resultKindData, &resultKindSchema}
+	outputStage.Presentation.Limit = &q.Limit
+
+	return stages, &meta.QueryParams{
+		StartTime: &q.Start,
+		EndTime:   &q.End,
+	}, nil
+}
+
+func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
+	if len(taskResults) != 1 {
+		return nil, fmt.Errorf("unexpected number of taskResults")
+	}
+
+	result := taskResults[0]
+
+	if result.Error != nil {
+		return nil, fmt.Errorf(*result.Error)
+	}
+
+	var (
+		numRows = result.ResultCursor.TotalRowCount
+		numCols = int64(len(result.ResultCursor.Columns))
+	)
+
+	q := &QueryResult{
+		ID:        result.QueryID,
+		StartTime: *result.StartTime,
+		EndTime:   *result.EndTime,
+		RowCount:  numRows,
+		Fields:    result.ResultSchema.TypedefDefinition.Fields,
+	}
+
+	var colNames []string
+	var colTypes []map[string]interface{}
+
+	for _, f := range result.ResultSchema.TypedefDefinition.Fields {
+		colNames = append(colNames, f["name"].(string))
+		colTypes = append(colTypes, f["type"].(map[string]interface{}))
+	}
+
+	// convert from columnar format to list of JSONs
+	// This allows output to then be parsed by command line tools such as jq
+	rows := make([]map[string]interface{}, numRows)
+	for i := int64(0); i < numRows; i++ {
+		rows[i] = make(map[string]interface{}, numCols)
+
+		for j := int64(0); j < numCols; j++ {
+			var value interface{}
+			var err error
+
+			if cell := result.ResultCursor.Columns[j][i]; cell != nil {
+				switch colTypes[j]["rep"].(string) {
+				case "any", "object":
+					value = json.RawMessage([]byte(*cell))
+				case "duration", "int64":
+					value, err = strconv.ParseInt(*cell, 10, 64)
+				case "float64":
+					value, err = strconv.ParseFloat(*cell, 64)
+				case "timestamp":
+					value, err = strconv.ParseInt(*cell, 10, 64)
+					if err == nil {
+						value = time.Unix(0, value.(int64)).UTC()
+					}
+				default:
+					value = cell
+				}
+
+				if err != nil {
+					return nil, fmt.Errorf("failed to cast value: %w", err)
+				}
+			}
+			rows[i][colNames[j]] = value
+		}
+	}
+
+	data, err := json.Marshal(rows)
+	q.JSON = data
+	return q, err
+}
+
+type QueryResult struct {
+	ID        string
+	StartTime time.Time
+	EndTime   time.Time
+	RowCount  int64
+	Fields    []map[string]interface{}
+	JSON      []byte
 }

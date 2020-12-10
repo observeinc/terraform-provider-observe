@@ -214,3 +214,34 @@ type Channel struct {
 		ID ObjectIdScalar `json:"id"`
 	} `json:"actions"`
 }
+
+type TaskResult struct {
+	QueryID string `json:"queryId"`
+	StageID string `json:"stageId"`
+	// The time range which this set of results cover.
+	StartTime *time.Time `json:"startTime"`
+	EndTime   *time.Time `json:"endTime"`
+	//ResultProgress   *TaskResultProgress
+	ResultCursor *SnowflakeCursor `json:"resultCursor"`
+	//PaginatedResults *metatypes.PaginatedResults
+	ResultKind   *ResultKind       `json:"resultKind"`
+	ResultSchema *TaskResultSchema `json:"resultSchema"`
+	//ParsedPipeline   *metatypes.ParsedPipeline
+	Error *string `json:"error"`
+	//EstimatedCost    []CostMetric
+}
+
+type TaskResultSchema struct {
+	TypedefDefinition struct {
+		Fields []map[string]interface{} `json:"fields"`
+	} `json:"typedefDefinition"`
+}
+
+type SnowflakeCursor struct {
+	QueryID       string                   `json:"queryId,omitempty"`
+	TotalRowCount int64                    `json:"totalRowCount,omitempty"`
+	ColumnDesc    []map[string]interface{} `json:"columnDesc,omitempty"`
+	Columns       [][]*string              `json:"columns,omitempty"`
+	Chunks        interface{}              `json:"chunks,omitempty"`
+	HttpHeaders   map[string]string        `json:"httpHeaders,omitempty"`
+}

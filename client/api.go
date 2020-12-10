@@ -393,3 +393,18 @@ func (c *Client) GetChannel(ctx context.Context, id string) (*Channel, error) {
 	}
 	return newChannel(result)
 }
+
+// Query for result
+func (c *Client) Query(ctx context.Context, config *QueryConfig) (result *QueryResult, err error) {
+	stages, params, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	gqlResult, err := c.Meta.DatasetQueryOutput(ctx, stages, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return newQueryResult(gqlResult)
+}

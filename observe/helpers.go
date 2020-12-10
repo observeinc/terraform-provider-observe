@@ -103,6 +103,19 @@ func validateTimeDuration(i interface{}, path cty.Path) diag.Diagnostics {
 	return nil
 }
 
+func validateTimestamp(i interface{}, path cty.Path) diag.Diagnostics {
+	s := i.(string)
+	if _, err := time.Parse(time.RFC3339, s); err != nil {
+		return diag.Diagnostics{diag.Diagnostic{
+			Severity:      diag.Error,
+			Summary:       "Invalid field",
+			Detail:        err.Error(),
+			AttributePath: path,
+		}}
+	}
+	return nil
+}
+
 func validateFlags(i interface{}, path cty.Path) diag.Diagnostics {
 	if _, err := convertFlags(i.(string)); err != nil {
 		return diag.FromErr(err)
