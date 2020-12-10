@@ -19,7 +19,7 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					data "observe_query" "%s" {
-				      start = timestamp()
+					  start = timestamp()
 
 					  inputs = { "observation" = data.observe_dataset.observation.oid }
 
@@ -27,7 +27,7 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 						pipeline = <<-EOF
 						  error
 						EOF
-				      }
+					  }
 					}
 				`, randomPrefix),
 				ExpectError: regexp.MustCompile("unknown verb"),
@@ -45,7 +45,7 @@ func TestAccObserveSourceQuery(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble + `
 					data "observe_query" "test" {
-				      start = timeadd(timestamp(), "-10m")
+					  start = timeadd(timestamp(), "-10m")
 
 					  inputs = { "observation" = data.observe_dataset.observation.oid }
 
@@ -53,12 +53,49 @@ func TestAccObserveSourceQuery(t *testing.T) {
 						pipeline = <<-EOF
 						  filter true
 						EOF
-				      }
+					  }
 				  }
 				`,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_query.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveSourceQueryPoll(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+					resource "observe_http_post" "test" {
+					  data   = jsonencode({ hello = "world" })
+					  tags = {
+						"tf_test_id" = "%[1]s"
+					  }
+					}
+
+					data "observe_query" "query" {
+					  start = timeadd(timestamp(), "-10m")
+
+					  inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					  stage {
+						pipeline = <<-EOF
+						  filter string(EXTRA.tf_test_id) = "%[1]s"
+						EOF
+					  }
+
+					  poll {}
+				  }
+				`,
+					randomPrefix,
 				),
 			},
 		},

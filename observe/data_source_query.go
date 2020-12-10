@@ -65,6 +65,27 @@ func dataSourceQuery() *schema.Resource {
 					},
 				},
 			},
+			"poll": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"interval": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "15s",
+							ValidateDiagFunc: validateTimeDuration,
+						},
+						"timeout": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "2m",
+							ValidateDiagFunc: validateTimeDuration,
+						},
+					},
+				},
+			},
 			"result": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -133,7 +154,8 @@ func newQueryConfig(data *schema.ResourceData) (config *observe.QueryConfig, dia
 
 func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client = meta.(*observe.Client)
+		client      = meta.(*observe.Client)
+		queryResult *observe.QueryResult
 	)
 
 	query, diags := newQueryConfig(data)
@@ -141,12 +163,33 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diags
 	}
 
-	if _, ok := data.GetOk("end"); !ok {
-		// reset end on every subsequent request
-		query.End = time.Now().Truncate(time.Second).UTC()
+	var poller Poller
+
+	// if no interval is set, poller will run exactly once
+	if v, ok := data.GetOk("poll.0.interval"); ok && v != nil {
+		d, _ := time.ParseDuration(v.(string))
+		poller.Interval = &d
 	}
 
-	queryResult, err := client.Query(ctx, query)
+	if v, ok := data.GetOk("poll.0.timeout"); ok && v != nil {
+		d, _ := time.ParseDuration(v.(string))
+		poller.Timeout = &d
+	}
+
+	err := poller.Run(ctx, func(ctx context.Context) error {
+		var err error
+
+		if _, ok := data.GetOk("end"); !ok {
+			// reset end time on every subsequent request
+			query.End = time.Now().Truncate(time.Second).UTC()
+		}
+
+		queryResult, err = client.Query(ctx, query)
+		return err
+	}, func() bool {
+		return queryResult != nil && queryResult.RowCount > 0
+	})
+
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
