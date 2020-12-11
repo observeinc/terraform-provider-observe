@@ -239,30 +239,31 @@ func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
 
 	var (
 		numRows = result.ResultCursor.TotalRowCount
-		numCols = int64(len(result.ResultCursor.Columns))
+		numCols = int64(len(result.ResultCursor.ColumnDesc))
 	)
 
 	q := &QueryResult{
 		ID:        result.QueryID,
 		StartTime: *result.StartTime,
 		EndTime:   *result.EndTime,
-		RowCount:  numRows,
 		Fields:    result.ResultSchema.TypedefDefinition.Fields,
+		Rows:      make([]map[string]interface{}, numRows),
+		typeMap:   make(map[string]string, numCols),
 	}
 
-	var colNames []string
-	var colTypes []map[string]interface{}
+	colNames := make([]string, numCols)
+	colTypes := make([]map[string]interface{}, numCols)
 
-	for _, f := range result.ResultSchema.TypedefDefinition.Fields {
-		colNames = append(colNames, f["name"].(string))
-		colTypes = append(colTypes, f["type"].(map[string]interface{}))
+	for i, f := range result.ResultSchema.TypedefDefinition.Fields {
+		colNames[i] = f["name"].(string)
+		colTypes[i] = f["type"].(map[string]interface{})
+		q.typeMap[colNames[i]] = colTypes[i]["rep"].(string)
 	}
 
 	// convert from columnar format to list of JSONs
 	// This allows output to then be parsed by command line tools such as jq
-	rows := make([]map[string]interface{}, numRows)
 	for i := int64(0); i < numRows; i++ {
-		rows[i] = make(map[string]interface{}, numCols)
+		q.Rows[i] = make(map[string]interface{}, numCols)
 
 		for j := int64(0); j < numCols; j++ {
 			var value interface{}
@@ -289,20 +290,25 @@ func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
 					return nil, fmt.Errorf("failed to cast value: %w", err)
 				}
 			}
-			rows[i][colNames[j]] = value
+			q.Rows[i][colNames[j]] = value
 		}
 	}
 
-	data, err := json.Marshal(rows)
-	q.JSON = data
-	return q, err
+	return q, nil
 }
 
 type QueryResult struct {
 	ID        string
 	StartTime time.Time
 	EndTime   time.Time
-	RowCount  int64
 	Fields    []map[string]interface{}
-	JSON      []byte
+	Rows      []map[string]interface{}
+
+	// column name to type rep mapping
+	typeMap map[string]string
+}
+
+func (r *QueryResult) ColTypeRep(colname string) (typerep string, ok bool) {
+	typerep, ok = r.typeMap[colname]
+	return
 }

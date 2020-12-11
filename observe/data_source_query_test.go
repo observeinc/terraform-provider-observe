@@ -2,6 +2,8 @@ package observe
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"testing"
 
@@ -97,6 +99,70 @@ func TestAccObserveSourceQueryPoll(t *testing.T) {
 				`,
 					randomPrefix,
 				),
+			},
+		},
+	})
+}
+
+func TestAccObserveSourceQueryAssert(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	golden_file, err := ioutil.TempFile("", "tf-assert")
+	if err != nil {
+		t.Fatalf("failed to create file: %s", err)
+	}
+	defer os.Remove(golden_file.Name()) // clean up
+
+	/* We will run a single plan which:
+	- posts an observation
+	- waits for the result
+	- compares the result against a golden file
+
+	We run this plan three times:
+	- in the first run, the golden file is empty, so we expect it to fail
+	- in a second run, we set the update flag to write to golden file
+	- in a third run, the result should match the golden file
+	*/
+	tf_plan := fmt.Sprintf(configPreamble+`
+		resource "observe_http_post" "test" {
+		  data   = jsonencode({ hello = "world" })
+		  tags = {
+			"tf_test_id" = "%[1]s"
+		  }
+		}
+
+		data "observe_query" "query" {
+		  start = timeadd(timestamp(), "-10m")
+
+		  inputs = { "observation" = data.observe_dataset.observation.oid }
+
+		  stage {
+			pipeline = <<-EOF
+			  filter string(EXTRA.tf_test_id) = "%[1]s"
+			EOF
+		  }
+
+		  poll {}
+
+		  assert {
+			update      = %%s		# Test will toggle this
+			golden_file = "%[2]s"
+		  }
+	  }`, randomPrefix, golden_file.Name())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(tf_plan, "false"),
+				ExpectError: regexp.MustCompile("query result does not match golden file"),
+			},
+			{
+				Config: fmt.Sprintf(tf_plan, "true"),
+			},
+			{
+				Config: fmt.Sprintf(tf_plan, "false"),
 			},
 		},
 	})

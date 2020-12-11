@@ -2,12 +2,18 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func dataSourceQuery() *schema.Resource {
@@ -82,6 +88,26 @@ func dataSourceQuery() *schema.Resource {
 							Optional:         true,
 							Default:          "2m",
 							ValidateDiagFunc: validateTimeDuration,
+						},
+					},
+				},
+			},
+			"assert": &schema.Schema{
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Optional:    true,
+				Description: "Validate expected query output",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"update": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"golden_file": {
+							Type:        schema.TypeString,
+							Description: "Filename containing expected query output.",
+							Required:    true,
 						},
 					},
 				},
@@ -187,7 +213,7 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 		queryResult, err = client.Query(ctx, query)
 		return err
 	}, func() bool {
-		return queryResult != nil && queryResult.RowCount > 0
+		return queryResult != nil && len(queryResult.Rows) > 0
 	})
 
 	if err != nil {
@@ -199,11 +225,68 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 	if diags = queryToResourceData(queryResult, data); diags.HasError() {
 		return
 	}
+
+	if v, ok := data.GetOk("assert.0.golden_file"); ok {
+		var (
+			filename = v.(string)
+			update   = data.Get("assert.0.update").(bool)
+		)
+
+		if update {
+			// we indent only when writing to golden file, since we want pretty diffs
+			data, err := json.MarshalIndent(queryResult.Rows, "", "  ")
+			if err != nil {
+				return diag.Errorf("failed to marshal rows: %s", err)
+			}
+
+			if err := ioutil.WriteFile(filename, data, os.FileMode(0644)); err != nil {
+				return diag.Errorf("failed to write to golden file: %s", err)
+			}
+		} else {
+			golden_data, err := ioutil.ReadFile(v.(string))
+			if err != nil {
+				return diag.Errorf("failed to read golden file: %s", err)
+			}
+
+			// Unfortunately we need to marshal to JSON in order to compare
+			// correctly with golden file, otherwise types won't match.
+			// Fortunately perf is not an issue for the result sizes we'll be
+			// handling.
+			returned_rows, err := json.Marshal(queryResult.Rows)
+			if err != nil {
+				return diag.Errorf("failed to marshal returned rows: %s", err)
+			}
+
+			// compare JSON strings
+			transformJSON := cmp.FilterValues(func(x, y []byte) bool {
+				return json.Valid(x) && json.Valid(y)
+			}, cmp.Transformer("ParseJSON", func(in []byte) (out interface{}) {
+				_ = json.Unmarshal(in, &out)
+				return out
+			}))
+
+			// ... while ignoring timestamps
+			ignoreTimestamps := cmpopts.IgnoreMapEntries(func(k string, v interface{}) bool {
+				typerep, ok := queryResult.ColTypeRep(k)
+				return ok && typerep == "timestamp"
+			})
+
+			if diff := cmp.Diff(returned_rows, golden_data, transformJSON, ignoreTimestamps); diff != "" {
+				return diag.Errorf("query result does not match golden file: %s", diff)
+			}
+		}
+	}
+
 	return
 }
 
 func queryToResourceData(q *observe.QueryResult, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("result", string(q.JSON)); err != nil {
+	rows, err := json.Marshal(q.Rows)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := data.Set("result", string(rows)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
