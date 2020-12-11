@@ -17,26 +17,7 @@ func resourceHTTPPost() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceHTTPPostCreate,
 		ReadContext:   resourceNoop,
-		UpdateContext: resourceNoop,
 		DeleteContext: resourceNoop,
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			var (
-				acked      = d.Get("acked").(string)
-				refresh, _ = d.Get("refresh").(string)
-			)
-
-			if acked == "" || refresh == "" {
-				return nil
-			}
-
-			ackedTime, _ := time.Parse(time.RFC3339, acked)
-			refreshDuration, _ := time.ParseDuration(refresh)
-
-			if time.Now().After(ackedTime.Add(refreshDuration)) {
-				return d.SetNewComputed("acked")
-			}
-			return nil
-		},
 		Schema: map[string]*schema.Schema{
 			"path": {
 				Type:             schema.TypeString,
@@ -88,19 +69,6 @@ func resourceHTTPPost() *schema.Resource {
 				Optional:    true,
 				ForceNew:    true,
 				Description: "Additional HTTP headers",
-			},
-			// refresh specifies the duration before which we should consider
-			// this resource to be stale, at which point we should "recreate" it.
-			//
-			// Coupling an observation "resource" with a refresh rate allows
-			// for usecases such as resubmitting static data periodically in
-			// order to create a known resource. Currently users are forced to
-			// submit data on a cronjob with some outside script.
-			"refresh": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateTimeDuration,
-				Description:      "After refresh duration has elapsed, HTTP POST will be resubmitted",
 			},
 			// acked stores the timestamp of the submission time for our
 			// observations.
@@ -161,10 +129,6 @@ func resourceHTTPPostCreate(ctx context.Context, data *schema.ResourceData, meta
 
 	data.Set("acked", time.Now().UTC().Format(time.RFC3339))
 	data.SetId(id)
-	return nil
-}
-
-func resourceHTTPPostUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	return nil
 }
 
