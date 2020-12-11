@@ -45,7 +45,7 @@ func resourceHTTPPost() *schema.Resource {
 			},
 			"id_tag": {
 				Type:        schema.TypeString,
-				Default:     "tf_id",
+				Default:     "",
 				Optional:    true,
 				ForceNew:    true,
 				Description: "Key used to tag submitted observations with unique ID. Set to empty string to omit tag",
