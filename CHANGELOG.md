@@ -1,3 +1,16 @@
+## 0.4.2 (2020-12-11)
+
+* provider: allow different content-types in http post
+* provider: do not `set_id` attribute by omission.
+* provider: remove `refresh` attribute from observe_http_post resource
+* provider: add assert option to observe_query data source
+* vendor: update go-cmp, mapstructure
+* provider: add polling to `observe_query`
+* provider: add `observe_query` data source
+* internal: break out query handling from dataset
+* testing: bump tested terraform version to 0.14.2
+* testing: test breakage due to Observation schema change
+
 ## 0.4.1 (2020-11-13)
 
 * provider: add observe_channel resource
