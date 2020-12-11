@@ -28,11 +28,10 @@ func resourceHTTPPost() *schema.Resource {
 				Description:      "Path under which to submit observations",
 			},
 			"data": {
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateStringIsJSON,
-				Required:         true,
-				ForceNew:         true,
-				Description:      "Data to submit to Observe collector",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Data to submit to Observe collector",
 			},
 			"tags": {
 				Type: schema.TypeMap,
@@ -52,9 +51,12 @@ func resourceHTTPPost() *schema.Resource {
 			},
 			"content_type": {
 				Type: schema.TypeString,
-				// TODO: only support JSON for now, we'll need to validate data based on content-type
 				ValidateDiagFunc: validateStringInSlice([]string{
+					"application/msgpack",
 					"application/json",
+					"application/x-ndjson",
+					"text/csv",
+					"text/plain",
 				}, false),
 				Default:     "application/json",
 				Optional:    true,
