@@ -56,7 +56,7 @@ type MultiStageQuery struct {
 }
 
 type StageQuery struct {
-	StageID  string             `json:"stageID"`
+	ID       string             `json:"id"`
 	Input    []*InputDefinition `json:"input"`
 	Pipeline string             `json:"pipeline"`
 }

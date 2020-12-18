@@ -20,7 +20,7 @@
                 "outputStage": "stage-98916e3d",
                 "stages": [
                     {
-                        "stageID": "stage-f3fb2657",
+                        "id": "stage-f3fb2657",
                         "input": [
                             {
                                 "inputName": "default",
@@ -33,7 +33,7 @@
                         "pipeline": "filter true\n"
                     },
                     {
-                        "stageID": "stage-98916e3d",
+                        "id": "stage-98916e3d",
                         "input": [
                             {
                                 "inputName": "stage-f3fb2657",

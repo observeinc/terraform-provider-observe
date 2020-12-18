@@ -20,7 +20,7 @@
                 "outputStage": "stage-bb4ss0h0",
                 "stages": [
                     {
-                        "stageID": "stage-tkvnc4t7",
+                        "id": "stage-tkvnc4t7",
                         "input": [
                             {
                                 "inputName": "IoT Raw Events",
@@ -39,7 +39,7 @@
                         "pipeline": "filter (not isnull(fields.roomInfo))\ncolmake name:string(fields.roomInfo.name), roomId:string(fields.roomInfo.roomId)\naddfk \"RoomId\", roomId:@stage-bb4ss0h0.roomId"
                     },
                     {
-                        "stageID": "stage-bb4ss0h0",
+                        "id": "stage-bb4ss0h0",
                         "input": [
                             {
                                 "inputName": "stage-tkvnc4t7",

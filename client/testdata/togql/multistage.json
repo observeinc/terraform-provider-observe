@@ -18,10 +18,10 @@
                         "inputRole": null,
                         "datasetId": "4100000",
                         "datasetPath": null,
-                        "stageID": ""
+                        "stageId": ""
                     }
                 ],
-                "stageID": "stage-0",
+                "id": "stage-0",
                 "pipeline": "filter true\n"
             },
             {
@@ -30,10 +30,10 @@
                         "inputName": "stage-0",
                         "inputRole": null,
                         "datasetPath": null,
-                        "stageID": "stage-0"
+                        "stageId": "stage-0"
                     }
                 ],
-                "stageID": "stage-1",
+                "id": "stage-1",
                 "pipeline": "filter true\n"
             },
             {
@@ -42,10 +42,10 @@
                         "inputName": "stage-1",
                         "inputRole": null,
                         "datasetPath": null,
-                        "stageID": "stage-1"
+                        "stageId": "stage-1"
                     }
                 ],
-                "stageID": "stage-2",
+                "id": "stage-2",
                 "pipeline": "filter true\n"
             }
         ]

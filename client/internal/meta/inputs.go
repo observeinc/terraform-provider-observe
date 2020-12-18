@@ -34,8 +34,8 @@ type MultiStageQueryInput struct {
 }
 
 type StageQueryInput struct {
+	ID       string                 `json:"id"`
 	Input    []InputDefinitionInput `json:"input"`
-	StageID  string                 `json:"stageID"`
 	Pipeline string                 `json:"pipeline"`
 }
 
@@ -44,7 +44,7 @@ type InputDefinitionInput struct {
 	InputRole   *InputRole      `json:"inputRole"`
 	DatasetID   *ObjectIdScalar `json:"datasetId,omitempty"`
 	DatasetPath *string         `json:"datasetPath"`
-	StageID     string          `json:"stageID"`
+	StageID     string          `json:"stageId"`
 }
 
 type DependencyHandlingInput struct {

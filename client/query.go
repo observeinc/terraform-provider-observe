@@ -64,7 +64,7 @@ func newQuery(gqlQuery *meta.MultiStageQuery) (*Query, error) {
 			Pipeline: gqlStage.Pipeline,
 		}
 
-		if name, ok := stageIDs[gqlStage.StageID]; ok && name != gqlStage.StageID {
+		if name, ok := stageIDs[gqlStage.ID]; ok && name != gqlStage.ID {
 			stage.Alias = &name
 		}
 
@@ -124,7 +124,7 @@ func (q *Query) toGQL() (*meta.MultiStageQueryInput, error) {
 
 		// Each stage will be given an ID based on the hash of all preceeding pipelines
 		gqlStage := &meta.StageQueryInput{
-			StageID:  fmt.Sprintf("stage-%d", i),
+			ID:       fmt.Sprintf("stage-%d", i),
 			Pipeline: stage.Pipeline,
 		}
 
@@ -155,13 +155,13 @@ func (q *Query) toGQL() (*meta.MultiStageQueryInput, error) {
 
 		// stage is done, append to transform
 		gqlQuery.Stages = append(gqlQuery.Stages, gqlStage)
-		gqlQuery.OutputStage = gqlStage.StageID
+		gqlQuery.OutputStage = gqlStage.ID
 
 		// prepare for next iteration of loop
 		// this stage will become defaultInput for the next
 		defaultInput = &meta.InputDefinitionInput{
-			InputName: gqlStage.StageID,
-			StageID:   gqlStage.StageID,
+			InputName: gqlStage.ID,
+			StageID:   gqlStage.ID,
 		}
 
 		// if explicitly named, this stage can be also be an input for the next
@@ -208,7 +208,7 @@ func (q *QueryConfig) toGQL() ([]*meta.StageInput, *meta.QueryParams, error) {
 	for i, s := range multiStageQueryInput.Stages {
 		stages[i] = &meta.StageInput{
 			Input:    s.Input,
-			StageID:  s.StageID,
+			StageID:  s.ID,
 			Pipeline: s.Pipeline,
 			Presentation: &meta.StagePresentationInput{
 				ResultKinds: []*meta.ResultKind{&resultKindSuppress},

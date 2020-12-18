@@ -26,14 +26,14 @@ var (
 				query {
 					outputStage
 					stages {
-						stageID
+						id
 						pipeline
 						input {
 							inputName
 							inputRole
 							datasetId
 							datasetPath
-							stageID
+							stageId
 						}
 					}
 				}

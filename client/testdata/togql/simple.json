@@ -18,10 +18,10 @@
                         "inputRole": null,
                         "datasetId": "4100000",
                         "datasetPath": null,
-                        "stageID": ""
+                        "stageId": ""
                     }
                 ],
-                "stageID": "stage-0",
+                "id": "stage-0",
                 "pipeline": "filter true\n"
             }
         ]
