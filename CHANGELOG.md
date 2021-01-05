@@ -1,3 +1,7 @@
+## 0.4.3 (2021-01-05)
+
+* client: deprecate "stageID" field
+
 ## 0.4.2 (2020-12-11)
 
 * provider: allow different content-types in http post
