@@ -24,7 +24,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
-				Description: "Observe API URL",
+				Description: "Observe Customer ID",
 			},
 			"token": {
 				Type:          schema.TypeString,
