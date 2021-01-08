@@ -1,5 +1,8 @@
 package meta
 
+// File outputs.go contains copies of the defintions of the input types in directory
+// meta/metatypes of our go monorepo.
+
 import (
 	"errors"
 	"fmt"
@@ -28,6 +31,7 @@ type Dataset struct {
 	IconURL          *string        `json:"iconUrl"`
 	PathCost         *int64         `json:"pathCost"`
 	Transform        *Transform     `json:"transform"`
+	SourceTable      *SourceTable   `json:"sourceTable"`
 	ForeignKeys      []ForeignKey   `json:"foreignKeys"`
 }
 
@@ -312,4 +316,18 @@ type DatasetError struct {
 	Time          *time.Time     `json:"time"`
 	Location      string         `json:"location"`
 	Text          []string       `json:"text"`
+}
+
+type SourceTable struct {
+	Schema                string                       `json:"schema"`
+	TableName             string                       `json:"tableName"`
+	Fields                []SourceTableFieldDefinition `json:"fields"`
+	ValidFromField        *string                      `json:"validFromField,omitempty"`
+	BatchSeqField         *string                      `json:"batchSeqField,omitempty"`
+	SourceUpdateTableName *string                      `json:"sourceUpdateTableName,omitempty"`
+}
+
+type SourceTableFieldDefinition struct {
+	Name    string `json:"name"`
+	SqlType string `json:"sqlType"`
 }

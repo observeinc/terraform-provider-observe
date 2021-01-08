@@ -39,6 +39,20 @@ var (
 				}
 			}
 		}
+		typedef {
+			definition
+		}
+		sourceTable {
+			schema
+			tableName
+			sourceUpdateTableName
+			batchSeqField
+			validFromField
+			fields {
+				name
+				sqlType
+			}
+		}
 	}`
 )
 
@@ -64,6 +78,30 @@ func (c *Client) SaveDataset(ctx context.Context, workspaceID string, d *Dataset
 
 	var ds DatasetSaveResult
 	err = decodeStrict(getNested(result, "saveDataset"), &ds)
+	return ds.Dataset, err
+}
+
+func (c *Client) SaveSourceDataset(ctx context.Context, workspaceID string, d *DatasetDefinitionInput, s *SourceTableDefinitionInput) (*Dataset, error) {
+	result, err := c.Run(ctx, backendDatasetFragment+`
+	mutation saveSourceDataset($workspaceId: ObjectId!, $datasetDefinition: DatasetDefinitionInput!, $sourceTable: SourceTableDefinitionInput!, $dep: DependencyHandlingInput) {
+		saveSourceDataset(workspaceId:$workspaceId, datasetDefinition:$datasetDefinition, sourceTable:$sourceTable, dependencyHandling:$dep) {
+			dataset {
+				...datasetFields
+			}
+		}
+	}`, map[string]interface{}{
+		"workspaceId":       workspaceID,
+		"datasetDefinition": d,
+		"sourceTable":       s,
+		"dep":               &DependencyHandlingInput{SaveMode: SaveModeUpdateDataset},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var ds DatasetSaveResult
+	err = decodeStrict(getNested(result, "saveSourceDataset"), &ds)
 	return ds.Dataset, err
 }
 

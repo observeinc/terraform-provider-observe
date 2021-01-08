@@ -1,5 +1,8 @@
 package meta
 
+// File inputs.go contains a subset of the definitions of the input types in directory
+// meta/metatypes of our go monorepo.
+
 import (
 	"encoding/json"
 	"fmt"
@@ -318,4 +321,39 @@ const (
 
 func (fn CompareFunction) String() string {
 	return string(fn)
+}
+
+type DatasetDefinitionInput struct {
+	Dataset DatasetInput           `json:"dataset"`
+	Schema  []DatasetFieldDefInput `json:"schema"`
+}
+
+type DatasetFieldDefInput struct {
+	Name         string                `json:"name"`
+	Type         DatasetFieldTypeInput `json:"type"`
+	IsEnum       *bool                 `json:"isEnum,omitempty"`
+	IsSearchable *bool                 `json:"isSearchable,omitempty"`
+	IsHidden     *bool                 `json:"isHidden,omitempty"`
+	IsConst      *bool                 `json:"isConst,omitempty"`
+	IsMetric     *bool                 `json:"isMetric,omitempty"`
+	Label        *string               `json:"label,omitempty"`
+}
+
+type DatasetFieldTypeInput struct {
+	Rep      string `json:"rep"`
+	Nullable *bool  `json:"nullable,omitempty"`
+}
+
+type SourceTableDefinitionInput struct {
+	Schema                string                            `json:"schema"`
+	TableName             string                            `json:"tableName"`
+	Fields                []SourceTableFieldDefinitionInput `json:"fields"`
+	ValidFromField        *string                           `json:"validFromField,omitempty"`
+	BatchSeqField         *string                           `json:"batchSeqField,omitempty"`
+	SourceUpdateTableName *string                           `json:"sourceUpdateTableName,omitempty"`
+}
+
+type SourceTableFieldDefinitionInput struct {
+	Name    string `json:"name"`
+	SqlType string `json:"sqlType"`
 }

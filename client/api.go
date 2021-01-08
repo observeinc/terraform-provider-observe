@@ -65,6 +65,36 @@ func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	return c.Meta.DeleteDataset(ctx, id)
 }
 
+// GetDataset returns the source dataset by ID
+func (c *Client) GetSourceDataset(ctx context.Context, id string) (*SourceDataset, error) {
+	result, err := c.Meta.GetDataset(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newSourceDataset(result)
+}
+
+// CreateSourceDataset creates a new source dataset
+func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, config *SourceDatasetConfig) (*SourceDataset, error) {
+	dataset, table := config.toGQL()
+	result, err := c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
+	if err != nil {
+		return nil, err
+	}
+	return newSourceDataset(result)
+}
+
+// UpdateSourceDataset updates the existing source dataset
+func (c *Client) UpdateSourceDataset(ctx context.Context, workspaceId string, id string, config *SourceDatasetConfig) (*SourceDataset, error) {
+	dataset, table := config.toGQL()
+	dataset.Dataset.ID = toObjectPointer(&id)
+	result, err := c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
+	if err != nil {
+		return nil, err
+	}
+	return newSourceDataset(result)
+}
+
 // GetWorkspace by ID
 func (c *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error) {
 	result, err := c.Meta.GetWorkspace(ctx, id)

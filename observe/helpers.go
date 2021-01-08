@@ -181,10 +181,13 @@ func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 		return false
 	}
 
-	for _, v := range d.Get("inputs").(map[string]interface{}) {
-		input, err := observe.NewOID(v.(string))
-		if err == nil && input.Version != nil && *input.Version > *oid.Version {
-			return true
+	inputs, ok := d.Get("inputs").(map[string]interface{})
+	if ok {
+		for _, v := range inputs {
+			input, err := observe.NewOID(v.(string))
+			if err == nil && input.Version != nil && *input.Version > *oid.Version {
+				return true
+			}
 		}
 	}
 	return false
