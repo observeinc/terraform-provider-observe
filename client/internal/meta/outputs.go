@@ -182,7 +182,6 @@ type ChannelAction struct {
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
 	//UpdatedDate TimeScalar     `json:"updatedDate"`
 	//RateLimit   *time.Duration `json:"rateLimit"`
-	LastTimeRun *time.Time `json:"lastTimeRun"`
 
 	Webhook *WebhookChannelAction `json:"webhook"`
 	Email   *EmailChannelAction   `json:"email"`

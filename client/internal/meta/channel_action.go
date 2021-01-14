@@ -3,7 +3,6 @@ package meta
 import (
 	"context"
 	"fmt"
-	"time"
 )
 
 var (
@@ -14,7 +13,6 @@ var (
 	    iconUrl
 		description
 		workspaceId
-		lastTimeRun
 
 		__typename
 		... on WebhookAction {
@@ -48,7 +46,6 @@ type channelAction struct {
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
 	//UpdatedDate TimeScalar     `json:"updatedDate"`
 	//RateLimit   *time.Duration `json:"rateLimit"`
-	LastTimeRun *time.Time `json:"lastTimeRun"`
 
 	Type  string                 `mapstructure:"__typename"`
 	Other map[string]interface{} `mapstructure:",remain"`
