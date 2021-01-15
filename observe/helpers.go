@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -70,6 +71,15 @@ func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
 			})
 		}
 		return
+	}
+}
+
+func validateEnum(fn func(interface{}) error) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		if err := fn(i); err != nil {
+			return diag.FromErr(err)
+		}
+		return nil
 	}
 }
 
@@ -198,4 +208,45 @@ func diffSuppressOIDVersion(k, old, new string, d *schema.ResourceData) bool {
 	}
 
 	return o.Type == n.Type && o.ID == n.ID
+}
+
+func diffSuppressCaseInsensitive(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ToLower(new) == strings.ToLower(old)
+}
+
+var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+// take list of stringers which represent camel cased enums, compare
+// against a snake case input
+func validateEnums(stringerSlice interface{}) schema.SchemaValidateDiagFunc {
+	var snakeCased []string
+
+	switch reflect.TypeOf(stringerSlice).Kind() {
+	case reflect.Slice:
+		stringers := reflect.ValueOf(stringerSlice)
+		for i := 0; i < stringers.Len(); i++ {
+			stringer := stringers.Index(i).Interface().(fmt.Stringer)
+			snakeCased = append(snakeCased, toSnake(stringer.String()))
+		}
+	default:
+		panic("validateEnums only accepts slice of stringers")
+	}
+	return validateStringInSlice(snakeCased, true)
+}
+
+// convert to snake case
+func toSnake(str string) string {
+	s := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	s = matchAllCap.ReplaceAllString(s, "${1}_${2}")
+	return strings.ToLower(s)
+}
+
+// convert to camel case
+func toCamel(str string) string {
+	return link.ReplaceAllStringFunc(str, func(s string) string {
+		return strings.ToUpper(strings.Replace(s, "_", "", -1))
+	})
 }

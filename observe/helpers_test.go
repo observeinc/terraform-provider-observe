@@ -121,3 +121,37 @@ func TestPath(t *testing.T) {
 		})
 	}
 }
+
+func TestToCamel(t *testing.T) {
+	testcases := []struct {
+		Input  string
+		Expect string
+	}{
+		{
+			Input:  "hello",
+			Expect: "Hello",
+		},
+		{
+			Input:  "link_target",
+			Expect: "LinkTarget",
+		},
+		{
+			Input:  "not_between_half_open",
+			Expect: "NotBetweenHalfOpen",
+		},
+		{
+			Input:  "",
+			Expect: "",
+		},
+	}
+
+	for _, tt := range testcases {
+		if result := toCamel(tt.Input); result != tt.Expect {
+			t.Fatalf("toCamel failed: expected %s, got %s", tt.Expect, result)
+		}
+
+		if result := toSnake(tt.Expect); result != tt.Input {
+			t.Fatalf("toSnake failed: expected %s, got %s", tt.Input, result)
+		}
+	}
+}

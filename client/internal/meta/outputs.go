@@ -244,3 +244,69 @@ type SnowflakeCursor struct {
 	Chunks        interface{}              `json:"chunks,omitempty"`
 	HttpHeaders   map[string]string        `json:"httpHeaders,omitempty"`
 }
+
+type Monitor struct {
+	Id          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	IconUrl     string         `json:"icon_url"`
+	Description string         `json:"description"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	//CreatedBy           UserIdScalar
+	//CreatedDate         TimeScalar
+	//UpdatedBy           UserIdScalar
+	//UpdatedDate         TimeScalar
+	//GeneratedDatasetIds []ObjectIdScalar
+	//Status        MonitorStatus
+	//StatusMessage string
+
+	Query            *MultiStageQuery          `json:"query"`
+	NotificationSpec NotificationSpecification `json:"notificationSpec"`
+
+	Rule *MonitorRule `json:"rule"`
+}
+
+type MonitorRule struct {
+	Type           string                 `mapstructure:"__typename"`
+	SourceColumn   *string                `json:"sourceColumn"`
+	GroupBy        *MonitorGrouping       `json:"groupBy"`
+	GroupByColumns []string               `json:"groupByColumns"`
+	Other          map[string]interface{} `mapstructure:",remain"`
+}
+
+// DecodeType is a helper to decode to correct struct
+func (r *MonitorRule) DecodeType(dst interface{}) error {
+	return decodeStrict(r.Other, dst)
+}
+
+type MonitorStatus string
+
+const (
+	MonitorStatusCreating   MonitorStatus = "Creating"
+	MonitorStatusMonitoring MonitorStatus = "Monitoring"
+	MonitorStatusStopped    MonitorStatus = "Stopped"
+	MonitorStatusMissing    MonitorStatus = ""
+)
+
+type NotificationSpecification struct {
+	Importance NotificationImportance `json:"importance"`
+	Merge      NotificationMerge      `json:"merge"`
+	Selection  NotificationSelection  `json:"selection"`
+	// NOTE: api will always return a value here :(
+	SelectionValue *NumberScalar `json:"selectionValue,omitEmpty"`
+}
+
+type MonitorUpdateResult struct {
+	Monitor       *Monitor       `json:"monitor"`
+	MonitorErrors []string       `json:"monitorErrors"`
+	ErrorDatasets []DatasetError `json:"errorDatasets"`
+}
+
+type DatasetError struct {
+	CustomerId    ObjectIdScalar `json:"customerId"`
+	DatasetId     ObjectIdScalar `json:"datasetId"`
+	WorkspaceName string         `json:"workspaceName"`
+	DatasetName   string         `json:"datasetName"`
+	Time          *time.Time     `json:"time"`
+	Location      string         `json:"location"`
+	Text          []string       `json:"text"`
+}

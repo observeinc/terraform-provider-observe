@@ -366,7 +366,7 @@ func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *
 	return newChannel(result)
 }
 
-// UpdateChannel updates a bookmark
+// UpdateChannel updates a channel
 func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelConfig) (*Channel, error) {
 	channelInput, actions, err := config.toGQL()
 	if err != nil {
@@ -407,4 +407,56 @@ func (c *Client) Query(ctx context.Context, config *QueryConfig) (result *QueryR
 	}
 
 	return newQueryResult(gqlResult)
+}
+
+// CreateMonitor creates a monitor
+func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, config *MonitorConfig) (*Monitor, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	monitorInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.CreateMonitor(ctx, workspaceId, monitorInput)
+	if err != nil {
+		return nil, err
+	}
+	return newMonitor(result)
+}
+
+// UpdateMonitor updates a monitor
+func (c *Client) UpdateMonitor(ctx context.Context, id string, config *MonitorConfig) (*Monitor, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	monitorInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.UpdateMonitor(ctx, id, monitorInput)
+	if err != nil {
+		return nil, err
+	}
+	return newMonitor(result)
+}
+
+// DeleteMonitor
+func (c *Client) DeleteMonitor(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitor(ctx, id)
+}
+
+// GetMonitor returns monitor by ID
+func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
+	result, err := c.Meta.GetMonitor(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newMonitor(result)
 }

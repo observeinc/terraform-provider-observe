@@ -113,6 +113,7 @@ func Provider() *schema.Provider {
 			"observe_http_post":      resourceHTTPPost(),
 			"observe_channel_action": resourceChannelAction(),
 			"observe_channel":        resourceChannel(),
+			"observe_monitor":        resourceMonitor(),
 		},
 	}
 

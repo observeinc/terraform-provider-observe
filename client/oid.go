@@ -20,15 +20,22 @@ const (
 	TypeBookmark           = "bookmark"
 	TypeChannelAction      = "channelaction"
 	TypeChannel            = "channel"
+	TypeMonitor            = "monitor"
 )
 
 func (t Type) IsValid() bool {
 	switch t {
-	case TypeDataset, TypeWorkspace, TypeBookmarkGroup, TypeChannelAction:
-		return true
+	case TypeDataset:
+	case TypeWorkspace:
+	case TypeBookmarkGroup:
+	case TypeBookmark:
+	case TypeChannelAction:
+	case TypeChannel:
+	case TypeMonitor:
 	default:
 		return false
 	}
+	return true
 }
 
 type OID struct {
