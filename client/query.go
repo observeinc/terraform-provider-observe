@@ -227,26 +227,46 @@ func (q *QueryConfig) toGQL() ([]*meta.StageInput, *meta.QueryParams, error) {
 }
 
 func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
-	if len(taskResults) != 1 {
-		return nil, fmt.Errorf("unexpected number of taskResults")
+
+	var withSchema, withCursor *meta.TaskResult
+
+	for _, result := range taskResults {
+		switch {
+		case result.Error != nil:
+			return nil, fmt.Errorf(*result.Error)
+		case result.ResultSchema != nil && withSchema != nil:
+			return nil, fmt.Errorf("more than one schema result")
+		case result.ResultCursor != nil && withCursor != nil:
+			return nil, fmt.Errorf("more than one cursor result")
+		}
+
+		if result.ResultSchema != nil {
+			withSchema = result
+		}
+
+		if result.ResultCursor != nil {
+			withCursor = result
+		}
 	}
 
-	result := taskResults[0]
+	if withSchema == nil {
+		return nil, fmt.Errorf("no schema returned")
+	}
 
-	if result.Error != nil {
-		return nil, fmt.Errorf(*result.Error)
+	if withCursor == nil {
+		return nil, fmt.Errorf("no cursor returned")
 	}
 
 	var (
-		numRows = result.ResultCursor.TotalRowCount
-		numCols = int64(len(result.ResultCursor.ColumnDesc))
+		numRows = withCursor.ResultCursor.TotalRowCount
+		numCols = int64(len(withCursor.ResultCursor.ColumnDesc))
 	)
 
 	q := &QueryResult{
-		ID:        result.QueryID,
-		StartTime: *result.StartTime,
-		EndTime:   *result.EndTime,
-		Fields:    result.ResultSchema.TypedefDefinition.Fields,
+		ID:        withCursor.QueryID,
+		StartTime: *withCursor.StartTime,
+		EndTime:   *withCursor.EndTime,
+		Fields:    withSchema.ResultSchema.TypedefDefinition.Fields,
 		Rows:      make([]map[string]interface{}, numRows),
 		typeMap:   make(map[string]string, numCols),
 	}
@@ -254,7 +274,7 @@ func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
 	colNames := make([]string, numCols)
 	colTypes := make([]map[string]interface{}, numCols)
 
-	for i, f := range result.ResultSchema.TypedefDefinition.Fields {
+	for i, f := range withSchema.ResultSchema.TypedefDefinition.Fields {
 		colNames[i] = f["name"].(string)
 		colTypes[i] = f["type"].(map[string]interface{})
 		q.typeMap[colNames[i]] = colTypes[i]["rep"].(string)
@@ -269,7 +289,7 @@ func newQueryResult(taskResults []*meta.TaskResult) (*QueryResult, error) {
 			var value interface{}
 			var err error
 
-			if cell := result.ResultCursor.Columns[j][i]; cell != nil {
+			if cell := withCursor.ResultCursor.Columns[j][i]; cell != nil {
 				switch colTypes[j]["rep"].(string) {
 				case "any", "object":
 					value = json.RawMessage([]byte(*cell))
