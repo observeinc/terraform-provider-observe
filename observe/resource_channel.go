@@ -39,6 +39,14 @@ func resourceChannel() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"monitors": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(observe.TypeMonitor),
+				},
+			},
 			"actions": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -66,6 +74,13 @@ func newChannelConfig(data *schema.ResourceData) (config *observe.ChannelConfig,
 		config.Description = &s
 	}
 
+	if s, ok := data.GetOk("monitors"); ok {
+		for _, v := range s.(*schema.Set).List() {
+			oid, _ := observe.NewOID(v.(string))
+			config.Monitors = append(config.Monitors, oid)
+		}
+	}
+
 	if s, ok := data.GetOk("actions"); ok {
 		for _, v := range s.(*schema.Set).List() {
 			oid, _ := observe.NewOID(v.(string))
@@ -87,7 +102,7 @@ func resourceChannelCreate(ctx context.Context, data *schema.ResourceData, meta 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateChannel(ctx, oid.ID, config)
 	if err != nil {
-		return diag.Errorf("failed to create channel action: %s", err.Error())
+		return diag.Errorf("failed to create channel: %s", err.Error())
 	}
 
 	data.SetId(result.ID)
@@ -139,11 +154,18 @@ func resourceChannelRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	var s []string
-	for _, v := range channel.Config.Actions {
-		s = append(s, v.String())
+	toIdList := func(l []*observe.OID) (ret []string) {
+		for _, el := range l {
+			ret = append(ret, el.String())
+		}
+		return
 	}
-	if err := data.Set("actions", s); err != nil {
+
+	if err := data.Set("actions", toIdList(channel.Config.Actions)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("monitors", toIdList(channel.Config.Monitors)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

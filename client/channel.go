@@ -14,6 +14,7 @@ type ChannelConfig struct {
 	Name        string  `json:"name"`
 	IconURL     *string `json:"iconUrl"`
 	Description *string `json:"description"`
+	Monitors    []*OID  `json:"monitors"`
 	Actions     []*OID  `json:"actions"`
 }
 
@@ -24,7 +25,7 @@ func (c *Channel) OID() *OID {
 	}
 }
 
-func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, error) {
+func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, []string, error) {
 	channelInput := &meta.ChannelInput{
 		Name:        config.Name,
 		IconURL:     config.IconURL,
@@ -37,7 +38,12 @@ func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, error) {
 		actions = append(actions, v.ID)
 	}
 
-	return channelInput, actions, nil
+	var monitors []string
+	for _, v := range config.Monitors {
+		monitors = append(monitors, v.ID)
+	}
+
+	return channelInput, actions, monitors, nil
 }
 
 func newChannel(c *meta.Channel) (*Channel, error) {
@@ -50,6 +56,11 @@ func newChannel(c *meta.Channel) (*Channel, error) {
 	for _, channelAction := range c.Actions {
 		oid := &OID{Type: TypeChannelAction, ID: channelAction.ID.String()}
 		config.Actions = append(config.Actions, oid)
+	}
+
+	for _, monitor := range c.Monitors {
+		oid := &OID{Type: TypeMonitor, ID: monitor.ID.String()}
+		config.Monitors = append(config.Monitors, oid)
 	}
 
 	return &Channel{

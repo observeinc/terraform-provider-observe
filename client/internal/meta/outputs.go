@@ -212,6 +212,9 @@ type Channel struct {
 	Actions []struct {
 		ID ObjectIdScalar `json:"id"`
 	} `json:"actions"`
+	Monitors []struct {
+		ID ObjectIdScalar `json:"id"`
+	} `json:"monitors"`
 }
 
 type TaskResult struct {

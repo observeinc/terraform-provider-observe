@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	// setup a couple of actions for use in channels
+	// setup a couple of actions and monitors for use with channels
 	channelConfigPreamble = configPreamble + `
 				resource "observe_channel_action" "a" {
 				  workspace = data.observe_workspace.kubernetes.oid
@@ -29,6 +29,35 @@ var (
 				    to      = ["test@observeinc.com"]
 					subject = "Test"
 					body 	= "Test"
+				  }
+				}
+
+				resource "observe_monitor" "a" {
+				  workspace = data.observe_workspace.kubernetes.oid
+				  name      = "a"
+
+				  inputs = {
+				    "observation" = data.observe_dataset.observation.oid
+				  }
+
+				  stage {
+				    pipeline = "filter true"
+				  }
+
+				  rule {
+				    source_column = "OBSERVATION_KIND"
+				    group_by      = "none"
+
+				    count {
+				      compare_function   = "greater_or_equal"
+				      value              = 100
+					  lookback_time      = "1m"
+				    }
+				  }
+
+				  notification_spec {
+				    selection       = "count"
+				    selection_value = 1
 				  }
 				}
 				`
@@ -56,6 +85,7 @@ func TestAccObserveChannelCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
 					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "1"),
+					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "0"),
 				),
 			},
 			{
@@ -68,12 +98,30 @@ func TestAccObserveChannelCreate(t *testing.T) {
 				    observe_channel_action.b.oid,
 					observe_channel_action.a.oid,
 				  ]
+				  monitors = [
+				    observe_monitor.a.oid,
+				  ]
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
 					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "2"),
+					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "1"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(channelConfigPreamble+`
+				resource "observe_channel" "example" {
+				  workspace = data.observe_workspace.kubernetes.oid
+				  name      = "%s"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "0"),
+					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "0"),
 				),
 			},
 		},

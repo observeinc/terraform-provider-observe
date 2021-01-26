@@ -12,6 +12,9 @@ var (
 	    iconUrl
 		description
 		workspaceId
+		monitors {
+			id
+		}
 		actions {
 			id
 		}
@@ -104,6 +107,36 @@ func (c *Client) DeleteChannel(ctx context.Context, id string) error {
 
 	var status ResultStatus
 	nested := getNested(result, "deleteChannel")
+	if err := decodeStrict(nested, &status); err != nil {
+		return err
+	}
+	return status.Error()
+}
+
+func (c *Client) SetMonitorsForChannel(ctx context.Context, id string, monitors []string) error {
+	// endpoint does not accept null, set explicitly to empty list
+	if monitors == nil {
+		monitors = make([]string, 0)
+	}
+
+	result, err := c.Run(ctx, `
+	mutation ($channelId: ObjectId!, $monitorIds: [ObjectId!]!) {
+	    setMonitorsForChannel(channelId: $channelId, monitorIds: $monitorIds) {
+	        success
+	        errorMessage
+	        detailedInfo
+        }
+    }`, map[string]interface{}{
+		"channelId":  id,
+		"monitorIds": monitors,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	var status ResultStatus
+	nested := getNested(result, "setMonitorsForChannel")
 	if err := decodeStrict(nested, &status); err != nil {
 		return err
 	}

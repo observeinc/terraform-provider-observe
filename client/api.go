@@ -354,7 +354,7 @@ func (c *Client) GetChannelAction(ctx context.Context, id string) (*ChannelActio
 
 // CreateChannel creates a channel
 func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *ChannelConfig) (*Channel, error) {
-	channelInput, actions, err := config.toGQL()
+	channelInput, actions, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
@@ -363,12 +363,18 @@ func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *
 	if err != nil {
 		return nil, err
 	}
+
+	if err := c.Meta.SetMonitorsForChannel(ctx, result.ID.String(), monitors); err != nil {
+		defer c.DeleteChannel(ctx, result.ID.String())
+		return nil, err
+	}
+
 	return newChannel(result)
 }
 
 // UpdateChannel updates a channel
 func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelConfig) (*Channel, error) {
-	channelInput, actions, err := config.toGQL()
+	channelInput, actions, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
@@ -377,6 +383,12 @@ func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelCo
 	if err != nil {
 		return nil, err
 	}
+
+	if err := c.Meta.SetMonitorsForChannel(ctx, id, monitors); err != nil {
+		defer c.DeleteChannel(ctx, result.ID.String())
+		return nil, err
+	}
+
 	return newChannel(result)
 }
 
