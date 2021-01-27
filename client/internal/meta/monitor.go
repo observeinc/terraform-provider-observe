@@ -45,6 +45,13 @@ var (
 			  lookbackTime
 			  baselineTime
 			}
+			... on MonitorRuleFacet {
+			  facetFunction
+			  facetValues
+			  timeFunction
+			  timeValue
+			  lookbackTime
+			}
 		}
 
 		notificationSpec {

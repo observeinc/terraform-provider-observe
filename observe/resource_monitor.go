@@ -99,9 +99,10 @@ func resourceMonitor() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"count": &schema.Schema{
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
+							Type:         schema.TypeList,
+							MaxItems:     1,
+							Optional:     true,
+							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_function": {
@@ -135,7 +136,7 @@ func resourceMonitor() *schema.Resource {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
-							ExactlyOneOf: []string{"rule.0.change", "rule.0.count"},
+							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"change_type": {
@@ -175,6 +176,42 @@ func resourceMonitor() *schema.Resource {
 										ValidateDiagFunc: validateTimeDuration,
 									},
 									"baseline_time": {
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: diffSuppressTimeDuration,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+								},
+							},
+						},
+						"facet": &schema.Schema{
+							Type:         schema.TypeList,
+							MaxItems:     1,
+							Optional:     true,
+							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"facet_function": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(observe.FacetFunctions),
+									},
+									"facet_values": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"time_function": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(observe.TimeFunctions),
+									},
+									"time_value": {
+										Type:     schema.TypeFloat,
+										Optional: true,
+									},
+									"lookback_time": {
 										Type:             schema.TypeString,
 										Required:         true,
 										DiffSuppressFunc: diffSuppressTimeDuration,
@@ -294,6 +331,38 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		if v, ok := data.GetOk("rule.0.change.0.baseline_time"); ok {
 			t, _ := time.ParseDuration(v.(string))
 			ruleConfig.ChangeRule.BaselineTime = &t
+		}
+	}
+
+	if data.Get("rule.0.facet.#") == 1 {
+		ruleConfig.FacetRule = &observe.MonitorRuleFacetConfig{}
+
+		if v, ok := data.GetOk("rule.0.facet.0.facet_function"); ok {
+			fn := observe.FacetFunction(toCamel(v.(string)))
+			ruleConfig.FacetRule.FacetFunction = &fn
+		}
+
+		if v, ok := data.GetOk("rule.0.facet.0.facet_values"); ok {
+			var values []string
+			for _, el := range v.([]interface{}) {
+				values = append(values, el.(string))
+			}
+			ruleConfig.FacetRule.FacetValues = values
+		}
+
+		if v, ok := data.GetOk("rule.0.facet.0.time_function"); ok {
+			fn := observe.TimeFunction(toCamel(v.(string)))
+			ruleConfig.FacetRule.TimeFunction = &fn
+		}
+
+		if v, ok := data.GetOk("rule.0.facet.0.time_value"); ok {
+			f := v.(float64)
+			ruleConfig.FacetRule.TimeValue = &f
+		}
+
+		if v, ok := data.GetOk("rule.0.facet.0.lookback_time"); ok {
+			t, _ := time.ParseDuration(v.(string))
+			ruleConfig.FacetRule.LookbackTime = &t
 		}
 	}
 	return ruleConfig, nil
@@ -493,6 +562,18 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		}
 
 		rule["count"] = []interface{}{count}
+	}
+
+	if config.FacetRule != nil {
+		facet := map[string]interface{}{
+			"facet_function": toSnake(config.FacetRule.FacetFunction.String()),
+			"facet_values":   config.FacetRule.FacetValues,
+			"time_function":  toSnake(config.FacetRule.TimeFunction.String()),
+			"time_value":     config.FacetRule.TimeValue,
+			"lookback_time":  config.FacetRule.LookbackTime.String(),
+		}
+
+		rule["facet"] = []interface{}{facet}
 	}
 
 	return []interface{}{

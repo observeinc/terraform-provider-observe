@@ -196,7 +196,7 @@ type MonitorRuleInput struct {
 
 	CountRule  *MonitorRuleCountInput  `json:"countRule,omitempty"`
 	ChangeRule *MonitorRuleChangeInput `json:"changeRule,omitempty"`
-	//FacetRule     *MonitorRuleFacetInput     `json:"facetRule,omitempty"`
+	FacetRule  *MonitorRuleFacetInput  `json:"facetRule,omitempty"`
 	//ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule,omitempty"`
 }
 
@@ -275,6 +275,14 @@ type MonitorRuleChangeInput struct {
 	AggregateFunction *AggregateFunction `json:"aggregateFunction"`
 	LookbackTime      *string            `json:"lookbackTime"`
 	BaselineTime      *string            `json:"baselineTime"`
+}
+
+type MonitorRuleFacetInput struct {
+	FacetFunction *FacetFunction `json:"facetFunction"`
+	FacetValues   []string       `json:"facetValues"`
+	TimeFunction  *TimeFunction  `json:"timeFunction"`
+	TimeValue     *NumberScalar  `json:"timeValue,omitempty"`
+	LookbackTime  *string        `json:"lookbackTime"`
 }
 
 type AggregateFunction string
@@ -356,4 +364,35 @@ type SourceTableDefinitionInput struct {
 type SourceTableFieldDefinitionInput struct {
 	Name    string `json:"name"`
 	SqlType string `json:"sqlType"`
+}
+
+type FacetFunction string
+
+const (
+	FacetFunctionEquals         FacetFunction = "Equals"
+	FacetFunctionNotEqual       FacetFunction = "NotEqual"
+	FacetFunctionContains       FacetFunction = "Contains"
+	FacetFunctionDoesNotContain FacetFunction = "DoesNotContain"
+	FacetFunctionIsNull         FacetFunction = "IsNull"
+	FacetFunctionIsNotNull      FacetFunction = "IsNotNull"
+	FacetFunctionMissing        FacetFunction = ""
+)
+
+func (fn FacetFunction) String() string {
+	return string(fn)
+}
+
+type TimeFunction string
+
+const (
+	TimeFunctionNever                  TimeFunction = "Never"
+	TimeFunctionAtLeastOnce            TimeFunction = "AtLeastOnce"
+	TimeFunctionAtAllTimes             TimeFunction = "AtAllTimes"
+	TimeFunctionAtLeastPercentageTime  TimeFunction = "AtLeastPercentageTime"
+	TimeFunctionLessThanPercentageTime TimeFunction = "LessThanPercentageTime"
+	TimeFunctionMissing                TimeFunction = ""
+)
+
+func (fn TimeFunction) String() string {
+	return string(fn)
 }

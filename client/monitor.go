@@ -11,10 +11,12 @@ type (
 	AggregateFunction      = meta.AggregateFunction
 	ChangeType             = meta.ChangeType
 	CompareFunction        = meta.CompareFunction
+	FacetFunction          = meta.FacetFunction
 	MonitorGrouping        = meta.MonitorGrouping
 	NotificationImportance = meta.NotificationImportance
 	NotificationMerge      = meta.NotificationMerge
 	NotificationSelection  = meta.NotificationSelection
+	TimeFunction           = meta.TimeFunction
 )
 
 var (
@@ -43,6 +45,15 @@ var (
 		meta.CompareFunctionIsNotNull,
 	}
 
+	FacetFunctions = []FacetFunction{
+		meta.FacetFunctionEquals,
+		meta.FacetFunctionNotEqual,
+		meta.FacetFunctionContains,
+		meta.FacetFunctionDoesNotContain,
+		meta.FacetFunctionIsNull,
+		meta.FacetFunctionIsNotNull,
+	}
+
 	MonitorGroupings = []MonitorGrouping{
 		meta.MonitorGroupingNone,
 		meta.MonitorGroupingValue,
@@ -65,6 +76,14 @@ var (
 		meta.NotificationSelectionAll,
 		meta.NotificationSelectionPercentage,
 		meta.NotificationSelectionCount,
+	}
+
+	TimeFunctions = []TimeFunction{
+		meta.TimeFunctionNever,
+		meta.TimeFunctionAtLeastOnce,
+		meta.TimeFunctionAtAllTimes,
+		meta.TimeFunctionAtLeastPercentageTime,
+		meta.TimeFunctionLessThanPercentageTime,
 	}
 )
 
@@ -98,6 +117,7 @@ type MonitorRuleConfig struct {
 	GroupByColumns []string                 `json:"groupByColumns"`
 	ChangeRule     *MonitorRuleChangeConfig `json:"change"`
 	CountRule      *MonitorRuleCountConfig  `json:"count"`
+	FacetRule      *MonitorRuleFacetConfig  `json:"facet"`
 }
 
 func (m *Monitor) OID() *OID {
@@ -152,6 +172,8 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 		ruleInput.ChangeRule, err = c.ChangeRule.toGQL()
 	case c.CountRule != nil:
 		ruleInput.CountRule, err = c.CountRule.toGQL()
+	case c.FacetRule != nil:
+		ruleInput.FacetRule, err = c.FacetRule.toGQL()
 	default:
 		err = fmt.Errorf("no rule found")
 	}
@@ -172,6 +194,8 @@ func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 		err = gqlRule.DecodeType(&config.CountRule)
 	case "MonitorRuleChange":
 		err = gqlRule.DecodeType(&config.ChangeRule)
+	case "MonitorRuleFacet":
+		err = gqlRule.DecodeType(&config.FacetRule)
 	default:
 		err = fmt.Errorf("unhandled rule type %s", gqlRule.Type)
 	}
@@ -269,6 +293,34 @@ func (c *MonitorRuleCountConfig) toGQL() (*meta.MonitorRuleCountInput, error) {
 
 	for _, v := range c.CompareValues {
 		input.CompareValues = append(input.CompareValues, meta.NumberScalar(v))
+	}
+
+	if c.LookbackTime != nil {
+		i := fmt.Sprintf("%d", c.LookbackTime.Nanoseconds())
+		input.LookbackTime = &i
+	}
+
+	return input, nil
+}
+
+type MonitorRuleFacetConfig struct {
+	FacetFunction *FacetFunction `json:"facetFunction"`
+	FacetValues   []string       `json:"facetValues"`
+	TimeFunction  *TimeFunction  `json:"timeFunction"`
+	TimeValue     *float64       `json:"timeValue,omitempty"`
+	LookbackTime  *time.Duration `json:"lookbackTime"`
+}
+
+func (c *MonitorRuleFacetConfig) toGQL() (*meta.MonitorRuleFacetInput, error) {
+	input := &meta.MonitorRuleFacetInput{
+		FacetFunction: c.FacetFunction,
+		FacetValues:   c.FacetValues,
+		TimeFunction:  c.TimeFunction,
+	}
+
+	if f := c.TimeValue; f != nil {
+		s := meta.NumberScalar(*f)
+		input.TimeValue = &s
 	}
 
 	if c.LookbackTime != nil {
