@@ -1,3 +1,14 @@
+## 0.4.4 (2021-02-02)
+
+* observe_monitor: add support for facet
+* observe_monitor: fix field name for compare_values
+* add preliminary source dataset support
+* observe_channel: allow connecting monitors to channels
+* add preliminary monitor support
+* data_source_query: handle multiple task results
+* provider: fix description of customer attribute
+* observe_channel_action: remove lastTimeRun
+
 ## 0.4.3 (2021-01-05)
 
 * client: deprecate "stageID" field
