@@ -34,8 +34,8 @@ func TestAccObserveMonitor(t *testing.T) {
 						group_by      = "none"
 
 						count {
-							compare_function   = "greater_or_equal"
-							value              = 100
+							compare_function   = "between_half_open"
+							compare_values     = [1, 10]
 							lookback_time      = "1m"
 						}
 					}
@@ -53,8 +53,9 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_columns"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "greater_or_equal"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.value", "100"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "between_half_open"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.0", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.1", "10"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.lookback_time", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
@@ -82,8 +83,8 @@ func TestAccObserveMonitor(t *testing.T) {
 
 						change {
 							aggregate_function = "sum"
-							compare_function   = "between_half_open"
-							values             = [1, 10]
+							compare_function   = "greater_or_equal"
+							compare_value      = 100
 							lookback_time      = "1m"
 							baseline_time      = "2m"
 						}
@@ -103,9 +104,8 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_columns"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.count.0"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_function", "between_half_open"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.values.0", "1"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.values.1", "10"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_function", "greater_or_equal"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_value", "100"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.lookback_time", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.baseline_time", "2m0s"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.notification_spec.selection_value"),

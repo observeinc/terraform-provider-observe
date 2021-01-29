@@ -109,9 +109,18 @@ func resourceMonitor() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
 									},
-									"value": {
-										Type:     schema.TypeFloat,
-										Optional: true,
+									"compare_value": {
+										Type:         schema.TypeFloat,
+										Optional:     true,
+										ExactlyOneOf: []string{"rule.0.count.0.compare_value", "rule.0.count.0.compare_values"},
+									},
+									"compare_values": {
+										Type:         schema.TypeList,
+										Optional:     true,
+										MinItems:     2,
+										MaxItems:     2,
+										Elem:         &schema.Schema{Type: schema.TypeFloat},
+										ExactlyOneOf: []string{"rule.0.count.0.compare_value", "rule.0.count.0.compare_values"},
 									},
 									"lookback_time": {
 										Type:             schema.TypeString,
@@ -146,18 +155,18 @@ func resourceMonitor() *schema.Resource {
 										Default:          "avg",
 										ValidateDiagFunc: validateEnums(observe.AggregateFunctions),
 									},
-									"value": {
+									"compare_value": {
 										Type:         schema.TypeFloat,
 										Optional:     true,
-										ExactlyOneOf: []string{"rule.0.change.0.value", "rule.0.change.0.values"},
+										ExactlyOneOf: []string{"rule.0.change.0.compare_value", "rule.0.change.0.compare_values"},
 									},
-									"values": {
+									"compare_values": {
 										Type:         schema.TypeList,
 										Optional:     true,
 										MinItems:     2,
 										MaxItems:     2,
 										Elem:         &schema.Schema{Type: schema.TypeFloat},
-										ExactlyOneOf: []string{"rule.0.change.0.value", "rule.0.change.0.values"},
+										ExactlyOneOf: []string{"rule.0.change.0.compare_value", "rule.0.change.0.compare_values"},
 									},
 									"lookback_time": {
 										Type:             schema.TypeString,
@@ -239,9 +248,9 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		fn := observe.CompareFunction(toCamel(v.(string)))
 		ruleConfig.CountRule.CompareFunction = &fn
 
-		if v, ok := data.GetOk("rule.0.count.0.value"); ok {
+		if v, ok := data.GetOk("rule.0.count.0.compare_value"); ok {
 			ruleConfig.CountRule.CompareValues = []float64{v.(float64)}
-		} else if v, ok := data.GetOk("rule.0.count.0.values"); ok {
+		} else if v, ok := data.GetOk("rule.0.count.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
 				ruleConfig.CountRule.CompareValues = append(ruleConfig.CountRule.CompareValues, i.(float64))
 			}
@@ -269,9 +278,9 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 			ruleConfig.ChangeRule.CompareFunction = &fn
 		}
 
-		if v, ok := data.GetOk("rule.0.change.0.value"); ok {
+		if v, ok := data.GetOk("rule.0.change.0.compare_value"); ok {
 			ruleConfig.ChangeRule.CompareValues = []float64{v.(float64)}
-		} else if v, ok := data.GetOk("rule.0.change.0.values"); ok {
+		} else if v, ok := data.GetOk("rule.0.change.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
 				ruleConfig.ChangeRule.CompareValues = append(ruleConfig.ChangeRule.CompareValues, i.(float64))
 			}
@@ -462,9 +471,9 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 
 		switch len(config.ChangeRule.CompareValues) {
 		case 1:
-			change["value"] = config.ChangeRule.CompareValues[0]
+			change["compare_value"] = config.ChangeRule.CompareValues[0]
 		case 2:
-			change["values"] = config.ChangeRule.CompareValues
+			change["compare_values"] = config.ChangeRule.CompareValues
 		}
 
 		rule["change"] = []interface{}{change}
@@ -478,9 +487,9 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 
 		switch len(config.CountRule.CompareValues) {
 		case 1:
-			count["value"] = config.CountRule.CompareValues[0]
+			count["compare_value"] = config.CountRule.CompareValues[0]
 		case 2:
-			count["values"] = config.CountRule.CompareValues
+			count["compare_values"] = config.CountRule.CompareValues
 		}
 
 		rule["count"] = []interface{}{count}
