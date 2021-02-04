@@ -43,16 +43,13 @@ func resourceSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// Note: source_update_table_name, batch_seq_field, and
-			// valid_from_field are required in terraform but optional in
-			// the SourceDatasetConfig struct.
 			"source_update_table_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"batch_seq_field": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"valid_from_field": {
 				Type:     schema.TypeString,
@@ -145,8 +142,10 @@ func newSourceDatasetConfig(data *schema.ResourceData) *observe.SourceDatasetCon
 
 	sourceUpdateTableFqn := data.Get("source_update_table_name").(string)
 	config.SourceUpdateTableName = &sourceUpdateTableFqn
-	batchSeqField := data.Get("batch_seq_field").(string)
-	config.BatchSeqField = &batchSeqField
+	if v, ok := data.GetOk("batch_seq_field"); ok {
+		s := v.(string)
+		config.BatchSeqField = &s
+	}
 	validFromField := data.Get("valid_from_field").(string)
 	config.ValidFromField = &validFromField
 
