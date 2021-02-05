@@ -1,3 +1,8 @@
+## 0.4.4 (2021-02-05)
+
+* observe_source_dataset: add IsInsertOnly field to SourceTable resource config
+* observe_source_dataset: make source table batch_seq_field optional
+
 ## 0.4.4 (2021-02-02)
 
 * observe_monitor: add support for facet
