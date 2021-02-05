@@ -47,13 +47,18 @@ func resourceSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"valid_from_field": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"batch_seq_field": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"valid_from_field": {
-				Type:     schema.TypeString,
-				Required: true,
+			"is_insert_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"field": &schema.Schema{
 				Type:     schema.TypeList,
@@ -142,12 +147,15 @@ func newSourceDatasetConfig(data *schema.ResourceData) *observe.SourceDatasetCon
 
 	sourceUpdateTableFqn := data.Get("source_update_table_name").(string)
 	config.SourceUpdateTableName = &sourceUpdateTableFqn
+	validFromField := data.Get("valid_from_field").(string)
+	config.ValidFromField = &validFromField
 	if v, ok := data.GetOk("batch_seq_field"); ok {
 		s := v.(string)
 		config.BatchSeqField = &s
 	}
-	validFromField := data.Get("valid_from_field").(string)
-	config.ValidFromField = &validFromField
+	if v, ok := data.GetOk("is_insert_only"); ok {
+		config.IsInsertOnly = v.(bool)
+	}
 
 	for i := range data.Get("field").([]interface{}) {
 		var field observe.SourceDatasetFieldConfig

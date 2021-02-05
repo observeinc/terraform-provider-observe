@@ -32,6 +32,7 @@ type SourceDatasetConfig struct {
 	SourceUpdateTableName *string `json:"source_update_table_name"`
 	ValidFromField        *string `json:"valid_from_field"`
 	BatchSeqField         *string `json:"batch_seq_field"`
+	IsInsertOnly          bool    `json:"isInsertOnly"`
 
 	// Fields configures both the dataset typedef and the sourceTable fields
 	Fields []SourceDatasetFieldConfig `json:"fields"`
@@ -66,8 +67,9 @@ func newSourceDataset(gqlDataset *meta.Dataset) (*SourceDataset, error) {
 			Schema:                gqlDataset.SourceTable.Schema,
 			TableName:             gqlDataset.SourceTable.TableName,
 			SourceUpdateTableName: gqlDataset.SourceTable.SourceUpdateTableName,
-			BatchSeqField:         gqlDataset.SourceTable.BatchSeqField,
 			ValidFromField:        gqlDataset.SourceTable.ValidFromField,
+			BatchSeqField:         gqlDataset.SourceTable.BatchSeqField,
+			IsInsertOnly:          gqlDataset.SourceTable.IsInsertOnly,
 			Description:           gqlDataset.Description,
 			IconURL:               gqlDataset.IconURL,
 			Freshness:             gqlDataset.FreshnessDesired,
@@ -153,6 +155,7 @@ func (c *SourceDatasetConfig) toGQL() (*meta.DatasetDefinitionInput, *meta.Sourc
 		SourceUpdateTableName: c.SourceUpdateTableName,
 		ValidFromField:        c.ValidFromField,
 		BatchSeqField:         c.BatchSeqField,
+		IsInsertOnly:          c.IsInsertOnly,
 	}
 
 	var datasetFields []meta.DatasetFieldDefInput

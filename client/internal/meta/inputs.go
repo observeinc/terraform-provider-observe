@@ -358,6 +358,7 @@ type SourceTableDefinitionInput struct {
 	Fields                []SourceTableFieldDefinitionInput `json:"fields"`
 	ValidFromField        *string                           `json:"validFromField,omitempty"`
 	BatchSeqField         *string                           `json:"batchSeqField,omitempty"`
+	IsInsertOnly          bool                              `json:"isInsertOnly"`
 	SourceUpdateTableName *string                           `json:"sourceUpdateTableName,omitempty"`
 }
 

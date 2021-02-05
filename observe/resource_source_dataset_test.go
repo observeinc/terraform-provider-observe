@@ -23,7 +23,6 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					schema = "EXTERNAL"
 					table_name = "TABLE_NAME"
 					source_update_table_name = "SOURCE_UPDATE_TABLE_NAME"
-					batch_seq_field = "BATCH_ID"
 					valid_from_field = "TIMESTAMP"
 					
 					field {
@@ -60,7 +59,6 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "schema", "EXTERNAL"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "table_name", "TABLE_NAME"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "source_update_table_name", "SOURCE_UPDATE_TABLE_NAME"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "batch_seq_field", "BATCH_ID"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "valid_from_field", "TIMESTAMP"),
 					resource.TestCheckNoResourceAttr("observe_source_dataset.first", "freshness"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.name", "BATCH_ID"),
@@ -80,6 +78,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					table_name = "TABLE_NAME2"
 					source_update_table_name = "SOURCE_UPDATE_TABLE_NAME2"
 					batch_seq_field = "BATCH_ID"
+					is_insert_only = true
 					valid_from_field = "TIMESTAMP"
 
 					field {
@@ -118,6 +117,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "table_name", "TABLE_NAME2"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "source_update_table_name", "SOURCE_UPDATE_TABLE_NAME2"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "batch_seq_field", "BATCH_ID"),
+					resource.TestCheckResourceAttr("observe_source_dataset.first", "is_insert_only", "true"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "valid_from_field", "TIMESTAMP"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.name", "BATCH_ID"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.type", "int64"),
