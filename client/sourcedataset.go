@@ -116,6 +116,7 @@ func newSourceDataset(gqlDataset *meta.Dataset) (*SourceDataset, error) {
 		}
 		fields = append(fields, fieldCfg)
 	}
+	eds.Config.Fields = fields
 
 	return eds, nil
 }

@@ -10,6 +10,50 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+var sourceDatasetFieldResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"type": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"sql_type": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"is_enum": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			// TODO(luke): Do not use DefaultFunc instead of Default.
+			// sourceDatasetToResourceData assumes that we are using Default.
+			Default: false,
+		},
+		"is_searchable": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"is_hidden": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"is_const": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"is_metric": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+	},
+}
+
 func resourceSourceDataset() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceSourceDatasetCreate,
@@ -61,50 +105,9 @@ func resourceSourceDataset() *schema.Resource {
 				Default:  false,
 			},
 			"field": &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 1,
+				Type:     schema.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"sql_type": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"is_enum": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"is_searchable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"is_hidden": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"is_const": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"is_metric": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
+				Elem:     sourceDatasetFieldResource,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -157,35 +160,31 @@ func newSourceDatasetConfig(data *schema.ResourceData) *observe.SourceDatasetCon
 		config.IsInsertOnly = v.(bool)
 	}
 
-	for i := range data.Get("field").([]interface{}) {
+	fields := data.Get("field").(*schema.Set)
+	for _, v := range fields.List() {
+		m := v.(map[string]interface{})
 		var field observe.SourceDatasetFieldConfig
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.name", i)); ok {
-			field.Name = v.(string)
-		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.type", i)); ok {
-			field.Type = v.(string)
-		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.sql_type", i)); ok {
-			field.SqlType = v.(string)
-		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.is_enum", i)); ok {
-			b := v.(bool)
+		field.Name = m["name"].(string)
+		field.Type = m["type"].(string)
+		field.SqlType = m["sql_type"].(string)
+		{
+			b := m["is_enum"].(bool)
 			field.IsEnum = &b
 		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.is_searchable", i)); ok {
-			b := v.(bool)
+		{
+			b := m["is_searchable"].(bool)
 			field.IsSearchable = &b
 		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.is_hidden", i)); ok {
-			b := v.(bool)
+		{
+			b := m["is_hidden"].(bool)
 			field.IsHidden = &b
 		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.is_const", i)); ok {
-			b := v.(bool)
+		{
+			b := m["is_const"].(bool)
 			field.IsConst = &b
 		}
-		if v, ok := data.GetOk(fmt.Sprintf("field.%d.is_metric", i)); ok {
-			b := v.(bool)
+		{
+			b := m["is_metric"].(bool)
 			field.IsMetric = &b
 		}
 
@@ -234,33 +233,49 @@ func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.Resource
 		}
 	}
 
+	if err := data.Set("is_insert_only", d.Config.IsInsertOnly); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if d.Config.ValidFromField != nil {
 		if err := data.Set("valid_from_field", d.Config.ValidFromField); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	fields := make([]interface{}, len(d.Config.Fields))
-	for i, field := range d.Config.Fields {
+	fields := schema.NewSet(schema.HashResource(sourceDatasetFieldResource), nil)
+	for _, field := range d.Config.Fields {
 		f := map[string]interface{}{
-			"name":     field.Name,
-			"type":     field.Type,
-			"sql_type": field.SqlType,
-		}
-		if field.IsEnum != nil {
-			f["is_enum"] = field.IsEnum
-		}
-		if field.IsHidden != nil {
-			f["is_hidden"] = field.IsHidden
-		}
-		if field.IsConst != nil {
-			f["is_const"] = field.IsConst
-		}
-		if field.IsMetric != nil {
-			f["is_metric"] = field.IsMetric
+			"name":          field.Name,
+			"type":          field.Type,
+			"sql_type":      field.SqlType,
+			"is_enum":       sourceDatasetFieldResource.Schema["is_enum"].Default,
+			"is_searchable": sourceDatasetFieldResource.Schema["is_searchable"].Default,
+			"is_hidden":     sourceDatasetFieldResource.Schema["is_hidden"].Default,
+			"is_const":      sourceDatasetFieldResource.Schema["is_const"].Default,
+			"is_metric":     sourceDatasetFieldResource.Schema["is_metric"].Default,
 		}
 
-		fields[i] = f
+		if field.IsEnum != nil {
+			f["is_enum"] = *field.IsEnum
+		}
+		if field.IsSearchable != nil {
+			f["is_searchable"] = *field.IsSearchable
+		}
+		if field.IsHidden != nil {
+			f["is_hidden"] = *field.IsHidden
+		}
+		if field.IsConst != nil {
+			f["is_const"] = *field.IsConst
+		}
+		if field.IsMetric != nil {
+			f["is_metric"] = *field.IsMetric
+		}
+
+		fields.Add(f)
+	}
+	if err := data.Set("field", fields); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if d.Config.Freshness != nil {

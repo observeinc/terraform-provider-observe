@@ -46,6 +46,7 @@ var (
 			schema
 			tableName
 			sourceUpdateTableName
+			isInsertOnly
 			batchSeqField
 			validFromField
 			fields {

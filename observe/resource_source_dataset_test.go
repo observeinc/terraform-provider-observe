@@ -41,7 +41,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 						type = "string"
 						sql_type = "TEXT"
 						is_enum = true
-						is_searchable = true
+						is_searchable = false
 						is_hidden = false
 						is_const = false
 						is_metric = false
@@ -51,7 +51,6 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 						type = "any"
 						sql_type = "VARIANT"
 					}
-
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_source_dataset.first", "workspace"),
@@ -61,10 +60,27 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "source_update_table_name", "SOURCE_UPDATE_TABLE_NAME"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "valid_from_field", "TIMESTAMP"),
 					resource.TestCheckNoResourceAttr("observe_source_dataset.first", "freshness"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.name", "BATCH_ID"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.type", "int64"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.sql_type", "NUMBER(38,0)"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.is_hidden", "true"),
+					// TODO(luke): enable these when terraform-plugin-sdk is upgraded
+					// resource.TestCheckTypeSetElemNestedAttrs("observe_source_dataset.first", "field.*", map[string]string{
+					// 	"name":          "BATCH_ID",
+					// 	"type":          "int64",
+					// 	"sql_type":      "NUMBER(38,0)",
+					// 	"is_hidden":     "true",
+					// 	"is_enum":       "false",
+					// 	"is_searchable": "false",
+					// 	"is_const":      "false",
+					// 	"is_metric":     "false",
+					// }),
+					// resource.TestCheckTypeSetElemNestedAttrs("observe_source_dataset.first", "field.*", map[string]string{
+					// 	"name":          "LOG",
+					// 	"type":          "string",
+					// 	"sql_type":      "TEXT",
+					// 	"is_hidden":     "false",
+					// 	"is_enum":       "true",
+					// 	"is_searchable": "false",
+					// 	"is_const":      "false",
+					// 	"is_metric":     "false",
+					// }),
 				),
 			},
 			{
@@ -119,14 +135,33 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "batch_seq_field", "BATCH_ID"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "is_insert_only", "true"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "valid_from_field", "TIMESTAMP"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.name", "BATCH_ID"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.type", "int64"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.sql_type", "NUMBER(38,0)"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.0.is_hidden", "true"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.4.name", "NEWFIELD"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.4.type", "object"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.4.sql_type", "OBJECT"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "field.4.is_hidden", "false"),
+					// TODO(luke): enable these when terraform-plugin-sdk is upgraded
+					// resource.TestCheckTypeSetElemNestedAttrs("observe_source_dataset.first", "field.*", map[string]string{
+					// 	"name":          "BATCH_ID",
+					// 	"type":          "int64",
+					// 	"sql_type":      "NUMBER(38,0)",
+					// 	"is_hidden":     "true",
+					// 	"is_enum":       "false",
+					// 	"is_searchable": "false",
+					// 	"is_const":      "false",
+					// 	"is_metric":     "false",
+					// }),
+					// resource.TestCheckTypeSetElemNestedAttrs("observe_source_dataset.first", "field.*", map[string]string{
+					// 	"name":          "LOG",
+					// 	"type":          "string",
+					// 	"sql_type":      "TEXT",
+					// 	"is_hidden":     "false",
+					// 	"is_enum":       "false",
+					// 	"is_searchable": "true",
+					// 	"is_const":      "false",
+					// 	"is_metric":     "false",
+					// }),
+					// resource.TestCheckTypeSetElemNestedAttrs("observe_source_dataset.first", "field.*", map[string]string{
+					// 	"name":      "NEWFIELD",
+					// 	"type":      "object",
+					// 	"sql_type":  "OBJECT",
+					// 	"is_hidden": "false",
+					// }),
 				),
 			},
 		},
