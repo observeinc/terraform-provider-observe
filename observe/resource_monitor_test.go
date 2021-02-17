@@ -182,7 +182,7 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 							facet_function = "equals"
 							facet_values   = ["OBSERVATION_KIND"]
 							time_function  = "at_least_percentage_time"
-							time_value     = 55.5
+							time_value     = 0.555
 							lookback_time  = "1m"
 						}
 					}
@@ -195,7 +195,7 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_function", "equals"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_values.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_function", "at_least_percentage_time"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_value", "55.5"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_value", "0.555"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.lookback_time", "1m0s"),
 				),
 			},
