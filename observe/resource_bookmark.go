@@ -128,7 +128,7 @@ func resourceBookmarkRead(ctx context.Context, data *schema.ResourceData, meta i
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),
+			Summary:  fmt.Sprintf("failed to retrieve bookmark [id=%s]", data.Id()),
 			Detail:   err.Error(),
 		})
 	}
@@ -159,7 +159,7 @@ func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta
 func resourceBookmarkDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteBookmark(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete dataset: %s", err)
+		return diag.Errorf("failed to delete bookmark: %s", err)
 	}
 	return diags
 }
