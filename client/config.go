@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/hashstructure"
@@ -16,6 +17,7 @@ var (
 	ErrTokenEmail           = errors.New("token and user email are mutually exclusive")
 	ErrMissingPassword      = errors.New("password must be set when user email is provided")
 	ErrMissingRetryDuration = errors.New("retry duration must be larger than 0")
+	ErrMalformedSource      = errors.New("source identifier must follow \"category/comment\" format")
 )
 
 // Config contains all configuration attributes for our client.
@@ -43,6 +45,9 @@ type Config struct {
 
 	HTTPClientTimeout time.Duration `json:"http_timeout"`
 	Flags             map[string]bool
+
+	// optional source identifier when managing Observe resources
+	Source *string `json:"source"`
 }
 
 func (c *Config) Hash() uint64 {
@@ -78,6 +83,10 @@ func (c *Config) Validate() error {
 
 	if c.RetryCount > 0 && c.RetryWait == time.Duration(0) {
 		return ErrMissingRetryDuration
+	}
+
+	if c.Source != nil && !strings.Contains(*c.Source, "/") {
+		return ErrMalformedSource
 	}
 
 	return nil

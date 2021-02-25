@@ -32,6 +32,7 @@ type Dataset struct {
 	PathCost         *int64         `json:"pathCost"`
 	Transform        *Transform     `json:"transform"`
 	SourceTable      *SourceTable   `json:"sourceTable"`
+	Source           *string        `json:"source"`
 	ForeignKeys      []ForeignKey   `json:"foreignKeys"`
 }
 

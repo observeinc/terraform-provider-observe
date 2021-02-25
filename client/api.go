@@ -30,6 +30,11 @@ func (c *Client) CreateDataset(ctx context.Context, workspaceId string, config *
 	if err != nil {
 		return nil, err
 	}
+
+	if c.Config.Source != nil {
+		datasetInput.Source = c.Config.Source
+	}
+
 	result, err := c.Meta.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
 	if err != nil {
 		return nil, err
@@ -46,6 +51,10 @@ func (c *Client) UpdateDataset(ctx context.Context, workspaceId string, id strin
 	datasetInput, transformInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
+	}
+
+	if c.Config.Source != nil {
+		datasetInput.Source = c.Config.Source
 	}
 
 	datasetInput.ID = toObjectPointer(&id)

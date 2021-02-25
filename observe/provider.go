@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 var (
 	flagCacheClient = "cache-client"
+	tfSourceFormat  = "terraform/%s"
 )
 
 // Provider returns observe terraform provider
@@ -93,6 +95,11 @@ func Provider() *schema.Provider {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      "HTTP client timeout",
+			},
+			"source_comment": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Source identifier comment. If null, fallback to user_email",
 			},
 		},
 
@@ -185,6 +192,14 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 				Summary:  "Insecure API session",
 			})
 		}
+
+		s := fmt.Sprintf(tfSourceFormat, "")
+		if v, ok := data.GetOk("source_comment"); ok {
+			s = fmt.Sprintf(tfSourceFormat, v)
+		} else if config.UserEmail != nil {
+			s = fmt.Sprintf(tfSourceFormat, *config.UserEmail)
+		}
+		config.Source = &s
 
 		// by omission, cache client
 		useCache := true

@@ -15,6 +15,7 @@ var (
 		iconUrl
 		version
 		pathCost
+		source
 		foreignKeys {
 			label
 			targetDataset
