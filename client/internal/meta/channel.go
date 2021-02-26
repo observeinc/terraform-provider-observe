@@ -82,7 +82,6 @@ func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelIn
 
 	var ch Channel
 	if err = decodeStrict(getNested(result, "updateChannel"), &ch); err != nil {
-		panic(err)
 		return nil, err
 	}
 
