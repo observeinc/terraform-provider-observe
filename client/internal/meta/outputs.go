@@ -332,3 +332,12 @@ type SourceTableFieldDefinition struct {
 	Name    string `json:"name"`
 	SqlType string `json:"sqlType"`
 }
+
+type Board struct {
+	ID        ObjectIdScalar `json:"id"`
+	Name      string         `json:"name"`
+	DatasetID ObjectIdScalar `json:"datasetId"`
+	IsDefault bool           `json:"isDefault"`
+	Board     interface{}    `json:"board"`
+	Type      BoardType      `json:"type"`
+}

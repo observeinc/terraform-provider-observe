@@ -397,3 +397,25 @@ const (
 func (fn TimeFunction) String() string {
 	return string(fn)
 }
+
+type BoardInput struct {
+	Name      *string `json:"name"`
+	IsDefault *bool   `json:"isDefault,omitempty"`
+	Board     *string `json:"board"`
+}
+
+type BoardType string
+
+const (
+	BoardTypeSet       BoardType = "Set"
+	BoardTypeSingleton BoardType = "Singleton"
+)
+
+var AllBoardType = []BoardType{
+	BoardTypeSet,
+	BoardTypeSingleton,
+}
+
+func (e BoardType) String() string {
+	return string(e)
+}

@@ -21,6 +21,7 @@ const (
 	TypeChannelAction      = "channelaction"
 	TypeChannel            = "channel"
 	TypeMonitor            = "monitor"
+	TypeBoard              = "board"
 )
 
 func (t Type) IsValid() bool {

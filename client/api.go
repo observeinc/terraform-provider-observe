@@ -502,3 +502,43 @@ func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
 	}
 	return newMonitor(result)
 }
+
+// CreateBoard creates a board
+func (c *Client) CreateBoard(ctx context.Context, dataset *OID, boardType BoardType, config *BoardConfig) (*Board, error) {
+	boardInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.CreateBoard(ctx, dataset.ID, boardType, boardInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBoard(result)
+}
+
+// UpdateBoard updates a board
+func (c *Client) UpdateBoard(ctx context.Context, id string, config *BoardConfig) (*Board, error) {
+	boardInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.UpdateBoard(ctx, id, boardInput)
+	if err != nil {
+		return nil, err
+	}
+	return newBoard(result)
+}
+
+// DeleteBoard
+func (c *Client) DeleteBoard(ctx context.Context, id string) error {
+	return c.Meta.DeleteBoard(ctx, id)
+}
+
+// GetBoard returns board by ID
+func (c *Client) GetBoard(ctx context.Context, id string) (*Board, error) {
+	result, err := c.Meta.GetBoard(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newBoard(result)
+}
