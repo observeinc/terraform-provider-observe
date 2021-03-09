@@ -46,15 +46,41 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 					}
 
-					data "observe_dataset" "a" {
+					data "observe_dataset" "lookup_by_name" {
 						workspace  = data.observe_workspace.kubernetes.oid
 						name       = observe_dataset.a.name
 						depends_on = [observe_dataset.a]
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.observe_dataset.a", "name", randomPrefix),
-					resource.TestCheckResourceAttr("data.observe_dataset.a", "stage.0.pipeline", "filter false\n"),
+					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_name", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_name", "stage.0.pipeline", "filter false\n"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+						resource "observe_dataset" "a" {
+							workspace = data.observe_workspace.kubernetes.oid
+							name      = "%[1]s"
+
+							inputs = { "observation" = data.observe_dataset.observation.oid }
+
+							stage {
+								pipeline = <<-EOF
+									filter false
+								EOF
+							}
+						}
+
+						data "observe_dataset" "lookup_by_id" {
+							workspace  = data.observe_workspace.kubernetes.oid
+							id         = observe_dataset.a.id
+							depends_on = [observe_dataset.a]
+						}
+					`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\n"),
 				),
 			},
 		},

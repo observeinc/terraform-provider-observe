@@ -20,8 +20,14 @@ func dataSourceDataset() *schema.Resource {
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				ExactlyOneOf: []string{"name", "id"},
+				Optional:     true,
+			},
+			"id": {
+				Type:         schema.TypeString,
+				ExactlyOneOf: []string{"name", "id"},
+				Optional:     true,
 			},
 			// computed values
 			"oid": {
@@ -79,20 +85,28 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	var (
 		client = meta.(*observe.Client)
 		name   = data.Get("name").(string)
+		id     = data.Get("id").(string)
 	)
-
-	defer func() {
-		// right now SDK does not report where this error happened,
-		// so we need to provide a little extra context
-		for i := range diags {
-			diags[i].Detail = fmt.Sprintf("Failed to read dataset %q", name)
-		}
-		return
-	}()
 
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
 
-	d, err := client.LookupDataset(ctx, oid.ID, name)
+	var d *observe.Dataset
+	var err error
+
+	if id != "" {
+		d, err = client.GetDataset(ctx, id)
+	} else if name != "" {
+		defer func() {
+			// right now SDK does not report where this error happened,
+			// so we need to provide a little extra context
+			for i := range diags {
+				diags[i].Detail = fmt.Sprintf("Failed to read dataset %q", name)
+			}
+			return
+		}()
+
+		d, err = client.LookupDataset(ctx, oid.ID, name)
+	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
