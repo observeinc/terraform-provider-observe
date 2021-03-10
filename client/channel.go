@@ -33,14 +33,17 @@ func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, []string, er
 	}
 
 	// need to convert from OID to regular ID
-	var actions []string
-	for _, v := range config.Actions {
-		actions = append(actions, v.ID)
+
+	// actions must never be nil, otherwise we will never clear value in the
+	// case where we no longer are subscribed to any
+	actions := make([]string, len(config.Actions))
+	for i, v := range config.Actions {
+		actions[i] = v.ID
 	}
 
-	var monitors []string
-	for _, v := range config.Monitors {
-		monitors = append(monitors, v.ID)
+	monitors := make([]string, len(config.Monitors))
+	for i, v := range config.Monitors {
+		monitors[i] = v.ID
 	}
 
 	return channelInput, actions, monitors, nil
