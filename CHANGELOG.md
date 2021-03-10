@@ -1,3 +1,12 @@
+## 0.4.7 (2021-03-10)
+
+observe_channel: marshal empty slice
+client: add source identifier
+observe_dataset: allow lookup by ID
+internal: remove test panic
+bookmark: fix error message
+observe_board: first pass
+
 ## 0.4.6 (2021-02-19)
 
 * observe_source_dataset: bugfix
