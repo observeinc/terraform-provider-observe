@@ -61,7 +61,7 @@ func newDataset(gqlDataset *meta.Dataset) (d *Dataset, err error) {
 	d = &Dataset{
 		ID:          gqlDataset.ID.String(),
 		WorkspaceID: gqlDataset.WorkspaceId.String(),
-		Version:     gqlDataset.Version,
+		Version:     gqlDataset.LastSaved,
 		Config: &DatasetConfig{
 			Name:        gqlDataset.Label,
 			Description: gqlDataset.Description,

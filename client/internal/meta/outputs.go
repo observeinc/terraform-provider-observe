@@ -34,6 +34,7 @@ type Dataset struct {
 	SourceTable      *SourceTable   `json:"sourceTable"`
 	Source           *string        `json:"source"`
 	ForeignKeys      []ForeignKey   `json:"foreignKeys"`
+	LastSaved        string         `json:"lastSaved"`
 }
 
 func (d *Dataset) Decode(v interface{}) error {

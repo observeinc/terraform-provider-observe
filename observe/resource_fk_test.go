@@ -62,21 +62,6 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_fk.example", "fields.0", "key"),
 					resource.TestCheckResourceAttr("observe_fk.example", "label", randomPrefix),
 				),
-				// We need to apply twice, since the first apply of observe_fk
-				// will update the source and target dataset versions
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				// Reapply to converge to newer dataset versions
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
-					source    = observe_dataset.a.oid
-					target    = observe_dataset.b.oid
-					fields    = ["key:key"]
-					label     = "%[1]s"
-				}
-				`, randomPrefix),
 			},
 			{
 				// if source and target column name in a field is the same, we can elide target
@@ -155,7 +140,6 @@ func TestAccOBS2432(t *testing.T) {
 					depends_on = [observe_fk.example]
 				}
 				`, randomPrefix),
-				ExpectNonEmptyPlan: true,
 			},
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
@@ -238,7 +222,7 @@ func TestAccOBS2110(t *testing.T) {
 					depends_on = [observe_fk.second]
 				}
 				`, randomPrefix),
-				ExpectNonEmptyPlan: true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -259,8 +243,7 @@ func TestLinkSuppression(t *testing.T) {
 	 * cycle will repeat itself, and our infrastructure will never converge to
 	 * the intended state.
 	 *
-	 * Our current workaround is to ignore dataset version when determining
-	 * whether we need to reapply a link.
+	 * We currently avoid this by using `lastSaved` timestamp instead of `version`
 	 */
 	config := fmt.Sprintf(fkConfigPreamble+`
 		resource "observe_dataset" "c" {
@@ -298,13 +281,7 @@ func TestLinkSuppression(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				// first time round, all datasets will have version increment
-				// increment in A will force recomputation of B and C
-				ExpectNonEmptyPlan: true,
-				Config:             config,
-			},
-			{
-				// on second apply, things should converge
+				// expect to converge on first pass.
 				ExpectNonEmptyPlan: false,
 				Config:             config,
 			},

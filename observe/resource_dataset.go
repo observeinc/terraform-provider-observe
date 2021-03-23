@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -297,4 +298,25 @@ func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta 
 		return diag.Errorf("failed to delete dataset: %s", err)
 	}
 	return diags
+}
+
+func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
+	if old == new {
+		return true
+	}
+
+	oldOID, err := observe.NewOID(old)
+	if err != nil {
+		log.Printf("[WARN] could not convert old %s %q to OID: %s\n", k, old, err)
+		return false
+	}
+
+	newOID, err := observe.NewOID(new)
+	if err != nil {
+		log.Printf("[WARN] could not convert new %s %q to OID: %s\n", k, new, err)
+		return false
+	}
+
+	// ignore version
+	return oldOID.Type == newOID.Type && oldOID.ID == newOID.ID
 }

@@ -14,6 +14,7 @@ var (
 		description
 		iconUrl
 		version
+		lastSaved
 		pathCost
 		source
 		foreignKeys {
