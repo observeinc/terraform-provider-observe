@@ -80,6 +80,10 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
+.PHONY: docs
+docs:
+	tfplugindocs generate
+
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."

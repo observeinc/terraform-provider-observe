@@ -12,8 +12,28 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+const (
+	schemaDatasetWorkspaceDescription   = "OID of workspace dataset is contained in."
+	schemaDatasetNameDescription        = "Dataset name. Must be unique within workspace."
+	schemaDatasetDescriptionDescription = "Dataset description."
+	schemaDatasetIconDescription        = "Icon image."
+	schemaDatasetPathCostDescription    = "Path cost is used to weigh graph link computation."
+	schemaDatasetOIDDescription         = "The Observe ID for dataset."
+	schemaDatasetFreshnessDescription   = "Target freshness for dataset. This impacts how frequently the dataset query will be run."
+	schemaDatasetInputsDescription      = "The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines."
+
+	schemaDatasetStageDescription = "Each stage processes an input according to the provided pipeline. " +
+		"If no input is provided, a stage will implicitly follow on from the result of its predecessor."
+	schemaDatasetStageAliasDescription = "The stage alias is the label by which subsequent stages can refer to the results of this stage."
+	schemaDatasetStageInputDescription = "The stage input defines what input should be used as a starting point for the stage pipeline. " +
+		"It must refer to a label contained in `inputs`, or a previous stage `alias`. " +
+		"The stage input can be omitted if a dataset has a single input."
+	schemaDatasetStagePipelineDescription = "An OPAL snippet defining a transformation on the selected input."
+)
+
 func resourceDataset() *schema.Resource {
 	return &schema.Resource{
+		Description:   "An description",
 		CreateContext: resourceDatasetCreate,
 		ReadContext:   resourceDatasetRead,
 		UpdateContext: resourceDatasetUpdate,
@@ -32,42 +52,51 @@ func resourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: schemaDatasetNameDescription,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: schemaDatasetDescriptionDescription,
 			},
 			"icon_url": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: schemaDatasetIconDescription,
 			},
 			"path_cost": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: schemaDatasetPathCostDescription,
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetOIDDescription,
 			},
 			"freshness": &schema.Schema{
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
+				Description:      schemaDatasetFreshnessDescription,
 			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
+				Description:      schemaDatasetInputsDescription,
 			},
 			"stage": &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Required: true,
+				Type:        schema.TypeList,
+				MinItems:    1,
+				Required:    true,
+				Description: schemaDatasetStageDescription,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
@@ -78,14 +107,17 @@ func resourceDataset() *schema.Resource {
 								stage := d.Get("stage").([]interface{})
 								return k == fmt.Sprintf("stage.%d.alias", len(stage)-1)
 							},
+							Description: schemaDatasetStageAliasDescription,
 						},
 						"input": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: schemaDatasetStageInputDescription,
 						},
 						"pipeline": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: schemaDatasetStagePipelineDescription,
 						},
 					},
 				},

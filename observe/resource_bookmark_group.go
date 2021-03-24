@@ -10,6 +10,14 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+const (
+	schemaBookmarkGroupOIDDescription          = "Observe ID of the bookmark group."
+	schemaBookmarkGroupWorkspaceDescription    = "OID of workspace bookmark group belongs to."
+	schemaBookmarkGroupNameDescription         = "Name of bookmark group."
+	schemaBookmarkGroupIconDescription         = "Icon used when presenting bookmark group."
+	schemaBookmarkGroupPresentationDescription = ""
+)
+
 func resourceBookmarkGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceBookmarkGroupCreate,
@@ -21,22 +29,26 @@ func resourceBookmarkGroup() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaBookmarkGroupOIDDescription,
 			},
 			"workspace": &schema.Schema{
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				Description:      schemaBookmarkGroupWorkspaceDescription,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: schemaBookmarkGroupNameDescription,
 			},
 			"icon_url": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: schemaBookmarkGroupIconDescription,
 			},
 			"presentation": {
 				Type: schema.TypeString,
@@ -44,8 +56,9 @@ func resourceBookmarkGroup() *schema.Resource {
 					"PerUserWorkspace",
 					"PerCustomerWorkspace",
 				}, false),
-				Default:  "PerCustomerWorkspace",
-				Optional: true,
+				Default:     "PerCustomerWorkspace",
+				Optional:    true,
+				Description: schemaBookmarkGroupPresentationDescription,
 			},
 		},
 	}

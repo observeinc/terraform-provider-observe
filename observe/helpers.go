@@ -222,9 +222,7 @@ var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
-// take list of stringers which represent camel cased enums, compare
-// against a snake case input
-func validateEnums(stringerSlice interface{}) schema.SchemaValidateDiagFunc {
+func snakeCased(stringerSlice interface{}) []string {
 	var snakeCased []string
 
 	switch reflect.TypeOf(stringerSlice).Kind() {
@@ -237,7 +235,18 @@ func validateEnums(stringerSlice interface{}) schema.SchemaValidateDiagFunc {
 	default:
 		panic("validateEnums only accepts slice of stringers")
 	}
-	return validateStringInSlice(snakeCased, true)
+
+	return snakeCased
+}
+
+// take list of stringers which represent camel cased enums, compare
+// against a snake case input
+func validateEnums(stringerSlice interface{}) schema.SchemaValidateDiagFunc {
+	return validateStringInSlice(snakeCased(stringerSlice), true)
+}
+
+func describeEnums(stringerSlice interface{}, desc string) string {
+	return fmt.Sprintf("%s Accepted values: %s", desc, strings.Join(snakeCased(stringerSlice), ", "))
 }
 
 // convert to snake case

@@ -10,6 +10,16 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+const (
+	schemaLinkWorkspaceDescription = "OID of workspace link is contained in."
+	schemaLinkSourceDescription    = "OID of source dataset."
+	schemaLinkTargetDescription    = "OID of target dataset."
+	schemaLinkFieldsDescription    = "Array of field mappings that provides a link between source and target datasets. " +
+		"A mapping between a `source_field` and a `target_field` is represented using a colon separated \"<source_field>:<target_field>\" format. " +
+		"If the source and target field share the same name, only \"<source_field>\"."
+	schemaLinkLabelDescription = "Label describing link."
+)
+
 func resourceForeignKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceForeignKeyCreate,
@@ -26,27 +36,32 @@ func resourceForeignKey() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				Description:      schemaLinkWorkspaceDescription,
 			},
 			"source": &schema.Schema{
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				Description:      schemaLinkSourceDescription,
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				Description:      schemaLinkTargetDescription,
 			},
 			"fields": {
 				Type:             schema.TypeList,
 				Required:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				DiffSuppressFunc: diffSuppressFields,
+				Description:      schemaLinkFieldsDescription,
 			},
 			"label": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: schemaLinkLabelDescription,
 			},
 		},
 	}

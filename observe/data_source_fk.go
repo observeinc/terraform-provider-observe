@@ -18,17 +18,20 @@ func dataSourceForeignKey() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				Description:      schemaLinkSourceDescription,
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				Description:      schemaLinkTargetDescription,
 			},
 			"fields": {
 				Type:             schema.TypeList,
 				Required:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				DiffSuppressFunc: diffSuppressFields,
+				Description:      schemaLinkFieldsDescription,
 			},
 		},
 	}

@@ -10,6 +10,14 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+const (
+	schemaBoardOIDDescription     = "Observe ID of Board."
+	schemaBoardDatasetDescription = "OID of Dataset for which board is defined."
+	schemaBoardTypeDescription    = "Type of board."
+	schemaBoardNameDescription    = "Board name."
+	schemaBoardJSONDescription    = "JSON representation of board contents."
+)
+
 func resourceBoard() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceBoardCreate,
@@ -21,8 +29,9 @@ func resourceBoard() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaBoardOIDDescription,
 			},
 			"dataset": &schema.Schema{
 				Type:             schema.TypeString,
@@ -30,21 +39,25 @@ func resourceBoard() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeDataset),
 				DiffSuppressFunc: diffSuppressVersion,
+				Description:      schemaBoardDatasetDescription,
 			},
 			"type": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(observe.BoardTypes),
+				Description:      describeEnums(observe.BoardTypes, schemaBoardTypeDescription),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: schemaBoardNameDescription,
 			},
 			"json": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateStringIsJSON,
+				Description:      schemaBoardJSONDescription,
 			},
 		},
 	}

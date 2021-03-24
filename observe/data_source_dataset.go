@@ -12,67 +12,79 @@ import (
 func dataSourceDataset() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceDatasetRead,
-
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description:  schemaDatasetNameDescription,
 			},
 			"id": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description:  "Dataset ID. Either `name` or `id` must be provided.",
 			},
 			// computed values
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetOIDDescription,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetDescriptionDescription,
 			},
 			"icon_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetIconDescription,
 			},
 			"path_cost": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: schemaDatasetPathCostDescription,
 			},
 			"freshness": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetFreshnessDescription,
 			},
 			"inputs": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Description: schemaDatasetInputsDescription,
 			},
 			"stage": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				// we need to declare optional, otherwise we won't get block
 				// formatting in state
-				Optional: true,
+				Optional:    true,
+				Description: schemaDatasetStageDescription,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: schemaDatasetStageAliasDescription,
 						},
 						"input": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: schemaDatasetStageInputDescription,
 						},
 						"pipeline": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: schemaDatasetStagePipelineDescription,
 						},
 					},
 				},
