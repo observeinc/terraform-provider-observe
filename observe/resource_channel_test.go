@@ -50,7 +50,7 @@ var (
 
 				    count {
 				      compare_function   = "greater_or_equal"
-				      compare_value      = 100
+				      compare_values     = [100]
 					  lookback_time      = "1m"
 				    }
 				  }

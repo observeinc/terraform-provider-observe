@@ -111,17 +111,18 @@ func resourceMonitor() *schema.Resource {
 										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
 									},
 									"compare_value": {
-										Type:         schema.TypeFloat,
-										Optional:     true,
-										ExactlyOneOf: []string{"rule.0.count.0.compare_value", "rule.0.count.0.compare_values"},
+										Type:     schema.TypeFloat,
+										Optional: true,
+										// relax restriction during phase out
+										// ExactlyOneOf: []string{"rule.0.count.0.compare_value", "rule.0.count.0.compare_values"},
+										Deprecated: "Use compare_values instead",
 									},
 									"compare_values": {
-										Type:         schema.TypeList,
-										Optional:     true,
-										MinItems:     2,
-										MaxItems:     2,
-										Elem:         &schema.Schema{Type: schema.TypeFloat},
-										ExactlyOneOf: []string{"rule.0.count.0.compare_value", "rule.0.count.0.compare_values"},
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 2,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
 									},
 									"lookback_time": {
 										Type:             schema.TypeString,
@@ -157,17 +158,18 @@ func resourceMonitor() *schema.Resource {
 										ValidateDiagFunc: validateEnums(observe.AggregateFunctions),
 									},
 									"compare_value": {
-										Type:         schema.TypeFloat,
-										Optional:     true,
-										ExactlyOneOf: []string{"rule.0.change.0.compare_value", "rule.0.change.0.compare_values"},
+										Type:     schema.TypeFloat,
+										Optional: true,
+										// relax restriction during phase out
+										//ExactlyOneOf: []string{"rule.0.change.0.compare_value", "rule.0.change.0.compare_values"},
+										Deprecated: "Use compare_values instead",
 									},
 									"compare_values": {
-										Type:         schema.TypeList,
-										Optional:     true,
-										MinItems:     2,
-										MaxItems:     2,
-										Elem:         &schema.Schema{Type: schema.TypeFloat},
-										ExactlyOneOf: []string{"rule.0.change.0.compare_value", "rule.0.change.0.compare_values"},
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 2,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
 									},
 									"lookback_time": {
 										Type:             schema.TypeString,
@@ -285,6 +287,7 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		fn := observe.CompareFunction(toCamel(v.(string)))
 		ruleConfig.CountRule.CompareFunction = &fn
 
+		// TODO: remove compare_value
 		if v, ok := data.GetOk("rule.0.count.0.compare_value"); ok {
 			ruleConfig.CountRule.CompareValues = []float64{v.(float64)}
 		} else if v, ok := data.GetOk("rule.0.count.0.compare_values"); ok {
@@ -315,6 +318,7 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 			ruleConfig.ChangeRule.CompareFunction = &fn
 		}
 
+		// TODO: remove compare_value
 		if v, ok := data.GetOk("rule.0.change.0.compare_value"); ok {
 			ruleConfig.ChangeRule.CompareValues = []float64{v.(float64)}
 		} else if v, ok := data.GetOk("rule.0.change.0.compare_values"); ok {
@@ -534,15 +538,9 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 			"change_type":        toSnake(config.ChangeRule.ChangeType.String()),
 			"aggregate_function": toSnake(config.ChangeRule.AggregateFunction.String()),
 			"compare_function":   toSnake(config.ChangeRule.CompareFunction.String()),
+			"compare_values":     config.ChangeRule.CompareValues,
 			"lookback_time":      config.ChangeRule.LookbackTime.String(),
 			"baseline_time":      config.ChangeRule.BaselineTime.String(),
-		}
-
-		switch len(config.ChangeRule.CompareValues) {
-		case 1:
-			change["compare_value"] = config.ChangeRule.CompareValues[0]
-		case 2:
-			change["compare_values"] = config.ChangeRule.CompareValues
 		}
 
 		rule["change"] = []interface{}{change}
@@ -551,14 +549,8 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 	if config.CountRule != nil {
 		count := map[string]interface{}{
 			"compare_function": toSnake(config.CountRule.CompareFunction.String()),
+			"compare_values":   config.CountRule.CompareValues,
 			"lookback_time":    config.CountRule.LookbackTime.String(),
-		}
-
-		switch len(config.CountRule.CompareValues) {
-		case 1:
-			count["compare_value"] = config.CountRule.CompareValues[0]
-		case 2:
-			count["compare_values"] = config.CountRule.CompareValues
 		}
 
 		rule["count"] = []interface{}{count}
