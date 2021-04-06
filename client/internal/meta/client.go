@@ -1,36 +1,85 @@
 package meta
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/machinebox/graphql"
 )
 
 // Client implements our customer GQL API
 type Client struct {
-	gqlClient *graphql.Client
+	*http.Client
+	endpoint string
+}
+
+type graphErr struct {
+	Message string
+}
+
+func (e graphErr) Error() string {
+	return "graphql: " + e.Message
+}
+
+type graphResponse struct {
+	Data   interface{}
+	Errors []graphErr
+}
+
+type graphRequest struct {
+	Query     string                 `json:"query"`
+	Variables map[string]interface{} `json:"variables"`
 }
 
 // Run raw GraphQL query against metadata endpoint
-func (c *Client) Run(ctx context.Context, reqBody string, vars map[string]interface{}) (map[string]interface{}, error) {
-	req := graphql.NewRequest(reqBody)
-	for k, v := range vars {
-		req.Var(k, v)
+func (c *Client) Run(ctx context.Context, query string, vars map[string]interface{}) (map[string]interface{}, error) {
+	var requestBody bytes.Buffer
+
+	err := json.NewEncoder(&requestBody).Encode(map[string]interface{}{
+		"query":     query,
+		"variables": vars,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error encoding body: %w", err)
 	}
 
-	var result map[string]interface{}
-	err := c.gqlClient.Run(ctx, req, &result)
-	return result, err
-}
-
-// TODO: move this to "get user id" or something
-func (c *Client) Verify() error {
-	if _, err := c.Run(context.Background(), `{ currentUser { id } }`, nil); err != nil {
-		return err
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, &requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
 	}
-	return nil
+
+	r.Header.Set("Content-Type", "application/json; charset=utf-8")
+	r.Header.Set("Accept", "application/json; charset=utf-8")
+
+	res, err := c.Do(r)
+	if err != nil {
+		return nil, fmt.Errorf("error processing request: %w", err)
+	}
+	defer res.Body.Close()
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, res.Body); err != nil {
+		return nil, fmt.Errorf("error reading body: %w", err)
+	}
+
+	var v map[string]interface{}
+	gr := &graphResponse{
+		Data: &v,
+	}
+
+	if err := json.NewDecoder(&buf).Decode(&gr); err != nil {
+		return nil, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	if len(gr.Errors) > 0 {
+		// return first error
+		return nil, gr.Errors[0]
+	}
+
+	return v, nil
 }
 
 // New returns client to customer API
@@ -41,6 +90,7 @@ func New(endpoint string, client *http.Client) (*Client, error) {
 	}
 
 	return &Client{
-		gqlClient: graphql.NewClient(endpoint, graphql.WithHTTPClient(client)),
+		endpoint: endpoint,
+		Client:   client,
 	}, nil
 }
