@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Client implements our customer GQL API
@@ -59,6 +60,10 @@ func (c *Client) Run(ctx context.Context, query string, vars map[string]interfac
 		return nil, fmt.Errorf("error processing request: %w", err)
 	}
 	defer res.Body.Close()
+
+	if code := res.StatusCode; code != http.StatusOK {
+		return nil, fmt.Errorf(strings.ToLower(http.StatusText(code)))
+	}
 
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, res.Body); err != nil {

@@ -2,7 +2,6 @@ package customer
 
 import (
 	"context"
-	"fmt"
 )
 
 func (c *Client) Login(ctx context.Context, user, password string) (string, error) {
@@ -16,7 +15,7 @@ func (c *Client) Login(ctx context.Context, user, password string) (string, erro
 		"user_password": password,
 	}, &result)
 	if err != nil {
-		return "", fmt.Errorf("login request failed: %w", err)
+		return "", err
 	}
 
 	return result.AccessKey, nil
