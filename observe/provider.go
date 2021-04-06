@@ -123,6 +123,7 @@ func Provider() *schema.Provider {
 			"observe_workspace": dataSourceWorkspace(),
 			"observe_query":     dataSourceQuery(),
 			"observe_board":     dataSourceBoard(),
+			"observe_monitor":   dataSourceMonitor(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":        resourceDataset(),

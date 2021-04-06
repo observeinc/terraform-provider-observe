@@ -11,6 +11,14 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
+const (
+	schemaMonitorWorkspaceDescription   = "OID of workspace monitor is contained in."
+	schemaMonitorNameDescription        = "Monitor name."
+	schemaMonitorDescriptionDescription = "Monitor description."
+	schemaMonitorIconDescription        = "Icon image."
+	schemaMonitorOIDDescription         = "The Observe ID for monitor."
+)
+
 func resourceMonitor() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorCreate,
@@ -516,6 +524,10 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	if err := data.Set("notification_spec", flattenNotificationSpec(monitor.Config.NotificationSpec)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := flattenAndSetQuery(data, monitor.Config.Query); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
