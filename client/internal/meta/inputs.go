@@ -199,6 +199,7 @@ type MonitorRuleInput struct {
 	ChangeRule *MonitorRuleChangeInput `json:"changeRule,omitempty"`
 	FacetRule  *MonitorRuleFacetInput  `json:"facetRule,omitempty"`
 	//ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule,omitempty"`
+	PromoteRule *MonitorRulePromoteInput `json:"promoteRule,omitempty"`
 }
 
 type MonitorGrouping string
@@ -284,6 +285,12 @@ type MonitorRuleFacetInput struct {
 	TimeFunction  *TimeFunction  `json:"timeFunction"`
 	TimeValue     *NumberScalar  `json:"timeValue,omitempty"`
 	LookbackTime  *string        `json:"lookbackTime"`
+}
+
+type MonitorRulePromoteInput struct {
+	KindField        *string  `json:"kindField"`
+	DescriptionField *string  `json:"descriptionField"`
+	PrimaryKey       []string `json:"primaryKey"`
 }
 
 type AggregateFunction string

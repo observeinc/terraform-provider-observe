@@ -19,6 +19,13 @@ const (
 	schemaMonitorOIDDescription         = "The Observe ID for monitor."
 )
 
+var validRules = []string{
+	"rule.0.change",
+	"rule.0.count",
+	"rule.0.facet",
+	"rule.0.promote",
+}
+
 func resourceMonitor() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorCreate,
@@ -110,7 +117,7 @@ func resourceMonitor() *schema.Resource {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
-							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
+							ExactlyOneOf: validRules,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_function": {
@@ -145,7 +152,7 @@ func resourceMonitor() *schema.Resource {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
-							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
+							ExactlyOneOf: validRules,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"change_type": {
@@ -198,7 +205,7 @@ func resourceMonitor() *schema.Resource {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
-							ExactlyOneOf: []string{"rule.0.change", "rule.0.count", "rule.0.facet"},
+							ExactlyOneOf: validRules,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"facet_function": {
@@ -226,6 +233,30 @@ func resourceMonitor() *schema.Resource {
 										Required:         true,
 										DiffSuppressFunc: diffSuppressTimeDuration,
 										ValidateDiagFunc: validateTimeDuration,
+									},
+								},
+							},
+						},
+						"promote": &schema.Schema{
+							Type:         schema.TypeList,
+							MaxItems:     1,
+							Optional:     true,
+							ExactlyOneOf: validRules,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"primary_key": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"kind_field": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"description_field": {
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 								},
 							},
@@ -377,6 +408,29 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 			ruleConfig.FacetRule.LookbackTime = &t
 		}
 	}
+
+	if data.Get("rule.0.promote.#") == 1 {
+		ruleConfig.PromoteRule = &observe.MonitorRulePromoteConfig{}
+
+		if v, ok := data.GetOk("rule.0.promote.0.primary_key"); ok {
+			var values []string
+			for _, el := range v.([]interface{}) {
+				values = append(values, el.(string))
+			}
+			ruleConfig.PromoteRule.PrimaryKey = values
+		}
+
+		if v, ok := data.GetOk("rule.0.promote.0.kind_field"); ok {
+			s := v.(string)
+			ruleConfig.PromoteRule.KindField = &s
+		}
+
+		if v, ok := data.GetOk("rule.0.promote.0.description_field"); ok {
+			s := v.(string)
+			ruleConfig.PromoteRule.DescriptionField = &s
+		}
+	}
+
 	return ruleConfig, nil
 }
 
@@ -578,6 +632,16 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		}
 
 		rule["facet"] = []interface{}{facet}
+	}
+
+	if config.PromoteRule != nil {
+		promote := map[string]interface{}{
+			"primary_key":       config.PromoteRule.PrimaryKey,
+			"kind_field":        config.PromoteRule.KindField,
+			"description_field": config.PromoteRule.DescriptionField,
+		}
+
+		rule["promote"] = []interface{}{promote}
 	}
 
 	return []interface{}{

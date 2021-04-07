@@ -112,12 +112,13 @@ type NotificationSpecConfig struct {
 }
 
 type MonitorRuleConfig struct {
-	SourceColumn   *string                  `json:"sourceColumn"`
-	GroupBy        *MonitorGrouping         `json:"groupBy"`
-	GroupByColumns []string                 `json:"groupByColumns"`
-	ChangeRule     *MonitorRuleChangeConfig `json:"change"`
-	CountRule      *MonitorRuleCountConfig  `json:"count"`
-	FacetRule      *MonitorRuleFacetConfig  `json:"facet"`
+	SourceColumn   *string                   `json:"sourceColumn"`
+	GroupBy        *MonitorGrouping          `json:"groupBy"`
+	GroupByColumns []string                  `json:"groupByColumns"`
+	ChangeRule     *MonitorRuleChangeConfig  `json:"change"`
+	CountRule      *MonitorRuleCountConfig   `json:"count"`
+	FacetRule      *MonitorRuleFacetConfig   `json:"facet"`
+	PromoteRule    *MonitorRulePromoteConfig `json:"promote"`
 }
 
 func (m *Monitor) OID() *OID {
@@ -174,6 +175,8 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 		ruleInput.CountRule, err = c.CountRule.toGQL()
 	case c.FacetRule != nil:
 		ruleInput.FacetRule, err = c.FacetRule.toGQL()
+	case c.PromoteRule != nil:
+		ruleInput.PromoteRule, err = c.PromoteRule.toGQL()
 	default:
 		err = fmt.Errorf("no rule found")
 	}
@@ -196,6 +199,8 @@ func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 		err = gqlRule.DecodeType(&config.ChangeRule)
 	case "MonitorRuleFacet":
 		err = gqlRule.DecodeType(&config.FacetRule)
+	case "MonitorRulePromote":
+		err = gqlRule.DecodeType(&config.PromoteRule)
 	default:
 		err = fmt.Errorf("unhandled rule type %s", gqlRule.Type)
 	}
@@ -326,6 +331,22 @@ func (c *MonitorRuleFacetConfig) toGQL() (*meta.MonitorRuleFacetInput, error) {
 	if c.LookbackTime != nil {
 		i := fmt.Sprintf("%d", c.LookbackTime.Nanoseconds())
 		input.LookbackTime = &i
+	}
+
+	return input, nil
+}
+
+type MonitorRulePromoteConfig struct {
+	KindField        *string  `json:"kindField"`
+	DescriptionField *string  `json:"descriptionField"`
+	PrimaryKey       []string `json:"primaryKey"`
+}
+
+func (c *MonitorRulePromoteConfig) toGQL() (*meta.MonitorRulePromoteInput, error) {
+	input := &meta.MonitorRulePromoteInput{
+		PrimaryKey:       c.PrimaryKey,
+		KindField:        c.KindField,
+		DescriptionField: c.DescriptionField,
 	}
 
 	return input, nil

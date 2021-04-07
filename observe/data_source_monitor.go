@@ -180,6 +180,28 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
+						"promote": &schema.Schema{
+							Type:     schema.TypeList,
+							Computed: true,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"primary_key": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"kind_field": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"description_field": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},

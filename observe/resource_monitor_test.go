@@ -252,3 +252,80 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorPromote(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name      = "%s"
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							colmake kind:"test", description:"test"
+						EOF
+					}
+
+					rule {
+						group_by = "resource"
+
+						promote {
+							primary_key       = ["OBSERVATION_KIND"]
+							kind_field        = "kind"
+							description_field = "description"
+						}
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "resource"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", "kind"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", "description"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name      = "%s"
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					rule {
+						group_by = "resource"
+
+						promote {
+							primary_key       = ["OBSERVATION_KIND"]
+						}
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "resource"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
+				),
+			},
+		},
+	})
+}

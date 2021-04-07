@@ -52,6 +52,11 @@ var (
 			  timeValue
 			  lookbackTime
 			}
+			... on MonitorRulePromote {
+			  kindField
+			  descriptionField
+			  primaryKey
+			}
 		}
 
 		notificationSpec {
