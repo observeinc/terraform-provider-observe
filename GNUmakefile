@@ -2,7 +2,7 @@ TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
-VERSION=$(shell git describe --tags --always)
+VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
 
 default: build
@@ -35,12 +35,11 @@ docker-sign:
 			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
-package: fmtcheck
-	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
+package: build fmtcheck
 	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
 
 build: fmtcheck
-	go install -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
+	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
