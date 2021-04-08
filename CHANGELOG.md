@@ -1,3 +1,13 @@
+## 0.4.8 (2021-04-08)
+
+makefile: tweak build for local development
+monitor: add monitor data source
+client: surface HTTP error in message
+client: replace github.com/machinebox/graphql
+monitor: deprecate compare_value
+docs: generate docs using tfplugindocs
+dataset: use lastSaved as version
+
 ## 0.4.7 (2021-03-10)
 
 observe_channel: marshal empty slice
