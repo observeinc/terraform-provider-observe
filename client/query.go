@@ -118,10 +118,6 @@ func (q *Query) toGQL() (*meta.MultiStageQueryInput, error) {
 	// If a stage is named, it can be used as an input for every subsequent stage.
 	// If a stage is anonymous, it can still be used as a default input on the next stage.
 	for i, stage := range q.Stages {
-		if stage.Pipeline == "" {
-			return nil, fmt.Errorf("stage %d: %w", i, errStagePipelineMissing)
-		}
-
 		// Each stage will be given an ID based on the hash of all preceeding pipelines
 		gqlStage := &meta.StageQueryInput{
 			ID:       fmt.Sprintf("stage-%d", i),

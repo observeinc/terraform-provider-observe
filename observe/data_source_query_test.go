@@ -51,11 +51,7 @@ func TestAccObserveSourceQuery(t *testing.T) {
 
 					  inputs = { "observation" = data.observe_dataset.observation.oid }
 
-					  stage {
-						pipeline = <<-EOF
-						  filter true
-						EOF
-					  }
+					  stage {}
 				  }
 				`,
 				),

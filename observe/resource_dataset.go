@@ -116,7 +116,7 @@ func resourceDataset() *schema.Resource {
 						},
 						"pipeline": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: schemaDatasetStagePipelineDescription,
 						},
 					},

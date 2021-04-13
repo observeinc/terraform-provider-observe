@@ -19,7 +19,6 @@ var (
 	errNameConflict         = errors.New("name already declared")
 	errStageInputUnresolved = errors.New("input could not be resolved")
 	errStageInputMissing    = errors.New("input missing")
-	errStagePipelineMissing = errors.New("pipeline not set")
 )
 
 // Dataset is the output of a sequence of stages operating on a collection of inputs

@@ -66,10 +66,6 @@ func TestDatasetConfig(t *testing.T) {
 			ErrorType: errObjectIDInvalid,
 		},
 		{
-			Mutation:  func(t *testing.T, d *DatasetConfig) { d.Stages[0].Pipeline = "" },
-			ErrorType: errStagePipelineMissing,
-		},
-		{
 			Mutation:  func(t *testing.T, d *DatasetConfig) { d.Inputs["input0"].Dataset = nil },
 			ErrorType: errInputEmpty,
 		},

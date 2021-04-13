@@ -25,9 +25,7 @@ func TestAccObserveMonitor(t *testing.T) {
 						"observation" = data.observe_dataset.observation.oid
 					}
 
-					stage {
-						pipeline = "filter true"
-					}
+					stage {}
 
 					rule {
 						source_column = "OBSERVATION_KIND"
@@ -49,7 +47,7 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
-					resource.TestCheckResourceAttrSet("observe_monitor.first", "stage.0.pipeline"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_columns"),

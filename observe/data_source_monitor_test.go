@@ -25,9 +25,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 							"observation" = data.observe_dataset.observation.oid
 						}
 
-						stage {
-							pipeline = "filter true"
-						}
+						stage {}
 
 						rule {
 							source_column = "OBSERVATION_KIND"
@@ -53,7 +51,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", "filter true"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "count"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),
 				),

@@ -40,11 +40,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					  "observation" = data.observe_dataset.observation.oid
 					}
 
-					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
-					}
+					stage {}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
@@ -52,6 +48,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
 				),
 			},
 			{
