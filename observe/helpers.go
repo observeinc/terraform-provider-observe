@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -215,6 +216,12 @@ func diffSuppressOIDVersion(k, old, new string, d *schema.ResourceData) bool {
 
 func diffSuppressCaseInsensitive(k, old, new string, d *schema.ResourceData) bool {
 	return strings.ToLower(new) == strings.ToLower(old)
+}
+
+func diffSuppressPipeline(k, old, new string, d *schema.ResourceData) bool {
+	oldTrimmed := strings.TrimRightFunc(old, unicode.IsSpace)
+	newTrimmed := strings.TrimRightFunc(new, unicode.IsSpace)
+	return oldTrimmed == newTrimmed
 }
 
 var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")

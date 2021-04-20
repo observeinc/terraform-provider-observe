@@ -115,9 +115,10 @@ func resourceDataset() *schema.Resource {
 							Description: schemaDatasetStageInputDescription,
 						},
 						"pipeline": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: schemaDatasetStagePipelineDescription,
+							Type:             schema.TypeString,
+							Optional:         true,
+							Description:      schemaDatasetStagePipelineDescription,
+							DiffSuppressFunc: diffSuppressPipeline,
 						},
 					},
 				},

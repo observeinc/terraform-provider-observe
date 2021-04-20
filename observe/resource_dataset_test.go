@@ -76,6 +76,26 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
 			},
+			{
+				PlanOnly: true,
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name 	  = "%s-rename"
+					freshness = "1m"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					  	filter true
+
+					  EOF
+					}
+				}`, randomPrefix),
+			},
 		},
 	})
 }

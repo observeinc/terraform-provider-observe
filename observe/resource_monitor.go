@@ -85,8 +85,9 @@ func resourceMonitor() *schema.Resource {
 							Optional: true,
 						},
 						"pipeline": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: diffSuppressPipeline,
 						},
 					},
 				},
