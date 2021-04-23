@@ -194,19 +194,27 @@ func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 	return false
 }
 
-func diffSuppressTimeDuration(k, old, new string, d *schema.ResourceData) bool {
-	o, _ := time.ParseDuration(old)
-	n, _ := time.ParseDuration(new)
+func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
+	o, _ := time.ParseDuration(prv)
+	n, _ := time.ParseDuration(nxt)
 	return o == n
 }
 
-func diffSuppressOIDVersion(k, old, new string, d *schema.ResourceData) bool {
-	o, err := observe.NewOID(old)
+func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
+	var prvValue, nxtValue interface{}
+	// no need to check for error, we've already validated inputs
+	_ = json.Unmarshal([]byte(prv), &prvValue)
+	_ = json.Unmarshal([]byte(nxt), &nxtValue)
+	return reflect.DeepEqual(prvValue, nxtValue)
+}
+
+func diffSuppressOIDVersion(k, prv, nxt string, d *schema.ResourceData) bool {
+	o, err := observe.NewOID(prv)
 	if err != nil {
 		return false
 	}
 
-	n, err := observe.NewOID(new)
+	n, err := observe.NewOID(nxt)
 	if err != nil {
 		return false
 	}
@@ -214,14 +222,14 @@ func diffSuppressOIDVersion(k, old, new string, d *schema.ResourceData) bool {
 	return o.Type == n.Type && o.ID == n.ID
 }
 
-func diffSuppressCaseInsensitive(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(new) == strings.ToLower(old)
+func diffSuppressCaseInsensitive(k, prv, nxt string, d *schema.ResourceData) bool {
+	return strings.ToLower(nxt) == strings.ToLower(prv)
 }
 
-func diffSuppressPipeline(k, old, new string, d *schema.ResourceData) bool {
-	oldTrimmed := strings.TrimRightFunc(old, unicode.IsSpace)
-	newTrimmed := strings.TrimRightFunc(new, unicode.IsSpace)
-	return oldTrimmed == newTrimmed
+func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
+	prvTrimmed := strings.TrimRightFunc(prv, unicode.IsSpace)
+	nxtTrimmed := strings.TrimRightFunc(nxt, unicode.IsSpace)
+	return prvTrimmed == nxtTrimmed
 }
 
 var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")

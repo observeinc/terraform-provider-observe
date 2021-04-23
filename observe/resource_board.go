@@ -57,6 +57,7 @@ func resourceBoard() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateStringIsJSON,
+				DiffSuppressFunc: diffSuppressJSON,
 				Description:      schemaBoardJSONDescription,
 			},
 		},
