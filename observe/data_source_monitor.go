@@ -163,7 +163,7 @@ func dataSourceMonitor() *schema.Resource {
 									"facet_values": {
 										Type:     schema.TypeList,
 										Computed: true,
-										Elem:     &schema.Schema{Type: schema.TypeFloat},
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"time_function": {
 										Type:     schema.TypeString,
