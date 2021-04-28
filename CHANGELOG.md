@@ -1,21 +1,30 @@
+## 0.4.9 (2021-04-28)
+
+* observe_dataset: ignore stage foreign keys
+* board: suppress JSON whitespace diffs
+* monitor: fix schema bug in data source
+* dataset: suppress pipeline diff for trailing whitespace
+* monitor: add promote rule
+* query: allow empty pipeline
+
 ## 0.4.8 (2021-04-08)
 
-makefile: tweak build for local development
-monitor: add monitor data source
-client: surface HTTP error in message
-client: replace github.com/machinebox/graphql
-monitor: deprecate compare_value
-docs: generate docs using tfplugindocs
-dataset: use lastSaved as version
+* makefile: tweak build for local development
+* monitor: add monitor data source
+* client: surface HTTP error in message
+* client: replace github.com/machinebox/graphql
+* monitor: deprecate compare_value
+* docs: generate docs using tfplugindocs
+* dataset: use lastSaved as version
 
 ## 0.4.7 (2021-03-10)
 
-observe_channel: marshal empty slice
-client: add source identifier
-observe_dataset: allow lookup by ID
-internal: remove test panic
-bookmark: fix error message
-observe_board: first pass
+* observe_channel: marshal empty slice
+* client: add source identifier
+* observe_dataset: allow lookup by ID
+* internal: remove test panic
+* bookmark: fix error message
+* observe_board: first pass
 
 ## 0.4.6 (2021-02-19)
 
