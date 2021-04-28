@@ -73,14 +73,16 @@ func newDataset(gqlDataset *meta.Dataset) (d *Dataset, err error) {
 	// foreignKeys attribute is read only, but we'll re-use the
 	// ForeignKeyConfig struct to populate the list
 	for _, gqlFk := range gqlDataset.ForeignKeys {
-		id := meta.ObjectIdScalarPointer(*gqlFk.TargetDataset).String()
-		fk := ForeignKeyConfig{
-			Label:     gqlFk.Label,
-			Target:    &id,
-			SrcFields: gqlFk.SrcFields,
-			DstFields: gqlFk.DstFields,
+		if targetDataset := gqlFk.TargetDataset; targetDataset != nil {
+			id := meta.ObjectIdScalarPointer(*targetDataset).String()
+			fk := ForeignKeyConfig{
+				Label:     gqlFk.Label,
+				Target:    &id,
+				SrcFields: gqlFk.SrcFields,
+				DstFields: gqlFk.DstFields,
+			}
+			d.ForeignKeys = append(d.ForeignKeys, fk)
 		}
-		d.ForeignKeys = append(d.ForeignKeys, fk)
 	}
 
 	if gqlDataset.Transform.Current == nil {
