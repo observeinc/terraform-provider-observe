@@ -252,6 +252,8 @@ type SnowflakeCursor struct {
 	Columns       [][]*string              `json:"columns,omitempty"`
 	Chunks        interface{}              `json:"chunks,omitempty"`
 	HttpHeaders   map[string]string        `json:"httpHeaders,omitempty"`
+	Format        string                   `json:"format,omitempty"`
+	ArrowColumns  string                   `json:"arrowColumns,omitempty"`
 }
 
 type Monitor struct {

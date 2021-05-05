@@ -163,3 +163,49 @@ func TestAccObserveSourceQueryAssert(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveSourceQueryResult(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	re, err := regexp.Compile(fmt.Sprintf(`"hello":"world %s"`, randomPrefix))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+					resource "observe_http_post" "test" {
+					  data = jsonencode({ hello = "world %[1]s" })
+					  tags = {
+						"tf_test_id" = "%[1]s"
+					  }
+					}
+
+					data "observe_query" "test" {
+					  start = timeadd(timestamp(), "-10m")
+
+					  inputs = { "observation" = data.observe_dataset.observation.oid }
+
+					  poll {}
+
+					  stage {
+						pipeline = <<-EOF
+						  filter string(EXTRA.tf_test_id) = "%[1]s"
+						EOF
+					  }
+				    }
+
+					output "result" {
+					  value = data.observe_query.test.result
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchOutput("result", re),
+				),
+			},
+		},
+	})
+}
