@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	flagCacheClient = "cache-client"
-	tfSourceFormat  = "terraform/%s"
+	flagCacheClient       = "cache-client"
+	tfSourceFormatDefault = "terraform/%s"
 
 	schemaProviderCustomerDescription          = "Observe Customer ID. Can be set using `OBSERVE_CUSTOMER` environment variable."
 	schemaProviderTokenDescription             = "Observe Token. Optionally use `OBSERVE_TOKEN` environment variable. Cannot be used with `user_email`."
@@ -29,6 +29,7 @@ var (
 	schemaProviderFlagsDescription             = "Used to toggle experimental features."
 	schemaProviderProxyDescription             = "URL to proxy requests through."
 	schemaProviderSourceCommentDescription     = "Source identifier comment. If null, fallback to `user_email`."
+	schemaProviderSourceFormatDescription      = "Source identifier format."
 )
 
 // Provider returns observe terraform provider
@@ -113,6 +114,12 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: schemaProviderSourceCommentDescription,
+			},
+			"source_format": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     tfSourceFormatDefault,
+				Description: schemaProviderSourceFormatDescription,
 			},
 		},
 
@@ -207,6 +214,8 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 				Summary:  "Insecure API session",
 			})
 		}
+
+		tfSourceFormat := data.Get("source_format").(string)
 
 		s := fmt.Sprintf(tfSourceFormat, "")
 		if v, ok := data.GetOk("source_comment"); ok {
