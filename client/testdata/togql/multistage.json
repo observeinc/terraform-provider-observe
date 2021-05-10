@@ -6,12 +6,15 @@
         "freshnessDesired": "6000000000",
         "description": null,
         "iconUrl": null,
-        "pathCost": "0"
+        "pathCost": "0",
+        "source": null,
+        "overwriteSource": true
     },
     "queryInput": {
         "outputStage": "stage-2",
         "stages": [
             {
+                "id": "stage-0",
                 "input": [
                     {
                         "inputName": "default",
@@ -21,10 +24,10 @@
                         "stageId": ""
                     }
                 ],
-                "id": "stage-0",
                 "pipeline": "filter true\n"
             },
             {
+                "id": "stage-1",
                 "input": [
                     {
                         "inputName": "stage-0",
@@ -33,10 +36,10 @@
                         "stageId": "stage-0"
                     }
                 ],
-                "id": "stage-1",
                 "pipeline": "filter true\n"
             },
             {
+                "id": "stage-2",
                 "input": [
                     {
                         "inputName": "stage-1",
@@ -45,7 +48,6 @@
                         "stageId": "stage-1"
                     }
                 ],
-                "id": "stage-2",
                 "pipeline": "filter true\n"
             }
         ]

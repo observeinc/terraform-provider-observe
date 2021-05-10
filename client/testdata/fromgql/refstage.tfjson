@@ -1,8 +1,4 @@
 {
-    "name": "test",
-    "description": null,
-    "icon_url": null,
-    "freshness": 6000000000,
     "inputs": {
         "default": {
             "dataset": "4100000"
@@ -16,5 +12,9 @@
             "pipeline": "filter true\n"
         }
     ],
+    "name": "test",
+    "description": null,
+    "icon_url": null,
+    "freshness": 6000000000,
     "path_cost": 0
 }

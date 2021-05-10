@@ -1,8 +1,4 @@
 {
-    "name": "FK1 (no label)",
-    "description": null,
-    "icon_url": null,
-    "freshness": 120000000000,
     "inputs": {
         "IoT Raw Events": {
             "dataset": "41021424"
@@ -16,5 +12,9 @@
             "pipeline": "makeresource name:name, primarykey(roomId)\ncolmake origName:name\ncolmake name:case(not startswith(roomId, \"e8\"), name)"
         }
     ],
+    "name": "FK1 (no label)",
+    "description": null,
+    "icon_url": null,
+    "freshness": 120000000000,
     "path_cost": 0
 }

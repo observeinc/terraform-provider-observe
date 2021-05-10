@@ -40,6 +40,7 @@ type DatasetInput struct {
 	IconURL          *string         `json:"iconUrl"`
 	PathCost         *string         `json:"pathCost"`
 	Source           *string         `json:"source"`
+	OverwriteSource  bool            `json:"overwriteSource"`
 }
 
 type DeferredDatasetReferenceInput struct {

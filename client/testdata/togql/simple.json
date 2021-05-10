@@ -6,12 +6,15 @@
         "freshnessDesired": null,
         "description": null,
         "iconUrl": null,
-        "pathCost": "0"
+        "pathCost": "0",
+        "source": null,
+        "overwriteSource": true
     },
     "queryInput": {
         "outputStage": "stage-0",
         "stages": [
             {
+                "id": "stage-0",
                 "input": [
                     {
                         "inputName": "default",
@@ -21,7 +24,6 @@
                         "stageId": ""
                     }
                 ],
-                "id": "stage-0",
                 "pipeline": "filter true\n"
             }
         ]

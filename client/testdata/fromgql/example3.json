@@ -136,5 +136,8 @@
             }
         }
     },
-    "foreignKeys": null
+    "sourceTable": null,
+    "source": null,
+    "foreignKeys": null,
+    "lastSaved": ""
 }

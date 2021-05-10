@@ -109,9 +109,10 @@ func (c *DatasetConfig) toGQLDatasetInput() (*meta.DatasetInput, error) {
 	}
 
 	datasetInput := &meta.DatasetInput{
-		Label:       c.Name,
-		Description: c.Description,
-		IconURL:     c.IconURL,
+		Label:           c.Name,
+		Description:     c.Description,
+		IconURL:         c.IconURL,
+		OverwriteSource: true,
 	}
 
 	i := fmt.Sprintf("%d", c.PathCost)
