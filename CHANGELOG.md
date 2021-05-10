@@ -1,3 +1,9 @@
+## 0.4.10 (2021-05-10)
+
+* provider: make source_format configurable
+* internal: set overwriteSource on saveDataset
+* observe_query: add new fields to SnowflakeCursor
+
 ## 0.4.9 (2021-04-28)
 
 * observe_dataset: ignore stage foreign keys
