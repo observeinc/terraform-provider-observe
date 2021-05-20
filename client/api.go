@@ -26,6 +26,10 @@ func (c *Client) GetDataset(ctx context.Context, id string) (*Dataset, error) {
 
 // CreateDataset creates dataset
 func (c *Client) CreateDataset(ctx context.Context, workspaceId string, config *DatasetConfig) (*Dataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	datasetInput, transformInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -85,6 +89,10 @@ func (c *Client) GetSourceDataset(ctx context.Context, id string) (*SourceDatase
 
 // CreateSourceDataset creates a new source dataset
 func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, config *SourceDatasetConfig) (*SourceDataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	dataset, table := config.toGQL()
 	result, err := c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
 	if err != nil {
@@ -95,6 +103,10 @@ func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, co
 
 // UpdateSourceDataset updates the existing source dataset
 func (c *Client) UpdateSourceDataset(ctx context.Context, workspaceId string, id string, config *SourceDatasetConfig) (*SourceDataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	dataset, table := config.toGQL()
 	dataset.Dataset.ID = toObjectPointer(&id)
 	result, err := c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
@@ -270,6 +282,10 @@ func (c *Client) GetBookmarkGroup(ctx context.Context, id string) (*BookmarkGrou
 
 // CreateBookmarkGroup creates a bookmark group
 func (c *Client) CreateBookmarkGroup(ctx context.Context, workspaceId string, config *BookmarkGroupConfig) (*BookmarkGroup, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	bookmarkGroupInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -285,6 +301,10 @@ func (c *Client) CreateBookmarkGroup(ctx context.Context, workspaceId string, co
 
 // UpdateBookmarkGroup updates a bookmark group
 func (c *Client) UpdateBookmarkGroup(ctx context.Context, id string, config *BookmarkGroupConfig) (*BookmarkGroup, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	bookmarkGroupInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -313,6 +333,10 @@ func (c *Client) GetBookmark(ctx context.Context, id string) (*Bookmark, error) 
 
 // CreateBookmark creates a bookmark group
 func (c *Client) CreateBookmark(ctx context.Context, config *BookmarkConfig) (*Bookmark, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	bookmarkInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -327,6 +351,10 @@ func (c *Client) CreateBookmark(ctx context.Context, config *BookmarkConfig) (*B
 
 // UpdateBookmark updates a bookmark
 func (c *Client) UpdateBookmark(ctx context.Context, id string, config *BookmarkConfig) (*Bookmark, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	bookmarkInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -351,6 +379,10 @@ func (c *Client) Observe(ctx context.Context, path string, body io.Reader, tags 
 
 // CreateChannelAction creates a channel action
 func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, config *ChannelActionConfig) (*ChannelAction, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	channelActionInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -365,6 +397,10 @@ func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, co
 
 // UpdateChannelAction updates a bookmark
 func (c *Client) UpdateChannelAction(ctx context.Context, id string, config *ChannelActionConfig) (*ChannelAction, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	channelActionInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -379,6 +415,10 @@ func (c *Client) UpdateChannelAction(ctx context.Context, id string, config *Cha
 
 // DeleteChannelAction
 func (c *Client) DeleteChannelAction(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	return c.Meta.DeleteChannelAction(ctx, id)
 }
 
@@ -393,6 +433,10 @@ func (c *Client) GetChannelAction(ctx context.Context, id string) (*ChannelActio
 
 // CreateChannel creates a channel
 func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *ChannelConfig) (*Channel, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	channelInput, actions, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -413,6 +457,10 @@ func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *
 
 // UpdateChannel updates a channel
 func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelConfig) (*Channel, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	channelInput, actions, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -433,6 +481,10 @@ func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelCo
 
 // DeleteChannel
 func (c *Client) DeleteChannel(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	return c.Meta.DeleteChannel(ctx, id)
 }
 
@@ -514,6 +566,10 @@ func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
 
 // CreateBoard creates a board
 func (c *Client) CreateBoard(ctx context.Context, dataset *OID, boardType BoardType, config *BoardConfig) (*Board, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	boardInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -527,6 +583,10 @@ func (c *Client) CreateBoard(ctx context.Context, dataset *OID, boardType BoardT
 
 // UpdateBoard updates a board
 func (c *Client) UpdateBoard(ctx context.Context, id string, config *BoardConfig) (*Board, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	boardInput, err := config.toGQL()
 	if err != nil {
 		return nil, err
@@ -540,6 +600,10 @@ func (c *Client) UpdateBoard(ctx context.Context, id string, config *BoardConfig
 
 // DeleteBoard
 func (c *Client) DeleteBoard(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
 	return c.Meta.DeleteBoard(ctx, id)
 }
 
