@@ -284,6 +284,11 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 							kind_field        = "kind"
 							description_field = "description"
 						}
+
+					}
+
+					notification_spec {
+						merge      = "separate"
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

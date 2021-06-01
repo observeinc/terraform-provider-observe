@@ -17,9 +17,6 @@ func TestAccObserveSourceForeignKey(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				// adding foreign key will increment version of affected datasets
-				ExpectNonEmptyPlan: true,
-
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
 					workspace = data.observe_workspace.kubernetes.oid

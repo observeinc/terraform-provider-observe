@@ -40,6 +40,7 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 
 // TestAccObserveSourceQuery runs a query - we don't yet expect any data to be returned
 func TestAccObserveSourceQuery(t *testing.T) {
+	t.Skipf("skipping until we migrate to cacheCursor")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -64,6 +65,7 @@ func TestAccObserveSourceQuery(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryPoll(t *testing.T) {
+	t.Skipf("skipping until we migrate to cacheCursor")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -101,6 +103,8 @@ func TestAccObserveSourceQueryPoll(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryAssert(t *testing.T) {
+	t.Skipf("skipping until we migrate to cacheCursor")
+
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	golden_file, err := ioutil.TempFile("", "tf-assert")
@@ -165,6 +169,8 @@ func TestAccObserveSourceQueryAssert(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryResult(t *testing.T) {
+	t.Skipf("skipping until we migrate to cacheCursor")
+
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	re, err := regexp.Compile(fmt.Sprintf(`"hello":"world %s"`, randomPrefix))
 	if err != nil {
