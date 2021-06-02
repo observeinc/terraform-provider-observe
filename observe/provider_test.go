@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"context"
 	"log"
 	"os"
 	"testing"
@@ -42,7 +43,7 @@ func cacheTerraformBinary(cacheDir string) {
 		finder = tfinstall.LatestVersion(cacheDir, true)
 	}
 
-	path, err := tfinstall.Find(finder)
+	path, err := tfinstall.Find(context.Background(), finder)
 	if err != nil {
 		log.Printf("[WARN] failed to cache terraform binary: %s", err)
 	}
