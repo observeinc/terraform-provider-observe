@@ -120,7 +120,7 @@ type ChannelActionInput struct {
 	Name        *string `json:"name"`
 	IconURL     *string `json:"iconUrl"`
 	Description *string `json:"description"`
-	//RateLimit   *string `json:"rateLimit"`
+	RateLimit   *string `json:"rateLimit"`
 
 	Email   *EmailActionInput   `json:"email"`
 	Webhook *WebhookActionInput `json:"webhook"`

@@ -3,6 +3,7 @@ package meta
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 var (
@@ -41,11 +42,11 @@ type channelAction struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	RateLimit   *time.Duration `json:"rateLimit"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`
 	//CreatedDate TimeScalar     `json:"createdDate"`
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
 	//UpdatedDate TimeScalar     `json:"updatedDate"`
-	//RateLimit   *time.Duration `json:"rateLimit"`
 
 	Type  string                 `mapstructure:"__typename"`
 	Other map[string]interface{} `mapstructure:",remain"`

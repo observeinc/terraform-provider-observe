@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
 )
 
@@ -11,9 +14,10 @@ type ChannelAction struct {
 }
 
 type ChannelActionConfig struct {
-	Name        string  `json:"name"`
-	IconURL     *string `json:"iconUrl"`
-	Description *string `json:"description"`
+	Name        string         `json:"name"`
+	IconURL     *string        `json:"iconUrl"`
+	Description *string        `json:"description"`
+	RateLimit   *time.Duration `json:"rateLimit,omitempty"`
 
 	Webhook *WebhookChannelActionConfig `json:"webhook,omitempty"`
 	Email   *EmailChannelActionConfig   `json:"email,omitempty"`
@@ -45,6 +49,11 @@ func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, error) {
 		Name:        &config.Name,
 		IconURL:     config.IconURL,
 		Description: config.Description,
+	}
+
+	if config.RateLimit != nil {
+		i := fmt.Sprintf("%d", config.RateLimit.Nanoseconds())
+		channelActionInput.RateLimit = &i
 	}
 
 	if config.Webhook != nil {
@@ -81,6 +90,7 @@ func newChannelAction(a *meta.ChannelAction) (*ChannelAction, error) {
 		Name:        a.Name,
 		IconURL:     a.IconURL,
 		Description: a.Description,
+		RateLimit:   a.RateLimit,
 	}
 
 	return &ChannelAction{

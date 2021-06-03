@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,6 +43,13 @@ func resourceChannelAction() *schema.Resource {
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"rate_limit": &schema.Schema{
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "1m",
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
 			"email": &schema.Schema{
 				Type:         schema.TypeList,
@@ -115,6 +123,12 @@ func newChannelActionConfig(data *schema.ResourceData) (config *observe.ChannelA
 	if v, ok := data.GetOk("description"); ok {
 		s := v.(string)
 		config.Description = &s
+	}
+
+	if v, ok := data.GetOk("rate_limit"); ok {
+		// we already validated in schema
+		t, _ := time.ParseDuration(v.(string))
+		config.RateLimit = &t
 	}
 
 	if _, ok := data.GetOk("webhook"); ok {
@@ -239,6 +253,12 @@ func resourceChannelActionRead(ctx context.Context, data *schema.ResourceData, m
 
 	if err := data.Set("description", channelAction.Config.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if channelAction.Config.RateLimit != nil {
+		if err := data.Set("rate_limit", channelAction.Config.RateLimit.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if channelAction.Config.Webhook != nil {

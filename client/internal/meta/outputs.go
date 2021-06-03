@@ -183,11 +183,11 @@ type ChannelAction struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	RateLimit   *time.Duration `json:"rateLimit"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`
 	//CreatedDate TimeScalar     `json:"createdDate"`
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
 	//UpdatedDate TimeScalar     `json:"updatedDate"`
-	//RateLimit   *time.Duration `json:"rateLimit"`
 
 	Webhook *WebhookChannelAction `json:"webhook"`
 	Email   *EmailChannelAction   `json:"email"`

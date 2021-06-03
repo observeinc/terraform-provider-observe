@@ -55,6 +55,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.url", "https://observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.body", "nope"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.headers.#", "0"),
@@ -63,9 +64,10 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace = data.observe_workspace.kubernetes.oid
-				  name      = "%s"
-				  icon_url  = "test"
+				  workspace  = data.observe_workspace.kubernetes.oid
+				  name       = "%s"
+				  icon_url   = "test"
+				  rate_limit = "5m"
 
 				  email {
 				  	to 		= [ "test@observeinc.com" ]
@@ -77,6 +79,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "5m"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "test@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.subject", "Hello"),
@@ -101,6 +104,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "filing-cabinet"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "2"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "debug@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.1", "test@observeinc.com"),
