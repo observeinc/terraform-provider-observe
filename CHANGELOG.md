@@ -1,3 +1,10 @@
+## 0.4.11 (2021-06-03)
+
+channel_action: add rate_limit
+vendor: go mod update
+tests: fix regressions
+API: modifying operations now lock
+
 ## 0.4.10 (2021-05-10)
 
 * provider: make source_format configurable
