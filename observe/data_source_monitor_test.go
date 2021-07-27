@@ -28,7 +28,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 						stage {}
 
 						rule {
-							source_column = "OBSERVATION_KIND"
 							group_by      = "none"
 
 							count {
@@ -73,7 +72,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 						}
 
 						rule {
-							source_column = "OBSERVATION_KIND"
 							group_by      = "none"
 
 							count {

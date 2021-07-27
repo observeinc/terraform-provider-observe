@@ -45,7 +45,6 @@ var (
 				  }
 
 				  rule {
-				    source_column = "OBSERVATION_KIND"
 				    group_by      = "none"
 
 				    count {
