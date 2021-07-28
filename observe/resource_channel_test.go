@@ -11,30 +11,9 @@ import (
 var (
 	// setup a couple of actions and monitors for use with channels
 	channelConfigPreamble = configPreamble + `
-				resource "observe_channel_action" "a" {
-				  workspace = data.observe_workspace.kubernetes.oid
-				  name      = "a"
-
-				  webhook {
-				    url 	= "https://example.com"
-					body 	= "{}"
-				  }
-				}
-
-				resource "observe_channel_action" "b" {
-				  workspace = data.observe_workspace.kubernetes.oid
-				  name      = "b"
-
-				  email {
-				    to      = ["test@observeinc.com"]
-					subject = "Test"
-					body 	= "Test"
-				  }
-				}
-
 				resource "observe_monitor" "a" {
 				  workspace = data.observe_workspace.kubernetes.oid
-				  name      = "a"
+				  name      = "%s/a"
 
 				  inputs = {
 				    "observation" = data.observe_dataset.observation.oid
@@ -75,15 +54,11 @@ func TestAccObserveChannelCreate(t *testing.T) {
 				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "%s"
 				  icon_url  = "test"
-				  actions   = [
-				    observe_channel_action.a.oid,
-				  ]
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
-					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "0"),
 				),
 			},
@@ -93,19 +68,14 @@ func TestAccObserveChannelCreate(t *testing.T) {
 				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "%s"
 				  icon_url  = "test"
-				  actions   = [
-				    observe_channel_action.b.oid,
-					observe_channel_action.a.oid,
-				  ]
 				  monitors = [
 				    observe_monitor.a.oid,
 				  ]
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
-					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "2"),
 					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "1"),
 				),
 			},
@@ -115,11 +85,10 @@ func TestAccObserveChannelCreate(t *testing.T) {
 				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "%s"
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel.example", "icon_url", "test"),
-					resource.TestCheckResourceAttr("observe_channel.example", "actions.#", "0"),
 					resource.TestCheckResourceAttr("observe_channel.example", "monitors.#", "0"),
 				),
 			},

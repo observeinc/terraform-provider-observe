@@ -277,3 +277,10 @@ func toCamel(str string) string {
 		return strings.ToUpper(strings.Replace(s, "_", "", -1))
 	})
 }
+
+func toListOfStrings(l []*observe.OID) (ret []string) {
+	for _, el := range l {
+		ret = append(ret, el.String())
+	}
+	return
+}

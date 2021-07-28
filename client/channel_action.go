@@ -18,6 +18,7 @@ type ChannelActionConfig struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 	RateLimit   *time.Duration `json:"rateLimit,omitempty"`
+	Channels    []*OID         `json:"channels"`
 
 	Webhook *WebhookChannelActionConfig `json:"webhook,omitempty"`
 	Email   *EmailChannelActionConfig   `json:"email,omitempty"`
@@ -44,7 +45,7 @@ func (a *ChannelAction) OID() *OID {
 	}
 }
 
-func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, error) {
+func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, []string, error) {
 	channelActionInput := &meta.ChannelActionInput{
 		Name:        &config.Name,
 		IconURL:     config.IconURL,
@@ -82,7 +83,12 @@ func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, error) {
 		}
 	}
 
-	return channelActionInput, nil
+	channels := make([]string, len(config.Channels))
+	for i, v := range config.Channels {
+		channels[i] = v.ID
+	}
+
+	return channelActionInput, channels, nil
 }
 
 func newChannelAction(a *meta.ChannelAction) (*ChannelAction, error) {
@@ -91,6 +97,11 @@ func newChannelAction(a *meta.ChannelAction) (*ChannelAction, error) {
 		IconURL:     a.IconURL,
 		Description: a.Description,
 		RateLimit:   a.RateLimit,
+	}
+
+	for _, channel := range a.Channels {
+		oid := &OID{Type: TypeChannel, ID: channel.ID.String()}
+		config.Channels = append(config.Channels, oid)
 	}
 
 	return &ChannelAction{

@@ -8,6 +8,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+var (
+	// setup a couple of actions and monitors for use with channels
+	channelActionConfigPreamble = configPreamble + `
+				resource "observe_channel" "a" {
+				  workspace = data.observe_workspace.kubernetes.oid
+				  name      = "%s/a"
+				  icon_url  = "test"
+				}
+
+				resource "observe_channel" "b" {
+				  workspace = data.observe_workspace.kubernetes.oid
+				  name      = "%s/b"
+				  icon_url  = "test"
+				}
+				`
+)
+
 func TestAccObserveChannelActionCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -16,7 +33,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
 				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "%s"
@@ -30,17 +47,18 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					}
 				  }
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "0"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.url", "https://example.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.body", "{}"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.headers.test", "hello"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
 				  workspace  = data.observe_workspace.kubernetes.oid
 				  name       = "%s"
@@ -51,10 +69,11 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					body 	= "nope"
 				  }
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "0"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.url", "https://observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.body", "nope"),
@@ -62,12 +81,15 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
 				  workspace  = data.observe_workspace.kubernetes.oid
 				  name       = "%s"
 				  icon_url   = "test"
 				  rate_limit = "5m"
+				  channels  = [
+				    observe_channel.a.oid,
+				  ]
 
 				  email {
 				  	to 		= [ "test@observeinc.com" ]
@@ -75,11 +97,12 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					body 	= "Nope"
 				  }
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "5m"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "test@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.subject", "Hello"),
@@ -87,11 +110,15 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
 				  workspace = data.observe_workspace.kubernetes.oid
 				  name      = "%s"
 				  icon_url  = "filing-cabinet"
+				  channels  = [
+				    observe_channel.a.oid,
+				    observe_channel.b.oid,
+				  ]
 
 				  email {
 				  	to 		= [ "debug@observeinc.com", "test@observeinc.com" ]
@@ -100,10 +127,11 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					is_html = true
 				  }
 				}
-				`, randomPrefix),
+				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "filing-cabinet"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "2"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "2"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "debug@observeinc.com"),

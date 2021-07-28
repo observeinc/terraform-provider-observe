@@ -39,20 +39,16 @@ func resourceChannel() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"oid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"monitors": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validateOID(observe.TypeMonitor),
-				},
-			},
-			"actions": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					ValidateDiagFunc: validateOID(observe.TypeChannelAction),
 				},
 			},
 		},
@@ -78,13 +74,6 @@ func newChannelConfig(data *schema.ResourceData) (config *observe.ChannelConfig,
 		for _, v := range s.(*schema.Set).List() {
 			oid, _ := observe.NewOID(v.(string))
 			config.Monitors = append(config.Monitors, oid)
-		}
-	}
-
-	if s, ok := data.GetOk("actions"); ok {
-		for _, v := range s.(*schema.Set).List() {
-			oid, _ := observe.NewOID(v.(string))
-			config.Actions = append(config.Actions, oid)
 		}
 	}
 
@@ -154,18 +143,11 @@ func resourceChannelRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	toIdList := func(l []*observe.OID) (ret []string) {
-		for _, el := range l {
-			ret = append(ret, el.String())
-		}
-		return
-	}
-
-	if err := data.Set("actions", toIdList(channel.Config.Actions)); err != nil {
+	if err := data.Set("monitors", toListOfStrings(channel.Config.Monitors)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("monitors", toIdList(channel.Config.Monitors)); err != nil {
+	if err := data.Set("oid", channel.OID().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
