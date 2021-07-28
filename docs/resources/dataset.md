@@ -59,14 +59,11 @@ resource "observe_dataset" "http_observations" {
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
-Required:
-
-- **pipeline** (String) An OPAL snippet defining a transformation on the selected input.
-
 Optional:
 
 - **alias** (String) The stage alias is the label by which subsequent stages can refer to the results of this stage.
 - **input** (String) The stage input defines what input should be used as a starting point for the stage pipeline. It must refer to a label contained in `inputs`, or a previous stage `alias`. The stage input can be omitted if a dataset has a single input.
+- **pipeline** (String) An OPAL snippet defining a transformation on the selected input.
 ## Import
 Import is supported using the following syntax:
 ```shell

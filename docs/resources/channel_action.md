@@ -19,10 +19,12 @@ description: |-
 
 ### Optional
 
+- **channels** (Set of String)
 - **description** (String)
 - **email** (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
 - **icon_url** (String)
 - **id** (String) The ID of this resource.
+- **rate_limit** (String)
 - **webhook** (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only

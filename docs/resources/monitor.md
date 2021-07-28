@@ -41,6 +41,7 @@ Optional:
 - **facet** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
 - **group_by** (String)
 - **group_by_columns** (List of String)
+- **promote** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
 - **source_column** (String)
 
 <a id="nestedblock--rule--change"></a>
@@ -56,7 +57,7 @@ Optional:
 
 - **aggregate_function** (String)
 - **change_type** (String)
-- **compare_value** (Number)
+- **compare_value** (Number, Deprecated)
 - **compare_values** (List of Number)
 
 
@@ -70,7 +71,7 @@ Required:
 
 Optional:
 
-- **compare_value** (Number)
+- **compare_value** (Number, Deprecated)
 - **compare_values** (List of Number)
 
 
@@ -89,18 +90,28 @@ Optional:
 - **time_value** (Number)
 
 
-
-<a id="nestedblock--stage"></a>
-### Nested Schema for `stage`
+<a id="nestedblock--rule--promote"></a>
+### Nested Schema for `rule.promote`
 
 Required:
 
-- **pipeline** (String)
+- **primary_key** (List of String)
+
+Optional:
+
+- **description_field** (String)
+- **kind_field** (String)
+
+
+
+<a id="nestedblock--stage"></a>
+### Nested Schema for `stage`
 
 Optional:
 
 - **alias** (String)
 - **input** (String)
+- **pipeline** (String)
 
 
 <a id="nestedblock--notification_spec"></a>
