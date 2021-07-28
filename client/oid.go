@@ -22,6 +22,7 @@ const (
 	TypeChannel            = "channel"
 	TypeMonitor            = "monitor"
 	TypeBoard              = "board"
+	TypePoller             = "poller"
 )
 
 func (t Type) IsValid() bool {
@@ -33,6 +34,7 @@ func (t Type) IsValid() bool {
 	case TypeChannelAction:
 	case TypeChannel:
 	case TypeMonitor:
+	case TypePoller:
 	default:
 		return false
 	}

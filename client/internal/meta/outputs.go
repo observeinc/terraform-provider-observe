@@ -344,3 +344,42 @@ type Board struct {
 	Board     interface{}    `json:"board"`
 	Type      BoardType      `json:"type"`
 }
+
+type Poller struct {
+	ID         ObjectIdScalar `json:"id"`
+	CustomerID ObjectIdScalar `json:"customerId"`
+	Disabled   bool           `json:"disabled"`
+	Kind       string         `json:"kind"`
+	Config     PollerConfig   `json:"config"`
+}
+
+//TODO: vikramr revisit as needed
+type PollerConfig struct {
+	Name     string                 `json:"name"`
+	Retries  *int64                 `json:"retries"`
+	Interval *time.Duration         `json:"interval"`
+	Chunk    *PollerChunkConfig     `json:"chunk"`
+	Tags     map[string]interface{} `json:"tags"`
+
+	HTTPConfig   *PollerHTTPConfig   `json:"httpConfig"`
+	PubSubConfig *PollerPubSubConfig `json:"pubsubConfig"`
+
+	Other map[string]interface{} `mapstructure:",remain"`
+}
+
+type PollerChunkConfig struct {
+	Enabled bool   `json:"enabled"`
+	Size    *int64 `json:"size"`
+}
+
+type PollerHTTPConfig struct {
+	Endpoint    string                 `json:"endpoint"`
+	ContentType string                 `json:"contentType"`
+	Headers     map[string]interface{} `json:"headers"`
+}
+
+type PollerPubSubConfig struct {
+	ProjectID      string                 `json:"projectId"`
+	JSONKey        map[string]interface{} `json:"jsonKey"`
+	SubscriptionID string                 `json:"subscriptionId"`
+}

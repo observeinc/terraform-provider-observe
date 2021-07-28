@@ -145,6 +145,7 @@ func Provider() *schema.Provider {
 			"observe_channel":        resourceChannel(),
 			"observe_monitor":        resourceMonitor(),
 			"observe_board":          resourceBoard(),
+			"observe_poller":         resourcePoller(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

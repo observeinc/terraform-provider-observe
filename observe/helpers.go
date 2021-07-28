@@ -43,6 +43,19 @@ func validatePath(i interface{}, path cty.Path) (diags diag.Diagnostics) {
 	return nil
 }
 
+func validateIsString() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) (diags diag.Diagnostics) {
+		if v, ok := i.(string); !ok {
+			return append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("invalid map value: %v", v),
+				AttributePath: path,
+			})
+		}
+		return diags
+	}
+}
+
 // Verify OID matches type
 func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) (diags diag.Diagnostics) {

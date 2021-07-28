@@ -625,3 +625,55 @@ func (c *Client) GetBoard(ctx context.Context, id string) (*Board, error) {
 	}
 	return newBoard(result)
 }
+
+// CreatePoller creates a poller
+func (c *Client) CreatePoller(ctx context.Context, workspaceId string, config *PollerConfig) (*Poller, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	pollerInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.CreatePoller(ctx, workspaceId, pollerInput)
+	if err != nil {
+		return nil, err
+	}
+	return newPoller(result)
+}
+
+// UpdatePoller updates a poller
+func (c *Client) UpdatePoller(ctx context.Context, id string, config *PollerConfig) (*Poller, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	pollerInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.Meta.UpdatePoller(ctx, id, pollerInput)
+	if err != nil {
+		return nil, err
+	}
+	return newPoller(result)
+}
+
+// DeletePoller
+func (c *Client) DeletePoller(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeletePoller(ctx, id)
+}
+
+// GetPoller returns a poller by ID
+func (c *Client) GetPoller(ctx context.Context, id string) (*Poller, error) {
+	result, err := c.Meta.GetPoller(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newPoller(result)
+}

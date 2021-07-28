@@ -428,3 +428,30 @@ var AllBoardType = []BoardType{
 func (e BoardType) String() string {
 	return string(e)
 }
+
+type PollerInput struct {
+	Name         string             `json:"name"`
+	Retries      *int64             `json:"retries,string,omitempty"`
+	Interval     *string            `json:"interval,omitempty"`
+	Tags         *string            `json:"tags,omitempty"`
+	Chunk        *PollerChunkInput  `json:"chunk,omitempty"`
+	PubsubConfig *PollerPubSubInput `json:"pubsubConfig,omitempty"`
+	HTTPConfig   *PollerHTTPInput   `json:"httpConfig,omitempty"`
+}
+
+type PollerChunkInput struct {
+	Enabled bool   `json:"enabled"`
+	Size    *int64 `json:"size,string,omitempty"`
+}
+
+type PollerPubSubInput struct {
+	ProjectID      string `json:"projectId"`
+	JSONKey        string `json:"jsonKey"`
+	SubscriptionID string `json:"subscriptionId"`
+}
+
+type PollerHTTPInput struct {
+	Endpoint    string  `json:"endpoint"`
+	ContentType string  `json:"contentType"`
+	Headers     *string `json:"headers,omitempty"`
+}
