@@ -36,14 +36,11 @@ description: |-
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
-Required:
-
-- **pipeline** (String)
-
 Optional:
 
 - **alias** (String)
 - **input** (String)
+- **pipeline** (String)
 
 
 <a id="nestedblock--assert"></a>

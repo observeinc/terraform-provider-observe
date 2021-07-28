@@ -19,9 +19,12 @@ description: |-
 
 ### Optional
 
-- **actions** (Set of String)
 - **description** (String)
 - **icon_url** (String)
 - **id** (String) The ID of this resource.
 - **monitors** (Set of String)
+
+### Read-Only
+
+- **oid** (String)
 
