@@ -14,6 +14,9 @@ var (
 	    iconUrl
 		description
 		workspaceId
+		channels {
+			id
+		}
 
 		__typename
 		... on WebhookAction {
@@ -43,6 +46,9 @@ type channelAction struct {
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
 	RateLimit   *time.Duration `json:"rateLimit"`
+	Channels    []struct {
+		ID ObjectIdScalar `json:"id"`
+	} `json:"channels"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`
 	//CreatedDate TimeScalar     `json:"createdDate"`
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
@@ -155,6 +161,36 @@ func (c *Client) DeleteChannelAction(ctx context.Context, id string) error {
 
 	var status ResultStatus
 	nested := getNested(result, "deleteChannelAction")
+	if err := decodeStrict(nested, &status); err != nil {
+		return err
+	}
+	return status.Error()
+}
+
+func (c *Client) SetChannelsForChannelAction(ctx context.Context, id string, channels []string) error {
+	// endpoint does not accept null, set explicitly to empty list
+	if channels == nil {
+		channels = make([]string, 0)
+	}
+
+	result, err := c.Run(ctx, `
+	mutation ($actionId: ObjectId!, $channelIds: [ObjectId!]!) {
+	    setChannelsForChannelAction(actionId: $actionId, channelIds: $channelIds) {
+	        success
+	        errorMessage
+	        detailedInfo
+        }
+    }`, map[string]interface{}{
+		"actionId":   id,
+		"channelIds": channels,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	var status ResultStatus
+	nested := getNested(result, "setChannelsForChannelAction")
 	if err := decodeStrict(nested, &status); err != nil {
 		return err
 	}

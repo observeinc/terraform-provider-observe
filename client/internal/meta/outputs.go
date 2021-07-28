@@ -184,6 +184,9 @@ type ChannelAction struct {
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
 	RateLimit   *time.Duration `json:"rateLimit"`
+	Channels    []struct {
+		ID ObjectIdScalar `json:"id"`
+	} `json:"channels"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`
 	//CreatedDate TimeScalar     `json:"createdDate"`
 	//UpdatedBy   UserIdScalar   `json:"updatedBy"`
@@ -213,12 +216,7 @@ type Channel struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
-	// in theory, we could use *ChannelAction, but unmarshalling is a pain
-	// because of subtypes
-	Actions []struct {
-		ID ObjectIdScalar `json:"id"`
-	} `json:"actions"`
-	Monitors []struct {
+	Monitors    []struct {
 		ID ObjectIdScalar `json:"id"`
 	} `json:"monitors"`
 }

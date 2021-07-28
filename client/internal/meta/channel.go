@@ -15,9 +15,6 @@ var (
 		monitors {
 			id
 		}
-		actions {
-			id
-		}
 	}`
 )
 
@@ -42,16 +39,15 @@ func (c *Client) GetChannel(ctx context.Context, id string) (*Channel, error) {
 	return &ch, nil
 }
 
-func (c *Client) CreateChannel(ctx context.Context, workspaceID string, config *ChannelInput, actions []string) (*Channel, error) {
+func (c *Client) CreateChannel(ctx context.Context, workspaceID string, config *ChannelInput) (*Channel, error) {
 	result, err := c.Run(ctx, backendChannelFragment+`
-	mutation createChannel($workspaceId: ObjectId!, $channel: ChannelInput!, $actions: [ObjectId!]) {
-		createChannel(workspaceId:$workspaceId, channel: $channel, actions: $actions) {
+	mutation createChannel($workspaceId: ObjectId!, $channel: ChannelInput!) {
+		createChannel(workspaceId:$workspaceId, channel: $channel) {
 			...channelFields
 		}
 	}`, map[string]interface{}{
 		"workspaceId": workspaceID,
 		"channel":     config,
-		"actions":     actions,
 	})
 	if err != nil {
 		return nil, err
@@ -65,16 +61,15 @@ func (c *Client) CreateChannel(ctx context.Context, workspaceID string, config *
 	return &ch, nil
 }
 
-func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelInput, actions []string) (*Channel, error) {
+func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelInput) (*Channel, error) {
 	result, err := c.Run(ctx, backendChannelFragment+`
-	mutation updateChannel($id: ObjectId!, $channel: ChannelInput!, $actions: [ObjectId!]) {
-		updateChannel(id:$id, channel: $channel, actions: $actions) {
+	mutation updateChannel($id: ObjectId!, $channel: ChannelInput!) {
+		updateChannel(id:$id, channel: $channel) {
 			...channelFields
 		}
 	}`, map[string]interface{}{
 		"id":      id,
 		"channel": config,
-		"actions": actions,
 	})
 	if err != nil {
 		return nil, err

@@ -15,7 +15,6 @@ type ChannelConfig struct {
 	IconURL     *string `json:"iconUrl"`
 	Description *string `json:"description"`
 	Monitors    []*OID  `json:"monitors"`
-	Actions     []*OID  `json:"actions"`
 }
 
 func (c *Channel) OID() *OID {
@@ -25,7 +24,7 @@ func (c *Channel) OID() *OID {
 	}
 }
 
-func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, []string, error) {
+func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, error) {
 	channelInput := &meta.ChannelInput{
 		Name:        config.Name,
 		IconURL:     config.IconURL,
@@ -34,19 +33,12 @@ func (config *ChannelConfig) toGQL() (*meta.ChannelInput, []string, []string, er
 
 	// need to convert from OID to regular ID
 
-	// actions must never be nil, otherwise we will never clear value in the
-	// case where we no longer are subscribed to any
-	actions := make([]string, len(config.Actions))
-	for i, v := range config.Actions {
-		actions[i] = v.ID
-	}
-
 	monitors := make([]string, len(config.Monitors))
 	for i, v := range config.Monitors {
 		monitors[i] = v.ID
 	}
 
-	return channelInput, actions, monitors, nil
+	return channelInput, monitors, nil
 }
 
 func newChannel(c *meta.Channel) (*Channel, error) {
@@ -54,11 +46,6 @@ func newChannel(c *meta.Channel) (*Channel, error) {
 		Name:        c.Name,
 		IconURL:     c.IconURL,
 		Description: c.Description,
-	}
-
-	for _, channelAction := range c.Actions {
-		oid := &OID{Type: TypeChannelAction, ID: channelAction.ID.String()}
-		config.Actions = append(config.Actions, oid)
 	}
 
 	for _, monitor := range c.Monitors {

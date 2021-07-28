@@ -105,6 +105,14 @@ func resourceChannelAction() *schema.Resource {
 					},
 				},
 			},
+			"channels": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(observe.TypeChannel),
+				},
+			},
 		},
 	}
 }
@@ -137,6 +145,13 @@ func newChannelActionConfig(data *schema.ResourceData) (config *observe.ChannelA
 
 	if _, ok := data.GetOk("email"); ok {
 		config.Email = expandEmailConfig(data.Get("email.0").(map[string]interface{}))
+	}
+
+	if s, ok := data.GetOk("channels"); ok {
+		for _, v := range s.(*schema.Set).List() {
+			oid, _ := observe.NewOID(v.(string))
+			config.Channels = append(config.Channels, oid)
+		}
 	}
 
 	return
@@ -271,6 +286,17 @@ func resourceChannelActionRead(ctx context.Context, data *schema.ResourceData, m
 		if err := data.Set("email", flattenEmailConfig(channelAction.Config.Email)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	toIdList := func(l []*observe.OID) (ret []string) {
+		for _, el := range l {
+			ret = append(ret, el.String())
+		}
+		return
+	}
+
+	if err := data.Set("channels", toIdList(channelAction.Config.Channels)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if err := data.Set("oid", channelAction.OID().String()); err != nil {

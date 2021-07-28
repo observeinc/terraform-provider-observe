@@ -383,7 +383,7 @@ func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, co
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	channelActionInput, err := config.toGQL()
+	channelActionInput, channels, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +392,12 @@ func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, co
 	if err != nil {
 		return nil, err
 	}
+
+	if err := c.Meta.SetChannelsForChannelAction(ctx, result.ID.String(), channels); err != nil {
+		defer c.DeleteChannelAction(ctx, result.ID.String())
+		return nil, err
+	}
+
 	return newChannelAction(result)
 }
 
@@ -401,7 +407,7 @@ func (c *Client) UpdateChannelAction(ctx context.Context, id string, config *Cha
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	channelActionInput, err := config.toGQL()
+	channelActionInput, channels, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
@@ -410,6 +416,12 @@ func (c *Client) UpdateChannelAction(ctx context.Context, id string, config *Cha
 	if err != nil {
 		return nil, err
 	}
+
+	if err := c.Meta.SetChannelsForChannelAction(ctx, id, channels); err != nil {
+		defer c.DeleteChannelAction(ctx, result.ID.String())
+		return nil, err
+	}
+
 	return newChannelAction(result)
 }
 
@@ -437,12 +449,12 @@ func (c *Client) CreateChannel(ctx context.Context, workspaceId string, config *
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	channelInput, actions, monitors, err := config.toGQL()
+	channelInput, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.Meta.CreateChannel(ctx, workspaceId, channelInput, actions)
+	result, err := c.Meta.CreateChannel(ctx, workspaceId, channelInput)
 	if err != nil {
 		return nil, err
 	}
@@ -461,12 +473,12 @@ func (c *Client) UpdateChannel(ctx context.Context, id string, config *ChannelCo
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	channelInput, actions, monitors, err := config.toGQL()
+	channelInput, monitors, err := config.toGQL()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.Meta.UpdateChannel(ctx, id, channelInput, actions)
+	result, err := c.Meta.UpdateChannel(ctx, id, channelInput)
 	if err != nil {
 		return nil, err
 	}
