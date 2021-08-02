@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccObserveSourceDatasetResource(t *testing.T) {
+	t.Skipf("skipping")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

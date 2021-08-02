@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -15,6 +16,10 @@ func init() {
 	resource.AddTestSweepers("observe_dataset_sweep", &resource.Sweeper{
 		Name: "observe_dataset_sweep",
 		F:    datasetSweeperFunc,
+	})
+	resource.AddTestSweepers("observe_monitor_sweep", &resource.Sweeper{
+		Name: "observe_monitor_sweep",
+		F:    monitorSweeperFunc,
 	})
 }
 
@@ -39,7 +44,7 @@ func sharedClient(s string) (*observe.Client, error) {
 }
 
 var (
-	prefixRe = regexp.MustCompile(`^tf-\d{19,}`)
+	prefixRe = regexp.MustCompile(`^tf-\d{16,}`)
 )
 
 func datasetSweeperFunc(s string) error {
@@ -60,6 +65,51 @@ func datasetSweeperFunc(s string) error {
 			if prefixRe.MatchString(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeleteDataset(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func monitorSweeperFunc(s string) error {
+	client, err := sharedClient(s)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query getMonitorsInWorkspace($workspaceId: ObjectId!) {
+			monitorsInWorkspace(workspaceId: $workspaceId) {
+				id
+				name
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.ID,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup monitors: %w", err)
+		}
+
+		for _, i := range result["monitorsInWorkspace"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				name = item["name"].(string)
+				id   = item["id"].(string)
+			)
+			if prefixRe.MatchString(name) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
+				if err := client.DeleteMonitor(ctx, id); err != nil {
 					return err
 				}
 			}

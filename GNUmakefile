@@ -4,6 +4,8 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
 VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
+SWEEP?=all
+SWEEP_DIR?=./observe
 
 default: build
 
@@ -43,7 +45,7 @@ build: fmtcheck
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test $(TEST) -v -sweep=$(SWEEP) $(SWEEPARGS)
+	go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS)
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1
