@@ -48,6 +48,7 @@ func Provider() *schema.Provider {
 				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_TOKEN", nil),
 				Description:   schemaProviderTokenDescription,
 				ConflictsWith: []string{"user_email", "user_password"},
+				Sensitive:     true,
 			},
 			"user_email": {
 				Type:         schema.TypeString,
@@ -62,6 +63,7 @@ func Provider() *schema.Provider {
 				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_PASSWORD", nil),
 				Description:  schemaProviderUserPasswordDescription,
 				RequiredWith: []string{"user_email"},
+				Sensitive:    true,
 			},
 			"domain": {
 				Type:        schema.TypeString,
