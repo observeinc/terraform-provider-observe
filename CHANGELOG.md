@@ -1,9 +1,19 @@
+## 0.4.12 (2021-08-03)
+
+* provider: make token and password sensitive
+* poller: initial terraform support
+* docs: updating docs
+* channel: reversing direction of connection between channel and channel action
+* sweep: add monitor sweep
+* vendor: update go mod and vendor
+* tests: test fixes
+
 ## 0.4.11 (2021-06-03)
 
-channel_action: add rate_limit
-vendor: go mod update
-tests: fix regressions
-API: modifying operations now lock
+* channel_action: add rate_limit
+* vendor: go mod update
+* tests: fix regressions
+* API: modifying operations now lock
 
 ## 0.4.10 (2021-05-10)
 
