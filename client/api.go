@@ -674,3 +674,50 @@ func (c *Client) GetPoller(ctx context.Context, id string) (*Poller, error) {
 	}
 	return newPoller(result)
 }
+
+// CreateWorkspace creates a workspace
+func (c *Client) CreateWorkspace(ctx context.Context, config *WorkspaceConfig) (*Workspace, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	workspaceInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateWorkspace(ctx, workspaceInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newWorkspace(result)
+}
+
+// UpdateWorkspace updates a workspace
+func (c *Client) UpdateWorkspace(ctx context.Context, id string, config *WorkspaceConfig) (*Workspace, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	workspaceInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateWorkspace(ctx, id, workspaceInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newWorkspace(result)
+}
+
+// DeleteWorkspace
+func (c *Client) DeleteWorkspace(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteWorkspace(ctx, id)
+}

@@ -479,3 +479,7 @@ type PollerMongoDBAtlasInput struct {
 	IncludeGroups []string `json:"includeGroups"`
 	ExcludeGroups []string `json:"excludeGroups"`
 }
+
+type WorkspaceInput struct {
+	Label *string `json:"label"`
+}

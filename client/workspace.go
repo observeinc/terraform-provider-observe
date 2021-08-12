@@ -23,6 +23,12 @@ type WorkspaceConfig struct {
 	Name string `json:"name"`
 }
 
+func (config *WorkspaceConfig) toGQL() (*meta.WorkspaceInput, error) {
+	return &meta.WorkspaceInput{
+		Label: &config.Name,
+	}, nil
+}
+
 func newWorkspace(w *meta.Workspace) (*Workspace, error) {
 	ws := &Workspace{
 		ID: w.ID.String(),
