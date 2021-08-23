@@ -58,7 +58,6 @@ func TestAccObservePoller(t *testing.T) {
 				resource "observe_poller" "second" {
 					workspace = data.observe_workspace.kubernetes.oid
 					name      = "%s-%s"
-					interval  = "1m"
 					retries   = 5
 
 					chunk {
@@ -80,7 +79,6 @@ func TestAccObservePoller(t *testing.T) {
 				}`, randomPrefix, "pubsub"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.second", "name", randomPrefix+"-pubsub"),
-					resource.TestCheckResourceAttr("observe_poller.second", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.second", "retries", "5"),
 					resource.TestCheckResourceAttr("observe_poller.second", "tags.k1", "v1"),
 					resource.TestCheckResourceAttr("observe_poller.second", "tags.k2", "v2"),
