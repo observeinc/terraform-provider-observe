@@ -52,6 +52,11 @@ var (
 			  timeValue
 			  lookbackTime
 			}
+			... on MonitorRuleThreshold {
+			  compareFunction
+			  compareValues
+			  lookbackTime
+			}
 			... on MonitorRulePromote {
 			  kindField
 			  descriptionField

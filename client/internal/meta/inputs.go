@@ -196,11 +196,11 @@ type MonitorRuleInput struct {
 	GroupBy        *MonitorGrouping `json:"groupBy"`
 	GroupByColumns []string         `json:"groupByColumns"`
 
-	CountRule  *MonitorRuleCountInput  `json:"countRule,omitempty"`
-	ChangeRule *MonitorRuleChangeInput `json:"changeRule,omitempty"`
-	FacetRule  *MonitorRuleFacetInput  `json:"facetRule,omitempty"`
-	//ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule,omitempty"`
-	PromoteRule *MonitorRulePromoteInput `json:"promoteRule,omitempty"`
+	CountRule     *MonitorRuleCountInput     `json:"countRule,omitempty"`
+	ChangeRule    *MonitorRuleChangeInput    `json:"changeRule,omitempty"`
+	FacetRule     *MonitorRuleFacetInput     `json:"facetRule,omitempty"`
+	ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule,omitempty"`
+	PromoteRule   *MonitorRulePromoteInput   `json:"promoteRule,omitempty"`
 }
 
 type MonitorGrouping string
@@ -286,6 +286,12 @@ type MonitorRuleFacetInput struct {
 	TimeFunction  *TimeFunction  `json:"timeFunction"`
 	TimeValue     *NumberScalar  `json:"timeValue,omitempty"`
 	LookbackTime  *string        `json:"lookbackTime"`
+}
+
+type MonitorRuleThresholdInput struct {
+	CompareFunction *CompareFunction `json:"compareFunction"`
+	CompareValues   []NumberScalar   `json:"compareValues"`
+	LookbackTime    *string          `json:"lookbackTime"`
 }
 
 type MonitorRulePromoteInput struct {

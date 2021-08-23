@@ -112,13 +112,14 @@ type NotificationSpecConfig struct {
 }
 
 type MonitorRuleConfig struct {
-	SourceColumn   *string                   `json:"sourceColumn"`
-	GroupBy        *MonitorGrouping          `json:"groupBy"`
-	GroupByColumns []string                  `json:"groupByColumns"`
-	ChangeRule     *MonitorRuleChangeConfig  `json:"change"`
-	CountRule      *MonitorRuleCountConfig   `json:"count"`
-	FacetRule      *MonitorRuleFacetConfig   `json:"facet"`
-	PromoteRule    *MonitorRulePromoteConfig `json:"promote"`
+	SourceColumn   *string                     `json:"sourceColumn"`
+	GroupBy        *MonitorGrouping            `json:"groupBy"`
+	GroupByColumns []string                    `json:"groupByColumns"`
+	ChangeRule     *MonitorRuleChangeConfig    `json:"change"`
+	CountRule      *MonitorRuleCountConfig     `json:"count"`
+	FacetRule      *MonitorRuleFacetConfig     `json:"facet"`
+	ThresholdRule  *MonitorRuleThresholdConfig `json:"threshold"`
+	PromoteRule    *MonitorRulePromoteConfig   `json:"promote"`
 }
 
 func (m *Monitor) OID() *OID {
@@ -175,6 +176,8 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 		ruleInput.CountRule, err = c.CountRule.toGQL()
 	case c.FacetRule != nil:
 		ruleInput.FacetRule, err = c.FacetRule.toGQL()
+	case c.ThresholdRule != nil:
+		ruleInput.ThresholdRule, err = c.ThresholdRule.toGQL()
 	case c.PromoteRule != nil:
 		ruleInput.PromoteRule, err = c.PromoteRule.toGQL()
 	default:
@@ -199,6 +202,8 @@ func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 		err = gqlRule.DecodeType(&config.ChangeRule)
 	case "MonitorRuleFacet":
 		err = gqlRule.DecodeType(&config.FacetRule)
+	case "MonitorRuleThreshold":
+		err = gqlRule.DecodeType(&config.ThresholdRule)
 	case "MonitorRulePromote":
 		err = gqlRule.DecodeType(&config.PromoteRule)
 	default:
@@ -326,6 +331,29 @@ func (c *MonitorRuleFacetConfig) toGQL() (*meta.MonitorRuleFacetInput, error) {
 	if f := c.TimeValue; f != nil {
 		s := meta.NumberScalar(*f)
 		input.TimeValue = &s
+	}
+
+	if c.LookbackTime != nil {
+		i := fmt.Sprintf("%d", c.LookbackTime.Nanoseconds())
+		input.LookbackTime = &i
+	}
+
+	return input, nil
+}
+
+type MonitorRuleThresholdConfig struct {
+	CompareFunction *CompareFunction `json:"compareFunction"`
+	CompareValues   []float64        `json:"compareValues"`
+	LookbackTime    *time.Duration   `json:"lookbackTime"`
+}
+
+func (c *MonitorRuleThresholdConfig) toGQL() (*meta.MonitorRuleThresholdInput, error) {
+	input := &meta.MonitorRuleThresholdInput{
+		CompareFunction: c.CompareFunction,
+	}
+
+	for _, v := range c.CompareValues {
+		input.CompareValues = append(input.CompareValues, meta.NumberScalar(v))
 	}
 
 	if c.LookbackTime != nil {

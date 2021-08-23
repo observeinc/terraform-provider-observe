@@ -23,6 +23,7 @@ var validRules = []string{
 	"rule.0.change",
 	"rule.0.count",
 	"rule.0.facet",
+	"rule.0.threshold",
 	"rule.0.promote",
 }
 
@@ -238,6 +239,34 @@ func resourceMonitor() *schema.Resource {
 								},
 							},
 						},
+						"threshold": &schema.Schema{
+							Type:         schema.TypeList,
+							MaxItems:     1,
+							Optional:     true,
+							ExactlyOneOf: validRules,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_function": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+									},
+									"compare_values": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 2,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
+									},
+									"lookback_time": {
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: diffSuppressTimeDuration,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+								},
+							},
+						},
 						"promote": &schema.Schema{
 							Type:         schema.TypeList,
 							MaxItems:     1,
@@ -407,6 +436,24 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		if v, ok := data.GetOk("rule.0.facet.0.lookback_time"); ok {
 			t, _ := time.ParseDuration(v.(string))
 			ruleConfig.FacetRule.LookbackTime = &t
+		}
+	}
+
+	if data.Get("rule.0.threshold.#") == 1 {
+		ruleConfig.ThresholdRule = &observe.MonitorRuleThresholdConfig{}
+
+		v := data.Get("rule.0.threshold.0.compare_function")
+		fn := observe.CompareFunction(toCamel(v.(string)))
+		ruleConfig.ThresholdRule.CompareFunction = &fn
+
+		if v, ok := data.GetOk("rule.0.threshold.0.compare_values"); ok {
+			for _, i := range v.([]interface{}) {
+				ruleConfig.ThresholdRule.CompareValues = append(ruleConfig.ThresholdRule.CompareValues, i.(float64))
+			}
+		}
+		if v, ok := data.GetOk("rule.0.threshold.0.lookback_time"); ok {
+			t, _ := time.ParseDuration(v.(string))
+			ruleConfig.ThresholdRule.LookbackTime = &t
 		}
 	}
 
@@ -633,6 +680,16 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		}
 
 		rule["facet"] = []interface{}{facet}
+	}
+
+	if config.ThresholdRule != nil {
+		threshold := map[string]interface{}{
+			"compare_function": toSnake(config.ThresholdRule.CompareFunction.String()),
+			"compare_values":   config.ThresholdRule.CompareValues,
+			"lookback_time":    config.ThresholdRule.LookbackTime.String(),
+		}
+
+		rule["threshold"] = []interface{}{threshold}
 	}
 
 	if config.PromoteRule != nil {
