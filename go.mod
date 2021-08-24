@@ -29,9 +29,10 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/zclconf/go-cty v1.9.0 // indirect
-	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	github.com/zclconf/go-cty v1.9.1 // indirect
+	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
+	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210726200206-e7812ac95cc0 // indirect
+	google.golang.org/genproto v0.0.0-20210821163610-241b8fcbd6c8 // indirect
 )
