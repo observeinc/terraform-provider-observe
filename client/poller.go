@@ -14,13 +14,14 @@ type Poller struct {
 }
 
 type PollerConfig struct {
-	Name         string              `json:"name"`
-	Retries      *int64              `json:"retries"`
-	Interval     *time.Duration      `json:"interval"`
-	Tags         map[string]string   `json:"tags,omitempty"`
-	Chunk        *PollerChunkConfig  `json:"chunk"`
-	PubsubConfig *PollerPubSubConfig `json:"pubsubConfig"`
-	HTTPConfig   *PollerHTTPConfig   `json:"httpConfig"`
+	Name         string                     `json:"name"`
+	Retries      *int64                     `json:"retries"`
+	Interval     *time.Duration             `json:"interval"`
+	Tags         map[string]string          `json:"tags,omitempty"`
+	Chunk        *PollerChunkConfig         `json:"chunk"`
+	PubsubConfig *PollerPubSubConfig        `json:"pubsubConfig"`
+	HTTPConfig   *PollerHTTPConfig          `json:"httpConfig"`
+	GcpConfig    *PollerGCPMonitoringConfig `json:"gcpConfig"`
 }
 
 type PollerChunkConfig struct {
@@ -38,6 +39,15 @@ type PollerHTTPConfig struct {
 	Endpoint    string            `json:"endpoint"`
 	ContentType string            `json:"contentType"`
 	Headers     map[string]string `json:"headers,omitempty"`
+}
+
+type PollerGCPMonitoringConfig struct {
+	ProjectID                 string   `json:"projectId"`
+	JSONKey                   string   `json:"jsonKey"`
+	IncludeMetricTypePrefixes []string `json:"includeMetricTypePrefixes"`
+	ExcludeMetricTypePrefixes []string `json:"excludeMetricTypePrefixes"`
+	RateLimit                 *int64   `json:"rateLimit"`
+	TotalLimit                *int64   `json:"totalLimit"`
 }
 
 func (p *Poller) OID() *OID {
@@ -92,6 +102,18 @@ func (config *PollerConfig) toGQL() (*meta.PollerInput, error) {
 		hin.Headers = headers
 		in.HTTPConfig = hin
 	}
+
+	// gcp monitoring
+	if config.GcpConfig != nil {
+		in.GcpConfig = &meta.PollerGCPMonitoringInput{
+			ProjectID:                 config.GcpConfig.ProjectID,
+			JSONKey:                   config.GcpConfig.JSONKey,
+			IncludeMetricTypePrefixes: config.GcpConfig.IncludeMetricTypePrefixes,
+			ExcludeMetricTypePrefixes: config.GcpConfig.ExcludeMetricTypePrefixes,
+			RateLimit:                 config.GcpConfig.RateLimit,
+			TotalLimit:                config.GcpConfig.TotalLimit,
+		}
+	}
 	return in, nil
 }
 
@@ -119,6 +141,7 @@ func makeStringMap(in map[string]interface{}) map[string]string {
 	return out
 }
 
+// converts GQL output to a terraform friendly config
 func newPoller(p *meta.Poller) (*Poller, error) {
 	var chunkConf *PollerChunkConfig
 	if p.Config.Chunk != nil {
@@ -150,6 +173,22 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 		}
 	}
 
+	var gcpConf *PollerGCPMonitoringConfig
+	if p.Config.GCPConfig != nil {
+		key, err := serializeStringMap(p.Config.GCPConfig.JSONKey)
+		if err != nil {
+			return nil, err
+		}
+		gcpConf = &PollerGCPMonitoringConfig{
+			ProjectID:                 p.Config.GCPConfig.ProjectID,
+			JSONKey:                   *key,
+			IncludeMetricTypePrefixes: p.Config.GCPConfig.IncludeMetricTypePrefixes,
+			ExcludeMetricTypePrefixes: p.Config.GCPConfig.ExcludeMetricTypePrefixes,
+			RateLimit:                 p.Config.GCPConfig.RateLimit,
+			TotalLimit:                p.Config.GCPConfig.TotalLimit,
+		}
+	}
+
 	pc := &PollerConfig{
 		Name:         p.Config.Name,
 		Retries:      p.Config.Retries,
@@ -158,6 +197,7 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 		Chunk:        chunkConf,
 		PubsubConfig: pubsubConf,
 		HTTPConfig:   httpConf,
+		GcpConfig:    gcpConf,
 	}
 	//TODO: include workspaceId?
 	out := &Poller{

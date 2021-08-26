@@ -361,8 +361,9 @@ type PollerConfig struct {
 	Chunk    *PollerChunkConfig     `json:"chunk"`
 	Tags     map[string]interface{} `json:"tags"`
 
-	HTTPConfig   *PollerHTTPConfig   `json:"httpConfig"`
-	PubSubConfig *PollerPubSubConfig `json:"pubsubConfig"`
+	HTTPConfig   *PollerHTTPConfig          `json:"httpConfig"`
+	PubSubConfig *PollerPubSubConfig        `json:"pubsubConfig"`
+	GCPConfig    *PollerGCPMonitoringConfig `json:"gcpConfig"`
 
 	Other map[string]interface{} `mapstructure:",remain"`
 }
@@ -382,4 +383,13 @@ type PollerPubSubConfig struct {
 	ProjectID      string                 `json:"projectId"`
 	JSONKey        map[string]interface{} `json:"jsonKey"`
 	SubscriptionID string                 `json:"subscriptionId"`
+}
+
+type PollerGCPMonitoringConfig struct {
+	ProjectID                 string                 `json:"projectId"`
+	JSONKey                   map[string]interface{} `json:"jsonKey"`
+	IncludeMetricTypePrefixes []string               `json:"includeMetricTypePrefixes"`
+	ExcludeMetricTypePrefixes []string               `json:"excludeMetricTypePrefixes"`
+	RateLimit                 *int64                 `json:"rateLimit"`
+	TotalLimit                *int64                 `json:"totalLimit"`
 }

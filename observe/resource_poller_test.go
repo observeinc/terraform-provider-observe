@@ -55,7 +55,7 @@ func TestAccObservePoller(t *testing.T) {
 			},
 			{
 				Config: fmt.Sprintf(configPreamble+`
-				resource "observe_poller" "second" {
+				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.kubernetes.oid
 					name      = "%s-%s"
 					retries   = 5
@@ -78,16 +78,50 @@ func TestAccObservePoller(t *testing.T) {
 					}
 				}`, randomPrefix, "pubsub"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_poller.second", "name", randomPrefix+"-pubsub"),
-					resource.TestCheckResourceAttr("observe_poller.second", "retries", "5"),
-					resource.TestCheckResourceAttr("observe_poller.second", "tags.k1", "v1"),
-					resource.TestCheckResourceAttr("observe_poller.second", "tags.k2", "v2"),
-					resource.TestCheckResourceAttr("observe_poller.second", "chunk.0.enabled", "true"),
-					resource.TestCheckResourceAttr("observe_poller.second", "chunk.0.size", "1024"),
-					resource.TestCheckResourceAttr("observe_poller.second", "pubsub.0.project_id", "gcp-test"),
-					resource.TestCheckResourceAttr("observe_poller.second", "pubsub.0.subscription_id", "sub-test"),
-					resource.TestCheckResourceAttrSet("observe_poller.second", "pubsub.0.json_key"),
-					resource.TestCheckResourceAttr("observe_poller.second", "http.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-pubsub"),
+					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k2", "v2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "chunk.0.enabled", "true"),
+					resource.TestCheckResourceAttr("observe_poller.first", "chunk.0.size", "1024"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.0.project_id", "gcp-test"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.0.subscription_id", "sub-test"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "pubsub.0.json_key"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.#", "0"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.kubernetes.oid
+					name      = "%s-%s"
+					retries   = 5
+
+					tags = {
+						"k1"   = "v1"
+						"k2"   = "v2"
+					}
+					gcp_monitoring {
+					    project_id = "gcp-test"
+						json_key = jsonencode({
+							type: "service_account",
+							project_id: "gcp-test"
+						})
+						rate_limit = 50
+						total_limit = 1000
+					}
+				}`, randomPrefix, "gcp"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-gcp"),
+					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k2", "v2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "gcp_monitoring.0.project_id", "gcp-test"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "gcp_monitoring.0.json_key"),
+					resource.TestCheckResourceAttr("observe_poller.first", "gcp_monitoring.0.rate_limit", "50"),
+					resource.TestCheckResourceAttr("observe_poller.first", "gcp_monitoring.0.total_limit", "1000"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.#", "0"),
 				),
 			},
 		},

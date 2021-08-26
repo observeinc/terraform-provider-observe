@@ -13,6 +13,7 @@ import (
 var validPollerKinds = []string{
 	"pubsub",
 	"http",
+	"gcp_monitoring",
 }
 
 func resourcePoller() *schema.Resource {
@@ -124,6 +125,44 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
+			"gcp_monitoring": &schema.Schema{
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: validPollerKinds,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"project_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"json_key": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateStringIsJSON,
+							DiffSuppressFunc: diffSuppressJSON,
+						},
+						"include_metric_type_prefixes": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"exclude_metric_type_prefixes": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"rate_limit": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"total_limit": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -178,7 +217,34 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 		}
 		config.HTTPConfig = httpConf
 	}
+	if data.Get("gcp_monitoring.#") == 1 {
+		config.GcpConfig = &observe.PollerGCPMonitoringConfig{
+			ProjectID:                 data.Get("gcp_monitoring.0.project_id").(string),
+			JSONKey:                   data.Get("gcp_monitoring.0.json_key").(string),
+			IncludeMetricTypePrefixes: makeStrSlice(data.Get("gcp_monitoring.0.include_metric_type_prefixes").([]interface{})),
+			ExcludeMetricTypePrefixes: makeStrSlice(data.Get("gcp_monitoring.0.exclude_metric_type_prefixes").([]interface{})),
+		}
+		if v, ok := data.GetOk("gcp_monitoring.0.rate_limit"); ok {
+			rateLimit := int64(v.(int))
+			config.GcpConfig.RateLimit = &rateLimit
+		}
+		if v, ok := data.GetOk("gcp_monitoring.0.total_limit"); ok {
+			totalLimit := int64(v.(int))
+			config.GcpConfig.TotalLimit = &totalLimit
+		}
+	}
 	return
+}
+
+func makeStrSlice(in []interface{}) []string {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]string, len(in))
+	for i, val := range in {
+		out[i] = val.(string)
+	}
+	return out
 }
 
 func makeStringMap(in map[string]interface{}) map[string]string {
@@ -308,6 +374,29 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 			ht["headers"] = headers
 		}
 		if err := data.Set("http", []interface{}{ht}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	if config.GcpConfig != nil {
+		gcp := map[string]interface{}{
+			"project_id":  config.GcpConfig.ProjectID,
+			"json_key":    config.GcpConfig.JSONKey,
+			"rate_limit":  config.GcpConfig.RateLimit,
+			"total_limit": config.GcpConfig.TotalLimit,
+		}
+		if len(config.GcpConfig.IncludeMetricTypePrefixes) != 0 {
+			gcp["include_metric_type_prefixes"] = config.GcpConfig.IncludeMetricTypePrefixes
+		}
+		if len(config.GcpConfig.ExcludeMetricTypePrefixes) != 0 {
+			gcp["exclude_metric_type_prefixes"] = config.GcpConfig.ExcludeMetricTypePrefixes
+		}
+		if config.GcpConfig.RateLimit != nil {
+			gcp["rate_limit"] = int(*config.GcpConfig.RateLimit)
+		}
+		if config.GcpConfig.TotalLimit != nil {
+			gcp["total_limit"] = int(*config.GcpConfig.TotalLimit)
+		}
+		if err := data.Set("gcp_monitoring", []interface{}{gcp}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

@@ -31,6 +31,14 @@ var (
 				contentType
 				headers
 			}
+			... on PollerGCPMonitoringConfig {
+				projectId
+				jsonKey
+				includeMetricTypePrefixes
+				excludeMetricTypePrefixes
+				rateLimit
+				totalLimit
+			}
 		}
 	}`
 )
@@ -45,6 +53,8 @@ func sanitizePoller(in *Poller) (*Poller, error) {
 		err = decodeStrict(in.Config.Other, &in.Config.PubSubConfig)
 	case "HTTP":
 		err = decodeStrict(in.Config.Other, &in.Config.HTTPConfig)
+	case "GCPMonitoring":
+		err = decodeStrict(in.Config.Other, &in.Config.GCPConfig)
 	default:
 		err = fmt.Errorf("unknown kind: %s", in.Kind)
 	}
