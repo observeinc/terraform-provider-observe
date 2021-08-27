@@ -1,3 +1,11 @@
+## 0.4.13 (2021-08-27)
+
+- poller: gcp support
+- monitors: add threshold monitors
+- vendor: update go mod and vendor
+- tests: fix broken poller test
+- test: make TestAccObserveSourceDatasetResource less flaky
+
 ## 0.4.12 (2021-08-03)
 
 * provider: make token and password sensitive
