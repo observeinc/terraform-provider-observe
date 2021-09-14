@@ -96,7 +96,7 @@ func (c *Client) CreateMonitor(ctx context.Context, workspaceID string, m *Monit
 	return r.Monitor, err
 }
 
-// GetMonitor retrieves dataset.
+// GetMonitor retrieves monitor.
 func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
 	result, err := c.Run(ctx, backendMonitorFragment+`
 			query getMonitor($id: ObjectId!) {
@@ -113,6 +113,29 @@ func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
 
 	var m Monitor
 	err = decodeStrict(getNested(result, "monitor"), &m)
+	return &m, err
+}
+
+// LookupMonitor retrieves monitor by name.
+func (c *Client) LookupMonitor(ctx context.Context, workspaceId string, name string) (*Monitor, error) {
+	result, err := c.Run(ctx, backendMonitorFragment+`
+			query lookupMonitor($workspaceId: ObjectId!, $name: String!) {
+		        workspace(id: $workspaceId) {
+					monitor(name: $name) {
+						...monitorFields
+					}
+				}
+		    }`, map[string]interface{}{
+		"workspaceId": workspaceId,
+		"name":        name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var m Monitor
+	err = decodeStrict(getNested(result, "workspace", "monitor"), &m)
 	return &m, err
 }
 

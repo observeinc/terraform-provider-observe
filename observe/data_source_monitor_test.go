@@ -100,3 +100,55 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveSourceMonitorLookup(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+					resource "observe_monitor" "first" {
+						workspace = data.observe_workspace.default.oid
+						name      = "%[1]s"
+
+						inputs = {
+							"observation" = data.observe_dataset.observation.oid
+						}
+
+						stage {}
+
+						rule {
+							group_by      = "none"
+
+							count {
+								compare_function   = "less_or_equal"
+								compare_values     = [1]
+								lookback_time      = "1m"
+							}
+						}
+
+						notification_spec {
+							selection       = "count"
+							selection_value = 1
+						}
+					}
+
+					data "observe_monitor" "lookup" {
+					    depends_on = [observe_monitor.first]
+						workspace  = data.observe_workspace.default.oid
+						name       = "%[1]s"
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "count"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),
+				),
+			},
+		},
+	})
+}

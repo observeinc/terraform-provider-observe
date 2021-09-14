@@ -18,20 +18,22 @@ func dataSourceMonitor() *schema.Resource {
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
+			"name": {
+				Type:         schema.TypeString,
+				ExactlyOneOf: []string{"name", "id"},
+				Optional:     true,
+				Description:  schemaMonitorNameDescription,
+			},
 			"id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				ExactlyOneOf: []string{"name", "id"},
+				Optional:     true,
 			},
 			// computed values
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaMonitorOIDDescription,
-			},
-			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: schemaMonitorNameDescription,
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
@@ -235,6 +237,27 @@ func dataSourceMonitor() *schema.Resource {
 }
 
 func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	data.SetId(data.Get("id").(string))
+	var (
+		client = meta.(*observe.Client)
+		name   = data.Get("name").(string)
+		id     = data.Get("id").(string)
+	)
+
+	oid, _ := observe.NewOID(data.Get("workspace").(string))
+
+	var m *observe.Monitor
+	var err error
+
+	if id != "" {
+		m, err = client.GetMonitor(ctx, id)
+	} else if name != "" {
+		m, err = client.LookupMonitor(ctx, oid.ID, name)
+	}
+
+	if err != nil {
+		diags = diag.FromErr(err)
+		return
+	}
+	data.SetId(m.ID)
 	return resourceMonitorRead(ctx, data, meta)
 }

@@ -127,18 +127,11 @@ func (c *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error
 
 // LookupWorkspace by name.
 func (c *Client) LookupWorkspace(ctx context.Context, name string) (*Workspace, error) {
-	workspaces, err := c.Meta.ListWorkspaces(ctx)
+	result, err := c.Meta.LookupWorkspace(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup workspace: %w", err)
 	}
-
-	for _, w := range workspaces {
-		if w.Label == name {
-			return newWorkspace(w)
-		}
-	}
-	// TODO: return not found?
-	return nil, ErrNotFound
+	return newWorkspace(result)
 }
 
 // ListWorkspaces.
@@ -161,16 +154,11 @@ func (c *Client) ListWorkspaces(ctx context.Context) (workspaces []*Workspace, e
 
 // LookupDataset by name.
 func (c *Client) LookupDataset(ctx context.Context, workspaceID string, name string) (*Dataset, error) {
-	workspace, err := c.GetWorkspace(ctx, workspaceID)
+	result, err := c.Meta.LookupDataset(ctx, workspaceID, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup dataset: %w", err)
 	}
-
-	id, ok := workspace.Datasets[name]
-	if !ok {
-		return nil, ErrNotFound
-	}
-	return c.GetDataset(ctx, id)
+	return newDataset(result)
 }
 
 // CreateForeignKey
@@ -568,6 +556,15 @@ func (c *Client) DeleteMonitor(ctx context.Context, id string) error {
 // GetMonitor returns monitor by ID
 func (c *Client) GetMonitor(ctx context.Context, id string) (*Monitor, error) {
 	result, err := c.Meta.GetMonitor(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return newMonitor(result)
+}
+
+// LookupMonitor returns monitor by name
+func (c *Client) LookupMonitor(ctx context.Context, workspaceId string, id string) (*Monitor, error) {
+	result, err := c.Meta.LookupMonitor(ctx, workspaceId, id)
 	if err != nil {
 		return nil, err
 	}

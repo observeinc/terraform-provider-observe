@@ -130,6 +130,31 @@ func (c *Client) GetDataset(ctx context.Context, id string) (*Dataset, error) {
 	return &dataset, nil
 }
 
+// LookupDataset retrieves dataset by name.
+func (c *Client) LookupDataset(ctx context.Context, workspaceId, name string) (*Dataset, error) {
+	result, err := c.Run(ctx, backendDatasetFragment+`
+	query lookupDataset($workspaceId: ObjectId!, $name: String!) {
+		workspace(id: $workspaceId) {
+			dataset(label: $name) {
+            	...datasetFields
+        	}
+		}
+    }`, map[string]interface{}{
+		"workspaceId": workspaceId,
+		"name":        name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var dataset Dataset
+	if err := decodeStrict(getNested(result, "workspace", "dataset"), &dataset); err != nil {
+		return nil, err
+	}
+	return &dataset, nil
+}
+
 // DeleteDataset deletes dataset by ID.
 func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	result, err := c.Run(ctx, `
