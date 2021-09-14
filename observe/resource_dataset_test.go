@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -11,16 +12,24 @@ import (
 
 var (
 	// common to all configs
-	configPreamble = `
-				data "observe_workspace" "kubernetes" {
-					name = "Kubernetes"
+	defaultWorkspaceName = getenv("OBSERVE_WORKSPACE", "Default")
+	configPreamble       = fmt.Sprintf(`
+				data "observe_workspace" "default" {
+					name = "%s"
 				}
 
 				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "Observation"
-				}`
+				}`, defaultWorkspaceName)
 )
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
 
 // Verify we can change dataset properties: e.g. name and freshness
 func TestAccObserveDatasetUpdate(t *testing.T) {
@@ -33,7 +42,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -54,7 +63,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s-rename"
 					freshness = "1m"
 
@@ -80,7 +89,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				PlanOnly: true,
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s-rename"
 					freshness = "1m"
 
@@ -111,7 +120,7 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -134,7 +143,7 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -169,7 +178,7 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -206,7 +215,7 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -245,7 +254,7 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -294,7 +303,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -307,7 +316,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-2"
 
 					inputs = { "first" = observe_dataset.first.oid }
@@ -323,7 +332,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				// coldrop with no downstream breakage
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -336,7 +345,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-2"
 
 					inputs = { "first" = observe_dataset.first.oid }
@@ -352,7 +361,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				// downstream with breakage
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -365,7 +374,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-2"
 
 					inputs = { "first" = observe_dataset.first.oid }
@@ -389,7 +398,7 @@ fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS\]
 				ExpectNonEmptyPlan: true,
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -402,7 +411,7 @@ fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS\]
 				}
 
 				resource "observe_dataset" "second" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-2"
 
 					inputs = { "first" = observe_dataset.first.oid }
@@ -429,7 +438,7 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { 
@@ -462,7 +471,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace   = data.observe_workspace.kubernetes.oid
+					workspace   = data.observe_workspace.default.oid
 					name 	    = "%s"
 					description = "test"
 
@@ -478,7 +487,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.kubernetes.oid
+					workspace  = data.observe_workspace.default.oid
 					name 	   = "%[1]s"
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),
@@ -493,7 +502,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace   = data.observe_workspace.kubernetes.oid
+					workspace   = data.observe_workspace.default.oid
 					name 	    = "%s"
 					description = "updated"
 
@@ -509,7 +518,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.kubernetes.oid
+					workspace  = data.observe_workspace.default.oid
 					name 	   = "%[1]s"
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),
@@ -524,7 +533,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace   = data.observe_workspace.kubernetes.oid
+					workspace   = data.observe_workspace.default.oid
 					name 	    = "%s"
 
 					inputs = {
@@ -539,7 +548,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.kubernetes.oid
+					workspace  = data.observe_workspace.default.oid
 					name 	   = "%[1]s"
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),

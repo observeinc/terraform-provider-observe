@@ -18,7 +18,7 @@ func TestAccObservePoller(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_poller" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					interval  = "1m"
 					retries   = 5
@@ -56,7 +56,7 @@ func TestAccObservePoller(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_poller" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					retries   = 5
 
@@ -93,7 +93,7 @@ func TestAccObservePoller(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_poller" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					retries   = 5
 

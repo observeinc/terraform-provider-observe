@@ -20,7 +20,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				// simple case: one input, one stage.
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					inputs = {
@@ -54,7 +54,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				// you can update dataset properties
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					icon_url  = "test-tube"
@@ -82,7 +82,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				// change it all back
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					icon_url  = "test-tube"

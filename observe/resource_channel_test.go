@@ -12,7 +12,7 @@ var (
 	// setup a couple of actions and monitors for use with channels
 	channelConfigPreamble = configPreamble + `
 				resource "observe_monitor" "a" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s/a"
 
 				  inputs = {
@@ -51,7 +51,7 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				  icon_url  = "test"
 				}
@@ -65,7 +65,7 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				  icon_url  = "test"
 				  monitors = [
@@ -82,7 +82,7 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				}
 				`, randomPrefix, randomPrefix),

@@ -12,13 +12,13 @@ var (
 	// setup a couple of actions and monitors for use with channels
 	channelActionConfigPreamble = configPreamble + `
 				resource "observe_channel" "a" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s/a"
 				  icon_url  = "test"
 				}
 
 				resource "observe_channel" "b" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s/b"
 				  icon_url  = "test"
 				}
@@ -35,7 +35,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				  icon_url  = "test"
 
@@ -60,7 +60,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace  = data.observe_workspace.kubernetes.oid
+				  workspace  = data.observe_workspace.default.oid
 				  name       = "%s"
 				  icon_url   = "test"
 
@@ -83,7 +83,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace  = data.observe_workspace.kubernetes.oid
+				  workspace  = data.observe_workspace.default.oid
 				  name       = "%s"
 				  icon_url   = "test"
 				  rate_limit = "5m"
@@ -112,7 +112,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				  icon_url  = "filing-cabinet"
 				  channels  = [

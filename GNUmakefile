@@ -11,7 +11,7 @@ default: build
 
 docker-integration:
 	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
-	-e OBSERVE_CUSTOMER -e OBSERVE_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD \
+	-e OBSERVE_CUSTOMER -e OBSERVE_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
 	--rm golang:latest \
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make testacc"
 

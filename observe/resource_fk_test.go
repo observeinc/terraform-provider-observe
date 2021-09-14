@@ -13,7 +13,7 @@ var (
 	// common to all configs
 	fkConfigPreamble = configPreamble + `
 		resource "observe_dataset" "a" {
-			workspace = data.observe_workspace.kubernetes.oid
+			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-A"
 
 			inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -27,7 +27,7 @@ var (
 		}
 
 		resource "observe_dataset" "b" {
-			workspace = data.observe_workspace.kubernetes.oid
+			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-B"
 
 			inputs = { "a" = observe_dataset.a.oid }
@@ -50,7 +50,7 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key:key"]
@@ -69,7 +69,7 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 				PlanOnly: true,
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
@@ -91,7 +91,7 @@ func TestAccObserveForeignKeyErrors(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = data.observe_dataset.observation.oid
 					target    = data.observe_dataset.observation.oid
 					fields    = ["test"]
@@ -103,7 +103,7 @@ func TestAccObserveForeignKeyErrors(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = data.observe_dataset.observation.oid
 					target    = data.observe_dataset.observation.oid
 					fields    = ["OBSERVATION_KIND:FIELDS"]
@@ -126,7 +126,7 @@ func TestAccOBS2432(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
@@ -144,7 +144,7 @@ func TestAccOBS2432(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
@@ -159,7 +159,7 @@ func TestAccOBS2432(t *testing.T) {
 				}
 
 				resource "observe_dataset" "c" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%[1]s-C"
 
 					inputs = { "a" = observe_dataset.a.oid }
@@ -193,7 +193,7 @@ func TestAccOBS2110(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
@@ -201,7 +201,7 @@ func TestAccOBS2110(t *testing.T) {
 				}
 
 				resource "observe_fk" "second" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
@@ -247,7 +247,7 @@ func TestLinkSuppression(t *testing.T) {
 	 */
 	config := fmt.Sprintf(fkConfigPreamble+`
 		resource "observe_dataset" "c" {
-			workspace = data.observe_workspace.kubernetes.oid
+			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-C"
 
 			inputs = { "a" = observe_dataset.a.oid }
@@ -260,7 +260,7 @@ func TestLinkSuppression(t *testing.T) {
 		}
 
 		resource "observe_fk" "a_to_b" {
-			workspace = data.observe_workspace.kubernetes.oid
+			workspace = data.observe_workspace.default.oid
 			source    = observe_dataset.a.oid
 			target    = observe_dataset.b.oid
 			fields    = ["key"]
@@ -269,7 +269,7 @@ func TestLinkSuppression(t *testing.T) {
 		}
 
 		resource "observe_fk" "a_to_c" {
-			workspace = data.observe_workspace.kubernetes.oid
+			workspace = data.observe_workspace.default.oid
 			source    = observe_dataset.a.oid
 			target    = observe_dataset.c.oid
 			fields    = ["key"]

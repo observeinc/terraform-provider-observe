@@ -34,7 +34,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_dataset" "a" {
-						workspace = data.observe_workspace.kubernetes.oid
+						workspace = data.observe_workspace.default.oid
 						name      = "%[1]s"
 
 						inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -47,7 +47,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 					}
 
 					data "observe_dataset" "lookup_by_name" {
-						workspace  = data.observe_workspace.kubernetes.oid
+						workspace  = data.observe_workspace.default.oid
 						name       = observe_dataset.a.name
 						depends_on = [observe_dataset.a]
 					}
@@ -60,7 +60,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 						resource "observe_dataset" "a" {
-							workspace = data.observe_workspace.kubernetes.oid
+							workspace = data.observe_workspace.default.oid
 							name      = "%[1]s"
 
 							inputs = { "observation" = data.observe_dataset.observation.oid }
@@ -73,7 +73,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 
 						data "observe_dataset" "lookup_by_id" {
-							workspace  = data.observe_workspace.kubernetes.oid
+							workspace  = data.observe_workspace.default.oid
 							id         = observe_dataset.a.id
 							depends_on = [observe_dataset.a]
 						}
@@ -97,7 +97,7 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				data "observe_dataset" "missing" {
-				  workspace = data.observe_workspace.kubernetes.oid
+				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(randomPrefix),

@@ -12,12 +12,12 @@ var (
 	// common to all configs
 	bookmarkConfigPreamble = configPreamble + `
 		resource "observe_bookmark_group" "a" {
-			workspace 	 = data.observe_workspace.kubernetes.oid
+			workspace 	 = data.observe_workspace.default.oid
 			name      	 = "%[1]s-a"
 		}
 
 		resource "observe_bookmark_group" "b" {
-			workspace 	 = data.observe_workspace.kubernetes.oid
+			workspace 	 = data.observe_workspace.default.oid
 			name      	 = "%[1]s-b"
 		}
 		`

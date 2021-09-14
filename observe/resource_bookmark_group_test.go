@@ -18,7 +18,7 @@ func TestAccObserveBookmarkGroup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_bookmark_group" "example" {
-					workspace 	 = data.observe_workspace.kubernetes.oid
+					workspace 	 = data.observe_workspace.default.oid
 					name      	 = "%[1]s"
 				}
 				`, randomPrefix),
@@ -32,7 +32,7 @@ func TestAccObserveBookmarkGroup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_bookmark_group" "example" {
-					workspace 	 = data.observe_workspace.kubernetes.oid
+					workspace 	 = data.observe_workspace.default.oid
 					name      	 = "%[1]s-renamed"
 					presentation = "PerUserWorkspace"
 				}

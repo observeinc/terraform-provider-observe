@@ -19,7 +19,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_source_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 
 					schema = "EXTERNAL"
@@ -87,7 +87,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 			{
 				Config: configPreamble + fmt.Sprintf(`
 				resource "observe_source_dataset" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
 					freshness = "1m"
 

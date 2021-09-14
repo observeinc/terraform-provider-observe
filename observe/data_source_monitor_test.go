@@ -18,7 +18,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_monitor" "first" {
-						workspace = data.observe_workspace.kubernetes.oid
+						workspace = data.observe_workspace.default.oid
 						name      = "%s"
 
 						inputs = {
@@ -31,8 +31,8 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 							group_by      = "none"
 
 							count {
-								compare_function   = "between_half_open"
-								compare_values     = [1, 10]
+								compare_function   = "less_or_equal"
+								compare_values     = [1]
 								lookback_time      = "1m"
 							}
 						}
@@ -44,7 +44,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-						workspace  = data.observe_workspace.kubernetes.oid
+						workspace  = data.observe_workspace.default.oid
 						id         = observe_monitor.first.id
 					}
 				`, randomPrefix),
@@ -58,7 +58,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_monitor" "first" {
-						workspace = data.observe_workspace.kubernetes.oid
+						workspace = data.observe_workspace.default.oid
 						name      = "%s"
 
 						inputs = {
@@ -75,8 +75,8 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 							group_by      = "none"
 
 							count {
-								compare_function   = "between_half_open"
-								compare_values     = [1, 10]
+								compare_function   = "less_or_equal"
+								compare_values     = [1]
 								lookback_time      = "1m"
 							}
 						}
@@ -88,7 +88,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-						workspace  = data.observe_workspace.kubernetes.oid
+						workspace  = data.observe_workspace.default.oid
 						id         = observe_monitor.first.id
 					}
 					`, randomPrefix),

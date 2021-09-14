@@ -15,14 +15,14 @@ func TestAccObserveSourceWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-				data "observe_workspace" "kubernetes" {
-				  name = "Kubernetes"
-				}`,
+				Config: fmt.Sprintf(`
+				data "observe_workspace" "default" {
+				  name = "%s"
+				}`, defaultWorkspaceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_workspace.kubernetes", "id"),
-					resource.TestCheckResourceAttrSet("data.observe_workspace.kubernetes", "oid"),
-					resource.TestCheckResourceAttr("data.observe_workspace.kubernetes", "name", "Kubernetes"),
+					resource.TestCheckResourceAttrSet("data.observe_workspace.default", "id"),
+					resource.TestCheckResourceAttrSet("data.observe_workspace.default", "oid"),
+					resource.TestCheckResourceAttr("data.observe_workspace.default", "name", defaultWorkspaceName),
 				),
 			},
 		},
@@ -38,7 +38,7 @@ func TestAccObserveSourceWorkspaceNotFound(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-				data "observe_workspace" "kubernetes" {
+				data "observe_workspace" "default" {
 				  name = "%s"
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(randomPrefix),

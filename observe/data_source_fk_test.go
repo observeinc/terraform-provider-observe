@@ -19,7 +19,7 @@ func TestAccObserveSourceForeignKey(t *testing.T) {
 			{
 				Config: fmt.Sprintf(fkConfigPreamble+`
 				resource "observe_fk" "example" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key:key"]

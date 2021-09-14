@@ -18,7 +18,7 @@ func TestAccObserveMonitor(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
@@ -31,8 +31,8 @@ func TestAccObserveMonitor(t *testing.T) {
 						group_by      = "none"
 
 						count {
-							compare_function   = "between_half_open"
-							compare_values     = [1, 10]
+							compare_function   = "less_or_equal"
+							compare_values     = [1]
 							lookback_time      = "1m"
 						}
 					}
@@ -49,9 +49,8 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_columns"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "between_half_open"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.0", "1"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.1", "10"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.lookback_time", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
@@ -62,7 +61,7 @@ func TestAccObserveMonitor(t *testing.T) {
 			//			{
 			//				Config: fmt.Sprintf(configPreamble+`
 			//				resource "observe_monitor" "first" {
-			//					workspace = data.observe_workspace.kubernetes.oid
+			//					workspace = data.observe_workspace.default.oid
 			//					name      = "%s"
 			//
 			//					inputs = {
@@ -114,7 +113,7 @@ func TestAccObserveMonitor(t *testing.T) {
 			//			{
 			//				Config: fmt.Sprintf(configPreamble+`
 			//				resource "observe_monitor" "first" {
-			//					workspace = data.observe_workspace.kubernetes.oid
+			//					workspace = data.observe_workspace.default.oid
 			//					name      = "%s"
 			//
 			//					inputs = {
@@ -175,7 +174,7 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
@@ -232,7 +231,7 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
@@ -269,7 +268,7 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
@@ -318,7 +317,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
@@ -357,7 +356,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor" "first" {
-					workspace = data.observe_workspace.kubernetes.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 
 					inputs = {
