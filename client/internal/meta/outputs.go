@@ -361,9 +361,10 @@ type PollerConfig struct {
 	Chunk    *PollerChunkConfig     `json:"chunk"`
 	Tags     map[string]interface{} `json:"tags"`
 
-	HTTPConfig   *PollerHTTPConfig          `json:"httpConfig"`
-	PubSubConfig *PollerPubSubConfig        `json:"pubsubConfig"`
-	GCPConfig    *PollerGCPMonitoringConfig `json:"gcpConfig"`
+	HTTPConfig         *PollerHTTPConfig          `json:"httpConfig"`
+	PubSubConfig       *PollerPubSubConfig        `json:"pubsubConfig"`
+	GCPConfig          *PollerGCPMonitoringConfig `json:"gcpConfig"`
+	MongoDBAtlasConfig *PollerMongoDBAtlasConfig  `json:"mongoDBAtlasConfig"`
 
 	Other map[string]interface{} `mapstructure:",remain"`
 }
@@ -392,4 +393,11 @@ type PollerGCPMonitoringConfig struct {
 	ExcludeMetricTypePrefixes []string               `json:"excludeMetricTypePrefixes"`
 	RateLimit                 *int64                 `json:"rateLimit"`
 	TotalLimit                *int64                 `json:"totalLimit"`
+}
+
+type PollerMongoDBAtlasConfig struct {
+	PublicKey     string   `json:"publicKey"`
+	PrivateKey    string   `json:"privateKey"`
+	IncludeGroups []string `json:"includeGroups"`
+	ExcludeGroups []string `json:"excludeGroups"`
 }

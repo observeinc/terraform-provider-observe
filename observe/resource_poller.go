@@ -14,6 +14,7 @@ var validPollerKinds = []string{
 	"pubsub",
 	"http",
 	"gcp_monitoring",
+	"mongodbatlas",
 }
 
 func resourcePoller() *schema.Resource {
@@ -163,6 +164,36 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
+			"mongodbatlas": &schema.Schema{
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: validPollerKinds,
+				RequiredWith: []string{"interval"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"public_key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"private_key": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"include_groups": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"exclude_groups": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -231,6 +262,14 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 		if v, ok := data.GetOk("gcp_monitoring.0.total_limit"); ok {
 			totalLimit := int64(v.(int))
 			config.GcpConfig.TotalLimit = &totalLimit
+		}
+	}
+	if data.Get("mongodbatlas.#") == 1 {
+		config.MongoDBAtlasConfig = &observe.PollerMongoDBAtlasConfig{
+			PublicKey:     data.Get("mongodbatlas.0.public_key").(string),
+			PrivateKey:    data.Get("mongodbatlas.0.private_key").(string),
+			IncludeGroups: makeStrSlice(data.Get("mongodbatlas.0.include_groups").([]interface{})),
+			ExcludeGroups: makeStrSlice(data.Get("mongodbatlas.0.exclude_groups").([]interface{})),
 		}
 	}
 	return
@@ -397,6 +436,21 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 			gcp["total_limit"] = int(*config.GcpConfig.TotalLimit)
 		}
 		if err := data.Set("gcp_monitoring", []interface{}{gcp}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	if config.MongoDBAtlasConfig != nil {
+		cfg := map[string]interface{}{
+			"public_key":  config.MongoDBAtlasConfig.PublicKey,
+			"private_key": config.MongoDBAtlasConfig.PrivateKey,
+		}
+		if len(config.MongoDBAtlasConfig.IncludeGroups) != 0 {
+			cfg["include_groups"] = config.MongoDBAtlasConfig.IncludeGroups
+		}
+		if len(config.MongoDBAtlasConfig.ExcludeGroups) != 0 {
+			cfg["exclude_groups"] = config.MongoDBAtlasConfig.ExcludeGroups
+		}
+		if err := data.Set("mongodbatlas", []interface{}{cfg}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

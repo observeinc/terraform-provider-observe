@@ -14,14 +14,15 @@ type Poller struct {
 }
 
 type PollerConfig struct {
-	Name         string                     `json:"name"`
-	Retries      *int64                     `json:"retries"`
-	Interval     *time.Duration             `json:"interval"`
-	Tags         map[string]string          `json:"tags,omitempty"`
-	Chunk        *PollerChunkConfig         `json:"chunk"`
-	PubsubConfig *PollerPubSubConfig        `json:"pubsubConfig"`
-	HTTPConfig   *PollerHTTPConfig          `json:"httpConfig"`
-	GcpConfig    *PollerGCPMonitoringConfig `json:"gcpConfig"`
+	Name               string                     `json:"name"`
+	Retries            *int64                     `json:"retries"`
+	Interval           *time.Duration             `json:"interval"`
+	Tags               map[string]string          `json:"tags,omitempty"`
+	Chunk              *PollerChunkConfig         `json:"chunk"`
+	PubsubConfig       *PollerPubSubConfig        `json:"pubsubConfig"`
+	HTTPConfig         *PollerHTTPConfig          `json:"httpConfig"`
+	GcpConfig          *PollerGCPMonitoringConfig `json:"gcpConfig"`
+	MongoDBAtlasConfig *PollerMongoDBAtlasConfig  `json:"mongoDBAtlasConfig"`
 }
 
 type PollerChunkConfig struct {
@@ -48,6 +49,13 @@ type PollerGCPMonitoringConfig struct {
 	ExcludeMetricTypePrefixes []string `json:"excludeMetricTypePrefixes"`
 	RateLimit                 *int64   `json:"rateLimit"`
 	TotalLimit                *int64   `json:"totalLimit"`
+}
+
+type PollerMongoDBAtlasConfig struct {
+	PublicKey     string   `json:"publicKey"`
+	PrivateKey    string   `json:"privateKey"`
+	IncludeGroups []string `json:"includeGroups"`
+	ExcludeGroups []string `json:"excludeGroups"`
 }
 
 func (p *Poller) OID() *OID {
@@ -112,6 +120,15 @@ func (config *PollerConfig) toGQL() (*meta.PollerInput, error) {
 			ExcludeMetricTypePrefixes: config.GcpConfig.ExcludeMetricTypePrefixes,
 			RateLimit:                 config.GcpConfig.RateLimit,
 			TotalLimit:                config.GcpConfig.TotalLimit,
+		}
+	}
+
+	if c := config.MongoDBAtlasConfig; c != nil {
+		in.MongoDBAtlasConfig = &meta.PollerMongoDBAtlasInput{
+			PublicKey:     c.PublicKey,
+			PrivateKey:    c.PrivateKey,
+			IncludeGroups: c.IncludeGroups,
+			ExcludeGroups: c.ExcludeGroups,
 		}
 	}
 	return in, nil
@@ -189,15 +206,26 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 		}
 	}
 
+	var mongoDBAtlasConfig *PollerMongoDBAtlasConfig
+	if p.Config.MongoDBAtlasConfig != nil {
+		mongoDBAtlasConfig = &PollerMongoDBAtlasConfig{
+			PublicKey:     p.Config.MongoDBAtlasConfig.PublicKey,
+			PrivateKey:    p.Config.MongoDBAtlasConfig.PrivateKey,
+			IncludeGroups: p.Config.MongoDBAtlasConfig.IncludeGroups,
+			ExcludeGroups: p.Config.MongoDBAtlasConfig.ExcludeGroups,
+		}
+	}
+
 	pc := &PollerConfig{
-		Name:         p.Config.Name,
-		Retries:      p.Config.Retries,
-		Interval:     p.Config.Interval,
-		Tags:         makeStringMap(p.Config.Tags),
-		Chunk:        chunkConf,
-		PubsubConfig: pubsubConf,
-		HTTPConfig:   httpConf,
-		GcpConfig:    gcpConf,
+		Name:               p.Config.Name,
+		Retries:            p.Config.Retries,
+		Interval:           p.Config.Interval,
+		Tags:               makeStringMap(p.Config.Tags),
+		Chunk:              chunkConf,
+		PubsubConfig:       pubsubConf,
+		HTTPConfig:         httpConf,
+		GcpConfig:          gcpConf,
+		MongoDBAtlasConfig: mongoDBAtlasConfig,
 	}
 	//TODO: include workspaceId?
 	out := &Poller{

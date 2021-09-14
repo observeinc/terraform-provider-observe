@@ -436,14 +436,15 @@ func (e BoardType) String() string {
 }
 
 type PollerInput struct {
-	Name         string                    `json:"name"`
-	Retries      *int64                    `json:"retries,string,omitempty"`
-	Interval     *string                   `json:"interval,omitempty"`
-	Tags         *string                   `json:"tags,omitempty"`
-	Chunk        *PollerChunkInput         `json:"chunk,omitempty"`
-	PubsubConfig *PollerPubSubInput        `json:"pubsubConfig,omitempty"`
-	HTTPConfig   *PollerHTTPInput          `json:"httpConfig,omitempty"`
-	GcpConfig    *PollerGCPMonitoringInput `json:"gcpConfig,omitempty"`
+	Name               string                    `json:"name"`
+	Retries            *int64                    `json:"retries,string,omitempty"`
+	Interval           *string                   `json:"interval,omitempty"`
+	Tags               *string                   `json:"tags,omitempty"`
+	Chunk              *PollerChunkInput         `json:"chunk,omitempty"`
+	PubsubConfig       *PollerPubSubInput        `json:"pubsubConfig,omitempty"`
+	HTTPConfig         *PollerHTTPInput          `json:"httpConfig,omitempty"`
+	GcpConfig          *PollerGCPMonitoringInput `json:"gcpConfig,omitempty"`
+	MongoDBAtlasConfig *PollerMongoDBAtlasInput  `json:"mongoDBAtlasConfig,omitempty"`
 }
 
 type PollerChunkInput struct {
@@ -470,4 +471,11 @@ type PollerGCPMonitoringInput struct {
 	ExcludeMetricTypePrefixes []string `json:"excludeMetricTypePrefixes"`
 	RateLimit                 *int64   `json:"rateLimit,string,omitempty"`
 	TotalLimit                *int64   `json:"totalLimit,string,omitempty"`
+}
+
+type PollerMongoDBAtlasInput struct {
+	PublicKey     string   `json:"publicKey"`
+	PrivateKey    string   `json:"privateKey"`
+	IncludeGroups []string `json:"includeGroups"`
+	ExcludeGroups []string `json:"excludeGroups"`
 }

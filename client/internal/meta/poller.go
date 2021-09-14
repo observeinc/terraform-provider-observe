@@ -39,6 +39,12 @@ var (
 				rateLimit
 				totalLimit
 			}
+			... on PollerMongoDBAtlasConfig {
+				publicKey
+				privateKey
+				includeGroups
+				excludeGroups
+			}
 		}
 	}`
 )
@@ -55,6 +61,8 @@ func sanitizePoller(in *Poller) (*Poller, error) {
 		err = decodeStrict(in.Config.Other, &in.Config.HTTPConfig)
 	case "GCPMonitoring":
 		err = decodeStrict(in.Config.Other, &in.Config.GCPConfig)
+	case "MongoDBAtlas":
+		err = decodeStrict(in.Config.Other, &in.Config.MongoDBAtlasConfig)
 	default:
 		err = fmt.Errorf("unknown kind: %s", in.Kind)
 	}

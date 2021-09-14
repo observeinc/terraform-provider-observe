@@ -127,3 +127,46 @@ func TestAccObservePoller(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObservePollerMongoDB(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "1m"
+
+					tags = {
+						"k1"   = "v1"
+						"k2"   = "v2"
+					}
+					mongodbatlas {
+						public_key  = "test"
+						private_key = "test"
+						exclude_groups = [
+							"https://cloud.mongodb.com/users"
+						]
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
+					resource.TestCheckResourceAttr("observe_poller.first", "tags.k2", "v2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "mongodbatlas.0.public_key", "test"),
+					resource.TestCheckResourceAttr("observe_poller.first", "mongodbatlas.0.private_key", "test"),
+					resource.TestCheckResourceAttr("observe_poller.first", "mongodbatlas.0.exclude_groups.0", "https://cloud.mongodb.com/users"),
+					resource.TestCheckResourceAttr("observe_poller.first", "gcp_monitoring.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.#", "0"),
+				),
+			},
+		},
+	})
+}
