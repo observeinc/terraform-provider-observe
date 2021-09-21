@@ -23,6 +23,7 @@ const (
 	TypeMonitor            = "monitor"
 	TypeBoard              = "board"
 	TypePoller             = "poller"
+	TypeDatastream         = "datastream"
 )
 
 func (t Type) IsValid() bool {

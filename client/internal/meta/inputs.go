@@ -483,3 +483,9 @@ type PollerMongoDBAtlasInput struct {
 type WorkspaceInput struct {
 	Label *string `json:"label"`
 }
+
+type DatastreamInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	IconURL     *string `json:"iconUrl"`
+}

@@ -721,3 +721,59 @@ func (c *Client) DeleteWorkspace(ctx context.Context, id string) error {
 	}
 	return c.Meta.DeleteWorkspace(ctx, id)
 }
+
+// CreateDatastream creates a datastream
+func (c *Client) CreateDatastream(ctx context.Context, workspaceId string, config *DatastreamConfig) (*Datastream, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	datastreamInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateDatastream(ctx, workspaceId, datastreamInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDatastream(result)
+}
+
+// GetDatastream by ID
+func (c *Client) GetDatastream(ctx context.Context, id string) (*Datastream, error) {
+	result, err := c.Meta.GetDatastream(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get datastream: %w", err)
+	}
+	return newDatastream(result)
+}
+
+// UpdateDatastream updates a datastream
+func (c *Client) UpdateDatastream(ctx context.Context, id string, config *DatastreamConfig) (*Datastream, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	datastreamInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateDatastream(ctx, id, datastreamInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDatastream(result)
+}
+
+// DeleteDatastream
+func (c *Client) DeleteDatastream(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteDatastream(ctx, id)
+}

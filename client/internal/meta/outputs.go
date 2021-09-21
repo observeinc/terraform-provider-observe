@@ -401,3 +401,11 @@ type PollerMongoDBAtlasConfig struct {
 	IncludeGroups []string `json:"includeGroups"`
 	ExcludeGroups []string `json:"excludeGroups"`
 }
+
+type Datastream struct {
+	ID          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	IconURL     *string        `json:"iconUrl"`
+	Description *string        `json:"description"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+}
