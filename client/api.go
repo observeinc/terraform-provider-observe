@@ -778,6 +778,15 @@ func (c *Client) DeleteDatastream(ctx context.Context, id string) error {
 	return c.Meta.DeleteDatastream(ctx, id)
 }
 
+// LookupDatastream by name.
+func (c *Client) LookupDatastream(ctx context.Context, workspaceID string, name string) (*Datastream, error) {
+	result, err := c.Meta.LookupDatastream(ctx, workspaceID, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup datastream: %w", err)
+	}
+	return newDatastream(result)
+}
+
 // CreateDatastreamToken creates a datastream token
 func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, config *DatastreamTokenConfig) (*DatastreamToken, error) {
 	if !c.Flags[flagObs2110] {

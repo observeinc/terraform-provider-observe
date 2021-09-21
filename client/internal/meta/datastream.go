@@ -103,3 +103,28 @@ func (c *Client) DeleteDatastream(ctx context.Context, id string) error {
 	}
 	return status.Error()
 }
+
+// LookupDatastream retrieves datastream by name.
+func (c *Client) LookupDatastream(ctx context.Context, workspaceId, name string) (*Datastream, error) {
+	result, err := c.Run(ctx, backendDatastreamFragment+`
+	query lookupDatastream($workspaceId: ObjectId!, $name: String!) {
+		workspace(id: $workspaceId) {
+			datastream(name: $name) {
+            	...datastreamFields
+        	}
+		}
+    }`, map[string]interface{}{
+		"workspaceId": workspaceId,
+		"name":        name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var datastream Datastream
+	if err := decodeStrict(getNested(result, "workspace", "datastream"), &datastream); err != nil {
+		return nil, err
+	}
+	return &datastream, nil
+}
