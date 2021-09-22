@@ -777,3 +777,59 @@ func (c *Client) DeleteDatastream(ctx context.Context, id string) error {
 	}
 	return c.Meta.DeleteDatastream(ctx, id)
 }
+
+// CreateDatastreamToken creates a datastream token
+func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, config *DatastreamTokenConfig) (*DatastreamToken, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	datastreamTokenInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateDatastreamToken(ctx, datastreamId, datastreamTokenInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDatastreamToken(result)
+}
+
+// GetDatastreamToken by ID
+func (c *Client) GetDatastreamToken(ctx context.Context, id string) (*DatastreamToken, error) {
+	result, err := c.Meta.GetDatastreamToken(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get datastream token: %w", err)
+	}
+	return newDatastreamToken(result)
+}
+
+// UpdateDatastreamToken updates a datastream
+func (c *Client) UpdateDatastreamToken(ctx context.Context, id string, config *DatastreamTokenConfig) (*DatastreamToken, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	datastreamTokenInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateDatastreamToken(ctx, id, datastreamTokenInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDatastreamToken(result)
+}
+
+// DeleteDatastreamToken
+func (c *Client) DeleteDatastreamToken(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteDatastreamToken(ctx, id)
+}

@@ -489,3 +489,9 @@ type DatastreamInput struct {
 	Description *string `json:"description"`
 	IconURL     *string `json:"iconUrl"`
 }
+
+type DatastreamTokenInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Disabled    *bool   `json:"disabled"`
+}

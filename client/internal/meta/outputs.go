@@ -409,3 +409,12 @@ type Datastream struct {
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
 }
+
+type DatastreamToken struct {
+	ID           string         `json:"id"`
+	DatastreamID ObjectIdScalar `json:"datastreamId"`
+	Name         string         `json:"name"`
+	Description  *string        `json:"description"`
+	Disabled     bool           `json:"disabled"`
+	Secret       *string        `json:"secret"`
+}

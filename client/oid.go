@@ -14,16 +14,17 @@ var (
 type Type string
 
 const (
-	TypeDataset       Type = "dataset"
-	TypeWorkspace          = "workspace"
-	TypeBookmarkGroup      = "bookmarkgroup"
-	TypeBookmark           = "bookmark"
-	TypeChannelAction      = "channelaction"
-	TypeChannel            = "channel"
-	TypeMonitor            = "monitor"
-	TypeBoard              = "board"
-	TypePoller             = "poller"
-	TypeDatastream         = "datastream"
+	TypeDataset         Type = "dataset"
+	TypeWorkspace            = "workspace"
+	TypeBookmarkGroup        = "bookmarkgroup"
+	TypeBookmark             = "bookmark"
+	TypeChannelAction        = "channelaction"
+	TypeChannel              = "channel"
+	TypeMonitor              = "monitor"
+	TypeBoard                = "board"
+	TypePoller               = "poller"
+	TypeDatastream           = "datastream"
+	TypeDatastreamToken      = "datastreamtoken"
 )
 
 func (t Type) IsValid() bool {
@@ -36,6 +37,8 @@ func (t Type) IsValid() bool {
 	case TypeChannel:
 	case TypeMonitor:
 	case TypePoller:
+	case TypeDatastream:
+	case TypeDatastreamToken:
 	default:
 		return false
 	}
