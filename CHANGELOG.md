@@ -1,3 +1,13 @@
+## 0.4.14 (2021-09-27)
+
+feat: data source for datastream
+feat: add datastream_token resource
+feat: add resource support for datastream
+feat: add workspace resource
+feat: add mongodbatlas poller
+fix: lookup workspace, dataset, monitor by name
+fix: rename test workspace
+
 ## 0.4.13 (2021-08-27)
 
 - poller: gcp support
