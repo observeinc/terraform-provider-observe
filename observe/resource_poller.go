@@ -349,7 +349,6 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		return diag.Errorf("failed to read poller: %s", err.Error())
 	}
 
-	// GQL does not include the workspaceId right now. Putting this in place to future proof this bit.
 	if poller.WorkspaceID != "" {
 		workspaceOID := observe.OID{
 			Type: observe.TypeWorkspace,

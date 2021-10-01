@@ -346,11 +346,12 @@ type Board struct {
 }
 
 type Poller struct {
-	ID         ObjectIdScalar `json:"id"`
-	CustomerID ObjectIdScalar `json:"customerId"`
-	Disabled   bool           `json:"disabled"`
-	Kind       string         `json:"kind"`
-	Config     PollerConfig   `json:"config"`
+	ID          ObjectIdScalar `json:"id"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	CustomerID  ObjectIdScalar `json:"customerId"`
+	Disabled    bool           `json:"disabled"`
+	Kind        string         `json:"kind"`
+	Config      PollerConfig   `json:"config"`
 }
 
 //TODO: vikramr revisit as needed

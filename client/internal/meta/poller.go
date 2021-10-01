@@ -9,6 +9,7 @@ var (
 	backendPollerFragment = `
     fragment pollerFields on Poller {
         id
+        workspaceId
         customerId
         disabled
         kind

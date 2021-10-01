@@ -9,7 +9,7 @@ import (
 
 type Poller struct {
 	ID          string        `json:"id"`
-	WorkspaceID string        `json:"workspace"`
+	WorkspaceID string        `json:"workspace_id"`
 	Config      *PollerConfig `json:"config"`
 }
 
@@ -227,10 +227,10 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 		GcpConfig:          gcpConf,
 		MongoDBAtlasConfig: mongoDBAtlasConfig,
 	}
-	//TODO: include workspaceId?
 	out := &Poller{
-		ID:     p.ID.String(),
-		Config: pc,
+		ID:          p.ID.String(),
+		WorkspaceID: p.WorkspaceId.String(),
+		Config:      pc,
 	}
 	return out, nil
 }
