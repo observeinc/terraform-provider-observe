@@ -32,7 +32,7 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 					  }
 					}
 				`, randomPrefix),
-				ExpectError: regexp.MustCompile("unknown verb"),
+				ExpectError: regexp.MustCompile("no schema returned"),
 			},
 		},
 	})
