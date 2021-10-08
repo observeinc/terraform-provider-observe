@@ -495,3 +495,39 @@ type DatastreamTokenInput struct {
 	Description *string `json:"description"`
 	Disabled    *bool   `json:"disabled"`
 }
+
+type WorksheetInput struct {
+	ID          *ObjectIdScalar `json:"id"`
+	Label       string          `json:"label"`
+	WorkspaceID *ObjectIdScalar `json:"workspaceId"`
+	// XXX: layout at top level not currently used
+	//Layout      map[string]interface{} `json:"layout"`
+	Icon    *string                `json:"icon"`
+	Queries []*WorksheetQueryInput `json:"queries"`
+}
+
+func (i *WorksheetInput) SetWorkspaceID(id string) error {
+	var o ObjectIdScalar
+	if err := o.UnmarshalJSON([]byte(id)); err != nil {
+		return fmt.Errorf("failed to unmarshal workspace ID: %w", err)
+	}
+	i.WorkspaceID = &o
+	return nil
+}
+
+func (i *WorksheetInput) SetID(id string) error {
+	var o ObjectIdScalar
+	if err := o.UnmarshalJSON([]byte(id)); err != nil {
+		return fmt.Errorf("failed to unmarshal worksheet ID: %w", err)
+	}
+	i.ID = &o
+	return nil
+}
+
+type WorksheetQueryInput struct {
+	ID       *string                 `json:"id"`
+	Input    []*InputDefinitionInput `json:"input"`
+	Params   map[string]interface{}  `json:"params"`
+	Layout   map[string]interface{}  `json:"layout"`
+	Pipeline string                  `json:"pipeline"`
+}

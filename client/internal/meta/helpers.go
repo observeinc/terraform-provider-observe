@@ -52,14 +52,10 @@ func stringToInt64HookFunc(f reflect.Type, t reflect.Type, data interface{}) (in
 	return v, err
 }
 
-func decode(input interface{}, output interface{}, strict bool) error {
-	if input == nil {
-		return fmt.Errorf("not found")
-	}
-
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		ErrorUnused: strict,
-		Result:      output,
+func NewDecoder(errorUnused bool, result interface{}) (*mapstructure.Decoder, error) {
+	return mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		ErrorUnused: errorUnused,
+		Result:      result,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			stringToObjectIdScalarHookFunc,
 			stringToDurationScalarHookFunc,
@@ -67,6 +63,13 @@ func decode(input interface{}, output interface{}, strict bool) error {
 			stringToInt64HookFunc,
 		),
 	})
+}
+
+func decode(input interface{}, output interface{}, strict bool) error {
+	if input == nil {
+		return fmt.Errorf("not found")
+	}
+	decoder, err := NewDecoder(strict, output)
 	if err != nil {
 		return err
 	}

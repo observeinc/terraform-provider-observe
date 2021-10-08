@@ -134,6 +134,7 @@ func Provider() *schema.Provider {
 			"observe_board":      dataSourceBoard(),
 			"observe_monitor":    dataSourceMonitor(),
 			"observe_datastream": dataSourceDatastream(),
+			"observe_worksheet":  dataSourceWorksheet(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":          resourceDataset(),
@@ -151,6 +152,7 @@ func Provider() *schema.Provider {
 			"observe_poller":           resourcePoller(),
 			"observe_datastream":       resourceDatastream(),
 			"observe_datastream_token": resourceDatastreamToken(),
+			"observe_worksheet":        resourceWorksheet(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

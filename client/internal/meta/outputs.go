@@ -71,8 +71,8 @@ type InputDefinition struct {
 	InputName   string          `json:"inputName"`
 	InputRole   *InputRole      `json:"inputRole"`
 	DatasetID   *ObjectIdScalar `json:"datasetId,omitempty"`
-	DatasetPath *string         `json:"datasetPath"`
-	StageID     string          `json:"stageId"`
+	DatasetPath *string         `json:"datasetPath,omitempty"`
+	StageID     string          `json:"stageId,omitempty"`
 }
 
 type InputRole string
@@ -418,4 +418,21 @@ type DatastreamToken struct {
 	Description  *string        `json:"description"`
 	Disabled     bool           `json:"disabled"`
 	Secret       *string        `json:"secret"`
+}
+
+type Worksheet struct {
+	ID        ObjectIdScalar         `json:"id"`
+	Label     string                 `json:"label"`
+	Workspace *Workspace             `json:"workspace"`
+	Layout    map[string]interface{} `json:"layout,omitempty"`
+	Icon      *string                `json:"icon,omitempty"`
+	Queries   []*WorksheetQuery      `json:"queries"`
+}
+
+type WorksheetQuery struct {
+	ID       string                 `json:"id,omitempty"`
+	Input    []*InputDefinition     `json:"input"`
+	Params   map[string]interface{} `json:"params,omitempty"`
+	Layout   map[string]interface{} `json:"layout,omitempty"`
+	Pipeline string                 `json:"pipeline"`
 }

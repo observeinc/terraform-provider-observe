@@ -842,3 +842,65 @@ func (c *Client) DeleteDatastreamToken(ctx context.Context, id string) error {
 	}
 	return c.Meta.DeleteDatastreamToken(ctx, id)
 }
+
+// CreateWorksheet creates a datastream token
+func (c *Client) CreateWorksheet(ctx context.Context, workspaceId string, config *WorksheetConfig) (*Worksheet, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	worksheetInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	worksheetInput.SetWorkspaceID(workspaceId)
+
+	result, err := c.Meta.SaveWorksheet(ctx, worksheetInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newWorksheet(result)
+}
+
+// GetWorksheet by ID
+func (c *Client) GetWorksheet(ctx context.Context, id string) (*Worksheet, error) {
+	result, err := c.Meta.GetWorksheet(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get worksheet: %w", err)
+	}
+	return newWorksheet(result)
+}
+
+// UpdateWorksheet updates a worksheet
+// XXX: this should not have to take workspaceId, but API forces us to
+func (c *Client) UpdateWorksheet(ctx context.Context, id string, workspaceId string, config *WorksheetConfig) (*Worksheet, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	worksheetInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	worksheetInput.SetID(id)
+	worksheetInput.SetWorkspaceID(workspaceId)
+
+	result, err := c.Meta.SaveWorksheet(ctx, worksheetInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newWorksheet(result)
+}
+
+// DeleteWorksheet
+func (c *Client) DeleteWorksheet(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteWorksheet(ctx, id)
+}
