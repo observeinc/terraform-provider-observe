@@ -1,3 +1,11 @@
+## 0.4.15 (2021-10-11)
+
+ci: bump terraform version
+feat: add observe_worksheet
+feat: allow importing workspace
+feat: allow importing poller
+fix: source dataset test change
+
 ## 0.4.14 (2021-09-27)
 
 feat: data source for datastream
