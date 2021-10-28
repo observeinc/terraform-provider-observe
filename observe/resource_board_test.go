@@ -55,3 +55,38 @@ func TestAccObserveBoardUpdate(t *testing.T) {
 		},
 	})
 }
+
+// Test JSON attribute handles unresolved values.
+func TestAccObserveBoardJSON(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_board" "first" {
+					dataset  = data.observe_dataset.observation.oid
+					name     = "%[1]s"
+					type     = "set"
+					json     = "{}"
+				}
+
+				resource "observe_board" "second" {
+					dataset  = data.observe_dataset.observation.oid
+					name     = "%[1]s"
+					type     = "set"
+					# on plan, value will be unresolved
+					json     = jsonencode({
+						"bla" = observe_board.first.id
+					})
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_board.first", "dataset"),
+					resource.TestCheckResourceAttr("observe_board.first", "name", randomPrefix),
+				),
+			},
+		},
+	})
+}

@@ -215,9 +215,12 @@ func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
 
 func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
 	var prvValue, nxtValue interface{}
-	// no need to check for error, we've already validated inputs
-	_ = json.Unmarshal([]byte(prv), &prvValue)
-	_ = json.Unmarshal([]byte(nxt), &nxtValue)
+	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(nxt), &nxtValue); err != nil {
+		return false
+	}
 	return reflect.DeepEqual(prvValue, nxtValue)
 }
 

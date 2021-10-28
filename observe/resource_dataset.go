@@ -338,6 +338,10 @@ func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
 		return true
 	}
 
+	if old == "" {
+		return false
+	}
+
 	oldOID, err := observe.NewOID(old)
 	if err != nil {
 		log.Printf("[WARN] could not convert old %s %q to OID: %s\n", k, old, err)
