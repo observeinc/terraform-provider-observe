@@ -1,3 +1,8 @@
+## 0.4.16 (2021-10-28)
+
+fix: handle resource diff prior to resolution
+chore: update dependencies
+
 ## 0.4.15 (2021-10-11)
 
 ci: bump terraform version
