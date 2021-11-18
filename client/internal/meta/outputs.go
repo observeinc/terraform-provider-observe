@@ -260,6 +260,7 @@ type Monitor struct {
 	Name        string         `json:"name"`
 	IconUrl     string         `json:"icon_url"`
 	Description string         `json:"description"`
+	Disabled    bool           `json:"disabled"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
 	//CreatedBy           UserIdScalar
 	//CreatedDate         TimeScalar

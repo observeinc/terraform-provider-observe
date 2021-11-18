@@ -45,6 +45,10 @@ func dataSourceMonitor() *schema.Resource {
 				Computed:    true,
 				Description: schemaMonitorDescriptionDescription,
 			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"inputs": {
 				Type:        schema.TypeMap,
 				Computed:    true,

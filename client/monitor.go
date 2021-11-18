@@ -100,6 +100,7 @@ type MonitorConfig struct {
 	Name             string                  `json:"name"`
 	Description      *string                 `json:"description"`
 	IconURL          *string                 `json:"iconUrl"`
+	Disabled         bool                    `json:"disabled"`
 	Rule             *MonitorRuleConfig      `json:"rule"`
 	NotificationSpec *NotificationSpecConfig `json:"notificationSpec"`
 }
@@ -144,6 +145,7 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 		Name:        &c.Name,
 		IconUrl:     c.IconURL,
 		Description: c.Description,
+		Disabled:    c.Disabled,
 		Query:       queryInput,
 		Rule:        ruleInput,
 		NotificationSpec: &meta.NotificationSpecificationInput{
@@ -223,6 +225,7 @@ func newMonitor(gqlMonitor *meta.Monitor) (m *Monitor, err error) {
 		WorkspaceID: gqlMonitor.WorkspaceId.String(),
 		Config: &MonitorConfig{
 			Name:             gqlMonitor.Name,
+			Disabled:         gqlMonitor.Disabled,
 			NotificationSpec: &NotificationSpecConfig{},
 		},
 	}

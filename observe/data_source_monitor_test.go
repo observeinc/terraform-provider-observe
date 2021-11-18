@@ -20,6 +20,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					resource "observe_monitor" "first" {
 						workspace = data.observe_workspace.default.oid
 						name      = "%s"
+						disabled  = true
 
 						inputs = {
 							"observation" = data.observe_dataset.observation.oid
@@ -50,6 +51,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "disabled", "true"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "count"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),

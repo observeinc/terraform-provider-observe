@@ -66,6 +66,11 @@ func resourceMonitor() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
 			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
+			},
 			"stage": &schema.Schema{
 				Type:     schema.TypeList,
 				MinItems: 1,
@@ -542,6 +547,7 @@ func newMonitorConfig(data *schema.ResourceData) (config *observe.MonitorConfig,
 		Name:             data.Get("name").(string),
 		Query:            query,
 		Rule:             rule,
+		Disabled:         data.Get("disabled").(bool),
 		NotificationSpec: notificationSpec,
 	}
 
@@ -618,6 +624,10 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	if err := data.Set("description", monitor.Config.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("disabled", monitor.Config.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

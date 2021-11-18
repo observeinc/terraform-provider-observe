@@ -12,6 +12,7 @@ var (
 		name
 		description
 		iconUrl
+		disabled
 		query {
 			outputStage
 			stages {

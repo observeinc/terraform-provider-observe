@@ -215,6 +215,7 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection", "any"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection_value", "0"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
 				),
 			},
 		},
@@ -358,6 +359,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s"
+					disabled  = true
 
 					inputs = {
 						"observation" = data.observe_dataset.observation.oid
@@ -383,6 +385,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "true"),
 				),
 			},
 		},
