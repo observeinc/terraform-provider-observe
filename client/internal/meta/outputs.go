@@ -178,13 +178,14 @@ type Bookmark struct {
 }
 
 type ChannelAction struct {
-	ID          ObjectIdScalar `json:"id"`
-	Name        string         `json:"name"`
-	IconURL     *string        `json:"iconUrl"`
-	Description *string        `json:"description"`
-	WorkspaceId ObjectIdScalar `json:"workspaceId"`
-	RateLimit   *time.Duration `json:"rateLimit"`
-	Channels    []struct {
+	ID            ObjectIdScalar `json:"id"`
+	Name          string         `json:"name"`
+	IconURL       *string        `json:"iconUrl"`
+	Description   *string        `json:"description"`
+	WorkspaceId   ObjectIdScalar `json:"workspaceId"`
+	NotifyOnClose *bool          `json:"notifyOnClose"`
+	RateLimit     *time.Duration `json:"rateLimit"`
+	Channels      []struct {
 		ID ObjectIdScalar `json:"id"`
 	} `json:"channels"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`

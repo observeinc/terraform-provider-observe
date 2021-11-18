@@ -117,10 +117,11 @@ type BookmarkInput struct {
 }
 
 type ChannelActionInput struct {
-	Name        *string `json:"name"`
-	IconURL     *string `json:"iconUrl"`
-	Description *string `json:"description"`
-	RateLimit   *string `json:"rateLimit"`
+	Name          *string `json:"name"`
+	IconURL       *string `json:"iconUrl"`
+	Description   *string `json:"description"`
+	NotifyOnClose *bool   `json:"notifyOnClose"`
+	RateLimit     *string `json:"rateLimit"`
 
 	Email   *EmailActionInput   `json:"email"`
 	Webhook *WebhookActionInput `json:"webhook"`

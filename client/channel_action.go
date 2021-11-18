@@ -14,11 +14,12 @@ type ChannelAction struct {
 }
 
 type ChannelActionConfig struct {
-	Name        string         `json:"name"`
-	IconURL     *string        `json:"iconUrl"`
-	Description *string        `json:"description"`
-	RateLimit   *time.Duration `json:"rateLimit,omitempty"`
-	Channels    []*OID         `json:"channels"`
+	Name          string         `json:"name"`
+	IconURL       *string        `json:"iconUrl"`
+	Description   *string        `json:"description"`
+	RateLimit     *time.Duration `json:"rateLimit,omitempty"`
+	NotifyOnClose *bool          `json:"notifyOnClose,omitempty"`
+	Channels      []*OID         `json:"channels"`
 
 	Webhook *WebhookChannelActionConfig `json:"webhook,omitempty"`
 	Email   *EmailChannelActionConfig   `json:"email,omitempty"`
@@ -47,9 +48,10 @@ func (a *ChannelAction) OID() *OID {
 
 func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, []string, error) {
 	channelActionInput := &meta.ChannelActionInput{
-		Name:        &config.Name,
-		IconURL:     config.IconURL,
-		Description: config.Description,
+		Name:          &config.Name,
+		IconURL:       config.IconURL,
+		Description:   config.Description,
+		NotifyOnClose: config.NotifyOnClose,
 	}
 
 	if config.RateLimit != nil {
@@ -93,10 +95,11 @@ func (config *ChannelActionConfig) toGQL() (*meta.ChannelActionInput, []string, 
 
 func newChannelAction(a *meta.ChannelAction) (*ChannelAction, error) {
 	config := &ChannelActionConfig{
-		Name:        a.Name,
-		IconURL:     a.IconURL,
-		Description: a.Description,
-		RateLimit:   a.RateLimit,
+		Name:          a.Name,
+		IconURL:       a.IconURL,
+		Description:   a.Description,
+		NotifyOnClose: a.NotifyOnClose,
+		RateLimit:     a.RateLimit,
 	}
 
 	for _, channel := range a.Channels {

@@ -87,6 +87,9 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				  name       = "%s"
 				  icon_url   = "test"
 				  rate_limit = "5m"
+
+				  notify_on_close = true
+
 				  channels  = [
 				    observe_channel.a.oid,
 				  ]
@@ -107,6 +110,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "test@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.subject", "Hello"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.body", "Nope"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "notify_on_close", "true"),
 				),
 			},
 			{
@@ -139,6 +143,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.subject", "Nope"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.body", "Hello"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.is_html", "true"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "notify_on_close", "false"),
 				),
 			},
 		},

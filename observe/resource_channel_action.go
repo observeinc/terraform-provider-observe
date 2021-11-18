@@ -51,6 +51,11 @@ func resourceChannelAction() *schema.Resource {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
+			"notify_on_close": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
+			},
 			"email": &schema.Schema{
 				Type:         schema.TypeList,
 				Optional:     true,
@@ -137,6 +142,11 @@ func newChannelActionConfig(data *schema.ResourceData) (config *observe.ChannelA
 		// we already validated in schema
 		t, _ := time.ParseDuration(v.(string))
 		config.RateLimit = &t
+	}
+
+	if v, ok := data.GetOk("notify_on_close"); ok {
+		b := v.(bool)
+		config.NotifyOnClose = &b
 	}
 
 	if _, ok := data.GetOk("webhook"); ok {
@@ -274,6 +284,10 @@ func resourceChannelActionRead(ctx context.Context, data *schema.ResourceData, m
 		if err := data.Set("rate_limit", channelAction.Config.RateLimit.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("notify_on_close", channelAction.Config.NotifyOnClose); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if channelAction.Config.Webhook != nil {

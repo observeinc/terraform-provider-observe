@@ -13,6 +13,7 @@ var (
 	    name
 	    iconUrl
 		description
+		notifyOnClose
 		workspaceId
 		channels {
 			id
@@ -40,13 +41,14 @@ var (
 
 // on first pass, unmarshall common fields before deciding how to proceed based on type
 type channelAction struct {
-	ID          ObjectIdScalar `json:"id"`
-	Name        string         `json:"name"`
-	IconURL     *string        `json:"iconUrl"`
-	Description *string        `json:"description"`
-	WorkspaceId ObjectIdScalar `json:"workspaceId"`
-	RateLimit   *time.Duration `json:"rateLimit"`
-	Channels    []struct {
+	ID            ObjectIdScalar `json:"id"`
+	Name          string         `json:"name"`
+	IconURL       *string        `json:"iconUrl"`
+	Description   *string        `json:"description"`
+	WorkspaceId   ObjectIdScalar `json:"workspaceId"`
+	NotifyOnClose *bool          `json:"notifyOnClose"`
+	RateLimit     *time.Duration `json:"rateLimit"`
+	Channels      []struct {
 		ID ObjectIdScalar `json:"id"`
 	} `json:"channels"`
 	//CreatedBy   UserIdScalar   `json:"createdBy"`
