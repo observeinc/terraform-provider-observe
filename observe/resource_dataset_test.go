@@ -387,7 +387,8 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(`
 graphql: errors in stage "stage-0": 1,14: \[\] non-existent path "EXTRA" among
-fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS\]
+fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS, BUNDLE_ID,
+OBSERVATION_INDEX\]
 `),
 			},
 			{
