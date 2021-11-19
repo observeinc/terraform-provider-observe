@@ -1,3 +1,10 @@
+## 0.4.17 (2021-11-19)
+
+feat: add notify_on_close option to channel action
+feat: add monitor disabled
+vendor: go get -u
+fix: adjust tests
+
 ## 0.4.16 (2021-10-28)
 
 fix: handle resource diff prior to resolution
