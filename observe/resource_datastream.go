@@ -16,6 +16,7 @@ const (
 	schemaDatastreamDescriptionDescription = "Datastream description."
 	schemaDatastreamIconDescription        = "Icon image."
 	schemaDatastreamOIDDescription         = "The Observe ID for datastream."
+	schemaDatastreamDatasetDescription     = "The Observe ID for datastream origin dataset."
 )
 
 func resourceDatastream() *schema.Resource {
@@ -54,6 +55,11 @@ func resourceDatastream() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaDatastreamOIDDescription,
+			},
+			"dataset": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatastreamDatasetDescription,
 			},
 		},
 	}
@@ -99,6 +105,9 @@ func datastreamToResourceData(d *observe.Datastream, data *schema.ResourceData) 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("dataset", d.DatasetOID().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	return diags
 }
 

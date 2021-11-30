@@ -12,6 +12,7 @@ var (
 	    iconUrl
 		description
 		workspaceId
+		datasetId
 	}`
 )
 

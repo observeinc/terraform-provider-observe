@@ -47,6 +47,11 @@ func dataSourceDatastream() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatastreamIconDescription,
 			},
+			"dataset": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatastreamDatasetDescription,
+			},
 		},
 	}
 }

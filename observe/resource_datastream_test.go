@@ -26,6 +26,7 @@ func TestAccObserveDatastreamCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_datastream.example", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_datastream.example", "icon_url", "test"),
+					resource.TestCheckResourceAttrSet("observe_datastream.example", "dataset"),
 				),
 			},
 			{
@@ -39,6 +40,7 @@ func TestAccObserveDatastreamCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_datastream.example", "name", randomPrefix+"-bis"),
 					resource.TestCheckResourceAttr("observe_datastream.example", "icon_url", "changed"),
+					resource.TestCheckResourceAttrSet("observe_datastream.example", "dataset"),
 				),
 			},
 		},

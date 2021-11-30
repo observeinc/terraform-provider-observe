@@ -8,6 +8,7 @@ import (
 type Datastream struct {
 	ID          string            `json:"id"`
 	WorkspaceID string            `json:"workspace_id"`
+	DatasetID   string            `json:"dataset_id"`
 	Config      *DatastreamConfig `json:"config"`
 }
 
@@ -25,10 +26,18 @@ func (d *Datastream) OID() *OID {
 	}
 }
 
+func (d *Datastream) DatasetOID() *OID {
+	return &OID{
+		Type: TypeDataset,
+		ID:   d.DatasetID,
+	}
+}
+
 func newDatastream(gqlDatastream *meta.Datastream) (d *Datastream, err error) {
 	d = &Datastream{
 		ID:          gqlDatastream.ID.String(),
 		WorkspaceID: gqlDatastream.WorkspaceId.String(),
+		DatasetID:   gqlDatastream.DatasetId.String(),
 		Config: &DatastreamConfig{
 			Name:        gqlDatastream.Name,
 			Description: gqlDatastream.Description,

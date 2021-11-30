@@ -411,6 +411,7 @@ type Datastream struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	DatasetId   ObjectIdScalar `json:"datasetId"`
 }
 
 type DatastreamToken struct {
