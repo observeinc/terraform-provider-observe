@@ -1,3 +1,7 @@
+## 0.4.18 (2021-12-03)
+
+feat: surface datasetid for datastreams
+
 ## 0.4.17 (2021-11-19)
 
 feat: add notify_on_close option to channel action
