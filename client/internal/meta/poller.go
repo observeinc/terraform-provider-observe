@@ -11,6 +11,7 @@ var (
         id
         workspaceId
         customerId
+		datastreamId
         disabled
         kind
 		config {

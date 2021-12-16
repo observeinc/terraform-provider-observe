@@ -348,15 +348,15 @@ type Board struct {
 }
 
 type Poller struct {
-	ID          ObjectIdScalar `json:"id"`
-	WorkspaceId ObjectIdScalar `json:"workspaceId"`
-	CustomerID  ObjectIdScalar `json:"customerId"`
-	Disabled    bool           `json:"disabled"`
-	Kind        string         `json:"kind"`
-	Config      PollerConfig   `json:"config"`
+	ID           ObjectIdScalar  `json:"id"`
+	WorkspaceId  ObjectIdScalar  `json:"workspaceId"`
+	CustomerID   ObjectIdScalar  `json:"customerId"`
+	DatastreamID *ObjectIdScalar `json:"datastreamId"`
+	Disabled     bool            `json:"disabled"`
+	Kind         string          `json:"kind"`
+	Config       PollerConfig    `json:"config"`
 }
 
-//TODO: vikramr revisit as needed
 type PollerConfig struct {
 	Name     string                 `json:"name"`
 	Retries  *int64                 `json:"retries"`

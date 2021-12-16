@@ -442,6 +442,7 @@ type PollerInput struct {
 	Retries            *int64                    `json:"retries,string,omitempty"`
 	Interval           *string                   `json:"interval,omitempty"`
 	Tags               *string                   `json:"tags,omitempty"`
+	DatastreamID       string                    `json:"datastreamId,omitempty"`
 	Chunk              *PollerChunkInput         `json:"chunk,omitempty"`
 	PubsubConfig       *PollerPubSubInput        `json:"pubsubConfig,omitempty"`
 	HTTPConfig         *PollerHTTPInput          `json:"httpConfig,omitempty"`

@@ -18,6 +18,7 @@ type PollerConfig struct {
 	Retries            *int64                     `json:"retries"`
 	Interval           *time.Duration             `json:"interval"`
 	Tags               map[string]string          `json:"tags,omitempty"`
+	DatastreamID       string                     `json:"datastreamId"`
 	Chunk              *PollerChunkConfig         `json:"chunk"`
 	PubsubConfig       *PollerPubSubConfig        `json:"pubsubConfig"`
 	HTTPConfig         *PollerHTTPConfig          `json:"httpConfig"`
@@ -80,6 +81,9 @@ func (config *PollerConfig) toGQL() (*meta.PollerInput, error) {
 			Enabled: config.Chunk.Enabled,
 			Size:    config.Chunk.Size,
 		}
+	}
+	if config.DatastreamID != "" {
+		in.DatastreamID = config.DatastreamID
 	}
 
 	tags, err := serializeStringMap(config.Tags)
@@ -226,6 +230,9 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 		HTTPConfig:         httpConf,
 		GcpConfig:          gcpConf,
 		MongoDBAtlasConfig: mongoDBAtlasConfig,
+	}
+	if p.DatastreamID != nil {
+		pc.DatastreamID = p.DatastreamID.String()
 	}
 	out := &Poller{
 		ID:          p.ID.String(),

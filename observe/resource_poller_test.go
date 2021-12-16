@@ -17,11 +17,17 @@ func TestAccObservePoller(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					interval  = "1m"
 					retries   = 5
+					datastream = observe_datastream.example.oid
 
 					chunk {
 					    enabled = true
@@ -38,7 +44,7 @@ func TestAccObservePoller(t *testing.T) {
 						    "token" = "test-token"
 						}
 					}
-				}`, randomPrefix, "http"),
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
@@ -51,10 +57,16 @@ func TestAccObservePoller(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.content_type", "application/json"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.headers.token", "test-token"),
 					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
 				),
 			},
 			{
 				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
@@ -76,7 +88,7 @@ func TestAccObservePoller(t *testing.T) {
 							project_id: "gcp-test"
 						})
 					}
-				}`, randomPrefix, "pubsub"),
+				}`, randomPrefix, "pollers", randomPrefix, "pubsub"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-pubsub"),
 					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),

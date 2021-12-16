@@ -50,6 +50,11 @@ func resourcePoller() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"datastream": &schema.Schema{
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateOID(observe.TypeDatastream),
+			},
 			"interval": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -209,6 +214,10 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 	if v, ok := data.GetOk("retries"); ok {
 		retries := int64(v.(int))
 		config.Retries = &retries
+	}
+	if v, ok := data.GetOk("datastream"); ok {
+		datastreamOID, _ := observe.NewOID(v.(string))
+		config.DatastreamID = datastreamOID.ID
 	}
 	if v, ok := data.GetOk("interval"); ok {
 		str := v.(string)
@@ -374,6 +383,15 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 	}
 	if config.Interval != nil {
 		if err := data.Set("interval", config.Interval.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	if config.DatastreamID != "" {
+		datastreamOID := observe.OID{
+			Type: observe.TypeDatastream,
+			ID:   config.DatastreamID,
+		}
+		if err := data.Set("datastream", datastreamOID.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
