@@ -186,6 +186,34 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
+						"threshold": &schema.Schema{
+							Type:     schema.TypeList,
+							Computed: true,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_function": {
+										Type:             schema.TypeString,
+										Computed:         true,
+										Optional:         true,
+										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+									},
+									"compare_values": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
+									},
+									"lookback_time": {
+										Type:             schema.TypeString,
+										Computed:         true,
+										Optional:         true,
+										DiffSuppressFunc: diffSuppressTimeDuration,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+								},
+							},
+						},
 						"promote": &schema.Schema{
 							Type:     schema.TypeList,
 							Computed: true,

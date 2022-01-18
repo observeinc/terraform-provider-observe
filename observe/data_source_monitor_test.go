@@ -151,6 +151,50 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+					resource "observe_monitor" "first" {
+						workspace = data.observe_workspace.default.oid
+						name      = "%[1]s"
+
+						inputs = {
+							"observation" = data.observe_dataset.observation.oid
+						}
+
+						stage {}
+
+						rule {
+							group_by      = "none"
+							source_column = "OBSERVATION_INDEX"
+
+							threshold {
+								compare_function = "greater"
+								compare_values = [ 75, ]
+								lookback_time = "5m0s"
+							}
+						}
+
+						notification_spec {
+							importance      = "informational"
+							selection       = "any"
+							selection_value = 50
+						}
+					}
+
+					data "observe_monitor" "lookup" {
+					    depends_on = [observe_monitor.first]
+						workspace  = data.observe_workspace.default.oid
+						name       = "%[1]s"
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "any"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "50"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "rule.0.threshold.0.compare_function", "greater"),
+				),
+			},
 		},
 	})
 }
