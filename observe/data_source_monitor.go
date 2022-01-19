@@ -100,6 +100,14 @@ func dataSourceMonitor() *schema.Resource {
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"group_by_datasets": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateOID(observe.TypeDataset),
+							},
+						},
 						"count": &schema.Schema{
 							Type:     schema.TypeList,
 							Optional: true,

@@ -120,6 +120,15 @@ func resourceMonitor() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"group_by_datasets": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateOID(observe.TypeDataset),
+								DiffSuppressFunc: diffSuppressVersion,
+							},
+						},
 						"count": &schema.Schema{
 							Type:         schema.TypeList,
 							MaxItems:     1,
@@ -351,6 +360,13 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 	if v, ok := data.GetOk("rule.0.group_by_columns"); ok {
 		for _, el := range v.([]interface{}) {
 			ruleConfig.GroupByColumns = append(ruleConfig.GroupByColumns, el.(string))
+		}
+	}
+
+	if v, ok := data.GetOk("rule.0.group_by_datasets"); ok {
+		for _, el := range v.([]interface{}) {
+			oid, _ := observe.NewOID(el.(string))
+			ruleConfig.GroupByDatasetIds = append(ruleConfig.GroupByDatasetIds, oid.ID)
 		}
 	}
 
@@ -656,6 +672,16 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		"group_by":         toSnake(config.GroupBy.String()),
 		"group_by_columns": config.GroupByColumns,
 	}
+
+	var groupByDatasets []string
+	for _, datasetId := range config.GroupByDatasetIds {
+		ooid := observe.OID{
+			Type: observe.TypeDataset,
+			ID:   datasetId,
+		}
+		groupByDatasets = append(groupByDatasets, ooid.String())
+	}
+	rule["group_by_datasets"] = groupByDatasets
 
 	if config.ChangeRule != nil {
 		change := map[string]interface{}{

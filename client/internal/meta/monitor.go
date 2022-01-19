@@ -33,6 +33,7 @@ var (
 			sourceColumn
 			groupBy
 			groupByColumns
+			groupByDatasetIds
 			... on MonitorRuleCount {
 			  compareFunction
 			  compareValues
