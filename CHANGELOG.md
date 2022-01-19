@@ -1,3 +1,10 @@
+## 0.4.19 (2022-01-19)
+
+feat: add group_by_datasets
+fix: add threshold rule to monitor data source
+chore: vendor update
+feat: add datastream_id for poller
+
 ## 0.4.18 (2021-12-03)
 
 feat: surface datasetid for datastreams
