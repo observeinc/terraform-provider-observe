@@ -284,6 +284,7 @@ type MonitorRule struct {
 	GroupBy           *MonitorGrouping       `json:"groupBy"`
 	GroupByColumns    []string               `json:"groupByColumns"`
 	GroupByDatasetIds []string               `json:"groupByDatasetIds"`
+	GroupByGroups     []MonitorGroupInfo     `json:"groupByGroups"`
 	Other             map[string]interface{} `mapstructure:",remain"`
 }
 

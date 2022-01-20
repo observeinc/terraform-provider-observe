@@ -109,20 +109,41 @@ func resourceMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"group_by_group": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"rule.0.group_by", "rule.0.group_by_columns", "rule.0.group_by_datasets"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"columns": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"group_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
 						"group_by": {
 							Type:             schema.TypeString,
+							Deprecated:       "Use \"group_by_group\" instead",
 							Optional:         true,
 							Default:          "none",
 							ValidateDiagFunc: validateEnums(observe.MonitorGroupings),
 						},
 						"group_by_columns": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Type:       schema.TypeList,
+							Deprecated: "Use \"group_by_group\" instead",
+							Optional:   true,
+							Elem:       &schema.Schema{Type: schema.TypeString},
 						},
 						"group_by_datasets": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Deprecated: "Use \"group_by_group\" instead",
+							Optional:   true,
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								ValidateDiagFunc: validateOID(observe.TypeDataset),
@@ -351,7 +372,6 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		s := v.(string)
 		ruleConfig.SourceColumn = &s
 	}
-
 	if v, ok := data.GetOk("rule.0.group_by"); ok {
 		g := observe.MonitorGrouping(toCamel(v.(string)))
 		ruleConfig.GroupBy = &g
@@ -367,6 +387,19 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		for _, el := range v.([]interface{}) {
 			oid, _ := observe.NewOID(el.(string))
 			ruleConfig.GroupByDatasetIds = append(ruleConfig.GroupByDatasetIds, oid.ID)
+		}
+	}
+
+	if v, ok := data.GetOk("rule.0.group_by_group"); ok {
+		for _, el := range v.([]interface{}) {
+			value := el.(map[string]interface{})
+			info := observe.MonitorGroupInfo{
+				GroupName: value["group_name"].(string),
+			}
+			for _, col := range value["columns"].([]interface{}) {
+				info.Columns = append(info.Columns, col.(string))
+			}
+			ruleConfig.GroupByGroups = append(ruleConfig.GroupByGroups, info)
 		}
 	}
 
@@ -675,13 +708,24 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 
 	var groupByDatasets []string
 	for _, datasetId := range config.GroupByDatasetIds {
-		ooid := observe.OID{
+		oid := observe.OID{
 			Type: observe.TypeDataset,
 			ID:   datasetId,
 		}
-		groupByDatasets = append(groupByDatasets, ooid.String())
+		groupByDatasets = append(groupByDatasets, oid.String())
 	}
 	rule["group_by_datasets"] = groupByDatasets
+
+	if config.GroupByGroups != nil {
+		var list []interface{}
+		for _, group := range config.GroupByGroups {
+			list = append(list, map[string]interface{}{
+				"group_name": group.GroupName,
+				"columns":    group.Columns,
+			})
+		}
+		rule["group_by_group"] = list
+	}
 
 	if config.ChangeRule != nil {
 		change := map[string]interface{}{

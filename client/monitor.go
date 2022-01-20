@@ -17,6 +17,7 @@ type (
 	NotificationMerge      = meta.NotificationMerge
 	NotificationSelection  = meta.NotificationSelection
 	TimeFunction           = meta.TimeFunction
+	MonitorGroupInfo       = meta.MonitorGroupInfo
 )
 
 var (
@@ -117,6 +118,7 @@ type MonitorRuleConfig struct {
 	GroupBy           *MonitorGrouping            `json:"groupBy"`
 	GroupByColumns    []string                    `json:"groupByColumns"`
 	GroupByDatasetIds []string                    `json:"groupByDatasetIds"`
+	GroupByGroups     []MonitorGroupInfo          `json:"groupByGroups"`
 	ChangeRule        *MonitorRuleChangeConfig    `json:"change"`
 	CountRule         *MonitorRuleCountConfig     `json:"count"`
 	FacetRule         *MonitorRuleFacetConfig     `json:"facet"`
@@ -170,6 +172,11 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 		GroupBy:           c.GroupBy,
 		GroupByColumns:    c.GroupByColumns,
 		GroupByDatasetIds: c.GroupByDatasetIds,
+		GroupByGroups:     c.GroupByGroups,
+	}
+
+	if len(c.GroupByGroups) > 0 {
+		c.GroupBy = nil
 	}
 
 	var err error
@@ -198,6 +205,7 @@ func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 		GroupBy:           gqlRule.GroupBy,
 		GroupByColumns:    gqlRule.GroupByColumns,
 		GroupByDatasetIds: gqlRule.GroupByDatasetIds,
+		GroupByGroups:     gqlRule.GroupByGroups,
 	}
 
 	var err error

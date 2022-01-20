@@ -35,6 +35,10 @@ var (
 			groupBy
 			groupByColumns
 			groupByDatasetIds
+			groupByGroups {
+				groupName
+				columns
+			}
 			... on MonitorRuleCount {
 			  compareFunction
 			  compareValues

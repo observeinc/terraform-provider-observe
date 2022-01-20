@@ -196,10 +196,11 @@ type MonitorInput struct {
 }
 
 type MonitorRuleInput struct {
-	SourceColumn      *string          `json:"sourceColumn"`
-	GroupBy           *MonitorGrouping `json:"groupBy"`
-	GroupByColumns    []string         `json:"groupByColumns"`
-	GroupByDatasetIds []string         `json:"groupByDatasetIds"`
+	SourceColumn      *string            `json:"sourceColumn"`
+	GroupBy           *MonitorGrouping   `json:"groupBy"`
+	GroupByColumns    []string           `json:"groupByColumns"`
+	GroupByDatasetIds []string           `json:"groupByDatasetIds"`
+	GroupByGroups     []MonitorGroupInfo `json:"groupByGroups"`
 
 	CountRule     *MonitorRuleCountInput     `json:"countRule,omitempty"`
 	ChangeRule    *MonitorRuleChangeInput    `json:"changeRule,omitempty"`
@@ -209,6 +210,11 @@ type MonitorRuleInput struct {
 }
 
 type MonitorGrouping string
+
+type MonitorGroupInfo struct {
+	Columns   []string `json:"columns"`
+	GroupName string   `json:"groupName"`
+}
 
 const (
 	MonitorGroupingNone       MonitorGrouping = "None"
