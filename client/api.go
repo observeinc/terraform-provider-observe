@@ -914,3 +914,68 @@ func (c *Client) DeleteWorksheet(ctx context.Context, id string) error {
 	}
 	return c.Meta.DeleteWorksheet(ctx, id)
 }
+
+// CreateFolder creates a folder
+func (c *Client) CreateFolder(ctx context.Context, workspaceId string, config *FolderConfig) (*Folder, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	folderInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateFolder(ctx, workspaceId, folderInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newFolder(result)
+}
+
+// UpdateFolder updates a folder
+func (c *Client) UpdateFolder(ctx context.Context, id string, config *FolderConfig) (*Folder, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	folderInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateFolder(ctx, id, folderInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newFolder(result)
+}
+
+// DeleteFolder
+func (c *Client) DeleteFolder(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteFolder(ctx, id)
+}
+
+// GetFolder by ID
+func (c *Client) GetFolder(ctx context.Context, id string) (*Folder, error) {
+	result, err := c.Meta.GetFolder(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get folder: %w", err)
+	}
+	return newFolder(result)
+}
+
+// LookupFolder by name.
+func (c *Client) LookupFolder(ctx context.Context, workspaceID string, name string) (*Folder, error) {
+	result, err := c.Meta.LookupFolder(ctx, workspaceID, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup folder: %w", err)
+	}
+	return newFolder(result)
+}

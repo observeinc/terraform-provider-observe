@@ -442,3 +442,11 @@ type WorksheetQuery struct {
 	Layout   map[string]interface{} `json:"layout,omitempty"`
 	Pipeline string                 `json:"pipeline"`
 }
+
+type Folder struct {
+	ID          ObjectIdScalar `json:"id"`
+	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	Name        string         `json:"name"`
+	IconURL     *string        `json:"iconUrl"`
+	Description *string        `json:"description"`
+}

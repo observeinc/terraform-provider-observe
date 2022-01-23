@@ -543,3 +543,9 @@ type WorksheetQueryInput struct {
 	Layout   map[string]interface{}  `json:"layout"`
 	Pipeline string                  `json:"pipeline"`
 }
+
+type FolderInput struct {
+	Name        string  `json:"name"`
+	IconURL     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+}
