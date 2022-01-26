@@ -134,7 +134,7 @@ func resourceBoardRead(ctx context.Context, data *schema.ResourceData, meta inte
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),
+			Summary:  fmt.Sprintf("failed to retrieve board [id=%s]", data.Id()),
 			Detail:   err.Error(),
 		})
 	}
