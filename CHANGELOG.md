@@ -1,3 +1,9 @@
+## 0.4.20 (2022-01-25)
+
+fix(board): typo in error message
+fix: set source for monitor
+testing: reduce verbosity and bump tf version## 0.4.19 (2022-01-19)
+
 ## 0.4.19 (2022-01-19)
 
 feat: add group_by_datasets
