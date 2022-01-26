@@ -13,6 +13,7 @@ var (
 		description
 		iconUrl
 		disabled
+		source
 		query {
 			outputStage
 			stages {

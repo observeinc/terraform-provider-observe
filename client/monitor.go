@@ -143,12 +143,13 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 	}
 
 	monitorInput := &meta.MonitorInput{
-		Name:        &c.Name,
-		IconUrl:     c.IconURL,
-		Description: c.Description,
-		Disabled:    c.Disabled,
-		Query:       queryInput,
-		Rule:        ruleInput,
+		Name:            &c.Name,
+		IconUrl:         c.IconURL,
+		Description:     c.Description,
+		Disabled:        c.Disabled,
+		Query:           queryInput,
+		Rule:            ruleInput,
+		OverwriteSource: true,
 		NotificationSpec: &meta.NotificationSpecificationInput{
 			Importance: c.NotificationSpec.Importance,
 			Merge:      c.NotificationSpec.Merge,

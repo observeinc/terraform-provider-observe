@@ -263,6 +263,7 @@ type Monitor struct {
 	Description string         `json:"description"`
 	Disabled    bool           `json:"disabled"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
+	Source      *string        `json:"source"`
 	//CreatedBy           UserIdScalar
 	//CreatedDate         TimeScalar
 	//UpdatedBy           UserIdScalar

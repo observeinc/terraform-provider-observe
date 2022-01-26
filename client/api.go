@@ -520,6 +520,11 @@ func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, config *
 	if err != nil {
 		return nil, err
 	}
+
+	if c.Config.Source != nil {
+		monitorInput.Source = c.Config.Source
+	}
+
 	result, err := c.Meta.CreateMonitor(ctx, workspaceId, monitorInput)
 	if err != nil {
 		return nil, err
@@ -537,6 +542,11 @@ func (c *Client) UpdateMonitor(ctx context.Context, id string, config *MonitorCo
 	if err != nil {
 		return nil, err
 	}
+
+	if c.Config.Source != nil {
+		monitorInput.Source = c.Config.Source
+	}
+
 	result, err := c.Meta.UpdateMonitor(ctx, id, monitorInput)
 	if err != nil {
 		return nil, err
