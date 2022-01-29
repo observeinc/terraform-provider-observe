@@ -257,13 +257,14 @@ type SnowflakeCursor struct {
 }
 
 type Monitor struct {
-	Id          ObjectIdScalar `json:"id"`
-	Name        string         `json:"name"`
-	IconUrl     string         `json:"icon_url"`
-	Description string         `json:"description"`
-	Disabled    bool           `json:"disabled"`
-	WorkspaceId ObjectIdScalar `json:"workspaceId"`
-	Source      *string        `json:"source"`
+	Id            ObjectIdScalar `json:"id"`
+	Name          string         `json:"name"`
+	IconUrl       string         `json:"icon_url"`
+	Description   string         `json:"description"`
+	Disabled      bool           `json:"disabled"`
+	FreshnessGoal *int64         `json:"freshnessGoal"`
+	WorkspaceId   ObjectIdScalar `json:"workspaceId"`
+	Source        *string        `json:"source"`
 	//CreatedBy           UserIdScalar
 	//CreatedDate         TimeScalar
 	//UpdatedBy           UserIdScalar

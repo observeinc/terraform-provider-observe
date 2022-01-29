@@ -101,6 +101,7 @@ type MonitorConfig struct {
 	Name             string                  `json:"name"`
 	Description      *string                 `json:"description"`
 	IconURL          *string                 `json:"iconUrl"`
+	Freshness        *time.Duration          `json:"freshness"`
 	Disabled         bool                    `json:"disabled"`
 	Rule             *MonitorRuleConfig      `json:"rule"`
 	NotificationSpec *NotificationSpecConfig `json:"notificationSpec"`
@@ -157,6 +158,11 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 			Merge:      c.NotificationSpec.Merge,
 			Selection:  c.NotificationSpec.Selection,
 		},
+	}
+
+	if c.Freshness != nil {
+		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())
+		monitorInput.FreshnessGoal = &i
 	}
 
 	if f := c.NotificationSpec.SelectionValue; f != nil {

@@ -187,6 +187,7 @@ type MonitorInput struct {
 	IconUrl          *string                         `json:"iconUrl"`
 	Description      *string                         `json:"description"`
 	Disabled         bool                            `json:"disabled"`
+	FreshnessGoal    *string                         `json:"freshnessGoal"`
 	Source           *string                         `json:"source"`
 	OverwriteSource  bool                            `json:"overwriteSource"`
 	Query            *MultiStageQueryInput           `json:"query"`

@@ -81,6 +81,12 @@ func resourceMonitor() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"freshness": &schema.Schema{
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -631,6 +637,12 @@ func newMonitorConfig(data *schema.ResourceData) (config *observe.MonitorConfig,
 		config.IconURL = &s
 	}
 
+	if v, ok := data.GetOk("freshness"); ok {
+		// we already validated in schema
+		t, _ := time.ParseDuration(v.(string))
+		config.Freshness = &t
+	}
+
 	if v, ok := data.GetOk("description"); ok {
 		s := v.(string)
 		config.Description = &s
@@ -692,6 +704,12 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 
 	if err := data.Set("name", monitor.Config.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if monitor.Config.Freshness != nil {
+		if err := data.Set("freshness", monitor.Config.Freshness.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if err := data.Set("icon_url", monitor.Config.IconURL); err != nil {

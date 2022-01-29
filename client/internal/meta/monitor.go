@@ -13,6 +13,7 @@ var (
 		description
 		iconUrl
 		disabled
+		freshnessGoal
 		source
 		query {
 			outputStage
