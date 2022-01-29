@@ -24,7 +24,9 @@ docker-package:
 		apt-get install -y zip && \
 		rm -rf bin && \
 		GOOS=darwin GOARCH=amd64 make package && \
-		GOOS=linux GOARCH=amd64 make package"
+		GOOS=darwin GOARCH=arm64 make package && \
+		GOOS=linux GOARCH=amd64 make package && \
+		GOOS=linux GOARCH=arm64 make package"
 
 docker-sign:
 	docker run -v `pwd`:/root/build \
