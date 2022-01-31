@@ -101,7 +101,7 @@ func resourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta 
 func resourceWorkspaceDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteWorkspace(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete action: %s", err.Error())
+		return diag.Errorf("failed to delete workspace: %s", err.Error())
 	}
 	return diags
 }

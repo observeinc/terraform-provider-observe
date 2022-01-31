@@ -157,7 +157,7 @@ func resourceChannelRead(ctx context.Context, data *schema.ResourceData, meta in
 func resourceChannelDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteChannel(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete action: %s", err.Error())
+		return diag.Errorf("failed to delete channel: %s", err.Error())
 	}
 	return diags
 }
