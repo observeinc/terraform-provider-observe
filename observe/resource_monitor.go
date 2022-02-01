@@ -366,7 +366,10 @@ func resourceMonitor() *schema.Resource {
 }
 
 func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.MonitorRuleConfig, diags diag.Diagnostics) {
-	ruleConfig = &observe.MonitorRuleConfig{}
+	ruleConfig = &observe.MonitorRuleConfig{
+		GroupByColumns: make([]string, 0),
+		GroupByGroups:  make([]observe.MonitorGroupInfo, 0),
+	}
 
 	if v, ok := data.GetOk("rule.0.source_column"); ok {
 		s := v.(string)
@@ -396,6 +399,7 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 			value := el.(map[string]interface{})
 			info := observe.MonitorGroupInfo{
 				GroupName: value["group_name"].(string),
+				Columns:   make([]string, 0),
 			}
 			for _, col := range value["columns"].([]interface{}) {
 				info.Columns = append(info.Columns, col.(string))
@@ -715,7 +719,7 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		groupByDatasets = append(groupByDatasets, oid.String())
 	}
 
-	if config.GroupByGroups != nil {
+	if len(config.GroupByGroups) > 0 {
 		var list []interface{}
 		for _, group := range config.GroupByGroups {
 			list = append(list, map[string]interface{}{
