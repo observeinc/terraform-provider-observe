@@ -372,6 +372,7 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		s := v.(string)
 		ruleConfig.SourceColumn = &s
 	}
+
 	if v, ok := data.GetOk("rule.0.group_by"); ok {
 		g := observe.MonitorGrouping(toCamel(v.(string)))
 		ruleConfig.GroupBy = &g
@@ -701,9 +702,8 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 
 func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 	rule := map[string]interface{}{
-		"source_column":    config.SourceColumn,
-		"group_by":         toSnake(config.GroupBy.String()),
-		"group_by_columns": config.GroupByColumns,
+		"source_column": config.SourceColumn,
+		"group_by":      toSnake(config.GroupBy.String()),
 	}
 
 	var groupByDatasets []string
@@ -714,7 +714,6 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		}
 		groupByDatasets = append(groupByDatasets, oid.String())
 	}
-	rule["group_by_datasets"] = groupByDatasets
 
 	if config.GroupByGroups != nil {
 		var list []interface{}
@@ -725,6 +724,9 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 			})
 		}
 		rule["group_by_group"] = list
+	} else {
+		rule["group_by_datasets"] = groupByDatasets
+		rule["group_by_columns"] = config.GroupByColumns
 	}
 
 	if config.ChangeRule != nil {
