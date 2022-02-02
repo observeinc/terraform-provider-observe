@@ -37,6 +37,26 @@ func resourceMonitor() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			var hasLegacyColumns bool
+			var hasLegacyDatasets bool
+
+			if v, ok := d.Get("rule.0.group_by_columns").([]interface{}); ok {
+				hasLegacyColumns = len(v) > 0
+			}
+
+			if v, ok := d.Get("rule.0.group_by_datasets").([]interface{}); ok {
+				hasLegacyDatasets = len(v) > 0
+			}
+
+			if hasLegacyColumns || hasLegacyDatasets {
+				prv, _ := d.GetChange("rule.0.group_by_group")
+				if v, ok := prv.([]interface{}); ok && len(v) > 0 {
+					d.ForceNew("rule.0.group_by_group")
+				}
+			}
+			return nil
+		},
 		Schema: map[string]*schema.Schema{
 			"workspace": &schema.Schema{
 				Type:             schema.TypeString,
