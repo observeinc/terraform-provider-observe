@@ -12,6 +12,7 @@ var (
 	    name
 		type
 		board
+		source
 	}`
 )
 

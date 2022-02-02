@@ -428,6 +428,7 @@ type BoardInput struct {
 	Name      *string `json:"name"`
 	IsDefault *bool   `json:"isDefault,omitempty"`
 	Board     *string `json:"board"`
+	Source    *string `json:"source"`
 }
 
 type BoardType string

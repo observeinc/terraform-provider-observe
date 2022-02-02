@@ -591,6 +591,11 @@ func (c *Client) CreateBoard(ctx context.Context, dataset *OID, boardType BoardT
 	if err != nil {
 		return nil, err
 	}
+
+	if c.Config.Source != nil {
+		boardInput.Source = c.Config.Source
+	}
+
 	result, err := c.Meta.CreateBoard(ctx, dataset.ID, boardType, boardInput)
 	if err != nil {
 		return nil, err
@@ -608,6 +613,11 @@ func (c *Client) UpdateBoard(ctx context.Context, id string, config *BoardConfig
 	if err != nil {
 		return nil, err
 	}
+
+	if c.Config.Source != nil {
+		boardInput.Source = c.Config.Source
+	}
+
 	result, err := c.Meta.UpdateBoard(ctx, id, boardInput)
 	if err != nil {
 		return nil, err

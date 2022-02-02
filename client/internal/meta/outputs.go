@@ -347,6 +347,7 @@ type Board struct {
 	DatasetID ObjectIdScalar `json:"datasetId"`
 	IsDefault bool           `json:"isDefault"`
 	Board     interface{}    `json:"board"`
+	Source    *string        `json:"source"`
 	Type      BoardType      `json:"type"`
 }
 
