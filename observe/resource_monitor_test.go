@@ -533,3 +533,136 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					disabled  = true
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					rule {
+						group_by = "value"
+						group_by_columns = ["OBSERVATION_KIND"]
+
+						promote {
+							primary_key       = ["OBSERVATION_KIND"]
+						}
+					}
+
+					notification_spec {
+						merge       = "separate"
+						selection_value = 1
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "value"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_columns.0", "OBSERVATION_KIND"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "true"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					disabled  = true
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					rule {
+						group_by_group {
+						}
+
+						promote {
+							primary_key       = ["OBSERVATION_KIND"]
+						}
+					}
+
+					notification_spec {
+						merge       = "separate"
+						selection_value = 1
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.columns.#", "0"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_columns"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
+					// previous default lingers, no effect on backend
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "true"),
+				),
+			},
+			{
+				// Empty columns var produces no change
+				PlanOnly: true,
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					disabled  = true
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					rule {
+						group_by_group {
+							columns = []
+						}
+
+						promote {
+							primary_key       = ["OBSERVATION_KIND"]
+						}
+					}
+
+					notification_spec {
+						merge       = "separate"
+						selection_value = 1
+					}
+				}`, randomPrefix),
+			},
+		},
+	})
+}

@@ -396,13 +396,15 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 
 	if v, ok := data.GetOk("rule.0.group_by_group"); ok {
 		for _, el := range v.([]interface{}) {
-			value := el.(map[string]interface{})
 			info := observe.MonitorGroupInfo{
-				GroupName: value["group_name"].(string),
-				Columns:   make([]string, 0),
+				Columns: make([]string, 0),
 			}
-			for _, col := range value["columns"].([]interface{}) {
-				info.Columns = append(info.Columns, col.(string))
+			if el != nil {
+				value := el.(map[string]interface{})
+				info.GroupName = value["group_name"].(string)
+				for _, col := range value["columns"].([]interface{}) {
+					info.Columns = append(info.Columns, col.(string))
+				}
 			}
 			ruleConfig.GroupByGroups = append(ruleConfig.GroupByGroups, info)
 		}
