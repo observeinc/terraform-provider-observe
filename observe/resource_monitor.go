@@ -388,7 +388,6 @@ func resourceMonitor() *schema.Resource {
 func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.MonitorRuleConfig, diags diag.Diagnostics) {
 	ruleConfig = &observe.MonitorRuleConfig{
 		GroupByColumns: make([]string, 0),
-		GroupByGroups:  make([]observe.MonitorGroupInfo, 0),
 	}
 
 	if v, ok := data.GetOk("rule.0.source_column"); ok {
