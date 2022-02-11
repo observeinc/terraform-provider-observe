@@ -1,3 +1,18 @@
+## 0.5.1 (2022-02-11)
+
+fix: set source for boards
+feat: add support for observe_folder
+
+## 0.5.0 (2022-02-03)
+
+fix: don't default GroupByGroups on
+fix: force new on group_by rollback
+fix: handle empty case for group_by_group
+fix: allow rollback from group_by_group
+chore: bump go to 1.17
+fix: ignore group_by_columns if group_by_group is used
+fix: copy pasted typos
+
 ## 0.4.21 (2022-01-31)
 
 feat(monitor): add group_by_group support
