@@ -1,12 +1,9 @@
 package observe
 
 import (
-	"context"
-	"log"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-exec/tfinstall"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -17,41 +14,6 @@ func init() {
 	testAccProvider = Provider()
 	testAccProviders = map[string]*schema.Provider{
 		"observe": testAccProvider,
-	}
-
-	if cacheDir := os.Getenv("TF_ACC_TERRAFORM_CACHE_DIR"); cacheDir != "" {
-		cacheTerraformBinary(cacheDir)
-	}
-}
-
-func cacheTerraformBinary(cacheDir string) {
-	var (
-		tfPath    = os.Getenv("TF_ACC_TERRAFORM_PATH")
-		tfVersion = os.Getenv("TF_ACC_TERRAFORM_VERSION")
-	)
-
-	// do not cache if an exact path was given
-	if tfPath != "" {
-		return
-	}
-
-	var finder tfinstall.ExecPathFinder
-	if tfVersion != "" {
-		finder = tfinstall.ExactVersion(tfVersion, cacheDir)
-	} else {
-		tfVersion = "latest"
-		finder = tfinstall.LatestVersion(cacheDir, true)
-	}
-
-	path, err := tfinstall.Find(context.Background(), finder)
-	if err != nil {
-		log.Printf("[WARN] failed to cache terraform binary: %s", err)
-	}
-
-	log.Printf("[DEBUG] downloaded version %s to %s", tfVersion, path)
-
-	if err := os.Setenv("TF_ACC_TERRAFORM_PATH", path); err != nil {
-		log.Println("[WARN] failed to set TF_ACC_TERRAFORM_PATH")
 	}
 }
 

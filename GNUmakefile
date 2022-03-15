@@ -55,7 +55,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC_TERRAFORM_CACHE_DIR=/tmp TF_ACC_TERRAFORM_VERSION=1.1.7 TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+	TF_ACC_TERRAFORM_VERSION=1.1.7 TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 vet:
 	@echo "go vet ."
