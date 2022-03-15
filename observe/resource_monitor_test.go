@@ -37,11 +37,6 @@ func TestAccObserveMonitor(t *testing.T) {
 							lookback_time      = "1m"
 						}
 					}
-
-					notification_spec {
-						selection       = "count"
-						selection_value = 1
-					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
@@ -56,8 +51,6 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.lookback_time", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection", "count"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection_value", "1"),
 				),
 			},
 			//			{
@@ -109,7 +102,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.baseline_time", "2m0s"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "important"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "separate"),
-			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.notification_spec.selection_value"),
 			//				),
 			//			},
 			//			{
@@ -159,7 +151,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.baseline_time", "2m0s"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "important"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "separate"),
-			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.notification_spec.selection_value"),
 			//				),
 			//			},
 		},
@@ -215,8 +206,6 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.lookback_time", "10m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection", "any"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.selection_value", "0"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
 				),
 			},
@@ -242,7 +231,10 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 					}
 
 					stage {
-						pipeline = "filter false"
+						pipeline = <<-EOF
+							make_col test:string(FIELDS.text)
+							make_resource OBSERVATION_KIND, primary_key(test)
+						EOF
 					}
 
 					rule {
@@ -429,7 +421,6 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -473,7 +464,6 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -517,7 +507,6 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -571,7 +560,6 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -614,7 +602,6 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -661,7 +648,6 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 			},
@@ -694,7 +680,6 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 					notification_spec {
 						merge       = "separate"
-						selection_value = 1
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

@@ -38,10 +38,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 							}
 						}
 
-						notification_spec {
-							selection       = "count"
-							selection_value = 1
-						}
+						notification_spec {}
 					}
 
 					data "observe_monitor" "lookup" {
@@ -53,8 +50,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "disabled", "true"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "count"),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),
 				),
 			},
 			{
@@ -81,11 +76,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 								compare_values     = [1]
 								lookback_time      = "1m"
 							}
-						}
-
-						notification_spec {
-							selection       = "count"
-							selection_value = 1
 						}
 					}
 
@@ -131,11 +121,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 								lookback_time      = "1m"
 							}
 						}
-
-						notification_spec {
-							selection       = "count"
-							selection_value = 1
-						}
 					}
 
 					data "observe_monitor" "lookup" {
@@ -147,8 +132,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "count"),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "1"),
 				),
 			},
 			{
@@ -176,8 +159,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 
 						notification_spec {
 							importance      = "informational"
-							selection       = "any"
-							selection_value = 50
 						}
 					}
 
@@ -190,8 +171,7 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection", "any"),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.selection_value", "50"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "rule.0.threshold.0.compare_function", "greater"),
 				),
 			},

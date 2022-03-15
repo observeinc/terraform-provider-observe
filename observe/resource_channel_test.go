@@ -32,11 +32,6 @@ var (
 					  lookback_time      = "1m"
 				    }
 				  }
-
-				  notification_spec {
-				    selection       = "count"
-				    selection_value = 1
-				  }
 				}
 				`
 )

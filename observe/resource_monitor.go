@@ -377,12 +377,14 @@ func resourceMonitor() *schema.Resource {
 						"selection": {
 							Type:             schema.TypeString,
 							Optional:         true,
+							Deprecated:       "No longer used",
 							Default:          "any",
 							ValidateDiagFunc: validateEnums(observe.NotificationSelections),
 						},
 						"selection_value": {
-							Type:     schema.TypeFloat,
-							Optional: true,
+							Type:       schema.TypeFloat,
+							Optional:   true,
+							Deprecated: "No longer used",
 						},
 					},
 				},
