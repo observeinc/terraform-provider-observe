@@ -473,6 +473,7 @@ type PollerPubSubInput struct {
 }
 
 type PollerHTTPInput struct {
+	Method      *string `json:"method"`
 	Endpoint    string  `json:"endpoint"`
 	ContentType string  `json:"contentType"`
 	Headers     *string `json:"headers,omitempty"`

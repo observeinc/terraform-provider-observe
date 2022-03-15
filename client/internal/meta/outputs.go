@@ -383,6 +383,7 @@ type PollerChunkConfig struct {
 }
 
 type PollerHTTPConfig struct {
+	Method      *string                `json:"method"`
 	Endpoint    string                 `json:"endpoint"`
 	ContentType string                 `json:"contentType"`
 	Headers     map[string]interface{} `json:"headers"`

@@ -38,6 +38,7 @@ type PollerPubSubConfig struct {
 }
 
 type PollerHTTPConfig struct {
+	Method      *string           `json:"method"`
 	Endpoint    string            `json:"endpoint"`
 	ContentType string            `json:"contentType"`
 	Headers     map[string]string `json:"headers,omitempty"`
@@ -104,6 +105,7 @@ func (config *PollerConfig) toGQL() (*meta.PollerInput, error) {
 	// http
 	if config.HTTPConfig != nil {
 		hin := &meta.PollerHTTPInput{
+			Method:      config.HTTPConfig.Method,
 			Endpoint:    config.HTTPConfig.Endpoint,
 			ContentType: config.HTTPConfig.ContentType,
 		}
@@ -188,6 +190,7 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 	var httpConf *PollerHTTPConfig
 	if p.Config.HTTPConfig != nil {
 		httpConf = &PollerHTTPConfig{
+			Method:      p.Config.HTTPConfig.Method,
 			Endpoint:    p.Config.HTTPConfig.Endpoint,
 			ContentType: p.Config.HTTPConfig.ContentType,
 			Headers:     makeStringMap(p.Config.HTTPConfig.Headers),

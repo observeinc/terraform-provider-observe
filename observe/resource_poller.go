@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -114,6 +115,15 @@ func resourcePoller() *schema.Resource {
 				ExactlyOneOf: validPollerKinds,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"method": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateDiagFunc: validateStringInSlice([]string{
+								http.MethodGet,
+								http.MethodPut,
+								http.MethodPost,
+							}, true),
+						},
 						"endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -255,6 +265,12 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 			ContentType: data.Get("http.0.content_type").(string),
 			Headers:     makeStringMap(data.Get("http.0.headers").(map[string]interface{})),
 		}
+
+		if v, ok := data.GetOk("http.0.method"); ok {
+			s := v.(string)
+			httpConf.Method = &s
+		}
+
 		config.HTTPConfig = httpConf
 	}
 	if data.Get("gcp_monitoring.#") == 1 {
@@ -426,6 +442,11 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 			"endpoint":     config.HTTPConfig.Endpoint,
 			"content_type": config.HTTPConfig.ContentType,
 		}
+
+		if method := config.HTTPConfig.Method; method != nil {
+			ht["method"] = *method
+		}
+
 		if headers := makeInterfaceMap(config.HTTPConfig.Headers); headers != nil {
 			ht["headers"] = headers
 		}

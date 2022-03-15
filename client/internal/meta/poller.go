@@ -29,6 +29,7 @@ var (
 				subscriptionId
 			}
 			... on PollerHTTPConfig {
+				method
 				endpoint
 				contentType
 				headers
