@@ -30,6 +30,7 @@ var (
 			}
 			... on PollerHTTPConfig {
 				method
+				body
 				endpoint
 				contentType
 				headers

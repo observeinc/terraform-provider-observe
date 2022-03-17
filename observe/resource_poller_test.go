@@ -39,6 +39,7 @@ func TestAccObservePoller(t *testing.T) {
 					}
 					http {
 						method   = "POST"
+						body   = jsonencode({ "hello" = "world" })
 					    endpoint = "https://test.com"
 						content_type = "application/json"
 						headers = {
@@ -55,6 +56,7 @@ func TestAccObservePoller(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "chunk.0.enabled", "true"),
 					resource.TestCheckResourceAttr("observe_poller.first", "chunk.0.size", "1024"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.method", "POST"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.body", "{\"hello\":\"world\"}"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.endpoint", "https://test.com"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.content_type", "application/json"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.headers.token", "test-token"),

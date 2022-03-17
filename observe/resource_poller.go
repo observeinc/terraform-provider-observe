@@ -124,6 +124,10 @@ func resourcePoller() *schema.Resource {
 								http.MethodPost,
 							}, true),
 						},
+						"body": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -269,6 +273,11 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 		if v, ok := data.GetOk("http.0.method"); ok {
 			s := v.(string)
 			httpConf.Method = &s
+		}
+
+		if v, ok := data.GetOk("http.0.body"); ok {
+			s := v.(string)
+			httpConf.Body = &s
 		}
 
 		config.HTTPConfig = httpConf
@@ -445,6 +454,10 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 
 		if method := config.HTTPConfig.Method; method != nil {
 			ht["method"] = *method
+		}
+
+		if body := config.HTTPConfig.Body; body != nil {
+			ht["body"] = *body
 		}
 
 		if headers := makeInterfaceMap(config.HTTPConfig.Headers); headers != nil {
