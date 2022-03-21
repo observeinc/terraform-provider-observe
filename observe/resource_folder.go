@@ -75,7 +75,7 @@ func resourceFolderCreate(ctx context.Context, data *schema.ResourceData, meta i
 	oid, _ := observe.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateFolder(ctx, oid.ID, config)
 	if err != nil {
-		return diag.Errorf("failed to create workspace: %s", err.Error())
+		return diag.Errorf("failed to create folder: %s", err.Error())
 	}
 
 	data.SetId(result.ID)
@@ -92,7 +92,7 @@ func resourceFolderUpdate(ctx context.Context, data *schema.ResourceData, meta i
 
 	_, err := client.UpdateFolder(ctx, data.Id(), config)
 	if err != nil {
-		return diag.Errorf("failed to update workspace: %s", err.Error())
+		return diag.Errorf("failed to update folder: %s", err.Error())
 	}
 
 	return append(diags, resourceFolderRead(ctx, data, meta)...)
@@ -141,7 +141,7 @@ func folderToResourceData(folder *observe.Folder, data *schema.ResourceData) (di
 func resourceFolderDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteFolder(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete action: %s", err.Error())
+		return diag.Errorf("failed to delete folder: %s", err.Error())
 	}
 	return diags
 }
