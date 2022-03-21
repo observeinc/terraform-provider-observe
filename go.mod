@@ -5,6 +5,8 @@ go 1.17
 require (
 	github.com/google/go-cmp v0.5.7
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
+	github.com/hashicorp/go-version v1.4.0
+	github.com/hashicorp/hc-install v0.3.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.11.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
@@ -35,8 +37,6 @@ require (
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/hashicorp/go-version v1.4.0 // indirect
-	github.com/hashicorp/hc-install v0.3.1 // indirect
 	github.com/hashicorp/hcl/v2 v2.11.1 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.16.0 // indirect
