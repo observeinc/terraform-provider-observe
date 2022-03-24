@@ -523,3 +523,15 @@ type FolderInput struct {
 	IconURL     *string `json:"iconUrl"`
 	Description *string `json:"description"`
 }
+
+type AppInput struct {
+	ModuleId  string             `json:"moduleId"`
+	Version   string             `json:"version"`
+	Variables []AppVariableInput `json:"variables"`
+	FolderID  *ObjectIdScalar    `json:"folderId"`
+}
+
+type AppVariableInput struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}

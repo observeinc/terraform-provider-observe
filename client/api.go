@@ -7,12 +7,18 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 var (
 	ErrNotFound = errors.New("not found")
 
 	flagObs2110 = "obs2110" // when set, allow concurrent API calls for foreign keys
+
+	// default backoff values for waiting on app async apply
+	syncRetryDuration = time.Second
+	syncRetryFactor   = 2.0
+	syncRetryCap      = 5 * time.Second
 )
 
 // GetDataset returns dataset by ID
@@ -988,4 +994,135 @@ func (c *Client) LookupFolder(ctx context.Context, workspaceID string, name stri
 		return nil, fmt.Errorf("failed to lookup folder: %w", err)
 	}
 	return newFolder(result)
+}
+
+// CreateApp creates a app
+func (c *Client) CreateApp(ctx context.Context, workspaceId string, config *AppConfig) (*App, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	appInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreateApp(ctx, workspaceId, appInput)
+	if err != nil {
+		return nil, err
+	}
+
+	// This is tricky. Once we've successfully created the object in API, we
+	// want to surface that up to terraform so it can track state.
+	// Unfortunately, we still have a lot of API calls to go, all of which can
+	// error. We avoid erroring from here on out if possible.
+	result, err = c.Meta.UpdateApp(ctx, result.ID.String(), appInput)
+	if err != nil {
+		return nil, err
+	}
+
+	// we should move this logic to server, so any client requiring synchronous
+	// behavior for testing can reuse accordingly.
+	duration := syncRetryDuration
+	for result.Status.State == "Installing" {
+		time.Sleep(duration)
+		if r, err := c.Meta.GetApp(ctx, result.ID.String()); err == nil {
+			result = r
+		} else {
+			break
+		}
+
+		if nextDuration := duration * time.Duration(syncRetryFactor); nextDuration < syncRetryCap {
+			duration = nextDuration
+		} else {
+			duration = syncRetryCap
+		}
+	}
+
+	return newApp(result)
+}
+
+// UpdateApp updates a app
+func (c *Client) UpdateApp(ctx context.Context, id string, config *AppConfig) (*App, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	appInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdateApp(ctx, id, appInput)
+	if err != nil {
+		return nil, err
+	}
+
+	// we should move this logic to server, so any client requiring synchronous
+	// behavior for testing can reuse accordingly.
+	duration := syncRetryDuration
+	for result.Status.State == "Installing" {
+		time.Sleep(duration)
+		if r, err := c.Meta.GetApp(ctx, result.ID.String()); err == nil {
+			result = r
+		} else {
+			break
+		}
+
+		if nextDuration := duration * time.Duration(syncRetryFactor); nextDuration < syncRetryCap {
+			duration = nextDuration
+		} else {
+			duration = syncRetryCap
+		}
+	}
+
+	return newApp(result)
+}
+
+// DeleteApp
+func (c *Client) DeleteApp(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if err := c.Meta.DeleteApp(ctx, id); err != nil {
+		return err
+	}
+
+	duration := syncRetryDuration
+	result, err := c.Meta.GetApp(ctx, id)
+	for err == nil && result.Status.State == "Deleting" {
+		time.Sleep(duration)
+		result, err = c.Meta.GetApp(ctx, id)
+
+		if nextDuration := duration * time.Duration(syncRetryFactor); nextDuration < syncRetryCap {
+			duration = nextDuration
+		} else {
+			duration = syncRetryCap
+		}
+	}
+
+	if result != nil {
+		return fmt.Errorf("failed to delete app: %s", result.Status.State)
+	}
+	return nil
+}
+
+// GetApp by ID
+func (c *Client) GetApp(ctx context.Context, id string) (*App, error) {
+	result, err := c.Meta.GetApp(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app: %w", err)
+	}
+
+	return newApp(result)
+}
+
+// LookupApp by name.
+func (c *Client) LookupApp(ctx context.Context, workspaceID string, name string) (*App, error) {
+	result, err := c.Meta.LookupApp(ctx, workspaceID, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup app: %w", err)
+	}
+	return newApp(result)
 }

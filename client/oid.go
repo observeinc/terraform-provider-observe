@@ -27,6 +27,7 @@ const (
 	TypeDatastreamToken      = "datastreamtoken"
 	TypeWorksheet            = "worksheet"
 	TypeFolder               = "folder"
+	TypeApp                  = "app"
 )
 
 func (t Type) IsValid() bool {
@@ -42,6 +43,7 @@ func (t Type) IsValid() bool {
 	case TypeDatastream:
 	case TypeDatastreamToken:
 	case TypeWorksheet:
+	case TypeFolder:
 	default:
 		return false
 	}

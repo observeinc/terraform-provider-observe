@@ -18,8 +18,9 @@ type FolderConfig struct {
 
 func (f *Folder) OID() *OID {
 	return &OID{
-		Type: TypeFolder,
-		ID:   f.ID,
+		Type:    TypeFolder,
+		ID:      f.WorkspaceID,
+		Version: &f.ID,
 	}
 }
 

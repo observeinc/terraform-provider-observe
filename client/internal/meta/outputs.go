@@ -470,3 +470,35 @@ type Folder struct {
 	IconURL     *string        `json:"iconUrl"`
 	Description *string        `json:"description"`
 }
+
+type App struct {
+	ID          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	Description *string        `json:"description"`
+	IconURL     *string        `json:"iconUrl"`
+	WorkspaceID ObjectIdScalar `json:"workspaceId"`
+	FolderID    ObjectIdScalar `json:"folderId"`
+	Config      AppConfig      `json:"config"`
+	Status      AppStatus      `json:"status"`
+}
+
+type AppConfig struct {
+	Name      string        `json:"name,omitempty"`
+	ModuleId  string        `json:"moduleId,omitempty"`
+	Version   string        `json:"version,omitempty"`
+	Variables []AppVariable `json:"variables,omitempty"`
+}
+
+type AppStatus struct {
+	State string `json:"state,omitempty"`
+}
+
+type AppVariable struct {
+	Name        string  `json:"name"`
+	Type        string  `json:"type"`
+	Description *string `json:"description"`
+	Required    bool    `json:"required"`
+	Sensitive   bool    `json:"sensitive"`
+	Default     *string `json:"default"`
+	Value       *string `json:"value"`
+}
