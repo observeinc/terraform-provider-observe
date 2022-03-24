@@ -1,3 +1,12 @@
+## 0.5.2 (2022-03-23)
+
+feat: allow specifying body to HTTP poller
+fix: reintroduce terraform caching
+feat: add method to poller
+chore: update deps
+feat: deprecate notification_spec.selection
+feat: support monitor freshness
+
 ## 0.5.1 (2022-02-11)
 
 fix: set source for boards
