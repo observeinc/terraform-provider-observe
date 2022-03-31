@@ -23,6 +23,10 @@ func resourceWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -85,6 +89,10 @@ func resourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta 
 
 	if err := data.Set("name", workspace.Config.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("id", workspace.ID); err != nil {
+		return diag.FromErr(err)
 	}
 
 	if err := data.Set("oid", workspace.OID().String()); err != nil {

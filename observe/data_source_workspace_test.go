@@ -18,11 +18,19 @@ func TestAccObserveSourceWorkspace(t *testing.T) {
 				Config: fmt.Sprintf(`
 				data "observe_workspace" "default" {
 				  name = "%s"
-				}`, defaultWorkspaceName),
+				}
+
+
+				data "observe_workspace" "default_by_id" {
+				  id = data.observe_workspace.default.id
+				}
+
+				`, defaultWorkspaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_workspace.default", "id"),
 					resource.TestCheckResourceAttrSet("data.observe_workspace.default", "oid"),
 					resource.TestCheckResourceAttr("data.observe_workspace.default", "name", defaultWorkspaceName),
+					resource.TestCheckResourceAttr("data.observe_workspace.default_by_id", "name", defaultWorkspaceName),
 				),
 			},
 		},
