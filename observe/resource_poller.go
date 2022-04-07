@@ -18,6 +18,44 @@ var validPollerKinds = []string{
 	"mongodbatlas",
 }
 
+func requestResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"url": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"username": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"password": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"method": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateDiagFunc: validateStringInSlice([]string{
+					http.MethodGet,
+					http.MethodPut,
+					http.MethodPost,
+				}, true),
+			},
+			"headers": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				ValidateDiagFunc: validateMapValues(validateIsString()),
+			},
+			"params": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				ValidateDiagFunc: validateMapValues(validateIsString()),
+			},
+		},
+	}
+}
+
 func resourcePoller() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePollerCreate,
@@ -123,24 +161,74 @@ func resourcePoller() *schema.Resource {
 								http.MethodPut,
 								http.MethodPost,
 							}, true),
+							ConflictsWith: []string{"http.0.request"},
 						},
 						"body": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"http.0.request"},
 						},
 						"endpoint": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							Deprecated:    "use request instead",
+							ConflictsWith: []string{"http.0.request"},
 						},
 						"content_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "application/json",
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"http.0.request"},
 						},
 						"headers": {
 							Type:             schema.TypeMap,
 							Optional:         true,
+							ConflictsWith:    []string{"http.0.request"},
 							ValidateDiagFunc: validateMapValues(validateIsString()),
+						},
+						"template": {
+							Type:          schema.TypeList,
+							ConflictsWith: []string{"http.0.endpoint"},
+							Optional:      true,
+							MaxItems:      1,
+							Elem:          requestResource(),
+						},
+						"request": {
+							Type:         schema.TypeList,
+							ExactlyOneOf: []string{"http.0.request", "http.0.endpoint"},
+							Optional:     true,
+							Elem:         requestResource(),
+						},
+						"rule": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"http.0.endpoint"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 1,
+										Elem:     requestResource(),
+									},
+									"follow": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"decoder": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"type": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -268,6 +356,8 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 			Endpoint:    data.Get("http.0.endpoint").(string),
 			ContentType: data.Get("http.0.content_type").(string),
 			Headers:     makeStringMap(data.Get("http.0.headers").(map[string]interface{})),
+			Requests:    expandPollerHTTPRequests(data.Get("http.0.request").([]interface{})),
+			Rules:       expandPollerHTTPRules(data.Get("http.0.rule").([]interface{})),
 		}
 
 		if v, ok := data.GetOk("http.0.method"); ok {
@@ -278,6 +368,10 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 		if v, ok := data.GetOk("http.0.body"); ok {
 			s := v.(string)
 			httpConf.Body = &s
+		}
+
+		if ls := data.Get("http.0.template").([]interface{}); len(ls) > 0 {
+			httpConf.Template = expandPollerHTTPRequest(ls[0].(map[string]interface{}))
 		}
 
 		config.HTTPConfig = httpConf
@@ -306,6 +400,7 @@ func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, d
 			ExcludeGroups: makeStrSlice(data.Get("mongodbatlas.0.exclude_groups").([]interface{})),
 		}
 	}
+
 	return
 }
 
@@ -450,19 +545,14 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		ht := map[string]interface{}{
 			"endpoint":     config.HTTPConfig.Endpoint,
 			"content_type": config.HTTPConfig.ContentType,
+			"method":       ptrToString(config.HTTPConfig.Method),
+			"body":         ptrToString(config.HTTPConfig.Body),
+			"headers":      makeInterfaceMap(config.HTTPConfig.Headers),
+			"template":     flattenPollerHTTPRequest(config.HTTPConfig.Template),
+			"request":      flattenPollerHTTPRequests(config.HTTPConfig.Requests),
+			"rule":         flattenPollerHTTPRules(config.HTTPConfig.Rules),
 		}
 
-		if method := config.HTTPConfig.Method; method != nil {
-			ht["method"] = *method
-		}
-
-		if body := config.HTTPConfig.Body; body != nil {
-			ht["body"] = *body
-		}
-
-		if headers := makeInterfaceMap(config.HTTPConfig.Headers); headers != nil {
-			ht["headers"] = headers
-		}
 		if err := data.Set("http", []interface{}{ht}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -514,4 +604,155 @@ func resourcePollerDelete(ctx context.Context, data *schema.ResourceData, meta i
 		return diag.Errorf("failed to delete poller: %s", err.Error())
 	}
 	return diags
+}
+
+func flattenPollerHTTPRequests(reqs []*observe.PollerHTTPRequest) (l []interface{}) {
+	if len(reqs) == 0 {
+		return []interface{}{}
+	}
+
+	for _, r := range reqs {
+		l = append(l, flattenPollerHTTPRequest(r)...)
+	}
+	return
+}
+
+func flattenPollerHTTPRequest(req *observe.PollerHTTPRequest) []interface{} {
+	if req == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"url":      ptrToString(req.URL),
+		"method":   ptrToString(req.Method),
+		"username": ptrToString(req.Username),
+		"password": ptrToString(req.Password),
+		"headers":  req.Headers,
+		"params":   req.Params,
+	}
+	return []interface{}{m}
+}
+
+func expandPollerHTTPRequests(l []interface{}) (reqs []*observe.PollerHTTPRequest) {
+	if len(l) == 0 {
+		return nil
+	}
+
+	for _, v := range l {
+		reqs = append(reqs, expandPollerHTTPRequest(v.(map[string]interface{})))
+	}
+
+	return
+}
+
+func expandPollerHTTPRequest(m map[string]interface{}) *observe.PollerHTTPRequest {
+	if len(m) == 0 {
+		return nil
+	}
+
+	req := &observe.PollerHTTPRequest{
+		URL:      stringToPtr(m["url"].(string)),
+		Method:   stringToPtr(m["method"].(string)),
+		Username: stringToPtr(m["username"].(string)),
+		Password: stringToPtr(m["password"].(string)),
+		Headers:  makeStringMap(m["headers"].(map[string]interface{})),
+		Params:   makeStringMap(m["params"].(map[string]interface{})),
+	}
+	return req
+}
+
+func flattenPollerHTTPRules(rules []*observe.PollerHTTPRule) (l []interface{}) {
+	if len(rules) == 0 {
+		return []interface{}{}
+	}
+
+	for _, r := range rules {
+		l = append(l, flattenPollerHTTPRule(r)...)
+	}
+	return
+}
+
+func flattenPollerHTTPRule(rule *observe.PollerHTTPRule) []interface{} {
+	if rule == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"match":   flattenPollerHTTPRequest(rule.Match),
+		"follow":  ptrToString(rule.Follow),
+		"decoder": flattenPollerHTTPDecoder(rule.Decoder),
+	}
+	return []interface{}{m}
+}
+
+func expandPollerHTTPRules(l []interface{}) (rules []*observe.PollerHTTPRule) {
+	if len(l) == 0 {
+		return nil
+	}
+
+	for _, v := range l {
+		rules = append(rules, expandPollerHTTPRule(v.(map[string]interface{})))
+	}
+	return
+}
+
+func expandPollerHTTPRule(m map[string]interface{}) *observe.PollerHTTPRule {
+	if len(m) == 0 {
+		return nil
+	}
+
+	var match *observe.PollerHTTPRequest
+	if ls := m["match"].([]interface{}); len(ls) > 0 {
+		match = expandPollerHTTPRequest(ls[0].(map[string]interface{}))
+	}
+
+	var decoder *observe.PollerHTTPDecoder
+	if ls := m["decoder"].([]interface{}); len(ls) > 0 {
+		decoder = expandPollerHTTPDecoder(ls[0].(map[string]interface{}))
+	}
+
+	rule := &observe.PollerHTTPRule{
+		Match:   match,
+		Decoder: decoder,
+	}
+
+	// empty string is not a valid JMESPath expression
+	if m["follow"] != "" {
+		rule.Follow = stringToPtr(m["follow"].(string))
+	}
+
+	return rule
+}
+
+func flattenPollerHTTPDecoder(decoder *observe.PollerHTTPDecoder) []interface{} {
+	if decoder == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"type": decoder.Type,
+	}
+	return []interface{}{m}
+}
+
+func expandPollerHTTPDecoder(m map[string]interface{}) *observe.PollerHTTPDecoder {
+	if len(m) == 0 {
+		return nil
+	}
+
+	decoder := &observe.PollerHTTPDecoder{
+		Type: m["type"].(string),
+	}
+	return decoder
+}
+
+func ptrToString(v *string) string {
+	if v != nil {
+		return *v
+	}
+	return ""
+}
+
+func stringToPtr(v string) *string {
+	return &v
 }

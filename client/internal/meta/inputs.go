@@ -440,11 +440,14 @@ type PollerPubSubInput struct {
 }
 
 type PollerHTTPInput struct {
-	Method      *string `json:"method"`
-	Body        *string `json:"body"`
-	Endpoint    string  `json:"endpoint"`
-	ContentType string  `json:"contentType"`
-	Headers     *string `json:"headers,omitempty"`
+	Method      *string              `json:"method"`
+	Body        *string              `json:"body"`
+	Endpoint    string               `json:"endpoint,omitempty"`
+	ContentType string               `json:"contentType,omitempty"`
+	Headers     *string              `json:"headers,omitempty"`
+	Template    *PollerHTTPRequest   `json:"template,omitempty"`
+	Requests    []*PollerHTTPRequest `json:"requests,omitempty"`
+	Rules       []*PollerHTTPRule    `json:"rules,omitempty"`
 }
 
 type PollerGCPMonitoringInput struct {

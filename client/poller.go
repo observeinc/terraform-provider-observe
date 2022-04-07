@@ -37,12 +37,19 @@ type PollerPubSubConfig struct {
 	SubscriptionID string `json:"subscriptionId"`
 }
 
+type PollerHTTPRequest = meta.PollerHTTPRequest
+type PollerHTTPRule = meta.PollerHTTPRule
+type PollerHTTPDecoder = meta.PollerHTTPDecoder
+
 type PollerHTTPConfig struct {
-	Method      *string           `json:"method"`
-	Body        *string           `json:"body"`
-	Endpoint    string            `json:"endpoint"`
-	ContentType string            `json:"contentType"`
-	Headers     map[string]string `json:"headers,omitempty"`
+	Method      *string              `json:"method"`
+	Body        *string              `json:"body"`
+	Endpoint    string               `json:"endpoint"`
+	ContentType string               `json:"contentType"`
+	Headers     map[string]string    `json:"headers,omitempty"`
+	Template    *PollerHTTPRequest   `json:"template,omitempty"`
+	Requests    []*PollerHTTPRequest `json:"requests,omitempty"`
+	Rules       []*PollerHTTPRule    `json:"rules,omitempty"`
 }
 
 type PollerGCPMonitoringConfig struct {
@@ -110,6 +117,9 @@ func (config *PollerConfig) toGQL() (*meta.PollerInput, error) {
 			Body:        config.HTTPConfig.Body,
 			Endpoint:    config.HTTPConfig.Endpoint,
 			ContentType: config.HTTPConfig.ContentType,
+			Template:    config.HTTPConfig.Template,
+			Requests:    config.HTTPConfig.Requests,
+			Rules:       config.HTTPConfig.Rules,
 		}
 		headers, err := serializeStringMap(config.HTTPConfig.Headers)
 		if err != nil {
@@ -197,6 +207,9 @@ func newPoller(p *meta.Poller) (*Poller, error) {
 			Endpoint:    p.Config.HTTPConfig.Endpoint,
 			ContentType: p.Config.HTTPConfig.ContentType,
 			Headers:     makeStringMap(p.Config.HTTPConfig.Headers),
+			Template:    p.Config.HTTPConfig.Template,
+			Requests:    p.Config.HTTPConfig.Requests,
+			Rules:       p.Config.HTTPConfig.Rules,
 		}
 	}
 

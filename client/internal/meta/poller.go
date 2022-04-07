@@ -34,6 +34,36 @@ var (
 				endpoint
 				contentType
 				headers
+				template {
+					url
+					method
+					username
+					password
+					headers
+					params
+				}
+				requests {
+					url
+					method
+					username
+					password
+					headers
+					params
+				}
+				rules {
+					match {
+						url
+						method
+						username
+						password
+						headers
+						params
+					}
+					follow
+					decoder {
+						type
+					}
+				}
 			}
 			... on PollerGCPMonitoringConfig {
 				projectId

@@ -382,6 +382,28 @@ type PollerHTTPConfig struct {
 	Endpoint    string                 `json:"endpoint"`
 	ContentType string                 `json:"contentType"`
 	Headers     map[string]interface{} `json:"headers"`
+	Template    *PollerHTTPRequest     `json:"template,omitempty"`
+	Requests    []*PollerHTTPRequest   `json:"requests,omitempty"`
+	Rules       []*PollerHTTPRule      `json:"rules,omitempty"`
+}
+
+type PollerHTTPRequest struct {
+	URL      *string           `json:"url,omitempty"`
+	Method   *string           `json:"method,omitempty"`
+	Username *string           `json:"username,omitempty"`
+	Password *string           `json:"password,omitempty"`
+	Headers  map[string]string `json:"headers,omitempty"`
+	Params   map[string]string `json:"params,omitempty"`
+}
+
+type PollerHTTPRule struct {
+	Match   *PollerHTTPRequest `json:"match,omitempty"`
+	Follow  *string            `json:"follow,omitempty"`
+	Decoder *PollerHTTPDecoder `json:"decoder,omitempty"`
+}
+
+type PollerHTTPDecoder struct {
+	Type string `json:"type"`
 }
 
 type PollerPubSubConfig struct {

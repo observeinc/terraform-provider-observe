@@ -74,6 +74,55 @@ func TestAccObservePoller(t *testing.T) {
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+
+					http {
+						template {
+							username = "user"
+							password = "pass"
+							headers = {
+								accept = "application/json"
+							}
+						}
+						request {
+							url = "https://example.com/path"
+						}
+
+						rule {
+							match {
+								url = "https://example.com/path"
+							}
+
+							decoder {
+								type = "prometheus"
+							}
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.decoder.0.type", "prometheus"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
 					retries   = 5
 
 					chunk {
@@ -181,6 +230,198 @@ func TestAccObservePollerMongoDB(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "gcp_monitoring.#", "0"),
 					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObservePollerHTTP(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+
+					http {
+						request {
+							url    = "https://example.com/path"
+							method = "POST"
+							username = "user"
+							password = "pass"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.username", "user"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.password", "pass"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.method", "POST"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+
+					http {
+						template {
+							username = "user"
+							password = "pass"
+							headers = {
+								"accept" = "application/json"
+							}
+						}
+						request {
+							url    = "https://example.com/path"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.headers.accept", "application/json"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.params.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.method", ""),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+
+					http {
+						template {
+							username = "user"
+							password = "pass"
+							headers = {
+								"accept" = "application/json"
+							}
+						}
+						request {
+							url    = "https://example.com/path"
+						}
+						
+						rule {
+							match {
+								url    = "https://example.com/path"
+							}
+							follow = "accounts[]"
+						}
+
+
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.headers.accept", "application/json"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.params.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.method", ""),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.follow", "accounts[]"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+
+					http {
+						request {
+							url    = "https://example.com/path"
+						}
+
+						request {
+							url    = "https://example.com/path2"
+						}
+
+						rule {
+							match {
+								url = "https://example.com/path"
+							}
+
+							decoder {
+								type = "prometheus"
+							}
+						}
+
+						rule {
+							match {
+								url = "https://example.com/path2"
+							}
+							follow = "accounts[]"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.1.url", "https://example.com/path2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.decoder.0.type", "prometheus"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.follow", ""),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.1.match.0.url", "https://example.com/path2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.1.follow", "accounts[]"),
+					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
+					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
 				),
 			},
 		},
