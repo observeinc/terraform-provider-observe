@@ -230,10 +230,8 @@ func (mg MonitorGrouping) String() string {
 }
 
 type NotificationSpecificationInput struct {
-	Importance     *NotificationImportance `json:"importance"`
-	Merge          *NotificationMerge      `json:"merge"`
-	Selection      *NotificationSelection  `json:"selection"`
-	SelectionValue NumberScalar            `json:"selectionValue"`
+	Importance *NotificationImportance `json:"importance"`
+	Merge      *NotificationMerge      `json:"merge"`
 }
 
 type NotificationImportance string
@@ -261,20 +259,6 @@ const (
 
 func (nm NotificationMerge) String() string {
 	return string(nm)
-}
-
-type NotificationSelection string
-
-const (
-	NotificationSelectionAny        NotificationSelection = "Any"
-	NotificationSelectionAll        NotificationSelection = "All"
-	NotificationSelectionPercentage NotificationSelection = "Percentage"
-	NotificationSelectionCount      NotificationSelection = "Count"
-	NotificationSelectionMissing    NotificationSelection = ""
-)
-
-func (ns NotificationSelection) String() string {
-	return string(ns)
 }
 
 type MonitorRuleCountInput struct {

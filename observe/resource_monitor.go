@@ -374,18 +374,6 @@ func resourceMonitor() *schema.Resource {
 							Default:          "merged",
 							ValidateDiagFunc: validateEnums(observe.NotificationMerges),
 						},
-						"selection": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Deprecated:       "No longer used",
-							Default:          "any",
-							ValidateDiagFunc: validateEnums(observe.NotificationSelections),
-						},
-						"selection_value": {
-							Type:       schema.TypeFloat,
-							Optional:   true,
-							Deprecated: "No longer used",
-						},
 					},
 				},
 			},
@@ -574,13 +562,11 @@ func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *obs
 	var (
 		defaultImportance = observe.NotificationImportance("Informational")
 		defaultMerge      = observe.NotificationMerge("Merged")
-		defaultSelection  = observe.NotificationSelection("Any")
 	)
 
 	notificationSpec = &observe.NotificationSpecConfig{
 		Importance: &defaultImportance,
 		Merge:      &defaultMerge,
-		Selection:  &defaultSelection,
 	}
 
 	if v, ok := data.GetOk("notification_spec.0.importance"); ok {
@@ -591,16 +577,6 @@ func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *obs
 	if v, ok := data.GetOk("notification_spec.0.merge"); ok {
 		s := observe.NotificationMerge(toCamel(v.(string)))
 		notificationSpec.Merge = &s
-	}
-
-	if v, ok := data.GetOk("notification_spec.0.selection"); ok {
-		s := observe.NotificationSelection(toCamel(v.(string)))
-		notificationSpec.Selection = &s
-	}
-
-	if v, ok := data.GetOk("notification_spec.0.selection_value"); ok {
-		f := v.(float64)
-		notificationSpec.SelectionValue = &f
 	}
 
 	return notificationSpec, nil
@@ -842,10 +818,8 @@ func flattenNotificationSpec(config *observe.NotificationSpecConfig) interface{}
 	var results []interface{}
 
 	results = append(results, map[string]interface{}{
-		"merge":           toSnake(config.Merge.String()),
-		"importance":      toSnake(config.Importance.String()),
-		"selection":       toSnake(config.Selection.String()),
-		"selection_value": config.SelectionValue,
+		"merge":      toSnake(config.Merge.String()),
+		"importance": toSnake(config.Importance.String()),
 	})
 
 	return results

@@ -306,9 +306,6 @@ const (
 type NotificationSpecification struct {
 	Importance NotificationImportance `json:"importance"`
 	Merge      NotificationMerge      `json:"merge"`
-	Selection  NotificationSelection  `json:"selection"`
-	// NOTE: api will always return a value here :(
-	SelectionValue *NumberScalar `json:"selectionValue,omitEmpty"`
 }
 
 type MonitorUpdateResult struct {

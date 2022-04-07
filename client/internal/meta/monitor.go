@@ -75,8 +75,6 @@ var (
 		notificationSpec {
 			merge
 			importance
-			selection
-			selectionValue
 		}
 	}`
 )

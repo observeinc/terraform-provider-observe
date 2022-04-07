@@ -15,7 +15,6 @@ type (
 	MonitorGrouping        = meta.MonitorGrouping
 	NotificationImportance = meta.NotificationImportance
 	NotificationMerge      = meta.NotificationMerge
-	NotificationSelection  = meta.NotificationSelection
 	TimeFunction           = meta.TimeFunction
 	MonitorGroupInfo       = meta.MonitorGroupInfo
 )
@@ -72,13 +71,6 @@ var (
 		meta.NotificationMergeSeparate,
 	}
 
-	NotificationSelections = []NotificationSelection{
-		meta.NotificationSelectionAny,
-		meta.NotificationSelectionAll,
-		meta.NotificationSelectionPercentage,
-		meta.NotificationSelectionCount,
-	}
-
 	TimeFunctions = []TimeFunction{
 		meta.TimeFunctionNever,
 		meta.TimeFunctionAtLeastOnce,
@@ -108,10 +100,8 @@ type MonitorConfig struct {
 }
 
 type NotificationSpecConfig struct {
-	Importance     *NotificationImportance `json:"importance"`
-	Merge          *NotificationMerge      `json:"merge"`
-	Selection      *NotificationSelection  `json:"selection"`
-	SelectionValue *float64                `json:"selectionValue,omitempty"`
+	Importance *NotificationImportance `json:"importance"`
+	Merge      *NotificationMerge      `json:"merge"`
 }
 
 type MonitorRuleConfig struct {
@@ -156,17 +146,12 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 		NotificationSpec: &meta.NotificationSpecificationInput{
 			Importance: c.NotificationSpec.Importance,
 			Merge:      c.NotificationSpec.Merge,
-			Selection:  c.NotificationSpec.Selection,
 		},
 	}
 
 	if c.Freshness != nil {
 		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())
 		monitorInput.FreshnessGoal = &i
-	}
-
-	if f := c.NotificationSpec.SelectionValue; f != nil {
-		monitorInput.NotificationSpec.SelectionValue = meta.NumberScalar(*f)
 	}
 
 	return monitorInput, nil
@@ -268,12 +253,6 @@ func newMonitor(gqlMonitor *meta.Monitor) (m *Monitor, err error) {
 
 	m.Config.NotificationSpec.Merge = &gqlMonitor.NotificationSpec.Merge
 	m.Config.NotificationSpec.Importance = &gqlMonitor.NotificationSpec.Importance
-	m.Config.NotificationSpec.Selection = &gqlMonitor.NotificationSpec.Selection
-
-	if v := gqlMonitor.NotificationSpec.SelectionValue; v != nil {
-		f := float64(*v)
-		m.Config.NotificationSpec.SelectionValue = &f
-	}
 
 	return m, nil
 }
