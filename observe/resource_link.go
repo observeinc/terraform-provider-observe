@@ -20,12 +20,12 @@ const (
 	schemaLinkLabelDescription = "Label describing link."
 )
 
-func resourceForeignKey() *schema.Resource {
+func resourceLink() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceForeignKeyCreate,
-		ReadContext:   resourceForeignKeyRead,
-		UpdateContext: resourceForeignKeyUpdate,
-		DeleteContext: resourceForeignKeyDelete,
+		CreateContext: resourceLinkCreate,
+		ReadContext:   resourceLinkRead,
+		UpdateContext: resourceLinkUpdate,
+		DeleteContext: resourceLinkDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -67,7 +67,7 @@ func resourceForeignKey() *schema.Resource {
 	}
 }
 
-func newForeignKeyConfig(data *schema.ResourceData) (config *observe.ForeignKeyConfig, diags diag.Diagnostics) {
+func newLinkConfig(data *schema.ResourceData) (config *observe.ForeignKeyConfig, diags diag.Diagnostics) {
 	var (
 		source, _ = observe.NewOID(data.Get("source").(string))
 		target, _ = observe.NewOID(data.Get("target").(string))
@@ -88,10 +88,10 @@ func newForeignKeyConfig(data *schema.ResourceData) (config *observe.ForeignKeyC
 	return
 }
 
-func resourceForeignKeyCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLinkCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newForeignKeyConfig(data)
+	config, diags := newLinkConfig(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -103,13 +103,13 @@ func resourceForeignKeyCreate(ctx context.Context, data *schema.ResourceData, me
 	}
 
 	data.SetId(result.ID)
-	return append(diags, resourceForeignKeyRead(ctx, data, meta)...)
+	return append(diags, resourceLinkRead(ctx, data, meta)...)
 }
 
-func resourceForeignKeyUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newForeignKeyConfig(data)
+	config, diags := newLinkConfig(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -119,20 +119,20 @@ func resourceForeignKeyUpdate(ctx context.Context, data *schema.ResourceData, me
 		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
 
-	return append(diags, resourceForeignKeyRead(ctx, data, meta)...)
+	return append(diags, resourceLinkRead(ctx, data, meta)...)
 }
 
-func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	fk, err := client.GetForeignKey(ctx, data.Id())
+	link, err := client.GetForeignKey(ctx, data.Id())
 	if err != nil {
 		return diag.Errorf("failed to read foreign key: %s", err.Error())
 	}
 
 	var fields []string
-	for i, src := range fk.Config.SrcFields {
-		dst := fk.Config.DstFields[i]
+	for i, src := range link.Config.SrcFields {
+		dst := link.Config.DstFields[i]
 		if src == dst {
 			fields = append(fields, src)
 		} else {
@@ -142,7 +142,7 @@ func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta
 
 	workspaceOID := observe.OID{
 		Type: observe.TypeWorkspace,
-		ID:   fk.Workspace,
+		ID:   link.Workspace,
 	}
 
 	if err := data.Set("workspace", workspaceOID.String()); err != nil {
@@ -156,14 +156,14 @@ func resourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("label", fk.Config.Label); err != nil {
+	if err := data.Set("label", link.Config.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
 }
 
-func resourceForeignKeyDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLinkDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteForeignKey(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete foreign key: %s", err.Error())

@@ -127,8 +127,7 @@ func Provider() *schema.Provider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"observe_dataset":    dataSourceDataset(),
-			"observe_fk":         dataSourceForeignKey(),
-			"observe_link":       dataSourceForeignKey(),
+			"observe_link":       dataSourceLink(),
 			"observe_workspace":  dataSourceWorkspace(),
 			"observe_query":      dataSourceQuery(),
 			"observe_board":      dataSourceBoard(),
@@ -140,8 +139,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":          resourceDataset(),
 			"observe_source_dataset":   resourceSourceDataset(),
-			"observe_fk":               resourceForeignKey(),
-			"observe_link":             resourceForeignKey(),
+			"observe_link":             resourceLink(),
 			"observe_workspace":        resourceWorkspace(),
 			"observe_bookmark_group":   resourceBookmarkGroup(),
 			"observe_bookmark":         resourceBookmark(),

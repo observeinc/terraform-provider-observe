@@ -11,7 +11,7 @@ import (
 
 var (
 	// common to all configs
-	fkConfigPreamble = configPreamble + `
+	linkConfigPreamble = configPreamble + `
 		resource "observe_dataset" "a" {
 			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-A"
@@ -40,7 +40,7 @@ var (
 		}`
 )
 
-func TestAccObserveForeignKeyCreate(t *testing.T) {
+func TestAccObserveLinkCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -48,8 +48,8 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
@@ -58,17 +58,17 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_fk.example", "workspace"),
-					resource.TestCheckResourceAttr("observe_fk.example", "fields.0", "key"),
-					resource.TestCheckResourceAttr("observe_fk.example", "label", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_link.example", "workspace"),
+					resource.TestCheckResourceAttr("observe_link.example", "fields.0", "key"),
+					resource.TestCheckResourceAttr("observe_link.example", "label", randomPrefix),
 				),
 			},
 			{
 				// if source and target column name in a field is the same, we can elide target
 				// this should result in no diff
 				PlanOnly: true,
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
@@ -81,7 +81,7 @@ func TestAccObserveForeignKeyCreate(t *testing.T) {
 	})
 }
 
-func TestAccObserveForeignKeyErrors(t *testing.T) {
+func TestAccObserveLinkErrors(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -89,25 +89,25 @@ func TestAccObserveForeignKeyErrors(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = data.observe_dataset.observation.oid
 					target    = data.observe_dataset.observation.oid
 					fields    = ["test"]
-					label     = "%[1]s-fk"
+					label     = "%[1]s-link"
 				}
 				`, randomPrefix),
 				ExpectError: regexp.MustCompile(".*not present in the dataset"),
 			},
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = data.observe_dataset.observation.oid
 					target    = data.observe_dataset.observation.oid
 					fields    = ["OBSERVATION_KIND:FIELDS"]
-					label     = "%[1]s-fk"
+					label     = "%[1]s-link"
 				}
 				`, randomPrefix),
 				ExpectError: regexp.MustCompile(".*cannot be used as a key"),
@@ -124,38 +124,38 @@ func TestAccOBS2432(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
-					label     = "%[1]s-fk"
+					label     = "%[1]s-link"
 				}
 
-				data "observe_fk" "verify_example" {
+				data "observe_link" "verify_example" {
 					source     = observe_dataset.a.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
-					depends_on = [observe_fk.example]
+					depends_on = [observe_link.example]
 				}
 				`, randomPrefix),
 			},
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
 					fields    = ["key"]
-					label     = "%[1]s-fk"
+					label     = "%[1]s-link"
 				}
 
-				data "observe_fk" "check_example" {
+				data "observe_link" "check_example" {
 					source     = observe_dataset.a.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
-					depends_on = [observe_fk.example]
+					depends_on = [observe_link.example]
 				}
 
 				resource "observe_dataset" "c" {
@@ -169,10 +169,10 @@ func TestAccOBS2432(t *testing.T) {
 							filter true
 						EOF
 					}
-					depends_on = [observe_fk.example]
+					depends_on = [observe_link.example]
 				}
 
-				data "observe_fk" "check_propagated" {
+				data "observe_link" "check_propagated" {
 					source     = observe_dataset.c.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
@@ -191,8 +191,8 @@ func TestAccOBS2110(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "first" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "first" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
@@ -200,7 +200,7 @@ func TestAccOBS2110(t *testing.T) {
 					label     = "%[1]s-first"
 				}
 
-				resource "observe_fk" "second" {
+				resource "observe_link" "second" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
@@ -208,18 +208,18 @@ func TestAccOBS2110(t *testing.T) {
 					label     = "%[1]s-second"
 				}
 
-				data "observe_fk" "verify_first" {
+				data "observe_link" "verify_first" {
 					source     = observe_dataset.a.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
-					depends_on = [observe_fk.first]
+					depends_on = [observe_link.first]
 				}
 
-				data "observe_fk" "verify_second" {
+				data "observe_link" "verify_second" {
 					source     = observe_dataset.a.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
-					depends_on = [observe_fk.second]
+					depends_on = [observe_link.second]
 				}
 				`, randomPrefix),
 				ExpectNonEmptyPlan: false,
@@ -245,7 +245,7 @@ func TestLinkSuppression(t *testing.T) {
 	 *
 	 * We currently avoid this by using `lastSaved` timestamp instead of `version`
 	 */
-	config := fmt.Sprintf(fkConfigPreamble+`
+	config := fmt.Sprintf(linkConfigPreamble+`
 		resource "observe_dataset" "c" {
 			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-C"
@@ -259,7 +259,7 @@ func TestLinkSuppression(t *testing.T) {
 			}
 		}
 
-		resource "observe_fk" "a_to_b" {
+		resource "observe_link" "a_to_b" {
 			workspace = data.observe_workspace.default.oid
 			source    = observe_dataset.a.oid
 			target    = observe_dataset.b.oid
@@ -268,7 +268,7 @@ func TestLinkSuppression(t *testing.T) {
 
 		}
 
-		resource "observe_fk" "a_to_c" {
+		resource "observe_link" "a_to_c" {
 			workspace = data.observe_workspace.default.oid
 			source    = observe_dataset.a.oid
 			target    = observe_dataset.c.oid

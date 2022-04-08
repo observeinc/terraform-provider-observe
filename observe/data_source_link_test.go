@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccObserveSourceForeignKey(t *testing.T) {
+func TestAccObserveSourceLink(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -17,8 +17,8 @@ func TestAccObserveSourceForeignKey(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-				resource "observe_fk" "example" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
 					source    = observe_dataset.a.oid
 					target    = observe_dataset.b.oid
@@ -26,19 +26,19 @@ func TestAccObserveSourceForeignKey(t *testing.T) {
 					label     = "%[1]s"
 				}
 
-				data "observe_fk" "check" {
+				data "observe_link" "check" {
 					source     = observe_dataset.a.oid
 					target     = observe_dataset.b.oid
 					fields     = ["key"]
 					// wait for foreign key to be set
-					depends_on = [observe_fk.example]
+					depends_on = [observe_link.example]
 				}
 				`, randomPrefix),
 			},
 		},
 	})
 }
-func TestAccObserveSourceForeignKeyErrors(t *testing.T) {
+func TestAccObserveSourceLinkErrors(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -46,8 +46,8 @@ func TestAccObserveSourceForeignKeyErrors(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(fkConfigPreamble+`
-					data "observe_fk" "check" {
+				Config: fmt.Sprintf(linkConfigPreamble+`
+					data "observe_link" "check" {
 						source     = observe_dataset.a.oid
 						target     = observe_dataset.b.oid
 						fields     = ["missing"]

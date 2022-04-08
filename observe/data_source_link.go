@@ -9,9 +9,9 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 )
 
-func dataSourceForeignKey() *schema.Resource {
+func dataSourceLink() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceForeignKeyRead,
+		ReadContext: dataSourceLinkRead,
 
 		Schema: map[string]*schema.Schema{
 			"source": {
@@ -37,7 +37,7 @@ func dataSourceForeignKey() *schema.Resource {
 	}
 }
 
-func dataSourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func dataSourceLinkRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
 		client = meta.(*observe.Client)
 		fields = data.Get("fields").([]interface{})
@@ -56,11 +56,11 @@ func dataSourceForeignKeyRead(ctx context.Context, data *schema.ResourceData, me
 	}()
 
 	srcFields, dstFields := unpackFields(fields)
-	fk, err := client.LookupForeignKey(ctx, source.ID, target.ID, srcFields, dstFields)
+	link, err := client.LookupForeignKey(ctx, source.ID, target.ID, srcFields, dstFields)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	data.SetId(*fk.Config.Source + "/" + *fk.Config.Label)
+	data.SetId(*link.Config.Source + "/" + *link.Config.Label)
 	return nil
 }
