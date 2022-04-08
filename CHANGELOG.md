@@ -1,3 +1,12 @@
+## 0.6.0-alpha (2022-04-08)
+
+feat!: deprecate observe_fk
+feat!: deprecate group_by
+feat!: deprecate group_by_columns, group_by_datasets
+feat!: remove notification selection and selection value
+feat: allow workspace lookup by id
+fix: typos in folder error messages
+
 ## 0.5.2 (2022-03-23)
 
 feat: allow specifying body to HTTP poller
