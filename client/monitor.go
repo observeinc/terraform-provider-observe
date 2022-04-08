@@ -105,16 +105,14 @@ type NotificationSpecConfig struct {
 }
 
 type MonitorRuleConfig struct {
-	SourceColumn      *string                     `json:"sourceColumn"`
-	GroupBy           *MonitorGrouping            `json:"groupBy"`
-	GroupByColumns    []string                    `json:"groupByColumns"`
-	GroupByDatasetIds []string                    `json:"groupByDatasetIds"`
-	GroupByGroups     []MonitorGroupInfo          `json:"groupByGroups"`
-	ChangeRule        *MonitorRuleChangeConfig    `json:"change"`
-	CountRule         *MonitorRuleCountConfig     `json:"count"`
-	FacetRule         *MonitorRuleFacetConfig     `json:"facet"`
-	ThresholdRule     *MonitorRuleThresholdConfig `json:"threshold"`
-	PromoteRule       *MonitorRulePromoteConfig   `json:"promote"`
+	SourceColumn  *string                     `json:"sourceColumn"`
+	GroupBy       *MonitorGrouping            `json:"groupBy"`
+	GroupByGroups []MonitorGroupInfo          `json:"groupByGroups"`
+	ChangeRule    *MonitorRuleChangeConfig    `json:"change"`
+	CountRule     *MonitorRuleCountConfig     `json:"count"`
+	FacetRule     *MonitorRuleFacetConfig     `json:"facet"`
+	ThresholdRule *MonitorRuleThresholdConfig `json:"threshold"`
+	PromoteRule   *MonitorRulePromoteConfig   `json:"promote"`
 }
 
 func (m *Monitor) OID() *OID {
@@ -159,11 +157,9 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 
 func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 	ruleInput := &meta.MonitorRuleInput{
-		SourceColumn:      c.SourceColumn,
-		GroupBy:           c.GroupBy,
-		GroupByColumns:    c.GroupByColumns,
-		GroupByDatasetIds: c.GroupByDatasetIds,
-		GroupByGroups:     c.GroupByGroups,
+		SourceColumn:  c.SourceColumn,
+		GroupBy:       c.GroupBy,
+		GroupByGroups: c.GroupByGroups,
 	}
 
 	if len(c.GroupByGroups) > 0 {
@@ -192,11 +188,9 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 
 func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 	config := &MonitorRuleConfig{
-		SourceColumn:      gqlRule.SourceColumn,
-		GroupBy:           gqlRule.GroupBy,
-		GroupByColumns:    gqlRule.GroupByColumns,
-		GroupByDatasetIds: gqlRule.GroupByDatasetIds,
-		GroupByGroups:     gqlRule.GroupByGroups,
+		SourceColumn:  gqlRule.SourceColumn,
+		GroupBy:       gqlRule.GroupBy,
+		GroupByGroups: gqlRule.GroupByGroups,
 	}
 
 	var err error

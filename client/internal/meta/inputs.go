@@ -197,11 +197,9 @@ type MonitorInput struct {
 }
 
 type MonitorRuleInput struct {
-	SourceColumn      *string            `json:"sourceColumn"`
-	GroupBy           *MonitorGrouping   `json:"groupBy"`
-	GroupByColumns    []string           `json:"groupByColumns"`
-	GroupByDatasetIds []string           `json:"groupByDatasetIds"`
-	GroupByGroups     []MonitorGroupInfo `json:"groupByGroups"`
+	SourceColumn  *string            `json:"sourceColumn"`
+	GroupBy       *MonitorGrouping   `json:"groupBy"`
+	GroupByGroups []MonitorGroupInfo `json:"groupByGroups"`
 
 	CountRule     *MonitorRuleCountInput     `json:"countRule,omitempty"`
 	ChangeRule    *MonitorRuleChangeInput    `json:"changeRule,omitempty"`

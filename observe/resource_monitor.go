@@ -37,26 +37,6 @@ func resourceMonitor() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			var hasLegacyColumns bool
-			var hasLegacyDatasets bool
-
-			if v, ok := d.Get("rule.0.group_by_columns").([]interface{}); ok {
-				hasLegacyColumns = len(v) > 0
-			}
-
-			if v, ok := d.Get("rule.0.group_by_datasets").([]interface{}); ok {
-				hasLegacyDatasets = len(v) > 0
-			}
-
-			if hasLegacyColumns || hasLegacyDatasets {
-				prv, _ := d.GetChange("rule.0.group_by_group")
-				if v, ok := prv.([]interface{}); ok && len(v) > 0 {
-					d.ForceNew("rule.0.group_by_group")
-				}
-			}
-			return nil
-		},
 		Schema: map[string]*schema.Schema{
 			"workspace": &schema.Schema{
 				Type:             schema.TypeString,
@@ -138,7 +118,7 @@ func resourceMonitor() *schema.Resource {
 						"group_by_group": {
 							Type:          schema.TypeList,
 							Optional:      true,
-							ConflictsWith: []string{"rule.0.group_by", "rule.0.group_by_columns", "rule.0.group_by_datasets"},
+							ConflictsWith: []string{"rule.0.group_by"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"columns": {
@@ -159,22 +139,6 @@ func resourceMonitor() *schema.Resource {
 							Optional:         true,
 							Default:          "none",
 							ValidateDiagFunc: validateEnums(observe.MonitorGroupings),
-						},
-						"group_by_columns": {
-							Type:       schema.TypeList,
-							Deprecated: "Use \"group_by_group\" instead",
-							Optional:   true,
-							Elem:       &schema.Schema{Type: schema.TypeString},
-						},
-						"group_by_datasets": {
-							Type:       schema.TypeList,
-							Deprecated: "Use \"group_by_group\" instead",
-							Optional:   true,
-							Elem: &schema.Schema{
-								Type:             schema.TypeString,
-								ValidateDiagFunc: validateOID(observe.TypeDataset),
-								DiffSuppressFunc: diffSuppressVersion,
-							},
 						},
 						"count": &schema.Schema{
 							Type:         schema.TypeList,
@@ -382,9 +346,7 @@ func resourceMonitor() *schema.Resource {
 }
 
 func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.MonitorRuleConfig, diags diag.Diagnostics) {
-	ruleConfig = &observe.MonitorRuleConfig{
-		GroupByColumns: make([]string, 0),
-	}
+	ruleConfig = &observe.MonitorRuleConfig{}
 
 	if v, ok := data.GetOk("rule.0.source_column"); ok {
 		s := v.(string)
@@ -394,19 +356,6 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 	if v, ok := data.GetOk("rule.0.group_by"); ok {
 		g := observe.MonitorGrouping(toCamel(v.(string)))
 		ruleConfig.GroupBy = &g
-	}
-
-	if v, ok := data.GetOk("rule.0.group_by_columns"); ok {
-		for _, el := range v.([]interface{}) {
-			ruleConfig.GroupByColumns = append(ruleConfig.GroupByColumns, el.(string))
-		}
-	}
-
-	if v, ok := data.GetOk("rule.0.group_by_datasets"); ok {
-		for _, el := range v.([]interface{}) {
-			oid, _ := observe.NewOID(el.(string))
-			ruleConfig.GroupByDatasetIds = append(ruleConfig.GroupByDatasetIds, oid.ID)
-		}
 	}
 
 	if v, ok := data.GetOk("rule.0.group_by_group"); ok {
@@ -727,15 +676,6 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 		"group_by":      toSnake(config.GroupBy.String()),
 	}
 
-	var groupByDatasets []string
-	for _, datasetId := range config.GroupByDatasetIds {
-		oid := observe.OID{
-			Type: observe.TypeDataset,
-			ID:   datasetId,
-		}
-		groupByDatasets = append(groupByDatasets, oid.String())
-	}
-
 	if len(config.GroupByGroups) > 0 {
 		var list []interface{}
 		for _, group := range config.GroupByGroups {
@@ -745,9 +685,6 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 			})
 		}
 		rule["group_by_group"] = list
-	} else {
-		rule["group_by_datasets"] = groupByDatasets
-		rule["group_by_columns"] = config.GroupByColumns
 	}
 
 	if config.ChangeRule != nil {

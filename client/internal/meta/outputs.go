@@ -280,13 +280,11 @@ type Monitor struct {
 }
 
 type MonitorRule struct {
-	Type              string                 `mapstructure:"__typename"`
-	SourceColumn      *string                `json:"sourceColumn"`
-	GroupBy           *MonitorGrouping       `json:"groupBy"`
-	GroupByColumns    []string               `json:"groupByColumns"`
-	GroupByDatasetIds []string               `json:"groupByDatasetIds"`
-	GroupByGroups     []MonitorGroupInfo     `json:"groupByGroups"`
-	Other             map[string]interface{} `mapstructure:",remain"`
+	Type          string                 `mapstructure:"__typename"`
+	SourceColumn  *string                `json:"sourceColumn"`
+	GroupBy       *MonitorGrouping       `json:"groupBy"`
+	GroupByGroups []MonitorGroupInfo     `json:"groupByGroups"`
+	Other         map[string]interface{} `mapstructure:",remain"`
 }
 
 // DecodeType is a helper to decode to correct struct

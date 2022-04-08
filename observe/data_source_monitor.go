@@ -95,19 +95,6 @@ func dataSourceMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"group_by_columns": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"group_by_datasets": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type:             schema.TypeString,
-								ValidateDiagFunc: validateOID(observe.TypeDataset),
-							},
-						},
 						"group_by_group": {
 							Type:     schema.TypeList,
 							Optional: true,

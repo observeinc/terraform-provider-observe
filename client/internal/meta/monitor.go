@@ -34,8 +34,6 @@ var (
 			__typename
 			sourceColumn
 			groupBy
-			groupByColumns
-			groupByDatasetIds
 			groupByGroups {
 				groupName
 				columns
