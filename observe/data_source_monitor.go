@@ -91,10 +91,6 @@ func dataSourceMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"group_by": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"group_by_group": {
 							Type:     schema.TypeList,
 							Optional: true,

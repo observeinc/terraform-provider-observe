@@ -282,7 +282,6 @@ type Monitor struct {
 type MonitorRule struct {
 	Type          string                 `mapstructure:"__typename"`
 	SourceColumn  *string                `json:"sourceColumn"`
-	GroupBy       *MonitorGrouping       `json:"groupBy"`
 	GroupByGroups []MonitorGroupInfo     `json:"groupByGroups"`
 	Other         map[string]interface{} `mapstructure:",remain"`
 }

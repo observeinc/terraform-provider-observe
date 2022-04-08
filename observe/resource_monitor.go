@@ -116,9 +116,8 @@ func resourceMonitor() *schema.Resource {
 							Optional: true,
 						},
 						"group_by_group": {
-							Type:          schema.TypeList,
-							Optional:      true,
-							ConflictsWith: []string{"rule.0.group_by"},
+							Type:     schema.TypeList,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"columns": {
@@ -132,13 +131,6 @@ func resourceMonitor() *schema.Resource {
 									},
 								},
 							},
-						},
-						"group_by": {
-							Type:             schema.TypeString,
-							Deprecated:       "Use \"group_by_group\" instead",
-							Optional:         true,
-							Default:          "none",
-							ValidateDiagFunc: validateEnums(observe.MonitorGroupings),
 						},
 						"count": &schema.Schema{
 							Type:         schema.TypeList,
@@ -346,16 +338,13 @@ func resourceMonitor() *schema.Resource {
 }
 
 func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.MonitorRuleConfig, diags diag.Diagnostics) {
-	ruleConfig = &observe.MonitorRuleConfig{}
+	ruleConfig = &observe.MonitorRuleConfig{
+		GroupByGroups: make([]observe.MonitorGroupInfo, 0),
+	}
 
 	if v, ok := data.GetOk("rule.0.source_column"); ok {
 		s := v.(string)
 		ruleConfig.SourceColumn = &s
-	}
-
-	if v, ok := data.GetOk("rule.0.group_by"); ok {
-		g := observe.MonitorGrouping(toCamel(v.(string)))
-		ruleConfig.GroupBy = &g
 	}
 
 	if v, ok := data.GetOk("rule.0.group_by_group"); ok {
@@ -673,19 +662,16 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 	rule := map[string]interface{}{
 		"source_column": config.SourceColumn,
-		"group_by":      toSnake(config.GroupBy.String()),
 	}
 
-	if len(config.GroupByGroups) > 0 {
-		var list []interface{}
-		for _, group := range config.GroupByGroups {
-			list = append(list, map[string]interface{}{
-				"group_name": group.GroupName,
-				"columns":    group.Columns,
-			})
-		}
-		rule["group_by_group"] = list
+	var list []interface{}
+	for _, group := range config.GroupByGroups {
+		list = append(list, map[string]interface{}{
+			"group_name": group.GroupName,
+			"columns":    group.Columns,
+		})
 	}
+	rule["group_by_group"] = list
 
 	if config.ChangeRule != nil {
 		change := map[string]interface{}{

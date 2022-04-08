@@ -33,7 +33,6 @@ var (
 		rule {
 			__typename
 			sourceColumn
-			groupBy
 			groupByGroups {
 				groupName
 				columns

@@ -24,8 +24,6 @@ var (
 				  }
 
 				  rule {
-				    group_by      = "none"
-
 				    count {
 				      compare_function   = "greater_or_equal"
 				      compare_values     = [100]

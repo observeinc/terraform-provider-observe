@@ -12,7 +12,6 @@ type (
 	ChangeType             = meta.ChangeType
 	CompareFunction        = meta.CompareFunction
 	FacetFunction          = meta.FacetFunction
-	MonitorGrouping        = meta.MonitorGrouping
 	NotificationImportance = meta.NotificationImportance
 	NotificationMerge      = meta.NotificationMerge
 	TimeFunction           = meta.TimeFunction
@@ -52,13 +51,6 @@ var (
 		meta.FacetFunctionDoesNotContain,
 		meta.FacetFunctionIsNull,
 		meta.FacetFunctionIsNotNull,
-	}
-
-	MonitorGroupings = []MonitorGrouping{
-		meta.MonitorGroupingNone,
-		meta.MonitorGroupingValue,
-		meta.MonitorGroupingResource,
-		meta.MonitorGroupingLinkTarget,
 	}
 
 	NotificationImportances = []NotificationImportance{
@@ -106,7 +98,6 @@ type NotificationSpecConfig struct {
 
 type MonitorRuleConfig struct {
 	SourceColumn  *string                     `json:"sourceColumn"`
-	GroupBy       *MonitorGrouping            `json:"groupBy"`
 	GroupByGroups []MonitorGroupInfo          `json:"groupByGroups"`
 	ChangeRule    *MonitorRuleChangeConfig    `json:"change"`
 	CountRule     *MonitorRuleCountConfig     `json:"count"`
@@ -158,12 +149,7 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 	ruleInput := &meta.MonitorRuleInput{
 		SourceColumn:  c.SourceColumn,
-		GroupBy:       c.GroupBy,
 		GroupByGroups: c.GroupByGroups,
-	}
-
-	if len(c.GroupByGroups) > 0 {
-		c.GroupBy = nil
 	}
 
 	var err error
@@ -189,7 +175,6 @@ func (c *MonitorRuleConfig) toGQL() (*meta.MonitorRuleInput, error) {
 func newRuleConfig(gqlRule *meta.MonitorRule) (*MonitorRuleConfig, error) {
 	config := &MonitorRuleConfig{
 		SourceColumn:  gqlRule.SourceColumn,
-		GroupBy:       gqlRule.GroupBy,
 		GroupByGroups: gqlRule.GroupByGroups,
 	}
 

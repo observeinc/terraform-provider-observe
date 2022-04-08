@@ -29,8 +29,6 @@ func TestAccObserveMonitor(t *testing.T) {
 					stage {}
 
 					rule {
-						group_by      = "none"
-
 						count {
 							compare_function   = "less_or_equal"
 							compare_values     = [1]
@@ -44,7 +42,6 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m"),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.0", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.lookback_time", "1m0s"),
@@ -68,7 +65,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//
 			//					rule {
 			//						source_column = "OBSERVATION_KIND"
-			//						group_by      = "none"
 			//
 			//						change {
 			//							aggregate_function = "sum"
@@ -92,7 +88,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "stage.0.pipeline"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
-			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.count.0"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_function", "greater"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_values.0", "100"),
@@ -118,7 +113,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//
 			//					rule {
 			//						source_column = "OBSERVATION_KIND"
-			//						group_by      = "none"
 			//
 			//						change {
 			//							aggregate_function = "sum"
@@ -140,7 +134,6 @@ func TestAccObserveMonitor(t *testing.T) {
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "stage.0.pipeline"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
-			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.count.0"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_function", "greater"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.change.0.compare_values.0", "0"),
@@ -177,7 +170,6 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 
 
 					rule {
-						group_by      = "none"
                         source_column    = "temp_number"
 
 						threshold {
@@ -196,7 +188,6 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", "colmake temp_number:14"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "70"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.lookback_time", "10m0s"),
@@ -235,7 +226,6 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 
 					rule {
 						source_column = "OBSERVATION_KIND"
-						group_by      = "none"
 
 						facet {
 							facet_function = "equals"
@@ -248,7 +238,6 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_function", "equals"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_values.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_function", "never"),
@@ -284,7 +273,6 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_function", "equals"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_values.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_function", "at_least_once"),
@@ -320,7 +308,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 					}
 
 					rule {
-						group_by = "resource"
+						group_by_group {}
 
 						promote {
 							primary_key       = ["OBSERVATION_KIND"]
@@ -336,7 +324,8 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "resource"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.columns.#", "0"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", "kind"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", "description"),
@@ -360,7 +349,7 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 					}
 
 					rule {
-						group_by = "resource"
+						group_by_group {}
 
 						promote {
 							primary_key       = ["OBSERVATION_KIND"]
@@ -369,7 +358,8 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "resource"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.columns.#", "0"),
+					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
@@ -422,8 +412,6 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.columns.0", "OBSERVATION_KIND"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
-					// previous default lingers, no effect on backend
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by", "none"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),

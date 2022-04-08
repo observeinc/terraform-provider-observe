@@ -198,7 +198,6 @@ type MonitorInput struct {
 
 type MonitorRuleInput struct {
 	SourceColumn  *string            `json:"sourceColumn"`
-	GroupBy       *MonitorGrouping   `json:"groupBy"`
 	GroupByGroups []MonitorGroupInfo `json:"groupByGroups"`
 
 	CountRule     *MonitorRuleCountInput     `json:"countRule,omitempty"`
@@ -208,23 +207,9 @@ type MonitorRuleInput struct {
 	PromoteRule   *MonitorRulePromoteInput   `json:"promoteRule,omitempty"`
 }
 
-type MonitorGrouping string
-
 type MonitorGroupInfo struct {
 	Columns   []string `json:"columns"`
 	GroupName string   `json:"groupName"`
-}
-
-const (
-	MonitorGroupingNone       MonitorGrouping = "None"
-	MonitorGroupingValue      MonitorGrouping = "Value"
-	MonitorGroupingResource   MonitorGrouping = "Resource"
-	MonitorGroupingLinkTarget MonitorGrouping = "LinkTarget"
-	MonitorGroupingMissing    MonitorGrouping = ""
-)
-
-func (mg MonitorGrouping) String() string {
-	return string(mg)
 }
 
 type NotificationSpecificationInput struct {

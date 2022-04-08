@@ -29,8 +29,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 						stage {}
 
 						rule {
-							group_by      = "none"
-
 							count {
 								compare_function   = "less_or_equal"
 								compare_values     = [1]
@@ -69,8 +67,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 						}
 
 						rule {
-							group_by      = "none"
-
 							count {
 								compare_function   = "less_or_equal"
 								compare_values     = [1]
@@ -113,8 +109,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 						stage {}
 
 						rule {
-							group_by      = "none"
-
 							count {
 								compare_function   = "less_or_equal"
 								compare_values     = [1]
@@ -147,7 +141,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 						stage {}
 
 						rule {
-							group_by      = "none"
 							source_column = "OBSERVATION_INDEX"
 
 							threshold {
