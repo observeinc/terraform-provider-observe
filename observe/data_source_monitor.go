@@ -262,14 +262,6 @@ func dataSourceMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"selection": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"selection_value": {
-							Type:     schema.TypeFloat,
-							Computed: true,
-						},
 					},
 				},
 			},
