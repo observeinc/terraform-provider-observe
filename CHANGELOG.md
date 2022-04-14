@@ -1,5 +1,7 @@
-## 0.6.0-alpha (2022-04-08)
+## 0.6.0-beta (2022-04-14)
 
+fix: remove `selection` and `selection_value` from monitor data source
+feat: extend http poller
 feat!: deprecate observe_fk
 feat!: deprecate group_by
 feat!: deprecate group_by_columns, group_by_datasets
