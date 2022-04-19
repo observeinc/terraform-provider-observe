@@ -1,4 +1,4 @@
-## 0.6.0-beta (2022-04-14)
+## 0.6.0 (2022-04-19)
 
 fix: remove `selection` and `selection_value` from monitor data source
 feat: extend http poller
