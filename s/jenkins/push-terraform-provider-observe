@@ -1,7 +1,12 @@
-#!/bin/bash -xe
-set -uxe
-set -o pipefail
+#! /usr/bin/env bash -xe
+set -euxo pipefail
+
 VERSION=`git describe --tags --always`
+if [[ "${DryRun-}" = true ]]; then
+    s3_dryrun=--dryrun
+else
+    s3_dryrun=
+fi
 
 mydir=$(dirname $0)
 git fetch origin
@@ -11,4 +16,15 @@ make docker-package
 aws secretsmanager get-secret-value --secret-id devinfra/jenkins-pgp-terraform | jq -r .SecretString > private.pgp
 make docker-sign
 rm private.pgp
-aws s3 cp --acl public-read --recursive bin/${VERSION} s3://observeinc/terraform-provider-registry/observeinc/observe/${VERSION}
+
+cd bin/${VERSION}
+# Upload to the legacy S3 bucket
+aws s3 cp $s3_dryrun --acl public-read --recursive . s3://observeinc/terraform-provider-registry/observeinc/observe/${VERSION}
+
+# Upload to the new S3 bucket, with a path structure for boring-registry
+for zip in *.zip; do
+    IFS=_ read _ _ os arch <<< ${zip%.zip}
+    aws s3 cp $s3_dryrun $zip s3://observeinc-terraform-registry/artifacts/v1/providers/namespace=observeinc/name=observe/version=${VERSION}/os=$os/arch=$arch/
+done
+aws s3 cp $s3_dryrun terraform-provider-observe_${VERSION}_SHA256SUMS s3://observeinc-terraform-registry/artifacts/v1/providers/namespace=observeinc/name=observe/version=${VERSION}/
+aws s3 cp $s3_dryrun terraform-provider-observe_${VERSION}_SHA256SUMS.sig s3://observeinc-terraform-registry/artifacts/v1/providers/namespace=observeinc/name=observe/version=${VERSION}/
