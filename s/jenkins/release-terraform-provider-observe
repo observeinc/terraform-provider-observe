@@ -1,4 +1,4 @@
-#! /usr/bin/env bash -xe
+#! /usr/bin/env bash
 set -euxo pipefail
 
 # Wrapper around s/push-terraform-provider-observe that creates and pushes

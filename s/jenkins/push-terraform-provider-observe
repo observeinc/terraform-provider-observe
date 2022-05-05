@@ -1,4 +1,4 @@
-#! /usr/bin/env bash -xe
+#! /usr/bin/env bash
 set -euxo pipefail
 
 VERSION=`git describe --tags --always`
