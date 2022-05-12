@@ -18,6 +18,13 @@ type ForeignKeyConfig struct {
 	Label     *string  `json:"label"`
 }
 
+func (fk *ForeignKey) OID() *OID {
+	return &OID{
+		Type: TypeLink,
+		ID:   fk.ID,
+	}
+}
+
 func (fk *ForeignKeyConfig) toGQL() (*meta.DeferredForeignKeyInput, error) {
 	dfkInput := &meta.DeferredForeignKeyInput{
 		SourceDataset: meta.DeferredDatasetReferenceInput{

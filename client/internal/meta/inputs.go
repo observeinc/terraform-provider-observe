@@ -536,3 +536,19 @@ type AppVariableInput struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
+
+type PreferredPathInput struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	FolderID    *ObjectIdScalar `json:"folderId,omitempty"`
+
+	SourceDataset *ObjectIdScalar          `json:"sourceDataset,omitempty"`
+	Path          []PreferredPathStepInput `json:"path"`
+}
+
+type PreferredPathStepInput struct {
+	LinkName           *string         `json:"linkName,omitempty"`
+	ReverseFromDataset *ObjectIdScalar `json:"reverseFromDataset,omitempty"`
+	LinkId             *ObjectIdScalar `json:"linkId,omitempty"`
+	Reverse            bool            `json:"reverse"`
+}

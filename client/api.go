@@ -1126,3 +1126,59 @@ func (c *Client) LookupApp(ctx context.Context, workspaceID string, name string)
 	}
 	return newApp(result)
 }
+
+// CreatePreferredPath creates a preferred path
+func (c *Client) CreatePreferredPath(ctx context.Context, workspaceId string, config *PreferredPathConfig) (*PreferredPath, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	preferredPathInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.CreatePreferredPath(ctx, workspaceId, preferredPathInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newPreferredPath(result)
+}
+
+// UpdatePreferredPath updates a preferred path
+func (c *Client) UpdatePreferredPath(ctx context.Context, id string, config *PreferredPathConfig) (*PreferredPath, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	preferredPathInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.Meta.UpdatePreferredPath(ctx, id, preferredPathInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newPreferredPath(result)
+}
+
+// DeletePreferredPath
+func (c *Client) DeletePreferredPath(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeletePreferredPath(ctx, id)
+}
+
+// GetPreferredPath by ID
+func (c *Client) GetPreferredPath(ctx context.Context, id string) (*PreferredPath, error) {
+	result, err := c.Meta.GetPreferredPath(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get preferred path: %w", err)
+	}
+	return newPreferredPath(result)
+}

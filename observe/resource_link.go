@@ -38,6 +38,10 @@ func resourceLink() *schema.Resource {
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
 				Description:      schemaLinkWorkspaceDescription,
 			},
+			"oid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"source": &schema.Schema{
 				Type:             schema.TypeString,
 				Required:         true,
@@ -157,6 +161,10 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 	}
 
 	if err := data.Set("label", link.Config.Label); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("oid", link.OID().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

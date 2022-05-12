@@ -504,3 +504,29 @@ type AppVariable struct {
 	Default     *string `json:"default"`
 	Value       *string `json:"value"`
 }
+
+type PreferredPathWithStatus struct {
+	Path      *PreferredPath     `json:"preferredPath,omitempty"`
+	Error     *string            `json:"error,omitempty"`
+	ErrorStep *PreferredPathStep `json:"preferredPathStep,omitempty"`
+}
+
+type PreferredPath struct {
+	SourceDataset ObjectIdScalar `json:"sourceDataset"`
+	Path          []PreferredPathStep
+
+	Id          ObjectIdScalar `json:"id"`
+	Name        string         `json:"name"`
+	IconUrl     string         `json:"icon_url"`
+	Description string         `json:"description"`
+
+	WorkspaceID ObjectIdScalar `json:"workspaceId"`
+	FolderID    ObjectIdScalar `json:"folderId"`
+}
+
+type PreferredPathStep struct {
+	LinkName           *string         `json:"linkName"`
+	ReverseFromDataset *ObjectIdScalar `json:"reverseFromDataset"`
+	LinkId             *ObjectIdScalar `json:"linkId"`
+	Reverse            *bool           `json:"reverse"`
+}

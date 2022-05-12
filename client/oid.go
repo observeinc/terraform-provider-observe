@@ -28,6 +28,8 @@ const (
 	TypeWorksheet            = "worksheet"
 	TypeFolder               = "folder"
 	TypeApp                  = "app"
+	TypeLink                 = "link"
+	TypePreferredPath        = "preferredpath"
 )
 
 func (t Type) IsValid() bool {
@@ -44,6 +46,8 @@ func (t Type) IsValid() bool {
 	case TypeDatastreamToken:
 	case TypeWorksheet:
 	case TypeFolder:
+	case TypeLink:
+	case TypePreferredPath:
 	default:
 		return false
 	}

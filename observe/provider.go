@@ -155,6 +155,7 @@ func Provider() *schema.Provider {
 			"observe_worksheet":        resourceWorksheet(),
 			"observe_folder":           resourceFolder(),
 			"observe_app":              resourceApp(),
+			"observe_preferred_path":   resourcePreferredPath(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}
