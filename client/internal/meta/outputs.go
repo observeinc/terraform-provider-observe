@@ -20,21 +20,22 @@ type DatasetSaveResult struct {
 }
 
 type Dataset struct {
-	ID               ObjectIdScalar `json:"id"`
-	WorkspaceId      ObjectIdScalar `json:"workspaceId"`
-	Version          string         `json:"version"`
-	Label            string         `json:"label"`
-	LatencyDesired   *time.Duration `json:"latencyDesired"`
-	FreshnessDesired *time.Duration `json:"freshnessDesired"`
-	Typedef          Typedef        `json:"typedef"`
-	Description      *string        `json:"description"`
-	IconURL          *string        `json:"iconUrl"`
-	PathCost         *int64         `json:"pathCost"`
-	Transform        *Transform     `json:"transform"`
-	SourceTable      *SourceTable   `json:"sourceTable"`
-	Source           *string        `json:"source"`
-	ForeignKeys      []ForeignKey   `json:"foreignKeys"`
-	LastSaved        string         `json:"lastSaved"`
+	ID                            ObjectIdScalar `json:"id"`
+	WorkspaceId                   ObjectIdScalar `json:"workspaceId"`
+	Version                       string         `json:"version"`
+	Label                         string         `json:"label"`
+	LatencyDesired                *time.Duration `json:"latencyDesired"`
+	FreshnessDesired              *time.Duration `json:"freshnessDesired"`
+	OnDemandMaterializationLength *time.Duration `json:"onDemandMaterializationLength"`
+	Typedef                       Typedef        `json:"typedef"`
+	Description                   *string        `json:"description"`
+	IconURL                       *string        `json:"iconUrl"`
+	PathCost                      *int64         `json:"pathCost"`
+	Transform                     *Transform     `json:"transform"`
+	SourceTable                   *SourceTable   `json:"sourceTable"`
+	Source                        *string        `json:"source"`
+	ForeignKeys                   []ForeignKey   `json:"foreignKeys"`
+	LastSaved                     string         `json:"lastSaved"`
 }
 
 func (d *Dataset) Decode(v interface{}) error {

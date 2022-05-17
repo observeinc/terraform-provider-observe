@@ -57,6 +57,11 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatasetFreshnessDescription,
 			},
+			"on_demand_materialization_length": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatasetOnDemandMaterializationLengthDescription,
+			},
 			"inputs": {
 				Type:        schema.TypeMap,
 				Computed:    true,

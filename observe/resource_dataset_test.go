@@ -56,6 +56,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
 				),
@@ -63,9 +64,10 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.default.oid
-					name 	  = "%s-rename"
-					freshness = "1m"
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%s-rename"
+					freshness                        = "1m"
+					on_demand_materialization_length = "48h39s"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid
@@ -81,6 +83,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-rename"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "48h39s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
@@ -89,9 +92,10 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				PlanOnly: true,
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
-					workspace = data.observe_workspace.default.oid
-					name 	  = "%s-rename"
-					freshness = "1m"
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%s-rename"
+					freshness                        = "1m"
+					on_demand_materialization_length = "48h39s"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid

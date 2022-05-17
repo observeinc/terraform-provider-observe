@@ -31,16 +31,17 @@ func (n *NumberScalar) UnmarshalJSON(data []byte) error {
 }
 
 type DatasetInput struct {
-	ID               *ObjectIdScalar `json:"id,omitempty"`
-	Label            string          `json:"label"`
-	Deleted          bool            `json:"deleted"`
-	LatencyDesired   *string         `json:"latencyDesired"`
-	FreshnessDesired *string         `json:"freshnessDesired"`
-	Description      *string         `json:"description"`
-	IconURL          *string         `json:"iconUrl"`
-	PathCost         *string         `json:"pathCost"`
-	Source           *string         `json:"source"`
-	OverwriteSource  bool            `json:"overwriteSource"`
+	ID                            *ObjectIdScalar `json:"id,omitempty"`
+	Label                         string          `json:"label"`
+	Deleted                       bool            `json:"deleted"`
+	LatencyDesired                *string         `json:"latencyDesired"`
+	FreshnessDesired              *string         `json:"freshnessDesired"`
+	OnDemandMaterializationLength *string         `json:"onDemandMaterializationLength"`
+	Description                   *string         `json:"description"`
+	IconURL                       *string         `json:"iconUrl"`
+	PathCost                      *string         `json:"pathCost"`
+	Source                        *string         `json:"source"`
+	OverwriteSource               bool            `json:"overwriteSource"`
 }
 
 type DeferredDatasetReferenceInput struct {

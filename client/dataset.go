@@ -33,10 +33,11 @@ type Dataset struct {
 // DatasetConfig contains configurable elements associated to Dataset
 type DatasetConfig struct {
 	*Query
-	Name        string         `json:"name"`
-	Description *string        `json:"description"`
-	IconURL     *string        `json:"icon_url"`
-	Freshness   *time.Duration `json:"freshness"`
+	Name                          string         `json:"name"`
+	Description                   *string        `json:"description"`
+	IconURL                       *string        `json:"icon_url"`
+	Freshness                     *time.Duration `json:"freshness"`
+	OnDemandMaterializationLength *time.Duration `json:"on_demand_materialization_length"`
 
 	// in practice PathCost is mandatory, since it cannot be set to null
 	PathCost int64 `json:"path_cost"`
@@ -62,11 +63,12 @@ func newDataset(gqlDataset *meta.Dataset) (d *Dataset, err error) {
 		WorkspaceID: gqlDataset.WorkspaceId.String(),
 		Version:     gqlDataset.LastSaved,
 		Config: &DatasetConfig{
-			Name:        gqlDataset.Label,
-			Description: gqlDataset.Description,
-			IconURL:     gqlDataset.IconURL,
-			Freshness:   gqlDataset.FreshnessDesired,
-			PathCost:    pathCost,
+			Name:                          gqlDataset.Label,
+			Description:                   gqlDataset.Description,
+			IconURL:                       gqlDataset.IconURL,
+			Freshness:                     gqlDataset.FreshnessDesired,
+			OnDemandMaterializationLength: gqlDataset.OnDemandMaterializationLength,
+			PathCost:                      pathCost,
 		},
 	}
 
@@ -121,6 +123,10 @@ func (c *DatasetConfig) toGQLDatasetInput() (*meta.DatasetInput, error) {
 	if c.Freshness != nil {
 		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())
 		datasetInput.FreshnessDesired = &i
+	}
+	if c.OnDemandMaterializationLength != nil {
+		i := fmt.Sprintf("%d", c.OnDemandMaterializationLength.Nanoseconds())
+		datasetInput.OnDemandMaterializationLength = &i
 	}
 	return datasetInput, nil
 }

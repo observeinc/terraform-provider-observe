@@ -13,14 +13,16 @@ import (
 )
 
 const (
-	schemaDatasetWorkspaceDescription   = "OID of workspace dataset is contained in."
-	schemaDatasetNameDescription        = "Dataset name. Must be unique within workspace."
-	schemaDatasetDescriptionDescription = "Dataset description."
-	schemaDatasetIconDescription        = "Icon image."
-	schemaDatasetPathCostDescription    = "Path cost is used to weigh graph link computation."
-	schemaDatasetOIDDescription         = "The Observe ID for dataset."
-	schemaDatasetFreshnessDescription   = "Target freshness for dataset. This impacts how frequently the dataset query will be run."
-	schemaDatasetInputsDescription      = "The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines."
+	schemaDatasetWorkspaceDescription                     = "OID of workspace dataset is contained in."
+	schemaDatasetNameDescription                          = "Dataset name. Must be unique within workspace."
+	schemaDatasetDescriptionDescription                   = "Dataset description."
+	schemaDatasetIconDescription                          = "Icon image."
+	schemaDatasetPathCostDescription                      = "Path cost is used to weigh graph link computation."
+	schemaDatasetOIDDescription                           = "The Observe ID for dataset."
+	schemaDatasetFreshnessDescription                     = "Target freshness for dataset. This impacts how frequently the dataset query will be run."
+	schemaDatasetOnDemandMaterializationLengthDescription = "The maximum on-demand materialization length for the dataset, in nanoseconds. " +
+		"If unset, the default value in the transformer config will be used instead."
+	schemaDatasetInputsDescription = "The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines."
 
 	schemaDatasetStageDescription = "Each stage processes an input according to the provided pipeline. " +
 		"If no input is provided, a stage will implicitly follow on from the result of its predecessor."
@@ -86,6 +88,13 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      schemaDatasetFreshnessDescription,
 			},
+			"on_demand_materialization_length": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDuration,
+				Description:      schemaDatasetOnDemandMaterializationLengthDescription,
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -148,6 +157,12 @@ func newDatasetConfig(data *schema.ResourceData) (*observe.DatasetConfig, diag.D
 		config.Freshness = &t
 	}
 
+	if v, ok := data.GetOk("on_demand_materialization_length"); ok {
+		// we already validated in schema
+		t, _ := time.ParseDuration(v.(string))
+		config.OnDemandMaterializationLength = &t
+	}
+
 	{
 		// always reset to empty string if description not set
 		description := data.Get("description").(string)
@@ -177,6 +192,12 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 
 	if d.Config.Freshness != nil {
 		if err := data.Set("freshness", d.Config.Freshness.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.Config.OnDemandMaterializationLength != nil {
+		if err := data.Set("on_demand_materialization_length", d.Config.OnDemandMaterializationLength.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
