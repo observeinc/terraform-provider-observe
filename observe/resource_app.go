@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -45,6 +46,10 @@ func resourceApp() *schema.Resource {
 				Type:             schema.TypeMap,
 				Optional:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
+			},
+			"outputs": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -140,6 +145,15 @@ func appToResourceData(app *observe.App, data *schema.ResourceData) (diags diag.
 		return diag.FromErr(err)
 	}
 
+	if app.Outputs != nil {
+		out, err := json.Marshal(app.Outputs)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if err := data.Set("outputs", string(out)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return diags
 }
 

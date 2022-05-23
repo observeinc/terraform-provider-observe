@@ -473,14 +473,15 @@ type Folder struct {
 }
 
 type App struct {
-	ID          ObjectIdScalar `json:"id"`
-	Name        string         `json:"name"`
-	Description *string        `json:"description"`
-	IconURL     *string        `json:"iconUrl"`
-	WorkspaceID ObjectIdScalar `json:"workspaceId"`
-	FolderID    ObjectIdScalar `json:"folderId"`
-	Config      AppConfig      `json:"config"`
-	Status      AppStatus      `json:"status"`
+	ID          ObjectIdScalar          `json:"id"`
+	Name        string                  `json:"name"`
+	Description *string                 `json:"description"`
+	IconURL     *string                 `json:"iconUrl"`
+	WorkspaceID ObjectIdScalar          `json:"workspaceId"`
+	FolderID    ObjectIdScalar          `json:"folderId"`
+	Config      AppConfig               `json:"config"`
+	Status      AppStatus               `json:"status"`
+	Outputs     *map[string]interface{} `json:"outputs"`
 }
 
 type AppConfig struct {

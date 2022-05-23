@@ -5,10 +5,11 @@ import (
 )
 
 type App struct {
-	ID          string     `json:"id"`
-	WorkspaceID string     `json:"workspace"`
-	Config      *AppConfig `json:"config"`
-	Status      *AppStatus `json:"status"`
+	ID          string                  `json:"id"`
+	WorkspaceID string                  `json:"workspace"`
+	Config      *AppConfig              `json:"config"`
+	Status      *AppStatus              `json:"status"`
+	Outputs     *map[string]interface{} `json:"outputs"`
 }
 
 type AppConfig struct {
@@ -73,5 +74,6 @@ func newApp(c *meta.App) (*App, error) {
 		Status: &AppStatus{
 			State: c.Status.State,
 		},
+		Outputs: c.Outputs,
 	}, nil
 }

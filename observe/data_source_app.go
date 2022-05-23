@@ -45,6 +45,10 @@ func dataSourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"outputs": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }

@@ -21,6 +21,7 @@ var (
 		status {
 			state
 		}
+		outputs
 	}`
 )
 
