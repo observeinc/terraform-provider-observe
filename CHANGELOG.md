@@ -1,3 +1,12 @@
+## 0.6.1 (2022-05-23)
+
+feat: add outputs for app resources
+feat: expose on-demand materialization length
+chore: update dependencies
+ci: remove bash arguments from shebang line
+ci: create Jenkins release job for provider, add support for new S3 path structure
+feat: first iteration of apps
+
 ## 0.6.0 (2022-04-19)
 
 fix: remove `selection` and `selection_value` from monitor data source
