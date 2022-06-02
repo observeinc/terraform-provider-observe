@@ -14,6 +14,7 @@ var (
 		iconUrl
 		disabled
 		freshnessGoal
+		useDefaultFreshness
 		source
 		query {
 			outputStage

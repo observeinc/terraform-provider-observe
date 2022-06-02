@@ -184,17 +184,18 @@ const (
 )
 
 type MonitorInput struct {
-	Name             *string                         `json:"name"`
-	IconUrl          *string                         `json:"iconUrl"`
-	Description      *string                         `json:"description"`
-	Disabled         bool                            `json:"disabled"`
-	FreshnessGoal    *string                         `json:"freshnessGoal"`
-	Source           *string                         `json:"source"`
-	OverwriteSource  bool                            `json:"overwriteSource"`
-	Query            *MultiStageQueryInput           `json:"query"`
-	Rule             *MonitorRuleInput               `json:"rule"`
-	NotificationSpec *NotificationSpecificationInput `json:"notificationSpec"`
-	Channels         []ObjectIdScalar                `json:"channels"`
+	Name                *string                         `json:"name"`
+	IconUrl             *string                         `json:"iconUrl"`
+	Description         *string                         `json:"description"`
+	Disabled            bool                            `json:"disabled"`
+	FreshnessGoal       *string                         `json:"freshnessGoal"`
+	UseDefaultFreshness *bool                           `json:"useDefaultFreshness"`
+	Source              *string                         `json:"source"`
+	OverwriteSource     bool                            `json:"overwriteSource"`
+	Query               *MultiStageQueryInput           `json:"query"`
+	Rule                *MonitorRuleInput               `json:"rule"`
+	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec"`
+	Channels            []ObjectIdScalar                `json:"channels"`
 }
 
 type MonitorRuleInput struct {

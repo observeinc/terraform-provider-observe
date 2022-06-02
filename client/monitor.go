@@ -82,13 +82,14 @@ type Monitor struct {
 // MonitorConfig contains configurable elements associated to Monitor
 type MonitorConfig struct {
 	*Query
-	Name             string                  `json:"name"`
-	Description      *string                 `json:"description"`
-	IconURL          *string                 `json:"iconUrl"`
-	Freshness        *time.Duration          `json:"freshness"`
-	Disabled         bool                    `json:"disabled"`
-	Rule             *MonitorRuleConfig      `json:"rule"`
-	NotificationSpec *NotificationSpecConfig `json:"notificationSpec"`
+	Name                string                  `json:"name"`
+	Description         *string                 `json:"description"`
+	IconURL             *string                 `json:"iconUrl"`
+	Freshness           *time.Duration          `json:"freshness"`
+	UseDefaultFreshness *bool                   `json:"useDefaultFreshness"`
+	Disabled            bool                    `json:"disabled"`
+	Rule                *MonitorRuleConfig      `json:"rule"`
+	NotificationSpec    *NotificationSpecConfig `json:"notificationSpec"`
 }
 
 type NotificationSpecConfig struct {
@@ -141,6 +142,8 @@ func (c *MonitorConfig) toGQL() (*meta.MonitorInput, error) {
 	if c.Freshness != nil {
 		i := fmt.Sprintf("%d", c.Freshness.Nanoseconds())
 		monitorInput.FreshnessGoal = &i
+		useDefaultFreshness := false
+		monitorInput.UseDefaultFreshness = &useDefaultFreshness
 	}
 
 	return monitorInput, nil
