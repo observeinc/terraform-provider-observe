@@ -42,6 +42,7 @@ type DatasetInput struct {
 	PathCost                      *string         `json:"pathCost"`
 	Source                        *string         `json:"source"`
 	OverwriteSource               bool            `json:"overwriteSource"`
+	ManagedByID                   *ObjectIdScalar `json:"managedById,omitempty"`
 }
 
 type DeferredDatasetReferenceInput struct {

@@ -44,6 +44,9 @@ func (c *Client) CreateDataset(ctx context.Context, workspaceId string, config *
 	if c.Config.Source != nil {
 		datasetInput.Source = c.Config.Source
 	}
+	if c.Config.ManagingObjectID != nil {
+		datasetInput.ManagedByID = toObjectPointer(c.Config.ManagingObjectID)
+	}
 
 	result, err := c.Meta.SaveDataset(ctx, workspaceId, datasetInput, transformInput)
 	if err != nil {
@@ -65,6 +68,9 @@ func (c *Client) UpdateDataset(ctx context.Context, workspaceId string, id strin
 
 	if c.Config.Source != nil {
 		datasetInput.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		datasetInput.ManagedByID = toObjectPointer(c.Config.ManagingObjectID)
 	}
 
 	datasetInput.ID = toObjectPointer(&id)

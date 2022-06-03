@@ -48,6 +48,9 @@ type Config struct {
 
 	// optional source identifier when managing Observe resources
 	Source *string `json:"source"`
+
+	// optional managing id to tag Observe resources with
+	ManagingObjectID *string `json:"managing_object_id"`
 }
 
 func (c *Config) Hash() uint64 {

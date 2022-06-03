@@ -17,6 +17,7 @@ var (
 		lastSaved
 		pathCost
 		source
+		managedById
 		foreignKeys {
 			label
 			targetDataset

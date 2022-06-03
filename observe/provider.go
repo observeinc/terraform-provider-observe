@@ -30,6 +30,7 @@ var (
 	schemaProviderProxyDescription             = "URL to proxy requests through."
 	schemaProviderSourceCommentDescription     = "Source identifier comment. If null, fallback to `user_email`."
 	schemaProviderSourceFormatDescription      = "Source identifier format."
+	schemaProviderManagingObjectDescription    = "Optional managing object id. All resources created will be marked as being managed by this object."
 )
 
 // Provider returns observe terraform provider
@@ -122,6 +123,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     tfSourceFormatDefault,
 				Description: schemaProviderSourceFormatDescription,
+			},
+			"managing_object_id": {
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_MANAGING_OBJECT_ID", nil),
+				Optional:    true,
+				Description: schemaProviderManagingObjectDescription,
 			},
 		},
 
@@ -235,6 +242,11 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			s = fmt.Sprintf(tfSourceFormat, *config.UserEmail)
 		}
 		config.Source = &s
+
+		if v, ok := data.GetOk("managing_object_id"); ok {
+			managingId := v.(string)
+			config.ManagingObjectID = &managingId
+		}
 
 		// by omission, cache client
 		useCache := true
