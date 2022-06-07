@@ -193,6 +193,7 @@ type MonitorInput struct {
 	UseDefaultFreshness *bool                           `json:"useDefaultFreshness"`
 	Source              *string                         `json:"source"`
 	OverwriteSource     bool                            `json:"overwriteSource"`
+	ManagedByID         *ObjectIdScalar                 `json:"managedById,omitempty"`
 	Query               *MultiStageQueryInput           `json:"query"`
 	Rule                *MonitorRuleInput               `json:"rule"`
 	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec"`

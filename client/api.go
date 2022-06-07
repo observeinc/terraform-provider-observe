@@ -536,6 +536,9 @@ func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, config *
 	if c.Config.Source != nil {
 		monitorInput.Source = c.Config.Source
 	}
+	if c.Config.ManagingObjectID != nil {
+		monitorInput.ManagedByID = toObjectPointer(c.Config.ManagingObjectID)
+	}
 
 	result, err := c.Meta.CreateMonitor(ctx, workspaceId, monitorInput)
 	if err != nil {

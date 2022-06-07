@@ -16,6 +16,7 @@ var (
 		freshnessGoal
 		useDefaultFreshness
 		source
+		managedById
 		query {
 			outputStage
 			stages {
