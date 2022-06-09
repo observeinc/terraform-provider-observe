@@ -10,6 +10,7 @@ var (
 		id
 		label
 		icon
+		managedById
 		workspace {
 			id
 		}

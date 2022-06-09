@@ -492,8 +492,9 @@ type WorksheetInput struct {
 	WorkspaceID *ObjectIdScalar `json:"workspaceId"`
 	// XXX: layout at top level not currently used
 	//Layout      map[string]interface{} `json:"layout"`
-	Icon    *string                `json:"icon"`
-	Queries []*WorksheetQueryInput `json:"queries"`
+	Icon        *string                `json:"icon"`
+	Queries     []*WorksheetQueryInput `json:"queries"`
+	ManagedByID *ObjectIdScalar        `json:"managedById"`
 }
 
 func (i *WorksheetInput) SetWorkspaceID(id string) error {

@@ -451,12 +451,13 @@ type DatastreamToken struct {
 }
 
 type Worksheet struct {
-	ID        ObjectIdScalar         `json:"id"`
-	Label     string                 `json:"label"`
-	Workspace *Workspace             `json:"workspace"`
-	Layout    map[string]interface{} `json:"layout,omitempty"`
-	Icon      *string                `json:"icon,omitempty"`
-	Queries   []*WorksheetQuery      `json:"queries"`
+	ID          ObjectIdScalar         `json:"id"`
+	Label       string                 `json:"label"`
+	Workspace   *Workspace             `json:"workspace"`
+	Layout      map[string]interface{} `json:"layout,omitempty"`
+	Icon        *string                `json:"icon,omitempty"`
+	ManagedByID *ObjectIdScalar        `json:"managedById,omitempty"`
+	Queries     []*WorksheetQuery      `json:"queries"`
 }
 
 type WorksheetQuery struct {

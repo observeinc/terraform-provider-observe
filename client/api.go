@@ -891,6 +891,10 @@ func (c *Client) CreateWorksheet(ctx context.Context, workspaceId string, config
 
 	worksheetInput.SetWorkspaceID(workspaceId)
 
+	if c.Config.ManagingObjectID != nil {
+		worksheetInput.ManagedByID = toObjectPointer(c.Config.ManagingObjectID)
+	}
+
 	result, err := c.Meta.SaveWorksheet(ctx, worksheetInput)
 	if err != nil {
 		return nil, err
@@ -922,6 +926,10 @@ func (c *Client) UpdateWorksheet(ctx context.Context, id string, workspaceId str
 
 	worksheetInput.SetID(id)
 	worksheetInput.SetWorkspaceID(workspaceId)
+
+	if c.Config.ManagingObjectID != nil {
+		worksheetInput.ManagedByID = toObjectPointer(c.Config.ManagingObjectID)
+	}
 
 	result, err := c.Meta.SaveWorksheet(ctx, worksheetInput)
 	if err != nil {
