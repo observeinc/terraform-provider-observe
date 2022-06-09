@@ -1,3 +1,10 @@
+## 0.6.2 (2022-06-09)
+
+feat: support managedById on datasets
+feat: add useDefaultFreshness to actually apply "freshness"
+ci: use openweather for app test
+feat: implement preferred path
+
 ## 0.6.1 (2022-05-23)
 
 feat: add outputs for app resources
