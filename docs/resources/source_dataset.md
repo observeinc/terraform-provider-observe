@@ -14,41 +14,41 @@ description: |-
 
 ### Required
 
-- **field** (Block Set, Min: 1) (see [below for nested schema](#nestedblock--field))
-- **name** (String)
-- **schema** (String)
-- **source_update_table_name** (String)
-- **table_name** (String)
-- **valid_from_field** (String)
-- **workspace** (String)
+- `field` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--field))
+- `name` (String)
+- `schema` (String)
+- `source_update_table_name` (String)
+- `table_name` (String)
+- `valid_from_field` (String)
+- `workspace` (String)
 
 ### Optional
 
-- **batch_seq_field** (String)
-- **description** (String)
-- **freshness** (String)
-- **icon_url** (String)
-- **id** (String) The ID of this resource.
-- **is_insert_only** (Boolean)
+- `batch_seq_field` (String)
+- `description` (String)
+- `freshness` (String)
+- `icon_url` (String)
+- `is_insert_only` (Boolean)
 
 ### Read-Only
 
-- **oid** (String)
+- `id` (String) The ID of this resource.
+- `oid` (String)
 
 <a id="nestedblock--field"></a>
 ### Nested Schema for `field`
 
 Required:
 
-- **name** (String)
-- **sql_type** (String)
-- **type** (String)
+- `name` (String)
+- `sql_type` (String)
+- `type` (String)
 
 Optional:
 
-- **is_const** (Boolean)
-- **is_enum** (Boolean)
-- **is_hidden** (Boolean)
-- **is_metric** (Boolean)
-- **is_searchable** (Boolean)
+- `is_const` (Boolean)
+- `is_enum` (Boolean)
+- `is_hidden` (Boolean)
+- `is_metric` (Boolean)
+- `is_searchable` (Boolean)
 

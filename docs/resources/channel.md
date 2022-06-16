@@ -14,17 +14,17 @@ description: |-
 
 ### Required
 
-- **name** (String)
-- **workspace** (String)
+- `name` (String)
+- `workspace` (String)
 
 ### Optional
 
-- **description** (String)
-- **icon_url** (String)
-- **id** (String) The ID of this resource.
-- **monitors** (Set of String)
+- `description` (String)
+- `icon_url` (String)
+- `monitors` (Set of String)
 
 ### Read-Only
 
-- **oid** (String)
+- `id` (String) The ID of this resource.
+- `oid` (String)
 

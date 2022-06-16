@@ -24,19 +24,20 @@ provider "observe" {
 
 ### Required
 
-- **customer** (String) Observe Customer ID. Can be set using `OBSERVE_CUSTOMER` environment variable.
+- `customer` (String) Observe Customer ID. Can be set using `OBSERVE_CUSTOMER` environment variable.
 
 ### Optional
 
-- **domain** (String) Observe API domain.
-- **flags** (String) Used to toggle experimental features.
-- **http_client_timeout** (String) HTTP client timeout.
-- **insecure** (Boolean) Skip TLS certificate validation.
-- **proxy** (String) URL to proxy requests through.
-- **retry_count** (Number) Maximum number of retries on temporary network failures.
-- **retry_wait** (String) Time between retries.
-- **source_comment** (String) Source identifier comment. If null, fallback to `user_email`.
-- **source_format** (String) Source identifier format.
-- **token** (String) Observe Token. Optionally use `OBSERVE_TOKEN` environment variable. Cannot be used with `user_email`.
-- **user_email** (String) User email. Requires additionally providing `user_password`. Can be set via `OBSERVE_USER_EMAIL` environment variable.
-- **user_password** (String) Password for provided `user_email`. Can be set via `OBSERVE_USER_PASSWORD` environment variable.
+- `domain` (String) Observe API domain.
+- `flags` (String) Used to toggle experimental features.
+- `http_client_timeout` (String) HTTP client timeout.
+- `insecure` (Boolean) Skip TLS certificate validation.
+- `managing_object_id` (String) Optional managing object id. All resources created will be marked as being managed by this object.
+- `proxy` (String) URL to proxy requests through.
+- `retry_count` (Number) Maximum number of retries on temporary network failures.
+- `retry_wait` (String) Time between retries.
+- `source_comment` (String) Source identifier comment. If null, fallback to `user_email`.
+- `source_format` (String) Source identifier format.
+- `token` (String, Sensitive) Observe Token. Optionally use `OBSERVE_TOKEN` environment variable. Cannot be used with `user_email`.
+- `user_email` (String) User email. Requires additionally providing `user_password`. Can be set via `OBSERVE_USER_EMAIL` environment variable.
+- `user_password` (String, Sensitive) Password for provided `user_email`. Can be set via `OBSERVE_USER_PASSWORD` environment variable.

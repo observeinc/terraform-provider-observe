@@ -17,53 +17,64 @@ description: |-
 
 ### Required
 
-- **id** (String) The ID of this resource.
-- **workspace** (String) OID of workspace dataset is contained in.
+- `workspace` (String) OID of workspace dataset is contained in.
 
 ### Optional
 
-- **rule** (Block List) (see [below for nested schema](#nestedblock--rule))
+- `name` (String) Monitor name.
+- `rule` (Block List) (see [below for nested schema](#nestedblock--rule))
 
 ### Read-Only
 
-- **description** (String) Monitor description.
-- **icon_url** (String) Icon image.
-- **inputs** (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
-- **name** (String) Monitor name.
-- **notification_spec** (Block List) (see [below for nested schema](#nestedblock--notification_spec))
-- **oid** (String) The Observe ID for monitor.
-- **stage** (Block List) Each stage processes an input according to the provided pipeline. If no input is provided, a stage will implicitly follow on from the result of its predecessor. (see [below for nested schema](#nestedblock--stage))
+- `description` (String) Monitor description.
+- `disabled` (Boolean)
+- `icon_url` (String) Icon image.
+- `id` (String) The ID of this resource.
+- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+- `notification_spec` (Block List) (see [below for nested schema](#nestedblock--notification_spec))
+- `oid` (String) The Observe ID for monitor.
+- `stage` (Block List) Each stage processes an input according to the provided pipeline. If no input is provided, a stage will implicitly follow on from the result of its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 <a id="nestedblock--rule"></a>
 ### Nested Schema for `rule`
 
 Optional:
 
-- **change** (Block List) (see [below for nested schema](#nestedblock--rule--change))
+- `change` (Block List) (see [below for nested schema](#nestedblock--rule--change))
+- `threshold` (Block List) (see [below for nested schema](#nestedblock--rule--threshold))
 
 Read-Only:
 
-- **count** (Block List) (see [below for nested schema](#nestedblock--rule--count))
-- **facet** (Block List) (see [below for nested schema](#nestedblock--rule--facet))
-- **group_by** (String)
-- **group_by_columns** (List of String)
-- **promote** (Block List) (see [below for nested schema](#nestedblock--rule--promote))
-- **source_column** (String)
+- `count` (Block List) (see [below for nested schema](#nestedblock--rule--count))
+- `facet` (Block List) (see [below for nested schema](#nestedblock--rule--facet))
+- `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
+- `promote` (Block List) (see [below for nested schema](#nestedblock--rule--promote))
+- `source_column` (String)
 
 <a id="nestedblock--rule--change"></a>
 ### Nested Schema for `rule.change`
 
 Required:
 
-- **compare_function** (String)
+- `compare_function` (String)
 
 Read-Only:
 
-- **aggregate_function** (String)
-- **baseline_time** (String)
-- **change_type** (String)
-- **compare_values** (List of Number)
-- **lookback_time** (String)
+- `aggregate_function` (String)
+- `baseline_time` (String)
+- `change_type` (String)
+- `compare_values` (List of Number)
+- `lookback_time` (String)
+
+
+<a id="nestedblock--rule--threshold"></a>
+### Nested Schema for `rule.threshold`
+
+Optional:
+
+- `compare_function` (String)
+- `compare_values` (List of Number)
+- `lookback_time` (String)
 
 
 <a id="nestedblock--rule--count"></a>
@@ -71,9 +82,9 @@ Read-Only:
 
 Read-Only:
 
-- **compare_function** (String)
-- **compare_values** (List of Number)
-- **lookback_time** (String)
+- `compare_function` (String)
+- `compare_values` (List of Number)
+- `lookback_time` (String)
 
 
 <a id="nestedblock--rule--facet"></a>
@@ -81,11 +92,20 @@ Read-Only:
 
 Read-Only:
 
-- **facet_function** (String)
-- **facet_values** (List of String)
-- **lookback_time** (String)
-- **time_function** (String)
-- **time_value** (Number)
+- `facet_function` (String)
+- `facet_values` (List of String)
+- `lookback_time` (String)
+- `time_function` (String)
+- `time_value` (Number)
+
+
+<a id="nestedblock--rule--group_by_group"></a>
+### Nested Schema for `rule.group_by_group`
+
+Read-Only:
+
+- `columns` (List of String)
+- `group_name` (String)
 
 
 <a id="nestedblock--rule--promote"></a>
@@ -93,9 +113,9 @@ Read-Only:
 
 Read-Only:
 
-- **description_field** (String)
-- **kind_field** (String)
-- **primary_key** (List of String)
+- `description_field` (String)
+- `kind_field` (String)
+- `primary_key` (List of String)
 
 
 
@@ -104,10 +124,8 @@ Read-Only:
 
 Read-Only:
 
-- **importance** (String)
-- **merge** (String)
-- **selection** (String)
-- **selection_value** (Number)
+- `importance` (String)
+- `merge` (String)
 
 
 <a id="nestedblock--stage"></a>
@@ -115,8 +133,8 @@ Read-Only:
 
 Read-Only:
 
-- **alias** (String) The stage alias is the label by which subsequent stages can refer to the results of this stage.
-- **input** (String) The stage input defines what input should be used as a starting point for the stage pipeline. It must refer to a label contained in `inputs`, or a previous stage `alias`. The stage input can be omitted if a dataset has a single input.
-- **pipeline** (String) An OPAL snippet defining a transformation on the selected input.
+- `alias` (String) The stage alias is the label by which subsequent stages can refer to the results of this stage.
+- `input` (String) The stage input defines what input should be used as a starting point for the stage pipeline. It must refer to a label contained in `inputs`, or a previous stage `alias`. The stage input can be omitted if a dataset has a single input.
+- `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
 
 

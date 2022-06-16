@@ -14,16 +14,16 @@ description: |-
 
 ### Required
 
-- **name** (String) Name of bookmark group.
-- **workspace** (String) OID of workspace bookmark group belongs to.
+- `name` (String) Name of bookmark group.
+- `workspace` (String) OID of workspace bookmark group belongs to.
 
 ### Optional
 
-- **icon_url** (String) Icon used when presenting bookmark group.
-- **id** (String) The ID of this resource.
-- **presentation** (String)
+- `icon_url` (String) Icon used when presenting bookmark group.
+- `presentation` (String)
 
 ### Read-Only
 
-- **oid** (String) Observe ID of the bookmark group.
+- `id` (String) The ID of this resource.
+- `oid` (String) Observe ID of the bookmark group.
 

@@ -14,35 +14,36 @@ description: |-
 
 ### Required
 
-- **name** (String)
-- **workspace** (String)
+- `name` (String)
+- `workspace` (String)
 
 ### Optional
 
-- **channels** (Set of String)
-- **description** (String)
-- **email** (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
-- **icon_url** (String)
-- **id** (String) The ID of this resource.
-- **rate_limit** (String)
-- **webhook** (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
+- `channels` (Set of String)
+- `description` (String)
+- `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
+- `icon_url` (String)
+- `notify_on_close` (Boolean)
+- `rate_limit` (String)
+- `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only
 
-- **oid** (String)
+- `id` (String) The ID of this resource.
+- `oid` (String)
 
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`
 
 Required:
 
-- **body** (String)
-- **subject** (String)
-- **to** (List of String)
+- `body` (String)
+- `subject` (String)
+- `to` (List of String)
 
 Optional:
 
-- **is_html** (Boolean)
+- `is_html` (Boolean)
 
 
 <a id="nestedblock--webhook"></a>
@@ -50,11 +51,11 @@ Optional:
 
 Required:
 
-- **body** (String)
-- **url** (String)
+- `body` (String)
+- `url` (String)
 
 Optional:
 
-- **headers** (Map of String)
-- **method** (String)
+- `headers` (Map of String)
+- `method` (String)
 

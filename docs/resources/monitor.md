@@ -14,51 +14,53 @@ description: |-
 
 ### Required
 
-- **inputs** (Map of String)
-- **name** (String)
-- **rule** (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--rule))
-- **stage** (Block List, Min: 1) (see [below for nested schema](#nestedblock--stage))
-- **workspace** (String)
+- `inputs` (Map of String)
+- `name` (String)
+- `rule` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--rule))
+- `stage` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stage))
+- `workspace` (String)
 
 ### Optional
 
-- **description** (String)
-- **icon_url** (String)
-- **id** (String) The ID of this resource.
-- **notification_spec** (Block List, Max: 1) (see [below for nested schema](#nestedblock--notification_spec))
+- `description` (String)
+- `disabled` (Boolean)
+- `freshness` (String)
+- `icon_url` (String)
+- `notification_spec` (Block List, Max: 1) (see [below for nested schema](#nestedblock--notification_spec))
 
 ### Read-Only
 
-- **oid** (String)
+- `id` (String) The ID of this resource.
+- `oid` (String)
 
 <a id="nestedblock--rule"></a>
 ### Nested Schema for `rule`
 
 Optional:
 
-- **change** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--change))
-- **count** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--count))
-- **facet** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
-- **group_by** (String)
-- **group_by_columns** (List of String)
-- **promote** (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
-- **source_column** (String)
+- `change` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--change))
+- `count` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--count))
+- `facet` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
+- `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
+- `promote` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
+- `source_column` (String)
+- `threshold` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--threshold))
 
 <a id="nestedblock--rule--change"></a>
 ### Nested Schema for `rule.change`
 
 Required:
 
-- **baseline_time** (String)
-- **compare_function** (String)
-- **lookback_time** (String)
+- `baseline_time` (String)
+- `compare_function` (String)
+- `lookback_time` (String)
 
 Optional:
 
-- **aggregate_function** (String)
-- **change_type** (String)
-- **compare_value** (Number, Deprecated)
-- **compare_values** (List of Number)
+- `aggregate_function` (String)
+- `change_type` (String)
+- `compare_value` (Number, Deprecated)
+- `compare_values` (List of Number)
 
 
 <a id="nestedblock--rule--count"></a>
@@ -66,13 +68,13 @@ Optional:
 
 Required:
 
-- **compare_function** (String)
-- **lookback_time** (String)
+- `compare_function` (String)
+- `lookback_time` (String)
 
 Optional:
 
-- **compare_value** (Number, Deprecated)
-- **compare_values** (List of Number)
+- `compare_value` (Number, Deprecated)
+- `compare_values` (List of Number)
 
 
 <a id="nestedblock--rule--facet"></a>
@@ -80,14 +82,23 @@ Optional:
 
 Required:
 
-- **facet_function** (String)
-- **facet_values** (List of String)
-- **lookback_time** (String)
-- **time_function** (String)
+- `facet_function` (String)
+- `facet_values` (List of String)
+- `lookback_time` (String)
+- `time_function` (String)
 
 Optional:
 
-- **time_value** (Number)
+- `time_value` (Number)
+
+
+<a id="nestedblock--rule--group_by_group"></a>
+### Nested Schema for `rule.group_by_group`
+
+Optional:
+
+- `columns` (List of String)
+- `group_name` (String)
 
 
 <a id="nestedblock--rule--promote"></a>
@@ -95,12 +106,25 @@ Optional:
 
 Required:
 
-- **primary_key** (List of String)
+- `primary_key` (List of String)
 
 Optional:
 
-- **description_field** (String)
-- **kind_field** (String)
+- `description_field` (String)
+- `kind_field` (String)
+
+
+<a id="nestedblock--rule--threshold"></a>
+### Nested Schema for `rule.threshold`
+
+Required:
+
+- `compare_function` (String)
+- `lookback_time` (String)
+
+Optional:
+
+- `compare_values` (List of Number)
 
 
 
@@ -109,9 +133,9 @@ Optional:
 
 Optional:
 
-- **alias** (String)
-- **input** (String)
-- **pipeline** (String)
+- `alias` (String)
+- `input` (String)
+- `pipeline` (String)
 
 
 <a id="nestedblock--notification_spec"></a>
@@ -119,8 +143,6 @@ Optional:
 
 Optional:
 
-- **importance** (String)
-- **merge** (String)
-- **selection** (String)
-- **selection_value** (Number)
+- `importance` (String)
+- `merge` (String)
 

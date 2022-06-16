@@ -41,15 +41,19 @@ resource "observe_link" "container_to_node" {
 
 ### Required
 
-- **fields** (List of String) Array of field mappings that provides a link between source and target datasets. A mapping between a `source_field` and a `target_field` is represented using a colon separated "<source_field>:<target_field>" format. If the source and target field share the same name, only "<source_field>".
-- **source** (String) OID of source dataset.
-- **target** (String) OID of target dataset.
-- **workspace** (String) OID of workspace link is contained in.
+- `fields` (List of String) Array of field mappings that provides a link between source and target datasets. A mapping between a `source_field` and a `target_field` is represented using a colon separated "<source_field>:<target_field>" format. If the source and target field share the same name, only "<source_field>".
+- `source` (String) OID of source dataset.
+- `target` (String) OID of target dataset.
+- `workspace` (String) OID of workspace link is contained in.
 
 ### Optional
 
-- **id** (String) The ID of this resource.
-- **label** (String) Label describing link.
+- `label` (String) Label describing link.
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
+- `oid` (String)
 ## Import
 Import is supported using the following syntax:
 ```shell

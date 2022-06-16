@@ -17,30 +17,30 @@ description: |-
 
 ### Required
 
-- **inputs** (Map of String)
-- **stage** (Block List, Min: 1) (see [below for nested schema](#nestedblock--stage))
+- `inputs` (Map of String)
+- `stage` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
-- **assert** (Block List, Max: 1) Validate expected query output (see [below for nested schema](#nestedblock--assert))
-- **end** (String) End timestamp. If omitted, query will be periodically re-run until results are returned.
-- **id** (String) The ID of this resource.
-- **limit** (Number)
-- **poll** (Block List, Max: 1) (see [below for nested schema](#nestedblock--poll))
-- **start** (String)
+- `assert` (Block List, Max: 1) Validate expected query output (see [below for nested schema](#nestedblock--assert))
+- `end` (String) End timestamp. If omitted, query will be periodically re-run until results are returned.
+- `limit` (Number)
+- `poll` (Block List, Max: 1) (see [below for nested schema](#nestedblock--poll))
+- `start` (String)
 
 ### Read-Only
 
-- **result** (String)
+- `id` (String) The ID of this resource.
+- `result` (String)
 
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
 Optional:
 
-- **alias** (String)
-- **input** (String)
-- **pipeline** (String)
+- `alias` (String)
+- `input` (String)
+- `pipeline` (String)
 
 
 <a id="nestedblock--assert"></a>
@@ -48,11 +48,11 @@ Optional:
 
 Required:
 
-- **golden_file** (String) Filename containing expected query output.
+- `golden_file` (String) Filename containing expected query output.
 
 Optional:
 
-- **update** (Boolean)
+- `update` (Boolean)
 
 
 <a id="nestedblock--poll"></a>
@@ -60,7 +60,7 @@ Optional:
 
 Optional:
 
-- **interval** (String)
-- **timeout** (String)
+- `interval` (String)
+- `timeout` (String)
 
 

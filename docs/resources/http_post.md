@@ -14,18 +14,18 @@ description: |-
 
 ### Required
 
-- **data** (String) Data to submit to Observe collector
+- `data` (String) Data to submit to Observe collector
 
 ### Optional
 
-- **content_type** (String) Content Type for HTTP POST request
-- **headers** (Map of String) Additional HTTP headers
-- **id** (String) The ID of this resource.
-- **id_tag** (String) Key used to tag submitted observations with unique ID. Set to empty string to omit tag
-- **path** (String) Path under which to submit observations
-- **tags** (Map of String) Tags to set on submitted observations
+- `content_type` (String) Content Type for HTTP POST request
+- `headers` (Map of String) Additional HTTP headers
+- `id_tag` (String) Key used to tag submitted observations with unique ID. Set to empty string to omit tag
+- `path` (String) Path under which to submit observations
+- `tags` (Map of String) Tags to set on submitted observations
 
 ### Read-Only
 
-- **acked** (String) Timestamp of submission
+- `acked` (String) Timestamp of submission
+- `id` (String) The ID of this resource.
 

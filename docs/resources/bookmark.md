@@ -14,16 +14,16 @@ description: |-
 
 ### Required
 
-- **group** (String)
-- **name** (String)
-- **target** (String)
+- `group` (String)
+- `name` (String)
+- `target` (String)
 
 ### Optional
 
-- **icon_url** (String)
-- **id** (String) The ID of this resource.
+- `icon_url` (String)
 
 ### Read-Only
 
-- **oid** (String)
+- `id` (String) The ID of this resource.
+- `oid` (String)
 
