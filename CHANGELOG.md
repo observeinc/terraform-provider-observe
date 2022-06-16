@@ -1,3 +1,8 @@
+## 0.6.3 (2022-06-16)
+
+feat: support managedById for worksheets
+feat: support managedById for monitors
+
 ## 0.6.2 (2022-06-09)
 
 feat: support managedById on datasets
