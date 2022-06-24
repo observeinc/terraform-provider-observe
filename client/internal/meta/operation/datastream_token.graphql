@@ -1,0 +1,36 @@
+fragment DatastreamToken on DatastreamToken {
+	id
+	name
+	description
+	disabled
+	datastreamId
+	secret
+}
+
+query getDatastreamToken($id: String!) {
+	# @genqlient(flatten: true)
+	datastreamToken: datastreamToken(id: $id) {
+		...DatastreamToken
+	}
+}
+
+mutation createDatastreamToken($datastreamId: ObjectId!, $token: DatastreamTokenInput!) {
+	# @genqlient(flatten: true)
+	datastreamToken: createDatastreamToken(datastreamId:$datastreamId, token: $token) {
+		...DatastreamToken
+	}
+}
+
+mutation updateDatastreamToken($id: String!, $token: DatastreamTokenInput!) {
+	# @genqlient(flatten: true)
+	datastreamToken: updateDatastreamToken(id:$id, token: $token) {
+		...DatastreamToken
+	}
+}
+
+mutation deleteDatastreamToken($id: String!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteDatastreamToken(id: $id) {
+        ...ResultStatus
+	}
+}

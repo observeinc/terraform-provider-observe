@@ -1,0 +1,50 @@
+fragment Worksheet on Worksheet {
+	id
+	label
+	icon
+	managedById
+	workspace {
+		id
+	}
+	# @genqlient(flatten: true)
+	stages {
+		...StageQuery
+	}
+}
+
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation saveWorksheet(
+	$worksheetInput: WorksheetInput!
+) {
+	# @genqlient(flatten: true)
+	worksheet: saveWorksheet(wks:$worksheetInput) {
+		...Worksheet
+	}
+}
+
+query getWorksheet($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	worksheet: worksheet(id: $id) {
+		...Worksheet
+	}
+}
+
+mutation deleteWorksheet($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteWorksheet(wks: $id) {
+        ...ResultStatus
+	}
+}

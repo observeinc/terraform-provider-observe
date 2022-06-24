@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -31,27 +33,27 @@ func resourceLink() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaLinkWorkspaceDescription,
 			},
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"source": &schema.Schema{
+			"source": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      schemaLinkSourceDescription,
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      schemaLinkTargetDescription,
 			},
 			"fields": {
@@ -71,24 +73,27 @@ func resourceLink() *schema.Resource {
 	}
 }
 
-func newLinkConfig(data *schema.ResourceData) (config *observe.ForeignKeyConfig, diags diag.Diagnostics) {
+func newLinkConfig(data *schema.ResourceData) (input *gql.DeferredForeignKeyInput, diags diag.Diagnostics) {
 	var (
-		source, _ = observe.NewOID(data.Get("source").(string))
-		target, _ = observe.NewOID(data.Get("target").(string))
+		source, _ = oid.NewOID(data.Get("source").(string))
+		target, _ = oid.NewOID(data.Get("target").(string))
 		fields    = data.Get("fields").([]interface{})
 	)
 
-	config = &observe.ForeignKeyConfig{
-		Source: &source.ID,
-		Target: &target.ID,
+	input = &gql.DeferredForeignKeyInput{
+		SourceDataset: &gql.DeferredDatasetReferenceInput{
+			DatasetId: &source.Id,
+		},
+		TargetDataset: &gql.DeferredDatasetReferenceInput{
+			DatasetId: &target.Id,
+		},
 	}
 
 	if v, ok := data.GetOk("label"); ok {
-		s := v.(string)
-		config.Label = &s
+		input.Label = stringPtr(v.(string))
 	}
 
-	config.SrcFields, config.DstFields = unpackFields(fields)
+	input.SrcFields, input.DstFields = unpackFields(fields)
 	return
 }
 
@@ -100,13 +105,13 @@ func resourceLinkCreate(ctx context.Context, data *schema.ResourceData, meta int
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateForeignKey(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateForeignKey(ctx, id.Id, config)
 	if err != nil {
 		return diag.Errorf("failed to create foreign key: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceLinkRead(ctx, data, meta)...)
 }
 
@@ -135,8 +140,8 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 	}
 
 	var fields []string
-	for i, src := range link.Config.SrcFields {
-		dst := link.Config.DstFields[i]
+	for i, src := range link.SrcFields {
+		dst := link.DstFields[i]
 		if src == dst {
 			fields = append(fields, src)
 		} else {
@@ -144,12 +149,7 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 		}
 	}
 
-	workspaceOID := observe.OID{
-		Type: observe.TypeWorkspace,
-		ID:   link.Workspace,
-	}
-
-	if err := data.Set("workspace", workspaceOID.String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(link.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -160,11 +160,11 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("label", link.Config.Label); err != nil {
+	if err := data.Set("label", link.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", link.OID().String()); err != nil {
+	if err := data.Set("oid", link.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

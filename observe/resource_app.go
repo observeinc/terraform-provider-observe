@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func resourceApp() *schema.Resource {
@@ -20,10 +22,10 @@ func resourceApp() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"folder": &schema.Schema{
+			"folder": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeFolder),
+				ValidateDiagFunc: validateOID(oid.TypeFolder),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -55,15 +57,23 @@ func resourceApp() *schema.Resource {
 	}
 }
 
-func newAppConfig(data *schema.ResourceData) (config *observe.AppConfig, diags diag.Diagnostics) {
+func newAppInput(data *schema.ResourceData) (config *gql.AppInput, diags diag.Diagnostics) {
+	folder, _ := oid.NewOID(data.Get("folder").(string))
 
-	folder, _ := observe.NewOID(data.Get("folder").(string))
+	variables := make([]gql.AppVariableInput, 0)
+	for k, v := range makeStringMap(data.Get("variables").(map[string]interface{})) {
+		variable := gql.AppVariableInput{
+			Name:  k,
+			Value: v,
+		}
+		variables = append(variables, variable)
+	}
 
-	config = &observe.AppConfig{
+	config = &gql.AppInput{
 		ModuleId:  data.Get("module_id").(string),
 		Version:   data.Get("version").(string),
-		Folder:    folder,
-		Variables: makeStringMap(data.Get("variables").(map[string]interface{})),
+		FolderId:  folder.Version,
+		Variables: variables,
 	}
 
 	return
@@ -72,18 +82,18 @@ func newAppConfig(data *schema.ResourceData) (config *observe.AppConfig, diags d
 func resourceAppCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newAppConfig(data)
+	input, diags := newAppInput(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("folder").(string))
-	result, err := client.CreateApp(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("folder").(string))
+	result, err := client.CreateApp(ctx, id.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create app: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	diags = append(diags, resourceAppRead(ctx, data, meta)...)
 	if diags.HasError() {
 		return diags
@@ -98,7 +108,7 @@ func resourceAppCreate(ctx context.Context, data *schema.ResourceData, meta inte
 func resourceAppUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newAppConfig(data)
+	config, diags := newAppInput(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -122,8 +132,13 @@ func resourceAppRead(ctx context.Context, data *schema.ResourceData, meta interf
 	return appToResourceData(app, data)
 }
 
-func appToResourceData(app *observe.App, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("folder", app.Config.Folder.String()); err != nil {
+func appToResourceData(app *gql.App, data *schema.ResourceData) (diags diag.Diagnostics) {
+	folderId := oid.OID{
+		Type:    oid.TypeFolder,
+		Id:      app.WorkspaceId,
+		Version: &app.FolderId,
+	}
+	if err := data.Set("folder", folderId.String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -141,7 +156,7 @@ func appToResourceData(app *observe.App, data *schema.ResourceData) (diags diag.
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", app.OID().String()); err != nil {
+	if err := data.Set("oid", app.Oid().String()); err != nil {
 		return diag.FromErr(err)
 	}
 

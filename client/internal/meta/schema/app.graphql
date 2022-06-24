@@ -1,0 +1,215 @@
+extend type Query {
+    folder(id: ObjectId!): Folder!
+    folders(workspaceId: ObjectId!, name: String): [Folder!]!
+
+    module(id: String!, version: String): Module!
+    modules(search: String): [Module!]!
+
+    app(id: ObjectId!): App!
+    apps(workspaceId: ObjectId!, name: String): [App!]!
+    appConfig(id: ObjectId!, targetVersion: String!): AppConfig!
+}
+
+extend type Mutation {
+    createApp(workspaceId: ObjectId!, app: AppInput!): App!
+    updateApp(id: ObjectId!, app: AppInput!): App!
+    deleteApp(id: ObjectId!): ResultStatus!
+
+    createFolder(workspaceId: ObjectId!, folder: FolderInput!): Folder!
+    updateFolder(id: ObjectId!, folder: FolderInput!): Folder!
+    deleteFolder(id: ObjectId!): ResultStatus!
+}
+
+type Folder implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Folder") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedDate: Time!
+}
+
+input FolderInput @goModel(model: "observe/meta/metatypes.FolderInput") {
+    name: String
+    description: String
+    iconUrl: String
+}
+
+
+type Registry @goModel(model: "observe/meta/metatypes.Registry") {
+    name: String!
+    modules: [Module!]
+}
+
+"""
+Module represents an app module
+"""
+type Module @goModel(model: "observe/meta/metatypes.Module") {
+    id: String!
+    name: String!
+    source: String!
+    description: String
+    iconUrl: String
+    registry: String
+    defaultFolder: String!
+    versions: [ModuleVersion!]
+
+    apps(workspaceId: ObjectId!): [App!] @goField(forceResolver:true)
+}
+
+"""
+ModuleVersion represents the metadata for a specific version of an application
+"""
+type ModuleVersion @goModel(model: "observe/meta/metatypes.ModuleVersion") {
+    source: String
+    version: String!
+    changelog: String!
+    readme: String!
+    inputs: [AppVariable!]
+    resources: [AppResource!]
+    dataConnections: [AppDataConnection!]
+}
+
+type AppVariable @goModel(model: "observe/meta/metatypes.AppVariable") {
+    name: String!
+    type: String!
+    description: String
+    required: Boolean!
+    sensitive: Boolean!
+    default: String
+    # nullable: Boolean! #TODO
+    # populated for configured variables
+    value: String
+}
+
+enum AppResourceKind @goModel(model: "observe/meta/metatypes.AppResourceKind") {
+    Data
+    Resource
+}
+
+type AppResource @goModel(model: "observe/meta/metatypes.AppResource") {
+    name: String!
+    kind: AppResourceKind!
+    type: String!
+}
+
+input AppVariableInput @goModel(model: "observe/meta/metatypes.AppVariableInput") {
+    name: String!
+    value: String!
+}
+
+input AppInput @goModel(model: "observe/meta/metatypes.AppInput") {
+    moduleId: String!
+    version: String!
+    variables: [AppVariableInput!]
+    folderId: ObjectId
+}
+
+type AppConfig @goModel(model: "observe/meta/metatypes.AppConfig") {
+    moduleId: String!
+    source: String!
+    version: String!
+    variables: [AppVariable!]
+}
+
+enum AppState @goModel(model: "observe/meta/metatypes.AppState") {
+    Initializing
+    Installing
+    Installed
+    Deleting
+    Error
+}
+
+type AppStatus @goModel(model: "observe/meta/metatypes.AppStatus") {
+    state: AppState!
+    drift: Boolean!
+    """
+    The user facing error message if an app is in Error state.
+    """
+    error: String
+    """
+    The detailed internal error message if an app is in Error state. Not suitable for external user consumption.
+    """
+    internalError: String
+}
+
+enum AppDataState @goModel(model: "observe/meta/metatypes.AppDataState") {
+    Onboard
+    Pending
+    Valid
+    Error
+}
+
+enum AppDataSourceKind @goModel(model: "observe/meta/metatypes.AppDataSourceKind") {
+    Documentation
+    Token
+    Poller
+}
+
+type AppDataSource @goModel(model: "observe/meta/metatypes.AppDataSource") {
+    name: String!
+    description: String
+    kind: AppDataSourceKind!
+    instructions: String!
+    state: AppDataState!
+
+    """
+    If data source is a poller, this will specify the exact kind of poller.
+    """
+    pollerKind: PollerKind
+}
+
+type AppDataConnection @goModel(model: "observe/meta/metatypes.AppDataConnection") {
+    datastreamId: ObjectId
+    sources: [AppDataSource!]!
+    state: AppDataState!
+}
+
+type AppDataInfo @goModel(model: "observe/meta/metatypes.AppDataInfo") {
+    state: AppDataState!
+    connections: [AppDataConnection!]
+}
+
+type AppVersions @goModel(model: "observe/meta/metatypes.AppVersions") {
+    versions: [ModuleVersion!]
+    updateAvailable: Boolean!
+}
+
+"""
+App represents an installed instance of an AppModule
+"""
+type App implements WorkspaceObject & FolderObject &AuditedObject @goModel(model: "observe/meta/metatypes.App") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+    folderId: ObjectId!
+    config: AppConfig!
+    prevStatus: AppStatus
+    status: AppStatus!
+    dataInfo: AppDataInfo! @goField(forceResolver:true)
+    """
+    resources refer to datasets, monitors, datastreams and other objects the app creates
+    """
+    resources: [WorkspaceObject!] @goField(forceResolver:true)
+    versionsInfo: AppVersions @goField(forceResolver:true)
+    outputs: JsonObject
+
+    # AuditedObject
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedDate: Time!
+}

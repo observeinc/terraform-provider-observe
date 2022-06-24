@@ -1,0 +1,45 @@
+fragment Datastream on Datastream {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	datasetId
+}
+
+mutation createDatastream($workspaceId: ObjectId!, $datastream: DatastreamInput!) {
+	# @genqlient(flatten: true)
+	datastream: createDatastream(workspaceId:$workspaceId, datastream: $datastream) {
+		...Datastream
+	}
+}
+
+query getDatastream($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	datastream: datastream(id: $id) {
+		...Datastream
+	}
+}
+
+mutation updateDatastream($id: ObjectId!, $datastream: DatastreamInput!) {
+	# @genqlient(flatten: true)
+	datastream: updateDatastream(id:$id, datastream: $datastream) {
+		...Datastream
+	}
+}
+
+mutation deleteDatastream($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteDatastream(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query lookupDatastream($workspaceId: ObjectId!, $name: String!) {
+	datastream: workspace(id: $workspaceId) {
+		# @genqlient(flatten: true)
+		datastream(name: $name) {
+			...Datastream
+		}
+	}
+}

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	oid "github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceDataset() *schema.Resource {
@@ -16,7 +18,7 @@ func dataSourceDataset() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
@@ -52,7 +54,7 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatasetPathCostDescription,
 			},
-			"freshness": &schema.Schema{
+			"freshness": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaDatasetFreshnessDescription,
@@ -67,7 +69,7 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatasetInputsDescription,
 			},
-			"stage": &schema.Schema{
+			"stage": {
 				Type:     schema.TypeList,
 				Computed: true,
 				// we need to declare optional, otherwise we won't get block
@@ -100,18 +102,18 @@ func dataSourceDataset() *schema.Resource {
 
 func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client = meta.(*observe.Client)
-		name   = data.Get("name").(string)
-		id     = data.Get("id").(string)
+		client     = meta.(*observe.Client)
+		name       = data.Get("name").(string)
+		explicitId = data.Get("id").(string)
 	)
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
 
-	var d *observe.Dataset
+	var d *gql.Dataset
 	var err error
 
-	if id != "" {
-		d, err = client.GetDataset(ctx, id)
+	if explicitId != "" {
+		d, err = client.GetDataset(ctx, explicitId)
 	} else if name != "" {
 		defer func() {
 			// right now SDK does not report where this error happened,
@@ -119,17 +121,16 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 			for i := range diags {
 				diags[i].Detail = fmt.Sprintf("Failed to read dataset %q", name)
 			}
-			return
 		}()
 
-		d, err = client.LookupDataset(ctx, oid.ID, name)
+		d, err = client.LookupDataset(ctx, implicitId.Id, name)
 	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(d.ID)
+	data.SetId(d.Id)
 
 	return datasetToResourceData(d, data)
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -29,11 +31,11 @@ func resourceDatastreamToken() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"datastream": &schema.Schema{
+			"datastream": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDatastream),
+				ValidateDiagFunc: validateOID(oid.TypeDatastream),
 				Description:      schemaDatastreamTokenDatastreamDescription,
 			},
 			"name": {
@@ -66,40 +68,38 @@ func resourceDatastreamToken() *schema.Resource {
 	}
 }
 
-func newDatastreamTokenConfig(data *schema.ResourceData) (*observe.DatastreamTokenConfig, diag.Diagnostics) {
-	config := &observe.DatastreamTokenConfig{
+func newDatastreamTokenConfig(data *schema.ResourceData) (*gql.DatastreamTokenInput, diag.Diagnostics) {
+	input := &gql.DatastreamTokenInput{
 		Name: data.Get("name").(string),
 	}
 
 	{
-		description := data.Get("description").(string)
-		config.Description = &description
+		input.Description = stringPtr(data.Get("description").(string))
 	}
 
 	{
-		disabled := data.Get("disabled").(bool)
-		config.Disabled = &disabled
+		input.Disabled = boolPtr(data.Get("disabled").(bool))
 	}
 
-	return config, nil
+	return input, nil
 }
 
-func datastreamTokenToResourceData(d *observe.DatastreamToken, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func datastreamTokenToResourceData(d *gql.DatastreamToken, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.Description != nil {
-		if err := data.Set("description", d.Config.Description); err != nil {
+	if d.Description != nil {
+		if err := data.Set("description", d.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("disabled", d.Config.Disabled); err != nil {
+	if err := data.Set("disabled", d.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -113,8 +113,8 @@ func resourceDatastreamTokenCreate(ctx context.Context, data *schema.ResourceDat
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("datastream").(string))
-	result, err := client.CreateDatastreamToken(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("datastream").(string))
+	result, err := client.CreateDatastreamToken(ctx, id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -124,9 +124,9 @@ func resourceDatastreamTokenCreate(ctx context.Context, data *schema.ResourceDat
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 
-	if err := data.Set("secret", result.Config.Secret); err != nil {
+	if err := data.Set("secret", result.Secret); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

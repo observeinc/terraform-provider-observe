@@ -2,6 +2,7 @@ package observe
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -10,11 +11,28 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	oid "github.com/observeinc/terraform-provider-observe/client/oid"
+)
+
+var (
+	errObjectIDInvalid      = errors.New("object id is invalid")
+	errNameMissing          = errors.New("name not set")
+	errInputsMissing        = errors.New("no inputs defined")
+	errStagesMissing        = errors.New("no stages defined")
+	errInputNameMissing     = errors.New("name not set")
+	errInputEmpty           = errors.New("dataset not set")
+	errNameConflict         = errors.New("name already declared")
+	errStageInputUnresolved = errors.New("input could not be resolved")
+	errStageInputMissing    = errors.New("input missing")
+
+	stringType = reflect.TypeOf("")
 )
 
 // apply ValidateDiagFunc to every value in map
@@ -57,9 +75,9 @@ func validateIsString() schema.SchemaValidateDiagFunc {
 }
 
 // Verify OID matches type
-func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
+func validateOID(types ...oid.Type) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) (diags diag.Diagnostics) {
-		oid, err := observe.NewOID(i.(string))
+		id, err := oid.NewOID(i.(string))
 		if err != nil {
 			return append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
@@ -68,7 +86,7 @@ func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
 			})
 		}
 		for _, t := range types {
-			if oid.Type == t {
+			if id.Type == t {
 				return diags
 			}
 		}
@@ -85,15 +103,6 @@ func validateOID(types ...observe.Type) schema.SchemaValidateDiagFunc {
 			})
 		}
 		return
-	}
-}
-
-func validateEnum(fn func(interface{}) error) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		if err := fn(i); err != nil {
-			return diag.FromErr(err)
-		}
-		return nil
 	}
 }
 
@@ -190,16 +199,16 @@ func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 		return true
 	}
 
-	oid, err := observe.NewOID(d.Get("oid").(string))
-	if err != nil || oid.Version == nil {
+	id, err := oid.NewOID(d.Get("oid").(string))
+	if err != nil || id.Version == nil {
 		return false
 	}
 
 	inputs, ok := d.Get("inputs").(map[string]interface{})
 	if ok {
 		for _, v := range inputs {
-			input, err := observe.NewOID(v.(string))
-			if err == nil && input.Version != nil && *input.Version > *oid.Version {
+			input, err := oid.NewOID(v.(string))
+			if err == nil && input.Version != nil && *input.Version > *id.Version {
 				return true
 			}
 		}
@@ -224,22 +233,58 @@ func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
 	return reflect.DeepEqual(prvValue, nxtValue)
 }
 
-func diffSuppressOIDVersion(k, prv, nxt string, d *schema.ResourceData) bool {
-	o, err := observe.NewOID(prv)
-	if err != nil {
+func diffSuppressStageQueryInput(k, prv, nxt string, d *schema.ResourceData) bool {
+	prvValue := make([]gql.StageQueryInput, 0)
+	nxtValue := make([]gql.StageQueryInput, 0)
+	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {
 		return false
 	}
-
-	n, err := observe.NewOID(nxt)
-	if err != nil {
+	if err := json.Unmarshal([]byte(nxt), &nxtValue); err != nil {
 		return false
 	}
-
-	return o.Type == n.Type && o.ID == n.ID
+	layoutTransform := cmp.Transformer("layoutStringToMap", func(o types.JsonObject) map[string]interface{} {
+		result, _ := o.Map()
+		return result
+	})
+	return cmp.Equal(prvValue, nxtValue, layoutTransform)
 }
 
-func diffSuppressCaseInsensitive(k, prv, nxt string, d *schema.ResourceData) bool {
-	return strings.ToLower(nxt) == strings.ToLower(prv)
+func diffSuppressParameters(k, prv, nxt string, d *schema.ResourceData) bool {
+	prvValue := make([]gql.ParameterSpecInput, 0)
+	nxtValue := make([]gql.ParameterSpecInput, 0)
+	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(nxt), &nxtValue); err != nil {
+		return false
+	}
+	return cmp.Equal(prvValue, nxtValue)
+}
+
+func diffSuppressParameterValues(k, prv, nxt string, d *schema.ResourceData) bool {
+	prvValue := make([]gql.ParameterBindingInput, 0)
+	nxtValue := make([]gql.ParameterBindingInput, 0)
+	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(nxt), &nxtValue); err != nil {
+		return false
+	}
+	return cmp.Equal(prvValue, nxtValue)
+}
+
+func diffSuppressOIDVersion(k, prv, nxt string, d *schema.ResourceData) bool {
+	o, err := oid.NewOID(prv)
+	if err != nil {
+		return false
+	}
+
+	n, err := oid.NewOID(nxt)
+	if err != nil {
+		return false
+	}
+
+	return o.Type == n.Type && o.Id == n.Id
 }
 
 func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
@@ -253,18 +298,24 @@ var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
-func snakeCased(stringerSlice interface{}) []string {
+func snakeCased(rawSlice interface{}) []string {
 	var snakeCased []string
 
-	switch reflect.TypeOf(stringerSlice).Kind() {
+	switch reflect.TypeOf(rawSlice).Kind() {
 	case reflect.Slice:
-		stringers := reflect.ValueOf(stringerSlice)
-		for i := 0; i < stringers.Len(); i++ {
-			stringer := stringers.Index(i).Interface().(fmt.Stringer)
-			snakeCased = append(snakeCased, toSnake(stringer.String()))
+		stringsSlice := reflect.ValueOf(rawSlice)
+		for i := 0; i < stringsSlice.Len(); i++ {
+			stringRaw := stringsSlice.Index(i)
+			var stringParsed string
+			if stringer, ok := stringRaw.Interface().(fmt.Stringer); ok {
+				stringParsed = stringer.String()
+			} else if stringRaw.CanConvert(stringType) {
+				stringParsed = stringRaw.Convert(stringType).String()
+			}
+			snakeCased = append(snakeCased, toSnake(stringParsed))
 		}
 	default:
-		panic("validateEnums only accepts slice of stringers")
+		panic("validateEnums only accepts slice of stringers or types convertible to string")
 	}
 
 	return snakeCased
@@ -294,9 +345,14 @@ func toCamel(str string) string {
 	})
 }
 
-func toListOfStrings(l []*observe.OID) (ret []string) {
-	for _, el := range l {
-		ret = append(ret, el.String())
-	}
-	return
+func boolPtr(b bool) *bool {
+	return &b
+}
+
+func intPtr(i int) *int {
+	return &i
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

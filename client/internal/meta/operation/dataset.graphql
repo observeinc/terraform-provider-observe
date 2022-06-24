@@ -1,0 +1,153 @@
+fragment Dataset on Dataset {
+	workspaceId
+	id
+	label
+	freshnessDesired
+	description
+	iconUrl
+	version
+	lastSaved
+	pathCost
+	source
+	managedById
+	onDemandMaterializationLength
+	foreignKeys {
+		label
+		targetDataset
+		srcFields
+		dstFields
+	}
+	transform {
+		current {
+			query {
+				outputStage
+				# @genqlient(flatten: true)
+				stages {
+					...StageQuery
+				}
+			}
+		}
+	}
+	typedef {
+		label
+		def {
+			anykey
+			fields {
+				name
+				type {
+					rep
+					nullable
+				}
+				isEnum
+				isSearchable
+				isHidden
+				isConst
+				isMetric
+			}
+		}
+	}
+	sourceTable {
+		schema
+		tableName
+		sourceUpdateTableName
+		isInsertOnly
+		batchSeqField
+		validFromField
+		fields {
+			name
+			sqlType
+		}
+	}
+}
+
+# @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation saveDataset(
+	$workspaceId: ObjectId!,
+	$dataset: DatasetInput!,
+	$query: MultiStageQueryInput!,
+	$dep: DependencyHandlingInput
+) {
+	dataset: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
+		# @genqlient(flatten: true)
+		dataset {
+			...Dataset
+		}
+	}
+}
+
+query getDataset($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	dataset: dataset(id: $id) {
+		...Dataset
+	}
+}
+
+mutation deleteDataset($id: ObjectId!,  $dep: DependencyHandlingInput) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteDataset(dsid: $id, dependencyHandling:$dep) {
+		...ResultStatus
+	}
+}
+
+query lookupDataset($workspaceId: ObjectId!, $name: String!) {
+	dataset: workspace(id: $workspaceId) {
+		# @genqlient(flatten: true, pointer: true)
+		dataset(label: $name) {
+			...Dataset
+		}
+	}
+}
+
+query listDatasets{
+	datasets: projects {
+		# @genqlient(flatten: true)
+		datasets {
+			...Dataset
+		}
+	}
+}
+
+# @genqlient(for: "DatasetFieldTypeInput.nullable", omitempty: true)
+# @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "SourceTableDefinitionInput.isInsertOnly", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation saveSourceDataset(
+	$workspaceId: ObjectId!,
+	$datasetDefinition: DatasetDefinitionInput!,
+	$sourceTable: SourceTableDefinitionInput!,
+	$dep: DependencyHandlingInput
+) {
+	dataset: saveSourceDataset(workspaceId:$workspaceId, datasetDefinition:$datasetDefinition, sourceTable:$sourceTable, dependencyHandling:$dep) {
+		# @genqlient(flatten: true)
+		dataset {
+			...Dataset
+		}
+	}
+}

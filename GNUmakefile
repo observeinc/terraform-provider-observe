@@ -9,6 +9,11 @@ SWEEP_DIR?=./observe
 
 default: build
 
+docker-test-gen-gql-client:
+	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	--rm golang:latest \
+		/bin/bash -c "src/github.com/observeinc/terraform-provider-observe/scripts/check-client-generation.sh"
+
 docker-integration:
 	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	-e OBSERVE_CUSTOMER -e OBSERVE_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
@@ -39,10 +44,15 @@ docker-sign:
 			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
+gen-gql-client:
+	cd client/meta && go run -mod=mod github.com/Khan/genqlient
+
+generate: gen-gql-client
+
 package: build
 	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
 
-build: fmtcheck
+build: generate fmtcheck
 	go build -o bin/$(VERSION)/terraform-provider-observe_$(VERSION) -ldflags="-X github.com/observeinc/terraform-provider-observe/version.ProviderVersion=$(VERSION)"
 
 sweep:
@@ -100,4 +110,4 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build test sweep testacc vet fmt fmtcheck errcheck test-compile website website-test docs
+.PHONY: build generate test sweep testacc vet fmt fmtcheck errcheck test-compile website website-test docs

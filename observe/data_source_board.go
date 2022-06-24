@@ -24,7 +24,7 @@ func dataSourceBoard() *schema.Resource {
 				Computed:    true,
 				Description: schemaBoardOIDDescription,
 			},
-			"dataset": &schema.Schema{
+			"dataset": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaBoardDatasetDescription,
@@ -60,6 +60,6 @@ func dataSourceBoardRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.FromErr(err)
 	}
 
-	data.SetId(board.ID)
+	data.SetId(board.Id)
 	return boardToResourceData(board, data)
 }

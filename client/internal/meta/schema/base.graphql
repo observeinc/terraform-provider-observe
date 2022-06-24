@@ -1,0 +1,167 @@
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
+type Query
+
+type Mutation 
+
+type Subscription 
+
+directive @goModel(model: String, models: [String!]) on OBJECT
+    | INPUT_OBJECT
+    | SCALAR
+    | ENUM
+    | INTERFACE
+    | UNION
+
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+
+scalar Any @goModel(model: "observe/meta/metatypes.AnyScalar")
+scalar CustomerId @goModel(model: "observe/meta/metatypes.CustomerIdScalar")
+scalar Duration @goModel(model: "observe/meta/metatypes.DurationScalar")
+scalar Int64 @goModel(model: "observe/meta/metatypes.Int64Scalar")
+scalar JsonObject @goModel(model: "observe/meta/metatypes.ObjectScalar")
+scalar Number @goModel(model: "observe/meta/metatypes.NumberScalar")
+scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectIdScalar")
+scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
+scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
+scalar StringOrID @goModel(model: "observe/meta/metatypes.StringOrID")
+
+"""
+Time presented in RFC3339 format.
+"""
+scalar Time @goModel(model: "observe/meta/metatypes.TimeScalar")
+scalar UserId @goModel(model: "observe/meta/metatypes.UserIdScalar")
+
+"""
+At some point in the future, we may have Segments as business objects,
+and be able to bookmark them. Technically, we can bookmark bookmark groups, but
+there is no current UI using that feature.
+"""
+enum ObjectKind @goModel(model: "observe/meta/metatypes.ObjectKind") {
+  Dataset
+  Worksheet
+  BookmarkGroup
+  Monitor
+  Resource
+  Dashboard
+}
+
+interface DatasetGenerator @goModel(model: "observe/meta/metatypes.DatasetGenerator") {
+    id: ObjectId!
+    generatedDatasetIds: [GeneratedDataset!]!
+}
+
+"""
+Currently only used for Monitors
+"""
+type GeneratedDataset @goModel(model: "observe/meta/metatypes.GeneratedDataset") {
+    role: String!
+    datasetId: ObjectId!
+}
+
+interface FolderObject @goModel(model: "observe/meta/metatypes.FolderObject") {
+    folderId: ObjectId!
+}
+
+interface AuditedObject @goModel(model: "observe/meta/metatypes.AuditedObject") {
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    createdDate: Time!
+    updatedDate: Time!
+}
+
+"""
+Used to indicate WorkspaceObjects managed via terraform
+"""
+type TerraformObject implements WorkspaceObject @goModel(model: "observe/meta/metatypes.TerraformObject") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject
+    managedById: ObjectId
+}
+
+"""
+stats common to all tokens (ingest, api etc)
+"""
+interface TokenStats @goModel(model: "observe/meta/metatypes.TokenStats") {
+    firstUsed: Time!
+    lastUsed: Time!
+    lastError: Time
+}
+
+interface Token @goModel(model: "observe/meta/metatypes.Token") {
+    id: String!
+    name: String!
+    description: String
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    createdDate: Time!
+    updatedDate: Time!
+    """
+    optional stats
+    """
+    stats: TokenStats
+    disabled: Boolean!
+}
+
+input ResourceIdInput @goModel(model: "observe/meta/metatypes.ResourceIdInput") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValueInput!]!
+    timeRange: TimeRangeInput
+}
+
+type ResourceId @goModel(model: "observe/meta/metatypes.ResourceId") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValue!]!
+    timeRange: TimeRange
+}
+
+type TimeRange @goModel(model: "observe/meta/metatypes.TimeRange") {
+    start: Time
+    end: Time
+}
+
+input TimeRangeInput @goModel(model: "observe/meta/metatypes.TimeRange") {
+    start: Time
+    end: Time
+}
+
+type ColumnAndValue @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
+    name: String!
+    value: String
+}
+
+input ColumnAndValueInput @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
+    name: String!
+    value: String
+}
+
+type SourceLoc @goModel(model: "observe/compiler/comptypes.SourceLocation") {
+    row: Int64!
+    col: Int64!
+}
+
+input SourceLocInput @goModel(model: "observe/compiler/comptypes.SourceLocation") {
+    row: Int64!
+    col: Int64!
+}
+
+type ResultStatus @goModel(model: "observe/meta/metagql.ResultStatus") {
+    success: Boolean!
+    errorMessage: String!
+    detailedInfo: JsonObject
+}
+
+

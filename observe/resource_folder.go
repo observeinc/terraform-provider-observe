@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func resourceFolder() *schema.Resource {
@@ -19,11 +21,11 @@ func resourceFolder() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -46,19 +48,18 @@ func resourceFolder() *schema.Resource {
 	}
 }
 
-func newFolderConfig(data *schema.ResourceData) (config *observe.FolderConfig, diags diag.Diagnostics) {
-	config = &observe.FolderConfig{
-		Name: data.Get("name").(string),
+func newFolderConfig(data *schema.ResourceData) (input *gql.FolderInput, diags diag.Diagnostics) {
+	name := data.Get("name").(string)
+	input = &gql.FolderInput{
+		Name: &name,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		s := v.(string)
-		config.IconURL = &s
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("description"); ok {
-		s := v.(string)
-		config.Description = &s
+		input.Description = stringPtr(v.(string))
 	}
 
 	return
@@ -72,13 +73,13 @@ func resourceFolderCreate(ctx context.Context, data *schema.ResourceData, meta i
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateFolder(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateFolder(ctx, id.Id, config)
 	if err != nil {
 		return diag.Errorf("failed to create folder: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceFolderRead(ctx, data, meta)...)
 }
 
@@ -109,29 +110,24 @@ func resourceFolderRead(ctx context.Context, data *schema.ResourceData, meta int
 	return folderToResourceData(folder, data)
 }
 
-func folderToResourceData(folder *observe.Folder, data *schema.ResourceData) (diags diag.Diagnostics) {
-	workspaceOID := observe.OID{
-		Type: observe.TypeWorkspace,
-		ID:   folder.WorkspaceID,
-	}
-
-	if err := data.Set("workspace", workspaceOID.String()); err != nil {
+func folderToResourceData(folder *gql.Folder, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(folder.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("name", folder.Config.Name); err != nil {
+	if err := data.Set("name", folder.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("icon_url", folder.Config.IconURL); err != nil {
+	if err := data.Set("icon_url", folder.IconUrl); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("description", folder.Config.Description); err != nil {
+	if err := data.Set("description", folder.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", folder.OID().String()); err != nil {
+	if err := data.Set("oid", folder.Oid().String()); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -50,10 +53,10 @@ func resourceDataset() *schema.Resource {
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
@@ -81,7 +84,7 @@ func resourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatasetOIDDescription,
 			},
-			"freshness": &schema.Schema{
+			"freshness": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
@@ -101,7 +104,7 @@ func resourceDataset() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      schemaDatasetInputsDescription,
 			},
-			"stage": &schema.Schema{
+			"stage": {
 				Type:        schema.TypeList,
 				MinItems:    1,
 				Required:    true,
@@ -136,91 +139,84 @@ func resourceDataset() *schema.Resource {
 	}
 }
 
-func newDatasetConfig(data *schema.ResourceData) (*observe.DatasetConfig, diag.Diagnostics) {
+func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
 	query, diags := newQuery(data)
 	if diags.HasError() {
-		return nil, diags
+		return nil, nil, diags
 	}
 
 	if query == nil {
-		return nil, diag.Errorf("no query provided")
+		return nil, nil, diag.Errorf("no query provided")
 	}
 
-	config := &observe.DatasetConfig{
-		Name:  data.Get("name").(string),
-		Query: query,
+	input := &gql.DatasetInput{}
+	if v, ok := data.GetOk("name"); ok {
+		input.Label = v.(string)
+	} else {
+		return nil, nil, diag.Errorf("name not set")
 	}
 
 	if v, ok := data.GetOk("freshness"); ok {
 		// we already validated in schema
 		t, _ := time.ParseDuration(v.(string))
-		config.Freshness = &t
+		input.FreshnessDesired = types.Int64Scalar(t).Ptr()
 	}
 
 	if v, ok := data.GetOk("on_demand_materialization_length"); ok {
 		// we already validated in schema
 		t, _ := time.ParseDuration(v.(string))
-		config.OnDemandMaterializationLength = &t
+		input.OnDemandMaterializationLength = types.Int64Scalar(t).Ptr()
 	}
 
 	{
 		// always reset to empty string if description not set
-		description := data.Get("description").(string)
-		config.Description = &description
+		input.Description = stringPtr(data.Get("description").(string))
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("path_cost"); ok {
-		config.PathCost = int64(v.(int))
+		input.PathCost = types.Int64Scalar(v.(int)).Ptr()
+	} else {
+		input.PathCost = types.Int64Scalar(0).Ptr()
 	}
 
-	if err := config.Validate(); err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	return config, diags
+	return input, query, diags
 }
 
-func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.Freshness != nil {
-		if err := data.Set("freshness", d.Config.Freshness.String()); err != nil {
+	if d.FreshnessDesired != nil {
+		if err := data.Set("freshness", d.FreshnessDesired.Duration().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.OnDemandMaterializationLength != nil {
-		if err := data.Set("on_demand_materialization_length", d.Config.OnDemandMaterializationLength.String()); err != nil {
+	if d.OnDemandMaterializationLength != nil {
+		if err := data.Set("on_demand_materialization_length", d.OnDemandMaterializationLength.Duration().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Description != nil {
-		if err := data.Set("description", d.Config.Description); err != nil {
+	if d.Description != nil {
+		if err := data.Set("description", d.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.IconURL != nil {
-		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+	if d.IconUrl != nil {
+		if err := data.Set("icon_url", d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	var currentCost int64
-	if v, ok := data.GetOk("path_cost"); ok {
-		currentCost = int64(v.(int))
-	}
-
-	if d.Config.PathCost != currentCost {
-		if err := data.Set("path_cost", d.Config.PathCost); err != nil {
+	if d.PathCost != nil {
+		if err := data.Set("path_cost", d.PathCost); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -229,45 +225,52 @@ func datasetToResourceData(d *observe.Dataset, data *schema.ResourceData) (diags
 		return diags
 	}
 
-	if err := flattenAndSetQuery(data, d.Config.Query); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if d.Transform != nil && d.Transform.Current != nil {
+		if err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, query *observe.Query) error {
-	if query == nil {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery) error {
+	if len(gqlstages) == 0 {
 		return nil
 	}
 
-	inputs := make(map[string]interface{}, len(query.Inputs))
-	for name, input := range query.Inputs {
-		oid := observe.OID{
-			Type: observe.TypeDataset,
-			ID:   *input.Dataset,
+	queryData, err := flattenQuery(gqlstages)
+	if err != nil {
+		return err
+	}
+
+	inputs := make(map[string]interface{}, 0)
+	for name, input := range queryData.Inputs {
+		id := oid.OID{
+			Type: oid.TypeDataset,
+			Id:   *input.Dataset,
 		}
 
 		// check for existing version timestamp we can maintain
 		if v, ok := data.GetOk(fmt.Sprintf("inputs.%s", name)); ok {
-			prv, err := observe.NewOID(v.(string))
-			if err == nil && oid.ID == prv.ID {
-				oid.Version = prv.Version
+			prv, err := oid.NewOID(v.(string))
+			if err == nil && id.Id == prv.Id {
+				id.Version = prv.Version
 			}
 		}
-		inputs[name] = oid.String()
+		inputs[name] = id.String()
 	}
 
 	if err := data.Set("inputs", inputs); err != nil {
 		return err
 	}
 
-	stages := make([]interface{}, len(query.Stages))
-	for i, stage := range query.Stages {
+	stages := make([]interface{}, len(queryData.Stages))
+	for i, stage := range queryData.Stages {
 		s := map[string]interface{}{
 			"pipeline": stage.Pipeline,
 		}
@@ -291,13 +294,13 @@ func flattenAndSetQuery(data *schema.ResourceData, query *observe.Query) error {
 
 func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newDatasetConfig(data)
+	input, queryInput, diags := newDatasetConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateDataset(ctx, oid.ID, config)
+	wsid, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -307,7 +310,7 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceDatasetRead(ctx, data, meta)...)
 }
 
@@ -327,13 +330,16 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newDatasetConfig(data)
+	input, queryInput, diags := newDatasetConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateDataset(ctx, oid.ID, data.Id(), config)
+	id := data.Id()
+	input.Id = &id
+	wsid, _ := oid.NewOID(data.Get("workspace").(string))
+
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -363,18 +369,18 @@ func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	oldOID, err := observe.NewOID(old)
+	oldOID, err := oid.NewOID(old)
 	if err != nil {
 		log.Printf("[WARN] could not convert old %s %q to OID: %s\n", k, old, err)
 		return false
 	}
 
-	newOID, err := observe.NewOID(new)
+	newOID, err := oid.NewOID(new)
 	if err != nil {
 		log.Printf("[WARN] could not convert new %s %q to OID: %s\n", k, new, err)
 		return false
 	}
 
 	// ignore version
-	return oldOID.Type == newOID.Type && oldOID.ID == newOID.ID
+	return oldOID.Type == newOID.Type && oldOID.Id == newOID.Id
 }

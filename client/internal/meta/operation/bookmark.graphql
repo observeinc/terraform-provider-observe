@@ -1,0 +1,33 @@
+fragment Bookmark on Bookmark {
+	id
+	name
+	iconUrl
+	targetId
+	targetIdKind
+	groupId
+}
+
+mutation createOrUpdateBookmark(
+	# @genqlient(pointer: true)
+	$id: ObjectId,
+	$bookmark: BookmarkInput!
+) {
+	# @genqlient(flatten: true)
+	bookmark: createOrUpdateBookmark(id:$id, bookmark: $bookmark) {
+		...Bookmark
+	}
+}
+
+query getBookmark($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	bookmark: bookmark(id: $id) {
+		...Bookmark
+	}
+}
+
+mutation deleteBookmark($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteBookmark(id: $id) {
+        ...ResultStatus
+	}
+}

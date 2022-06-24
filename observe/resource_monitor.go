@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -38,11 +41,11 @@ func resourceMonitor() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -61,7 +64,7 @@ func resourceMonitor() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"freshness": &schema.Schema{
+			"freshness": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
@@ -77,7 +80,7 @@ func resourceMonitor() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
-			"stage": &schema.Schema{
+			"stage": {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Required: true,
@@ -104,7 +107,7 @@ func resourceMonitor() *schema.Resource {
 					},
 				},
 			},
-			"rule": &schema.Schema{
+			"rule": {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				MaxItems: 1,
@@ -132,7 +135,7 @@ func resourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"count": &schema.Schema{
+						"count": {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
@@ -142,7 +145,7 @@ func resourceMonitor() *schema.Resource {
 									"compare_function": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 									},
 									"compare_value": {
 										Type:     schema.TypeFloat,
@@ -167,7 +170,7 @@ func resourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"change": &schema.Schema{
+						"change": {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
@@ -178,18 +181,18 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Optional:         true,
 										Default:          "absolute",
-										ValidateDiagFunc: validateEnums(observe.ChangeTypes),
+										ValidateDiagFunc: validateEnums(gql.AllChangeTypes),
 									},
 									"compare_function": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 									},
 									"aggregate_function": {
 										Type:             schema.TypeString,
 										Optional:         true,
 										Default:          "avg",
-										ValidateDiagFunc: validateEnums(observe.AggregateFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllAggregateFunctions),
 									},
 									"compare_value": {
 										Type:     schema.TypeFloat,
@@ -220,7 +223,7 @@ func resourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"facet": &schema.Schema{
+						"facet": {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
@@ -230,7 +233,7 @@ func resourceMonitor() *schema.Resource {
 									"facet_function": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(observe.FacetFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllFacetFunctions),
 									},
 									"facet_values": {
 										Type:     schema.TypeList,
@@ -241,7 +244,7 @@ func resourceMonitor() *schema.Resource {
 									"time_function": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(observe.TimeFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllTimeFunctions),
 									},
 									"time_value": {
 										Type:     schema.TypeFloat,
@@ -256,7 +259,7 @@ func resourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"threshold": &schema.Schema{
+						"threshold": {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
@@ -266,7 +269,7 @@ func resourceMonitor() *schema.Resource {
 									"compare_function": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 									},
 									"compare_values": {
 										Type:     schema.TypeList,
@@ -285,12 +288,12 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Optional:         true,
 										Default:          "at_all_times",
-										ValidateDiagFunc: validateEnums(observe.ThresholdAggFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllThresholdAggFunctions),
 									},
 								},
 							},
 						},
-						"promote": &schema.Schema{
+						"promote": {
 							Type:         schema.TypeList,
 							MaxItems:     1,
 							Optional:     true,
@@ -317,7 +320,7 @@ func resourceMonitor() *schema.Resource {
 					},
 				},
 			},
-			"notification_spec": &schema.Schema{
+			"notification_spec": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
@@ -328,13 +331,13 @@ func resourceMonitor() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "informational",
-							ValidateDiagFunc: validateEnums(observe.NotificationImportances),
+							ValidateDiagFunc: validateEnums(gql.AllNotificationImportances),
 						},
 						"merge": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "merged",
-							ValidateDiagFunc: validateEnums(observe.NotificationMerges),
+							ValidateDiagFunc: validateEnums(gql.AllNotificationMerges),
 						},
 					},
 				},
@@ -343,19 +346,18 @@ func resourceMonitor() *schema.Resource {
 	}
 }
 
-func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.MonitorRuleConfig, diags diag.Diagnostics) {
-	ruleConfig = &observe.MonitorRuleConfig{
-		GroupByGroups: make([]observe.MonitorGroupInfo, 0),
+func newMonitorRuleConfig(data *schema.ResourceData) (ruleInput *gql.MonitorRuleInput, diags diag.Diagnostics) {
+	ruleInput = &gql.MonitorRuleInput{
+		GroupByGroups: make([]gql.MonitorGroupInfoInput, 0),
 	}
 
 	if v, ok := data.GetOk("rule.0.source_column"); ok {
-		s := v.(string)
-		ruleConfig.SourceColumn = &s
+		ruleInput.SourceColumn = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("rule.0.group_by_group"); ok {
 		for _, el := range v.([]interface{}) {
-			info := observe.MonitorGroupInfo{
+			info := gql.MonitorGroupInfoInput{
 				Columns: make([]string, 0),
 			}
 			if el != nil {
@@ -365,76 +367,79 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 					info.Columns = append(info.Columns, col.(string))
 				}
 			}
-			ruleConfig.GroupByGroups = append(ruleConfig.GroupByGroups, info)
+			ruleInput.GroupByGroups = append(ruleInput.GroupByGroups, info)
 		}
 	}
 
 	if data.Get("rule.0.count.#") == 1 {
-		ruleConfig.CountRule = &observe.MonitorRuleCountConfig{}
+		ruleInput.CountRule = &gql.MonitorRuleCountInput{}
 
 		v := data.Get("rule.0.count.0.compare_function")
-		fn := observe.CompareFunction(toCamel(v.(string)))
-		ruleConfig.CountRule.CompareFunction = &fn
+		fn := gql.CompareFunction(toCamel(v.(string)))
+		ruleInput.CountRule.CompareFunction = &fn
 
 		// TODO: remove compare_value
 		if v, ok := data.GetOk("rule.0.count.0.compare_value"); ok {
-			ruleConfig.CountRule.CompareValues = []float64{v.(float64)}
+			n := types.NumberScalar(v.(float64))
+			ruleInput.CountRule.CompareValues = []types.NumberScalar{n}
 		} else if v, ok := data.GetOk("rule.0.count.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
-				ruleConfig.CountRule.CompareValues = append(ruleConfig.CountRule.CompareValues, i.(float64))
+				n := types.NumberScalar(i.(float64))
+				ruleInput.CountRule.CompareValues = append(ruleInput.CountRule.CompareValues, n)
 			}
 		}
 		if v, ok := data.GetOk("rule.0.count.0.lookback_time"); ok {
-			t, _ := time.ParseDuration(v.(string))
-			ruleConfig.CountRule.LookbackTime = &t
+			lookbackTimeParsed, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.CountRule.LookbackTime = lookbackTimeParsed
 		}
 	}
 
 	if data.Get("rule.0.change.#") == 1 {
-		ruleConfig.ChangeRule = &observe.MonitorRuleChangeConfig{}
+		ruleInput.ChangeRule = &gql.MonitorRuleChangeInput{}
 
 		if v := data.Get("rule.0.change.0.change_type"); true {
-			ruleConfig.ChangeRule.ChangeType = observe.ChangeType(toCamel(v.(string)))
+			changeType := gql.ChangeType(toCamel(v.(string)))
+			ruleInput.ChangeRule.ChangeType = &changeType
 		}
 
 		if v := data.Get("rule.0.change.0.aggregate_function"); true {
-			fn := observe.AggregateFunction(toCamel(v.(string)))
-			ruleConfig.ChangeRule.AggregateFunction = &fn
+			fn := gql.AggregateFunction(toCamel(v.(string)))
+			ruleInput.ChangeRule.AggregateFunction = &fn
 		}
 
 		if v := data.Get("rule.0.change.0.compare_function"); true {
-			fn := observe.CompareFunction(toCamel(v.(string)))
-			ruleConfig.ChangeRule.CompareFunction = &fn
+			fn := gql.CompareFunction(toCamel(v.(string)))
+			ruleInput.ChangeRule.CompareFunction = &fn
 		}
 
 		// TODO: remove compare_value
 		if v, ok := data.GetOk("rule.0.change.0.compare_value"); ok {
-			ruleConfig.ChangeRule.CompareValues = []float64{v.(float64)}
+			n := types.NumberScalar(v.(float64))
+			ruleInput.ChangeRule.CompareValues = []types.NumberScalar{n}
 		} else if v, ok := data.GetOk("rule.0.change.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
-				ruleConfig.ChangeRule.CompareValues = append(ruleConfig.ChangeRule.CompareValues, i.(float64))
+				n := types.NumberScalar(i.(float64))
+				ruleInput.ChangeRule.CompareValues = append(ruleInput.ChangeRule.CompareValues, n)
 			}
 		}
 
 		if v, ok := data.GetOk("rule.0.change.0.lookback_time"); ok {
-			t, _ := time.ParseDuration(v.(string))
-			ruleConfig.ChangeRule.LookbackTime = &t
+			lookbackTimeParsed, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.ChangeRule.LookbackTime = lookbackTimeParsed
 		}
 
 		if v, ok := data.GetOk("rule.0.change.0.baseline_time"); ok {
-			t, _ := time.ParseDuration(v.(string))
-			ruleConfig.ChangeRule.BaselineTime = &t
+			baselineTimeParsed, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.ChangeRule.BaselineTime = baselineTimeParsed
 		}
 	}
 
 	if data.Get("rule.0.facet.#") == 1 {
-		ruleConfig.FacetRule = &observe.MonitorRuleFacetConfig{
-			FacetValues: make([]string, 0),
-		}
+		ruleInput.FacetRule = &gql.MonitorRuleFacetInput{}
 
 		if v, ok := data.GetOk("rule.0.facet.0.facet_function"); ok {
-			fn := observe.FacetFunction(toCamel(v.(string)))
-			ruleConfig.FacetRule.FacetFunction = &fn
+			fn := gql.FacetFunction(toCamel(v.(string)))
+			ruleInput.FacetRule.FacetFunction = &fn
 		}
 
 		if v, ok := data.GetOk("rule.0.facet.0.facet_values"); ok {
@@ -442,98 +447,99 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 			for _, el := range v.([]interface{}) {
 				values = append(values, el.(string))
 			}
-			ruleConfig.FacetRule.FacetValues = values
+			ruleInput.FacetRule.FacetValues = values
 		}
 
 		if v, ok := data.GetOk("rule.0.facet.0.time_function"); ok {
-			fn := observe.TimeFunction(toCamel(v.(string)))
-			ruleConfig.FacetRule.TimeFunction = &fn
+			fn := gql.TimeFunction(toCamel(v.(string)))
+			ruleInput.FacetRule.TimeFunction = &fn
 		}
 
 		if v, ok := data.GetOk("rule.0.facet.0.time_value"); ok {
-			f := v.(float64)
-			ruleConfig.FacetRule.TimeValue = &f
+			f := types.NumberScalar(v.(float64))
+			ruleInput.FacetRule.TimeValue = &f
 		}
 
 		if v, ok := data.GetOk("rule.0.facet.0.lookback_time"); ok {
-			t, _ := time.ParseDuration(v.(string))
-			ruleConfig.FacetRule.LookbackTime = &t
+			parsedLookbackTime, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.FacetRule.LookbackTime = parsedLookbackTime
 		}
 	}
 
 	if data.Get("rule.0.threshold.#") == 1 {
-		ruleConfig.ThresholdRule = &observe.MonitorRuleThresholdConfig{}
+		ruleInput.ThresholdRule = &gql.MonitorRuleThresholdInput{}
 
 		v := data.Get("rule.0.threshold.0.compare_function")
-		fn := observe.CompareFunction(toCamel(v.(string)))
-		ruleConfig.ThresholdRule.CompareFunction = &fn
+		fn := gql.CompareFunction(toCamel(v.(string)))
+		ruleInput.ThresholdRule.CompareFunction = &fn
 
 		if v, ok := data.GetOk("rule.0.threshold.0.threshold_agg_function"); ok {
-			aggFn := observe.ThresholdAggFunction(toCamel(v.(string)))
-			ruleConfig.ThresholdRule.ThresholdAggFunction = &aggFn
+			aggFn := gql.ThresholdAggFunction(toCamel(v.(string)))
+			ruleInput.ThresholdRule.ThresholdAggFunction = &aggFn
 		}
 
 		if v, ok := data.GetOk("rule.0.threshold.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
-				ruleConfig.ThresholdRule.CompareValues = append(ruleConfig.ThresholdRule.CompareValues, i.(float64))
+				n := types.NumberScalar(i.(float64))
+				ruleInput.ThresholdRule.CompareValues = append(ruleInput.ThresholdRule.CompareValues, n)
 			}
 		}
 		if v, ok := data.GetOk("rule.0.threshold.0.lookback_time"); ok {
-			t, _ := time.ParseDuration(v.(string))
-			ruleConfig.ThresholdRule.LookbackTime = &t
+			parsedLookbackTime, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.ThresholdRule.LookbackTime = parsedLookbackTime
 		}
 	}
 
 	if data.Get("rule.0.promote.#") == 1 {
-		ruleConfig.PromoteRule = &observe.MonitorRulePromoteConfig{}
+		ruleInput.PromoteRule = &gql.MonitorRulePromoteInput{}
 
 		if v, ok := data.GetOk("rule.0.promote.0.primary_key"); ok {
 			var values []string
 			for _, el := range v.([]interface{}) {
 				values = append(values, el.(string))
 			}
-			ruleConfig.PromoteRule.PrimaryKey = values
+			ruleInput.PromoteRule.PrimaryKey = values
 		}
 
 		if v, ok := data.GetOk("rule.0.promote.0.kind_field"); ok {
 			s := v.(string)
-			ruleConfig.PromoteRule.KindField = &s
+			ruleInput.PromoteRule.KindField = &s
 		}
 
 		if v, ok := data.GetOk("rule.0.promote.0.description_field"); ok {
 			s := v.(string)
-			ruleConfig.PromoteRule.DescriptionField = &s
+			ruleInput.PromoteRule.DescriptionField = &s
 		}
 	}
 
-	return ruleConfig, nil
+	return ruleInput, nil
 }
 
-func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *observe.NotificationSpecConfig, diags diag.Diagnostics) {
+func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *gql.NotificationSpecificationInput, diags diag.Diagnostics) {
 	var (
-		defaultImportance = observe.NotificationImportance("Informational")
-		defaultMerge      = observe.NotificationMerge("Merged")
+		defaultImportance = gql.NotificationImportance("Informational")
+		defaultMerge      = gql.NotificationMerge("Merged")
 	)
 
-	notificationSpec = &observe.NotificationSpecConfig{
+	notificationSpec = &gql.NotificationSpecificationInput{
 		Importance: &defaultImportance,
 		Merge:      &defaultMerge,
 	}
 
 	if v, ok := data.GetOk("notification_spec.0.importance"); ok {
-		s := observe.NotificationImportance(toCamel(v.(string)))
+		s := gql.NotificationImportance(toCamel(v.(string)))
 		notificationSpec.Importance = &s
 	}
 
 	if v, ok := data.GetOk("notification_spec.0.merge"); ok {
-		s := observe.NotificationMerge(toCamel(v.(string)))
+		s := gql.NotificationMerge(toCamel(v.(string)))
 		notificationSpec.Merge = &s
 	}
 
 	return notificationSpec, nil
 }
 
-func newMonitorConfig(data *schema.ResourceData) (config *observe.MonitorConfig, diags diag.Diagnostics) {
+func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags diag.Diagnostics) {
 	query, diags := newQuery(data)
 	if diags.HasError() {
 		return nil, diags
@@ -553,28 +559,29 @@ func newMonitorConfig(data *schema.ResourceData) (config *observe.MonitorConfig,
 		return nil, diags
 	}
 
-	config = &observe.MonitorConfig{
-		Name:             data.Get("name").(string),
+	name := data.Get("name").(string)
+	disabled := data.Get("disabled").(bool)
+
+	input = &gql.MonitorInput{
+		Name:             &name,
 		Query:            query,
 		Rule:             rule,
-		Disabled:         data.Get("disabled").(bool),
+		Disabled:         &disabled,
 		NotificationSpec: notificationSpec,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		s := v.(string)
-		config.IconURL = &s
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("freshness"); ok {
 		// we already validated in schema
 		t, _ := time.ParseDuration(v.(string))
-		config.Freshness = &t
+		input.FreshnessGoal = types.Int64Scalar(t).Ptr()
 	}
 
 	if v, ok := data.GetOk("description"); ok {
-		s := v.(string)
-		config.Description = &s
+		input.Description = stringPtr(v.(string))
 	}
 
 	return
@@ -588,13 +595,13 @@ func resourceMonitorCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitor(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateMonitor(ctx, id.Id, config)
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceMonitorRead(ctx, data, meta)...)
 }
 
@@ -622,63 +629,58 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 
-	workspaceOID := observe.OID{
-		Type: observe.TypeWorkspace,
-		ID:   monitor.WorkspaceID,
-	}
-
-	if err := data.Set("workspace", workspaceOID.String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("name", monitor.Config.Name); err != nil {
+	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if monitor.Config.Freshness != nil {
-		if err := data.Set("freshness", monitor.Config.Freshness.String()); err != nil {
+	if !monitor.UseDefaultFreshness {
+		if err := data.Set("freshness", monitor.FreshnessGoal.Duration().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("icon_url", monitor.Config.IconURL); err != nil {
+	if err := data.Set("icon_url", monitor.IconUrl); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("description", monitor.Config.Description); err != nil {
+	if err := data.Set("description", monitor.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("disabled", monitor.Config.Disabled); err != nil {
+	if err := data.Set("disabled", monitor.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("rule", flattenRule(monitor.Config.Rule)); err != nil {
+	if err := data.Set("rule", flattenRule(monitor.Rule)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("notification_spec", flattenNotificationSpec(monitor.Config.NotificationSpec)); err != nil {
+	if err := data.Set("notification_spec", flattenNotificationSpec(monitor.NotificationSpec)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := flattenAndSetQuery(data, monitor.Config.Query); err != nil {
+	if err := flattenAndSetQuery(data, monitor.Query.Stages); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", monitor.OID().String()); err != nil {
+	if err := data.Set("oid", monitor.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
 }
 
-func flattenRule(config *observe.MonitorRuleConfig) interface{} {
+func flattenRule(input gql.MonitorRule) interface{} {
 	rule := map[string]interface{}{
-		"source_column": config.SourceColumn,
+		"source_column": input.GetSourceColumn(),
 	}
 
 	var list []interface{}
-	for _, group := range config.GroupByGroups {
+	for _, group := range input.GetGroupByGroups() {
 		list = append(list, map[string]interface{}{
 			"group_name": group.GroupName,
 			"columns":    group.Columns,
@@ -686,57 +688,57 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 	}
 	rule["group_by_group"] = list
 
-	if config.ChangeRule != nil {
+	if changeRule, ok := input.(*gql.MonitorRuleMonitorRuleChange); ok {
 		change := map[string]interface{}{
-			"change_type":        toSnake(config.ChangeRule.ChangeType.String()),
-			"aggregate_function": toSnake(config.ChangeRule.AggregateFunction.String()),
-			"compare_function":   toSnake(config.ChangeRule.CompareFunction.String()),
-			"compare_values":     config.ChangeRule.CompareValues,
-			"lookback_time":      config.ChangeRule.LookbackTime.String(),
-			"baseline_time":      config.ChangeRule.BaselineTime.String(),
+			"change_type":        toSnake(string(changeRule.ChangeType)),
+			"aggregate_function": toSnake(string(changeRule.AggregateFunction)),
+			"compare_function":   toSnake(string(changeRule.CompareFunction)),
+			"compare_values":     changeRule.CompareValues,
+			"lookback_time":      changeRule.LookbackTime.String(),
+			"baseline_time":      changeRule.BaselineTime.String(),
 		}
 
 		rule["change"] = []interface{}{change}
 	}
 
-	if config.CountRule != nil {
+	if countRule, ok := input.(*gql.MonitorRuleMonitorRuleCount); ok {
 		count := map[string]interface{}{
-			"compare_function": toSnake(config.CountRule.CompareFunction.String()),
-			"compare_values":   config.CountRule.CompareValues,
-			"lookback_time":    config.CountRule.LookbackTime.String(),
+			"compare_function": toSnake(string(countRule.CompareFunction)),
+			"compare_values":   countRule.CompareValues,
+			"lookback_time":    countRule.LookbackTime.String(),
 		}
 
 		rule["count"] = []interface{}{count}
 	}
 
-	if config.FacetRule != nil {
+	if facetRule, ok := input.(*gql.MonitorRuleMonitorRuleFacet); ok {
 		facet := map[string]interface{}{
-			"facet_function": toSnake(config.FacetRule.FacetFunction.String()),
-			"facet_values":   config.FacetRule.FacetValues,
-			"time_function":  toSnake(config.FacetRule.TimeFunction.String()),
-			"time_value":     config.FacetRule.TimeValue,
-			"lookback_time":  config.FacetRule.LookbackTime.String(),
+			"facet_function": toSnake(string(facetRule.FacetFunction)),
+			"facet_values":   facetRule.FacetValues,
+			"time_function":  toSnake(string(facetRule.TimeFunction)),
+			"time_value":     facetRule.TimeValue,
+			"lookback_time":  facetRule.LookbackTime.String(),
 		}
 
 		rule["facet"] = []interface{}{facet}
 	}
 
-	if config.ThresholdRule != nil {
+	if thresholdRule, ok := input.(*gql.MonitorRuleMonitorRuleThreshold); ok {
 		threshold := map[string]interface{}{
-			"compare_function":       toSnake(config.ThresholdRule.CompareFunction.String()),
-			"compare_values":         config.ThresholdRule.CompareValues,
-			"lookback_time":          config.ThresholdRule.LookbackTime.String(),
-			"threshold_agg_function": toSnake(config.ThresholdRule.ThresholdAggFunction.String()),
+			"compare_function":       toSnake(string(thresholdRule.CompareFunction)),
+			"compare_values":         thresholdRule.CompareValues,
+			"lookback_time":          thresholdRule.LookbackTime.String(),
+			"threshold_agg_function": toSnake(string(thresholdRule.ThresholdAggFunction)),
 		}
 
 		rule["threshold"] = []interface{}{threshold}
 	}
 
-	if config.PromoteRule != nil {
+	if promoteRule, ok := input.(*gql.MonitorRuleMonitorRulePromote); ok {
 		promote := map[string]interface{}{
-			"primary_key":       config.PromoteRule.PrimaryKey,
-			"kind_field":        config.PromoteRule.KindField,
-			"description_field": config.PromoteRule.DescriptionField,
+			"primary_key":       promoteRule.PrimaryKey,
+			"kind_field":        promoteRule.KindField,
+			"description_field": promoteRule.DescriptionField,
 		}
 
 		rule["promote"] = []interface{}{promote}
@@ -747,16 +749,12 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 	}
 }
 
-func flattenNotificationSpec(config *observe.NotificationSpecConfig) interface{} {
-	if config == nil {
-		return nil
-	}
-
+func flattenNotificationSpec(spec gql.MonitorNotificationSpecNotificationSpecification) interface{} {
 	var results []interface{}
 
 	results = append(results, map[string]interface{}{
-		"merge":      toSnake(config.Merge.String()),
-		"importance": toSnake(config.Importance.String()),
+		"merge":      toSnake(string(*spec.Merge)),
+		"importance": toSnake(string(spec.Importance)),
 	})
 
 	return results

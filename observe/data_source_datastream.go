@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceDatastream() *schema.Resource {
@@ -16,7 +18,7 @@ func dataSourceDatastream() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatastreamWorkspaceDescription,
 			},
 			"name": {
@@ -58,18 +60,18 @@ func dataSourceDatastream() *schema.Resource {
 
 func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client = meta.(*observe.Client)
-		name   = data.Get("name").(string)
-		id     = data.Get("id").(string)
+		client     = meta.(*observe.Client)
+		name       = data.Get("name").(string)
+		explicitId = data.Get("id").(string)
 	)
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
 
-	var d *observe.Datastream
+	var d *gql.Datastream
 	var err error
 
-	if id != "" {
-		d, err = client.GetDatastream(ctx, id)
+	if explicitId != "" {
+		d, err = client.GetDatastream(ctx, explicitId)
 	} else if name != "" {
 		defer func() {
 			// right now SDK does not report where this error happened,
@@ -77,17 +79,15 @@ func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, me
 			for i := range diags {
 				diags[i].Detail = fmt.Sprintf("Failed to read datastream %q", name)
 			}
-			return
 		}()
 
-		d, err = client.LookupDatastream(ctx, oid.ID, name)
+		d, err = client.LookupDatastream(ctx, implicitId.Id, name)
 	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(d.ID)
-
+	data.SetId(d.Id)
 	return datastreamToResourceData(d, data)
 }

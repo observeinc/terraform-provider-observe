@@ -1,0 +1,120 @@
+extend type Query {
+    """
+    by default, get bad auth tokens from the last day, for the requesting customer
+    """
+    badAuthTokens(fromTime: Time, toTime: Time, customerId: CustomerId): AuthtokenUsage!
+
+
+    """
+    this lets the client generate an error message. Good for testing. Probably not good for long-term production.
+    """
+    panic(text: String!): String!
+
+    deferredForeignKeys(selector: DeferredForeignKeySelectorInput): [DeferredForeignKey!]
+    deferredForeignKey(id: ObjectId!): DeferredForeignKey
+}
+
+extend type Mutation {
+    createDeferredForeignKey(workspaceId: ObjectId!, data: DeferredForeignKeyInput!): DeferredForeignKey
+    updateDeferredForeignKey(id: ObjectId!, data: DeferredForeignKeyInput!): DeferredForeignKey
+    deleteDeferredForeignKey(id: ObjectId!): ResultStatus
+}
+
+extend type Subscription {
+	testEmptySubscribe: String!
+}
+
+
+type AuthtokenInstance @goModel(model: "observe/meta/metatypes.AuthtokenInstance") {
+    """
+    TokenFragment is the first five characters of the attempted-to-use token
+    We can't give you more of the token, because that would be leaking secrets.
+    Also, we can't give you the token "name" because the token was likely already
+    purged out of the database, and thus there *is* no name that we know of -- the
+    token is just ... a bad token.
+    """
+    tokenFragment: String!
+    """
+    TokenHash is the internal hash of the token. This is helpful for Observe when
+    tracing this down, but doesn't help the user identify the token at all
+    """
+    tokenHash: String!
+    """
+    Earliest use time within the window of this token
+    """
+    earliestUse: Time!
+    """
+    Latest use time within the window of this token
+    """
+    latestUse: Time!
+    """
+    Total use count within the window of this token
+    """
+    useCount: Int64!
+}
+
+type AuthtokenUsage @goModel(model: "observe/meta/metatypes.AuthtokenUsage") {
+    badTokens: [AuthtokenInstance!]
+}
+
+input DeferredForeignKeySelectorInput @goModel(model: "observe/meta/metatypes.DeferredForeignKeySelector") {
+    workspace: ObjectId
+    excludeResolved: Boolean
+    excludeUnresolved: Boolean
+    forDataset: ObjectId
+}
+
+type DeferredDatasetReference @goModel(model: "observe/meta/metatypes.DeferredDatasetReference") {
+    datasetId: ObjectId
+    datasetPath: String
+}
+
+input DeferredDatasetReferenceInput @goModel(model: "observe/meta/metatypes.DeferredDatasetReference") {
+    datasetId: ObjectId
+    """
+    A path may specify "Workspace.Datasetname", or it may just specify
+    Datasetname, in which case it is relative to the Workspace that the
+    Potential Foreign Key lives in.
+    """
+    datasetPath: String
+}
+
+type ResolvedForeignKey @goModel(model: "observe/meta/metatypes.ResolvedForeignKey") {
+    sourceId: ObjectId! @goField(name:SourceDatasetID)
+    targetId: ObjectId! @goField(name:TargetDatasetID)
+    sourceDataset: Dataset! @goField(forceResolver:true)
+    targetDataset: Dataset! @goField(forceResolver:true)
+}
+
+type DeferredForeignKeyStatus @goModel(model: "observe/meta/metatypes.DeferredForeignKeyStatus") {
+    foundSource: Boolean!
+    foundTarget: Boolean!
+    matchedSourceFields: Boolean!
+    matchedTargetFields: Boolean!
+    fieldTypesAreComparable: Boolean!
+    errorText: String!
+}
+
+type DeferredForeignKey @goModel(model: "observe/meta/metatypes.DeferredForeignKey") {
+    id: ObjectId!
+    workspaceId: ObjectId!
+    sourceDataset: DeferredDatasetReference
+    targetDataset: DeferredDatasetReference
+    srcFields: [String!]
+    dstFields: [String!]
+    label: String
+    resolution: ResolvedForeignKey
+    status: DeferredForeignKeyStatus!
+}
+
+input DeferredForeignKeyInput @goModel(model: "observe/meta/metatypes.DeferredForeignKey") {
+    sourceDataset: DeferredDatasetReferenceInput
+    targetDataset: DeferredDatasetReferenceInput
+    srcFields: [String!]
+    dstFields: [String!]
+    """
+    The API will make up a label if it's specified as empty.
+    """
+    label: String
+}
+

@@ -1,0 +1,268 @@
+extend type Query {
+    dashboardSearch(terms: DWSearchInput!, maxCount: Int64): DashboardSearchResultWrapper!
+    worksheetSearch(terms: DWSearchInput!, maxCount: Int64): WorksheetSearchResultWrapper!
+
+    """
+    searchMode defaults to InclusiveMode, which means "any matches, counts" sorted by better-scoring.
+    If you pass in ExclusiveMode, then you get "must match each thing" behavior, which may end up
+    returning no datasets at all quite easily.
+    """
+    datasetSearch(projects: [ObjectId!], labelMatches: [String!], columnMatches: [String!], keyMatchTypes: [String!], foreignKeyTargetMatches: [String!], reachableFromDataset:ObjectId, implementsInterfaces: [String!], sourceMatches: [String!], searchMode: SearchMode): [DatasetMatch!]!
+
+    """
+    metricSearch finds all matched metrics:
+    - inDatasets limits the candidates to only the metrics belonging to any of the provided metric datasets
+    - linkToDatasets limits the candidates to only the metrics in the metric dataset that has link(s) to any of the provided resource datasets
+    - match will be used to to match against (case ignored) metric name, label and description
+    - heuristicsOptions, when provided, expands the search to also include computed metric heuristics
+    """
+    metricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], linkToDatasets: [ObjectId!], match: String!, heuristicsOptions: MetricHeuristicsOptions): MetricSearchResult!
+
+    """
+    Search for resource instances matching all of the given key fragments.
+    The timeout defaults to 60 seconds if not specified
+    """
+    resourceInstanceSearch(keyFragments: [String!], datasetIds: [ObjectId!], startTime: Time, endTime: Time, perDatasetLimit: Int64, globalLimit: Int64, pagination: PaginationInput, timeoutSeconds: Int64): PaginatedResults
+}
+    
+
+extend type Subscription {
+    datasetWatch(workspaceId: ObjectId!, watchOptions: DatasetWatchOptions): [DatasetWatchUpdate!]!
+
+    """
+    Given one or more search values, return resources that match all search values.
+    Recent resources are returned earlier. Not all resources that match the search
+    values will be returned.
+    
+    Current SLO: 5 seconds to 1st result, 30 seconds to return all active resources that match the search values
+    """
+    resourceSearch(input: ResourceSearchInput!): ResourceSearchResult!
+}
+
+type DatasetMatchData @goModel(model: "observe/meta/metaparser.DatasetMatchData") {
+    score: Float!
+    matchedProject: [ObjectId!]
+    matchedLabel: [String!]
+    matchedColumn: [String!]
+    matchedKey: [String!]
+    matchedForeignKey: [String!]
+    matchedInterface: [String!]
+}
+
+type DatasetMatch @goModel(model: "observe/meta/metaparser.DatasetMatch") {
+    dataset: Dataset!
+    matchData: DatasetMatchData!
+}
+
+"""
+Same search input used for Dashboards and Worksheets, hence, DWSearchInput.
+"""
+input DWSearchInput @goModel(model: "observe/meta/metakind.SearchSpec") {
+    name:  [String!]
+    workspaceId:  [ObjectId!]
+    workspaceName:  [String!]
+    folderId:  [ObjectId!]
+    folderName:  [String!]
+    user: [UserId!]
+    parameter: [ParameterSearchInput!]
+    input: [InputSearchInput!]
+}
+
+input ParameterSearchInput @goModel(model: "observe/meta/metakind.ParameterSearchSpec") {
+    """
+    name will do case insensitive substring match against the name AND id of the parameter
+    """
+    name: [String!]
+    kind: [ValueType!]
+    resource: [ObjectId!]
+    input: [InputSearchInput!]
+}
+
+input InputSearchInput @goModel(model: "observe/meta/metakind.InputSearchSpec") {
+    """
+    name is a dataset path, which gets resolved to ID before matching. Not resolved means no match.
+    """
+    name: [String!]
+    id: [ObjectId!]
+}
+
+type DashboardSearchResult @goModel(model: "observe/meta/metakind.DashboardSearchResult") {
+    dashboard:  Dashboard!
+    score:  Int64!
+    inWorkspace:  Boolean!
+    inFolder:  Boolean!
+    numParameters:  Int64!
+    numInputs:  Int64!
+}
+
+type DashboardSearchResultWrapper @goModel(model: "observe/meta/metakind.DashboardSearchResultWrapper") {
+    dashboards: [DashboardSearchResult!]!
+    warnings: [String!]!
+}
+
+type WorksheetSearchResult @goModel(model: "observe/meta/metakind.WorksheetSearchResult") {
+    worksheet:  Worksheet!
+    score:  Int64!
+    inWorkspace:  Boolean!
+    numParameters:  Int64!
+    numInputs:  Int64!
+}
+
+type WorksheetSearchResultWrapper @goModel(model: "observe/meta/metakind.WorksheetSearchResultWrapper") {
+    worksheets: [WorksheetSearchResult!]!
+    warnings: [String!]!
+}
+
+"""
+A ResourceSearchInput contains all required and optional parameters for
+a resourceSearch subscription (except for workspaceId)
+"""
+input ResourceSearchInput @goModel(model: "observe/meta/metatypes.ResourceSearchInput") {
+    """
+    searchValues is the search query terms. The corresponding ResourceSearchResult
+    are expected to match the searchValues in a way that is useful to the customer.
+    
+    Example: if searchValues = ['cat', 'con'], we will only return Resources that
+    contain both fragments, like one with label 'concat'.
+    
+    Note: The search algorithm may change in the future. The results for a
+    set of searchValues may not be as simple as the above example in the future.
+    """
+    searchValues: [String!]
+
+    workspaceId: ObjectId!
+
+    """
+    datasetIds restricts the set of datasets that will be searched. Note that
+    this does not mean all datasets will be searched.
+    
+    If datasetIds is null, we will try to search all datasets for the customer.
+    If less than 10 datasetIds are defined, the time-to-first result is guaranteed
+    to be under 1 second. TODO(luke)
+    """
+    datasetIds: [ObjectId!]
+
+    """
+    timeRange restricts the time range that we search. Returned resourceSearch
+    results will have been "valid" inside of this range
+    
+    Note: This does not mean that we will return all resource instances in the searchRange.
+    """
+    timeRange: TimeRangeInput
+
+    """
+    perDatasetLimit can be used to reduce or increase the number of results
+    that will be returned for a single dataset.
+    """
+    perDatasetLimit: Int64
+
+    """
+    globalLimit can be used to reduce or increase the number of total results
+    that will be returned.
+    
+    The backend may return more than globalLimit results
+    """
+    globalLimit: Int64
+}
+
+type ResourceSearchResult @goModel(model: "observe/meta/metatypes.ResourceSearchResult") {
+    """
+    instances is a list of Resources that match the ResourceSearchInput
+    """
+    instances: [ResourceSearchInstance!]
+
+    """
+    datasets contain metadata about the datasets that we found instances in
+    """
+    datasets: [ResourceSearchDataset!]
+
+    """
+    progress contains info about how far from completion the
+    resource search query is.
+    
+    TODO(luke): Implement progress tracking
+    """
+    progress: ResourceSearchProgress
+    
+    error: String
+
+    """
+    debugQid exists to make it easier for backend/frontend to troubleshoot or file bugs.
+    """
+    debugQid: String
+}
+
+type ResourceSearchInstance @goModel(model: "observe/meta/metatypes.ResourceSearchInstance") {
+    id: ResourceId!
+    label: String
+}
+
+type ResourceSearchDataset @goModel(model: "observe/meta/metatypes.ResourceSearchDataset") {
+    id: ObjectId!
+    label: String!
+
+    # TODO(luke): Implement searchStartTime, searchEndTime, and instanceCount
+    searchStartTime: Time
+    searchEndTime: Time
+    instanceCount: Int64
+}
+
+type ResourceSearchProgress @goModel(model: "observe/meta/metatypes.ResourceSearchProgress") {
+    estimatedPercent: Int64
+}
+
+input DatasetWatchOptions @goModel(model: "observe/meta/metatypes.DatasetWatchOptions") {
+    """
+    if specified, only sources that prefix-match one of these filters will be included
+    """
+    filterSources: [String!]
+    """
+    if specified, only specific datasets will be watched
+    """
+    filterDatasets: [ObjectId!]
+}
+
+type DatasetWatchUpdate @goModel(model: "observe/meta/metatypes.DatasetWatchUpdate") {
+    updated: [Dataset!]
+    deleted: [ObjectId!]
+    """
+    when only keys change, thos datasets are put in `related` not `updated`
+    """
+    related: [Dataset!]
+    error: String
+}
+
+enum SearchMode @goModel(model: "observe/meta/metakind.SearchMode") {
+    InclusiveMode
+    ExclusiveMode
+}
+
+enum MetricInclusionOption @goModel(model: "observe/meta/metatypes.MetricInclusionOption") {
+    Everything
+    """
+    ExcludeInactive will hide user-defined metrics that are inactive (not showing up in
+    metric discovery)
+    """
+    ExcludeInactive
+}
+
+input MetricHeuristicsOptions @goModel(model: "observe/meta/metatypes.MetricHeuristicsOptions") {
+    numDiscoveredMetrics: Int64 @deprecated(reason: "use globalLimit instead")
+    globalLimit:          Int64
+    perDatasetLimit:      Int64
+    """
+    include everything by default
+    """
+    inclusionOption:     MetricInclusionOption
+}
+
+type MetricSearchResult @goModel(model: "observe/meta/metatypes.MetricSearchResult") {
+    matches: [MetricMatch!]!
+    datasets: [Dataset!]!
+}
+
+type MetricMatch @goModel(model: "observe/meta/metatypes.MetricMatch") {
+    metric: Metric!
+    datasetId: ObjectId
+}
+

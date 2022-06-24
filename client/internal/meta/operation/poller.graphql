@@ -1,0 +1,99 @@
+fragment HttpRequestConfig on PollerHTTPRequestConfig {
+	url
+	method
+	username
+	password
+	headers
+	params
+}
+
+fragment Poller on Poller {
+	id
+	workspaceId
+	customerId
+	datastreamId
+	disabled
+	kind
+	config {
+		name
+		retries
+		interval
+		tags
+		chunk {
+			enabled
+			size
+		}
+		... on PollerPubSubConfig {
+			projectId
+			jsonKey
+			subscriptionId
+		}
+		... on PollerHTTPConfig {
+			method
+			body
+			endpoint
+			contentType
+			headers
+			# @genqlient(flatten: true)
+			template {
+				...HttpRequestConfig
+			}
+			# @genqlient(flatten: true)
+			requests {
+				...HttpRequestConfig
+			}
+			rules {
+				# @genqlient(flatten: true)
+				match {
+					...HttpRequestConfig
+				}
+				follow
+				decoder {
+					type
+				}
+			}
+		}
+		... on PollerGCPMonitoringConfig {
+			projectId
+			jsonKey
+			includeMetricTypePrefixes
+			excludeMetricTypePrefixes
+			rateLimit
+			totalLimit
+		}
+		... on PollerMongoDBAtlasConfig {
+			publicKey
+			privateKey
+			includeGroups
+			excludeGroups
+		}
+	}
+}
+
+mutation createPoller($workspaceId: ObjectId!, $poller: PollerInput!) {
+	# @genqlient(flatten: true)
+	poller: createPoller(workspaceId:$workspaceId, poller: $poller) {
+		...Poller
+	}
+}
+
+query getPoller($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	poller: poller(id: $id) {
+		...Poller
+	}
+}
+
+mutation updatePoller($id: ObjectId!, $poller: PollerInput!) {
+	# @genqlient(flatten: true)
+	poller: updatePoller(id:$id, poller: $poller) {
+		...Poller
+	}
+}
+
+mutation deletePoller($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deletePoller(id: $id) {
+        ...ResultStatus
+	}
+}

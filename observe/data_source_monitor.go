@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceMonitor() *schema.Resource {
@@ -15,7 +17,7 @@ func dataSourceMonitor() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
@@ -54,7 +56,7 @@ func dataSourceMonitor() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatasetInputsDescription,
 			},
-			"stage": &schema.Schema{
+			"stage": {
 				Type:     schema.TypeList,
 				Computed: true,
 				// we need to declare optional, otherwise we won't get block
@@ -81,7 +83,7 @@ func dataSourceMonitor() *schema.Resource {
 					},
 				},
 			},
-			"rule": &schema.Schema{
+			"rule": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Optional: true,
@@ -109,7 +111,7 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"count": &schema.Schema{
+						"count": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
@@ -131,7 +133,7 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"change": &schema.Schema{
+						"change": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Optional: true,
@@ -165,7 +167,7 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"facet": &schema.Schema{
+						"facet": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Optional: true,
@@ -195,7 +197,7 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
-						"threshold": &schema.Schema{
+						"threshold": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Optional: true,
@@ -205,7 +207,7 @@ func dataSourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Computed:         true,
 										Optional:         true,
-										ValidateDiagFunc: validateEnums(observe.CompareFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 									},
 									"compare_values": {
 										Type:     schema.TypeList,
@@ -224,12 +226,12 @@ func dataSourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Computed:         true,
 										Optional:         true,
-										ValidateDiagFunc: validateEnums(observe.ThresholdAggFunctions),
+										ValidateDiagFunc: validateEnums(gql.AllThresholdAggFunctions),
 									},
 								},
 							},
 						},
-						"promote": &schema.Schema{
+						"promote": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Optional: true,
@@ -254,7 +256,7 @@ func dataSourceMonitor() *schema.Resource {
 					},
 				},
 			},
-			"notification_spec": &schema.Schema{
+			"notification_spec": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -277,26 +279,26 @@ func dataSourceMonitor() *schema.Resource {
 
 func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client = meta.(*observe.Client)
-		name   = data.Get("name").(string)
-		id     = data.Get("id").(string)
+		client     = meta.(*observe.Client)
+		name       = data.Get("name").(string)
+		explicitId = data.Get("id").(string)
 	)
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
 
-	var m *observe.Monitor
+	var m *gql.Monitor
 	var err error
 
-	if id != "" {
-		m, err = client.GetMonitor(ctx, id)
+	if explicitId != "" {
+		m, err = client.GetMonitor(ctx, explicitId)
 	} else if name != "" {
-		m, err = client.LookupMonitor(ctx, oid.ID, name)
+		m, err = client.LookupMonitor(ctx, implicitId.Id, name)
 	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(m.ID)
+	data.SetId(m.Id)
 	return resourceMonitorRead(ctx, data, meta)
 }

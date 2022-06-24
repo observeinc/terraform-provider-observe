@@ -2,12 +2,21 @@
 ## explicit; go 1.11
 # cloud.google.com/go/storage v1.10.0
 ## explicit; go 1.11
+# github.com/Khan/genqlient v0.5.0
+## explicit; go 1.16
+github.com/Khan/genqlient/graphql
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
 # github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412
 ## explicit
+# github.com/agnivade/levenshtein v1.1.1
+## explicit; go 1.13
 # github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7
+## explicit
+# github.com/alexflint/go-arg v1.4.2
+## explicit; go 1.13
+# github.com/alexflint/go-scalar v1.0.0
 ## explicit
 # github.com/apparentlymart/go-cidr v1.1.0
 ## explicit
@@ -209,6 +218,10 @@ github.com/oklog/run
 ## explicit
 # github.com/ulikunitz/xz v0.5.8
 ## explicit; go 1.12
+# github.com/vektah/gqlparser/v2 v2.4.5
+## explicit; go 1.16
+github.com/vektah/gqlparser/v2/ast
+github.com/vektah/gqlparser/v2/gqlerror
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
@@ -233,7 +246,7 @@ github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
 # go.opencensus.io v0.22.4
 ## explicit; go 1.13
-# golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
+# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -242,6 +255,7 @@ golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -249,13 +263,12 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-golang.org/x/crypto/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 # golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 ## explicit; go 1.11
-# golang.org/x/mod v0.4.2
-## explicit; go 1.12
+# golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
+## explicit; go 1.17
 # golang.org/x/net v0.0.0-20220517181318-183a9ca12b87
 ## explicit; go 1.17
 golang.org/x/net/context
@@ -278,7 +291,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.1.5
+# golang.org/x/tools v0.1.10
 ## explicit; go 1.17
 # golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f
 ## explicit; go 1.11
@@ -389,3 +402,5 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15

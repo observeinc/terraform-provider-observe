@@ -1,0 +1,242 @@
+# GraphLink pre-defined paths support (PreferredPath)
+
+"""
+An PreferredPath specifies some preferred destination to go to
+from a given dataset starting point in GraphLink, and also how
+to get there, specifically.
+"""
+input PreferredPathInput @goModel(model: "observe/meta/metatypes.PreferredPathInput") {
+    """
+    Short name for the path, to use in menus, must be unique within folder
+    """
+    name: String
+    """
+    Long description text for the path, at most 1000 characters.
+    """
+    description: String
+    """
+    Which dataset ID to present this path starting out from. Note that this
+    must be an extant dataset when creating/updating the path, even if we
+    'acceptInErrorState' for the steps, and even though it can become broken later.
+    """
+    sourceDataset: ObjectId
+    """
+    Each step along the path to get to the destination. The destination
+    is inferred from the last element in the step.
+    """
+    path: [PreferredPathStepInput!]
+    """
+    Which folder is this path organized in? If not specified, will be put
+    in the default folder for the workspace.
+    """
+    folderId: ObjectId
+    """
+    If managed by an app or other business object, provide it here. Only
+    the object that initially creates it can later update it.
+    """
+    managedById: ObjectId
+}
+
+"""
+There are four modes for how to specify a step along the path:
+- using a foreign key that exists in the dataset
+- using a related key that exists pointint to the dataset
+- using a deferred foreign key specification as a forward key
+- using a deferred foreign key specification as a related key
+"""
+input PreferredPathStepInput @goModel(model:"observe/meta/metatypes.PreferredPathStepInput") {
+    """
+    This is the name of the link to use -- not the name of the step.
+    It is an error if the link doesn't exist. Use 'linkName' with 'to' or 'from'.
+    """
+    linkName: String
+    """
+    If taking this step using a (reverse) related key, specify the dataset
+    to step TO in 'reverseFromDataset' (because the reverse link is "from" that dataset.)
+    Also specify 'linkName' when using 'reverseFromDataset'.
+    """
+    reverseFromDataset: ObjectId
+    """
+    If specifying a deferred foreign key to use as the step, in forward or reverse
+    direction, specify this using 'linkId'. Do not use 'linkName' or 'reverseFromDataset'
+    when specifying 'linkId'.
+    """
+    linkId: ObjectId
+    """
+    If specifying a deferred foreign key to use as the step, in related (reverse)
+    direction, set reverse to 'true', in addition to the id in 'linkId'.
+    """
+    reverse: Boolean
+}
+
+input PreferredPathSearchInput @goModel(model: "observe/meta/metatypes.PreferredPathSearchInput") {
+    """
+    Include paths matching these names (case insensitive substring)
+    """
+    name: [String!]
+    """
+    Include paths in these workspaces
+    """
+    workspaceId: [ObjectId!]
+    """
+    Include paths in these folders
+    """
+    folderId: [ObjectId!]
+    """
+    Include only paths starting from these datasets
+    """
+    sourceDataset: [ObjectId!]
+    """
+    Include only these paths
+    """
+    pathId: [ObjectId!]
+}
+
+"""
+Properties that are expensive, and should not be requested as part of
+"list all paths" type operations:
+- destinationDataset
+- resolvedPath
+- managedBy
+It's OK to make these part of "list paths for given source dataset" though, as
+that's only one, and presumably you're likely to actually use it.
+"""
+type PreferredPath implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.PreferredPath") {
+    # Specific to PreferredPath
+    sourceDataset: ObjectId!
+    destinationDataset: ObjectId @goField(forceResolver: true)
+    resolvedPath: RelationshipPath @goField(forceResolver: true)
+    path: [PreferredPathStep!]!
+
+    # WorkspaceObject
+    id: ObjectId!
+    name: String!
+    description: String!
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    updatedDate: Time!
+}
+
+"""
+The valid combinations are: 'linkName' and possibly 'reverseFromDataset', or
+'linkId' and possibly 'reverse'. See PreferredPathStepInput.
+"""
+type PreferredPathStep @goModel(model: "observe/meta/metatypes.PreferredPathStep") {
+    linkName: String
+    reverseFromDataset: ObjectId
+    linkId: ObjectId
+    reverse: Boolean
+}
+
+type PreferredPathSearchResult @goModel(model: "observe/meta/metatypes.PreferredPathSearchResult") {
+    preferredPath: PreferredPath!
+    score: Int64!
+}
+
+type PreferredPathSearchResultWrapper @goModel(model: "observe/meta/metatypes.PreferredPathSearchResultWrapper") {
+    results: [PreferredPathSearchResult!]!
+    warnings: [String!]
+}
+
+type PreferredPathWithStatus @goModel(model: "observe/meta/metatypes.PreferredPathWithStatus") {
+    """
+    If this path is defined (saved with an ID,) return the path here. Note that a path
+    may be accepted and get an ID, yet be in error state in the same operation, if
+    'acceptInErrorState' is true.
+    """
+    path: PreferredPath
+    """
+    If this path is in error state, returns a description of why here.
+    """
+    error: String
+    """
+    If this path is in error state, returns a copy of the step that doesn't work here
+    """
+    errorStep: PreferredPathStep
+    """
+    The machine readable reason for the error
+    """
+    errorCode: PreferredPathErrorCode
+}
+
+enum PreferredPathErrorCode @goModel(model:"observe/meta/metatypes.PreferredPathErrorCode") {
+    """
+    The dataset specified does not exist
+    """
+    DatasetNotFound,
+    """
+    The link specified by name does not exist
+    """
+    LinkNameNotFound,
+    """
+    The link specified by id does not exist
+    """
+    LinkIdNotFound,
+    """
+    The link exists, but does not resolve / is broken
+    """
+    LinkIsBroken,
+    """
+    The link goes somewhere other than where it's supposed to.
+    """
+    LinkIsWrong
+}
+
+extend type RelationshipPath {
+    """
+    non-null if this path was taken from a pre-defined preferred path
+    """
+    preferredPathId: ObjectId
+    """
+    non-null if this path was taken from a pre-defined preferred path
+    """
+    preferredPathName: String
+}
+
+extend type Query {
+    preferredPath(id: ObjectId!): PreferredPathWithStatus!
+    """
+    PreferredPathSearch will return all defined paths, whether they are broken or
+    not; this is useful for management use cases (including terraform.) The case
+    where you want to suggest destinations given a source dataset, does not want
+    error state paths, and should set the 'excludeInErrorState' parameter.
+
+    By default, all paths for a given customer are considered, but the
+    search input can specify a set of scoring/ranking criteria. Given
+    that pathsBetweenDatasets() automatically considers preferred paths,
+    this API is for management of paths, and discovery of interesting
+    places to go when starting out at some particular dataset (specify
+    sourceDataset in the terms in this case.)
+    """
+    preferredPathSearch(terms: PreferredPathSearchInput!, maxCount: Int64, excludeInErrorState: Boolean): PreferredPathSearchResultWrapper!
+}
+
+extend type Mutation {
+    """
+    Create a preferred path. The name must be unique in the containing folder.
+    When 'acceptInErrorState" is true, the API will accept a save/update for a
+    path, even if it means that the path will be left in error state, else
+    an error will be returned.
+    """
+    createPreferredPath(workspaceId: ObjectId!, path: PreferredPathInput!, acceptInErrorState: Boolean): PreferredPathWithStatus!
+    """
+    Update a preferred path. When 'acceptInErrorState" is true, the API will accept
+    a save/update for a path, even if it means that the path will be left in error
+    state, else an error will be returned.
+    """
+    updatePreferredPath(id: ObjectId!, path: PreferredPathInput!, acceptInErrorState: Boolean): PreferredPathWithStatus!
+    deletePreferredPath(id: ObjectId!): ResultStatus!
+}
+

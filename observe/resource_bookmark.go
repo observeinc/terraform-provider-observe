@@ -3,11 +3,14 @@ package observe
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func resourceBookmark() *schema.Resource {
@@ -24,13 +27,13 @@ func resourceBookmark() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"group": &schema.Schema{
+			"group": {
 				Type: schema.TypeString,
 				// API currently restricts permissions on moving bookmark, so
 				// just delete old bookmark, create new
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeBookmarkGroup),
+				ValidateDiagFunc: validateOID(oid.TypeBookmarkGroup),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -40,53 +43,56 @@ func resourceBookmark() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"target": &schema.Schema{
+			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 		},
 	}
 }
 
-func newBookmarkConfig(data *schema.ResourceData) (config *observe.BookmarkConfig, diags diag.Diagnostics) {
-
+func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, diags diag.Diagnostics) {
 	var (
-		groupOid, _  = observe.NewOID(data.Get("group").(string))
-		targetOid, _ = observe.NewOID(data.Get("target").(string))
+		name         = data.Get("name").(string)
+		groupOid, _  = oid.NewOID(data.Get("group").(string))
+		targetOid, _ = oid.NewOID(data.Get("target").(string))
 	)
 
-	config = &observe.BookmarkConfig{
-		Name:     data.Get("name").(string),
-		TargetID: targetOid.ID,
-		GroupID:  groupOid.ID,
+	input = &gql.BookmarkInput{
+		Name:     &name,
+		TargetId: &targetOid.Id,
+		GroupId:  &groupOid.Id,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
+		input.IconUrl = stringPtr(v.(string))
 	}
 
-	return config, diags
+	return input, diags
 }
 
-func bookmarkToResourceData(b *observe.Bookmark, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", b.Config.Name); err != nil {
+func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", b.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if b.Config.IconURL != nil {
-		if err := data.Set("icon_url", b.Config.IconURL); err != nil {
+	if b.IconUrl != "" {
+		if err := data.Set("icon_url", b.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("group", b.GroupOID().String()); err != nil {
+	if err := data.Set("group", oid.BookmarkGroupOid(b.GroupId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("target", b.TargetOID().String()); err != nil {
+	targetOid := oid.OID{
+		Id:   b.TargetId,
+		Type: oid.Type(strings.ToLower(string(b.TargetIdKind))),
+	}
+	if err := data.Set("target", targetOid.String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -94,7 +100,7 @@ func bookmarkToResourceData(b *observe.Bookmark, data *schema.ResourceData) (dia
 		return diags
 	}
 
-	if err := data.Set("oid", b.OID().String()); err != nil {
+	if err := data.Set("oid", b.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -118,7 +124,7 @@ func resourceBookmarkCreate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceBookmarkRead(ctx, data, meta)...)
 }
 

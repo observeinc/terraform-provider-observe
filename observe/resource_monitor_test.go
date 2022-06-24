@@ -39,7 +39,7 @@ func TestAccObserveMonitor(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m0s"),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),

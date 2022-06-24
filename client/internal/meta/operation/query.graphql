@@ -1,0 +1,51 @@
+fragment TaskResult on TaskResult {
+	queryId
+	stageId
+	startTime
+	endTime
+	error
+	resultCursor
+	resultSchema {
+		typedefDefinition
+	}
+}
+
+fragment StageQuery on StageQuery {
+	# @genqlient(pointer: true)
+	id
+	pipeline
+	params
+	layout
+	input {
+		inputName
+		inputRole
+		datasetId
+		datasetPath
+		stageId
+	}
+}
+
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+query getDatasetQueryOutput(
+	# @genqlient(pointer: true)
+	$query: [StageInput!]!,
+	$params: QueryParams!)
+{
+	# @genqlient(flatten: true, pointer: true)
+	taskResult: datasetQueryOutput(query: $query, params: $params) {
+		...TaskResult
+	}
+}

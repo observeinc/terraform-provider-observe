@@ -2,10 +2,14 @@
 git clean -f -d
 git fetch origin
 
-make docker-integration
+dirty_tree() {
+  [[ $(git status --porcelain=v1 2>/dev/null | wc -l) != 0 ]]
+}
+
+make docker-test-gen-gql-client docker-integration
 
 git update-index -q --refresh
-if ! git diff-index --exit-code --no-ext-diff HEAD --; then
+if dirty_tree; then
   echo "The following files are dirty in the tree"
   git diff --stat
   git diff

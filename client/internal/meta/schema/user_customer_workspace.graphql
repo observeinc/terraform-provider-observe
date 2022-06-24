@@ -1,0 +1,465 @@
+extend type Query {
+    currentUser: User
+    currentCustomer: Customer
+    user(id: UserId!): User
+    customer(id: CustomerId!): Customer
+    workspace(id: ObjectId, label: String): Project
+
+    projects: [Project]!
+    project(projectId: ObjectId!): Project
+
+    """
+    configuration variables that can be configured
+    """
+    configVariables: [ConfigVariable!]!
+    """
+    configuration only for the current customer
+    """
+    configValues(onlyOverrides: Boolean): [CustomerConfig!]!
+
+    """
+    Read a specific blob by its primary key (user ID plus name)
+    If user ID is not specified, the user ID in the auth token is used.
+    """
+    blob(userId: UserId, name: String!): Blob!
+    """
+    Each field is restrictive (AND)
+    If you don't specify any of the filter kinds, you will get all blobs
+    that are readable by the current user within the current customer.
+    Usually, you will want to specify a blob kind in this search.
+    """
+    blobs(customerId: CustomerId, userId: UserId, name: String, kind: String, includeWorldReadable: Boolean): [Blob!]
+
+    """
+    presentedBookmarkGroups returns groups of bookmarks that should be presented when a
+    given user is viewing a given workspace
+    """
+    presentedBookmarkGroups(workspaceId: ObjectId!, userId: UserId): [BookmarkGroup!]
+    """
+    The search result will also be automatically scoped to bookmark groups that live in
+    workspaces that the user can actually see. Each search term is restrictive, but
+    each array is inclusive -- OR between items in the array, AND between the
+    different specified search terms.
+    """
+    searchBookmarkGroups(customerId: CustomerId, userId: UserId, workspaceIds: [ObjectId!], presentations: [BookmarkGroupPresentation!]): [BookmarkGroup!]
+
+    bookmarkGroup(id: ObjectId!): BookmarkGroup!
+
+    """
+    PresentedBookmarks shows bookmarks that should be presented to a specific user when they
+    are viewing a specific workspace.
+    """
+    presentedBookmarks(workspaceId: ObjectId!, userId: UserId!): [Bookmark!]
+    """
+    The search result will also be automatically scoped to bookmarks that live in groups in
+    workspaces that the user can actually see. Thus, "customerId" may never need to be specified.
+    Each search term is restrictive, but each array is inclusive -- OR between items in
+    the array, AND between the different specified search terms.
+    """
+    searchBookmarks(customerId: CustomerId, userId: UserId, workspaceIds: [ObjectId!], groupIds: [ObjectId!], targetIds: [ObjectId!]): [Bookmark!]
+
+    bookmark(id: ObjectId!): Bookmark!
+
+    """
+    Given whatever authorization was used to make the request to read this
+    list, what possible permissions are granted? This may be less than all the
+    permissions that could possibly be granted to a particular user. For
+    example, we could have a separate "take admin powers" action, similar
+    to "sudo," or a limited-power delegation authorization may be used for a
+    script or temporary access. This 'currentPermissions' list tells you what
+    you may actually, currently, do, without re-authorizing.
+    """
+    currentPermissions: PermissionList!
+}
+
+extend type Mutation {
+    updateCurrentCustomer(customer: CustomerInput!): Customer!
+    updateCurrentCustomerSso(sso: CustomerSsoInput!): CustomerSso!
+    updateUser(id: UserId!, user: UserInput!): User!
+    updateUsers(ids: [UserId!]!, user: UserInput!): [User!]!
+    updateUserPassword(password: UserPasswordInput!): ResultStatus!
+    """
+    returns token that must come back to apiserver to complete the account setup
+    """
+    inviteUser(user: UserInput!): String!
+
+    """
+    When creating a workspace, all users for the customer will be granted
+    access to it through the ACL system. This is because we don't yet have
+    a UI to deal with selective access.
+    """
+    createWorkspace(definition: WorkspaceInput!): Project
+    updateWorkspace(id: ObjectId!, definition: WorkspaceInput!): Project
+    deleteWorkspace(id: ObjectId!): ResultStatus!
+
+    """
+    set a config value for the current customer -- requires that you're admin
+    """
+    setConfig(configName: String!, configValue: String!, comment: String!): CustomerConfig!
+    """
+    clear a config override (revert to default) for the current customer -- requires that you're admin
+    """
+    resetConfig(configName: String!): CustomerConfig!
+
+    """
+    Blobs are arbitrary JSON structs (limited to 128 kB in size) stored with
+    a given name for a given user. Blobs also are tagged with the customer
+    and another string called "kind." They can be searched using any combination
+    of those properties.
+    If user ID is not specified, the user tied to the auth token is used.
+    """
+    createOrUpdateBlob(userId: UserId, name: String!, info:BlobInput!): Blob!
+    deleteBlob(userId: UserId, name: String!): ResultStatus
+
+    createOrUpdateBookmarkGroup(id:ObjectId, group:BookmarkGroupInput!): BookmarkGroup!
+    """
+    Deleting a bookmark group will also delete the bookmarks. This is not undo-able;
+    we really wipe them from the database!
+    """
+    deleteBookmarkGroup(id: ObjectId!): ResultStatus!
+
+    createOrUpdateBookmark(id:ObjectId, bookmark:BookmarkInput!): Bookmark!
+    """
+    Deleting a bookmark is not undoable; we really wipe it from the database!
+    """
+    deleteBookmark(id:ObjectId!): ResultStatus!
+}
+
+"""
+Project and Workspace are the same thing We call it Workspace in the UI
+design now, so at some point, maybe update the API to match the updated
+design?
+"""
+type Project @goModel(model: "observe/meta/metatypes.Workspace") {
+    id: ObjectId!
+    customer: Customer @goField(forceResolver:true)
+    createdBy: User @goField(forceResolver:true)
+    createdDate: Time!
+
+    label: String!
+    timezone: String!
+    layout: JsonObject
+    """
+    False when there's not an ACL path to the workspace (project)
+    """
+    visible: Boolean!
+
+    channels: [Channel]! @goField(forceResolver:true)
+    datasets: [Dataset]! @goField(forceResolver:true)
+    datastreams: [Datastream]! @goField(forceResolver:true)
+    folders: [Folder]! @goField(forceResolver:true)
+    monitors: [Monitor]! @goField(forceResolver:true)
+    pollers(kind: PollerKind): [Poller]! @goField(forceResolver:true)
+    worksheets(search: String): [Worksheet]! @goField(forceResolver:true)
+    bookmarkGroups: [BookmarkGroup!] @goField(forceResolver:true)
+    dashboards: [DashboardRef!]! @goField(forceResolver:true)
+
+    channel(name: String!): Channel! @goField(forceResolver:true)
+    dataset(label: String!): Dataset! @goField(forceResolver:true)
+    datastream(name: String!): Datastream! @goField(forceResolver:true)
+    folder(name: String!): Folder! @goField(forceResolver:true)
+    monitor(name: String!): Monitor! @goField(forceResolver:true)
+    poller(name: String!): Poller! @goField(forceResolver:true)
+    dashboard(name: String!): Dashboard! @goField(forceResolver:true)
+}
+
+input WorkspaceInput @goModel(model: "observe/meta/metatypes.WorkspaceInput") {
+    label: String
+    timezone: String
+    layout: JsonObject
+}
+
+input CustomerInput @goModel(model: "observe/meta/metatypes.CustomerInput") {
+    timezone: String
+    emailDomains: [String]
+}
+
+type Customer @goModel(model: "observe/meta/metatypes.Customer") {
+    id: CustomerId!
+    label: String!
+    timezone: String!
+    emailDomains: [String]!
+    sso: CustomerSso! @goField(forceResolver:true)
+    users: [User]! @goField(forceResolver:true)
+    workspaces(search: String): [Project]! @goField(forceResolver:true)
+    ingestInfo: IngestInfo! @goField(forceResolver:true)
+}
+
+type IngestInfo @goModel(model: "observe/meta/metatypes.IngestInfo") {
+    """
+    ingest domain such as collect.observeinc.com, collect.eu-1.observeinc.com etc
+    """
+    collectUrl: String!
+}
+
+input CustomerSsoInput @goModel(model: "observe/meta/metatypes.CustomerSsoInput") {
+    ssoLocalFlag: Boolean
+    scimFlag: Boolean
+    samlUrl: String
+    samlCert: String
+}
+
+type CustomerSso @goModel(model: "observe/meta/metatypes.CustomerSso") {
+    ssoLocalFlag: Boolean!
+    scimFlag: Boolean!
+    samlUrl: String!
+    samlCert: String!
+    samlExpires: Time!
+}
+
+enum UserStatus @goModel(model: "observe/meta/metatypes.UserStatus") {
+    UserStatusDeleted
+    UserStatusDisabled
+    UserStatusIdpDisabled
+    UserStatusCreated
+    UserStatusActive
+}
+
+enum UserType @goModel(model: "observe/meta/metatypes.UserType") {
+    UserTypeEmail
+    UserTypeOauth2
+    UserTypeSaml2
+    UserTypeSystem
+}
+
+input UserPasswordInput @goModel(model: "observe/meta/metatypes.UserPasswordInput") {
+    oldPassword: String!
+    newPassword: String!
+}
+
+input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
+    """
+    cannot update
+    """
+    email: String
+    """
+    self or admin privilege required to update
+    """
+    label: String
+    timezone: String
+    """
+    admin privilege required to update
+    """
+    role: String
+    comment: String
+    expirationTime: Time
+    status: UserStatus
+}
+
+type User @goModel(model: "observe/meta/metatypes.User") {
+    id: UserId!
+    type: [UserType!]!
+    email: String!
+    label: String!
+    timezone: String!
+    status: UserStatus!
+    role: String!
+    comment: String
+    expirationTime: Time
+    customer: Customer @goField(forceResolver:true)
+    workspaces(search: String): [Project]! @goField(forceResolver:true)
+    worksheets(search: String): [Worksheet]! @goField(forceResolver:true)
+    blobs(kind: String): [Blob!] @goField(forceResolver:true)
+    bookmarkGroups(includeWorkspace: ObjectId): [BookmarkGroup!] @goField(forceResolver:true)
+
+    """
+    Users are granted roles, and granted access to workspaces; the intersection
+    of those grants ends up determining possible permissions for the user. Any
+    particular session / authorization may be running with a subset of all the
+    possible permissions, though, so check Query.currentPermissions for what's
+    currently in effect.
+    """
+    possiblePermissions: PermissionList! @goField(forceResolver: true)
+}
+
+type UserInfo @goModel(model: "observe/meta/metatypes.UserInfo") {
+    userId: UserId!
+    userLabel: String!
+    userTimezone: String!
+}
+
+"""
+Permissions are either scoped to objects in a particular workspace, such as
+"can modify datasets" or "can create ingest tokens for datastreams," or they
+are globally scoped, such as "can invite new users."
+"""
+type PermissionList @goModel(model: "observe/meta/metatypes/permission.PermissionList") {
+    workspaces: [WorkspacePermissions!]!
+    global: GlobalPermissions!
+}
+
+"""
+Permissions scoped to objects in a particular workspace.
+"""
+type WorkspacePermissions @goModel(model: "observe/meta/metatypes/permission.WorkspacePermissions") {
+    workspaceId: ObjectId!
+    permissions: [Permission!]!
+}
+
+"""
+Permissions scoped to the global application.
+"""
+type GlobalPermissions @goModel(model: "observe/meta/metatypes/permission.GlobalPermissions") {
+    permissions: [Permission!]!
+}
+
+type Permission @goModel(model: "observe/meta/metatypes/permission.Permission") {
+    name: PermissionName!
+    actions: [PermissionAction!]!
+}
+
+enum PermissionName @goModel(model: "observe/meta/metatypes/permission.PermissionName") {
+    BillingInfo
+    Dataset
+    Datastream
+    DatastreamToken
+    User
+}
+
+enum PermissionAction @goModel(model: "observe/meta/metatypes/permission.PermissionAction") {
+    Create
+    Edit
+    Delete
+    Read
+}
+
+
+
+"""
+WorkspaceObject encompasses all objects within a workspace
+"""
+interface WorkspaceObject @goModel(model: "observe/meta/metatypes.WorkspaceObject") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject
+    managedById: ObjectId
+}
+
+"""
+Configuration value as it pertains to the current customer
+"""
+type CustomerConfig @goModel(model: "observe/meta/metagql.CustomerConfig") {
+    name: String!
+    value: String!
+    setBy: CustomerConfigModification
+}
+
+"""
+If a value is not at the default, who set this value, when?
+"""
+type CustomerConfigModification @goModel(model: "observe/meta/metagql.CustomerConfigModification") {
+    userInfo: UserInfo! @goField(forceResolver:true)
+    changeTime: Time!
+}
+
+enum ConfigVariableType @goModel(model: "observe/meta/metagql.ConfigVariableType") {
+    ENUM
+}
+
+type ConfigVariable @goModel(model: "observe/meta/metagql.ConfigVariable") {
+    name: String!
+    type: ConfigVariableType!
+    help: String!
+    defaultValue: String!
+    possibleValues: [String!]!
+}
+
+type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
+  id: ObjectId!
+  name: String!
+  iconUrl: String! @deprecated(reason: "will go away; use icon of dataset")
+  """
+  when storing a bookmark to a thing with ?s=1234-foobar then the 1234-foobar bit is here
+  """
+  urlStateId: String
+  targetId: ObjectId!
+  targetIdKind: ObjectKind!
+  targetResourceId: ResourceId
+  groupId: ObjectId!
+  customerId: CustomerId!
+  userId: UserId!
+  userInfo: UserInfo! @goField(forceResolver:true)
+}
+
+"""
+Bookmarks have their own identity, but they don't have "last changed by"
+or "created by" timestamps / user auditing, as they are more lightweight.
+"""
+input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
+  name: String
+  iconUrl: String @deprecated(reason: "will go away; use icon of dataset")
+  urlStateId: String
+  targetId: ObjectId
+  targetResourceId: ResourceIdInput
+  groupId: ObjectId
+}
+
+type BookmarkGroup @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
+  id: ObjectId!
+  name: String!
+  iconUrl: String!
+  workspaceId: ObjectId!
+  customerId: CustomerId!
+  userId: UserId!
+  userInfo: UserInfo! @goField(forceResolver:true)
+  presentation: BookmarkGroupPresentation!
+  bookmarks: [Bookmark!] @goField(forceResolver:true)
+}
+
+input BookmarkGroupInput @goModel(model: "observe/meta/metatypes.BookmarkGroupInput") {
+  name: String
+  iconUrl: String
+  workspaceId: ObjectId
+  presentation: BookmarkGroupPresentation
+}
+
+enum BookmarkGroupPresentation @goModel(model: "observe/meta/metatypes.BookmarkGroupPresentation") {
+  PerCustomerWorkspace
+  PerUserWorkspace
+  PerUser
+  Hidden
+}
+
+"""
+Note that blobs have their own simple access control scheme,
+and do not belong to projects (which in turn grant ACLs.)
+This scheme is described by SimpleScope: user, customer, or
+world; readable or writable.
+"""
+type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
+    customerId: CustomerId!
+    userId: UserId!
+    name: String!
+    kind: String!
+    value: JsonObject!
+    deleted: Boolean!
+    readable: SimpleScope!
+    writable: SimpleScope!
+    createdDate: Time!
+    updatedDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+}
+
+"""
+if one of the fields is not specified, it will default
+to a sane value on create, or the previous value on update
+"""
+input BlobInput @goModel(model: "observe/meta/metatypes.JsonBlobInput") {
+    kind: String
+    value: JsonObject
+    readable: SimpleScope
+    writable: SimpleScope
+}
+
+enum SimpleScope @goModel(model: "observe/meta/metatypes.SimpleScope") {
+    ScopeUser
+    ScopeCustomer
+    ScopeWorld
+}
+
+
+

@@ -1,0 +1,1011 @@
+extend type Subscription {
+    """
+    Same endpoint but streams results as they come.
+
+    Does not time out, unless the websocket connection is closed or snowflake
+    times out the underlying queries.
+    """
+    datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!]): [TaskResult]!
+}
+
+extend type Query {
+    """
+    Given a cursorId from a previous query, you can arrange to get a URL that you can
+    GET to get the data pointed-at by that cursor. The URL will only have a limited
+    lifetime, and will have headers that suggest a browser treats it as a
+    download. The download will have the suggested filename you request, or a
+    generated filename if not provided. The data will have the file format
+    you request, or default to Csv.
+    """
+    exportCursor(cursorId: String!, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
+    """
+    Given a query (such as you'd pass to datasetProgressive() or checkQueries()),
+    run the query, and export the results to a cursor, then prepare the export URL for
+    that cursor with the same parameters as exportCursor(), and return that URL.
+    """
+    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, rowCount: Int64, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
+
+    """
+    Pull more results from a cursor. rollupFilter provides more granular
+    filter for rolled-up results. Must be nil for any unrolled-up result.
+    Default to the "all" mode for backward compatibility.
+    """
+    cursor(cursorId: String!, offset: Int64!, numRows: Int64!, rollupFilter: RollupFilterInput): PaginatedResults
+
+    """
+    Given some datasets and pipeline expressions, run the query and extract the
+    query results.  Errors in input specification come back as GQL/HTTP errors,
+    but syntax errors in the parsed query come back in the parsedPipeline result
+    set for each query.
+
+    Times out after 2 minutes.
+    """
+    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!]): [TaskResult]!
+
+    stats(startTime: Time!, endTime: Time!, wkCols: [StatsWKCol!], dsQueries: [StatsDatasetQueryInput!]!): StatsQueryResult
+}
+
+enum CursorCacheMode @goModel(model: "observe/meta/metatypes.CursorCacheMode") {
+    AlwaysCache
+    AlwaysDontCache
+
+    """
+    This mode will cache the cursor if not all data is returned by the initial
+    query. Specifically, cursor will be cached if any of the following
+    conditions is true:
+    1) initialRows != -1 && the query returns more rows than requested
+    2) initialRows == -1 && the query returns rollup results and the rollup
+    filter is not in "all" mode.
+    """
+    CacheIfMoreData
+}
+
+input PaginationInput @goModel(model: "observe/meta/metatypes.PaginationInput") {
+    """
+    Number of rows to return in paginatedResults of initial TaskResult. May
+    be set to 0, in which case paginatedResults will only contain a cursor
+    ID. Any value < 0 (say, -1) is interpreted as "all rows" (beware of
+    large results).
+    """
+    initialRows: Int64!
+
+    """
+    Initial rollup filter (default to "all" mode if nil).
+    """
+    initialRollupFilter: RollupFilterInput
+
+    """
+    If set to true, cache the cursor so that Query.cursor() can be used to
+    fetch additional rows beyond initialRows. Omitting or setting the
+    parameter to false saves back-end resources and is to be preferred if
+    the caller knows it will not call Query.cursor().
+    """
+    cacheCursor: Boolean @deprecated(reason:"use cursorCacheMode instead")
+
+    """
+    Choose how the cursor is cached.
+    """
+    cursorCacheMode: CursorCacheMode
+}
+
+enum TimeUnit @goModel(model: "observe/meta/metatypes.TimeUnit") {
+    Second
+    Millisecond
+    Microsecond
+    Nanosecond
+}
+
+input TimeSinceEpoch @goModel(model: "observe/meta/metatypes.TimeSinceEpoch") {
+    value: Int64
+    unit: TimeUnit
+}
+
+input QueryParams @goModel(model: "observe/meta/metagql.QueryParamsInput") {
+    """
+    Please specify exact one of startTime and startTimeSinceEpoch.
+    """
+    startTime: Time
+    startTimeSinceEpoch: TimeSinceEpoch
+    """
+    Please specify exact one of endTime and endTimeSinceEpoch.
+    """
+    endTime: Time
+    endTimeSinceEpoch: TimeSinceEpoch
+
+
+    """
+    Queries may have some parameter values bound
+    """
+    opalParameters: [ParameterBindingInput!] @deprecated(reason:"Use parameterValues instead")
+}
+
+# Scalar so we can use a custom marshaler for higher performance.
+#
+#type PaginatedResults {
+#    # ID identifying the cursor. Can be used to fetch more rows.
+#    cursorId: String
+#    # Snowflake Query ID. Only for debugging.
+#    sfQid: String
+#    # Total number of rows that the cursor holds.
+#    totalRows: Int64!
+#    # Offset into the cursor from which the rows below have been produced,
+#    # starting at 0.
+#    offset: Int64!
+#    # Number of rows in this result set.
+#    numRows: Int64!
+#    # Initial set of rows in column-major format. Each column contains exactly
+#    # numRows values.
+#    columns: [[String]]
+#}
+#
+scalar PaginatedResults @goModel(model: "observe/meta/metatypes.PaginatedResults")
+
+enum ExportFileFormat @goModel(model: "observe/meta/metatypes.ExportFileFormat") {
+    """
+    Comma Separated Values
+    """
+    Csv
+    """
+    Newline Delimited JSON
+    """
+    NDJson
+}
+
+type ExportCursorResult @goModel(model: "observe/meta/metatypes.ExportCursorResult") {
+    """
+    If the data from the cursor can be had by calling GET on a URL, this is
+    the URL.
+    """
+    exportUrl: String!
+
+    """
+    The export URL will expire at some time in the future. This is that time.
+    """
+    exportUrlExpiration: Time
+
+    """
+    This is the filename you provided, or a generated filename if none was
+    part of the request
+    """
+    exportFilename: String
+
+    """
+    This is the format you requested, or the default if none was part of the
+    request
+    """
+    exportFormat: ExportFileFormat
+}
+
+type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
+
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    """
+    TODO: Move query ID generation out of QueryManager and closer to the UI,
+    and make the field mandatory. We want to always provide users with a
+    query ID for bug reporting and investigations.
+    """
+    queryId: String!
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageID: String @deprecated(reason: "use stageId instead")
+    stageId: String#!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    """
+    The time range which this set of results cover.
+    """
+    startTime: Time @deprecated(reason: "not used anymore")
+    endTime: Time @deprecated(reason: "not used anymore")
+
+    """
+    If true, this is a progressive result and more results should come after
+    this for this result kind. This flag does not apply to ResultKindProgress
+    results, though.
+    """
+    isProgressive: Boolean! @deprecated(reason: "use resultMetadata.hasMoreResults")
+
+    """
+    if resultKind is resultKindProgress (which will only happen if it is one
+    of the requested resultKinds for a stage), contains details on the task's
+    progress
+    """
+    resultProgress: TaskResultProgress
+
+    """
+    You used to paginate the data yourself out of S3 -- not needed anymore
+    """
+    resultCursor: SnowflakeCursor @deprecated(reason: "use paginatedResults instead")
+    """
+    Read the results you asked for, through the apiserver
+    """
+    paginatedResults: PaginatedResults
+    """
+    if resultCursor is set, does it contain data or stats? Or if
+    resultKindProgress, then resultProgress is set instead
+    """
+    resultKind: ResultKind
+
+    """
+    how to understand the columns in the result from Snowflake --
+    """
+    resultSchema: TaskResultSchema
+
+    """
+    A parse/compile error is still a "successful" request, so HTTP status is OK,
+    but the parse/compile error is pointed into the right part of the code in
+    this result part.
+    """
+    parsedPipeline: ParsedPipeline
+
+    comments: JsonObject
+    # TODO: statistics for columns need to go here once we lift them out of
+    # snowsql result
+
+    estimatedCost: [CostMetric!]
+
+    """
+    A list of Datasets that have inlined when binding the tempo graph
+    """
+    inlinedDatasets: [Dataset!]
+
+    """
+    Metadata about the returned data and stats result. This must not be null for
+    data and stats result.
+    """
+    resultMetadata: ResultMetadata
+
+    """
+    If there's a compiler or execution error, they are returned here. Multiple
+    errors are joined into a single string, so for multiple parse errors, it's
+    better to get those from parsedPipeline to be able to indicate each error
+    separately.
+    """
+    error: String
+}
+
+type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
+    name: String!
+    value: Float
+}
+
+enum TaskState @goModel(model: "observe/meta/metaparser.TaskState") {
+    """
+    The query is being throttled by us for some reason, because the apiserver
+    is handling too many requests already or the customer has issued too many
+    queries
+    """
+    TaskStateQueued
+    """
+    The query is still being processed, either on our end or in snowflake.
+    This covers everything from the query being compiled in the apiserver to
+    the query being sent to the scheduler to the query being queued in
+    snowflake.
+    """
+    TaskStatePreparing
+    """
+    The query is running in snowflake
+    """
+    TaskStateRunning
+}
+
+type TaskResultProgress @goModel(model: "observe/meta/metaparser.TaskResultProgress") {
+    """
+    Is this update for the data or stats part of this stage?
+    """
+    progressKind: ResultKind!
+
+    """
+    A task may have several subtasks, which subtask is currently running and
+    how many are there in total? subtaskIdx is 0-indexed
+    """
+    subtaskIdx: Int!
+    totalSubtasks: Int!
+
+    """
+    What is the state of the current subtask?
+    """
+    state: TaskState!
+
+    """
+    How many bytes has this subtask scanned so far and what is the upper
+    bound on the total number of bytes it may have to scan? These are only
+    set if the query is running. Note that it is possible for totalScanBytes
+    to be 0 in some rare cases.
+    """
+    scannedBytes: Int64
+    totalScanBytes: Int64
+}
+
+"""
+TimeAlignment describes the temporal nature of the data contained in an Observe table.
+It describes a periodic time grid with which all events/intervals in the table align
+perfectly.
+"""
+type TimeAlignment @goModel(model: "observe/meta/metatypes.TimeAlignment") {
+    """
+    stepSize is the distance between every pair of adjacent points in the time grid.
+    """
+    stepSize: Duration!
+    """
+    offset describes the offset of this periodic time grid compare to epoch.
+    It will be between [0, stepSize).
+    """
+    offset: Duration!
+}
+
+"""
+AlignedTimeRange describes the validFrom of the first and last event/interval that should
+be returned in an OPAL query, assuming that all time buckets have some data. This is only
+populated when the query result aligns with a periodic time grid.
+"""
+type AlignedTimeRange @goModel(model: "observe/meta/metatypes.AlignedTimeRange") {
+    leadingValidFrom: Time
+    endingValidFrom: Time
+}
+
+type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema") {
+    """
+    these fields are the same as for Dataset
+    """
+    validFromField: String
+    validToField: String
+    primaryKey: [String!]
+    """
+    This tracks how the primary keys of input datsets map to the current
+    output, reusing the convenient ForeignKey type to do so
+    """
+    sourceResources: [ForeignKey!]
+    keys: [[String!]!]
+    foreignKeys: [ForeignKey!]
+    relatedKeys: [RelatedKey!]
+    """
+    this is the same schema as Typedef.definition
+    """
+    typedefDefinition: JsonObject @deprecated(reason: "use the strong typed \"typedef\" field instead")
+    typedef: ObjectTypedef
+    labelField: String
+    iconUrl: String
+    kind: DatasetKind!
+    interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
+    metrics: [Metric!]! @goField(forceResolver:true)
+    accelerable: Boolean!
+    streamable: Boolean! @deprecated(reason:"renamed to accelerable") @goField(name:accelerable)
+    """
+    alignment and alignedTimeRange are set when the produced result is on an
+    aligned time grid. Both event table and interval/resource table can be aligned.
+    """
+    alignment: TimeAlignment
+    alignedTimeRange: AlignedTimeRange
+
+    """
+    Information about the queried datasets. This is the same as the one in
+    ResultMetadata but we need to send this back earlier as part of schema.
+    """
+    inputDatasetsInfo: [DatasetInfo!]
+    """
+    The accelerated windows of the query. This is the same as the one in
+    ResultMetadata but we need to send this back earlier as part of schema.
+    """
+    acceleratedWindows: [TimeRange!]!
+}
+
+type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
+    anykey: Boolean
+    fields: [ObjectFieldDef!]
+}
+
+type ObjectFieldType @goModel(model: "observe/compiler/comptypes.ObjectFieldType") {
+    rep: String!
+    def: ObjectTypedef
+    nullable: Boolean
+}
+
+type ObjectFieldDef @goModel(model: "observe/compiler/comptypes.ObjectFieldDef") {
+    name: String!
+    type: ObjectFieldType!
+    isEnum: Boolean
+    isSearchable: Boolean
+    isHidden: Boolean
+    isConst: Boolean
+    isMetric: Boolean
+}
+
+"""
+Metadata for data and stats result.
+"""
+type ResultMetadata @goModel(model: "observe/meta/metatypes.ResultMetadata") {
+    """
+    If true, more TaskResults are expected. This will replace
+    TaskResult.isProgressive. This is mostly used in progressive execution where
+    multiple TaskResults could be returned for the same query.
+    """
+    hasMoreResults: Boolean!
+
+    """
+    The actual windows of returned data.
+    """
+    effectiveWindows: [TimeRange!]!
+
+    """
+    The accelerated windows of the query.
+    """
+    acceleratedWindows: [TimeRange!]!
+
+    """
+    Information about the queried datasets.
+    """
+    inputDatasetsInfo: [DatasetInfo!]
+}
+
+type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
+    datasetId: ObjectId!
+    datasetLabel: String
+
+    """
+    True if this is a dataset brought in through linkify. Otherwise it's an
+    input dataset directly referenced in the query.
+    """
+    datasetIsLinkifyInput: Boolean!
+
+    """
+    True if the missing intervals are within the on-demand materialization range
+    and thus can be materialized (by triggering additional materialization
+    tasks).
+    """
+    canAccelerate: Boolean!
+
+    """
+    On-demand materialization length for this dataset.
+    """
+    onDemandMatLen: Int64!
+
+    """
+    List of the missing intervals for which the dataset is queried for but not
+    accelerated. These are the intervals we need to request for materialization
+    (in the future, when we have the corresponding API). The missing intervals
+    are always calculated using the original query window (not the smaller query
+    window for progressive slices). This is non-empty only when canAccelerate is
+    true.
+    """
+    unacceleratedWindows: [TimeRange!]
+}
+
+"""
+What pieces of result to include in the response to an OPAL query.
+"""
+enum ResultKind @goModel(model: "observe/meta/metaparser.ResultKind") {
+    ResultKindSchema   # Return the schema of the OPAL query
+    ResultKindData     # Return the data of the OPAL query
+    ResultKindStats    # Return the stats on the data of the OPAL query
+    ResultKindSuppress # Don't execute/return results
+    ResultKindProgress # Return the progress of the OPAL query
+    ResultKindMetricDiscovery # Return a schema of the OPAL query with discovered metric information (MetricHeuristics) attached
+}
+
+input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
+    """
+    we need the label to be able to reference this stage in later Stages' InputDefinitionInput
+    XXX: Obsolete, replaced by "stageId" below. Ignored if "stageId" is set.
+    """
+    label: String @deprecated(reason:"remove this soon")
+    stageID: String @deprecated(reason: "use stageId instead")
+    """
+    unique ID that other stages can reference in their InputDefinitionInput
+    """
+    stageId: String @goField(name:StageID)
+    """
+    Which inputs are defined for this stage?
+    """
+    inputs: [InputDefinitionInput!]!
+    """
+    What is the processing?
+    """
+    pipeline: String!
+    """
+    How do we arrange presentation? (ordering etc)
+    Note that later stages referencing this stage will NOT see the stage presentation processing
+    """
+    presentation: StagePresentationInput
+    """
+    UI presentation data to use when storing transforms
+    """
+    layout: JsonObject
+    """
+    If set, enables paginatedResults in initial TaskResult of ResultKindData.
+    """
+    pagination: PaginationInput
+    """
+    If set, run this stage with progressive execution
+    """
+    progressive: Boolean
+    """
+    If set, backend will try to run this stage with best effort binding mode
+    """
+    bestEffortBinding: Boolean
+    """
+    A location within the pipeline. Used to support "run query up to cursor" type functionality, where this location
+    defines the last verb within the query or subquery to run.
+    """
+    runUntilLocation: SourceLocInput
+}
+
+"""
+Parameter values for queries (and defaults) are specified with
+ParameterBindingInput.
+
+For APIs that take a raw StageInput array, the parameterValues argument is in
+parallel.  For APIs that take MultiStageQueryInput, parameterValues are part
+of that query.
+"""
+input ParameterBindingInput @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
+    id: String!
+    value: ValueInput!
+}
+
+type ParameterBinding @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
+    id: String!
+    value: Value!
+}
+
+"""
+These are the OPAL native types that can go into worksheet parameters.  Some
+of the native OPAL types aren't (currently?) exposed to the worksheet
+parameters, but it's likely we will expand this to the full roster over time.
+Also, there will be other places where we send "values" into the API. For
+example, we've dodged it so far in places like monitors, by saying "threshold
+is always float, and facet is always string," but a generic monitor
+specification should absolutely use ValueInput / ValueType.
+"""
+enum ValueType @goModel(model: "observe/compiler/comptypes.ValueType") {
+    """
+    be explicit about the "empty" value for the null/unknown case
+    """
+    NONE
+
+    # simple types
+
+    BOOL
+    FLOAT64
+    INT64
+    STRING
+    TIMESTAMP
+    DURATION
+
+    # compound types
+
+    ARRAY       # used to be ParameterKindList
+    # OBJECT    # there's not currently any object literals
+    # VARIANT   # there's not currently any need to put IN variants, only take them out of things
+    LINK        # used to be ParameterKindResource
+
+    # non-scalar types
+
+    DATASETREF  # used to be ParameterKindInput
+}
+
+"""
+The ValueInput specifies a value for a parameter. To specify a null value, specify
+the particular field, but with the JSON value null. This is needed because values
+are always of a particular type, and a generic null is not typed.
+"""
+input ValueInput @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArrayInput
+    link: ValueLinkInput
+    datasetref: ValueDatasetrefInput
+}
+
+input PrimitiveValueInput @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+}
+
+type Value @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArray
+    link: ValueLink
+    datasetref: ValueDatasetref
+}
+
+type PrimitiveValue @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+}
+
+input ValueArrayInput @goModel(model: "observe/compiler/comptypes.ValueArray") {
+    value: [PrimitiveValueInput!]!
+}
+
+type ValueArray @goModel(model: "observe/compiler/comptypes.ValueArray") {
+    value: [PrimitiveValue!]!
+}
+
+input ValueLinkInput @goModel(model: "observe/compiler/comptypes.ValueLink") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ValueKeyValueInput!]!
+    storedLabel: String
+}
+
+type ValueLink @goModel(model: "observe/compiler/comptypes.ValueLink") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ValueKeyValue!]!
+    storedLabel: String
+}
+
+input ValueKeyValueInput @goModel(model: "observe/compiler/comptypes.ValueKeyValue") {
+    name: String!
+    value: PrimitiveValueInput!
+}
+
+type ValueKeyValue @goModel(model: "observe/compiler/comptypes.ValueKeyValue") {
+    name: String!
+    value: PrimitiveValue!
+}
+
+"""
+ValueDatasetrefInput looks a bit like InputDefinitionInput, EXCEPT
+you can't specify a parameterId as the value of a ValueDatasetrefInput
+(because that would make little sense.)
+"""
+input ValueDatasetrefInput @goModel(model: "observe/compiler/comptypes.ValueDatasetref") {
+    datasetId: ObjectId
+    datasetPath: String
+    stageId: String
+}
+
+type ValueDatasetref @goModel(model: "observe/compiler/comptypes.ValueDatasetref") {
+    datasetId: ObjectId
+    datasetPath: String
+    stageId: String
+}
+
+input ValueTypeSpecInput @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
+    type: ValueType!
+    arrayItemType: ValueTypeSpecInput
+    keyForDatasetId: ObjectId
+}
+
+type ValueTypeSpec @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
+    type: ValueType!
+    arrayItemType: ValueTypeSpec
+    keyForDatasetId: ObjectId
+}
+
+input ValueKeyTypeInput @goModel(model: "observe/compiler/comptypes.ValueKeyType") {
+    name: String!
+    type: ValueTypeSpecInput!
+}
+
+type ValueKeyType @goModel(model: "observe/compiler/comptypes.ValueKeyType") {
+    name: String!
+    type: ValueTypeSpec!
+}
+
+"""
+Whever you can "save" a worksheet-like entity, you can also save the
+parameters that go with it. This is so that the worksheet component in the FE
+can have a unified API to work against. You can also save the parameterValues
+to go with it as well.
+"""
+input ParameterSpecInput @goModel(model: "observe/meta/metatypes.ParameterSpec") {
+    """
+    opal usable id, ideally a valid C and JavaScript identifier
+    """
+    id: String!
+    """
+    user-readable name
+    """
+    name: String!
+    """
+    optional default value, must match valueKind if present
+    """
+    defaultValue: ValueInput
+    valueKind: ValueTypeSpecInput!
+}
+
+type ParameterSpec @goModel(model: "observe/meta/metatypes.ParameterSpec") {
+    id: String!
+    name: String!
+    """
+    optional default value
+    """
+    defaultValue: Value
+    valueKind: ValueTypeSpec!
+}
+
+"""
+Why do we separate "Data" bindings from "Reference" bindings? Why does this
+have to be pre-declared, rather than resolved at the end by the compiler?
+
+Because we have the hard rule that physical dataset IDs only exist in the
+API, not at the OPAL level, we wouldn't know which particular dataset you'd
+suggest to use, unless the input binding was pre-declared.  If we just made
+something up in GetTargetDatasetBinding() then how would we later know which
+shape to resolve it to?
+
+The user writes addfk "some name", id=@theThing.id
+
+We need to know what theThing really means. Hence, it needs a binding. Hence,
+when bindings are specified, we need to know whether you expect that to be
+100% defined, or left pending.  We could allow a less concrete pipeline
+specification. Leave @theThing entirely unresolved, and only resolve it using
+some later operation that says "and wherever I called something @theThing,
+now I mean this thing!" (edited)
+
+Which means that we have to live with pipelines that are constantly in
+unresolved and unresolvable states, and only some pipelines can run. We also
+can no longer preview the data until that next step has been taken.
+
+I e, we assume each query (set of stages) compiles and links as a unit. There
+is no separate compilation, because the user experience and complexity of
+that abstraction seems unnecessary just to solve this one use case in this
+one alternative way.
+"""
+enum InputRole @goModel(model: "observe/meta/metatypes.InputRole") {
+    Default
+    Data
+    Reference
+}
+
+type InputDefinition @goModel(model: "observe/meta/metatypes.InputDefinition") {
+    """
+    Assign the short and unique user mnemonic for this input, used in @tableref expressions
+    """
+    inputName: String!
+    inputRole: InputRole!
+    """
+    One of the input definition fields is used; the others are null
+    because GO doesn't have unions.
+    """
+    datasetId: ObjectId
+    datasetPath: String
+    stageID: String @deprecated(reason: "use stageId")
+    """
+    Only set stageId to reference input that comes from an actual stage in the same query
+    """
+    stageId: String @goField(name:StageID)
+}
+
+input InputDefinitionInput @goModel(model: "observe/meta/metatypes.InputDefinition") {
+    """
+    Assign the short and unique user mnemonic for this input, used in @tableref expressions
+    """
+    inputName: String!
+    """
+    If this input is to be used for a purpose other than "slurp data," then specify that here.
+    """
+    inputRole: InputRole
+
+    """
+    Datasets defined by IDs refer to latest-published version of dataset.
+    """
+    datasetId: ObjectId
+
+    """
+    Format of datasetPath is projectlabel.datasetlabel
+    """
+    datasetPath: String
+
+    """
+    Reference a previous query in the worksheet by label
+    """
+    stageID: String @deprecated(reason: "use stageId")
+    stageId: String @goField(name:StageID)
+
+    """
+    If this input is parameterized, this will contain the ID of the parameter to substitute for this input. Parameters
+    are bound in the QueryParams for the query being issued with this input.
+    """
+    parameterId: String
+}
+
+input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePresentationInput") {
+    """
+    limit can be per-query in addition to per-request; the min() is applied
+    """
+    limit: Int64
+    """
+    defaultStats, if specified, calculates stats for any column that matches a
+    predetermined set of rules, and returns those stats.
+    """
+    defaultStats: DefaultStatsInput
+    """
+    orderColumns determines order of returned data rows
+    """
+    orderColumns: [ColumnOrderInput!]
+    """
+    when linkify is true, the server will resolve all declared foreign keys
+    and create one new field for each containing that user-readable name of the
+    target of the key (see design doc in Notion)
+    """
+    linkify: Boolean
+    """
+    When rollup is set, resources will be rolled up into the query time window
+    Columns will be aggregated into arrays.
+    """
+    rollup: RollupOptionInput
+    resultKinds: [ResultKind]
+    """
+    When wantBuckets is set, time-binning verbs without explicit resolution specification
+    will automatically find a human-friendly resolution and generate the wanted number of
+    buckets. When exact number of buckets is not possible, more buckets will be generated.
+    """
+    wantBuckets: Int64
+}
+
+input RollupOptionInput @goModel(model: "observe/meta/metaparser.RollupOptionInput") {
+    """
+    If unrollColumns is set, the columns specified will be unrolled after being
+    grouped by primary key and ordered by time. Empty unrollColumns will produce
+    1 row for each primary key (because all non-primary key columns are rolled
+    up). If a column C having values [0,1,0] at times [0,1,2] for a given primary
+    key is specified in unrollColumns, 3 rows will be produced for that primary
+    key, with the values of C being 0, 1, 0 in each row, respectively.
+    """
+    unrollColumns: [String!]
+    """
+    If set to true, explicitly disables rollup, even for a Resource
+    """
+    forceNoRollup: Boolean
+}
+
+input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInput") {
+    """
+    Something which is a string, or which is inferred to be an ID, will
+    return a list of the top K values + counts
+    """
+    topKCount: Int64
+    """
+    Maximum number of histograms to return.
+
+    Ingeger, float, duration columns return histograms.
+
+    Set to 0 to disable histograms.
+    Set to <0 for an unlimited number of histograms.
+    Set to null to let the backend decide a suitable limit.
+    """
+    maxNbHistograms: Int64
+    """
+    Number of buckets per histogram.
+
+    Set to 0 to disable histograms.
+    Set to null to let the backend decide.
+    """
+    histogramCount: Int64
+    """
+    Number of buckets per sparkline.
+
+    Integer, float, timestamp, duration columns return a sparkline.
+    The aggregate function is chosen by the backend based on the type of
+    column.
+
+    Set to 0 to disable sparklines.
+    Set to null to let the backend decide.
+    """
+    sparklineBucketCount: Int64
+    """
+    The function used to summarize buckets can be chosen; default is avg()
+    """
+    sparklineFunction: String
+    """
+    If timestamp columns are included, they will be returned as
+    sparkline(count) (notwithstanding any sparklineFunction for float values)
+    """
+    includeTimestampColumns: Boolean
+    """
+    Whether to generate compound TopK for link columns. Note that this will
+    disable the normal TopK results for link columns.
+    """
+    useCompoundTopKForLinks: Boolean
+}
+
+enum NullOrdering @goModel(model: "observe/meta/metatypes.NullOrdering") {
+    """
+    Default: nulls are "small" for valid-from, "big" for valid-to, and "last"
+    for other fields.
+    """
+    Default,
+    First,
+    Last
+}
+
+input ColumnOrderInput @goModel(model: "observe/meta/metaparser.ColumnOrderInput") {
+    columnName: String!
+    """
+    default is descending, which is great for timestamps
+    """
+    ascending: Boolean
+    nullOrdering: NullOrdering
+}
+
+enum RollupFilterMode @goModel(model: "observe/meta/metatypes.RollupFilterMode") {
+    Last
+    All
+}
+
+input RollupFilterInput @goModel(model: "observe/meta/metatypes.RollupFilterInput") {
+    mode: RollupFilterMode!
+
+    # TODO: add more sophisticated filter options, like time range-based filtering.
+}
+
+"""
+Well-known stats column.
+"""
+enum StatsWKCol @goModel(model: "observe/meta/metastats.WKCol") {
+    BucketId
+    BucketHash
+    CountStar
+}
+
+"""
+Small materialized aggregates (SMAs).
+"""
+enum StatsSMA @goModel(model: "observe/meta/metastats.SMA") {
+    Count
+    Min
+    Max
+    CountDistinct
+    Size
+    Minhash
+}
+
+"""
+A query fragment for a single SMA of some dataset.
+"""
+input StatsSMAQueryInput @goModel(model: "observe/meta/metastats.SMAQuery") {
+    sma: StatsSMA!
+    inColNames: [String!]!
+}
+
+"""
+A query fragment that contains all the StatsSMAQueryInput fragments that
+belong to a common base dataset.
+"""
+input StatsDatasetQueryInput @goModel(model: "observe/meta/metastats.DatasetQuery") {
+    baseDatasetId: ObjectId
+    baseDatasetPath: String
+    smaQueries: [StatsSMAQueryInput!]
+}
+
+"""
+A StatsQueryResult fragment that corresponds to a single
+StatsDatasetQueryInput.
+"""
+type StatsDatasetQueryResult @goModel(model: "observe/meta/metastats.DatasetResult") {
+    validFromCol: [Number!]
+    validToCol: [Number!]
+    wkCols: [StatsVector!]
+    smaCols: [StatsVector!]
+    smasCombined: [Any!]
+}
+
+"""
+A complete stats result that corresponds to a stats() query. May contain
+multiple StatsDatasetQueryResult.
+
+Not to be confused with the stats result for some dataset() query.
+"""
+type StatsQueryResult @goModel(model: "observe/meta/metastats.Result") {
+    queryId: String!
+    dsResults: [StatsDatasetQueryResult]!
+}

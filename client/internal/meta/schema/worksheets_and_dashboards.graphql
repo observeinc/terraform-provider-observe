@@ -1,0 +1,132 @@
+extend type Query {
+    worksheet(id: ObjectId!): Worksheet
+
+    dashboard(id: ObjectId!): Dashboard!
+
+    """
+    Default dashboard ID for a given dataset ID. May be null.
+    """
+    defaultDashboard(dsid: ObjectId!): ObjectId
+    defaultInstanceDashboard(dsid: ObjectId!): ObjectId
+}
+
+extend type Mutation {
+    saveWorksheet(wks: WorksheetInput): Worksheet
+    deleteWorksheet(wks: ObjectId!): ResultStatus
+
+    saveDashboard(dash: DashboardInput!): Dashboard!
+    deleteDashboard(id: ObjectId!): ResultStatus!
+
+    setDefaultDashboard(dsid: ObjectId!, dashid: ObjectId!): ResultStatus!
+    clearDefaultDashboard(dsid: ObjectId!): ResultStatus!
+    setDefaultInstanceDashboard(dsid: ObjectId!, dashid: ObjectId!): ResultStatus!
+    clearDefaultInstanceDashboard(dsid: ObjectId!): ResultStatus!
+}
+
+
+interface IWorksheetLike @goModel(model: "observe/meta/metatypes.IWorksheetLike") {
+    layout: JsonObject!
+    stages: [StageQuery!]!
+    parameters: [ParameterSpec!]
+    parameterValues: [ParameterBinding!]
+}
+
+type DashboardRef implements FolderObject & WorkspaceObject @goModel(model: "observe/meta/metatypes.DashboardRef") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+
+    folderId: ObjectId!
+}
+
+type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Dashboard") {
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+
+    folderId: ObjectId!
+
+    layout: JsonObject!
+    stages: [StageQuery!]!
+    parameters: [ParameterSpec!]
+    parameterValues: [ParameterBinding!]
+
+    createdDate: Time!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+
+    defaultForDatasets: [ObjectId!]
+}
+
+input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
+    """
+    if id is not specified, a new dashboard is created
+    """
+    id: ObjectId
+
+    name: String
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId
+    managedById: ObjectId
+
+    folderId: ObjectId
+
+    layout: JsonObject
+    stages: [StageQueryInput!]
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+}
+
+type Worksheet implements IWorksheetLike & WorkspaceObject @goModel(model: "observe/meta/metatypes.Worksheet") {
+    id: ObjectId!
+    label: String!
+    layout: JsonObject! @goField(forceResolver:true)
+    stages: [StageQuery!]! @goField(forceResolver:true)
+    parameters: [ParameterSpec!]! @goField(forceResolver:true)
+    parameterValues: [ParameterBinding!]
+
+    # WorkspaceObject fields
+    name: String! @goField(forceResolver:true)
+    description: String
+    iconUrl: String @goField(forceResolver:true)
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+
+    savedDate: Time!
+    savedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+
+    workspace: Project @goField(forceResolver:true)
+    icon: String
+}
+
+input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
+    """
+    if id is not specified, a new worksheet is created
+    """
+    id: ObjectId
+    label: String!
+    workspaceId: ObjectId!
+    managedById: ObjectId
+    layout: JsonObject
+    icon: String
+    stages: [StageQueryInput!]
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+}
+
+

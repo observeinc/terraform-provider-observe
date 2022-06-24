@@ -1,0 +1,45 @@
+fragment Channel on Channel {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	monitors {
+		id
+	}
+}
+
+mutation createChannel($workspaceId: ObjectId!, $channel: ChannelInput!) {
+	# @genqlient(flatten: true, pointer: true)
+	channel: createChannel(workspaceId:$workspaceId, channel: $channel) {
+		...Channel
+	}
+}
+
+query getChannel($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	channel: getChannel(id: $id) {
+		...Channel
+	}
+}
+
+mutation updateChannel($id: ObjectId!, $channel: ChannelInput!) {
+	# @genqlient(flatten: true, pointer: true)
+	channel: updateChannel(id:$id, channel: $channel) {
+		...Channel
+	}
+}
+
+mutation deleteChannel($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteChannel(id: $id) {
+        ...ResultStatus
+	}
+}
+
+mutation setMonitorsForChannel($channelId: ObjectId!, $monitorIds: [ObjectId!]!) {
+	# @genqlient(flatten: true)
+	resultStatus: setMonitorsForChannel(channelId: $channelId, monitorIds: $monitorIds) {
+        ...ResultStatus
+	}
+}

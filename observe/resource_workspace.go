@@ -2,11 +2,13 @@ package observe
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
 func resourceWorkspace() *schema.Resource {
@@ -39,9 +41,10 @@ func resourceWorkspace() *schema.Resource {
 	}
 }
 
-func newWorkspaceConfig(data *schema.ResourceData) (config *observe.WorkspaceConfig, diags diag.Diagnostics) {
-	config = &observe.WorkspaceConfig{
-		Name: data.Get("name").(string),
+func newWorkspaceConfig(data *schema.ResourceData) (input *gql.WorkspaceInput, diags diag.Diagnostics) {
+	label := data.Get("name").(string)
+	input = &gql.WorkspaceInput{
+		Label: &label,
 	}
 	return
 }
@@ -59,7 +62,7 @@ func resourceWorkspaceCreate(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to create workspace: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceWorkspaceRead(ctx, data, meta)...)
 }
 
@@ -87,19 +90,23 @@ func resourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta 
 		return diag.Errorf("failed to read workspace: %s", err.Error())
 	}
 
-	if err := data.Set("name", workspace.Config.Name); err != nil {
+	if err := data.Set("name", workspace.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("id", workspace.ID); err != nil {
+	if err := data.Set("id", workspace.Id); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := data.Set("oid", workspace.OID().String()); err != nil {
+	if err := data.Set("oid", workspace.Oid().String()); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := data.Set("datasets", workspace.Datasets); err != nil {
+	datasets := make(map[string]string)
+	for _, ds := range workspace.Datasets {
+		datasets[ds.Label] = ds.Id
+	}
+	if err := data.Set("datasets", datasets); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -108,6 +115,17 @@ func resourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, meta 
 
 func resourceWorkspaceDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
+
+	// TODO: Remove this despicable hack
+	//       If we don't pause here, the workspace resource test fails sometimes
+	//       while deleting the workspace at the end of the test case due to some
+	//       concurrent access issue on Postgres.
+	//       It's unclear what the cause is or how difficult it would be to fix
+	//       server-side; for now, adding a one-second delay seems to be sufficient
+	//       as a temporary client-side workaround.
+	d, _ := time.ParseDuration("1s")
+	time.Sleep(d)
+
 	if err := client.DeleteWorkspace(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete workspace: %s", err.Error())
 	}

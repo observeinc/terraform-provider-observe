@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceLink() *schema.Resource {
@@ -17,13 +18,13 @@ func dataSourceLink() *schema.Resource {
 			"source": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      schemaLinkSourceDescription,
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      schemaLinkTargetDescription,
 			},
 			"fields": {
@@ -43,24 +44,23 @@ func dataSourceLinkRead(ctx context.Context, data *schema.ResourceData, meta int
 		fields = data.Get("fields").([]interface{})
 	)
 
-	source, _ := observe.NewOID(data.Get("source").(string))
-	target, _ := observe.NewOID(data.Get("target").(string))
+	source, _ := oid.NewOID(data.Get("source").(string))
+	target, _ := oid.NewOID(data.Get("target").(string))
 
 	defer func() {
 		// right now SDK does not report where this error happened,
 		// so we need to provide a little extra context
 		for i := range diags {
-			diags[i].Detail = fmt.Sprintf("foreign key %s -> %s %q", source.ID, target.ID, fields)
+			diags[i].Detail = fmt.Sprintf("foreign key %s -> %s %q", source.Id, target.Id, fields)
 		}
-		return
 	}()
 
 	srcFields, dstFields := unpackFields(fields)
-	link, err := client.LookupForeignKey(ctx, source.ID, target.ID, srcFields, dstFields)
+	link, err := client.LookupForeignKey(ctx, source.Id, target.Id, srcFields, dstFields)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	data.SetId(*link.Config.Source + "/" + *link.Config.Label)
+	data.SetId(source.Id + "/" + *link.Label)
 	return nil
 }

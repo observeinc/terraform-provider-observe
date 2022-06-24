@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -30,10 +32,10 @@ func resourceDatastream() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatastreamWorkspaceDescription,
 			},
 			"name": {
@@ -65,47 +67,45 @@ func resourceDatastream() *schema.Resource {
 	}
 }
 
-func newDatastreamConfig(data *schema.ResourceData) (*observe.DatastreamConfig, diag.Diagnostics) {
-	config := &observe.DatastreamConfig{
+func newDatastreamConfig(data *schema.ResourceData) (*gql.DatastreamInput, diag.Diagnostics) {
+	input := &gql.DatastreamInput{
 		Name: data.Get("name").(string),
 	}
 
 	{
 		// always reset to empty string if description not set
-		description := data.Get("description").(string)
-		config.Description = &description
+		input.Description = stringPtr(data.Get("description").(string))
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
+		input.IconUrl = stringPtr(v.(string))
 	}
 
-	return config, nil
+	return input, nil
 }
 
-func datastreamToResourceData(d *observe.Datastream, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func datastreamToResourceData(d *gql.Datastream, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.Description != nil {
-		if err := data.Set("description", d.Config.Description); err != nil {
+	if d.Description != nil {
+		if err := data.Set("description", d.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.IconURL != nil {
-		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+	if d.IconUrl != nil {
+		if err := data.Set("icon_url", d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("dataset", d.DatasetOID().String()); err != nil {
+	if err := data.Set("dataset", oid.DatasetOid(d.DatasetId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	return diags
@@ -118,8 +118,8 @@ func resourceDatastreamCreate(ctx context.Context, data *schema.ResourceData, me
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateDatastream(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateDatastream(ctx, id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -129,7 +129,7 @@ func resourceDatastreamCreate(ctx context.Context, data *schema.ResourceData, me
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceDatastreamRead(ctx, data, meta)...)
 }
 

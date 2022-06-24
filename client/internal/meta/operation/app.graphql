@@ -1,0 +1,53 @@
+fragment App on App {
+    id
+	name
+    iconUrl
+    description
+    workspaceId
+	folderId
+    config {
+        moduleId
+		version
+	}
+    status {
+        state
+    }
+    outputs
+}
+
+mutation createApp($workspaceId: ObjectId!, $config: AppInput!) {
+    # @genqlient(flatten: true)
+    app: createApp(workspaceId:$workspaceId, app: $config) {
+        ...App
+	}
+}
+
+query getApp($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    app: app(id: $id) {
+        ...App
+	}
+}
+
+mutation updateApp($id: ObjectId!, $config: AppInput!) {
+    # @genqlient(flatten: true)
+    app: updateApp(id:$id, app: $config) {
+        ...App
+	}
+}
+
+mutation deleteApp($id: ObjectId!) {
+	# @genqlient(flatten: true)
+    resultStatus: deleteApp(id: $id) {
+        ...ResultStatus
+    }
+}
+
+# LookupApp retrieves app by name.
+# TODO: this should be bound to a folderId, not a workspace.
+query lookupApp($workspaceId: ObjectId!, $name: String!) {
+    # @genqlient(flatten: true)
+    apps(workspaceId: $workspaceId, name: $name) {
+        ...App
+    }
+}

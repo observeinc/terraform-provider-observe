@@ -1,0 +1,44 @@
+fragment Folder on Folder {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+}
+
+query getFolder($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	folder: folder(id: $id) {
+		...Folder
+	}
+}
+
+mutation createFolder($workspaceId: ObjectId!, $config: FolderInput!) {
+	# @genqlient(flatten: true)
+	folder: createFolder(workspaceId:$workspaceId, folder: $config) {
+		...Folder
+	}
+}
+
+mutation updateFolder($id: ObjectId!, $config: FolderInput!) {
+	# @genqlient(flatten: true)
+	folder: updateFolder(id:$id, folder: $config) {
+		...Folder
+	}
+}
+
+mutation deleteFolder($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteFolder(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query lookupFolder($workspaceId: ObjectId!, $name: String!) {
+	folder: workspace(id: $workspaceId) {
+		# @genqlient(flatten: true)
+		folder(name: $name) {
+			...Folder
+		}
+	}
+}

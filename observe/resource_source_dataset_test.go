@@ -12,6 +12,7 @@ import (
 func TestAccObserveSourceDatasetResource(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

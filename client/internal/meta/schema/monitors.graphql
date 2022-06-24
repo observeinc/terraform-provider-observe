@@ -1,0 +1,677 @@
+extend type Query {
+    getChannelAction(id: ObjectId!): ChannelAction
+    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [ChannelAction!]!
+    getChannel(id: ObjectId!): Channel
+    searchChannels(workspaceId: ObjectId, name: String, boundToMonitors: [ObjectId!]): [Channel!]!
+
+    monitor(id: ObjectId!): Monitor!
+    monitorsInWorkspace(workspaceId: ObjectId!): [Monitor!]!
+    monitorsForDataset(datasetId: ObjectId!): [Monitor!]!
+    notificationsForDataset(datasetId: ObjectId!): [Monitor!]!
+    activeNotifications(channelIds: [ObjectId!], importance: NotificationImportance): ActiveNotificationInfo!
+    monitorPreviewQuery(monitorInput: MonitorInput!): MultiStageQuery
+
+    """
+    Get sample notification data for a monitor.
+    """
+    getMonitorSampleData(monitorId: ObjectId!): MonitorSampleData
+}
+
+extend type Mutation {
+    createChannelAction(workspaceId: ObjectId!, action: ActionInput!): ChannelAction!
+    updateChannelAction(id: ObjectId!, action: ActionInput!): ChannelAction!
+    deleteChannelAction(id: ObjectId!): ResultStatus!
+    testChannelAction(action: ActionInput!, payload: String!): ResultStatus!
+
+    createChannel(workspaceId: ObjectId!, channel: ChannelInput!, actions: [ObjectId!]): Channel!
+    updateChannel(id: ObjectId!, channel: ChannelInput, actions: [ObjectId!]): Channel!
+    deleteChannel(id: ObjectId!): ResultStatus!
+
+    createMonitor(workspaceId: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
+    updateMonitor(id: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
+    deleteMonitor(id: ObjectId!): ResultStatus!
+    disableMonitor(id: ObjectId!): ResultStatus!
+    debugRenderMonitor(monitor:MonitorInput!): MonitorRender!
+    debugRenderMonitorId(id:ObjectId!): MonitorRender!
+
+    addChannelsToMonitors(channelIds: [ObjectId!]!, monitorIds: [ObjectId!]!): ResultStatus!
+    addChannelActionsToChannels(actionIds: [ObjectId!]!, channelIds: [ObjectId!]!): ResultStatus!
+    setMonitorsForChannel(channelId: ObjectId!, monitorIds:[ObjectId!]!): ResultStatus!
+    setChannelsForChannelAction(actionId: ObjectId!, channelIds:[ObjectId!]!): ResultStatus!
+}
+
+type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Monitor") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    """
+    Static comment for extra information about a monitor available in notification template.
+    """
+    comment: String
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    source: String!
+    disabled: Boolean!
+    lastUpdateSource: String!
+    generatedDatasetIds: [GeneratedDataset!]!
+    status: MonitorStatus!
+    statusMessage: String!
+    isTemplate: Boolean!
+    freshnessGoal: Int64!
+    useDefaultFreshness: Boolean!
+
+    """
+    The source stage may be empty, just specifying an input dataset,
+    or it may include actual transform work
+    """
+    query: MultiStageQuery!
+
+    rule: MonitorRule!
+    notificationSpec: NotificationSpecification!
+
+    channels: [Channel!]!
+}
+
+type MonitorUpdateResult @goModel(model: "observe/meta/metatypes.MonitorUpdateResult") {
+    monitor: Monitor!
+    monitorErrors: [String!]
+    """
+    information about errors that occur in the affected, and/or downstream datasets
+    """
+    errorDatasets: [DatasetError!]
+}
+
+input MonitorInput @goModel(model: "observe/meta/metatypes.MonitorInput") {
+    name: String
+    iconUrl: String
+    description: String
+    """
+    Static comment for extra information about a monitor available in notification template.
+    """
+    comment: String
+    """
+    Examples - "terraform", "webui".
+    """
+    source: String
+    """
+    Only when the monitor is updated.
+    """
+    overwriteSource: Boolean
+    """
+    The optional id of the object that owns the monitor. Ex: the id of an app that installs the monitor.
+    """
+    managedById: ObjectId
+    disabled: Boolean
+    isTemplate: Boolean
+    """
+    Similar to dataset freshness goal, this is in Nanoseconds when received from UI.
+    Only changes setting if useDefaultFreshness is false
+    """
+    freshnessGoal: Int64
+    """
+    Defaults to true on creation if not specified
+    """
+    useDefaultFreshness: Boolean
+    query: MultiStageQueryInput
+    rule: MonitorRuleInput
+    notificationSpec: NotificationSpecificationInput
+    channels: [ObjectId!]
+}
+
+type NotificationSpecification @goModel(model: "observe/meta/metatypes.NotificationSpecification") {
+    importance: NotificationImportance!
+    """
+    should these go in each applicable Rule instead?
+    """
+    merge: NotificationMerge            # only matters when talking about distinct resources
+    selection: NotificationSelection!    @deprecated(reason:"no longer supported will be ignored") # only matters when talking about distinct resources
+    selectionValue: Number!             @deprecated(reason:"no longer supported will be ignored") # for selection
+    reminderFrequency: Duration!        # how frequently reminder notifications are sent when alert is open.
+}
+
+input NotificationSpecificationInput @goModel(model: "observe/meta/metatypes.NotificationSpecificationInput") {
+    importance: NotificationImportance
+    merge: NotificationMerge
+    selection: NotificationSelection @deprecated(reason:"no longer supported will be ignored")
+    selectionValue: Number @deprecated(reason:"no longer supported will be ignored")
+    reminderFrequency: Duration
+}
+
+type MonitorGroupInfo @goModel(model: "observe/meta/metatypes.MonitorGroupInfo") {
+    """
+    GroupBy:
+    ┌───────────┬─────────┬──────────────────────────┬─────────────┬────────────┐
+    │GroupBy    │Resource │Link                      │Value column │Column Path │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │groupName  │Empty    │Non-empty (FK label)      │Empty        │Empty       │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │columns    │Empty    │Non-empty (FK Src fields) │Non-empty    │Empty       │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │columnPath │Nil      │Nil                       │Nil          │Non-nil     │
+    └───────────┴─────────┴──────────────────────────┴─────────────┴────────────┘
+    """
+    columns: [String!]!
+    groupName: String!
+
+    columnPath: MonitorGroupByColumnPath
+}
+
+type MonitorGroupByColumnPath @goModel(model: "observe/meta/metatypes.MonitorGroupByColumnPath")  {
+    column: String!
+    path: String!
+}
+
+input MonitorGroupInfoInput @goModel(model: "observe/meta/metatypes.MonitorGroupInfoInput") {
+    """
+    GroupBy:
+    ┌───────────┬─────────┬──────────────────────────┬─────────────┬────────────┐
+    │GroupBy    │Resource │Link                      │Value column │Column Path │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │groupName  │Empty    │Non-empty (FK label)      │Empty        │Empty       │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │columns    │Empty    │Non-empty (FK Src fields) │Non-empty    │Empty       │
+    ├───────────┼─────────┼──────────────────────────┼─────────────┼────────────┤
+    │columnPath │Nil      │Nil                       │Nil          │Non-nil     │
+    └───────────┴─────────┴──────────────────────────┴─────────────┴────────────┘
+    """
+    columns: [String!]!
+    groupName: String!
+
+    columnPath: MonitorGroupByColumnPathInput
+}
+
+input MonitorGroupByColumnPathInput @goModel(model: "observe/meta/metatypes.MonitorGroupByColumnPathInput")  {
+    column: String!
+    path: String!
+}
+
+interface MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRule") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+}
+
+type MonitorRuleThreshold implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleThreshold") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    compareFunction: CompareFunction!
+    compareValues: [Number!]!
+    lookbackTime: Duration!
+    thresholdAggFunction: ThresholdAggFunction!
+}
+
+input MonitorRuleThresholdInput @goModel(model: "observe/meta/metatypes.MonitorRuleThresholdInput") {
+    compareFunction: CompareFunction
+    compareValues: [Number!]
+    lookbackTime: Duration
+    thresholdAggFunction: ThresholdAggFunction
+}
+
+type MonitorRuleChange implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleChange") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    changeType: ChangeType!
+    compareFunction: CompareFunction!
+    """
+      For Relative ChangeType, the value is a multiple -- 0.3 means 30% change
+    """
+    compareValues: [Number!]!
+    aggregateFunction: AggregateFunction!
+    """
+      The comparison time is established as
+      from: now - lookbackTime - baselineTime
+      to:   now - lookbackTime
+      The triggering time is established as
+      from: now - lookbackTime
+      to:   now
+      (These may end up being approximate, depending on transform scheduling and such)
+    """
+    lookbackTime: Duration!
+    baselineTime: Duration!
+}
+
+input MonitorRuleChangeInput @goModel(model: "observe/meta/metatypes.MonitorRuleChangeInput") {
+    changeType: ChangeType
+    compareFunction: CompareFunction
+    """
+      For Relative ChangeType, the value is a multiple -- 0.3 means 30% change
+    """
+    compareValues: [Number!]
+    aggregateFunction: AggregateFunction
+    """
+      The comparison time is established as
+      from: now - lookbackTime - baselineTime
+      to:   now - lookbackTime
+      The triggering time is established as
+      from: now - lookbackTime
+      to:   now
+      (These may end up being approximate, depending on transform scheduling and such)
+    """
+    lookbackTime: Duration
+    baselineTime: Duration
+}
+
+type MonitorRuleFacet implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleFacet") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    facetFunction: FacetFunction!
+    facetValues: [String!]
+    timeFunction: TimeFunction!
+    """
+    for example, "50" for "more than 50% of the time"
+    """
+    timeValue: Number
+    lookbackTime: Duration!
+}
+
+input MonitorRuleFacetInput @goModel(model: "observe/meta/metatypes.MonitorRuleFacetInput") {
+    facetFunction: FacetFunction
+    facetValues: [String!]
+    timeFunction: TimeFunction
+    timeValue: Number
+    lookbackTime: Duration
+}
+
+type MonitorRuleCount implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleCount") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    compareFunction: CompareFunction!
+    compareValues: [Number!]!
+    lookbackTime: Duration!
+}
+
+input MonitorRuleCountInput @goModel(model: "observe/meta/metatypes.MonitorRuleCountInput") {
+    compareFunction: CompareFunction
+    compareValues: [Number!]
+    lookbackTime: Duration
+}
+
+type MonitorRulePromote implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRulePromote") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    """
+    GroupBy is ignored for Promote Monitors
+    """
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    primaryKey: [String!]!
+    descriptionField: String
+    kindField: String
+}
+
+input MonitorRulePromoteInput @goModel(model: "observe/meta/metatypes.MonitorRulePromoteInput") {
+    primaryKey: [String!]
+    descriptionField: String
+    kindField: String
+}
+
+
+input MonitorRuleInput @goModel(model: "observe/meta/metatypes.MonitorRuleInput") {
+    layout: JsonObject
+    sourceColumn: String
+    """
+    Takes precedence over GroupByColumns -- will replace contents of GroupByColumns
+    Specify value columns with an MonitorGroupInfo with a nil datasetId
+    """
+    groupByGroups: [MonitorGroupInfoInput!]
+
+    groupBy: MonitorGrouping @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!] @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+
+    """
+    exactly one of these should be used
+    """
+    changeRule: MonitorRuleChangeInput
+    countRule: MonitorRuleCountInput
+    facetRule: MonitorRuleFacetInput
+    thresholdRule: MonitorRuleThresholdInput
+    promoteRule: MonitorRulePromoteInput
+}
+
+enum MonitorRuleKind @goModel(model: "observe/meta/metatypes.MonitorRuleKind") {
+    Threshold
+    Change
+    Facet
+    Count
+    Promote
+}
+
+enum MonitorGrouping @goModel(model: "observe/meta/metatypes.MonitorGrouping") {
+    None @deprecated(reason:"use groupByGroups instead")
+    Value @deprecated(reason:"use groupByGroups instead")
+    Resource @deprecated(reason:"use groupByGroups instead")
+    LinkTarget @deprecated(reason:"use groupByGroups instead")
+}
+
+enum MonitorStatus @goModel(model: "observe/meta/metatypes.MonitorStatus") {
+    Creating
+    Monitoring
+    Stopped
+}
+
+enum NotificationImportance @goModel(model: "observe/meta/metatypes.NotificationImportance") {
+    Informational
+    Important
+    Missing
+}
+
+enum NotificationMerge @goModel(model: "observe/meta/metatypes.NotificationMerge") {
+    Merged
+    Separate
+}
+
+enum NotificationSelection @goModel(model: "observe/meta/metatypes.NotificationSelection") {
+    Any
+    All
+    Percentage
+    Count
+}
+
+enum AggregateFunction @goModel(model: "observe/meta/metatypes.AggregateFunction") {
+    """
+    On Average
+    """
+    Avg
+
+    """
+    In Total
+    """
+    Sum
+
+    """
+    At All Times (unintuitive but true!)
+    """
+    Min
+
+    """
+    At Least Once (unintuitive but true!)
+    """
+    Max
+}
+
+enum ChangeType @goModel(model: "observe/meta/metatypes.ChangeType") {
+    Absolute
+    Relative
+}
+
+enum CompareFunction @goModel(model: "observe/meta/metatypes.CompareFunction") {
+    Equal
+    NotEqual
+    Greater
+    GreaterOrEqual
+    Less
+    LessOrEqual
+    """
+    lower value inclusive, upper value exclusive
+    """
+    InInterval
+    """
+    lower value exclusive, upper value inclusive
+    """
+    NotInInterval
+    IsNull
+    IsNotNull
+}
+
+enum FacetFunction @goModel(model: "observe/meta/metatypes.FacetFunction") {
+    Equals
+    NotEqual
+    Contains
+    DoesNotContain
+    IsNull
+    IsNotNull
+}
+
+enum TimeFunction @goModel(model: "observe/meta/metatypes.TimeFunction") {
+    Never
+    AtLeastOnce
+    AtAllTimes
+    AtLeastPercentageTime
+    LessThanPercentageTime
+    NoEvents
+    AllEvents
+    CountTimes
+}
+
+enum ThresholdAggFunction @goModel(model: "observe/meta/metatypes.ThresholdAggFunction") {
+    AtAllTimes
+    AtLeastOnce
+    OnAverage
+    InTotal
+}
+
+type Channel @goModel(model: "observe/meta/metatypes.Channel") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    actions: [ChannelAction!]! @goField(name:CacheActions)
+    monitors: [Monitor!]! @goField(forceResolver:true)
+}
+
+input ChannelInput @goModel(model: "observe/meta/metatypes.ChannelInput") {
+    name: String
+    iconUrl: String
+    description: String
+}
+
+interface ChannelAction @goModel(model: "observe/meta/metatypes.ChannelAction") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    updatedDate: Time!
+    rateLimit: Duration!
+    channels: [Channel!]! @goField(forceResolver:true)
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+}
+
+type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatypes.EmailAction") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    rateLimit: Duration!
+    channels: [Channel!]! @goField(forceResolver:true)
+
+    targetUsers: [UserId!]!
+    targetAddresses: [String!]!
+    subjectTemplate: String!
+    bodyTemplate: String!
+    isHtml: Boolean!
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+}
+
+input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
+    name: String
+    iconUrl: String
+    description: String
+    rateLimit: Duration
+    notifyOnClose: Boolean
+    notifyOnReminder: Boolean
+
+    email: EmailActionInput
+    webhook: WebhookActionInput
+}
+
+input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput") {
+    targetUsers: [UserId!]
+    targetAddresses: [String!]
+    subjectTemplate: String
+    bodyTemplate: String
+    isHtml: Boolean
+}
+
+type WebhookAction implements ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    rateLimit: Duration!
+    channels: [Channel!]! @goField(forceResolver:true)
+
+    urlTemplate: String!
+    method: String!
+    headers: [WebhookHeader!]!
+    bodyTemplate: String!
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+}
+
+input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionInput") {
+    urlTemplate: String
+    method: String
+    headers: [WebhookHeaderInput!]
+    bodyTemplate: String
+}
+
+type WebhookHeader @goModel(model: "observe/meta/metatypes.WebhookHeader") {
+    header: String!
+    valueTemplate: String!
+}
+
+input WebhookHeaderInput @goModel(model: "observe/meta/metatypes.WebhookHeader") {
+    header: String!
+    valueTemplate: String!
+}
+
+"""
+If the action is somehow broken or unknown, some message
+about what went wrong for the action goes into message, and
+some JSON payload that may or may not be decodable goes into
+payload.
+"""
+type UnknownAction implements ChannelAction @goModel(model: "observe/meta/metatypes.UnknownAction") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedDate: Time!
+    rateLimit: Duration!
+    channels: [Channel!]! @goField(forceResolver:true)
+
+    message: String!
+    payload: String!
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+}
+
+type ActiveNotification @goModel(model: "observe/meta/metatypes.ActiveNotification") {
+  monitorId: ObjectId!
+  kind: String!
+  description: String!
+  validFrom: Time!
+  validTo: Time!
+  instanceUrl: String!
+  lastNotificationDate: Time!
+  status: String!
+  importance: NotificationImportance!
+}
+
+"""
+notifications is limited to 20
+"""
+type ActiveNotificationInfo @goModel(model: "observe/meta/metatypes.ActiveNotificationInfo") {
+    """
+    Count of Active Notifications filtered by the provided channel ids.
+    """
+    count: Int!
+    """
+    Count of Active Notifications filtered by the provided channel ids and by importance, if it's provided.
+    """
+    filteredCount: Int!
+    notifications: [ActiveNotification!]!
+}
+
+type MonitorRender @goModel(model: "observe/meta/metatypes.MonitorRender") {
+    opalText: String!
+    error: String!
+}
+
+type MonitorSampleData @goModel(model: "observe/meta/metatypes.MonitorSampleData") {
+    payload: String!
+}

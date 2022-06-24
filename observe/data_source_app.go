@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceApp() *schema.Resource {
@@ -15,7 +17,7 @@ func dataSourceApp() *schema.Resource {
 			"folder": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateOID(observe.TypeFolder),
+				ValidateDiagFunc: validateOID(oid.TypeFolder),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
 			"name": {
@@ -64,21 +66,21 @@ func dataSourceAppRead(ctx context.Context, data *schema.ResourceData, meta inte
 		id     = data.Get("id").(string)
 	)
 
-	oid, _ := observe.NewOID(data.Get("folder").(string))
+	folderId, _ := oid.NewOID(data.Get("folder").(string))
 
-	var m *observe.App
+	var m *gql.App
 	var err error
 
 	if id != "" {
 		m, err = client.GetApp(ctx, id)
 	} else if name != "" {
-		m, err = client.LookupApp(ctx, oid.ID, name)
+		m, err = client.LookupApp(ctx, folderId.Id, name)
 	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(m.ID)
+	data.SetId(m.Id)
 	return resourceAppRead(ctx, data, meta)
 }

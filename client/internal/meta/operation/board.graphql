@@ -1,0 +1,36 @@
+fragment Board on Board {
+	id
+	datasetId
+	name
+	type
+	boardJson: board
+	source
+}
+
+mutation createBoard($datasetId: ObjectId!, $boardType: BoardType!, $board: BoardInput!) {
+	# @genqlient(flatten: true)
+	board: createBoard(datasetId:$datasetId, type: $boardType, board: $board) {
+		...Board
+	}
+}
+
+query getBoard($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	board: getBoard(id: $id) {
+		...Board
+	}
+}
+
+mutation updateBoard($id: ObjectId!, $board: BoardInput!) {
+	# @genqlient(flatten: true)
+	board: updateBoard(id:$id, board: $board) {
+		...Board
+	}
+}
+
+mutation deleteBoard($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteBoard(id: $id) {
+        ...ResultStatus
+	}
+}

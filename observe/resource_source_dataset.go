@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 var sourceDatasetFieldResource = &schema.Resource{
@@ -70,10 +73,10 @@ func resourceSourceDataset() *schema.Resource {
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -104,7 +107,7 @@ func resourceSourceDataset() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"field": &schema.Schema{
+			"field": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem:     sourceDatasetFieldResource,
@@ -121,7 +124,7 @@ func resourceSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"freshness": &schema.Schema{
+			"freshness": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: func(i interface{}, k string) ([]string, []error) {
@@ -141,113 +144,112 @@ func resourceSourceDataset() *schema.Resource {
 	}
 }
 
-func newSourceDatasetConfig(data *schema.ResourceData) *observe.SourceDatasetConfig {
-	config := &observe.SourceDatasetConfig{
-		Name:      data.Get("name").(string),
-		Schema:    data.Get("schema").(string),
-		TableName: data.Get("table_name").(string),
+func newSourceDatasetConfig(data *schema.ResourceData) (*gql.DatasetDefinitionInput, *gql.SourceTableDefinitionInput, error) {
+	description := data.Get("description").(string)
+	input := gql.DatasetDefinitionInput{
+		Dataset: gql.DatasetInput{
+			Label: data.Get("name").(string),
+			// always reset to empty string if description not set
+			Description: &description,
+		},
 	}
-
-	sourceUpdateTableFqn := data.Get("source_update_table_name").(string)
-	config.SourceUpdateTableName = &sourceUpdateTableFqn
-	validFromField := data.Get("valid_from_field").(string)
-	config.ValidFromField = &validFromField
-	if v, ok := data.GetOk("batch_seq_field"); ok {
-		s := v.(string)
-		config.BatchSeqField = &s
-	}
-	if v, ok := data.GetOk("is_insert_only"); ok {
-		config.IsInsertOnly = v.(bool)
-	}
-
-	fields := data.Get("field").(*schema.Set)
-	for _, v := range fields.List() {
-		m := v.(map[string]interface{})
-		var field observe.SourceDatasetFieldConfig
-		field.Name = m["name"].(string)
-		field.Type = m["type"].(string)
-		field.SqlType = m["sql_type"].(string)
-		{
-			b := m["is_enum"].(bool)
-			field.IsEnum = &b
-		}
-		{
-			b := m["is_searchable"].(bool)
-			field.IsSearchable = &b
-		}
-		{
-			b := m["is_hidden"].(bool)
-			field.IsHidden = &b
-		}
-		{
-			b := m["is_const"].(bool)
-			field.IsConst = &b
-		}
-		{
-			b := m["is_metric"].(bool)
-			field.IsMetric = &b
-		}
-
-		config.Fields = append(config.Fields, field)
-	}
-
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
-	}
-	{
-		// always reset to empty string if description not set
-		description := data.Get("description").(string)
-		config.Description = &description
+		input.Dataset.IconUrl = stringPtr(v.(string))
 	}
 	if v, ok := data.GetOk("freshness"); ok {
-		t, _ := time.ParseDuration(v.(string))
-		config.Freshness = &t
+		// we already validated in schema
+		freshnessParsed, _ := time.ParseDuration(v.(string))
+		input.Dataset.FreshnessDesired = types.Int64Scalar(freshnessParsed).Ptr()
 	}
 
-	return config
+	sourceUpdateTableName := data.Get("source_update_table_name").(string)
+	validFromField := data.Get("valid_from_field").(string)
+	sourceInput := gql.SourceTableDefinitionInput{
+		Schema:                data.Get("schema").(string),
+		TableName:             data.Get("table_name").(string),
+		SourceUpdateTableName: &sourceUpdateTableName,
+		ValidFromField:        &validFromField,
+	}
+	if v, ok := data.GetOk("batch_seq_field"); ok {
+		sourceInput.BatchSeqField = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("is_insert_only"); ok {
+		sourceInput.IsInsertOnly = boolPtr(v.(bool))
+	}
+
+	for _, fieldRaw := range data.Get("field").(*schema.Set).List() {
+		field := fieldRaw.(map[string]interface{})
+		isEnum := field["is_enum"].(bool)
+		isSearchable := field["is_searchable"].(bool)
+		isHidden := field["is_hidden"].(bool)
+		isConst := field["is_const"].(bool)
+		isMetric := field["is_metric"].(bool)
+		input.Schema = append(input.Schema, gql.DatasetFieldDefInput{
+			Name: field["name"].(string),
+			Type: gql.DatasetFieldTypeInput{
+				Rep: field["type"].(string),
+			},
+			IsEnum:       &isEnum,
+			IsSearchable: &isSearchable,
+			IsHidden:     &isHidden,
+			IsConst:      &isConst,
+			IsMetric:     &isMetric,
+		})
+		sourceInput.Fields = append(sourceInput.Fields, gql.SourceTableFieldDefinitionInput{
+			Name:    field["name"].(string),
+			SqlType: field["sql_type"].(string),
+		})
+	}
+
+	return &input, &sourceInput, nil
 }
 
-func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("schema", d.Config.Schema); err != nil {
+	if err := data.Set("schema", d.SourceTable.Schema); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("table_name", d.Config.TableName); err != nil {
+	if err := data.Set("table_name", d.SourceTable.TableName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.SourceUpdateTableName != nil {
-		if err := data.Set("source_update_table_name", d.Config.SourceUpdateTableName); err != nil {
+	if d.SourceTable.SourceUpdateTableName != nil {
+		if err := data.Set("source_update_table_name", d.SourceTable.SourceUpdateTableName); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.BatchSeqField != nil {
-		if err := data.Set("batch_seq_field", d.Config.BatchSeqField); err != nil {
+	if d.SourceTable.BatchSeqField != nil {
+		if err := data.Set("batch_seq_field", d.SourceTable.BatchSeqField); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("is_insert_only", d.Config.IsInsertOnly); err != nil {
+	if err := data.Set("is_insert_only", d.SourceTable.IsInsertOnly); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.ValidFromField != nil {
-		if err := data.Set("valid_from_field", d.Config.ValidFromField); err != nil {
+	if d.SourceTable.ValidFromField != nil {
+		if err := data.Set("valid_from_field", d.SourceTable.ValidFromField); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	fieldDefsMap := make(map[string]gql.DatasetTypedefDefObjectTypedefFieldsObjectFieldDef)
+	for _, d := range d.Typedef.Def.Fields {
+		fieldDefsMap[d.Name] = d
 	}
 
 	fields := schema.NewSet(schema.HashResource(sourceDatasetFieldResource), nil)
-	for _, field := range d.Config.Fields {
+	for _, field := range d.SourceTable.Fields {
+		fieldDef := fieldDefsMap[field.Name]
 		f := map[string]interface{}{
 			"name":          field.Name,
-			"type":          field.Type,
+			"type":          fieldDef.Type.Rep,
 			"sql_type":      field.SqlType,
 			"is_enum":       sourceDatasetFieldResource.Schema["is_enum"].Default,
 			"is_searchable": sourceDatasetFieldResource.Schema["is_searchable"].Default,
@@ -256,20 +258,20 @@ func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.Resource
 			"is_metric":     sourceDatasetFieldResource.Schema["is_metric"].Default,
 		}
 
-		if field.IsEnum != nil {
-			f["is_enum"] = *field.IsEnum
+		if fieldDef.IsEnum != nil {
+			f["is_enum"] = *fieldDef.IsEnum
 		}
-		if field.IsSearchable != nil {
-			f["is_searchable"] = *field.IsSearchable
+		if fieldDef.IsSearchable != nil {
+			f["is_searchable"] = *fieldDef.IsSearchable
 		}
-		if field.IsHidden != nil {
-			f["is_hidden"] = *field.IsHidden
+		if fieldDef.IsHidden != nil {
+			f["is_hidden"] = *fieldDef.IsHidden
 		}
-		if field.IsConst != nil {
-			f["is_const"] = *field.IsConst
+		if fieldDef.IsConst != nil {
+			f["is_const"] = *fieldDef.IsConst
 		}
-		if field.IsMetric != nil {
-			f["is_metric"] = *field.IsMetric
+		if fieldDef.IsMetric != nil {
+			f["is_metric"] = *fieldDef.IsMetric
 		}
 
 		fields.Add(f)
@@ -278,20 +280,20 @@ func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.Resource
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.Freshness != nil {
-		if err := data.Set("freshness", d.Config.Freshness.String()); err != nil {
+	if d.FreshnessDesired != nil {
+		if err := data.Set("freshness", d.FreshnessDesired.Duration().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Description != nil {
-		if err := data.Set("description", d.Config.Description); err != nil {
+	if d.Description != nil {
+		if err := data.Set("description", d.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.IconURL != nil {
-		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+	if d.IconUrl != nil {
+		if err := data.Set("icon_url", d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -300,7 +302,7 @@ func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.Resource
 		return diags
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -309,10 +311,13 @@ func sourceDatasetToResourceData(d *observe.SourceDataset, data *schema.Resource
 
 func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config := newSourceDatasetConfig(data)
+	input, sourceInput, err := newSourceDatasetConfig(data)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	workspace, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateSourceDataset(ctx, workspace.ID, config)
+	workspace, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateSourceDataset(ctx, workspace.Id, input, sourceInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -322,7 +327,7 @@ func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceSourceDatasetRead(ctx, data, meta)...)
 }
 
@@ -342,10 +347,13 @@ func resourceSourceDatasetRead(ctx context.Context, data *schema.ResourceData, m
 
 func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config := newSourceDatasetConfig(data)
+	input, sourceInput, err := newSourceDatasetConfig(data)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	workspace, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateSourceDataset(ctx, workspace.ID, data.Id(), config)
+	workspace, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.UpdateSourceDataset(ctx, workspace.Id, data.Id(), input, sourceInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

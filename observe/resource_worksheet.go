@@ -2,12 +2,16 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -32,7 +36,7 @@ func resourceWorksheet() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaWorksheetWorkspaceDescription,
 			},
 			"name": {
@@ -49,7 +53,7 @@ func resourceWorksheet() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
+				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaWorksheetJSONDescription,
 			},
 			"oid": {
@@ -61,41 +65,62 @@ func resourceWorksheet() *schema.Resource {
 	}
 }
 
-func newWorksheetConfig(data *schema.ResourceData) (config *observe.WorksheetConfig, diags diag.Diagnostics) {
-	config = &observe.WorksheetConfig{
-		Name: data.Get("name").(string),
+func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, diags diag.Diagnostics) {
+	input = &gql.WorksheetInput{
+		Label: data.Get("name").(string),
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
+		input.Icon = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("queries"); ok {
 		data := v.(string)
-		config.Queries = &data
+		if err := json.Unmarshal([]byte(data), &input.Stages); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'queries' request field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		}
 	}
-	return config, diags
+	return input, diags
 }
 
-func worksheetToResourceData(d *observe.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.IconURL != nil {
-		if err := data.Set("icon_url", d.Config.IconURL); err != nil {
+	if d.Icon != nil {
+		if err := data.Set("icon_url", d.Icon); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Queries != nil {
-		if err := data.Set("queries", d.Config.Queries); err != nil {
+	if d.Stages != nil {
+		// Hack hack hack hack hack
+		for i, stage := range d.Stages {
+			if stage.Id != nil && *stage.Id == "" {
+				d.Stages[i].Id = nil
+			}
+			for j, input := range stage.Input {
+				if input.StageId != nil && *input.StageId == "" {
+					d.Stages[i].Input[j].StageId = nil
+				}
+			}
+			if stage.Params != nil && *stage.Params == types.JsonObject("null") {
+				d.Stages[i].Params = nil
+			} else if stage.Params != nil && string(*stage.Params) == "" {
+				d.Stages[i].Params = nil
+			}
+		}
+		if stagesRaw, err := json.Marshal(d.Stages); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'stages' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if err := data.Set("queries", string(stagesRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -109,8 +134,8 @@ func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateWorksheet(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateWorksheet(ctx, id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -120,7 +145,7 @@ func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceWorksheetRead(ctx, data, meta)...)
 }
 
@@ -145,8 +170,8 @@ func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateWorksheet(ctx, data.Id(), oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.UpdateWorksheet(ctx, data.Id(), id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

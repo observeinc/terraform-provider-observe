@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceDefaultDashboard() *schema.Resource {
@@ -16,7 +17,7 @@ func dataSourceDefaultDashboard() *schema.Resource {
 			"dataset": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 			},
 			// computed values
 			"dashboard": {
@@ -32,14 +33,14 @@ func dataSourceDefaultDashboardRead(ctx context.Context, data *schema.ResourceDa
 		client = meta.(*observe.Client)
 	)
 
-	dsid, _ := observe.NewOID(data.Get("dataset").(string))
+	dsid, _ := oid.NewOID(data.Get("dataset").(string))
 
-	dashid, err := client.GetDefaultDashboard(ctx, dsid.ID)
+	dashid, err := client.GetDefaultDashboard(ctx, dsid.Id)
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(dsid.ID)
-	return defaultDashboardToResourceData(dsid.ID, dashid, data)
+	data.SetId(dsid.Id)
+	return defaultDashboardToResourceData(dsid.Id, dashid, data)
 }

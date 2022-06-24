@@ -1,0 +1,5 @@
+fragment ResultStatus on ResultStatus {
+    success
+    errorMessage
+    detailedInfo
+}

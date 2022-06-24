@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
 func dataSourceWorkspace() *schema.Resource {
@@ -41,7 +42,7 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 		client    = meta.(*observe.Client)
 		name      = data.Get("name").(string)
 		id        = data.Get("id").(string)
-		workspace *observe.Workspace
+		workspace *gql.Workspace
 		err       error
 	)
 
@@ -59,19 +60,23 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 		}
 	}
 
-	if err := data.Set("name", workspace.Config.Name); err != nil {
+	if err := data.Set("name", workspace.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("id", workspace.ID); err != nil {
+	if err := data.Set("id", workspace.Id); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", workspace.OID().String()); err != nil {
+	if err := data.Set("oid", workspace.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("datasets", workspace.Datasets); err != nil {
+	datasets := make(map[string]string)
+	for _, ds := range workspace.Datasets {
+		datasets[ds.Label] = ds.Id
+	}
+	if err := data.Set("datasets", datasets); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -79,6 +84,6 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	data.SetId(workspace.ID)
+	data.SetId(workspace.Id)
 	return nil
 }

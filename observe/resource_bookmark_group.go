@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -33,11 +35,11 @@ func resourceBookmarkGroup() *schema.Resource {
 				Computed:    true,
 				Description: schemaBookmarkGroupOIDDescription,
 			},
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaBookmarkGroupWorkspaceDescription,
 			},
 			"name": {
@@ -64,37 +66,31 @@ func resourceBookmarkGroup() *schema.Resource {
 	}
 }
 
-func newBookmarkGroupConfig(data *schema.ResourceData) (config *observe.BookmarkGroupConfig, diags diag.Diagnostics) {
-	config = &observe.BookmarkGroupConfig{
-		Name: data.Get("name").(string),
+func newBookmarkGroupConfig(data *schema.ResourceData) (input *gql.BookmarkGroupInput, diags diag.Diagnostics) {
+	name := data.Get("name").(string)
+	input = &gql.BookmarkGroupInput{
+		Name: &name,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.IconURL = &icon
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("presentation"); ok {
-		presentation := observe.BookmarkGroupPresentation(v.(string))
-		config.Presentation = &presentation
+		presentation := gql.BookmarkGroupPresentation(v.(string))
+		input.Presentation = &presentation
 	}
 
-	return config, diags
+	return input, diags
 }
 
-func bookmarkGroupToResourceData(bg *observe.BookmarkGroup, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", bg.Config.Name); err != nil {
+func bookmarkGroupToResourceData(bg *gql.BookmarkGroup, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", bg.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if bg.Config.IconURL != nil {
-		if err := data.Set("icon_url", bg.Config.IconURL); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if bg.Config.Presentation != nil {
-		if err := data.Set("presentation", bg.Config.Presentation); err != nil {
+	if bg.IconUrl != "" {
+		if err := data.Set("icon_url", bg.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -103,7 +99,7 @@ func bookmarkGroupToResourceData(bg *observe.BookmarkGroup, data *schema.Resourc
 		return diags
 	}
 
-	if err := data.Set("oid", bg.OID().String()); err != nil {
+	if err := data.Set("oid", bg.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -117,8 +113,8 @@ func resourceBookmarkGroupCreate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateBookmarkGroup(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateBookmarkGroup(ctx, id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -128,7 +124,7 @@ func resourceBookmarkGroupCreate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceBookmarkGroupRead(ctx, data, meta)...)
 }
 

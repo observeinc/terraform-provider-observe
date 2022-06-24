@@ -1,0 +1,17 @@
+query getDefaultDashboard($dsid: ObjectId!) {
+    defaultDashboard(dsid: $dsid)
+}
+
+mutation setDefaultDashboard($dsid: ObjectId!, $dashid: ObjectId!){
+    # @genqlient(flatten:true)
+    resultStatus: setDefaultDashboard(dsid: $dsid, dashid: $dashid){
+        ...ResultStatus
+    }
+}
+
+mutation clearDefaultDashboard($dsid: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: clearDefaultDashboard(dsid: $dsid) {
+        ...ResultStatus
+    }
+}

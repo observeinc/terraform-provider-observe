@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func resourcePreferredPath() *schema.Resource {
@@ -20,25 +22,25 @@ func resourcePreferredPath() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"folder": &schema.Schema{
+			"folder": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeFolder, observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeFolder, oid.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"source": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"source": &schema.Schema{
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
-			},
-			"step": &schema.Schema{
+			"step": {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Required: true,
@@ -47,7 +49,7 @@ func resourcePreferredPath() *schema.Resource {
 						"link": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateOID(observe.TypeLink),
+							ValidateDiagFunc: validateOID(oid.TypeLink),
 						},
 						"reverse": {
 							Type:     schema.TypeBool,
@@ -61,32 +63,34 @@ func resourcePreferredPath() *schema.Resource {
 	}
 }
 
-func newPreferredPathConfig(data *schema.ResourceData) (config *observe.PreferredPathConfig, diags diag.Diagnostics) {
+func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPathInput, diags diag.Diagnostics) {
 	var (
-		folder, _   = observe.NewOID(data.Get("folder").(string))
-		source, _   = observe.NewOID(data.Get("source").(string))
+		name        = data.Get("name").(string)
+		folder, _   = oid.NewOID(data.Get("folder").(string))
+		source, _   = oid.NewOID(data.Get("source").(string))
 		description = data.Get("description").(string)
 		steps       = data.Get("step").([]interface{})
 	)
 
-	config = &observe.PreferredPathConfig{
-		Name:        data.Get("name").(string),
-		Folder:      folder,
-		Source:      source,
-		Description: description,
+	input = &gql.PreferredPathInput{
+		Name:          &name,
+		FolderId:      folder.Version,
+		SourceDataset: &source.Id,
+		Description:   &description,
 	}
 
 	for _, el := range steps {
 		step := el.(map[string]interface{})
 
-		var link *observe.OID
+		var link *oid.OID
 		if v := step["link"]; v != nil {
-			link, _ = observe.NewOID(v.(string))
+			link, _ = oid.NewOID(v.(string))
 		}
 
-		config.Path = append(config.Path, observe.PreferredPathStep{
-			Link:    link,
-			Reverse: step["reverse"].(bool),
+		reverse := step["reverse"].(bool)
+		input.Path = append(input.Path, gql.PreferredPathStepInput{
+			LinkId:  &link.Id,
+			Reverse: &reverse,
 		})
 	}
 
@@ -101,13 +105,13 @@ func resourcePreferredPathCreate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("folder").(string))
-	result, err := client.CreatePreferredPath(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("folder").(string))
+	result, err := client.CreatePreferredPath(ctx, id.Id, config)
 	if err != nil {
 		return diag.Errorf("failed to create preferred path: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourcePreferredPathRead(ctx, data, meta)...)
 }
 
@@ -135,15 +139,15 @@ func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, m
 		return diag.Errorf("failed to read preferred path: %s", err.Error())
 	}
 
-	if err := data.Set("folder", path.Config.Folder.String()); err != nil {
+	if err := data.Set("folder", oid.FolderOid(path.FolderId, path.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("name", path.Config.Name); err != nil {
+	if err := data.Set("name", path.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("description", path.Config.Description); err != nil {
+	if err := data.Set("description", path.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

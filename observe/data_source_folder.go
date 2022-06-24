@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceFolder() *schema.Resource {
@@ -17,7 +19,7 @@ func dataSourceFolder() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -52,18 +54,18 @@ func dataSourceFolder() *schema.Resource {
 
 func dataSourceFolderRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client = meta.(*observe.Client)
-		name   = data.Get("name").(string)
-		id     = data.Get("id").(string)
+		client     = meta.(*observe.Client)
+		name       = data.Get("name").(string)
+		explicitId = data.Get("id").(string)
 	)
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
+	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
 
-	var f *observe.Folder
+	var f *gql.Folder
 	var err error
 
-	if id != "" {
-		f, err = client.GetFolder(ctx, id)
+	if explicitId != "" {
+		f, err = client.GetFolder(ctx, explicitId)
 	} else if name != "" {
 		defer func() {
 			// right now SDK does not report where this error happened,
@@ -71,16 +73,15 @@ func dataSourceFolderRead(ctx context.Context, data *schema.ResourceData, meta i
 			for i := range diags {
 				diags[i].Detail = fmt.Sprintf("failed to read folder %q", name)
 			}
-			return
 		}()
 
-		f, err = client.LookupFolder(ctx, oid.ID, name)
+		f, err = client.LookupFolder(ctx, implicitId.Id, name)
 	}
 
 	if err != nil {
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(f.ID)
+	data.SetId(f.Id)
 	return folderToResourceData(f, data)
 }

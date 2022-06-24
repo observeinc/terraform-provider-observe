@@ -83,7 +83,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-rename"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "freshness", "1m0s"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "48h39s"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "48h0m39s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
@@ -95,7 +95,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					workspace                        = data.observe_workspace.default.oid
 					name 	                         = "%s-rename"
 					freshness                        = "1m"
-					on_demand_materialization_length = "48h39s"
+					on_demand_materialization_length = "48h0m39s"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid
@@ -390,8 +390,8 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					}
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(`
-graphql: errors in stage "stage-0": 1,14: \[\] the field "EXTRA" does not exist
-among fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS, BUNDLE_ID,
+input: dataset errors in stage "stage-0": 1,14: \[\] the field "EXTRA" does not
+exist among fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS, BUNDLE_ID,
 OBSERVATION_INDEX\]
 `),
 			},

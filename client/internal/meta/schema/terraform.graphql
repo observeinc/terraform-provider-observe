@@ -1,0 +1,20 @@
+extend type Query {
+    getTerraform(id: ObjectId!, wsid: ObjectId!, type: TerraformObjectType!): TerraformDefinition!
+}
+
+enum TerraformObjectType @goModel(model: "observe/meta/metatypes.TerraformObjectType") {
+    Dataset
+    Board
+    Monitor
+}
+
+type TerraformDefinition @goModel(model: "observe/meta/metatypes.TerraformDefinition") {
+    # How do I declare this object as a data source?
+    dataSource: String
+    # How do I declare this object as a resource?
+    resource: String
+    # ID used by terraform for import
+    importId: String
+    # Name used by terraform for import
+    importName: String
+}

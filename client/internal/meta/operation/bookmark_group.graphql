@@ -1,0 +1,31 @@
+fragment BookmarkGroup on BookmarkGroup {
+	id
+	name
+	iconUrl
+	workspaceId
+}
+
+mutation createOrUpdateBookmarkGroup(
+	# @genqlient(pointer: true)
+	$id: ObjectId,
+	$group: BookmarkGroupInput!
+) {
+	# @genqlient(flatten: true)
+	bookmarkGroup: createOrUpdateBookmarkGroup(id:$id, group: $group) {
+		...BookmarkGroup
+	}
+}
+
+query getBookmarkGroup($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	bookmarkGroup: bookmarkGroup(id: $id) {
+		...BookmarkGroup
+	}
+}
+
+mutation deleteBookmarkGroup($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteBookmarkGroup(id: $id) {
+        ...ResultStatus
+	}
+}

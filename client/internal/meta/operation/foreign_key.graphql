@@ -1,0 +1,39 @@
+fragment DeferredForeignKey on DeferredForeignKey {
+	id
+	workspaceId
+	sourceDataset { datasetId }
+	targetDataset { datasetId }
+	srcFields
+	dstFields
+	label
+	resolution { sourceId targetId }
+	status { errorText }
+}
+
+mutation createDeferredForeignKey($workspaceId: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
+	# @genqlient(flatten: true)
+	deferredForeignKey: createDeferredForeignKey(workspaceId:$workspaceId, data: $keyInput) {
+		...DeferredForeignKey
+	}
+}
+
+query getDeferredForeignKey($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	deferredForeignKey: deferredForeignKey(id: $id) {
+		...DeferredForeignKey
+	}
+}
+
+mutation updateDeferredForeignKey($id: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
+	# @genqlient(flatten: true)
+	deferredForeignKey: updateDeferredForeignKey(id:$id, data: $keyInput) {
+		...DeferredForeignKey
+	}
+}
+
+mutation deleteDeferredForeignKey($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteDeferredForeignKey(id: $id) {
+        ...ResultStatus
+	}
+}

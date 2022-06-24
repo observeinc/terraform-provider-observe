@@ -74,10 +74,10 @@ func datasetSweeperFunc(s string) error {
 	}
 
 	for _, workspace := range workspaces {
-		for name, id := range workspace.Datasets {
-			if prefixRe.MatchString(name) {
-				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
-				if err := client.DeleteDataset(ctx, id); err != nil {
+		for _, ds := range workspace.Datasets {
+			if prefixRe.MatchString(ds.Label) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", ds.Label, ds.Id)
+				if err := client.DeleteDataset(ctx, ds.Id); err != nil {
 					return err
 				}
 			}
@@ -107,7 +107,7 @@ func monitorSweeperFunc(s string) error {
 				name
 			}
 		}`, map[string]interface{}{
-			"workspaceId": workspace.ID,
+			"workspaceId": workspace.Id,
 		})
 
 		if err != nil {
@@ -154,7 +154,7 @@ func pollerSweeperFunc(s string) error {
 				}
 			}
 		}`, map[string]interface{}{
-			"workspaceId": workspace.ID,
+			"workspaceId": workspace.Id,
 		})
 
 		if err != nil {
@@ -200,7 +200,7 @@ func datastreamSweeperFunc(s string) error {
 				name
 			}
 		}`, map[string]interface{}{
-			"workspaceId": workspace.ID,
+			"workspaceId": workspace.Id,
 		})
 
 		if err != nil {
@@ -245,7 +245,7 @@ func folderSweeperFunc(s string) error {
 				name
 			}
 		}`, map[string]interface{}{
-			"workspaceId": workspace.ID,
+			"workspaceId": workspace.Id,
 		})
 
 		if err != nil {

@@ -1,0 +1,117 @@
+fragment primitiveValueFields on PrimitiveValue {
+    bool
+    float64
+    int64
+    string
+}
+
+fragment valueFields on Value {
+    bool
+    float64
+    int64
+    string
+    array {
+        value {
+            ...primitiveValueFields
+        }
+    }
+    link {
+        datasetId
+        primaryKeyValue {
+            name
+            value {
+                ...primitiveValueFields
+            }
+        }
+        storedLabel
+    }
+    datasetref {
+        datasetId
+        datasetPath
+        stageId
+    }
+}
+
+fragment Dashboard on Dashboard {
+    id
+    name
+    iconUrl
+    workspaceId
+    managedById
+    folderId
+    # @genqlient(pointer: true)
+    layout
+    stages {
+        # @genqlient(pointer: true)
+        id
+        input {
+            inputName
+            inputRole
+            datasetId
+            datasetPath
+            stageId
+        }
+        params
+        layout
+        pipeline
+    }
+    parameters {
+        id
+        name
+        defaultValue {
+            ...valueFields
+        }
+        valueKind {
+            type
+            keyForDatasetId
+            arrayItemType {
+                type
+                keyForDatasetId
+                # We don't support nested arrays; no need to query arrayItemType at this level
+            }
+        }
+    }
+    parameterValues {
+        id
+        value {
+            ...valueFields
+        }
+    }
+}
+
+query getDashboard($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    dashboard(id: $id) {
+        ...Dashboard
+    }
+}
+
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation saveDashboard(
+    $dashboardInput: DashboardInput!
+) {
+    # @genqlient(flatten: true)
+    dashboard: saveDashboard(dash:$dashboardInput) {
+        ...Dashboard
+    }
+}
+
+mutation deleteDashboard($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteDashboard(id: $id) {
+        ...ResultStatus
+    }
+}

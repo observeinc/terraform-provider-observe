@@ -2,12 +2,16 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -35,7 +39,7 @@ func resourceDashboard() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDashboardWorkspaceDescription,
 			},
 			"name": {
@@ -52,7 +56,7 @@ func resourceDashboard() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
+				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaDashboardJSONDescription,
 			},
 			"layout": {
@@ -66,14 +70,14 @@ func resourceDashboard() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
+				DiffSuppressFunc: diffSuppressParameters,
 				Description:      schemaDashboardParametersDescription,
 			},
 			"parameter_values": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
+				DiffSuppressFunc: diffSuppressParameterValues,
 				Description:      schemaDashboardParameterValuesDescription,
 			},
 			"oid": {
@@ -85,75 +89,108 @@ func resourceDashboard() *schema.Resource {
 	}
 }
 
-func newDashboardConfig(data *schema.ResourceData) (config *observe.DashboardConfig, diags diag.Diagnostics) {
-	config = &observe.DashboardConfig{
-		Name: data.Get("name").(string),
+func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, diags diag.Diagnostics) {
+	name := data.Get("name").(string)
+	input = &gql.DashboardInput{
+		Name: &name,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		icon := v.(string)
-		config.Icon = &icon
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("stages"); ok {
 		data := v.(string)
-		config.Stages = &data
+		if err := json.Unmarshal([]byte(data), &input.Stages); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'stages' request field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		}
 	}
 
 	if v, ok := data.GetOk("layout"); ok {
-		data := v.(string)
-		config.Layout = &data
+		input.Layout = types.JsonObject(v.(string)).Ptr()
 	}
 
 	if v, ok := data.GetOk("parameters"); ok {
 		data := v.(string)
-		config.Parameters = &data
+		if err := json.Unmarshal([]byte(data), &input.Parameters); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'parameters' request field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		}
 	}
 
 	if v, ok := data.GetOk("parameter_values"); ok {
 		data := v.(string)
-		config.ParameterValues = &data
+		if err := json.Unmarshal([]byte(data), &input.ParameterValues); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'parameter_values' request field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		}
 	}
 
-	return config, diags
+	return input, diags
 }
 
-func dashboardToResourceData(d *observe.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Config.Name); err != nil {
+func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if d.Config.Icon != nil {
-		if err := data.Set("icon_url", d.Config.Icon); err != nil {
+	if d.IconUrl != nil {
+		if err := data.Set("icon_url", *d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Stages != nil {
-		if err := data.Set("stages", d.Config.Stages); err != nil {
+	if d.Stages != nil {
+		// Hack hack hack hack hack
+		for i, stage := range d.Stages {
+			if stage.Id != nil && *stage.Id == "" {
+				d.Stages[i].Id = nil
+			}
+			for j, input := range stage.Input {
+				if input.StageId != nil && *input.StageId == "" {
+					d.Stages[i].Input[j].StageId = nil
+				}
+			}
+			if stage.Params != nil && *stage.Params == types.JsonObject("null") {
+				d.Stages[i].Params = nil
+			} else if stage.Params != nil && string(*stage.Params) == "" {
+				d.Stages[i].Params = nil
+			}
+		}
+		if stagesRaw, err := json.Marshal(d.Stages); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'stages' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if err := data.Set("stages", string(stagesRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Layout != nil {
-		if err := data.Set("layout", d.Config.Layout); err != nil {
+	if d.Layout != nil {
+		if err := data.Set("layout", d.Layout); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.Parameters != nil {
-		if err := data.Set("parameters", d.Config.Parameters); err != nil {
+	if d.Parameters != nil {
+		if parametersRaw, err := json.Marshal(d.Parameters); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'parameters' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if err := data.Set("parameters", string(parametersRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if d.Config.ParameterValues != nil {
-		if err := data.Set("parameter_values", d.Config.ParameterValues); err != nil {
+	if d.ParameterValues != nil {
+		if parameterValuesRaw, err := json.Marshal(d.ParameterValues); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'parameter_values' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if err := data.Set("parameter_values", string(parameterValuesRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	if err := data.Set("oid", d.OID().String()); err != nil {
+	if err := data.Set("oid", d.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -167,8 +204,8 @@ func resourceDashboardCreate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateDashboard(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateDashboard(ctx, id.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -178,7 +215,7 @@ func resourceDashboardCreate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceDashboardRead(ctx, data, meta)...)
 }
 
@@ -203,8 +240,8 @@ func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateDashboard(ctx, data.Id(), oid.ID, config)
+	oid, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.UpdateDashboard(ctx, data.Id(), oid.Id, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

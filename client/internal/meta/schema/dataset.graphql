@@ -1,0 +1,803 @@
+extend type Query {
+    dataset(id: ObjectId!): Dataset
+    datasets(ids: [ObjectId!]!): [DatasetEnumerationResult!]!
+    pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath]!
+    pathsBetweenDatasets2(from: [ObjectId!]!, to: ObjectId!, limit: Int64, costModel: RelationshipCostAttributes): RelationshipPathResult!
+
+    """
+    Spit back out the data that was provided for each save operation on a dataset
+    """
+    datasetSaveHistory(id: ObjectId!): [DatasetHistoryRecord!]!
+
+    """
+    The control UI is focused on some particular stage. checkQuery() and friends are helpful
+    for that, but sometimes you're looking for a more holostic "what the hell is wrong with
+    this dataset" view, which you may be able to get in one swell foop from this call. Note
+    that the call may take a few seconds if the dataset has many upstream datasets.
+    If upLevels is 0, only the dataset is checked. If upLevels is 1, the dataset and its
+    immediate ancestors are checked, and so on. If upLevels is not set at all, then all
+    ancestors up to the observation dataset will be checked!
+    """
+    datasetDoctor(dsid: ObjectId!, upLevels: Int): DatasetDoctorReport
+
+    """
+    you can get boards by some combination of "type" and "name"
+    """
+    getBoards(datasetId: ObjectId!, type: BoardType, name: String): [Board!]!
+    getBoard(id: ObjectId!): Board!
+
+}
+
+extend type Mutation {
+    """
+    saveDataset will create a dataset if you don't provide an input id.
+    It will also make sure that the provided transform is published with
+    that dataset. This is the general "update the things" function to use.
+    If dependencyHandling is not specified, then the default is to apply
+    changes but ignore downstream datasets or errors therein.
+    """
+    saveDataset(workspaceId: ObjectId!, dataset: DatasetInput!, transform: TransformInput @deprecated(reason:"use query instead"), query: MultiStageQueryInput, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
+    deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
+
+    saveSourceDataset(workspaceId: ObjectId!, datasetDefinition: DatasetDefinitionInput!, sourceTable: SourceTableDefinitionInput!, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
+
+    updateBoard(id: ObjectId!, board: BoardInput!): Board!
+    createBoard(datasetId: ObjectId!, type: BoardType!, board: BoardInput!): Board!
+    deleteBoard(id: ObjectId!): ResultStatus!
+
+}
+
+enum DatasetKind @goModel(model: "observe/compiler/comptypes.DatasetKind") {
+    Table
+    Resource
+    Event
+    Interval
+}
+
+type DatasetError @goModel(model: "observe/meta/metatypes.DatasetError") {
+    customerId: ObjectId!
+    datasetId: ObjectId!
+    workspaceName: String!
+    datasetName: String!
+    time: Time!
+    location: String!
+    text: [String!]!
+}
+
+"""
+A dataset could fail to compile either because its OPAL was wrong or
+because one of its dependencies' OPAL was wrong. CompilationError of
+a dataset tells you the compilation error string and also where the
+error originated.
+"""
+type CompilationError @goModel(model: "observe/meta/metatypes.CompilationError") {
+    error: String!
+    errorInDatasetId: ObjectId!
+}
+
+type Transform @goModel(model: "observe/meta/metatypes.Transform") {
+    dataset: Dataset @goField(forceResolver:true)
+
+    """
+    the transform id is always the same as the dataset id
+    """
+    id: ObjectId!
+
+    """
+    currently, OPAL or SQL
+    """
+    queryLanguage: String!
+    deleted: Boolean!
+    current: TransformVersion
+    currentVersion: Time!
+    version(version: Time!): TransformVersion @goField(forceResolver:true)
+    versions: [TransformVersion] @goField(forceResolver:true)
+}
+
+input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
+    """
+    Must be OPAL, or nothing
+    """
+    queryLanguage: String
+    outputStage: String @deprecated(reason:"Use query.outputStage instead")
+    stages: [StageQueryInput!] @deprecated(reason:"Use query.stages instead")
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+    layout: JsonObject @deprecated(reason:"Use query.layout instead")
+}
+
+input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQueryInput") {
+    outputStage: String!
+    stages: [StageQueryInput!]!
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+    layout: JsonObject
+}
+
+type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
+    outputStage: String!
+    stages: [StageQuery]!
+    parameters: [ParameterSpec!]!
+    parameterValues: [ParameterBinding!]
+    layout: JsonObject
+}
+
+type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion") {
+    transform: Transform @goField(forceResolver:true)
+    savedDate: Time!
+    savedBy: User @goField(forceResolver:true)
+    savedByInfo: UserInfo! @goField(forceResolver:true)
+    outputStage: String! @deprecated(reason: "Use query.outputStage instead")
+    stages: [StageQuery!]! @deprecated(reason: "Use query.stages instead")
+    parameters: [ParameterSpec!]
+    parameterValues: [ParameterBinding!]
+    layout: JsonObject @deprecated(reason: "Use query.layout instead")
+    query: MultiStageQuery!
+    # we need some kind of "backfill percent complete"
+}
+
+type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
+    stageID: String @deprecated(reason: "use id instead")
+    id: String! @goField(name:StageID)
+    input: [InputDefinition]!
+    params: JsonObject
+    pipeline: String!
+    layout: JsonObject
+}
+
+input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
+    stageID: String @deprecated(reason: "use id instead")
+    stageId: String @deprecated(reason: "use id instead") @goField(name:StageID)
+    """
+    make id required when we've removed all deprecated use of stageId
+    """
+    id: String @goField(name:StageID)
+    input: [InputDefinitionInput!]!
+    pipeline: String!
+    layout: JsonObject
+}
+
+type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResult") {
+    """
+    this is what you got out when saving
+    """
+    dataset: Dataset
+    """
+    of the stages provided, which ones were used?
+    """
+    stageDisposition: StageDisposition
+    """
+    datasets that are affected by this change
+    """
+    affectedDatasets: [ObjectId!]
+    """
+    information about errors that occur in the affected, and/or downstream datasets
+    """
+    errorDatasets: [DatasetError!]
+}
+
+type StageDisposition @goModel(model: "observe/meta/metatypes.StageDisposition") {
+    consumedStages: [String!]
+    unusedStages: [String!]
+    sharedStages: [String!]
+    replacedStages: [String!]
+}
+
+enum SaveMode @goModel(model: "observe/meta/metatypes.SaveMode") {
+    """
+    Only update the dataset ID specified in the operation, disregarding dependencies
+    """
+    UpdateDataset
+    """
+    Update the dataset ID specified, and its dependencies, but don't change anything if there's any error that's not ignored
+    """
+    UpdateDatasetAndDependenciesUnlessNewErrors
+    """
+    Update the dataset ID specified, and its dependencies, as far as can be done without errors, return errors
+    """
+    UpdateDatasetAndDependenciesIgnoringAllErrors
+    """
+    Return what would happen if you updated the dataset ID (only) disregarding dependencies. Do not change database.
+    """
+    PreflightDataset
+    """
+    Return what would happen if you updated the dataset ID, including effects on dependencies. Do not change database.
+    """
+    PreflightDatasetAndDependencies
+}
+
+input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.DependencyHandling") {
+    saveMode: SaveMode
+    """
+    For saveMode UpdateDatasetAndDependenciesUnlessNewErrors, here are errors that don't count as "new"
+    """
+    ignoreSpecificErrors: [ObjectId!]
+}
+
+type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
+    targetDataset: Int64
+    targetStageLabel: String
+    label: String
+    targetLabelFieldName: String
+    srcFields: [String!]!
+    dstFields: [String!]!
+}
+
+"""
+A RelatedKey is like a ForeignKey, but it may not be a full
+primary key to the target dataset.
+"""
+type RelatedKey @goModel(model: "observe/meta/metatypes.RelatedKey") {
+    targetDataset: Int64!
+    label: String!
+    srcFields: [String!]
+    dstFields: [String!]
+}
+
+type Dataset implements WorkspaceObject & FolderObject @goModel(model: "observe/meta/metatypes.Dataset") {
+    id: ObjectId!
+    version: Time!
+    workspaceId: ObjectId!
+    kind: DatasetKind!
+    """
+    deprecated in favor of name
+    """
+    label: String!
+    name: String!
+    description: String
+    source: String
+    lastUpdateSource: String
+    deleted: Boolean!
+    latencyDesired: Int64
+    freshnessDesired: Int64
+    typedefId: ObjectId!
+    typedef: Typedef!
+    validFromField: String
+    validToField: String
+    labelField: String
+    iconUrl: String
+    primaryKey: [String!]
+    keys: [[String!]!]
+    foreignKeys: [ForeignKey!]
+    relatedKeys: [RelatedKey!]
+    latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
+    versions: [Time!] @goField(forceResolver:true)
+    lastSaved: Time!
+    isSourceDataset: Boolean
+    transform: Transform @goField(forceResolver:true)
+    sourceTable: SourceTableDefinition @goField(forceResolver:true)
+    pathCost: Int64
+    interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
+    metrics: [Metric!]! @goField(forceResolver:true)
+    boards: [Board!]! @goField(forceResolver:true)
+    accelerable: Boolean!
+    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
+    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
+    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
+    alignment: TimeAlignment
+    savedByInfo: UserInfo @goField(forceResolver:true)
+    compilationError: CompilationError
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+    folderId: ObjectId!
+    onDemandMaterializationLength: Int64
+    defaultDashboardId: ObjectId
+    defaultInstanceDashboardId: ObjectId
+}
+
+enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
+    CumulativeCounter
+    Counter
+    RatePerSec
+    Gauge
+    Sample
+}
+
+type MetricTag @goModel(model: "observe/meta/metatypes.MetricTag") {
+    column: String!
+    path: String!
+}
+
+"""
+MetricHeuristics contains information deduced via all kinds of "educated guessing", such
+as analysis on metric name, or aggregation based metric discovery. They may be inaccurate.
+Any heuristics may be unavailable for any metric, due to missing data or other edge cases
+where the heuristic estimation method does not apply.
+"""
+type MetricHeuristics @goModel(model: "observe/meta/metatypes.MetricHeuristics") {
+    validLinkLabels: [String!]
+    numOfPoints: Int64
+    cardinality: Int64
+    tags: [MetricTag!]
+}
+
+type Metric @goModel(model: "observe/meta/metatypes.Metric") {
+    name: String!
+    """
+    the short display name, not the list of metric labels
+    """
+    label: String!
+    type: MetricType! @goField(name:MetricType)
+    unit: String!
+    description: String!
+    rollup: String!
+    aggregate: String!
+    interval: Duration
+    """
+    Whether the metric has been defined explicitly by user.
+    Non-user-defined metrics are discovered by scanning metric data.
+    """
+    userDefined: Boolean!
+    heuristics: MetricHeuristics
+}
+
+type AccelerationError @goModel(model: "observe/meta/metatypes.AccelerationError") {
+    """
+    The dataset that has the acceleration error.
+    """
+    datasetId: ObjectId!
+    datasetName: String!
+
+    """
+    Internal transform ID where the acceleration error occurs.
+    """
+    transformId: String
+
+    """
+    When did the error last occur
+    """
+    time: Time!
+
+    """
+    Error text
+    """
+    text: String!
+}
+
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+enum StreamingState @goModel(model: "observe/meta/metatypes.AccelerationState") {
+    Initializing
+    Live
+    Unavailable
+    Disabled
+    Error
+}
+
+enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
+    """
+    Dataset is newly created/updated and acceleration has just started. It can
+    be queried through inlining.
+    """
+    Initializing
+
+    """
+    Normal operation, we are actively accelerating new data as they come in.
+    """
+    Live
+
+    """
+    Acceleration is unavailable because the dataset or its upstream dataset is
+    broken (has compilation error). The dataset cannot be queried.
+    """
+    Unavailable
+
+    """
+    Acceleration is intentionally disabled, and the dataset can still be queried
+    (through inlining). This covers the case where the dataset is not accelerable or
+    acceleration is explicitly disabled.
+    """
+    Disabled
+
+    """
+    Acceleration is failing at runtime. As a result querying the dataset may
+    return outdated results. This is critical error and usually cannot be fixed
+    by the user.
+    """
+    Error
+}
+
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+type StreamingInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: StreamingState!
+    stalenessSeconds: Float
+    configuredTargetStalenessSeconds: Float
+    targetStalenessSeconds: Float
+    alwaysAccelerated: Boolean
+    acceleratedRangeStart: Time
+    targetAcceleratedRangeStart: Time
+    freshnessTime: Time
+    errors: [AccelerationError]!
+}
+
+type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: AccelerationState!
+
+    """
+    Staleness of the dataset (averaged over some moving window). 5min means we
+    may not return data received in the last 5 minutes. A float value in
+    seconds.
+    """
+    stalenessSeconds: Float
+
+    """
+    Configured staleness target of the dataset. 2min means the staleness of
+    the dataset should not exceed 2mins.
+    """
+    configuredTargetStalenessSeconds: Float
+
+    """
+    The actual target staleness target of the dataset. Note that this can be
+    higher than the configured staleness target, due to decaying. Also if
+    this value is different from the field above, it means the dataset is
+    hibernated.
+    """
+    targetStalenessSeconds: Float
+
+    """
+    Whether the dataset is "always accelerated", i.e., any query should hit
+    accelerated data. If this is true then acceleratedRangeStart and
+    targetAcceleratedRangeStart are not used.
+    """
+    alwaysAccelerated: Boolean
+
+    """
+    The starting time of the "accelerated" range (i.e., materialized range).
+    Querying data before this time can result in inlining and might be slow.
+    A null value means nothing is materialized yet.
+    """
+    acceleratedRangeStart: Time
+
+    """
+    The target of accelerated range start for backfilling. If this value is
+    different from the actual accelerated range start, it means we are actively
+    backfilling more data, and the difference between the two can be treated as
+    a "progress" indication. The target is determined by historical queries.
+    """
+    targetAcceleratedRangeStart: Time
+
+    """
+    The freshmess time of the dataset.
+    """
+    freshnessTime: Time
+
+    """
+    Acceleration errors. Only not null if the state is "Error". Note that right
+    now it only includes acceleration error of the particular dataset, but in
+    the future shall include upstream dataset's errors.
+    """
+    errors: [AccelerationError]!
+}
+
+
+type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
+    id: ObjectId!
+    label: String!
+    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead")
+    def: ObjectTypedef
+}
+
+type DatasetEnumerationResult @goModel(model: "observe/meta/metatypes.DatasetEnumerationResult") {
+    id: ObjectId!
+    """
+    one of 'error' and 'dataset' are set
+    """
+    error: String
+    dataset: Dataset
+}
+
+type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDefinition") {
+    schema: String!
+    tableName: String!
+    fields: [SourceTableFieldDefinition!]!
+    validFromField: String
+    batchSeqField: String
+    isInsertOnly: Boolean
+    sourceUpdateTableName: String
+}
+
+type SourceTableFieldDefinition @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinition") {
+    name: String!
+    sqlType: String!
+}
+
+input SourceTableDefinitionInput @goModel(model: "observe/meta/metatypes.SourceTableDefinitionInput") {
+    schema: String!
+    tableName: String!
+    fields: [SourceTableFieldDefinitionInput!]!
+    validFromField: String
+    batchSeqField: String
+    isInsertOnly: Boolean
+    sourceUpdateTableName: String
+}
+
+input SourceTableFieldDefinitionInput @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinitionInput") {
+    name: String!
+    sqlType: String!
+}
+
+# Output from pathsBetweenDatasets()
+
+type RelationshipPath @goModel(model: "observe/meta/metapath.RelationshipPath") {
+    fromDatasetId: ObjectId!
+    toDatasetId: ObjectId!
+    cost: Int64!
+    path: [RelationshipPathElement!]!
+}
+
+type RelationshipPathElement @goModel(model: "observe/meta/metapath.RelationshipPathElement") {
+    """
+    it's moderately expensive to ask for the Dataset, so if you
+    can get away with only using toDatasetId, that's better.
+    """
+    dataset:     Dataset @goField(forceResolver:true)
+    toDatasetId: ObjectId!
+    """
+    one of forwardKey or backwardKey will be used
+    """
+    forwardKey:  ForeignKey
+    reverseKey:  RelatedKey
+}
+
+type RelationshipPathResult @goModel(model: "observe/meta/metapath.RelationshipPathResult") {
+    paths:    [RelationshipPath]!
+    comments: [String!]!
+    errors:   [String!]!
+}
+
+input RelationshipDatasetCost @goModel(model: "observe/meta/metapath.RelationshipDatasetCost") {
+    dataset:   ObjectId!
+    extraCost: Int64!
+}
+
+input RelationshipCostAttributes @goModel(model: "observe/meta/metapath.RelationshipCostAttributes") {
+    costForwardStep: Int64
+    costReverseStep: Int64
+    costSwitchDirection: Int64
+    costForwardKeysSquared: Int64
+    costReverseKeysSquared: Int64
+    costKeyDisparitySquared: Int64
+    extraDatasetCost: [RelationshipDatasetCost!]
+}
+
+"""
+note: This is a STRONGLY CUT DOWN flavor of the Dataset -- only what was
+provided on save-input is stored, not the full compiled output/schema.
+"""
+type DatasetHistoryRecord @goModel(model: "observe/meta/metatypes.DatasetHistoryRecord") {
+    id: ObjectId!
+    version: Time!
+    label: String!
+    savedByInfo: UserInfo! @goField(forceResolver:true)
+    action: String!
+    dataset: DatasetInputRecord
+    query: MultiStageQuery
+    error: String
+    humanReadableDescription: [String!]
+    shortDescription: String!
+}
+
+type DatasetInputRecord @goModel(model: "observe/meta/metatypes.DatasetInputRecord") {
+    id: ObjectId
+    label: String!
+    description: String
+    source: String
+    overwriteSource: Boolean
+    deleted: Boolean
+    latencyDesired: Int64
+    freshnessDesired: Int64
+    iconUrl: String
+    layout: JsonObject
+    pathCost: Int64
+}
+
+input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
+    """
+    if id is not specified, a new dataset is created
+    """
+    id: ObjectId
+    label: String!
+    description: String
+    """
+    Format - source/comment. Examples - monitor/471142069, web/user created.
+    """
+    source: String
+    """
+    Used only when id is specified - that is to say, only when the dataset is updated.
+    """
+    overwriteSource: Boolean
+    deleted: Boolean
+    latencyDesired: Int64
+    freshnessDesired: Int64
+    iconUrl: String
+    layout: JsonObject
+    pathCost: Int64
+    """
+    Max on-demand materialization length for the dataset (in nanoseconds). If not set
+    will use the default value in transformer config.
+    """
+    onDemandMaterializationLength: Int64
+
+    """
+    Optional id of the object this dataset is managed by: app, datastream, monitor etc.
+    """
+    managedById: ObjectId
+}
+
+# Warning!
+# For implementation reasons, these need to match the field names used
+# in the JSONB marshaled values in the database. Because we already have
+# existing data in the database, changing the names of these fields would
+# require significant backwards compatibility engineering and testing, or
+# inserting another layer of data structure translation in the middle.
+input DatasetTypedefInput @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
+    anykey: Boolean
+    fields: [DatasetFieldDefInput!]
+}
+
+input DatasetFieldTypeInput @goModel(model: "observe/compiler/comptypes.ObjectFieldType") {
+    rep: String!
+    def: DatasetTypedefInput
+    nullable: Boolean
+}
+
+input DatasetFieldDefInput @goModel(model: "observe/compiler/comptypes.ObjectFieldDef") {
+    name: String!
+    type: DatasetFieldTypeInput!
+    isEnum: Boolean
+    isSearchable: Boolean
+    isHidden: Boolean
+    isConst: Boolean
+    isMetric: Boolean
+}
+
+"""
+All of the values of DatasetDefinitionMetadataInput are optional, but you
+can't, for example, reference a dataset from another dataset until you define
+its primary key, and it won't be an event dataset without having a
+validFromField.
+
+"""
+input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.DatasetDefinitionMetadataInput") {
+    validFromField: String
+    validToField: String
+    labelField: String
+    primaryKey: [String!]
+    keys: [[String!]!]
+}
+
+type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
+    path: String!
+    mapping: [InterfaceFieldMapping!]!
+    interface: InterfaceDefinition! @goField(forceResolver:true)
+}
+
+type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {
+    interfaceField: String!
+    field: String!
+}
+
+type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefinition") {
+    name: String!
+    """
+    path is the same as name for platform-defined interfaces
+    """
+    path: String!
+    """
+    null for platform-defined interfaces
+    """
+    workspaceId: ObjectId
+    interfaceFields: [InterfaceFieldDefinition!]!
+    description: String!
+    deprecation: String!
+    qualifiers: [String!]!
+}
+
+type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
+    interfaceField: String!
+    rep: String!
+    optional: Boolean!
+}
+
+input DatasetDefinitionInput @goModel(model: "observe/meta/metatypes.DatasetDefinitionInput") {
+    dataset: DatasetInput!
+    schema: [DatasetFieldDefInput!]
+    metadata: DatasetDefinitionMetadataInput
+}
+
+type DatasetDoctorReport @goModel(model: "observe/meta/metatypes.DatasetDoctorReport") {
+
+    """
+    Some particular dataset was the "seed" of this report -- this is the tip
+    of the iceberg, and the most-interesting dataset in the reported datasets
+    output.
+    """
+    doctorForDataset: ObjectId!
+
+    """
+    All interesting upstream datasets end up in this flat list -- the actual
+    graph can be constructed by following the inputDatasets links.
+    """
+    datasets: [DatasetReport!]!
+}
+
+type ReportEventInfo @goModel(model: "observe/meta/metatypes.ReportEventInfo") {
+    text: String!
+    time: Time!
+}
+
+type DatasetReport @goModel(model: "observe/meta/metatypes.DatasetReport") {
+
+    """
+    The dataset this report is for
+    """
+    datasetId: ObjectId!
+    datasetLabel: String!
+    workspaceId: ObjectId!
+    workspaceLabel: String!
+
+    """
+    If the doctor has comments, they go here -- this may include anything
+    from "this is not accelerable because of stage X" to "the given name is
+    not advised" to "the function name X is deprecated, use Y instead."
+    """
+    doctorComments: [String!]!
+
+    """
+    each stage may have errors and warnings
+    """
+    stageNotes: [DatasetStageNote!]!
+
+    """
+    inputDatasets are datasets bound as data inputs to this dataset
+    """
+    inputDatasets: [ObjectId!]!
+
+    """
+    accelerationInfo is convenient
+    """
+    accelerationInfo: AccelerationInfo @goField(forceResolver:true)
+    ongoingErrorReason: ReportEventInfo @goField(forceResolver:true)
+    backfillErrorReason: ReportEventInfo @goField(forceResolver:true)
+}
+
+type DatasetStageNote @goModel(model: "observe/meta/metatypes.DatasetStageNote") {
+    stageId: String!
+    errors: [PipelineSymbol!]
+    warnings: [PipelineWarning!]
+}
+
+
+
+enum BoardType @goModel(model: "observe/meta/metatypes.BoardType") {
+    Set
+    Singleton
+}
+
+type Board @goModel(model: "observe/meta/metatypes.Board") {
+    id: ObjectId!
+    name: String
+    datasetId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    createdByName: String!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    updatedByName: String!
+    createdDate: Time!
+    updatedDate: Time!
+    isDefault: Boolean!
+    board: JsonObject!
+    type: BoardType!
+    source: String
+}
+
+input BoardInput @goModel(model: "observe/meta/metatypes.BoardInput") {
+    name: String
+    isDefault: Boolean
+    board: JsonObject
+    source: String
+}
+
+

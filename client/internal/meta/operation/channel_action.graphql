@@ -1,0 +1,65 @@
+fragment ChannelAction on ChannelAction {
+	id
+	name
+	iconUrl
+	description
+	notifyOnClose
+	workspaceId
+	channels {
+		id
+	}
+	rateLimit
+
+	__typename
+	... on WebhookAction {
+		urlTemplate
+		bodyTemplate
+		method
+		headers {
+		header
+		valueTemplate
+		}
+	}
+	... on EmailAction {
+		targetAddresses
+		subjectTemplate
+		bodyTemplate
+		isHtml
+	}
+
+}
+
+mutation createChannelAction($workspaceId: ObjectId!, $action: ActionInput!) {
+	# @genqlient(flatten: true, pointer: true)
+	channelAction: createChannelAction(workspaceId:$workspaceId, action: $action) {
+		...ChannelAction
+	}
+}
+
+query getChannelAction($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	channelAction: getChannelAction(id: $id) {
+		...ChannelAction
+	}
+}
+
+mutation updateChannelAction($id: ObjectId!, $action: ActionInput!) {
+	# @genqlient(flatten: true, pointer: true)
+    channelAction: updateChannelAction(id:$id, action: $action) {
+        ...ChannelAction
+    }
+}
+
+mutation deleteChannelAction($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteChannelAction(id: $id) {
+        ...ResultStatus
+	}
+}
+
+mutation setChannelsForChannelAction($actionId: ObjectId!, $channelIds: [ObjectId!]!) {
+	# @genqlient(flatten: true)
+	resultStatus: setChannelsForChannelAction(actionId: $actionId, channelIds: $channelIds) {
+        ...ResultStatus
+	}
+}

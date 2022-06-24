@@ -1,0 +1,148 @@
+fragment Monitor on Monitor {
+	workspaceId
+	id
+	name
+	description
+	iconUrl
+	disabled
+	freshnessGoal
+	useDefaultFreshness
+	source
+	managedById
+	query {
+		outputStage
+		# @genqlient(flatten: true)
+		stages {
+			...StageQuery
+		}
+	}
+
+	rule {
+		__typename
+		sourceColumn
+		groupByGroups {
+			groupName
+			columns
+		}
+		... on MonitorRuleCount {
+			compareFunction
+			compareValues
+			lookbackTime
+		}
+		... on MonitorRuleChange {
+			changeType
+			compareFunction
+			compareValues
+			aggregateFunction
+			lookbackTime
+			baselineTime
+		}
+		... on MonitorRuleFacet {
+			facetFunction
+			facetValues
+			timeFunction
+			timeValue
+			lookbackTime
+		}
+		... on MonitorRuleThreshold {
+			compareFunction
+			compareValues
+			lookbackTime
+			thresholdAggFunction
+		}
+		... on MonitorRulePromote {
+			kindField
+			descriptionField
+			primaryKey
+		}
+	}
+
+	notificationSpec {
+		merge
+		importance
+	}
+}
+
+# More workarounds for server-side struggles
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "MonitorInput.freshnessGoal", omitempty: true)
+# @genqlient(for: "MonitorInput.overwriteSource", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation createMonitor(
+	$workspaceId: ObjectId!,
+	$monitor: MonitorInput!
+) {
+	# @genqlient(pointer: true)
+	monitor: createMonitor(workspaceId:$workspaceId, monitor:$monitor) {
+		# @genqlient(flatten: true)
+		monitor {
+			...Monitor
+		}
+	}
+}
+
+query getMonitor($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	monitor: monitor(id: $id) {
+		...Monitor
+	}
+}
+
+# More workarounds for server-side struggles
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "MonitorInput.freshnessGoal", omitempty: true)
+# @genqlient(for: "MonitorInput.overwriteSource", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "ValueInput.bool", omitempty: true)
+# @genqlient(for: "ValueInput.float64", omitempty: true)
+# @genqlient(for: "ValueInput.int64", omitempty: true)
+# @genqlient(for: "ValueInput.string", omitempty: true)
+# @genqlient(for: "ValueInput.timestamp", omitempty: true)
+# @genqlient(for: "ValueInput.duration", omitempty: true)
+# @genqlient(for: "ValueInput.array", omitempty: true)
+# @genqlient(for: "ValueInput.link", omitempty: true)
+# @genqlient(for: "ValueInput.datasetref", omitempty: true)
+mutation updateMonitor(
+	$id: ObjectId!,
+	$monitor: MonitorInput!
+) {
+	# @genqlient(pointer: true)
+	monitor: updateMonitor(id:$id, monitor:$monitor) {
+		# @genqlient(flatten: true)
+		monitor {
+			...Monitor
+		}
+	}
+}
+
+mutation deleteMonitor($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteMonitor(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query lookupMonitor($workspaceId: ObjectId!, $name: String!) {
+	# @genqlient(pointer: true)
+	monitor: workspace(id: $workspaceId) {
+		# @genqlient(flatten: true)
+		monitor(name: $name) {
+			...Monitor
+		}
+	}
+}

@@ -2,6 +2,8 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,6 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 var validPollerKinds = []string{
@@ -67,11 +72,11 @@ func resourcePoller() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -89,10 +94,10 @@ func resourcePoller() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"datastream": &schema.Schema{
+			"datastream": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDatastream),
+				ValidateDiagFunc: validateOID(oid.TypeDatastream),
 			},
 			"interval": {
 				Type:             schema.TypeString,
@@ -100,7 +105,7 @@ func resourcePoller() *schema.Resource {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
-			"chunk": &schema.Schema{
+			"chunk": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -122,7 +127,7 @@ func resourcePoller() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
 			},
-			"pubsub": &schema.Schema{
+			"pubsub": {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
@@ -146,7 +151,7 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
-			"http": &schema.Schema{
+			"http": {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
@@ -233,7 +238,7 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
-			"gcp_monitoring": &schema.Schema{
+			"gcp_monitoring": {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
@@ -271,7 +276,7 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
-			"mongodbatlas": &schema.Schema{
+			"mongodbatlas": {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
@@ -305,95 +310,104 @@ func resourcePoller() *schema.Resource {
 	}
 }
 
-func newPollerConfig(data *schema.ResourceData) (config *observe.PollerConfig, diags diag.Diagnostics) {
+func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags diag.Diagnostics) {
 	//TODO: handle disabling/enabling pollers
-	config = &observe.PollerConfig{}
+	input = &gql.PollerInput{}
 
 	if v, ok := data.GetOk("name"); ok {
-		name := v.(string)
-		config.Name = name
+		input.Name = stringPtr(v.(string))
 	}
 	if v, ok := data.GetOk("retries"); ok {
-		retries := int64(v.(int))
-		config.Retries = &retries
+		input.Retries = types.Int64Scalar(int64(v.(int))).Ptr()
 	}
 	if v, ok := data.GetOk("datastream"); ok {
-		datastreamOID, _ := observe.NewOID(v.(string))
-		config.DatastreamID = datastreamOID.ID
+		datastreamOID, _ := oid.NewOID(v.(string))
+		input.DatastreamId = &datastreamOID.Id
 	}
 	if v, ok := data.GetOk("interval"); ok {
 		str := v.(string)
 		if interval, err := time.ParseDuration(str); err != nil {
 			return nil, diag.Errorf("error parsing interval: %v", err)
 		} else {
-			config.Interval = &interval
+			input.Interval = types.DurationScalar(interval).Ptr()
 		}
 	}
 	if v, ok := data.GetOk("tags"); ok {
-		config.Tags = makeStringMap(v.(map[string]interface{}))
+		tags, err := json.Marshal(makeStringMap(v.(map[string]interface{})))
+		if err != nil {
+			return nil, diag.Errorf("error parsing tags: %v", err)
+		}
+		input.Tags = types.JsonObject(tags).Ptr()
 	}
 	if data.Get("chunk.#") == 1 {
-		chunk := &observe.PollerChunkConfig{
+		chunk := gql.PollerChunkInput{
 			Enabled: data.Get("chunk.0.enabled").(bool),
 		}
 		if v, ok := data.GetOk("chunk.0.size"); ok {
 			size := int64(v.(int))
 			if size > 0 {
-				chunk.Size = &size
+				parsedChunkSize := types.Int64Scalar(size)
+				chunk.Size = &parsedChunkSize
 			}
 		}
-		config.Chunk = chunk
+		input.Chunk = &chunk
 	}
 	if data.Get("pubsub.#") == 1 {
-		config.PubsubConfig = &observe.PollerPubSubConfig{
-			ProjectID:      data.Get("pubsub.0.project_id").(string),
-			JSONKey:        data.Get("pubsub.0.json_key").(string),
-			SubscriptionID: data.Get("pubsub.0.subscription_id").(string),
+		input.PubsubConfig = &gql.PollerPubSubInput{
+			ProjectId:      data.Get("pubsub.0.project_id").(string),
+			JsonKey:        types.JsonObject(data.Get("pubsub.0.json_key").(string)),
+			SubscriptionId: data.Get("pubsub.0.subscription_id").(string),
 		}
 	}
 	if data.Get("http.#") == 1 {
-		httpConf := &observe.PollerHTTPConfig{
-			Endpoint:    data.Get("http.0.endpoint").(string),
-			ContentType: data.Get("http.0.content_type").(string),
-			Headers:     makeStringMap(data.Get("http.0.headers").(map[string]interface{})),
+		headers, err := json.Marshal(makeStringMap(data.Get("http.0.headers").(map[string]interface{})))
+		if err != nil {
+			return nil, diag.Errorf("error parsing HTTP headers: %v", err)
+		}
+		contentType := data.Get("http.0.content_type").(string)
+		parsedHeaders := types.JsonObject(headers)
+		httpConf := gql.PollerHTTPInput{
+			ContentType: &contentType,
+			Headers:     &parsedHeaders,
 			Requests:    expandPollerHTTPRequests(data.Get("http.0.request").([]interface{})),
 			Rules:       expandPollerHTTPRules(data.Get("http.0.rule").([]interface{})),
 		}
 
+		if v, ok := data.GetOk("http.0.endpoint"); ok {
+			httpConf.Endpoint = stringPtr(v.(string))
+		}
+
 		if v, ok := data.GetOk("http.0.method"); ok {
-			s := v.(string)
-			httpConf.Method = &s
+			httpConf.Method = stringPtr(v.(string))
 		}
 
 		if v, ok := data.GetOk("http.0.body"); ok {
-			s := v.(string)
-			httpConf.Body = &s
+			httpConf.Body = stringPtr(v.(string))
 		}
 
 		if ls := data.Get("http.0.template").([]interface{}); len(ls) > 0 {
-			httpConf.Template = expandPollerHTTPRequest(ls[0].(map[string]interface{}))
+			template := expandPollerHTTPRequest(ls[0].(map[string]interface{}))
+			httpConf.Template = template
 		}
 
-		config.HTTPConfig = httpConf
+		input.HttpConfig = &httpConf
 	}
 	if data.Get("gcp_monitoring.#") == 1 {
-		config.GcpConfig = &observe.PollerGCPMonitoringConfig{
-			ProjectID:                 data.Get("gcp_monitoring.0.project_id").(string),
-			JSONKey:                   data.Get("gcp_monitoring.0.json_key").(string),
+		input.GcpConfig = &gql.PollerGCPMonitoringInput{
+			ProjectId:                 data.Get("gcp_monitoring.0.project_id").(string),
+			JsonKey:                   types.JsonObject(data.Get("gcp_monitoring.0.json_key").(string)),
 			IncludeMetricTypePrefixes: makeStrSlice(data.Get("gcp_monitoring.0.include_metric_type_prefixes").([]interface{})),
 			ExcludeMetricTypePrefixes: makeStrSlice(data.Get("gcp_monitoring.0.exclude_metric_type_prefixes").([]interface{})),
 		}
 		if v, ok := data.GetOk("gcp_monitoring.0.rate_limit"); ok {
-			rateLimit := int64(v.(int))
-			config.GcpConfig.RateLimit = &rateLimit
+			input.GcpConfig.RateLimit = types.Int64Scalar(int64(v.(int))).Ptr()
 		}
 		if v, ok := data.GetOk("gcp_monitoring.0.total_limit"); ok {
-			totalLimit := int64(v.(int))
-			config.GcpConfig.TotalLimit = &totalLimit
+			input.GcpConfig.TotalLimit = types.Int64Scalar(int64(v.(int))).Ptr()
 		}
 	}
 	if data.Get("mongodbatlas.#") == 1 {
-		config.MongoDBAtlasConfig = &observe.PollerMongoDBAtlasConfig{
+		input.MongoDBAtlasConfig = &gql.PollerMongoDBAtlasInput{
 			PublicKey:     data.Get("mongodbatlas.0.public_key").(string),
 			PrivateKey:    data.Get("mongodbatlas.0.private_key").(string),
 			IncludeGroups: makeStrSlice(data.Get("mongodbatlas.0.include_groups").([]interface{})),
@@ -426,17 +440,6 @@ func makeStringMap(in map[string]interface{}) map[string]string {
 	return out
 }
 
-func makeInterfaceMap(in map[string]string) map[string]interface{} {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(map[string]interface{}, len(in))
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
-
 func resourcePollerCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
@@ -445,13 +448,13 @@ func resourcePollerCreate(ctx context.Context, data *schema.ResourceData, meta i
 		return diags
 	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreatePoller(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreatePoller(ctx, id.Id, config)
 	if err != nil {
 		return diag.Errorf("failed to create poller: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourcePollerRead(ctx, data, meta)...)
 }
 
@@ -478,118 +481,139 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		return diag.Errorf("failed to read poller: %s", err.Error())
 	}
 
-	if poller.WorkspaceID != "" {
-		workspaceOID := observe.OID{
-			Type: observe.TypeWorkspace,
-			ID:   poller.WorkspaceID,
-		}
-		if err := data.Set("workspace", workspaceOID.String()); err != nil {
+	if poller.WorkspaceId != "" {
+		if err := data.Set("workspace", oid.WorkspaceOid(poller.WorkspaceId).String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if err := data.Set("oid", poller.OID().String()); err != nil {
+	if err := data.Set("oid", poller.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// read poller configuration
 	config := poller.Config
-	if err := data.Set("name", config.Name); err != nil {
+	if err := data.Set("name", config.GetName()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if config.Retries != nil {
-		if err := data.Set("retries", int(*config.Retries)); err != nil {
+	if config.GetRetries() != nil {
+		if err := data.Set("retries", int(*config.GetRetries())); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.Interval != nil {
-		if err := data.Set("interval", config.Interval.String()); err != nil {
+	if config.GetInterval() != nil {
+		if err := data.Set("interval", config.GetInterval().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.DatastreamID != "" {
-		datastreamOID := observe.OID{
-			Type: observe.TypeDatastream,
-			ID:   config.DatastreamID,
-		}
-		if err := data.Set("datastream", datastreamOID.String()); err != nil {
+	if poller.DatastreamId != nil {
+		if err := data.Set("datastream", oid.DatastreamOid(*poller.DatastreamId).String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if tags := makeInterfaceMap(config.Tags); tags != nil {
+	if config.GetTags() != nil {
+		var tags map[string]interface{}
+		if err := json.Unmarshal([]byte(*config.GetTags()), &tags); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 		if err := data.Set("tags", tags); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.Chunk != nil {
+	if config.GetChunk() != nil {
 		chunk := map[string]interface{}{
-			"enabled": config.Chunk.Enabled,
+			"enabled": config.GetChunk().Enabled,
 		}
-		if config.Chunk.Size != nil {
-			chunk["size"] = int(*config.Chunk.Size)
+		if config.GetChunk().Size != nil {
+			chunk["size"] = int(*config.GetChunk().Size)
 		}
 		if err := data.Set("chunk", []interface{}{chunk}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.PubsubConfig != nil {
+	if pubSubConfig, ok := config.(*gql.PollerConfigPollerPubSubConfig); ok {
 		ps := map[string]interface{}{
-			"project_id":      config.PubsubConfig.ProjectID,
-			"json_key":        config.PubsubConfig.JSONKey,
-			"subscription_id": config.PubsubConfig.SubscriptionID,
+			"project_id":      pubSubConfig.ProjectId,
+			"json_key":        pubSubConfig.JsonKey,
+			"subscription_id": pubSubConfig.SubscriptionId,
 		}
 		if err := data.Set("pubsub", []interface{}{ps}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.HTTPConfig != nil {
+	if httpConfig, ok := config.(*gql.PollerConfigPollerHTTPConfig); ok {
 		ht := map[string]interface{}{
-			"endpoint":     config.HTTPConfig.Endpoint,
-			"content_type": config.HTTPConfig.ContentType,
-			"method":       ptrToString(config.HTTPConfig.Method),
-			"body":         ptrToString(config.HTTPConfig.Body),
-			"headers":      makeInterfaceMap(config.HTTPConfig.Headers),
-			"template":     flattenPollerHTTPRequest(config.HTTPConfig.Template),
-			"request":      flattenPollerHTTPRequests(config.HTTPConfig.Requests),
-			"rule":         flattenPollerHTTPRules(config.HTTPConfig.Rules),
+			"endpoint":     httpConfig.Endpoint,
+			"content_type": httpConfig.ContentType,
+			"method":       httpConfig.Method,
+			"body":         httpConfig.Body,
+		}
+		if httpConfig.Headers != nil {
+			if headers, err := httpConfig.Headers.Map(); err != nil {
+				diagErr := fmt.Errorf("couldn't parse headers response as JSON object: %w", err)
+				diags = append(diags, diag.FromErr(diagErr)...)
+			} else {
+				ht["headers"] = headers
+			}
+		}
+
+		template, templateDiags := flattenPollerHTTPRequest(httpConfig.Template)
+		diags = append(diags, templateDiags...)
+		if !templateDiags.HasError() && template != nil {
+			ht["template"] = []interface{}{template}
+		}
+
+		request, requestDiags := flattenPollerHTTPRequests(httpConfig.Requests)
+		diags = append(diags, requestDiags...)
+		if !requestDiags.HasError() {
+			ht["request"] = request
+		}
+
+		rule, ruleDiags := flattenPollerHTTPRules(httpConfig.Rules)
+		diags = append(diags, ruleDiags...)
+		if !ruleDiags.HasError() {
+			ht["rule"] = rule
 		}
 
 		if err := data.Set("http", []interface{}{ht}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.GcpConfig != nil {
+	if gcpConfig, ok := config.(*gql.PollerConfigPollerGCPMonitoringConfig); ok {
 		gcp := map[string]interface{}{
-			"project_id":  config.GcpConfig.ProjectID,
-			"json_key":    config.GcpConfig.JSONKey,
-			"rate_limit":  config.GcpConfig.RateLimit,
-			"total_limit": config.GcpConfig.TotalLimit,
+			"project_id": gcpConfig.ProjectId,
 		}
-		if len(config.GcpConfig.IncludeMetricTypePrefixes) != 0 {
-			gcp["include_metric_type_prefixes"] = config.GcpConfig.IncludeMetricTypePrefixes
+		if _, err := gcpConfig.JsonKey.Map(); err != nil {
+			diagErr := fmt.Errorf("couldn't parse JSON key as JSON object: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else {
+			gcp["json_key"] = gcpConfig.JsonKey.String()
 		}
-		if len(config.GcpConfig.ExcludeMetricTypePrefixes) != 0 {
-			gcp["exclude_metric_type_prefixes"] = config.GcpConfig.ExcludeMetricTypePrefixes
+		if len(gcpConfig.IncludeMetricTypePrefixes) != 0 {
+			gcp["include_metric_type_prefixes"] = gcpConfig.IncludeMetricTypePrefixes
 		}
-		if config.GcpConfig.RateLimit != nil {
-			gcp["rate_limit"] = int(*config.GcpConfig.RateLimit)
+		if len(gcpConfig.ExcludeMetricTypePrefixes) != 0 {
+			gcp["exclude_metric_type_prefixes"] = gcpConfig.ExcludeMetricTypePrefixes
 		}
-		if config.GcpConfig.TotalLimit != nil {
-			gcp["total_limit"] = int(*config.GcpConfig.TotalLimit)
+		if gcpConfig.RateLimit != nil {
+			gcp["rate_limit"] = int(*gcpConfig.RateLimit)
+		}
+		if gcpConfig.TotalLimit != nil {
+			gcp["total_limit"] = int(*gcpConfig.TotalLimit)
 		}
 		if err := data.Set("gcp_monitoring", []interface{}{gcp}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if config.MongoDBAtlasConfig != nil {
+	if mongoDbAtlasConfig, ok := config.(*gql.PollerConfigPollerMongoDBAtlasConfig); ok {
 		cfg := map[string]interface{}{
-			"public_key":  config.MongoDBAtlasConfig.PublicKey,
-			"private_key": config.MongoDBAtlasConfig.PrivateKey,
+			"public_key":  mongoDbAtlasConfig.PublicKey,
+			"private_key": mongoDbAtlasConfig.PrivateKey,
 		}
-		if len(config.MongoDBAtlasConfig.IncludeGroups) != 0 {
-			cfg["include_groups"] = config.MongoDBAtlasConfig.IncludeGroups
+		if len(mongoDbAtlasConfig.IncludeGroups) != 0 {
+			cfg["include_groups"] = mongoDbAtlasConfig.IncludeGroups
 		}
-		if len(config.MongoDBAtlasConfig.ExcludeGroups) != 0 {
-			cfg["exclude_groups"] = config.MongoDBAtlasConfig.ExcludeGroups
+		if len(mongoDbAtlasConfig.ExcludeGroups) != 0 {
+			cfg["exclude_groups"] = mongoDbAtlasConfig.ExcludeGroups
 		}
 		if err := data.Set("mongodbatlas", []interface{}{cfg}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -606,127 +630,174 @@ func resourcePollerDelete(ctx context.Context, data *schema.ResourceData, meta i
 	return diags
 }
 
-func flattenPollerHTTPRequests(reqs []*observe.PollerHTTPRequest) (l []interface{}) {
+func flattenPollerHTTPRequests(reqs []gql.HttpRequestConfig) (flats []map[string]interface{}, diags diag.Diagnostics) {
 	if len(reqs) == 0 {
-		return []interface{}{}
+		return []map[string]interface{}{}, nil
 	}
 
 	for _, r := range reqs {
-		l = append(l, flattenPollerHTTPRequest(r)...)
+		flat, diag := flattenPollerHTTPRequest(&r)
+		diags = append(diags, diag...)
+		flats = append(flats, flat)
 	}
+
 	return
 }
 
-func flattenPollerHTTPRequest(req *observe.PollerHTTPRequest) []interface{} {
+func flattenPollerHTTPRequest(req *gql.HttpRequestConfig) (flat map[string]interface{}, diags diag.Diagnostics) {
 	if req == nil {
-		return []interface{}{}
+		return
 	}
 
-	m := map[string]interface{}{
-		"url":      ptrToString(req.URL),
-		"method":   ptrToString(req.Method),
-		"username": ptrToString(req.Username),
-		"password": ptrToString(req.Password),
-		"headers":  req.Headers,
-		"params":   req.Params,
+	flat = map[string]interface{}{
+		"url":      req.Url,
+		"method":   req.Method,
+		"username": req.Username,
+		"password": req.Password,
 	}
-	return []interface{}{m}
+
+	if req.Headers != nil {
+		if headers, err := req.Headers.Map(); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		} else {
+			flat["headers"] = headers
+		}
+	}
+	if req.Params != nil {
+		if params, err := req.Params.Map(); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		} else {
+			flat["params"] = params
+		}
+	}
+
+	return
 }
 
-func expandPollerHTTPRequests(l []interface{}) (reqs []*observe.PollerHTTPRequest) {
+func expandPollerHTTPRequests(l []interface{}) (reqs []gql.PollerHTTPRequestInput) {
 	if len(l) == 0 {
 		return nil
 	}
 
 	for _, v := range l {
-		reqs = append(reqs, expandPollerHTTPRequest(v.(map[string]interface{})))
+		if req := expandPollerHTTPRequest(v.(map[string]interface{})); req != nil {
+			reqs = append(reqs, *req)
+		}
 	}
 
 	return
 }
 
-func expandPollerHTTPRequest(m map[string]interface{}) *observe.PollerHTTPRequest {
+func expandPollerHTTPRequest(m map[string]interface{}) *gql.PollerHTTPRequestInput {
 	if len(m) == 0 {
 		return nil
 	}
 
-	req := &observe.PollerHTTPRequest{
-		URL:      stringToPtr(m["url"].(string)),
-		Method:   stringToPtr(m["method"].(string)),
-		Username: stringToPtr(m["username"].(string)),
-		Password: stringToPtr(m["password"].(string)),
-		Headers:  makeStringMap(m["headers"].(map[string]interface{})),
-		Params:   makeStringMap(m["params"].(map[string]interface{})),
+	headers, _ := json.Marshal(m["headers"].(map[string]interface{}))
+	params, _ := json.Marshal(m["params"].(map[string]interface{}))
+
+	url := m["url"].(string)
+	method := m["method"].(string)
+	username := m["username"].(string)
+	password := m["password"].(string)
+	parsedHeaders := types.JsonObject(headers)
+	parsedParams := types.JsonObject(params)
+	if len(headers) > 2 {
+		func() {
+
+		}()
+	}
+
+	req := &gql.PollerHTTPRequestInput{
+		Url:      &url,
+		Method:   &method,
+		Username: &username,
+		Password: &password,
+		Headers:  &parsedHeaders,
+		Params:   &parsedParams,
 	}
 	return req
 }
 
-func flattenPollerHTTPRules(rules []*observe.PollerHTTPRule) (l []interface{}) {
+func flattenPollerHTTPRules(rules []gql.PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig) (flats []map[string]interface{}, diags diag.Diagnostics) {
 	if len(rules) == 0 {
-		return []interface{}{}
+		return
 	}
 
 	for _, r := range rules {
-		l = append(l, flattenPollerHTTPRule(r)...)
+		rule, diag := flattenPollerHTTPRule(&r)
+		diags = append(diags, diag...)
+		if !diag.HasError() {
+			flats = append(flats, rule)
+		}
+	}
+
+	return
+}
+
+func flattenPollerHTTPRule(rule *gql.PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig) (flat map[string]interface{}, diags diag.Diagnostics) {
+	if rule == nil {
+		return
+	}
+
+	flat = map[string]interface{}{
+		"follow":  rule.Follow,
+		"decoder": flattenPollerHTTPDecoder(rule.Decoder),
+	}
+
+	match, diag := flattenPollerHTTPRequest(rule.Match)
+	diags = append(diags, diag...)
+	if !diag.HasError() && match != nil {
+		flat["match"] = []interface{}{match}
 	}
 	return
 }
 
-func flattenPollerHTTPRule(rule *observe.PollerHTTPRule) []interface{} {
-	if rule == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"match":   flattenPollerHTTPRequest(rule.Match),
-		"follow":  ptrToString(rule.Follow),
-		"decoder": flattenPollerHTTPDecoder(rule.Decoder),
-	}
-	return []interface{}{m}
-}
-
-func expandPollerHTTPRules(l []interface{}) (rules []*observe.PollerHTTPRule) {
+func expandPollerHTTPRules(l []interface{}) (rules []gql.PollerHTTPRuleInput) {
 	if len(l) == 0 {
 		return nil
 	}
 
 	for _, v := range l {
-		rules = append(rules, expandPollerHTTPRule(v.(map[string]interface{})))
+		if req := expandPollerHTTPRule(v.(map[string]interface{})); req != nil {
+			rules = append(rules, *req)
+		}
 	}
 	return
 }
 
-func expandPollerHTTPRule(m map[string]interface{}) *observe.PollerHTTPRule {
+func expandPollerHTTPRule(m map[string]interface{}) *gql.PollerHTTPRuleInput {
 	if len(m) == 0 {
 		return nil
 	}
 
-	var match *observe.PollerHTTPRequest
+	var match *gql.PollerHTTPRequestInput
 	if ls := m["match"].([]interface{}); len(ls) > 0 {
 		match = expandPollerHTTPRequest(ls[0].(map[string]interface{}))
 	}
 
-	var decoder *observe.PollerHTTPDecoder
+	var decoder *gql.PollerHTTPDecoderInput
 	if ls := m["decoder"].([]interface{}); len(ls) > 0 {
 		decoder = expandPollerHTTPDecoder(ls[0].(map[string]interface{}))
 	}
 
-	rule := &observe.PollerHTTPRule{
+	rule := &gql.PollerHTTPRuleInput{
 		Match:   match,
 		Decoder: decoder,
 	}
 
 	// empty string is not a valid JMESPath expression
 	if m["follow"] != "" {
-		rule.Follow = stringToPtr(m["follow"].(string))
+		follow := m["follow"].(string)
+		rule.Follow = &follow
 	}
 
 	return rule
 }
 
-func flattenPollerHTTPDecoder(decoder *observe.PollerHTTPDecoder) []interface{} {
+func flattenPollerHTTPDecoder(decoder *gql.PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfigDecoderPollerHTTPDecoderConfig) []interface{} {
 	if decoder == nil {
-		return []interface{}{}
+		return nil
 	}
 
 	m := map[string]interface{}{
@@ -735,24 +806,13 @@ func flattenPollerHTTPDecoder(decoder *observe.PollerHTTPDecoder) []interface{} 
 	return []interface{}{m}
 }
 
-func expandPollerHTTPDecoder(m map[string]interface{}) *observe.PollerHTTPDecoder {
+func expandPollerHTTPDecoder(m map[string]interface{}) *gql.PollerHTTPDecoderInput {
 	if len(m) == 0 {
 		return nil
 	}
 
-	decoder := &observe.PollerHTTPDecoder{
+	decoder := &gql.PollerHTTPDecoderInput{
 		Type: m["type"].(string),
 	}
 	return decoder
-}
-
-func ptrToString(v *string) string {
-	if v != nil {
-		return *v
-	}
-	return ""
-}
-
-func stringToPtr(v string) *string {
-	return &v
 }

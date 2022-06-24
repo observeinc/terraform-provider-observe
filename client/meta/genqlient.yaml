@@ -1,0 +1,161 @@
+# The filename with the GraphQL schema (in SDL format), relative to
+# genqlient.yaml.
+# This can also be a list of filenames, such as:
+#  schema:
+#  - user.graphql
+#  - ./schema/*.graphql
+#  - ./another_directory/*/*.graphql
+schema:
+- ../internal/meta/schema/*.graphql
+
+# Filename(s) or globs with the operations for which to generate code, relative
+# to genqlient.yaml.
+#
+# These may be .graphql files, containing the queries in SDL format, or
+# Go files, in which case any string-literal starting with (optional
+# whitespace and) the string "# @genqlient" will be extracted as a query.
+#
+# Like schema, this may be a single file or a list.
+operations:
+- ../internal/meta/operation/*.graphql
+###- "pkg/*.go"
+
+# The filename to which to write the generated code, relative to
+# genqlient.yaml.
+generated: genqlient.generated.go
+
+# The package name for the output code; defaults to the directory name of
+# the generated-code file.
+package: meta
+
+# If set, a file at this path (relative to genqlient.yaml) will be generated
+# containing the exact operations that genqlient will send to the server.
+#
+# This is useful for systems which require queries to be explicitly
+# safelisted (e.g. [1]), especially for cases like queries involving fragments
+# where it may not exactly match the input queries, or for other static
+# analysis.  The JSON is an object of the form
+#  {"operations": [{
+#      "operationName": "operationname",
+#      "query": "query operationName { ... }",
+#      "sourceLocation": "myqueriesfile.graphql",
+#  }]}
+# Keys may be added in the future.
+#
+# By default, no such file is written.
+#
+# [1] https://www.apollographql.com/docs/studio/operation-registry/
+### export_operations: operations.json
+
+# Set to the fully-qualified name of a Go type which generated helpers
+# should accept and use as the context.Context for HTTP requests.
+#
+# Defaults to context.Context; set to "-" to omit context entirely (i.e.
+# use context.Background()).  Must be a type which implements
+# context.Context.
+context_type: context.Context
+
+# If set, a function to get a graphql.Client, perhaps from the context.
+# By default, the client must be passed explicitly to each genqlient
+# generated query-helper.
+#
+# This is useful if you have a shared client, either a global, or
+# available from context, and don't want to pass it explicitly.  In this
+# case the signature of the genqlient-generated helpers will omit the
+# `graphql.Context` and they will call this function instead.
+#
+# Must be the fully-qualified name of a function which accepts a context
+# (of the type configured as ContextType (above), which defaults to
+# `context.Context`, or a function of no arguments if ContextType is set
+# to the empty string) and returns (graphql.Client, error).  If the
+# client-getter returns an error, the helper will return the error
+# without making a query.
+### client_getter: "github.com/you/yourpkg.GetClient"
+
+
+# If set, fields with a struct type will default to having
+# the "pointer: true, omitempty: true" flag.
+#
+# This can be useful for struct schema where it would be burdensome
+# to manually set the flags on a large number of fields.
+#
+# Defaults to false.
+use_struct_references: false
+
+# If set, generated code will have a third return parameter of type
+# map[string]interface{}. This will contain the optional values
+# of the Extensions field send from Servers.
+# ref.: https://spec.graphql.org/October2021/#sec-Response-Format
+#
+# This can be useful for extending the GraphQL Protocol.
+#
+# Defaults to false.
+### use_extensions: boolean
+
+
+# Customize how optional fields are handled.
+### optional:
+  # Customize how models are generated for optional fields. This can currently
+  # be set to one of the following values:
+  # - value (default): optional fields are generated as values, the same as
+  #   non-optional fields. E.g. fields with GraphQL types `String` or `String!`
+  #   will both map to the Go type `string`. When values are absent in
+  #   responses the zero value will be used.
+  # - pointer: optional fields are generated as pointers. E.g. fields with
+  #   GraphQL type `String` will map to the Go type `*string`. When values are
+  #   absent in responses `nil` will be used. Optional list fields do not use
+  #   pointers-to-slices, so the GraphQL type `[String]` will map to the Go
+  #   type `[]*string`, not `*[]*string`; GraphQL null and empty list simply
+  #   map to Go nil- and empty-slice.
+optional: pointer
+
+
+# A map from GraphQL type name to Go fully-qualified type name to override
+# the Go type genqlient will use for this GraphQL type.
+#
+# This is primarily used for custom scalars, or to map builtin scalars
+# to a nonstandard type that is defined elsewhere.  By default,
+# builtin scalars are mapped to the obvious Go types (String and ID to
+# string, Int to int, Float to float64, and Boolean to bool), but this
+# setting will extend or override those mappings.  (See also
+# @genqlient(typename: ...), which can be used to map builtin scalars
+# to a nonstandard type that genqlient defines for you.)
+#
+# genqlient does not validate these types in any way; they must define
+# whatever logic is needed (MarshalJSON/UnmarshalJSON or JSON tags) to
+# convert to/from JSON.  For this reason, it's not recommended to use this
+# setting to map object, interface, or union types, because nothing
+# guarantees that the fields requested in the query match those present in
+# the Go type.
+#
+# To get equivalent behavior in just one query, use @genqlient(bind: ...);
+# see genqlient_directive.graphql for more details.
+bindings:
+  # Real bindings with logical type support for (de)serializing to/from Golang-friendly types
+  Duration:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.DurationScalar
+  Int64:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.Int64Scalar
+  JsonObject:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.JsonObject
+  Number:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.NumberScalar
+  Time:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.TimeScalar
+  UserId:
+    type: github.com/observeinc/terraform-provider-observe/client/meta/types.UserIdScalar
+
+  # Types that we don't really need to work with in Golang too much, so we just treat them as the raw
+  # types that we send to GQL
+  CustomerId:
+    type: string
+  ObjectId:
+    type: string
+
+  # Unused types
+  SnowflakeCursor:
+    type: interface{}
+
+# TODO: Add once genqlient 0.6.0 is out
+# package_bindings:
+#   - package: github.com/observeinc/terraform-provider-observe/client/meta/types

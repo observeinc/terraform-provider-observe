@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 const (
@@ -33,11 +36,11 @@ func resourceBoard() *schema.Resource {
 				Computed:    true,
 				Description: schemaBoardOIDDescription,
 			},
-			"dataset": &schema.Schema{
+			"dataset": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				DiffSuppressFunc: diffSuppressVersion,
 				Description:      schemaBoardDatasetDescription,
 			},
@@ -45,8 +48,8 @@ func resourceBoard() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateEnums(observe.BoardTypes),
-				Description:      describeEnums(observe.BoardTypes, schemaBoardTypeDescription),
+				ValidateDiagFunc: validateEnums(gql.AllBoardType),
+				Description:      describeEnums(gql.AllBoardType, schemaBoardTypeDescription),
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -64,29 +67,31 @@ func resourceBoard() *schema.Resource {
 	}
 }
 
-func newBoardConfig(data *schema.ResourceData) (config *observe.BoardConfig, diags diag.Diagnostics) {
-	config = &observe.BoardConfig{
-		Name: data.Get("name").(string),
-		JSON: data.Get("json").(string),
+func newBoardInput(data *schema.ResourceData) (input *gql.BoardInput, diags diag.Diagnostics) {
+	name := data.Get("name").(string)
+	board := types.JsonObject(data.Get("json").(string))
+	input = &gql.BoardInput{
+		Name:  &name,
+		Board: &board,
 	}
 
-	return config, diags
+	return input, diags
 }
 
-func boardToResourceData(b *observe.Board, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", b.Config.Name); err != nil {
+func boardToResourceData(b *gql.Board, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("name", b.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("type", toSnake(b.Type.String())); err != nil {
+	if err := data.Set("type", toSnake(string(b.Type))); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("dataset", b.Dataset.String()); err != nil {
+	if err := data.Set("dataset", oid.DatasetOid(b.DatasetId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("json", b.Config.JSON); err != nil {
+	if err := data.Set("json", b.BoardJson); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -94,7 +99,7 @@ func boardToResourceData(b *observe.Board, data *schema.ResourceData) (diags dia
 		return diags
 	}
 
-	if err := data.Set("oid", b.OID().String()); err != nil {
+	if err := data.Set("oid", b.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -104,17 +109,17 @@ func boardToResourceData(b *observe.Board, data *schema.ResourceData) (diags dia
 func resourceBoardCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
 		client     = meta.(*observe.Client)
-		dataset, _ = observe.NewOID(data.Get("dataset").(string))
+		dataset, _ = oid.NewOID(data.Get("dataset").(string))
 	)
-	config, diags := newBoardConfig(data)
+	config, diags := newBoardInput(data)
 	if diags.HasError() {
 		return diags
 	}
 
 	boardTypeStr := data.Get("type").(string)
-	boardType := observe.BoardType(toCamel(boardTypeStr))
+	boardType := gql.BoardType(toCamel(boardTypeStr))
 
-	result, err := client.CreateBoard(ctx, dataset, boardType, config)
+	result, err := client.CreateBoard(ctx, dataset.Id, boardType, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -124,7 +129,7 @@ func resourceBoardCreate(ctx context.Context, data *schema.ResourceData, meta in
 		return diags
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceBoardRead(ctx, data, meta)...)
 }
 
@@ -144,7 +149,7 @@ func resourceBoardRead(ctx context.Context, data *schema.ResourceData, meta inte
 
 func resourceBoardUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newBoardConfig(data)
+	config, diags := newBoardInput(data)
 	if diags.HasError() {
 		return diags
 	}

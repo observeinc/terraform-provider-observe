@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceWorksheet() *schema.Resource {
@@ -15,7 +16,7 @@ func dataSourceWorksheet() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaWorksheetWorkspaceDescription,
 			},
 			"id": {
@@ -59,7 +60,7 @@ func dataSourceWorksheetRead(ctx context.Context, data *schema.ResourceData, met
 		diags = diag.FromErr(err)
 		return
 	}
-	data.SetId(ws.ID)
+	data.SetId(ws.Id)
 
 	return worksheetToResourceData(ws, data)
 }

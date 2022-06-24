@@ -1,0 +1,66 @@
+fragment PreferredPath on PreferredPath {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	folderId
+	sourceDataset
+	path {
+		linkId
+		reverse
+	}
+}
+
+fragment PreferredPathWithStatus on PreferredPathWithStatus {
+	path {
+		...PreferredPath
+	}
+	error
+}
+
+# More workarounds for server-side struggles
+# @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.linkId", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.linkName", omitempty: true)
+mutation createPreferredPath(
+	$workspaceId: ObjectId!,
+	$config: PreferredPathInput!
+) {
+	# @genqlient(flatten: true)
+	preferredPathWithStatus: createPreferredPath(workspaceId:$workspaceId, path: $config) {
+		...PreferredPathWithStatus
+	}
+}
+
+query getPreferredPath($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	preferredPathWithStatus: preferredPath(id: $id) {
+		...PreferredPathWithStatus
+	}
+}
+
+# More workarounds for server-side struggles
+# @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.linkId", omitempty: true)
+# @genqlient(for: "PreferredPathStepInput.linkName", omitempty: true)
+mutation updatePreferredPath(
+	$id: ObjectId!,
+	$config: PreferredPathInput!
+) {
+	# @genqlient(flatten: true)
+	preferredPathWithStatus: updatePreferredPath(id:$id, path: $config) {
+		...PreferredPathWithStatus
+	}
+}
+
+mutation deletePreferredPath($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deletePreferredPath(id: $id) {
+        ...ResultStatus
+	}
+}

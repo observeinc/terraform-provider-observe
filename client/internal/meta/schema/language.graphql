@@ -1,0 +1,202 @@
+extend type Query {
+    checkQuery(query: StageInput!, parameterValues: [ParameterBindingInput!]): CompilationResult
+    """
+    the QueryParams are optional -- some defaults will be used if you don't put them in
+    """
+    checkQueries(queries: MultiStageQueryInput!, params: QueryParams): [CompilationResult]
+
+    verbsAndFunctions: VerbsAndFunctions!
+    platformInterfaces: [InterfaceDefinition!]!
+
+}
+
+enum PipelineSymbolType @goModel(model: "observe/meta/metatypes.PipelineSymbolType") {
+    Other, # for anything otherwise not tagged
+    Whitespace, # might never be returned
+    Comment, # might never be returned
+    Literal, # string, number, duration, regex, ...
+    Verb, # should be found in list of verb names
+    Function, # should be found in list of function names
+    Punctuation, # '@' and '.' in @bar.baz
+    InputRef, # 'bar' in @bar.baz
+    PathName, # 'baz' in @bar.baz
+    BindingName # 'foo' in foo:@bar.baz
+    Keyword # 'or' and 'and' and 'not'
+    Regex # '/regular-expression/'
+}
+
+type PipelineSymbol @goModel(model: "observe/meta/metatypes.PipelineSymbol") {
+    row: Int64! @deprecated(reason:"use location.row instead")
+    col: Int64! @deprecated(reason:"use location.col instead")
+    location: SourceLoc!
+    text: String!
+    comment: String!
+    """
+    yes a token can have more than one type
+    """
+    symbolTags: [PipelineSymbolType!]!
+    type: [PipelineSymbolType!]! @deprecated(reason:"user symbolTags instead")
+}
+
+type PreviousStagePipelineSymbol @goModel(model: "observe/meta/metatypes.PreviousStagePipelineSymbol") {
+    stageId: String!
+    symbol: PipelineSymbol!
+}
+
+type PipelineVerb @goModel(model: "observe/meta/metatypes.PipelineVerb") {
+    verb: PipelineSymbol!
+    arguments: [[PipelineSymbol!]!]!
+    inputSchema: TaskResultSchema
+}
+
+enum PipelineWarningKind @goModel(model: "observe/compiler/comptypes.PipelineWarningKind") {
+    """
+    Pipeline may not be accelerable if published.
+    """
+    NotAccelerable
+    """
+    There was a collision with one of the column names, it may have been
+    dropped or renamed
+    """
+    ColumnNameCollision
+    """
+    A deprecated alias of a verb/function is used.
+    """
+    Deprecated
+    """
+    A statement will have no effect
+    """
+    NoEffect
+}
+
+type PipelineWarning @goModel(model: "observe/meta/metatypes.PipelineWarning") {
+    kind: PipelineWarningKind
+    symbol: PipelineSymbol!
+}
+
+type ParsedPipeline @goModel(model: "observe/meta/metatypes.ParsedPipeline") {
+    previousStageErrors: [PreviousStagePipelineSymbol!]
+    errors: [PipelineSymbol!]
+    warnings: [PipelineWarning!]
+    verbs: [PipelineVerb!]
+    subqueries: [ParsedSubquery!]!
+    parameters: [ParsedParameter!]
+}
+
+type ParsedParameter @goModel(model: "observe/compiler/comptypes.ParsedParameter") {
+    id: String!
+    locations: [SourceLoc!]
+    providedInQueryInput: Boolean!
+    usedInPipeline: Boolean!
+}
+
+type ParsedSubquery @goModel(model: "observe/meta/metatypes.ParsedSubquery") {
+    """
+    The symbol a subquery is bound to. In a subquery like `@a <- @b {}`, this corresponds to `a`. For a subquery of the form `<- @... {}`, this field will be null.
+    """
+    boundTo: PipelineSymbol
+
+    """
+    The symbol a subquery is bound to. In a subquery like `@a <- @b {}`, this corresponds to `b`.
+    """
+    boundFrom: PipelineSymbol!
+
+    """
+    The pipeline within the subquery.
+    """
+    parsedPipeline: ParsedPipeline!
+}
+
+type CompilationResult @goModel(model: "observe/meta/metaparser.CompilationResult") {
+    parsedPipeline: ParsedPipeline!
+    resultSchema: TaskResultSchema
+    estimatedCost: [CostMetric!]
+    """
+    CompilationDetails is only available to privileged accounts,
+    as it contains compiler internals like SQL and table tokens.
+    """
+    compilationDetails: JsonObject @goField(forceResolver:true)
+}
+
+type VerbsAndFunctions @goModel(model: "observe/meta/metaparser.VerbsAndFunctions") {
+    verbs: [VerbDescription!]!
+    functions: [FunctionDescription!]!
+}
+
+enum DocumentationCategory @goModel(model: "observe/compiler/comptypes.DocumentationCategory") {
+    Aggregate
+    Filter
+    Join
+    Metadata
+    Metrics
+    Misc
+    Presentation
+    Projection
+}
+
+enum VerbAccelerable @goModel(model: "observe/compiler/comptypes.VerbAccelerable") {
+    Never
+    Sometimes
+    WithFrame
+    Always
+}
+
+type VerbDescription @goModel(model: "observe/meta/metaparser.VerbDescription") {
+    name: String!
+    usage: String! # something like:   verb arg, arg [, arg ... ]
+    aliases: [LanguageAlias!]!
+    label: String!
+    description: String!
+    arguments: [FunctionArgumentDescription!]!
+    options: [AcceptedOption!]!
+    usesAdditionalDataset: Boolean!
+    examples: [ExampleCode!]!
+    categories: [DocumentationCategory!]!
+    accelerable: VerbAccelerable!
+    streamable: VerbAccelerable! @deprecated(reason:"renamed to accelerable") @goField(name:accelerable)
+}
+
+type FunctionDescription @goModel(model: "observe/meta/metaparser.FunctionDescription") {
+    name: String!
+    usages: [String!]! # something like:    func( arg [, arg ...] )   matches up with arguments lists
+    categories: [String!]!
+    aliases: [LanguageAlias!]!
+    label: String!
+    abbr: String!
+    description: String!
+    arguments: [FunctionArgumentList!]!
+    returnType: String!
+    isAggregate: Boolean!
+    isWindow: Boolean!
+    examples: [ExampleCode!]!
+}
+
+type LanguageAlias @goModel(model: "observe/meta/metaparser.LanguageAlias") {
+    name: String!
+    isDeprecated: Boolean!
+}
+
+type ExampleCode @goModel(model: "observe/meta/metaparser.ExampleCode") {
+    usage: String!
+    description: String!
+}
+
+type FunctionArgumentList @goModel(model: "observe/meta/metaparser.FunctionArgumentList") {
+    arguments: [FunctionArgumentDescription!]!
+}
+
+type FunctionArgumentDescription @goModel(model: "observe/meta/metaparser.FunctionArgumentDescription") {
+    name: String!
+    repType: String!
+    required: Boolean!
+    allowMultiple: Boolean!
+    multipleType: String!
+    multipleArgs: [FunctionArgumentDescription!]!
+}
+
+type AcceptedOption @goModel(model: "observe/meta/metaparser.AcceptedOption") {
+    name: String!
+    repType: String!
+    meaning: String!
+}
+

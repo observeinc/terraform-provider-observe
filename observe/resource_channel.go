@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func resourceChannel() *schema.Resource {
@@ -20,11 +22,11 @@ func resourceChannel() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -48,35 +50,37 @@ func resourceChannel() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					ValidateDiagFunc: validateOID(observe.TypeMonitor),
+					ValidateDiagFunc: validateOID(oid.TypeMonitor),
 				},
 			},
 		},
 	}
 }
 
-func newChannelConfig(data *schema.ResourceData) (config *observe.ChannelConfig, diags diag.Diagnostics) {
-	config = &observe.ChannelConfig{
-		Name: data.Get("name").(string),
+func newChannelConfig(data *schema.ResourceData) (input *gql.ChannelInput, diags diag.Diagnostics) {
+	name := data.Get("name").(string)
+	input = &gql.ChannelInput{
+		Name: &name,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
-		s := v.(string)
-		config.IconURL = &s
+		input.IconUrl = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("description"); ok {
-		s := v.(string)
-		config.Description = &s
+		input.Description = stringPtr(v.(string))
 	}
 
+	return
+}
+
+func monitors(data *schema.ResourceData) (monitors []string, diags diag.Diagnostics) {
 	if s, ok := data.GetOk("monitors"); ok {
 		for _, v := range s.(*schema.Set).List() {
-			oid, _ := observe.NewOID(v.(string))
-			config.Monitors = append(config.Monitors, oid)
+			id, _ := oid.NewOID(v.(string))
+			monitors = append(monitors, id.Id)
 		}
 	}
-
 	return
 }
 
@@ -87,14 +91,18 @@ func resourceChannelCreate(ctx context.Context, data *schema.ResourceData, meta 
 	if diags.HasError() {
 		return diags
 	}
+	monitors, diags := monitors(data)
+	if diags.HasError() {
+		return diags
+	}
 
-	oid, _ := observe.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateChannel(ctx, oid.ID, config)
+	id, _ := oid.NewOID(data.Get("workspace").(string))
+	result, err := client.CreateChannel(ctx, id.Id, config, monitors)
 	if err != nil {
 		return diag.Errorf("failed to create channel: %s", err.Error())
 	}
 
-	data.SetId(result.ID)
+	data.SetId(result.Id)
 	return append(diags, resourceChannelRead(ctx, data, meta)...)
 }
 
@@ -105,8 +113,12 @@ func resourceChannelUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	if diags.HasError() {
 		return diags
 	}
+	monitors, diags := monitors(data)
+	if diags.HasError() {
+		return diags
+	}
 
-	_, err := client.UpdateChannel(ctx, data.Id(), config)
+	_, err := client.UpdateChannel(ctx, data.Id(), config, monitors)
 	if err != nil {
 		return diag.Errorf("failed to update channel: %s", err.Error())
 	}
@@ -122,32 +134,31 @@ func resourceChannelRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.Errorf("failed to read channel: %s", err.Error())
 	}
 
-	workspaceOID := observe.OID{
-		Type: observe.TypeWorkspace,
-		ID:   channel.WorkspaceID,
-	}
-
-	if err := data.Set("workspace", workspaceOID.String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(channel.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("name", channel.Config.Name); err != nil {
+	if err := data.Set("name", channel.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("icon_url", channel.Config.IconURL); err != nil {
+	if err := data.Set("icon_url", channel.IconUrl); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("description", channel.Config.Description); err != nil {
+	if err := data.Set("description", channel.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("monitors", toListOfStrings(channel.Config.Monitors)); err != nil {
+	monitors := make([]string, 0)
+	for _, monitor := range channel.Monitors {
+		monitors = append(monitors, oid.MonitorOid(monitor.Id).String())
+	}
+	if err := data.Set("monitors", monitors); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", channel.OID().String()); err != nil {
+	if err := data.Set("oid", channel.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

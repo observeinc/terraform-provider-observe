@@ -16,7 +16,7 @@ import (
 
 	"github.com/observeinc/terraform-provider-observe/client/internal/collect"
 	"github.com/observeinc/terraform-provider-observe/client/internal/customer"
-	"github.com/observeinc/terraform-provider-observe/client/internal/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
 // RoundTripperFunc implements http.RoundTripper
