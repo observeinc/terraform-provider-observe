@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// Verify we can create worksheet
-func TestAccObserveWorksheetCreate(t *testing.T) {
+// Verify we can create dashboards
+func TestAccObserveDashboardCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,11 +18,11 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
-				resource "observe_worksheet" "first" {
+				resource "observe_dashboard" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 					icon_url  = "test"
-					queries = <<-EOF
+					stages = <<-EOF
 					[{
 						"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 						"input": [{
@@ -35,17 +35,51 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_worksheet.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_worksheet.first", "icon_url", "test"),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "icon_url", "test"),
 				),
 			},
 			{
 				Config: fmt.Sprintf(configPreamble+`
-				resource "observe_worksheet" "first" {
-					workspace = data.observe_workspace.default.oid
-					name      = "%s"
-					icon_url  = "test"
-					queries = <<-EOF
+				resource "observe_dashboard" "first" {
+					workspace        = data.observe_workspace.default.oid
+					name             = "%s"
+					icon_url         = "test"
+					parameter_values = jsonencode(
+						[
+							{
+								id    = "snrk"
+								value = {
+									string = "value"
+								}
+							},
+						]
+					)
+					parameters       = jsonencode(
+						[
+							{
+								defaultValue = {
+									bool = true
+								}
+								id           = "onoff"
+								name         = "On / Off"
+								valueKind    = {
+									type = "BOOL"
+								}
+							},
+							{
+								defaultValue = {
+									float64 = 0.5
+								}
+								id           = "maybe"
+								name         = "Maybe"
+								valueKind    = {
+									type = "FLOAT64"
+								}
+							},
+						]
+					)
+					stages = <<-EOF
 					[
 						{
 						  "id": "stage-jag28lhh",
@@ -594,9 +628,9 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_worksheet.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_worksheet.first", "icon_url", "test"),
-					resource.TestCheckResourceAttrSet("observe_worksheet.first", "queries"),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "icon_url", "test"),
+					resource.TestCheckResourceAttrSet("observe_dashboard.first", "stages"),
 				),
 			},
 		},

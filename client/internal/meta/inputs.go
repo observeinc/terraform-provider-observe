@@ -523,6 +523,43 @@ type WorksheetQueryInput struct {
 	Pipeline string                  `json:"pipeline"`
 }
 
+type DashboardInput struct {
+	ID              *ObjectIdScalar          `json:"id"`
+	Name            string                   `json:"name"`
+	WorkspaceID     *ObjectIdScalar          `json:"workspaceId"`
+	Icon            *string                  `json:"iconUrl,omitempty"`
+	Stages          []*DashboardStageInput   `json:"stages"`
+	ManagedById     *ObjectIdScalar          `json:"managedById"`
+	Layout          map[string]interface{}   `json:"layout,omitempty"`
+	Parameters      []map[string]interface{} `json:"parameters,omitempty"`
+	ParameterValues []map[string]interface{} `json:"parameterValues,omitempty"`
+}
+
+func (i *DashboardInput) SetWorkspaceID(id string) error {
+	var o ObjectIdScalar
+	if err := o.UnmarshalJSON([]byte(id)); err != nil {
+		return fmt.Errorf("failed to unmarshal workspace ID: %w", err)
+	}
+	i.WorkspaceID = &o
+	return nil
+}
+
+func (i *DashboardInput) SetID(id string) error {
+	var o ObjectIdScalar
+	if err := o.UnmarshalJSON([]byte(id)); err != nil {
+		return fmt.Errorf("failed to unmarshal dashboard ID: %w", err)
+	}
+	i.ID = &o
+	return nil
+}
+
+type DashboardStageInput struct {
+	ID       string                  `json:"id,omitempty"`
+	Input    []*InputDefinitionInput `json:"input"`
+	Layout   map[string]interface{}  `json:"layout"`
+	Pipeline string                  `json:"pipeline"`
+}
+
 type FolderInput struct {
 	Name        string  `json:"name"`
 	IconURL     *string `json:"iconUrl"`

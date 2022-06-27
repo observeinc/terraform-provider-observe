@@ -20,6 +20,7 @@ const (
 	TypeBookmark             = "bookmark"
 	TypeChannelAction        = "channelaction"
 	TypeChannel              = "channel"
+	TypeDashboard            = "dashboard"
 	TypeMonitor              = "monitor"
 	TypeBoard                = "board"
 	TypePoller               = "poller"

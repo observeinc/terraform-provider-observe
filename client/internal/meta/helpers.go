@@ -62,6 +62,8 @@ func NewDecoder(errorUnused bool, result interface{}) (*mapstructure.Decoder, er
 			stringToTimeScalarHookFunc,
 			stringToInt64HookFunc,
 		),
+		Squash:     true,
+		ZeroFields: false,
 	})
 }
 

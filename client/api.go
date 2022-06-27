@@ -878,7 +878,7 @@ func (c *Client) DeleteDatastreamToken(ctx context.Context, id string) error {
 	return c.Meta.DeleteDatastreamToken(ctx, id)
 }
 
-// CreateWorksheet creates a datastream token
+// CreateWorksheet creates a worksheet
 func (c *Client) CreateWorksheet(ctx context.Context, workspaceId string, config *WorksheetConfig) (*Worksheet, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
@@ -946,6 +946,72 @@ func (c *Client) DeleteWorksheet(ctx context.Context, id string) error {
 		defer c.obs2110.Unlock()
 	}
 	return c.Meta.DeleteWorksheet(ctx, id)
+}
+
+func (c *Client) CreateDashboard(ctx context.Context, workspaceId string, config *DashboardConfig) (*Dashboard, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	dashboardInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	dashboardInput.SetWorkspaceID(workspaceId)
+
+	if c.Config.ManagingObjectID != nil {
+		dashboardInput.ManagedById = toObjectPointer(c.Config.ManagingObjectID)
+	}
+
+	result, err := c.Meta.SaveDashboard(ctx, dashboardInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDashboard(result)
+}
+
+func (c *Client) GetDashboard(ctx context.Context, id string) (*Dashboard, error) {
+	result, err := c.Meta.GetDashboard(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dashboard: %w", err)
+	}
+	return newDashboard(result)
+}
+
+// XXX: this should not have to take workspaceId, but API forces us to
+func (c *Client) UpdateDashboard(ctx context.Context, id string, workspaceId string, config *DashboardConfig) (*Dashboard, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	dashboardInput, err := config.toGQL()
+	if err != nil {
+		return nil, err
+	}
+
+	dashboardInput.SetID(id)
+	dashboardInput.SetWorkspaceID(workspaceId)
+
+	if c.Config.ManagingObjectID != nil {
+		dashboardInput.ManagedById = toObjectPointer(c.Config.ManagingObjectID)
+	}
+
+	result, err := c.Meta.SaveDashboard(ctx, dashboardInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDashboard(result)
+}
+
+func (c *Client) DeleteDashboard(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteDashboard(ctx, id)
 }
 
 // CreateFolder creates a folder

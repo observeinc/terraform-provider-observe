@@ -468,6 +468,88 @@ type WorksheetQuery struct {
 	Pipeline string                 `json:"pipeline"`
 }
 
+type Dashboard struct {
+	ID              ObjectIdScalar         `json:"id"`
+	Name            string                 `json:"name"`
+	IconUrl         *string                `json:"iconUrl,omitempty"`
+	WorkspaceId     ObjectIdScalar         `json:"workspaceId"`
+	ManagedById     *ObjectIdScalar        `json:"managedById,omitempty"`
+	FolderId        *ObjectIdScalar        `json:"folderId,omitempty"`
+	Layout          map[string]interface{} `json:"layout,omitempty"`
+	Stages          []*DashboardStage      `json:"stages,omitempty"`
+	Parameters      []*ParameterSpec       `json:"parameters,omitempty"`
+	ParameterValues []*ParameterBinding    `json:"parameterValues,omitempty"`
+}
+
+type DashboardStage struct {
+	ID       string                 `json:"id,omitempty"`
+	Input    []*InputDefinition     `json:"input"`
+	Params   map[string]interface{} `json:"params,omitempty"`
+	Layout   map[string]interface{} `json:"layout,omitempty"`
+	Pipeline string                 `json:"pipeline"`
+}
+
+type ParameterSpec struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	DefaultValue *Value    `json:"defaultValue,omitempty"`
+	ValueKind    ValueKind `json:"valueKind"`
+}
+
+type ParameterBinding struct {
+	ID    string `json:"id"`
+	Value Value  `json:"value"`
+}
+
+type PrimitiveValue struct {
+	Bool    *bool    `json:"bool,omitempty"`
+	Float64 *float64 `json:"float64,omitempty"`
+	Int64   *string  `json:"int64,omitempty"`
+	String  *string  `json:"string,omitempty"`
+}
+
+type Value struct {
+	PrimitiveValue
+	Array      *ArrayValue `json:"array,omitempty"`
+	Link       *LinkValue  `json:"link,omitempty"`
+	Datasetref *DatasetRef `json:"datasetref,omitempty"`
+}
+
+type ArrayValue struct {
+	Value PrimitiveValue `json:"value"`
+}
+
+type LinkValue struct {
+	DatasetId       string             `json:"datasetId"`
+	PrimaryKeyValue []*PrimaryKeyValue `json:"primaryKeyValue"`
+	StoredLabel     *string            `json:"storedLabel,omitempty"`
+}
+
+type PrimaryKeyValue struct {
+	Name  string         `json:"name"`
+	Value PrimitiveValue `json:"value"`
+}
+
+type ValueKind struct {
+	Type            ValueType       `json:"type"`
+	KeyForDatasetId *ObjectIdScalar `json:"keyForDatasetId,omitempty"`
+	ArrayItemType   *ArrayValueKind `json:"arrayItemType,omitempty"`
+}
+
+type ArrayValueKind struct {
+	Type            ValueType       `json:"type"`
+	KeyForDatasetId *ObjectIdScalar `json:"keyForDatasetId,omitempty"`
+}
+
+// GQL enum
+type ValueType string
+
+type DatasetRef struct {
+	DatasetId   *ObjectIdScalar `json:"datasetId,omitempty"`
+	DatasetPath *string         `json:"datasetPath,omitempty"`
+	StageId     *string         `json:"stageId,omitempty"`
+}
+
 type Folder struct {
 	ID          ObjectIdScalar `json:"id"`
 	WorkspaceId ObjectIdScalar `json:"workspaceId"`
