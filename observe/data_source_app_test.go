@@ -15,7 +15,6 @@ func TestAccObserveDataApp(t *testing.T) {
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
-			/* TODO: skip until lookup by name works
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_folder" "example" {
@@ -23,29 +22,34 @@ func TestAccObserveDataApp(t *testing.T) {
 				  name      = "%[1]s"
 				}
 
+				resource "observe_datastream" "example" {
+				  workspace = data.observe_workspace.default.oid
+				  name      = "%[1]s"
+				}
+
 				resource "observe_app" "example" {
 				  folder    = observe_folder.example.oid
 
-				  module_id = "observeinc/example/observe"
+				  module_id = "observeinc/openweather/observe"
 				  version   = "0.1.0"
 
 				  variables = {
-					required_string = "ok"
+					datastream = observe_datastream.example.id
+					api_key    = "00000000000000000000000000000000"
 				  }
 				}
 
 				data "observe_app" "example" {
-				  folder    = observe_folder.example.oid
-				  module_id = "observeinc/example/observe"
+				  folder = observe_folder.example.oid
+				  name   = "OpenWeather"
 
 				  depends_on = [observe_app.example]
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/example/observe"),
+					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),
 					resource.TestCheckResourceAttr("data.observe_app.example", "version", "0.1.0"),
 				),
 			},
-			*/
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_folder" "example" {

@@ -18,18 +18,22 @@ func dataSourceApp() *schema.Resource {
 				ValidateDiagFunc: validateOID(observe.TypeFolder),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
-			"module_id": {
+			"name": {
 				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"module_id", "id"},
+				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 			},
 			"id": {
 				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"module_id", "id"},
+				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 			},
 			// computed values
 			"oid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"module_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -55,9 +59,9 @@ func dataSourceApp() *schema.Resource {
 
 func dataSourceAppRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
-		client    = meta.(*observe.Client)
-		module_id = data.Get("module_id").(string)
-		id        = data.Get("id").(string)
+		client = meta.(*observe.Client)
+		name   = data.Get("name").(string)
+		id     = data.Get("id").(string)
 	)
 
 	oid, _ := observe.NewOID(data.Get("folder").(string))
@@ -67,8 +71,8 @@ func dataSourceAppRead(ctx context.Context, data *schema.ResourceData, meta inte
 
 	if id != "" {
 		m, err = client.GetApp(ctx, id)
-	} else if module_id != "" {
-		m, err = client.LookupApp(ctx, oid.ID, module_id)
+	} else if name != "" {
+		m, err = client.LookupApp(ctx, oid.ID, name)
 	}
 
 	if err != nil {

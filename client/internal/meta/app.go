@@ -132,7 +132,7 @@ func (c *Client) LookupApp(ctx context.Context, workspaceId, name string) (*App,
 	}
 
 	var apps []*App
-	if err := decodeStrict(getNested(result, "workspace", "apps"), &apps); err != nil {
+	if err := decodeStrict(getNested(result, "apps"), &apps); err != nil {
 		return nil, err
 	}
 	switch len(apps) {
