@@ -11,6 +11,7 @@ fragment App on App {
 	}
     status {
         state
+        internalError
     }
     outputs
 }

@@ -100,6 +100,9 @@ func resourceAppCreate(ctx context.Context, data *schema.ResourceData, meta inte
 	}
 
 	if result.Status.State != "Installed" {
+		if errStr := result.Status.InternalError; errStr != nil {
+			return diag.Errorf("failed to install app: %s", *errStr)
+		}
 		return diag.Errorf("failed to install app")
 	}
 	return nil

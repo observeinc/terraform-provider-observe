@@ -146,10 +146,15 @@ const (
 // AppStatus includes the requested fields of the GraphQL type AppStatus.
 type AppStatus struct {
 	State AppState `json:"state"`
+	// The detailed internal error message if an app is in Error state. Not suitable for external user consumption.
+	InternalError *string `json:"internalError"`
 }
 
 // GetState returns AppStatus.State, and is useful for accessing the field via an interface.
 func (v *AppStatus) GetState() AppState { return v.State }
+
+// GetInternalError returns AppStatus.InternalError, and is useful for accessing the field via an interface.
+func (v *AppStatus) GetInternalError() *string { return v.InternalError }
 
 type AppVariableInput struct {
 	Name  string `json:"name"`
@@ -6885,6 +6890,7 @@ fragment App on App {
 	}
 	status {
 		state
+		internalError
 	}
 	outputs
 }
@@ -8284,6 +8290,7 @@ fragment App on App {
 	}
 	status {
 		state
+		internalError
 	}
 	outputs
 }
@@ -9507,6 +9514,7 @@ fragment App on App {
 	}
 	status {
 		state
+		internalError
 	}
 	outputs
 }
@@ -10410,6 +10418,7 @@ fragment App on App {
 	}
 	status {
 		state
+		internalError
 	}
 	outputs
 }
