@@ -1,3 +1,7 @@
+## 0.7.0 (2022-06-30)
+feat: add dashboard support
+fix: app lookup by name
+
 ## 0.6.3 (2022-06-16)
 
 feat: support managedById for worksheets
