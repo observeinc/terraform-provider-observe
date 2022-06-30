@@ -6,17 +6,19 @@ import (
 
 var (
 	backendDashboardFragment = `
-	fragment primitiveValueFields on Value {
+	fragment primitiveValueFields on PrimitiveValue {
 		bool
 		float64
 		int64
 		string
 	}
 	fragment valueFields on Value {
-		...primitiveValueFields
+		bool
+		float64
+		int64
+		string
 		array {
 			value {
-				# We only allow array elements to be be primitives right now
 				...primitiveValueFields
 			}
 		}
@@ -25,7 +27,6 @@ var (
 			primaryKeyValue {
 				name
 				value {
-					# We only allow primary key values to be primitives right now
 					...primitiveValueFields
 				}
 			}
