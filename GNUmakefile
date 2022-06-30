@@ -16,7 +16,7 @@ docker-integration:
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make testacc"
 
 docker-package:
-	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	docker run --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
 	    /bin/bash -c " \
 		cd src/github.com/observeinc/terraform-provider-observe && \
@@ -29,7 +29,7 @@ docker-package:
 		GOOS=linux GOARCH=arm64 make package"
 
 docker-sign:
-	docker run -v `pwd`:/root/build \
+	docker run --network=host -v `pwd`:/root/build \
     --rm ubuntu:20.04 /bin/bash -c "\
 		apt-get update && apt-get install --yes gpg && \
 		gpg --import /root/build/private.pgp && \
