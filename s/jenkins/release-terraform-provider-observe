@@ -15,6 +15,13 @@ if ! [[ "$Version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+# Preemptively remove the tag we're about to create, in case it's left over from
+# a prior dry run
+git tag -d "$Version" 2> /dev/null || true
+# Then fetch tags from the remote upstream. Either the tag doesn't exist in the upstream
+# and it's fine to have deleted it locally, or it does exist in the upstream and when
+# we try to create a tag with the same name, the build will fail
+git fetch --prune --tags
 git tag "$Version"
 
 if [[ "${DryRun-}" = true ]]; then
