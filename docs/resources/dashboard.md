@@ -15,12 +15,15 @@ description: |-
 ### Required
 
 - `name` (String) Dashboard name. Must be unique within workspace.
-- `stages` (String) Dashboard definition in JSON format.
+- `stages` (String) Dashboard stages in JSON format.
 - `workspace` (String) OID of workspace dashboard is contained in.
 
 ### Optional
 
 - `icon_url` (String) Icon image.
+- `layout` (String) Dashboard layout in JSON format.
+- `parameter_values` (String) Dashboard parameter values in JSON format.
+- `parameters` (String) Dashboard parameters in JSON format.
 
 ### Read-Only
 

@@ -23,8 +23,11 @@ description: |-
 ### Read-Only
 
 - `icon_url` (String) Icon image.
+- `layout` (String) Dashboard layout in JSON format.
 - `name` (String) Dashboard name. Must be unique within workspace.
 - `oid` (String) The Observe ID for dashboard.
-- `stages` (String) Dashboard definition in JSON format.
+- `parameter_values` (String) Dashboard parameter values in JSON format.
+- `parameters` (String) Dashboard parameters in JSON format.
+- `stages` (String) Dashboard stages in JSON format.
 
 

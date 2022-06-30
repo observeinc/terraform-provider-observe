@@ -18,12 +18,13 @@ description: |-
 ### Optional
 
 - `folder` (String) OID of workspace dataset is contained in.
-- `module_id` (String)
+- `name` (String)
 
 ### Read-Only
 
 - `description` (String)
 - `id` (String) The ID of this resource.
+- `module_id` (String)
 - `oid` (String)
 - `outputs` (String)
 - `variables` (Map of String)
