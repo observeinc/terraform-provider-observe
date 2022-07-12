@@ -13,10 +13,10 @@ type Dashboard struct {
 	Config    *DashboardConfig `json:"config"`
 }
 
-func (b *Dashboard) OID() *OID {
+func (d *Dashboard) OID() *OID {
 	return &OID{
 		Type: TypeDashboard,
-		ID:   b.ID,
+		ID:   d.ID,
 	}
 }
 

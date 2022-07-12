@@ -1014,6 +1014,29 @@ func (c *Client) DeleteDashboard(ctx context.Context, id string) error {
 	return c.Meta.DeleteDashboard(ctx, id)
 }
 
+func (c *Client) GetDefaultDashboard(ctx context.Context, dsid string) (*OID, error) {
+	dashid, err := c.Meta.GetDefaultDashboard(ctx, dsid)
+	if err != nil {
+		return nil, err
+	}
+	if dashid == nil {
+		return nil, nil
+	}
+	oid := OID{
+		Type: TypeDashboard,
+		ID:   dashid.String(),
+	}
+	return &oid, nil
+}
+
+func (c *Client) SetDefaultDashboard(ctx context.Context, dsid string, dashid string) error {
+	return c.Meta.SetDefaultDashboard(ctx, dsid, dashid)
+}
+
+func (c *Client) DeleteDefaultDashboard(ctx context.Context, dsid string) error {
+	return c.Meta.DeleteDefaultDashboard(ctx, dsid)
+}
+
 // CreateFolder creates a folder
 func (c *Client) CreateFolder(ctx context.Context, workspaceId string, config *FolderConfig) (*Folder, error) {
 	if !c.Flags[flagObs2110] {

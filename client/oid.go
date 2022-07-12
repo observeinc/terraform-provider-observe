@@ -41,6 +41,7 @@ func (t Type) IsValid() bool {
 	case TypeBookmark:
 	case TypeChannelAction:
 	case TypeChannel:
+	case TypeDashboard:
 	case TypeMonitor:
 	case TypePoller:
 	case TypeDatastream:
