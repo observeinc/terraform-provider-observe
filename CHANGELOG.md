@@ -1,3 +1,6 @@
+## 0.8.0 (2022-07-13)
+feat: add default dashboard support for datasets
+
 ## 0.7.0 (2022-06-30)
 feat: add dashboard support
 fix: app lookup by name
