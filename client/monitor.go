@@ -16,6 +16,7 @@ type (
 	NotificationMerge      = meta.NotificationMerge
 	TimeFunction           = meta.TimeFunction
 	MonitorGroupInfo       = meta.MonitorGroupInfo
+	ThresholdAggFunction   = meta.ThresholdAggFunction
 )
 
 var (
@@ -69,6 +70,14 @@ var (
 		meta.TimeFunctionAtAllTimes,
 		meta.TimeFunctionAtLeastPercentageTime,
 		meta.TimeFunctionLessThanPercentageTime,
+	}
+
+	ThresholdAggFunctions = []ThresholdAggFunction{
+		meta.ThresholdAggFunctionAggFunctionAtAllTimes,
+		meta.ThresholdAggFunctionAggFunctionAtLeastOnce,
+		meta.ThresholdAggFunctionAggFunctionInTotal,
+		meta.ThresholdAggFunctionAggFunctionOnAverage,
+		meta.ThresholdAggFunctionAggFunctionMissing,
 	}
 )
 
@@ -324,14 +333,16 @@ func (c *MonitorRuleFacetConfig) toGQL() (*meta.MonitorRuleFacetInput, error) {
 }
 
 type MonitorRuleThresholdConfig struct {
-	CompareFunction *CompareFunction `json:"compareFunction"`
-	CompareValues   []float64        `json:"compareValues"`
-	LookbackTime    *time.Duration   `json:"lookbackTime"`
+	CompareFunction      *CompareFunction      `json:"compareFunction"`
+	CompareValues        []float64             `json:"compareValues"`
+	LookbackTime         *time.Duration        `json:"lookbackTime"`
+	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
 }
 
 func (c *MonitorRuleThresholdConfig) toGQL() (*meta.MonitorRuleThresholdInput, error) {
 	input := &meta.MonitorRuleThresholdInput{
-		CompareFunction: c.CompareFunction,
+		CompareFunction:      c.CompareFunction,
+		ThresholdAggFunction: c.ThresholdAggFunction,
 	}
 
 	for _, v := range c.CompareValues {

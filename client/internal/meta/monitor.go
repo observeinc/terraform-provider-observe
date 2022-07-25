@@ -63,6 +63,7 @@ var (
 			  compareFunction
 			  compareValues
 			  lookbackTime
+			  thresholdAggFunction
 			}
 			... on MonitorRulePromote {
 			  kindField

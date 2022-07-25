@@ -272,9 +272,10 @@ type MonitorRuleFacetInput struct {
 }
 
 type MonitorRuleThresholdInput struct {
-	CompareFunction *CompareFunction `json:"compareFunction"`
-	CompareValues   []NumberScalar   `json:"compareValues"`
-	LookbackTime    *string          `json:"lookbackTime"`
+	CompareFunction      *CompareFunction      `json:"compareFunction"`
+	CompareValues        []NumberScalar        `json:"compareValues"`
+	LookbackTime         *string               `json:"lookbackTime"`
+	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
 }
 
 type MonitorRulePromoteInput struct {
@@ -327,6 +328,20 @@ const (
 
 func (fn CompareFunction) String() string {
 	return string(fn)
+}
+
+type ThresholdAggFunction string
+
+const (
+	ThresholdAggFunctionAggFunctionAtAllTimes  ThresholdAggFunction = "AtAllTimes"
+	ThresholdAggFunctionAggFunctionAtLeastOnce ThresholdAggFunction = "AtLeastOnce"
+	ThresholdAggFunctionAggFunctionOnAverage   ThresholdAggFunction = "OnAverage"
+	ThresholdAggFunctionAggFunctionInTotal     ThresholdAggFunction = "InTotal"
+	ThresholdAggFunctionAggFunctionMissing     ThresholdAggFunction = ""
+)
+
+func (tfn ThresholdAggFunction) String() string {
+	return string(tfn)
 }
 
 type DatasetDefinitionInput struct {

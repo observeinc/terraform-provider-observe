@@ -220,6 +220,12 @@ func dataSourceMonitor() *schema.Resource {
 										DiffSuppressFunc: diffSuppressTimeDuration,
 										ValidateDiagFunc: validateTimeDuration,
 									},
+									"threshold_agg_function": {
+										Type:             schema.TypeString,
+										Computed:         true,
+										Optional:         true,
+										ValidateDiagFunc: validateEnums(observe.ThresholdAggFunctions),
+									},
 								},
 							},
 						},

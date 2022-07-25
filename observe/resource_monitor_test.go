@@ -191,6 +191,51 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "70"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.lookback_time", "10m0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.threshold_agg_function", "at_all_times"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = "colmake temp_number:14"
+					}
+
+
+					rule {
+                        source_column    = "temp_number"
+
+						threshold {
+                            compare_function       = "greater"
+                            compare_values         = [ 70 ]
+                            lookback_time          = "10m0s"
+							threshold_agg_function = "at_least_once"
+						}
+					}
+
+					notification_spec {
+                        merge = "merged"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", "colmake temp_number:14"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "70"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.lookback_time", "10m0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.threshold_agg_function", "at_least_once"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),

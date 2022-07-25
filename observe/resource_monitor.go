@@ -281,6 +281,12 @@ func resourceMonitor() *schema.Resource {
 										DiffSuppressFunc: diffSuppressTimeDuration,
 										ValidateDiagFunc: validateTimeDuration,
 									},
+									"threshold_agg_function": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										Default:          "at_all_times",
+										ValidateDiagFunc: validateEnums(observe.ThresholdAggFunctions),
+									},
 								},
 							},
 						},
@@ -459,6 +465,11 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 		v := data.Get("rule.0.threshold.0.compare_function")
 		fn := observe.CompareFunction(toCamel(v.(string)))
 		ruleConfig.ThresholdRule.CompareFunction = &fn
+
+		if v, ok := data.GetOk("rule.0.threshold.0.threshold_agg_function"); ok {
+			aggFn := observe.ThresholdAggFunction(toCamel(v.(string)))
+			ruleConfig.ThresholdRule.ThresholdAggFunction = &aggFn
+		}
 
 		if v, ok := data.GetOk("rule.0.threshold.0.compare_values"); ok {
 			for _, i := range v.([]interface{}) {
@@ -710,9 +721,10 @@ func flattenRule(config *observe.MonitorRuleConfig) interface{} {
 
 	if config.ThresholdRule != nil {
 		threshold := map[string]interface{}{
-			"compare_function": toSnake(config.ThresholdRule.CompareFunction.String()),
-			"compare_values":   config.ThresholdRule.CompareValues,
-			"lookback_time":    config.ThresholdRule.LookbackTime.String(),
+			"compare_function":       toSnake(config.ThresholdRule.CompareFunction.String()),
+			"compare_values":         config.ThresholdRule.CompareValues,
+			"lookback_time":          config.ThresholdRule.LookbackTime.String(),
+			"threshold_agg_function": toSnake(config.ThresholdRule.ThresholdAggFunction.String()),
 		}
 
 		rule["threshold"] = []interface{}{threshold}
