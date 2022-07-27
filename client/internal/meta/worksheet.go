@@ -14,8 +14,8 @@ var (
 		workspace {
 			id
 		}
-		queries {
-			id:label
+		queries:stages {
+			id
 			input {
 				inputName
 				inputRole
