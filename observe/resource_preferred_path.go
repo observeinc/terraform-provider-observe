@@ -22,10 +22,14 @@ func resourcePreferredPath() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"folder": &schema.Schema{
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				ValidateDiagFunc: validateOID(observe.TypeFolder, observe.TypeWorkspace),
 			},
 			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"description": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
