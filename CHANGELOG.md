@@ -1,3 +1,8 @@
+## 0.9.0 (2022-08-01)
+feat: add ThresholdAggFunction field in threshold monitor input
+fix: address failure to terraform worksheets
+feat: add description to preferred path
+
 ## 0.8.0 (2022-07-13)
 feat: add default dashboard support for datasets
 
