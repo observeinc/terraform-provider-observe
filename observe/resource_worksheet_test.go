@@ -16,6 +16,9 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
+			//	Note: every stage should have an ID, because otherwise it's not idempotent.
+			//	In the future, stage ID will be required String!, but we're currently in the
+			//	transition between stageId -> id, so it's not called out in the GQL schema.
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_worksheet" "first" {
@@ -24,6 +27,7 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 					icon_url  = "test"
 					queries = <<-EOF
 					[{
+						"id": "stage",
 						"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 						"input": [{
 						  "inputName": "kubernetes/metrics/Container Metrics",

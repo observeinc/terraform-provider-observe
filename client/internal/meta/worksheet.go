@@ -23,7 +23,6 @@ var (
 				datasetPath
 				stageId
 			}
-			params
 			layout
 			pipeline
 		}

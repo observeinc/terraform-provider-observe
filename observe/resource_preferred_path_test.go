@@ -42,6 +42,7 @@ func TestAccObservePreferredPathCreate(t *testing.T) {
 				resource "observe_preferred_path" "example" {
 					folder  = observe_folder.default.oid
 					name    = "%[1]s Path"
+					description = "Very preferred, much path"
 
 					source    = observe_dataset.a.oid
 

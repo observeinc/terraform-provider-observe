@@ -38,7 +38,7 @@ func (wc *WorksheetConfig) toGQL() (*meta.WorksheetInput, error) {
 			return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
 
-		decoder, err := meta.NewDecoder(true, &w.Queries)
+		decoder, err := meta.NewDecoder(true, &w.Stages)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create decoder: %w", err)
 		}

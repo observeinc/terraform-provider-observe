@@ -508,7 +508,7 @@ type WorksheetInput struct {
 	// XXX: layout at top level not currently used
 	//Layout      map[string]interface{} `json:"layout"`
 	Icon        *string                `json:"icon"`
-	Queries     []*WorksheetQueryInput `json:"queries"`
+	Stages      []*WorksheetQueryInput `json:"stages"`
 	ManagedByID *ObjectIdScalar        `json:"managedById"`
 }
 
@@ -531,9 +531,8 @@ func (i *WorksheetInput) SetID(id string) error {
 }
 
 type WorksheetQueryInput struct {
-	ID       *string                 `json:"id"`
+	ID       string                  `json:"id"`
 	Input    []*InputDefinitionInput `json:"input"`
-	Params   map[string]interface{}  `json:"params"`
 	Layout   map[string]interface{}  `json:"layout"`
 	Pipeline string                  `json:"pipeline"`
 }

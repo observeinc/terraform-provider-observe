@@ -463,7 +463,6 @@ type Worksheet struct {
 type WorksheetQuery struct {
 	ID       string                 `json:"id,omitempty"`
 	Input    []*InputDefinition     `json:"input"`
-	Params   map[string]interface{} `json:"params,omitempty"`
 	Layout   map[string]interface{} `json:"layout,omitempty"`
 	Pipeline string                 `json:"pipeline"`
 }
@@ -484,7 +483,6 @@ type Dashboard struct {
 type DashboardStage struct {
 	ID       string                 `json:"id,omitempty"`
 	Input    []*InputDefinition     `json:"input"`
-	Params   map[string]interface{} `json:"params,omitempty"`
 	Layout   map[string]interface{} `json:"layout,omitempty"`
 	Pipeline string                 `json:"pipeline"`
 }

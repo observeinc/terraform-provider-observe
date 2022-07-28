@@ -29,7 +29,7 @@ func resourceWorksheet() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": &schema.Schema{
+			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeWorkspace),
