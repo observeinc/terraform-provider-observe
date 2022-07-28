@@ -1,5 +1,5 @@
-TEST?=$$(go list ./... |grep -v 'vendor')
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
+TEST?=$$(go list ./... | grep -v 'vendor')
+GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
 VERSION?=$(shell git describe --tags --always)
@@ -39,7 +39,7 @@ docker-sign:
 			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
-package: build fmtcheck
+package: build
 	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
 
 build: fmtcheck
@@ -83,7 +83,6 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-.PHONY: docs
 docs:
 	tfplugindocs generate
 
@@ -101,4 +100,4 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build test sweep testacc vet fmt fmtcheck errcheck test-compile website website-test
+.PHONY: build test sweep testacc vet fmt fmtcheck errcheck test-compile website website-test docs
