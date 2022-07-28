@@ -22,7 +22,7 @@ func resourcePreferredPath() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"folder": &schema.Schema{
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
 				ValidateDiagFunc: validateOID(observe.TypeFolder, observe.TypeWorkspace),
 			},
 			"name": {
@@ -63,15 +63,17 @@ func resourcePreferredPath() *schema.Resource {
 
 func newPreferredPathConfig(data *schema.ResourceData) (config *observe.PreferredPathConfig, diags diag.Diagnostics) {
 	var (
-		folder, _ = observe.NewOID(data.Get("folder").(string))
-		source, _ = observe.NewOID(data.Get("source").(string))
-		steps     = data.Get("step").([]interface{})
+		folder, _   = observe.NewOID(data.Get("folder").(string))
+		source, _   = observe.NewOID(data.Get("source").(string))
+		description = data.Get("description").(string)
+		steps       = data.Get("step").([]interface{})
 	)
 
 	config = &observe.PreferredPathConfig{
-		Name:   data.Get("name").(string),
-		Folder: folder,
-		Source: source,
+		Name:        data.Get("name").(string),
+		Folder:      folder,
+		Source:      source,
+		Description: description,
 	}
 
 	for _, el := range steps {
@@ -138,6 +140,10 @@ func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, m
 	}
 
 	if err := data.Set("name", path.Config.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("description", path.Config.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

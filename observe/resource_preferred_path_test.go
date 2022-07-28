@@ -58,6 +58,7 @@ func TestAccObservePreferredPathCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_preferred_path.example", "folder"),
 					resource.TestCheckResourceAttrSet("observe_preferred_path.example", "source"),
+					resource.TestCheckResourceAttr("observe_preferred_path.example", "description", "Very preferred, much path"),
 				),
 			},
 		},
