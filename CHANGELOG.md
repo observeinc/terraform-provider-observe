@@ -1,3 +1,6 @@
+## 0.9.1 (2022-08-02)
+fix(monitor): is_null, is_not_null facet config
+
 ## 0.9.0 (2022-08-01)
 feat: add ThresholdAggFunction field in threshold monitor input
 fix: address failure to terraform worksheets
