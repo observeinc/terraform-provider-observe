@@ -245,7 +245,7 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 	})
 }
 
-func TestAccObserveMonitorFacet(t *testing.T) {
+func TestAccObserveMonitorFacetUpdate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -320,6 +320,53 @@ func TestAccObserveMonitorFacet(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_function", "equals"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_values.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_function", "at_least_once"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_value", "0.555"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.lookback_time", "1m0s"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorFacetCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+
+					inputs = {
+						"observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+						pipeline = "filter false"
+					}
+
+					rule {
+						source_column = "OBSERVATION_KIND"
+
+						facet {
+							facet_function = "is_null"
+							facet_values   = []
+							time_function  = "at_least_once"
+							time_value     = 0.555
+							lookback_time  = "1m"
+						}
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_function", "is_null"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.facet_values.#", "0"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_function", "at_least_once"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.time_value", "0.555"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.facet.0.lookback_time", "1m0s"),

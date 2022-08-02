@@ -235,7 +235,7 @@ func resourceMonitor() *schema.Resource {
 									"facet_values": {
 										Type:     schema.TypeList,
 										Required: true,
-										MinItems: 1,
+										MinItems: 0,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"time_function": {
