@@ -1,4 +1,4 @@
-## 0.9.1 (2022-08-03)
+## 0.9.2 (2022-08-03)
 fix(monitor): facet_values should never be null
 
 ## 0.9.1 (2022-08-02)
