@@ -29,6 +29,11 @@ func init() {
 		Name: "observe_datastream_sweep",
 		F:    datastreamSweeperFunc,
 	})
+	resource.AddTestSweepers("observe_folder_sweep", &resource.Sweeper{
+		Name: "observe_folder_sweep",
+		F:    folderSweeperFunc,
+	})
+
 }
 
 func sharedClient(s string) (*observe.Client, error) {
@@ -219,6 +224,50 @@ func datastreamSweeperFunc(s string) error {
 	return nil
 }
 
+func folderSweeperFunc(s string) error {
+	client, err := sharedClient(s)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query folders($workspaceId: ObjectId!) {
+			folders(workspaceId: $workspaceId) {
+				id
+				name
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.ID,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup folders: %w", err)
+		}
+
+		for _, i := range result["folders"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+			if prefixRe.MatchString(name) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
+				if err := client.DeleteFolder(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
 func TestMain(m *testing.M) {
 	resource.TestMain(m)
 }
