@@ -428,7 +428,9 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleConfig *observe.Monito
 	}
 
 	if data.Get("rule.0.facet.#") == 1 {
-		ruleConfig.FacetRule = &observe.MonitorRuleFacetConfig{}
+		ruleConfig.FacetRule = &observe.MonitorRuleFacetConfig{
+			FacetValues: make([]string, 0),
+		}
 
 		if v, ok := data.GetOk("rule.0.facet.0.facet_function"); ok {
 			fn := observe.FacetFunction(toCamel(v.(string)))
