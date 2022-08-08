@@ -1,3 +1,6 @@
+## 0.10.1 (2022-08-08)
+fix: handle input clobbering
+
 ## 0.10.0 (2022-08-08)
 chore: switch to auto-generated GraphQL client
 
