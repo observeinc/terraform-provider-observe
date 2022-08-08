@@ -45,7 +45,7 @@ docker-sign:
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
 gen-gql-client:
-	cd client/meta && go run -mod=mod github.com/Khan/genqlient
+	cd client/meta && GOOS= GOARCH= go run -mod=mod github.com/Khan/genqlient
 
 generate: gen-gql-client
 
