@@ -568,3 +568,61 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveDatasetMultiInput(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					}
+
+					stage {
+					  pipeline = <<-EOF
+					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+					  EOF
+					}
+				}
+
+				resource "observe_dataset" "second" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%s"
+
+					inputs = {
+					  "observation" = data.observe_dataset.observation.oid
+					  "first"      = observe_dataset.first.oid
+					}
+
+					stage {
+					  alias    = "from_first"
+					  input    = "first"
+					  pipeline = <<-EOF
+					  	filter true
+					  EOF
+					}
+
+					stage {
+					  input    = "observation"
+					  pipeline = <<-EOF
+					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+					    union @from_first
+					  EOF
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.second", "inputs.first"),
+				),
+			},
+		},
+	})
+}

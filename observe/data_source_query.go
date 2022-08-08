@@ -170,6 +170,8 @@ func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagno
 	var sortedNames []string
 	inputs := make(map[string]*gql.InputDefinitionInput, len(inputIds))
 	for name, input := range inputIds {
+		input := input
+
 		if input == "" {
 			return nil, diag.FromErr(errInputEmpty)
 		}
