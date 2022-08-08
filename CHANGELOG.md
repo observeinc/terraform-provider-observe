@@ -1,3 +1,6 @@
+## 0.10.0 (2022-08-08)
+chore: switch to auto-generated GraphQL client
+
 ## 0.9.2 (2022-08-03)
 fix(monitor): facet_values should never be null
 
