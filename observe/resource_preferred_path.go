@@ -24,8 +24,16 @@ func resourcePreferredPath() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"folder": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeFolder, oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWhenWorkspace,
+			},
+			"workspace": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ExactlyOneOf:     []string{"folder", "workspace"},
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -63,10 +71,9 @@ func resourcePreferredPath() *schema.Resource {
 	}
 }
 
-func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPathInput, diags diag.Diagnostics) {
+func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPathInput, wsid string, diags diag.Diagnostics) {
 	var (
 		name        = data.Get("name").(string)
-		folder, _   = oid.NewOID(data.Get("folder").(string))
 		source, _   = oid.NewOID(data.Get("source").(string))
 		description = data.Get("description").(string)
 		steps       = data.Get("step").([]interface{})
@@ -74,9 +81,19 @@ func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPath
 
 	input = &gql.PreferredPathInput{
 		Name:          &name,
-		FolderId:      folder.Version,
 		SourceDataset: &source.Id,
 		Description:   &description,
+	}
+
+	if folder, ok := data.GetOk("folder"); ok {
+		id, _ := oid.NewOID(folder.(string))
+		// Folder ID is stored in the Version field, workspace ID is stored in the Id field
+		input.FolderId = id.Version
+		wsid = id.Id
+	} else {
+		workspace := data.Get("workspace").(string)
+		id, _ := oid.NewOID(workspace)
+		wsid = id.Id
 	}
 
 	for _, el := range steps {
@@ -100,13 +117,12 @@ func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPath
 func resourcePreferredPathCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newPreferredPathConfig(data)
+	config, wsid, diags := newPreferredPathConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("folder").(string))
-	result, err := client.CreatePreferredPath(ctx, id.Id, config)
+	result, err := client.CreatePreferredPath(ctx, wsid, config)
 	if err != nil {
 		return diag.Errorf("failed to create preferred path: %s", err.Error())
 	}
@@ -118,7 +134,7 @@ func resourcePreferredPathCreate(ctx context.Context, data *schema.ResourceData,
 func resourcePreferredPathUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newPreferredPathConfig(data)
+	config, _, diags := newPreferredPathConfig(data)
 	if diags.HasError() {
 		return diags
 	}

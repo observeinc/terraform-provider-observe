@@ -62,7 +62,7 @@ func resourceChannelAction() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: []string{"webhook"},
+				ExactlyOneOf: []string{"email", "webhook"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"to": {
@@ -89,7 +89,7 @@ func resourceChannelAction() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: []string{"email"},
+				ExactlyOneOf: []string{"email", "webhook"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {

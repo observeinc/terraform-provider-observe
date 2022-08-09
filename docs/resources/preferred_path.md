@@ -14,10 +14,15 @@ description: |-
 
 ### Required
 
-- `folder` (String)
+- `description` (String)
 - `name` (String)
 - `source` (String)
 - `step` (Block List, Min: 1) (see [below for nested schema](#nestedblock--step))
+
+### Optional
+
+- `folder` (String)
+- `workspace` (String)
 
 ### Read-Only
 

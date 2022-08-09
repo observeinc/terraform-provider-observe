@@ -4001,7 +4001,7 @@ type PreferredPathInput struct {
 	Path []PreferredPathStepInput `json:"path"`
 	// Which folder is this path organized in? If not specified, will be put
 	// in the default folder for the workspace.
-	FolderId *string `json:"folderId"`
+	FolderId *string `json:"folderId,omitempty"`
 	// If managed by an app or other business object, provide it here. Only
 	// the object that initially creates it can later update it.
 	ManagedById *string `json:"managedById,omitempty"`

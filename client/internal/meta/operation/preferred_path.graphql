@@ -20,6 +20,7 @@ fragment PreferredPathWithStatus on PreferredPathWithStatus {
 }
 
 # More workarounds for server-side struggles
+# @genqlient(for: "PreferredPathInput.folderId", omitempty: true)
 # @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
 # @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
 # @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)
@@ -43,6 +44,7 @@ query getPreferredPath($id: ObjectId!) {
 }
 
 # More workarounds for server-side struggles
+# @genqlient(for: "PreferredPathInput.folderId", omitempty: true)
 # @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
 # @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
 # @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)

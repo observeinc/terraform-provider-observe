@@ -75,6 +75,7 @@ Optional:
 - `compare_function` (String)
 - `compare_values` (List of Number)
 - `lookback_time` (String)
+- `threshold_agg_function` (String)
 
 
 <a id="nestedblock--rule--count"></a>

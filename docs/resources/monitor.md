@@ -125,6 +125,7 @@ Required:
 Optional:
 
 - `compare_values` (List of Number)
+- `threshold_agg_function` (String)
 
 
 

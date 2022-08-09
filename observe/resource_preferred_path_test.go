@@ -39,9 +39,25 @@ func TestAccObservePreferredPathCreate(t *testing.T) {
 					name       = "%[1]s"
 				}
 			
-				resource "observe_preferred_path" "example" {
-					folder  = observe_folder.default.oid
-					name    = "%[1]s Path"
+				resource "observe_preferred_path" "example_with_folder" {
+					folder      = observe_folder.default.oid
+					name        = "%[1]s Path (Folder)"
+					description = "Very preferred, much path"
+
+					source    = observe_dataset.a.oid
+
+					step {
+						link = observe_link.a_to_b.oid
+					}
+
+					step {
+						link = observe_link.b_to_a.oid
+					}
+				}
+
+				resource "observe_preferred_path" "example_with_workspace" {
+					workspace   = data.observe_workspace.default.oid
+					name        = "%[1]s Path (Workspace)"
 					description = "Very preferred, much path"
 
 					source    = observe_dataset.a.oid
@@ -56,9 +72,12 @@ func TestAccObservePreferredPathCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_preferred_path.example", "folder"),
-					resource.TestCheckResourceAttrSet("observe_preferred_path.example", "source"),
-					resource.TestCheckResourceAttr("observe_preferred_path.example", "description", "Very preferred, much path"),
+					resource.TestCheckResourceAttrSet("observe_preferred_path.example_with_folder", "folder"),
+					resource.TestCheckResourceAttrSet("observe_preferred_path.example_with_folder", "source"),
+					resource.TestCheckResourceAttr("observe_preferred_path.example_with_folder", "description", "Very preferred, much path"),
+					resource.TestCheckResourceAttrSet("observe_preferred_path.example_with_workspace", "folder"),
+					resource.TestCheckResourceAttrSet("observe_preferred_path.example_with_workspace", "source"),
+					resource.TestCheckResourceAttr("observe_preferred_path.example_with_workspace", "description", "Very preferred, much path"),
 				),
 			},
 		},
