@@ -9,15 +9,6 @@ extend type Query {
     project(projectId: ObjectId!): Project
 
     """
-    configuration variables that can be configured
-    """
-    configVariables: [ConfigVariable!]!
-    """
-    configuration only for the current customer
-    """
-    configValues(onlyOverrides: Boolean): [CustomerConfig!]!
-
-    """
     Read a specific blob by its primary key (user ID plus name)
     If user ID is not specified, the user ID in the auth token is used.
     """
@@ -91,15 +82,6 @@ extend type Mutation {
     createWorkspace(definition: WorkspaceInput!): Project
     updateWorkspace(id: ObjectId!, definition: WorkspaceInput!): Project
     deleteWorkspace(id: ObjectId!): ResultStatus!
-
-    """
-    set a config value for the current customer -- requires that you're admin
-    """
-    setConfig(configName: String!, configValue: String!, comment: String!): CustomerConfig!
-    """
-    clear a config override (revert to default) for the current customer -- requires that you're admin
-    """
-    resetConfig(configName: String!): CustomerConfig!
 
     """
     Blobs are arbitrary JSON structs (limited to 128 kB in size) stored with
@@ -338,34 +320,6 @@ interface WorkspaceObject @goModel(model: "observe/meta/metatypes.WorkspaceObjec
     managedById: ObjectId
 }
 
-"""
-Configuration value as it pertains to the current customer
-"""
-type CustomerConfig @goModel(model: "observe/meta/metagql.CustomerConfig") {
-    name: String!
-    value: String!
-    setBy: CustomerConfigModification
-}
-
-"""
-If a value is not at the default, who set this value, when?
-"""
-type CustomerConfigModification @goModel(model: "observe/meta/metagql.CustomerConfigModification") {
-    userInfo: UserInfo! @goField(forceResolver:true)
-    changeTime: Time!
-}
-
-enum ConfigVariableType @goModel(model: "observe/meta/metagql.ConfigVariableType") {
-    ENUM
-}
-
-type ConfigVariable @goModel(model: "observe/meta/metagql.ConfigVariable") {
-    name: String!
-    type: ConfigVariableType!
-    help: String!
-    defaultValue: String!
-    possibleValues: [String!]!
-}
 
 type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   id: ObjectId!

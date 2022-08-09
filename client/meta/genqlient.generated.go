@@ -2048,6 +2048,180 @@ const (
 	InputRoleReference InputRole = "Reference"
 )
 
+// LayeredSetting includes the GraphQL fields of LayeredSetting requested by the fragment LayeredSetting.
+// The GraphQL type's documentation follows.
+//
+// A Layered Setting is like a feature flag that can be controlled by customers.
+// It allows control on a per-"scope" basis, where "scope" could be entire customer,
+// workspace, folder, app, dataset, monitor, or similar, with a broad-to-detailed
+// inheritance hierarchy.
+type LayeredSetting struct {
+	SettingAndTargetScope SettingAndTargetScope `json:"settingAndTargetScope"`
+	Value                 PrimitiveValue        `json:"value"`
+	Id                    string                `json:"id"`
+	// This is the name of the settings record, not the name of the setting!
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	IconUrl     *string `json:"iconUrl"`
+	WorkspaceId string  `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	FolderId    string  `json:"folderId"`
+}
+
+// GetSettingAndTargetScope returns LayeredSetting.SettingAndTargetScope, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetSettingAndTargetScope() SettingAndTargetScope {
+	return v.SettingAndTargetScope
+}
+
+// GetValue returns LayeredSetting.Value, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetValue() PrimitiveValue { return v.Value }
+
+// GetId returns LayeredSetting.Id, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetId() string { return v.Id }
+
+// GetName returns LayeredSetting.Name, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetName() string { return v.Name }
+
+// GetDescription returns LayeredSetting.Description, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetDescription() *string { return v.Description }
+
+// GetIconUrl returns LayeredSetting.IconUrl, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetIconUrl() *string { return v.IconUrl }
+
+// GetWorkspaceId returns LayeredSetting.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetManagedById returns LayeredSetting.ManagedById, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns LayeredSetting.FolderId, and is useful for accessing the field via an interface.
+func (v *LayeredSetting) GetFolderId() string { return v.FolderId }
+
+type LayeredSettingInput struct {
+	SettingAndTargetScope SettingAndTargetScopeInput `json:"settingAndTargetScope"`
+	Value                 PrimitiveValueInput        `json:"value"`
+	Id                    *string                    `json:"id"`
+	Name                  string                     `json:"name"`
+	Description           *string                    `json:"description"`
+	IconUrl               *string                    `json:"iconUrl"`
+	WorkspaceId           string                     `json:"workspaceId"`
+	ManagedById           *string                    `json:"managedById,omitempty"`
+	FolderId              *string                    `json:"folderId"`
+}
+
+// GetSettingAndTargetScope returns LayeredSettingInput.SettingAndTargetScope, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetSettingAndTargetScope() SettingAndTargetScopeInput {
+	return v.SettingAndTargetScope
+}
+
+// GetValue returns LayeredSettingInput.Value, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetValue() PrimitiveValueInput { return v.Value }
+
+// GetId returns LayeredSettingInput.Id, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetId() *string { return v.Id }
+
+// GetName returns LayeredSettingInput.Name, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetName() string { return v.Name }
+
+// GetDescription returns LayeredSettingInput.Description, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetDescription() *string { return v.Description }
+
+// GetIconUrl returns LayeredSettingInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetWorkspaceId returns LayeredSettingInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetManagedById returns LayeredSettingInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns LayeredSettingInput.FolderId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingInput) GetFolderId() *string { return v.FolderId }
+
+// LayeredSettingTarget includes the GraphQL fields of LayeredSettingTarget requested by the fragment LayeredSettingTarget.
+// The GraphQL type's documentation follows.
+//
+// When settinguring a particular target, a single object ID should be non-null
+// in the LayeredSettingTarget. If you want to affect "everything in this folder,
+// and also this particular dataset," then create two LayeredSettings.
+type LayeredSettingTarget struct {
+	CustomerId  *string             `json:"customerId"`
+	WorkspaceId *string             `json:"workspaceId"`
+	FolderId    *string             `json:"folderId"`
+	AppId       *string             `json:"appId"`
+	MonitorId   *string             `json:"monitorId"`
+	WorksheetId *string             `json:"worksheetId"`
+	DashboardId *string             `json:"dashboardId"`
+	DatasetId   *string             `json:"datasetId"`
+	UserId      *types.UserIdScalar `json:"userId"`
+}
+
+// GetCustomerId returns LayeredSettingTarget.CustomerId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetCustomerId() *string { return v.CustomerId }
+
+// GetWorkspaceId returns LayeredSettingTarget.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetFolderId returns LayeredSettingTarget.FolderId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetFolderId() *string { return v.FolderId }
+
+// GetAppId returns LayeredSettingTarget.AppId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetAppId() *string { return v.AppId }
+
+// GetMonitorId returns LayeredSettingTarget.MonitorId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetMonitorId() *string { return v.MonitorId }
+
+// GetWorksheetId returns LayeredSettingTarget.WorksheetId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetWorksheetId() *string { return v.WorksheetId }
+
+// GetDashboardId returns LayeredSettingTarget.DashboardId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetDashboardId() *string { return v.DashboardId }
+
+// GetDatasetId returns LayeredSettingTarget.DatasetId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetDatasetId() *string { return v.DatasetId }
+
+// GetUserId returns LayeredSettingTarget.UserId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTarget) GetUserId() *types.UserIdScalar { return v.UserId }
+
+type LayeredSettingTargetInput struct {
+	CustomerId  *string             `json:"customerId,omitempty"`
+	WorkspaceId *string             `json:"workspaceId,omitempty"`
+	FolderId    *string             `json:"folderId,omitempty"`
+	AppId       *string             `json:"appId,omitempty"`
+	WorksheetId *string             `json:"worksheetId,omitempty"`
+	DashboardId *string             `json:"dashboardId,omitempty"`
+	MonitorId   *string             `json:"monitorId,omitempty"`
+	DatasetId   *string             `json:"datasetId,omitempty"`
+	UserId      *types.UserIdScalar `json:"userId,omitempty"`
+}
+
+// GetCustomerId returns LayeredSettingTargetInput.CustomerId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetCustomerId() *string { return v.CustomerId }
+
+// GetWorkspaceId returns LayeredSettingTargetInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetFolderId returns LayeredSettingTargetInput.FolderId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetFolderId() *string { return v.FolderId }
+
+// GetAppId returns LayeredSettingTargetInput.AppId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetAppId() *string { return v.AppId }
+
+// GetWorksheetId returns LayeredSettingTargetInput.WorksheetId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetWorksheetId() *string { return v.WorksheetId }
+
+// GetDashboardId returns LayeredSettingTargetInput.DashboardId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetDashboardId() *string { return v.DashboardId }
+
+// GetMonitorId returns LayeredSettingTargetInput.MonitorId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetMonitorId() *string { return v.MonitorId }
+
+// GetDatasetId returns LayeredSettingTargetInput.DatasetId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetDatasetId() *string { return v.DatasetId }
+
+// GetUserId returns LayeredSettingTargetInput.UserId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingTargetInput) GetUserId() *types.UserIdScalar { return v.UserId }
+
 // Monitor includes the GraphQL fields of Monitor requested by the fragment Monitor.
 type Monitor struct {
 	WorkspaceId         string            `json:"workspaceId"`
@@ -4032,13 +4206,41 @@ func (v *PreferredPathWithStatusPathPreferredPath) __premarshalJSON() (*__premar
 	return &retval, nil
 }
 
-type PrimitiveValueInput struct {
+// PrimitiveValue includes the GraphQL fields of PrimitiveValue requested by the fragment PrimitiveValue.
+type PrimitiveValue struct {
 	Bool      *bool              `json:"bool"`
 	Float64   *float64           `json:"float64"`
 	Int64     *types.Int64Scalar `json:"int64"`
 	String    *string            `json:"string"`
 	Timestamp *types.TimeScalar  `json:"timestamp"`
 	Duration  *types.Int64Scalar `json:"duration"`
+}
+
+// GetBool returns PrimitiveValue.Bool, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetBool() *bool { return v.Bool }
+
+// GetFloat64 returns PrimitiveValue.Float64, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetFloat64() *float64 { return v.Float64 }
+
+// GetInt64 returns PrimitiveValue.Int64, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetInt64() *types.Int64Scalar { return v.Int64 }
+
+// GetString returns PrimitiveValue.String, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetString() *string { return v.String }
+
+// GetTimestamp returns PrimitiveValue.Timestamp, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
+
+// GetDuration returns PrimitiveValue.Duration, and is useful for accessing the field via an interface.
+func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
+
+type PrimitiveValueInput struct {
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
@@ -4174,6 +4376,29 @@ const (
 	// Return what would happen if you updated the dataset ID, including effects on dependencies. Do not change database.
 	SaveModePreflightdatasetanddependencies SaveMode = "PreflightDatasetAndDependencies"
 )
+
+// SettingAndTargetScope includes the GraphQL fields of SettingAndTargetScope requested by the fragment SettingAndTargetScope.
+type SettingAndTargetScope struct {
+	Setting string               `json:"setting"`
+	Target  LayeredSettingTarget `json:"target"`
+}
+
+// GetSetting returns SettingAndTargetScope.Setting, and is useful for accessing the field via an interface.
+func (v *SettingAndTargetScope) GetSetting() string { return v.Setting }
+
+// GetTarget returns SettingAndTargetScope.Target, and is useful for accessing the field via an interface.
+func (v *SettingAndTargetScope) GetTarget() LayeredSettingTarget { return v.Target }
+
+type SettingAndTargetScopeInput struct {
+	Setting string                    `json:"setting"`
+	Target  LayeredSettingTargetInput `json:"target"`
+}
+
+// GetSetting returns SettingAndTargetScopeInput.Setting, and is useful for accessing the field via an interface.
+func (v *SettingAndTargetScopeInput) GetSetting() string { return v.Setting }
+
+// GetTarget returns SettingAndTargetScopeInput.Target, and is useful for accessing the field via an interface.
+func (v *SettingAndTargetScopeInput) GetTarget() LayeredSettingTargetInput { return v.Target }
 
 type SourceLocInput struct {
 	Row types.Int64Scalar `json:"row"`
@@ -4918,6 +5143,14 @@ func (v *__createFolderInput) GetWorkspaceId() string { return v.WorkspaceId }
 // GetConfig returns __createFolderInput.Config, and is useful for accessing the field via an interface.
 func (v *__createFolderInput) GetConfig() FolderInput { return v.Config }
 
+// __createLayeredSettingInput is used internally by genqlient
+type __createLayeredSettingInput struct {
+	Setting LayeredSettingInput `json:"setting"`
+}
+
+// GetSetting returns __createLayeredSettingInput.Setting, and is useful for accessing the field via an interface.
+func (v *__createLayeredSettingInput) GetSetting() LayeredSettingInput { return v.Setting }
+
 // __createMonitorInput is used internally by genqlient
 type __createMonitorInput struct {
 	WorkspaceId string       `json:"workspaceId"`
@@ -5086,6 +5319,14 @@ type __deleteFolderInput struct {
 // GetId returns __deleteFolderInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteFolderInput) GetId() string { return v.Id }
 
+// __deleteLayeredSettingInput is used internally by genqlient
+type __deleteLayeredSettingInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteLayeredSettingInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteLayeredSettingInput) GetId() string { return v.Id }
+
 // __deleteMonitorInput is used internally by genqlient
 type __deleteMonitorInput struct {
 	Id string `json:"id"`
@@ -5241,6 +5482,14 @@ type __getFolderInput struct {
 
 // GetId returns __getFolderInput.Id, and is useful for accessing the field via an interface.
 func (v *__getFolderInput) GetId() string { return v.Id }
+
+// __getLayeredSettingInput is used internally by genqlient
+type __getLayeredSettingInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getLayeredSettingInput.Id, and is useful for accessing the field via an interface.
+func (v *__getLayeredSettingInput) GetId() string { return v.Id }
 
 // __getMonitorInput is used internally by genqlient
 type __getMonitorInput struct {
@@ -5540,6 +5789,14 @@ func (v *__updateFolderInput) GetId() string { return v.Id }
 // GetConfig returns __updateFolderInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateFolderInput) GetConfig() FolderInput { return v.Config }
 
+// __updateLayeredSettingInput is used internally by genqlient
+type __updateLayeredSettingInput struct {
+	Setting LayeredSettingInput `json:"setting"`
+}
+
+// GetSetting returns __updateLayeredSettingInput.Setting, and is useful for accessing the field via an interface.
+func (v *__updateLayeredSettingInput) GetSetting() LayeredSettingInput { return v.Setting }
+
 // __updateMonitorInput is used internally by genqlient
 type __updateMonitorInput struct {
 	Id      string       `json:"id"`
@@ -5730,6 +5987,16 @@ type createFolderResponse struct {
 // GetFolder returns createFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *createFolderResponse) GetFolder() Folder { return v.Folder }
 
+// createLayeredSettingResponse is returned by createLayeredSetting on success.
+type createLayeredSettingResponse struct {
+	LayeredSettings []LayeredSetting `json:"layeredSettings"`
+}
+
+// GetLayeredSettings returns createLayeredSettingResponse.LayeredSettings, and is useful for accessing the field via an interface.
+func (v *createLayeredSettingResponse) GetLayeredSettings() []LayeredSetting {
+	return v.LayeredSettings
+}
+
 // createMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
 type createMonitorMonitorMonitorUpdateResult struct {
 	Monitor Monitor `json:"monitor"`
@@ -5897,6 +6164,26 @@ type deleteFolderResponse struct {
 
 // GetResultStatus returns deleteFolderResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteFolderResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult includes the requested fields of the GraphQL type DeletedLayeredSettingsResult.
+type deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult) GetResultStatus() ResultStatus {
+	return v.ResultStatus
+}
+
+// deleteLayeredSettingResponse is returned by deleteLayeredSetting on success.
+type deleteLayeredSettingResponse struct {
+	DeleteLayeredSettings deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult `json:"deleteLayeredSettings"`
+}
+
+// GetDeleteLayeredSettings returns deleteLayeredSettingResponse.DeleteLayeredSettings, and is useful for accessing the field via an interface.
+func (v *deleteLayeredSettingResponse) GetDeleteLayeredSettings() deleteLayeredSettingDeleteLayeredSettingsDeletedLayeredSettingsResult {
+	return v.DeleteLayeredSettings
+}
 
 // deleteMonitorResponse is returned by deleteMonitor on success.
 type deleteMonitorResponse struct {
@@ -6124,6 +6411,14 @@ type getFolderResponse struct {
 
 // GetFolder returns getFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *getFolderResponse) GetFolder() Folder { return v.Folder }
+
+// getLayeredSettingResponse is returned by getLayeredSetting on success.
+type getLayeredSettingResponse struct {
+	LayeredSetting LayeredSetting `json:"layeredSetting"`
+}
+
+// GetLayeredSetting returns getLayeredSettingResponse.LayeredSetting, and is useful for accessing the field via an interface.
+func (v *getLayeredSettingResponse) GetLayeredSetting() LayeredSetting { return v.LayeredSetting }
 
 // getMonitorResponse is returned by getMonitor on success.
 type getMonitorResponse struct {
@@ -6532,6 +6827,16 @@ type updateFolderResponse struct {
 
 // GetFolder returns updateFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *updateFolderResponse) GetFolder() Folder { return v.Folder }
+
+// updateLayeredSettingResponse is returned by updateLayeredSetting on success.
+type updateLayeredSettingResponse struct {
+	LayeredSettings []LayeredSetting `json:"layeredSettings"`
+}
+
+// GetLayeredSettings returns updateLayeredSettingResponse.LayeredSettings, and is useful for accessing the field via an interface.
+func (v *updateLayeredSettingResponse) GetLayeredSettings() []LayeredSetting {
+	return v.LayeredSettings
+}
 
 // updateMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
 type updateMonitorMonitorMonitorUpdateResult struct {
@@ -7233,6 +7538,78 @@ fragment Folder on Folder {
 	var err error
 
 	var data createFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createLayeredSetting(
+	ctx context.Context,
+	client graphql.Client,
+	setting LayeredSettingInput,
+) (*createLayeredSettingResponse, error) {
+	req := &graphql.Request{
+		OpName: "createLayeredSetting",
+		Query: `
+mutation createLayeredSetting ($setting: LayeredSettingInput!) {
+	layeredSettings: createLayeredSettings(settings: [$setting]) {
+		... LayeredSetting
+	}
+}
+fragment LayeredSetting on LayeredSetting {
+	settingAndTargetScope {
+		... SettingAndTargetScope
+	}
+	value {
+		... PrimitiveValue
+	}
+	id
+	name
+	description
+	iconUrl
+	workspaceId
+	managedById
+	folderId
+}
+fragment SettingAndTargetScope on SettingAndTargetScope {
+	setting
+	target {
+		... LayeredSettingTarget
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment LayeredSettingTarget on LayeredSettingTarget {
+	customerId
+	workspaceId
+	folderId
+	appId
+	monitorId
+	worksheetId
+	dashboardId
+	datasetId
+	userId
+}
+`,
+		Variables: &__createLayeredSettingInput{
+			Setting: setting,
+		},
+	}
+	var err error
+
+	var data createLayeredSettingResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -8068,6 +8445,45 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteLayeredSetting(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteLayeredSettingResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteLayeredSetting",
+		Query: `
+mutation deleteLayeredSetting ($id: ObjectId!) {
+	deleteLayeredSettings(ids: [$id]) {
+		resultStatus: result {
+			... ResultStatus
+		}
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteLayeredSettingInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteLayeredSettingResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -8981,6 +9397,78 @@ fragment Folder on Folder {
 	var err error
 
 	var data getFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getLayeredSetting(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getLayeredSettingResponse, error) {
+	req := &graphql.Request{
+		OpName: "getLayeredSetting",
+		Query: `
+query getLayeredSetting ($id: ObjectId!) {
+	layeredSetting(id: $id) {
+		... LayeredSetting
+	}
+}
+fragment LayeredSetting on LayeredSetting {
+	settingAndTargetScope {
+		... SettingAndTargetScope
+	}
+	value {
+		... PrimitiveValue
+	}
+	id
+	name
+	description
+	iconUrl
+	workspaceId
+	managedById
+	folderId
+}
+fragment SettingAndTargetScope on SettingAndTargetScope {
+	setting
+	target {
+		... LayeredSettingTarget
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment LayeredSettingTarget on LayeredSettingTarget {
+	customerId
+	workspaceId
+	folderId
+	appId
+	monitorId
+	worksheetId
+	dashboardId
+	datasetId
+	userId
+}
+`,
+		Variables: &__getLayeredSettingInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getLayeredSettingResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10759,6 +11247,78 @@ fragment Folder on Folder {
 	var err error
 
 	var data updateFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateLayeredSetting(
+	ctx context.Context,
+	client graphql.Client,
+	setting LayeredSettingInput,
+) (*updateLayeredSettingResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateLayeredSetting",
+		Query: `
+mutation updateLayeredSetting ($setting: LayeredSettingInput!) {
+	layeredSettings: updateLayeredSettings(settings: [$setting]) {
+		... LayeredSetting
+	}
+}
+fragment LayeredSetting on LayeredSetting {
+	settingAndTargetScope {
+		... SettingAndTargetScope
+	}
+	value {
+		... PrimitiveValue
+	}
+	id
+	name
+	description
+	iconUrl
+	workspaceId
+	managedById
+	folderId
+}
+fragment SettingAndTargetScope on SettingAndTargetScope {
+	setting
+	target {
+		... LayeredSettingTarget
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment LayeredSettingTarget on LayeredSettingTarget {
+	customerId
+	workspaceId
+	folderId
+	appId
+	monitorId
+	worksheetId
+	dashboardId
+	datasetId
+	userId
+}
+`,
+		Variables: &__updateLayeredSettingInput{
+			Setting: setting,
+		},
+	}
+	var err error
+
+	var data updateLayeredSettingResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

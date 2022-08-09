@@ -18,6 +18,10 @@ extend type Mutation {
     createFolder(workspaceId: ObjectId!, folder: FolderInput!): Folder!
     updateFolder(id: ObjectId!, folder: FolderInput!): Folder!
     deleteFolder(id: ObjectId!): ResultStatus!
+
+    createAppDataSource(source: AppDataSourceInput!): AppDataSource!
+    updateAppDataSource(id: ObjectId!, source: AppDataSourceInput!): AppDataSource!
+    deleteAppDataSource(id: ObjectId!): ResultStatus!
 }
 
 type Folder implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Folder") {
@@ -153,22 +157,59 @@ enum AppDataSourceKind @goModel(model: "observe/meta/metatypes.AppDataSourceKind
     Poller
 }
 
-type AppDataSource @goModel(model: "observe/meta/metatypes.AppDataSource") {
+"""
+AppDataSourceDefinition describes the information for creating data sources for apps.
+"""
+type AppDataSourceDefinition @goModel(model: "observe/meta/metatypes.AppDataSourceDefinition") {
     name: String!
     description: String
     kind: AppDataSourceKind!
     instructions: String!
     state: AppDataState!
+    variables: [AppVariable!]
 
     """
-    If data source is a poller, this will specify the exact kind of poller.
+    The terraform sourceUrl for the data source.
     """
-    pollerKind: PollerKind
+    sourceUrl: String
+}
+
+input AppDataSourceInput @goModel(model: "observe/meta/metatypes.AppDataSourceInput") {
+    name: String!
+    description: String
+    sourceUrl: String!
+    variables: [AppVariableInput!]
+    instructions: String!
+    appId: ObjectId!
+}
+
+type AppDataSource implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.AppDataSource") {
+    # WorkspaceObject fields
+    id: ObjectId!
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+
+    # AuditedObject fields
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedDate: Time!
+
+    # data source specific fields
+    sourceUrl: String!
+    variables: [AppVariable!]
+    instructions: String!
 }
 
 type AppDataConnection @goModel(model: "observe/meta/metatypes.AppDataConnection") {
     datastreamId: ObjectId
-    sources: [AppDataSource!]!
+    sources: [AppDataSourceDefinition!]!
     state: AppDataState!
 }
 

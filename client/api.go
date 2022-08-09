@@ -330,6 +330,38 @@ func (c *Client) GetChannel(ctx context.Context, id string) (*meta.Channel, erro
 	return c.Meta.GetChannel(ctx, id)
 }
 
+func (c *Client) CreateLayeredSetting(ctx context.Context, input *meta.LayeredSettingInput) (*meta.LayeredSetting, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.CreateLayeredSetting(ctx, input)
+}
+
+func (c *Client) UpdateLayeredSetting(ctx context.Context, input *meta.LayeredSettingInput) (*meta.LayeredSetting, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateLayeredSetting(ctx, input)
+}
+
+func (c *Client) DeleteLayeredSetting(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteLayeredSetting(ctx, id)
+}
+
+func (c *Client) GetLayeredSetting(ctx context.Context, id string) (*meta.LayeredSetting, error) {
+	return c.Meta.GetLayeredSetting(ctx, id)
+}
+
 // Query for result
 func (c *Client) Query(ctx context.Context, stages []*meta.StageInput, params *meta.QueryParams) (result []*meta.TaskResult, err error) {
 	return c.Meta.DatasetQueryOutput(ctx, stages, params)

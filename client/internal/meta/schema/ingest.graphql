@@ -97,6 +97,13 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     disabled: Boolean
 }
 
+interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {
+    appId: ObjectId!
+    moduleId: String
+    instructions: String!
+    datasourceName: String!
+}
+
 type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.DatastreamToken") {
     id: String!
     name: String!
@@ -118,7 +125,7 @@ type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.Da
     appMetadata: DatastreamTokenAppMetadata
 }
 
-type DatastreamTokenAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadata") {
+type DatastreamTokenAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadata") {
     appId: ObjectId!
     moduleId: String
     instructions: String!
@@ -172,10 +179,15 @@ type PollerStats implements DatastreamSourceStats @goModel(model: "observe/meta/
     volumeBytes: [TimeSeriesValue!]
 }
 
-type Poller @goModel(model: "observe/meta/metatypes.Poller") {
+type Poller implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Poller") {
     id: ObjectId!
-    customerId: CustomerId!
+    name: String!
+    description: String
+    iconUrl: String
     workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+    customerId: CustomerId!
     datastreamId: ObjectId
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
@@ -187,6 +199,17 @@ type Poller @goModel(model: "observe/meta/metatypes.Poller") {
     config: PollerConfig!
     kind: PollerKind!
     stats: PollerStats @goField(forceResolver:true)
+    appMetadata: PollerAppMetadata @goField(forceResolver:true)
+}
+
+type PollerAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.PollerAppMetadata") {
+    appId: ObjectId!
+    moduleId: String
+    instructions: String!
+    datasourceName: String!
+
+    sourceUrl: String!
+    variables: [AppVariable!]
 }
 
 type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig") {
@@ -195,7 +218,8 @@ type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig
 }
 
 interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
-    name: String
+    # TODO: remove this field once the FE no longer uses it.
+    name: String @deprecated(reason:"use poller.name instead")
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig

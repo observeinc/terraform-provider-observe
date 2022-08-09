@@ -1,0 +1,36 @@
+extend type Mutation {
+  """
+  Submit an acceleration job to the backend, which contains multiple
+  acceleration requests. A job id is returned so that caller can poll backend
+  later for its status.
+  """
+  submitAccelerationJob(job: AccelerationJobInput): Int64!
+}
+
+input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
+  """
+  An acceleration job contains a collection of acceleration requests on
+  individual datasets. It is OK to have duplicate or overlapping requests.
+  Backend will handle that.
+  """
+  requests: [AccelerationRequestInput!]
+
+  """
+  Optional context provided by the caller.
+  """
+  context: String
+}
+
+input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
+  """
+  The ID of the dataset to be accelerated in this request.
+  """
+  datasetId: ObjectId!
+
+  """
+  The time ranges to be accelerated. It is OK to have duplicate or overlapping
+  ranges. Backend will handle that. DatasetInfo.unacceleratedWindows can be used
+  as intervals directly.
+  """
+  intervals: [TimeRangeInput!]
+}

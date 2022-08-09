@@ -75,6 +75,12 @@ fragment Dataset on Dataset {
 # @genqlient(for: "ValueInput.array", omitempty: true)
 # @genqlient(for: "ValueInput.link", omitempty: true)
 # @genqlient(for: "ValueInput.datasetref", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation saveDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -138,6 +144,12 @@ query listDatasets{
 # @genqlient(for: "ValueInput.array", omitempty: true)
 # @genqlient(for: "ValueInput.link", omitempty: true)
 # @genqlient(for: "ValueInput.datasetref", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation saveSourceDataset(
 	$workspaceId: ObjectId!,
 	$datasetDefinition: DatasetDefinitionInput!,

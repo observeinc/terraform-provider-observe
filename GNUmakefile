@@ -6,6 +6,7 @@ VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
 SWEEP?=all
 SWEEP_DIR?=./observe
+OBSERVE_ROOT?=$(HOME)/observe
 
 default: build
 
@@ -46,6 +47,11 @@ docker-sign:
 
 gen-gql-client:
 	cd client/meta && GOOS= GOARCH= go run -mod=mod github.com/Khan/genqlient
+
+copy-gql-schema:
+	[ -d "$(OBSERVE_ROOT)" ]
+	rm client/internal/meta/schema/*.graphql
+	cp -pRd "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
 
 generate: gen-gql-client
 

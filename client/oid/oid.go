@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
+
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
 var (
@@ -20,15 +23,18 @@ const (
 	TypeBookmarkGroup   Type = "bookmarkgroup"
 	TypeChannel         Type = "channel"
 	TypeChannelAction   Type = "channelaction"
+	TypeCustomer        Type = "customer"
 	TypeDashboard       Type = "dashboard"
 	TypeDataset         Type = "dataset"
 	TypeDatastream      Type = "datastream"
 	TypeDatastreamToken Type = "datastreamtoken"
 	TypeFolder          Type = "folder"
+	TypeLayeredSetting  Type = "layeredsetting"
 	TypeLink            Type = "link"
 	TypeMonitor         Type = "monitor"
 	TypePoller          Type = "poller"
 	TypePreferredPath   Type = "preferredpath"
+	TypeUser            Type = "user"
 	TypeWorksheet       Type = "worksheet"
 	TypeWorkspace       Type = "workspace"
 )
@@ -41,15 +47,18 @@ func (t Type) IsValid() bool {
 	case TypeBookmarkGroup:
 	case TypeChannel:
 	case TypeChannelAction:
+	case TypeCustomer:
 	case TypeDashboard:
 	case TypeDataset:
 	case TypeDatastream:
 	case TypeDatastreamToken:
 	case TypeFolder:
+	case TypeLayeredSetting:
 	case TypeLink:
 	case TypeMonitor:
 	case TypePoller:
 	case TypePreferredPath:
+	case TypeUser:
 	case TypeWorksheet:
 	case TypeWorkspace:
 	default:
@@ -126,6 +135,10 @@ func ChannelActionOid(id string) OID {
 	return OID{Id: id, Type: TypeChannelAction}
 }
 
+func CustomerOid(id string) OID {
+	return OID{Id: id, Type: TypeCustomer}
+}
+
 func DashboardOid(id string) OID {
 	return OID{Id: id, Type: TypeDashboard}
 }
@@ -146,6 +159,10 @@ func FolderOid(id string, wsid string) OID {
 	return OID{Id: wsid, Type: TypeFolder, Version: &id}
 }
 
+func LayeredSettingOid(id string) OID {
+	return OID{Id: id, Type: TypeLayeredSetting}
+}
+
 func LinkOid(id string) OID {
 	return OID{Id: id, Type: TypeLink}
 }
@@ -160,6 +177,22 @@ func PollerOid(id string) OID {
 
 func PreferredPathOid(id string) OID {
 	return OID{Id: id, Type: TypePreferredPath}
+}
+
+func UserOid(uid types.UserIdScalar) OID {
+	return OID{Id: uid.String(), Type: TypeUser}
+}
+
+func OidToUserId(oid OID) *types.UserIdScalar {
+	if oid.Type != TypeUser {
+		panic(fmt.Sprintf("How did a %q OID get used as a UserId?", oid.Type))
+	}
+	uid, err := strconv.ParseInt(oid.Id, 10, 64)
+	if err != nil {
+		panic(fmt.Sprintf("UserId should be integer: %q is not integer: %s", oid.Id, err.Error()))
+	}
+	ret := types.UserIdScalar(uid)
+	return &ret
 }
 
 func WorksheetOid(id string) OID {

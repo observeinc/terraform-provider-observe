@@ -167,6 +167,7 @@ func Provider() *schema.Provider {
 			"observe_app":               resourceApp(),
 			"observe_preferred_path":    resourcePreferredPath(),
 			"observe_default_dashboard": resourceDefaultDashboard(),
+			"observe_layered_setting":   resourceLayeredSetting(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

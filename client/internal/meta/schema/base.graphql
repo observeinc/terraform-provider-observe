@@ -158,7 +158,7 @@ input SourceLocInput @goModel(model: "observe/compiler/comptypes.SourceLocation"
     col: Int64!
 }
 
-type ResultStatus @goModel(model: "observe/meta/metagql.ResultStatus") {
+type ResultStatus @goModel(model: "observe/meta/metatypes.ResultStatus") {
     success: Boolean!
     errorMessage: String!
     detailedInfo: JsonObject

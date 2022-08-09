@@ -1,0 +1,173 @@
+extend type Query {
+    # return the setting settingurations that are in effect for the particular search
+    searchLayeredSettings(query: LayeredSettingsQueryInput): SearchLayeredSettingsResult!
+    # return name and documentation of all possible settings
+    possibleLayeredSettings: LayeredSettingDocs!
+    # read some particular override record
+    layeredSetting(id: ObjectId!): LayeredSetting!
+    # given a setting and a scope of some sort, figure out what the actual value is
+    layeredSettingValue(name:String!, target: LayeredSettingTargetInput): TargetedLayeredSettingValue!
+}
+
+"""
+A Layered Setting is like a feature flag that can be controlled by customers.
+It allows control on a per-"scope" basis, where "scope" could be entire customer,
+workspace, folder, app, dataset, monitor, or similar, with a broad-to-detailed
+inheritance hierarchy.
+"""
+type LayeredSetting implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/lsetting.LayeredSetting") {
+    settingAndTargetScope: SettingAndTargetScope!
+    value: PrimitiveValue!
+
+    # WorkspaceObject
+    id: ObjectId!
+    """ This is the name of the settings record, not the name of the setting! """
+    name: String!
+    # description of this record, not the setting itself
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    """ reading managedBy for many objects is expensive -- don't do that in a wide search result """
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedDate: Time!
+}
+
+type SettingAndTargetScope @goModel(model: "observe/lsetting.SettingAndTargetScope") {
+    setting: String!
+    target: LayeredSettingTarget!
+}
+
+"""
+When settinguring a particular target, a single object ID should be non-null
+in the LayeredSettingTarget. If you want to affect "everything in this folder,
+and also this particular dataset," then create two LayeredSettings.
+"""
+type LayeredSettingTarget @goModel(model: "observe/lsetting.LayeredSettingTarget") {
+    customerId: CustomerId
+    workspaceId: ObjectId
+    folderId: ObjectId
+    appId: ObjectId
+    monitorId: ObjectId
+    worksheetId: ObjectId
+    dashboardId: ObjectId
+    datasetId: ObjectId
+    userId: UserId
+}
+
+type LayeredSettingDescription @goModel(model: "observe/lsetting.LayeredSettingDescription") {
+    setting: String!
+    type: ValueType!
+    defaultValue: PrimitiveValue!
+    possibleTargetScopes: [SettingTargetScope!]!
+    # description is markdown
+    description: String!
+    # User roles are represented as strings, because we don't know
+    # what the final RBAC schema will be.
+    writableBy: [String!]!
+}
+
+type TargetedLayeredSettingValue @goModel(model: "observe/lsetting.TargetedLayeredSettingValue") {
+    description: LayeredSettingDescription!
+    settings: [LayeredSetting!]!
+    value: PrimitiveValue!
+}
+
+type LayeredSettingDocs @goModel(model: "observe/lsetting.LayeredSettingDocs") {
+    descriptions: [LayeredSettingDescription!]!
+}
+
+type SearchLayeredSettingsResult @goModel(model: "observe/lsetting.SearchLayeredSettingsResult") {
+    settings: [LayeredSetting!]!
+}
+
+input LayeredSettingsQueryInput @goModel(model: "observe/lsetting.LayeredSettingsQueryInput") {
+    setting: String
+    target: LayeredSettingTargetInput
+    """
+    This is for "the record lives in this workspace," NOT for "the record affects this workspace."
+    """
+    workspaceId: ObjectId
+    """
+    This is for "the record lives in this folder," NOT for "the record affects this folder."
+    """
+    folderId: ObjectId
+    """
+    This is for "the record is managed by this object," NOT for "the record affects this object."
+    """
+    managedById: ObjectId
+}
+
+# The scope is determined by which one field is defined and non-null
+input LayeredSettingTargetInput @goModel(model: "observe/lsetting.LayeredSettingTargetInput") {
+    customerId: CustomerId
+    workspaceId: ObjectId
+    folderId: ObjectId
+    appId: ObjectId
+    worksheetId: ObjectId
+    dashboardId: ObjectId
+    monitorId: ObjectId
+    datasetId: ObjectId
+    userId: UserId
+}
+
+enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
+    Customer
+    Workspace
+    Folder
+    App
+    Worksheet
+    Dashboard
+    Monitor
+    Dataset
+    User
+}
+
+extend type Mutation {
+    createLayeredSettings(settings:[LayeredSettingInput!]!): [LayeredSetting!]!
+    updateLayeredSettings(settings:[LayeredSettingInput!]!): [LayeredSetting!]!
+    clearLayeredSettings(settings:LayeredSettingsQueryInput!): DeletedLayeredSettingsResult!
+    deleteLayeredSettings(ids:[ObjectId!]!): DeletedLayeredSettingsResult!
+}
+
+input LayeredSettingInput @goModel(model: "observe/lsetting.LayeredSettingInput") {
+    settingAndTargetScope: SettingAndTargetScopeInput!
+    value: PrimitiveValueInput!
+
+    # WorkspaceObject
+    id: ObjectId
+    name: String!
+    description: String
+    iconUrl: String
+    workspaceId: ObjectId!
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+input SettingAndTargetScopeInput @goModel(model: "observe/lsetting.SettingAndTargetScopeInput") {
+    setting: String!
+    target: LayeredSettingTargetInput!
+}
+
+type DeletedLayeredSettingsResult @goModel(model: "observe/lsetting.DeletedLayeredSettingsResult") {
+    settings: [DeletedLayeredSetting!]
+    result: ResultStatus!
+}
+
+type DeletedLayeredSetting @goModel(model: "observe/lsetting.DeletedLayeredSetting") {
+    settingAndTargetScope: SettingAndTargetScope!
+    id: ObjectId!
+}
+

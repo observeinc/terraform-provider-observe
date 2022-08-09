@@ -125,20 +125,10 @@ func resourceSourceDataset() *schema.Resource {
 				Computed: true,
 			},
 			"freshness": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(i interface{}, k string) ([]string, []error) {
-					s := i.(string)
-					if _, err := time.ParseDuration(s); err != nil {
-						return nil, []error{err}
-					}
-					return nil, nil
-				},
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					o, _ := time.ParseDuration(old)
-					n, _ := time.ParseDuration(new)
-					return o == n
-				},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressDuration,
 			},
 		},
 	}

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -103,6 +104,53 @@ func validateOID(types ...oid.Type) schema.SchemaValidateDiagFunc {
 			})
 		}
 		return
+	}
+}
+
+const (
+	CustomerIdMul int64 = 137
+	MinCustomerId int64 = 100000000000
+	MaxCustomerId int64 = 200000000000
+	MinUserId     int64 = 1000
+	MaxUserId     int64 = 9999999
+)
+
+func validateCID() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		v, ok := i.(string)
+		if !ok {
+			return diag.Errorf("expected type of customer id to be string, got %v", i)
+		}
+		cid, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return diag.Errorf("expected customer id to be valid integer, got %s", v)
+		}
+		switch {
+		case cid == 101 || cid == 102 || cid == 123:
+			break //valid
+		case cid >= MinCustomerId && cid <= MaxCustomerId && ((cid-MinCustomerId)%CustomerIdMul == 0):
+			break // valid
+		default:
+			return diag.Errorf("customer id %s is not valid", v)
+		}
+		return nil
+	}
+}
+
+func validateUID() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		v, ok := i.(string)
+		if !ok {
+			return diag.Errorf("expected type of user id to be string, got %v", i)
+		}
+		uid, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return diag.Errorf("expected user id to be valid integer, got %s", v)
+		}
+		if uid < MinUserId || uid > MaxUserId {
+			return diag.Errorf("user id %s is not valid", v)
+		}
+		return nil
 	}
 }
 
