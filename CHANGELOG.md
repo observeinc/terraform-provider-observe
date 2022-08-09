@@ -1,3 +1,6 @@
+## 0.10.2 (2022-08-09)
+fix: add back support for email and webhook channel actions
+
 ## 0.10.1 (2022-08-08)
 fix: handle input clobbering
 
