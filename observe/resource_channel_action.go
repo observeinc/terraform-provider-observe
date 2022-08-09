@@ -195,7 +195,7 @@ func expandWebhookConfig(data map[string]interface{}) gql.WebhookActionInput {
 	return config
 }
 
-func flattenWebhook(webhook *gql.ChannelActionWebhookAction) map[string]interface{} {
+func flattenWebhook(webhook *gql.ChannelActionWebhookAction) []map[string]interface{} {
 	headers := make(map[string]string)
 	for _, header := range webhook.Headers {
 		headers[header.Header] = header.ValueTemplate
@@ -206,7 +206,7 @@ func flattenWebhook(webhook *gql.ChannelActionWebhookAction) map[string]interfac
 		"body":    webhook.BodyTemplate,
 		"headers": headers,
 	}
-	return data
+	return []map[string]interface{}{data}
 }
 
 func expandEmailConfig(data map[string]interface{}) gql.EmailActionInput {
@@ -227,14 +227,14 @@ func expandEmailConfig(data map[string]interface{}) gql.EmailActionInput {
 	return config
 }
 
-func flattenEmail(email *gql.ChannelActionEmailAction) map[string]interface{} {
+func flattenEmail(email *gql.ChannelActionEmailAction) []map[string]interface{} {
 	data := map[string]interface{}{
 		"to":      email.TargetAddresses,
 		"subject": email.SubjectTemplate,
 		"body":    email.BodyTemplate,
-		"isHtml":  email.IsHtml,
+		"is_html": email.IsHtml,
 	}
-	return data
+	return []map[string]interface{}{data}
 }
 
 func resourceChannelActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -314,20 +314,17 @@ func resourceChannelActionRead(ctx context.Context, data *schema.ResourceData, m
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO: Fix this (and tests)
-	// Skipped for now as this does not appear to be in use with prior versions of the provider
-	// if webhook, ok := channelAction.(*gql.ChannelActionWebhookAction); ok {
-	// 	if err := data.Set("webhook", flattenWebhook(webhook)); err != nil {
-	// 		diags = append(diags, diag.FromErr(err)...)
-	// 	}
-	// }
+	if webhook, ok := channelAction.(*gql.ChannelActionWebhookAction); ok {
+		if err := data.Set("webhook", flattenWebhook(webhook)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
 
-	// Skipped for now as this does not appear to be in use with prior versions of the provider
-	// if email, ok := channelAction.(*gql.ChannelActionEmailAction); ok {
-	// 	if err := data.Set("email", flattenEmail(email)); err != nil {
-	// 		diags = append(diags, diag.FromErr(err)...)
-	// 	}
-	// }
+	if email, ok := channelAction.(*gql.ChannelActionEmailAction); ok {
+		if err := data.Set("email", flattenEmail(email)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
 
 	channels := make([]string, 0)
 	for _, channel := range channelAction.GetChannels() {
