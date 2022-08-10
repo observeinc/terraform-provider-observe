@@ -149,7 +149,11 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 		return nil, nil, diag.Errorf("no query provided")
 	}
 
-	input := &gql.DatasetInput{}
+	overwriteSource := true
+	input := &gql.DatasetInput{
+		OverwriteSource: &overwriteSource,
+	}
+
 	if v, ok := data.GetOk("name"); ok {
 		input.Label = v.(string)
 	} else {
