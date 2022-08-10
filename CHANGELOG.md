@@ -1,3 +1,6 @@
+## 0.10.4 (2022-08-10)
+fix: include version in dataset OID
+
 ## 0.10.3 (2022-08-10)
 fix: elide path_cost if absent
 fix: set overwriteSource on dataset changes

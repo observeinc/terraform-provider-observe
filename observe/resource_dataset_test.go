@@ -360,7 +360,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 					stage {
 					  pipeline = <<-EOF
-					  	filter true
+					  	colmake test:EXTRA.tags
 					  EOF
 					}
 				}`, randomPrefix),
