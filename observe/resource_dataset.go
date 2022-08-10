@@ -185,6 +185,7 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 		input.PathCost = types.Int64Scalar(v.(int)).Ptr()
 	} else {
 		input.PathCost = types.Int64Scalar(0).Ptr()
+		// null it is
 	}
 
 	return input, query, diags
@@ -219,7 +220,12 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		}
 	}
 
-	if d.PathCost != nil {
+	var currentCost int
+	if v, ok := data.GetOk("path_cost"); ok {
+		currentCost = v.(int)
+	}
+
+	if d.PathCost != nil && *d.PathCost.IntPtr() != currentCost {
 		if err := data.Set("path_cost", d.PathCost); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

@@ -39,10 +39,10 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
 
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_dataset.first", "path_cost", "0"),
 
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "icon_url"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", "observation"),
