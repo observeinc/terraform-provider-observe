@@ -1,3 +1,7 @@
+## 0.10.3 (2022-08-10)
+fix: elide path_cost if absent
+fix: set overwriteSource on dataset changes
+
 ## 0.10.2 (2022-08-09)
 fix: add back support for email and webhook channel actions
 
