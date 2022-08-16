@@ -562,12 +562,14 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 	name := data.Get("name").(string)
 	disabled := data.Get("disabled").(bool)
 
+	overwriteSource := true
 	input = &gql.MonitorInput{
 		Name:             &name,
 		Query:            query,
 		Rule:             rule,
 		Disabled:         &disabled,
 		NotificationSpec: notificationSpec,
+		OverwriteSource:  &overwriteSource,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
