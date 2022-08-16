@@ -1,3 +1,7 @@
+## 0.10.5 (2022-08-16)
+fix: set overwriteSource on monitor changes
+fix: surface internalError on app install / update
+
 ## 0.10.4 (2022-08-10)
 fix: include version in dataset OID
 
