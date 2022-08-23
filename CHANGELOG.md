@@ -1,3 +1,9 @@
+## 0.11.0 (2022-08-23)
+
+feat: allow workspace to be specified instead of folder when creating preferred paths
+fix: make workspace id optional
+feat: support config overrides
+
 ## 0.10.5 (2022-08-16)
 fix: set overwriteSource on monitor changes
 fix: surface internalError on app install / update
