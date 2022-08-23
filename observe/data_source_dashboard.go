@@ -6,19 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceDashboard() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceDashboardRead,
 		Schema: map[string]*schema.Schema{
-			"workspace": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      schemaDashboardWorkspaceDescription,
-			},
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -29,6 +22,11 @@ func dataSourceDashboard() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaDashboardOIDDescription,
+			},
+			"workspace": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDashboardWorkspaceDescription,
 			},
 			"name": {
 				Type:        schema.TypeString,

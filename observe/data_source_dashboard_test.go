@@ -34,7 +34,6 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 					}
 
 					data "observe_dashboard" "lookup" {
-						workspace = data.observe_workspace.default.oid
 						id        = observe_dashboard.first.id
 					}
 				`, randomPrefix),

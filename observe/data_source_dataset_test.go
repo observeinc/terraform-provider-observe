@@ -73,7 +73,6 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 
 						data "observe_dataset" "lookup_by_id" {
-							workspace  = data.observe_workspace.default.oid
 							id         = observe_dataset.a.id
 							depends_on = [observe_dataset.a]
 						}

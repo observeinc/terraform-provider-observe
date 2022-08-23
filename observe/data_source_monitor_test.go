@@ -40,7 +40,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-						workspace  = data.observe_workspace.default.oid
 						id         = observe_monitor.first.id
 					}
 				`, randomPrefix),
@@ -76,7 +75,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-						workspace  = data.observe_workspace.default.oid
 						id         = observe_monitor.first.id
 					}
 					`, randomPrefix),

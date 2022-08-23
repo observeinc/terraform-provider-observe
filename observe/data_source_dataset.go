@@ -17,7 +17,7 @@ func dataSourceDataset() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
@@ -26,6 +26,7 @@ func dataSourceDataset() *schema.Resource {
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 				Description:  schemaDatasetNameDescription,
+				RequiredWith: []string{"workspace"},
 			},
 			"id": {
 				Type:         schema.TypeString,
@@ -107,8 +108,6 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 		explicitId = data.Get("id").(string)
 	)
 
-	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
-
 	var d *gql.Dataset
 	var err error
 
@@ -123,7 +122,11 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 			}
 		}()
 
-		d, err = client.LookupDataset(ctx, implicitId.Id, name)
+		var implicitId *oid.OID
+		implicitId, err = oid.NewOID(data.Get("workspace").(string))
+		if err == nil {
+			d, err = client.LookupDataset(ctx, implicitId.Id, name)
+		}
 	}
 
 	if err != nil {

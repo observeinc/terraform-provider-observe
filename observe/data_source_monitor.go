@@ -16,7 +16,7 @@ func dataSourceMonitor() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatasetWorkspaceDescription,
 			},
@@ -25,6 +25,7 @@ func dataSourceMonitor() *schema.Resource {
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 				Description:  schemaMonitorNameDescription,
+				RequiredWith: []string{"workspace"},
 			},
 			"id": {
 				Type:         schema.TypeString,
@@ -284,15 +285,18 @@ func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta 
 		explicitId = data.Get("id").(string)
 	)
 
-	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
-
 	var m *gql.Monitor
 	var err error
 
 	if explicitId != "" {
 		m, err = client.GetMonitor(ctx, explicitId)
 	} else if name != "" {
-		m, err = client.LookupMonitor(ctx, implicitId.Id, name)
+
+		var implicitId *oid.OID
+		implicitId, _ = oid.NewOID(data.Get("workspace").(string))
+		if err == nil {
+			m, err = client.LookupMonitor(ctx, implicitId.Id, name)
+		}
 	}
 
 	if err != nil {
