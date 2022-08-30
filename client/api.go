@@ -469,6 +469,9 @@ func (c *Client) CreatePoller(ctx context.Context, workspaceId string, input *me
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	return c.Meta.CreatePoller(ctx, workspaceId, input)
 }
 
