@@ -1,0 +1,19 @@
+extend type Query {
+    featureFlag(name: String!): FeatureFlag!
+}
+
+extend type Mutation {
+    updateFeatureFlagForUser(input: FeatureFlagInput!): FeatureFlag!
+}
+
+type FeatureFlag @goModel(model: "observe/meta/metatypes.FeatureFlag") {
+    name: String!
+    description: String!
+    isEnabled: Boolean!
+    isSelfServiceEnabled: Boolean!
+}
+
+input FeatureFlagInput @goModel(model: "observe/meta/metatypes.FeatureFlagInput") {
+    name: String!
+    isEnabled: Boolean!
+}

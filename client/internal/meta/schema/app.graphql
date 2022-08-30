@@ -8,6 +8,9 @@ extend type Query {
     app(id: ObjectId!): App!
     apps(workspaceId: ObjectId!, name: String): [App!]!
     appConfig(id: ObjectId!, targetVersion: String!): AppConfig!
+
+    appDataSource(id: ObjectId!): AppDataSource!
+    searchAppDataSources(workspaceId: ObjectId!, appId: ObjectId): [AppDataSource!]!
 }
 
 extend type Mutation {
@@ -205,6 +208,7 @@ type AppDataSource implements WorkspaceObject & AuditedObject @goModel(model: "o
     sourceUrl: String!
     variables: [AppVariable!]
     instructions: String!
+    resources: [WorkspaceObject!] @goField(forceResolver:true)
 }
 
 type AppDataConnection @goModel(model: "observe/meta/metatypes.AppDataConnection") {

@@ -4,7 +4,7 @@ extend type Mutation {
   acceleration requests. A job id is returned so that caller can poll backend
   later for its status.
   """
-  submitAccelerationJob(job: AccelerationJobInput): Int64!
+  submitAccelerationJob(job: AccelerationJobInput): String!
 }
 
 input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {

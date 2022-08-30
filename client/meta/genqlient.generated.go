@@ -3858,6 +3858,8 @@ type PollerInput struct {
 	GcpConfig            *PollerGCPMonitoringInput  `json:"gcpConfig"`
 	MongoDBAtlasConfig   *PollerMongoDBAtlasInput   `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig *PollerConfluentCloudInput `json:"confluentCloudConfig"`
+	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
+	ManagedById *string `json:"managedById"`
 }
 
 // GetName returns PollerInput.Name, and is useful for accessing the field via an interface.
@@ -3894,6 +3896,9 @@ func (v *PollerInput) GetMongoDBAtlasConfig() *PollerMongoDBAtlasInput { return 
 func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 	return v.ConfluentCloudConfig
 }
+
+// GetManagedById returns PollerInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetManagedById() *string { return v.ManagedById }
 
 type PollerKind string
 

@@ -449,13 +449,6 @@ type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
     datasetIsLinkifyInput: Boolean!
 
     """
-    True if the missing intervals are within the on-demand materialization range
-    and thus can be materialized (by triggering additional materialization
-    tasks).
-    """
-    canAccelerate: Boolean!
-
-    """
     On-demand materialization length for this dataset.
     """
     onDemandMatLen: Int64!
