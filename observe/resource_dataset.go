@@ -192,6 +192,10 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 }
 
 func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

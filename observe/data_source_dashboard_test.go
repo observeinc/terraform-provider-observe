@@ -38,6 +38,7 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
 				),
 			},

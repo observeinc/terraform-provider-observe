@@ -78,6 +78,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 					`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_dataset.lookup_by_id", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\n"),
 				),

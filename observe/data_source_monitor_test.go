@@ -44,6 +44,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_monitor.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "disabled", "true"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),

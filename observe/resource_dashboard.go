@@ -131,6 +131,10 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 }
 
 func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
