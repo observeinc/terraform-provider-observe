@@ -24,6 +24,7 @@ func dataSourceApp() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				RequiredWith: []string{"folder"},
 			},
 			"id": {
 				Type:         schema.TypeString,
