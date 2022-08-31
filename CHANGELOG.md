@@ -1,3 +1,8 @@
+## 0.11.1 (2022-08-31)
+
+fix: set workspace in data sources
+fix: require folder with app name in data source
+
 ## 0.11.0 (2022-08-23)
 
 feat: allow workspace to be specified instead of folder when creating preferred paths
