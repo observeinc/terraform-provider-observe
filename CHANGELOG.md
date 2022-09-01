@@ -1,3 +1,8 @@
+## 0.11.2 (2022-09-01)
+
+feat: set managedById on pollers
+feat: add schema for app data sources and managedById for pollers
+
 ## 0.11.1 (2022-08-31)
 
 fix: set workspace in data sources
