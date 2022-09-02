@@ -124,6 +124,7 @@ func TestAccObservePoller(t *testing.T) {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					retries   = 5
+					datastream = observe_datastream.example.oid
 
 					chunk {
 					    enabled = true
@@ -157,10 +158,16 @@ func TestAccObservePoller(t *testing.T) {
 			},
 			{
 				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					retries   = 5
+					datastream = observe_datastream.example.oid
 
 					tags = {
 						"k1"   = "v1"
@@ -175,7 +182,7 @@ func TestAccObservePoller(t *testing.T) {
 						rate_limit = 50
 						total_limit = 1000
 					}
-				}`, randomPrefix, "gcp"),
+				}`, randomPrefix, "pollers", randomPrefix, "gcp"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-gcp"),
 					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),
@@ -202,10 +209,16 @@ func TestAccObservePollerMongoDB(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s"
 					interval  = "1m"
+					datastream = observe_datastream.example.oid
 
 					tags = {
 						"k1"   = "v1"
@@ -218,7 +231,7 @@ func TestAccObservePollerMongoDB(t *testing.T) {
 							"https://cloud.mongodb.com/users"
 						]
 					}
-				}`, randomPrefix),
+				}`, randomPrefix, "pollers", randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
