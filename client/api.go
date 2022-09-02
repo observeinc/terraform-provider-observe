@@ -481,6 +481,9 @@ func (c *Client) UpdatePoller(ctx context.Context, id string, input *meta.Poller
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	return c.Meta.UpdatePoller(ctx, id, input)
 }
 
