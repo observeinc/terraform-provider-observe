@@ -86,7 +86,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				  workspace  = data.observe_workspace.default.oid
 				  name       = "%s"
 				  icon_url   = "test"
-				  rate_limit = "5m"
+				  rate_limit = "10m"
 
 				  notify_on_close = true
 
@@ -104,7 +104,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
-					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "5m0s"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "10m0s"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "test@observeinc.com"),
@@ -119,6 +119,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				  workspace = data.observe_workspace.default.oid
 				  name      = "%s"
 				  icon_url  = "filing-cabinet"
+				  rate_limit = "10m"
 				  channels  = [
 				    observe_channel.a.oid,
 				    observe_channel.b.oid,
@@ -136,7 +137,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "filing-cabinet"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "2"),
-					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m0s"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "10m0s"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "2"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "debug@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.1", "test@observeinc.com"),
