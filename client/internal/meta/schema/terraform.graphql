@@ -1,11 +1,12 @@
 extend type Query {
-    getTerraform(id: ObjectId!, wsid: ObjectId!, type: TerraformObjectType!): TerraformDefinition!
+    getTerraform(id: ObjectId!, type: TerraformObjectType!): TerraformDefinition!
 }
 
 enum TerraformObjectType @goModel(model: "observe/meta/metatypes.TerraformObjectType") {
     Dataset
     Board
     Monitor
+    Dashboard
 }
 
 type TerraformDefinition @goModel(model: "observe/meta/metatypes.TerraformDefinition") {

@@ -319,6 +319,9 @@ input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput"
     size: Int64
 }
 
+"""
+Config is mandatory, but varies based on the poller kind
+"""
 input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     name: String
     retries: Int64
@@ -326,10 +329,6 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     chunk: PollerChunkInput
     tags: JsonObject
     datastreamId: ObjectId
-
-    """
-    Config is mandatory, but varies based on the poller kind
-    """
     pubsubConfig: PollerPubSubInput
     httpConfig: PollerHTTPInput
     gcpConfig: PollerGCPMonitoringInput

@@ -1,0 +1,13 @@
+fragment TerraformDefinition on TerraformDefinition {
+    dataSource
+    resource
+    importId
+    importName
+}
+
+query getTerraform($id: ObjectId!, $ty: TerraformObjectType!) {
+	# @genqlient(flatten: true)
+    terraform: getTerraform(id: $id, type: $ty) {
+		...TerraformDefinition
+	}
+}

@@ -3845,14 +3845,14 @@ func (v *PollerHTTPRuleInput) GetDecoder() *PollerHTTPDecoderInput { return v.De
 // GetFollow returns PollerHTTPRuleInput.Follow, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRuleInput) GetFollow() *string { return v.Follow }
 
+// Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
-	Name         *string               `json:"name"`
-	Retries      *types.Int64Scalar    `json:"retries"`
-	Interval     *types.DurationScalar `json:"interval"`
-	Chunk        *PollerChunkInput     `json:"chunk"`
-	Tags         *types.JsonObject     `json:"tags"`
-	DatastreamId *string               `json:"datastreamId"`
-	// Config is mandatory, but varies based on the poller kind
+	Name                 *string                    `json:"name"`
+	Retries              *types.Int64Scalar         `json:"retries"`
+	Interval             *types.DurationScalar      `json:"interval"`
+	Chunk                *PollerChunkInput          `json:"chunk"`
+	Tags                 *types.JsonObject          `json:"tags"`
+	DatastreamId         *string                    `json:"datastreamId"`
 	PubsubConfig         *PollerPubSubInput         `json:"pubsubConfig"`
 	HttpConfig           *PollerHTTPInput           `json:"httpConfig"`
 	GcpConfig            *PollerGCPMonitoringInput  `json:"gcpConfig"`
@@ -4696,6 +4696,35 @@ func (v *TaskResultResultSchemaTaskResultSchema) GetTypedefDefinition() *types.J
 	return v.TypedefDefinition
 }
 
+// TerraformDefinition includes the GraphQL fields of TerraformDefinition requested by the fragment TerraformDefinition.
+type TerraformDefinition struct {
+	DataSource *string `json:"dataSource"`
+	Resource   *string `json:"resource"`
+	ImportId   *string `json:"importId"`
+	ImportName *string `json:"importName"`
+}
+
+// GetDataSource returns TerraformDefinition.DataSource, and is useful for accessing the field via an interface.
+func (v *TerraformDefinition) GetDataSource() *string { return v.DataSource }
+
+// GetResource returns TerraformDefinition.Resource, and is useful for accessing the field via an interface.
+func (v *TerraformDefinition) GetResource() *string { return v.Resource }
+
+// GetImportId returns TerraformDefinition.ImportId, and is useful for accessing the field via an interface.
+func (v *TerraformDefinition) GetImportId() *string { return v.ImportId }
+
+// GetImportName returns TerraformDefinition.ImportName, and is useful for accessing the field via an interface.
+func (v *TerraformDefinition) GetImportName() *string { return v.ImportName }
+
+type TerraformObjectType string
+
+const (
+	TerraformObjectTypeDataset   TerraformObjectType = "Dataset"
+	TerraformObjectTypeBoard     TerraformObjectType = "Board"
+	TerraformObjectTypeMonitor   TerraformObjectType = "Monitor"
+	TerraformObjectTypeDashboard TerraformObjectType = "Dashboard"
+)
+
 type ThresholdAggFunction string
 
 const (
@@ -5519,6 +5548,18 @@ type __getPreferredPathInput struct {
 
 // GetId returns __getPreferredPathInput.Id, and is useful for accessing the field via an interface.
 func (v *__getPreferredPathInput) GetId() string { return v.Id }
+
+// __getTerraformInput is used internally by genqlient
+type __getTerraformInput struct {
+	Id string              `json:"id"`
+	Ty TerraformObjectType `json:"ty"`
+}
+
+// GetId returns __getTerraformInput.Id, and is useful for accessing the field via an interface.
+func (v *__getTerraformInput) GetId() string { return v.Id }
+
+// GetTy returns __getTerraformInput.Ty, and is useful for accessing the field via an interface.
+func (v *__getTerraformInput) GetTy() TerraformObjectType { return v.Ty }
 
 // __getWorksheetInput is used internally by genqlient
 type __getWorksheetInput struct {
@@ -6450,6 +6491,14 @@ type getPreferredPathResponse struct {
 func (v *getPreferredPathResponse) GetPreferredPathWithStatus() PreferredPathWithStatus {
 	return v.PreferredPathWithStatus
 }
+
+// getTerraformResponse is returned by getTerraform on success.
+type getTerraformResponse struct {
+	Terraform TerraformDefinition `json:"terraform"`
+}
+
+// GetTerraform returns getTerraformResponse.Terraform, and is useful for accessing the field via an interface.
+func (v *getTerraformResponse) GetTerraform() TerraformDefinition { return v.Terraform }
 
 // getWorksheetResponse is returned by getWorksheet on success.
 type getWorksheetResponse struct {
@@ -9731,6 +9780,46 @@ fragment PreferredPath on PreferredPath {
 	var err error
 
 	var data getPreferredPathResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getTerraform(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	ty TerraformObjectType,
+) (*getTerraformResponse, error) {
+	req := &graphql.Request{
+		OpName: "getTerraform",
+		Query: `
+query getTerraform ($id: ObjectId!, $ty: TerraformObjectType!) {
+	terraform: getTerraform(id: $id, type: $ty) {
+		... TerraformDefinition
+	}
+}
+fragment TerraformDefinition on TerraformDefinition {
+	dataSource
+	resource
+	importId
+	importName
+}
+`,
+		Variables: &__getTerraformInput{
+			Id: id,
+			Ty: ty,
+		},
+	}
+	var err error
+
+	var data getTerraformResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

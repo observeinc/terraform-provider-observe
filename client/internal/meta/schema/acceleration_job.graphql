@@ -1,10 +1,39 @@
 extend type Mutation {
   """
-  Submit an acceleration job to the backend, which contains multiple
-  acceleration requests. A job id is returned so that caller can poll backend
-  later for its status.
+  Create and submit an acceleration job to the backend, which contains multiple
+  acceleration requests. If the operaiton is successful, a job object with
+  detailed status is returned and caller can poll backend later for its updated
+  status. If the operation fails, an invalid job object is returned together
+  with errors.
   """
-  submitAccelerationJob(job: AccelerationJobInput): String!
+  createAccelerationJob(job: AccelerationJobInput): AccelerationJob!
+
+  """
+  Cancels an acceleration job identified by the jobId. If the operation is
+  successful, an acceleration job with state "Cancelled" is returned. If the
+  operation fails, an invalid object is returned together with errors.
+  """
+  cancelAccelerationJob(jobId: String!): AccelerationJob!
+}
+
+extend type Query {
+  """
+  Search acceleration jobs from the current customer based on the desired state.
+  If state is not provided, all jobs from the current customer are returned.
+  """
+  searchAccelerationJobs(state: AccelerationJobState): SearchAccelerationJobsResult!
+
+  """
+  Get the full state of an acceleration job identified by the jobId. If the job
+  can be found, a job object with defailed status is returned. If the job is not
+  found, an invalid job object is returned together with errors.
+  """
+  accelerationJobStatus(jobId: String!): AccelerationJob!
+
+  """
+  Get the full acceleration status of a dataset identified by the datasetId.
+  """
+  datasetAccelerationStatus(datasetId: ObjectId!): DatasetAccelerationStatus!
 }
 
 input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
@@ -13,7 +42,7 @@ input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJ
   individual datasets. It is OK to have duplicate or overlapping requests.
   Backend will handle that.
   """
-  requests: [AccelerationRequestInput!]
+  requests: [AccelerationRequestInput!]!
 
   """
   Optional context provided by the caller.
@@ -32,5 +61,126 @@ input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.Accelerat
   ranges. Backend will handle that. DatasetInfo.unacceleratedWindows can be used
   as intervals directly.
   """
-  intervals: [TimeRangeInput!]
+  intervals: [TimeRangeInput!]!
+}
+
+"""
+This is the status of the acceleration request for a particular dataset in an
+accleration job returned from the backend.
+"""
+type AccelerationRequestStatus @goModel(model: "observe/meta/metatypes.AccelerationRequestStatus") {
+  datasetId: ObjectId!
+
+  """
+  Whether the dataset is directly requested in the owning acceleration job.
+  """
+  isDirect: Boolean!
+
+  """
+  Percentage of the acceleration request that is completed. 1 means fully
+  completed.
+  """
+  progress: Float!
+
+  """
+  Time ranges requested to accelerate for this dataset by the owning
+  acceleration job.
+  """
+  requestedWindows: [TimeRange!]!
+
+  """
+  Time ranges that have been accelerated for this dataset. This must be included
+  in the requested windows.
+  """
+  acceleratedWindows: [TimeRange!]!
+}
+
+enum AccelerationJobState @goModel(model: "observe/meta/metatypes.AccelerationJobState") {
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+"""
+This is the acceleration job returned from the backend.
+"""
+type AccelerationJob @goModel(model: "observe/meta/metatypes.AccelerationJob") {
+  """
+  A unique identifier for the acceleration job. -1 indicates an invalid job and
+  other fields are not set.
+  """
+  jobId: String!
+
+  """
+  The customer that created the acceleration job.
+  """
+  customerId: ObjectId!
+
+  """
+  Optional context provided by the caller.
+  """
+  context: String
+
+  """
+  The user that created the acceleration job.
+  """
+  createdBy: ObjectId!
+
+  """
+  When the acceleration job was created.
+  """
+  createdDate: Time!
+
+  """
+  Current state of the acceleration job.
+  """
+  state: AccelerationJobState!
+
+  """
+  When the state of the acceleration job was last updated.
+  """
+  stateLastUpdatedDate: Time!
+
+  """
+  Percentage of the acceleration job that has completed.
+  """
+  progress: Float!
+
+  """
+  Status of the requests in this job. One per dataset.
+  """
+  datasetStatuses: [AccelerationRequestStatus!]!
+}
+
+type DatasetAccelerationStatus @goModel(model: "observe/meta/metatypes.DatasetAccelerationStatus") {
+  datasetId: ObjectId!
+
+  """
+  Percetage of the already accelerated windows over requested acceleration windows.
+  """
+  progress: Float!
+
+  """
+  Combined acceleration windows requested from all jobs for this dataset.
+  """
+  requestedWindows: [TimeRange!]!
+
+  """
+  Time windows the backend targets to accelerate for this dataset.
+  """
+  targetAcceleratedWindows: [TimeRange!]!
+
+  """
+  Already accelerated windows for this dataset.
+  """
+  acceleratedWindows: [TimeRange!]!
+
+  """
+  All running acceleration jobs for this dataset.
+  """
+  runningJobs: [AccelerationJob!]!
+}
+
+type SearchAccelerationJobsResult @goModel(model: "observe/meta/metatypes.SearchAccelerationJobsResult") {
+  jobs: [AccelerationJob!]!
 }

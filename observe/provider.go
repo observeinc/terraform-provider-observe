@@ -145,6 +145,7 @@ func Provider() *schema.Provider {
 			"observe_folder":            dataSourceFolder(),
 			"observe_app":               dataSourceApp(),
 			"observe_default_dashboard": dataSourceDefaultDashboard(),
+			"observe_terraform":         dataSourceTerraform(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":           resourceDataset(),

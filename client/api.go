@@ -899,3 +899,8 @@ func (c *Client) GetPreferredPath(ctx context.Context, id string) (*meta.Preferr
 	}
 	return &resultWithStatus.Path.PreferredPath, nil
 }
+
+// GetTerraform returns terraform definition
+func (c *Client) GetTerraform(ctx context.Context, id string, objType meta.TerraformObjectType) (*meta.TerraformDefinition, error) {
+	return c.Meta.GetTerraform(ctx, id, objType)
+}
