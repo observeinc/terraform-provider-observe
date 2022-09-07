@@ -49,7 +49,7 @@ func resourceChannelAction() *schema.Resource {
 			"rate_limit": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "1m",
+				Default:          "10m",
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},

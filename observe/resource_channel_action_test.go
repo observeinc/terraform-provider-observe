@@ -74,7 +74,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "0"),
-					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "1m0s"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "10m0s"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.url", "https://observeinc.com"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.body", "nope"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "webhook.0.headers.#", "0"),
@@ -86,7 +86,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				  workspace  = data.observe_workspace.default.oid
 				  name       = "%s"
 				  icon_url   = "test"
-				  rate_limit = "10m"
+				  rate_limit = "11m"
 
 				  notify_on_close = true
 
@@ -104,7 +104,7 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_channel_action.action", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "icon_url", "test"),
-					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "10m0s"),
+					resource.TestCheckResourceAttr("observe_channel_action.action", "rate_limit", "11m0s"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "channels.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.#", "1"),
 					resource.TestCheckResourceAttr("observe_channel_action.action", "email.0.to.0", "test@observeinc.com"),
