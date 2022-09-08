@@ -121,7 +121,7 @@ func Provider() *schema.Provider {
 			"source_format": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     tfSourceFormatDefault,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_SOURCE_FORMAT", tfSourceFormatDefault),
 				Description: schemaProviderSourceFormatDescription,
 			},
 			"managing_object_id": {
