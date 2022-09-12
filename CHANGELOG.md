@@ -1,3 +1,11 @@
+## 0.11.3 (2022-09-12)
+
+feat: add support for 'OBSERVE_SOURCE_FORMAT' env variable
+feat: add observe_terraform data source
+fix: adjust channel action default rate limit
+fix: adjust channel action rate limit tests
+fix: set managedBy on poller updates
+
 ## 0.11.2 (2022-09-01)
 
 feat: set managedById on pollers

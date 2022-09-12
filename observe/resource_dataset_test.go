@@ -543,7 +543,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
 					workspace   = data.observe_workspace.default.oid
-					name 	    = "%s"
+					name 	    = "%[1]s"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid
@@ -584,7 +584,7 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s first"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid
@@ -599,7 +599,7 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 
 				resource "observe_dataset" "second" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s second"
 
 					inputs = {
 					  "observation" = data.observe_dataset.observation.oid
