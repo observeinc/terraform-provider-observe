@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptrace"
 	"net/http/httputil"
-	"net/url"
 	"sync"
 	"time"
 
@@ -146,10 +145,6 @@ func New(c *Config) (*Client, error) {
 
 	// first we must create an HTTP client for all subsequent requests
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	if c.Proxy != nil {
-		proxyURL, _ := url.Parse(*c.Proxy)
-		transport.Proxy = http.ProxyURL(proxyURL)
-	}
 
 	// disable TLS verification if necessary
 	if c.Insecure {

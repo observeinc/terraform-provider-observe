@@ -27,7 +27,6 @@ var (
 	schemaProviderRetryWaitDescription         = "Time between retries."
 	schemaProviderHTTPClientTimeoutDescription = "HTTP client timeout."
 	schemaProviderFlagsDescription             = "Used to toggle experimental features."
-	schemaProviderProxyDescription             = "URL to proxy requests through."
 	schemaProviderSourceCommentDescription     = "Source identifier comment. If null, fallback to `user_email`."
 	schemaProviderSourceFormatDescription      = "Source identifier format."
 	schemaProviderManagingObjectDescription    = "Optional managing object id. All resources created will be marked as being managed by this object."
@@ -77,12 +76,6 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_INSECURE", false),
 				Optional:    true,
 				Description: schemaProviderInsecureDescription,
-			},
-			"proxy": {
-				Type:        schema.TypeString,
-				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_PROXY", nil),
-				Optional:    true,
-				Description: schemaProviderProxyDescription,
 			},
 			"retry_count": {
 				Type:        schema.TypeInt,
@@ -215,11 +208,6 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 
 		if v, ok := data.GetOk("insecure"); ok {
 			config.Insecure = v.(bool)
-		}
-
-		if v, ok := data.GetOk("proxy"); ok {
-			s := v.(string)
-			config.Proxy = &s
 		}
 
 		if v, ok := data.GetOk("retry_wait"); ok {

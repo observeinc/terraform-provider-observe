@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -37,8 +36,7 @@ type Config struct {
 	UserPassword *string `json:"user_password"`
 
 	// client options
-	Insecure bool    `json:"insecure"`
-	Proxy    *string `json:"proxy"`
+	Insecure bool `json:"insecure"`
 
 	RetryCount int           `json:"retry_count"`
 	RetryWait  time.Duration `json:"retry_wait"`
@@ -76,12 +74,6 @@ func (c *Config) Validate() error {
 
 	if c.UserEmail != nil && c.UserPassword == nil {
 		return ErrMissingPassword
-	}
-
-	if c.Proxy != nil {
-		if _, err := url.Parse(*c.Proxy); err != nil {
-			return fmt.Errorf("failed to parse proxy URL: %w", err)
-		}
 	}
 
 	if c.RetryCount > 0 && c.RetryWait == time.Duration(0) {
