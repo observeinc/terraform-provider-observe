@@ -39,7 +39,7 @@ type Client struct {
 
 // login to retrieve a valid token, only need to do this once
 func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
-	if requiresAuth(ctx) && c.Token == nil && c.UserEmail != nil {
+	if requiresAuth(ctx) && c.ApiToken == nil && c.UserEmail != nil {
 		c.login.Do(func() {
 			ctx = setSensitive(ctx, true)
 			ctx = requireAuth(ctx, false)
@@ -48,7 +48,7 @@ func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
 			if err != nil {
 				loginErr = fmt.Errorf("failed to retrieve token: %w", err)
 			} else {
-				c.Token = &token
+				c.ApiToken = &token
 			}
 		})
 	}
@@ -120,8 +120,8 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 		}
 
 		// set auth header only after having logged request
-		if c.Token != nil {
-			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.Token))
+		if c.ApiToken != nil {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.ApiToken))
 		}
 
 		resp, err = wrapped.RoundTrip(c.setTrace(req))

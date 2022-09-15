@@ -18,7 +18,7 @@ var (
 	tfSourceFormatDefault = "terraform/%s"
 
 	schemaProviderCustomerDescription          = "Observe Customer ID. Can be set using `OBSERVE_CUSTOMER` environment variable."
-	schemaProviderTokenDescription             = "Observe Token. Optionally use `OBSERVE_TOKEN` environment variable. Cannot be used with `user_email`."
+	schemaProviderTokenDescription             = "Observe API Token. Optionally use `OBSERVE_API_TOKEN` environment variable. Cannot be used with `user_email`."
 	schemaProviderDomainDescription            = "Observe API domain."
 	schemaProviderUserEmailDescription         = "User email. Requires additionally providing `user_password`. Can be set via `OBSERVE_USER_EMAIL` environment variable."
 	schemaProviderUserPasswordDescription      = "Password for provided `user_email`. Can be set via `OBSERVE_USER_PASSWORD` environment variable."
@@ -42,10 +42,10 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
 				Description: schemaProviderCustomerDescription,
 			},
-			"token": {
+			"api_token": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_TOKEN", nil),
+				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_API_TOKEN", nil),
 				Description:   schemaProviderTokenDescription,
 				ConflictsWith: []string{"user_email", "user_password"},
 				Sensitive:     true,
@@ -191,9 +191,9 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 			RetryCount: data.Get("retry_count").(int),
 		}
 
-		if v, ok := data.GetOk("token"); ok {
+		if v, ok := data.GetOk("api_token"); ok {
 			s := v.(string)
-			config.Token = &s
+			config.ApiToken = &s
 		}
 
 		if v, ok := data.GetOk("user_email"); ok {

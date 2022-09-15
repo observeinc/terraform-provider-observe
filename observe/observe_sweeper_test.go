@@ -49,8 +49,8 @@ func sharedClient(s string) (*observe.Client, error) {
 		config.UserPassword = &userPassword
 	}
 
-	if token := os.Getenv("OBSERVE_TOKEN"); token != "" {
-		config.Token = &token
+	if token := os.Getenv("OBSERVE_API_TOKEN"); token != "" {
+		config.ApiToken = &token
 	}
 
 	return observe.New(config)

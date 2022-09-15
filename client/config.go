@@ -31,7 +31,7 @@ type Config struct {
 
 	// auth
 	UserAgent    *string `json:"user_agent"`
-	Token        *string `json:"token"`
+	ApiToken     *string `json:"api_token"`
 	UserEmail    *string `json:"user_email"`
 	UserPassword *string `json:"user_password"`
 
@@ -68,7 +68,7 @@ func (c *Config) Validate() error {
 		return ErrMissingDomain
 	}
 
-	if c.Token != nil && c.UserEmail != nil {
+	if c.ApiToken != nil && c.UserEmail != nil {
 		return ErrTokenEmail
 	}
 
