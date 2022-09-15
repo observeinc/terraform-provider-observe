@@ -18,7 +18,6 @@ description: |-
 ### Required
 
 - `id` (String) Dashboard ID.
-- `workspace` (String) OID of workspace dashboard is contained in.
 
 ### Read-Only
 
@@ -29,5 +28,6 @@ description: |-
 - `parameter_values` (String) Dashboard parameter values in JSON format.
 - `parameters` (String) Dashboard parameters in JSON format.
 - `stages` (String) Dashboard stages in JSON format.
+- `workspace` (String) OID of workspace dashboard is contained in.
 
 

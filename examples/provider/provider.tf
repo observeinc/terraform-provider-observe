@@ -1,5 +1,16 @@
-provider "observe" {
-  customer      = var.customer      # optionally use OBSERVE_CUSTOMER env var
-  user_email    = var.user_email    # optionally use OBSERVE_USER_EMAIL env var
-  user_password = var.user_password # optionally use OBSERVE_USER_PASSWORD env var
+terraform {
+  required_providers {
+    observe = {
+      source  = "terraform.observeinc.com/observeinc/observe"
+      version = "~> 0.11"
+    }
+  }
+}
+
+# Configure the observe provider
+provider "observe" {}
+
+# Look up existing workspace 
+data "observe_workspace" "default" {
+  name = "Default"
 }

@@ -7,10 +7,30 @@ description: |-
 
 # Observe Provider
 
-The Observe provider provides terraform resources to interact with the Observe API.
+The Observe provider allows you to interact with resources supported by [Observe](https://observeinc.com).
 
 ## Example Usage
 
 {{tffile "examples/provider/provider.tf"}}
+
+## Authentication and Configuration
+
+You must provide a customer ID and valid credentials in order to interact with the Observe API.
+
+The provider can either be configured explicitly through parameters or through environment variables.
+Explicit configuration always takes precedence over environment variables:
+
+{{tffile "examples/provider/provider-explicit.tf"}}
+
+Every parameter in the provider schema has a corresponding environment variable composed by prefixing the uppercased parameter name with `OBSERVE_`:
+
+```bash
+export OBSERVE_CUSTOMER=123456789012
+export OBSERVE_USER_EMAIL=user@example.com
+export OBSERVE_USER_PASSWORD=secret
+terraform plan
+...
+```
+
 
 {{ .SchemaMarkdown | trimspace }}

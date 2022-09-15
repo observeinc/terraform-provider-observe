@@ -16,20 +16,6 @@ import (
 var (
 	flagCacheClient       = "cache-client"
 	tfSourceFormatDefault = "terraform/%s"
-
-	schemaProviderCustomerDescription          = "Observe Customer ID. Can be set using `OBSERVE_CUSTOMER` environment variable."
-	schemaProviderTokenDescription             = "Observe API Token. Optionally use `OBSERVE_API_TOKEN` environment variable. Cannot be used with `user_email`."
-	schemaProviderDomainDescription            = "Observe API domain."
-	schemaProviderUserEmailDescription         = "User email. Requires additionally providing `user_password`. Can be set via `OBSERVE_USER_EMAIL` environment variable."
-	schemaProviderUserPasswordDescription      = "Password for provided `user_email`. Can be set via `OBSERVE_USER_PASSWORD` environment variable."
-	schemaProviderInsecureDescription          = "Skip TLS certificate validation."
-	schemaProviderRetryCountDescription        = "Maximum number of retries on temporary network failures."
-	schemaProviderRetryWaitDescription         = "Time between retries."
-	schemaProviderHTTPClientTimeoutDescription = "HTTP client timeout."
-	schemaProviderFlagsDescription             = "Used to toggle experimental features."
-	schemaProviderSourceCommentDescription     = "Source identifier comment. If null, fallback to `user_email`."
-	schemaProviderSourceFormatDescription      = "Source identifier format."
-	schemaProviderManagingObjectDescription    = "Optional managing object id. All resources created will be marked as being managed by this object."
 )
 
 // Provider returns observe terraform provider
@@ -40,13 +26,13 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
-				Description: schemaProviderCustomerDescription,
+				Description: "Observe Customer ID.",
 			},
 			"api_token": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_API_TOKEN", nil),
-				Description:   schemaProviderTokenDescription,
+				Description:   "Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.",
 				ConflictsWith: []string{"user_email", "user_password"},
 				Sensitive:     true,
 			},
@@ -54,14 +40,14 @@ func Provider() *schema.Provider {
 				Type:         schema.TypeString,
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_EMAIL", nil),
-				Description:  schemaProviderUserEmailDescription,
 				RequiredWith: []string{"user_password"},
+				Description:  "User email. Requires additionally providing `user_password`.",
 			},
 			"user_password": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_PASSWORD", nil),
-				Description:  schemaProviderUserPasswordDescription,
+				Description:  "Password for provided `user_email`.",
 				RequiredWith: []string{"user_email"},
 				Sensitive:    true,
 			},
@@ -69,59 +55,60 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_DOMAIN", "observeinc.com"),
-				Description: schemaProviderDomainDescription,
+				Description: "Observe API domain. Defaults to `observeinc.com`.",
 			},
 			"insecure": {
 				Type:        schema.TypeBool,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_INSECURE", false),
 				Optional:    true,
-				Description: schemaProviderInsecureDescription,
+				Description: "Skip TLS certificate validation.",
 			},
 			"retry_count": {
 				Type:        schema.TypeInt,
-				Default:     3,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_RETRY_COUNT", "3"),
 				Optional:    true,
-				Description: schemaProviderRetryCountDescription,
+				Description: "Maximum number of retries on temporary network failures. Defaults to 3.",
 			},
 			"retry_wait": {
 				Type:             schema.TypeString,
-				Default:          "3s",
+				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_RETRY_WAIT", "3s"),
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
-				Description:      schemaProviderRetryWaitDescription,
+				Description:      "Time between retries. Defaults to 3s.",
 			},
 			"flags": {
 				Type:             schema.TypeString,
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_FLAGS", ""),
 				ValidateDiagFunc: validateFlags,
 				Optional:         true,
-				Description:      schemaProviderFlagsDescription,
+				Description:      "Used to toggle experimental features.",
 			},
 			"http_client_timeout": {
 				Type:             schema.TypeString,
-				Default:          "5m",
 				Optional:         true,
+				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_HTTP_CLIENT_TIMEOUT", "2m"),
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
-				Description:      schemaProviderHTTPClientTimeoutDescription,
+				Description:      "HTTP client timeout. Defaults to 2 minutes.",
 			},
 			"source_comment": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: schemaProviderSourceCommentDescription,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_SOURCE_COMMENT", nil),
+				Description: "Source identifier comment. If null, fallback to `user_email`.",
 			},
 			"source_format": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_SOURCE_FORMAT", tfSourceFormatDefault),
-				Description: schemaProviderSourceFormatDescription,
+				Description: "Source identifier format.",
 			},
 			"managing_object_id": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_MANAGING_OBJECT_ID", nil),
 				Optional:    true,
-				Description: schemaProviderManagingObjectDescription,
+				Description: "Managing object ID.",
 			},
 		},
 
