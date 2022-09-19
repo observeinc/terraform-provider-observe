@@ -535,6 +535,7 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 					stage {
 						pipeline = <<-EOF
 							filter true
+							timechart 1h, Count:count(1), group_by(OBSERVATION_KIND, BUNDLE_ID)
 						EOF
 					}
 
@@ -543,7 +544,8 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 						}
 
 						promote {
-							primary_key       = ["OBSERVATION_KIND"]
+							primary_key       = []
+							kind_field		  = "OBSERVATION_KIND"
 						}
 					}
 
@@ -555,8 +557,8 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.columns.#", "0"),
 					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.group_by_group.0.name"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "1"),
-					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", ""),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.primary_key.#", "0"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.kind_field", "OBSERVATION_KIND"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.promote.0.description_field", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "true"),
 				),
@@ -577,6 +579,7 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 					stage {
 						pipeline = <<-EOF
 							filter true
+							timechart 1h, Count:count(1), group_by(OBSERVATION_KIND, BUNDLE_ID)
 						EOF
 					}
 
@@ -586,7 +589,8 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 						}
 
 						promote {
-							primary_key       = ["OBSERVATION_KIND"]
+							primary_key       = []
+							kind_field		  = "OBSERVATION_KIND"
 						}
 					}
 

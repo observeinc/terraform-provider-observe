@@ -309,7 +309,6 @@ func resourceMonitor() *schema.Resource {
 									"primary_key": {
 										Type:     schema.TypeList,
 										Required: true,
-										MinItems: 1,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"kind_field": {
