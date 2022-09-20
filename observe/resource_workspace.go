@@ -9,10 +9,13 @@ import (
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceWorkspace() *schema.Resource {
+
 	return &schema.Resource{
+		Description:   descriptions.Get("workspace", "description"),
 		CreateContext: resourceWorkspaceCreate,
 		UpdateContext: resourceWorkspaceUpdate,
 		ReadContext:   resourceWorkspaceRead,
@@ -22,16 +25,19 @@ func resourceWorkspace() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("workspace", "schema", "name"),
 			},
 			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "id"),
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"datasets": {
 				Type:     schema.TypeMap,

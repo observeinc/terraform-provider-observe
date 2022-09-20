@@ -1,6 +1,6 @@
 module github.com/observeinc/terraform-provider-observe
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Khan/genqlient v0.5.0

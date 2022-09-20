@@ -8,10 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceWorkspace() *schema.Resource {
 	return &schema.Resource{
+		Description: descriptions.Get("workspace", "description"),
 		ReadContext: dataSourceWorkspaceRead,
 
 		Schema: map[string]*schema.Schema{
@@ -19,15 +21,20 @@ func dataSourceWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description: descriptions.Get("workspace", "schema", "name") +
+					"One of `id` or `name` must be provided",
 			},
 			"id": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description: descriptions.Get("common", "schema", "id") +
+					"One of `id` or `name` must be provided",
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"datasets": {
 				Type:     schema.TypeMap,

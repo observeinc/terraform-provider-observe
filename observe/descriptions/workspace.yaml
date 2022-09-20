@@ -1,0 +1,14 @@
+description: |
+  Most objects you can create on Observe - such as datasets, monitors
+  and dashboards - live within workspaces. An Observe workspace provides
+  isolation between usecases within an Observe account. You can use workspaces to
+  segregate between different environments, teams or tenants. 
+
+  All Observe accounts have a `Default` workspace. This workspace cannot be deleted.
+
+schema:
+  name: |
+    Workspace name. Must be unique for customer account.
+  workspace: |
+    Workspace ID.
+

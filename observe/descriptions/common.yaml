@@ -1,0 +1,11 @@
+
+schema:
+  workspace: |
+    OID of the workspace this object is contained in.
+  id: |
+    Resource ID for this object.
+  oid: |
+    OID (Observe ID) for this object. This is the canonical identifier that
+    should be used when referring to this object in terraform manifests.
+  icon_url:
+    Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
