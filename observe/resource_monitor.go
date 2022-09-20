@@ -12,14 +12,7 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-)
-
-const (
-	schemaMonitorWorkspaceDescription   = "OID of workspace monitor is contained in."
-	schemaMonitorNameDescription        = "Monitor name."
-	schemaMonitorDescriptionDescription = "Monitor description."
-	schemaMonitorIconDescription        = "Icon image."
-	schemaMonitorOIDDescription         = "The Observe ID for monitor."
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 var validRules = []string{
@@ -32,6 +25,7 @@ var validRules = []string{
 
 func resourceMonitor() *schema.Resource {
 	return &schema.Resource{
+		Description:   descriptions.Get("monitor", "description"),
 		CreateContext: resourceMonitorCreate,
 		ReadContext:   resourceMonitorRead,
 		UpdateContext: resourceMonitorUpdate,
@@ -46,44 +40,53 @@ func resourceMonitor() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor", "schema", "name"),
 			},
 			"icon_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitor", "schema", "description"),
 			},
 			"freshness": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
+				Description:      descriptions.Get("transform", "schema", "freshness"),
 			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
+				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
 			"disabled": {
-				Type:     schema.TypeBool,
-				Default:  false,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Default:     false,
+				Optional:    true,
+				Description: descriptions.Get("monitor", "schema", "disabled"),
 			},
 			"stage": {
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Required: true,
+				Type:        schema.TypeList,
+				MinItems:    1,
+				Required:    true,
+				Description: descriptions.Get("transform", "schema", "stage", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
@@ -94,15 +97,18 @@ func resourceMonitor() *schema.Resource {
 								stage := d.Get("stage").([]interface{})
 								return k == fmt.Sprintf("stage.%d.alias", len(stage)-1)
 							},
+							Description: descriptions.Get("transform", "schema", "stage", "alias"),
 						},
 						"input": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "input"),
 						},
 						"pipeline": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: diffSuppressPipeline,
+							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
 					},
 				},

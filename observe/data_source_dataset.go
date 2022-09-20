@@ -9,6 +9,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceDataset() *schema.Resource {
@@ -19,56 +20,58 @@ func dataSourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      schemaDatasetWorkspaceDescription,
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
-				Description:  schemaDatasetNameDescription,
 				RequiredWith: []string{"workspace"},
+				Description: descriptions.Get("dataset", "schema", "name") +
+					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
 			"id": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
-				Description:  "Dataset ID. Either `name` or `id` must be provided.",
+				Description: descriptions.Get("common", "schema", "id") +
+					"One of `name` or `id` must be set.",
 			},
 			// computed values
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetOIDDescription,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetDescriptionDescription,
+				Description: descriptions.Get("dataset", "schema", "description"),
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetIconDescription,
+				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
 			"path_cost": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: schemaDatasetPathCostDescription,
-			},
-			"freshness": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: schemaDatasetFreshnessDescription,
+				Description: descriptions.Get("dataset", "schema", "path_cost"),
 			},
 			"on_demand_materialization_length": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetOnDemandMaterializationLengthDescription,
+				Description: descriptions.Get("dataset", "schema", "on_demand_materialization_length"),
+			},
+			"freshness": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("transform", "schema", "freshness"),
 			},
 			"inputs": {
 				Type:        schema.TypeMap,
 				Computed:    true,
-				Description: schemaDatasetInputsDescription,
+				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
 			"stage": {
 				Type:     schema.TypeList,
@@ -76,23 +79,23 @@ func dataSourceDataset() *schema.Resource {
 				// we need to declare optional, otherwise we won't get block
 				// formatting in state
 				Optional:    true,
-				Description: schemaDatasetStageDescription,
+				Description: descriptions.Get("transform", "schema", "stage", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStageAliasDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "alias"),
 						},
 						"input": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStageInputDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "input"),
 						},
 						"pipeline": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStagePipelineDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
 					},
 				},

@@ -8,54 +8,60 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceMonitor() *schema.Resource {
 	return &schema.Resource{
+		Description: descriptions.Get("monitor", "description"),
 		ReadContext: dataSourceMonitorRead,
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      schemaDatasetWorkspaceDescription,
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
-				Description:  schemaMonitorNameDescription,
 				RequiredWith: []string{"workspace"},
+				Description: descriptions.Get("monitor", "schema", "name") +
+					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
 			"id": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description: descriptions.Get("common", "schema", "id") +
+					"One of `id` or `name` must be provided",
 			},
 			// computed values
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaMonitorOIDDescription,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaMonitorIconDescription,
+				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaMonitorDescriptionDescription,
+				Description: descriptions.Get("monitor", "schema", "description"),
 			},
 			"disabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: descriptions.Get("monitor", "schema", "disabled"),
 			},
 			"inputs": {
 				Type:        schema.TypeMap,
 				Computed:    true,
-				Description: schemaDatasetInputsDescription,
+				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
 			"stage": {
 				Type:     schema.TypeList,
@@ -63,23 +69,23 @@ func dataSourceMonitor() *schema.Resource {
 				// we need to declare optional, otherwise we won't get block
 				// formatting in state
 				Optional:    true,
-				Description: schemaDatasetStageDescription,
+				Description: descriptions.Get("transform", "schema", "stage", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStageAliasDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "alias"),
 						},
 						"input": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStageInputDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "input"),
 						},
 						"pipeline": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: schemaDatasetStagePipelineDescription,
+							Description: descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
 					},
 				},

@@ -1,0 +1,13 @@
+description: |
+  An description
+schema:
+  name: |
+    Dataset name. Must be unique within workspace.
+  description: |
+    Dataset description.
+  path_cost: |
+    Path cost incurred by this dataset when computing graph link. Increasing
+    this value will reduce the preference for using this dataset when computing
+    paths between two datasets.
+  on_demand_materialization_length: |
+    The maximum on-demand materialization length for the dataset.

@@ -3,12 +3,12 @@
 page_title: "observe_monitor Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Observe monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
 ---
 
 # observe_monitor (Data Source)
 
-
+Observe monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
 
 
 
@@ -17,20 +17,25 @@ description: |-
 
 ### Optional
 
-- `name` (String) Monitor name.
+- `id` (String) Resource ID for this object.
+One of `id` or `name` must be provided
+- `name` (String) Monitor name. Must be unique within workspace.
+One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
 - `rule` (Block List) (see [below for nested schema](#nestedblock--rule))
-- `workspace` (String) OID of workspace dataset is contained in.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
 
 - `description` (String) Monitor description.
-- `disabled` (Boolean)
-- `icon_url` (String) Icon image.
-- `id` (String) The ID of this resource.
+- `disabled` (Boolean) Set to `true` to disable monitor.
+- `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
 - `notification_spec` (Block List) (see [below for nested schema](#nestedblock--notification_spec))
-- `oid` (String) The Observe ID for monitor.
-- `stage` (Block List) Each stage processes an input according to the provided pipeline. If no input is provided, a stage will implicitly follow on from the result of its predecessor. (see [below for nested schema](#nestedblock--stage))
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
+- `stage` (Block List) A stage processes an input according to the provided pipeline. If no
+input is provided, a stage will implicitly follow on from the result of
+its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 <a id="nestedblock--rule"></a>
 ### Nested Schema for `rule`
@@ -131,8 +136,12 @@ Read-Only:
 
 Read-Only:
 
-- `alias` (String) The stage alias is the label by which subsequent stages can refer to the results of this stage.
-- `input` (String) The stage input defines what input should be used as a starting point for the stage pipeline. It must refer to a label contained in `inputs`, or a previous stage `alias`. The stage input can be omitted if a dataset has a single input.
+- `alias` (String) The stage alias is the label by which subsequent stages can refer to the
+results of this stage.
+- `input` (String) The stage input defines what input should be used as a starting point for
+the stage pipeline. It must refer to a label contained in `inputs`, or a
+previous stage `alias`. The stage input can be omitted if `inputs`
+contains a single element.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
 
 

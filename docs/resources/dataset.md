@@ -41,29 +41,39 @@ resource "observe_dataset" "http_observations" {
 
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
 - `name` (String) Dataset name. Must be unique within workspace.
-- `stage` (Block List, Min: 1) Each stage processes an input according to the provided pipeline. If no input is provided, a stage will implicitly follow on from the result of its predecessor. (see [below for nested schema](#nestedblock--stage))
-- `workspace` (String) OID of workspace dataset is contained in.
+- `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
+input is provided, a stage will implicitly follow on from the result of
+its predecessor. (see [below for nested schema](#nestedblock--stage))
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `description` (String) Dataset description.
-- `freshness` (String) Target freshness for dataset. This impacts how frequently the dataset query will be run.
-- `icon_url` (String) Icon image.
-- `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset, in nanoseconds. If unset, the default value in the transformer config will be used instead.
-- `path_cost` (Number) Path cost is used to weigh graph link computation.
+- `freshness` (String) Target freshness for dataset. Reducing the freshness will increase the
+frequency with which queries are run, which incurs higher transform costs.
+- `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+- `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
+- `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
+this value will reduce the preference for using this dataset when computing
+paths between two datasets.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `oid` (String) The Observe ID for dataset.
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
 Optional:
 
-- `alias` (String) The stage alias is the label by which subsequent stages can refer to the results of this stage.
-- `input` (String) The stage input defines what input should be used as a starting point for the stage pipeline. It must refer to a label contained in `inputs`, or a previous stage `alias`. The stage input can be omitted if a dataset has a single input.
+- `alias` (String) The stage alias is the label by which subsequent stages can refer to the
+results of this stage.
+- `input` (String) The stage input defines what input should be used as a starting point for
+the stage pipeline. It must refer to a label contained in `inputs`, or a
+previous stage `alias`. The stage input can be omitted if `inputs`
+contains a single element.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
 ## Import
 Import is supported using the following syntax:

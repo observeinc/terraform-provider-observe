@@ -1,0 +1,21 @@
+schema:
+  freshness: |
+    Target freshness for dataset. Reducing the freshness will increase the
+    frequency with which queries are run, which incurs higher transform costs.
+  inputs: |
+    The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+  stage:
+    description: |
+      A stage processes an input according to the provided pipeline. If no
+      input is provided, a stage will implicitly follow on from the result of
+      its predecessor.
+    alias: |
+      The stage alias is the label by which subsequent stages can refer to the
+      results of this stage.
+    input: |
+      The stage input defines what input should be used as a starting point for
+      the stage pipeline. It must refer to a label contained in `inputs`, or a
+      previous stage `alias`. The stage input can be omitted if `inputs`
+      contains a single element.
+    pipeline: |
+      An OPAL snippet defining a transformation on the selected input.

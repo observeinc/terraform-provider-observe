@@ -1,0 +1,14 @@
+description:
+  Observe monitors provide a flexible way to alert for patterns in your
+  incoming data. A monitor executes a query periodically and applies rules to
+  determine whether to trigger notifications. Notifications are forwarded to
+  subscribed channels, which in turn route notifications to configured channel
+  actions.
+
+schema:
+  name: |
+    Monitor name. Must be unique within workspace.
+  description: |
+    Monitor description.
+  disabled: |
+    Set to `true` to disable monitor.
