@@ -41,19 +41,24 @@ resource "observe_link" "container_to_node" {
 
 ### Required
 
-- `fields` (List of String) Array of field mappings that provides a link between source and target datasets. A mapping between a `source_field` and a `target_field` is represented using a colon separated "<source_field>:<target_field>" format. If the source and target field share the same name, only "<source_field>".
-- `source` (String) OID of source dataset.
-- `target` (String) OID of target dataset.
-- `workspace` (String) OID of workspace link is contained in.
+- `fields` (List of String) A collection of field mappings on which to link source and target datasets.
+Each element of the array can be written as a colon separated string, e.g.
+`source_column:target_column`. If the source and target fields have the
+same name, the target field name can be omitted, i.e. `col:col` can be
+written as `col`.
+- `source` (String) OID for the source dataset.
+- `target` (String) OID for the target dataset.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
-- `label` (String) Label describing link.
+- `label` (String) A human-readable label for the link.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `oid` (String)
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 ## Import
 Import is supported using the following syntax:
 ```shell

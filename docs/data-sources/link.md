@@ -3,12 +3,12 @@
 page_title: "observe_link Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  A link connects two datasets through a resource key.
 ---
 
 # observe_link (Data Source)
 
-
+A link connects two datasets through a resource key.
 
 
 
@@ -17,9 +17,13 @@ description: |-
 
 ### Required
 
-- `fields` (List of String) Array of field mappings that provides a link between source and target datasets. A mapping between a `source_field` and a `target_field` is represented using a colon separated "<source_field>:<target_field>" format. If the source and target field share the same name, only "<source_field>".
-- `source` (String) OID of source dataset.
-- `target` (String) OID of target dataset.
+- `fields` (List of String) A collection of field mappings on which to link source and target datasets.
+Each element of the array can be written as a colon separated string, e.g.
+`source_column:target_column`. If the source and target fields have the
+same name, the target field name can be omitted, i.e. `col:col` can be
+written as `col`.
+- `source` (String) OID for the source dataset.
+- `target` (String) OID for the target dataset.
 
 ### Read-Only
 

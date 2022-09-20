@@ -10,16 +10,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-)
-
-const (
-	schemaLinkWorkspaceDescription = "OID of workspace link is contained in."
-	schemaLinkSourceDescription    = "OID of source dataset."
-	schemaLinkTargetDescription    = "OID of target dataset."
-	schemaLinkFieldsDescription    = "Array of field mappings that provides a link between source and target datasets. " +
-		"A mapping between a `source_field` and a `target_field` is represented using a colon separated \"<source_field>:<target_field>\" format. " +
-		"If the source and target field share the same name, only \"<source_field>\"."
-	schemaLinkLabelDescription = "Label describing link."
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceLink() *schema.Resource {
@@ -38,36 +29,37 @@ func resourceLink() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      schemaLinkWorkspaceDescription,
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"source": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
-				Description:      schemaLinkSourceDescription,
+				Description:      descriptions.Get("link", "schema", "source"),
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
-				Description:      schemaLinkTargetDescription,
+				Description:      descriptions.Get("link", "schema", "target"),
 			},
 			"fields": {
 				Type:             schema.TypeList,
 				Required:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				DiffSuppressFunc: diffSuppressFields,
-				Description:      schemaLinkFieldsDescription,
+				Description:      descriptions.Get("link", "schema", "fields"),
 			},
 			"label": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: schemaLinkLabelDescription,
+				Description: descriptions.Get("link", "schema", "label"),
 			},
 		},
 	}
