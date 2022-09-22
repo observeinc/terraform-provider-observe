@@ -17,6 +17,7 @@ import (
 const (
 	schemaDashboardWorkspaceDescription       = "OID of workspace dashboard is contained in."
 	schemaDashboardNameDescription            = "Dashboard name. Must be unique within workspace."
+	schemaDashboardDescriptionDescription     = "Dashboard description."
 	schemaDashboardIconDescription            = "Icon image."
 	schemaDashboardJSONDescription            = "Dashboard stages in JSON format."
 	schemaDashboardLayoutDescription          = "Dashboard layout in JSON format."
@@ -46,6 +47,11 @@ func resourceDashboard() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: schemaDashboardNameDescription,
+			},
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: schemaDashboardDescriptionDescription,
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
@@ -93,6 +99,11 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 	name := data.Get("name").(string)
 	input = &gql.DashboardInput{
 		Name: &name,
+	}
+
+	{
+		// always reset to empty string if description not set
+		input.Description = stringPtr(data.Get("description").(string))
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {

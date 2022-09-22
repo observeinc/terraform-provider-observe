@@ -62,11 +62,15 @@ enum PipelineWarningKind @goModel(model: "observe/compiler/comptypes.PipelineWar
     """
     A deprecated alias of a verb/function is used.
     """
-    Deprecated
+    AliasDeprecated
     """
     A statement will have no effect
     """
     NoEffect
+    """
+    A deprecated verb/function specification is used.
+    """
+    Deprecated
 }
 
 type PipelineWarning @goModel(model: "observe/meta/metatypes.PipelineWarning") {

@@ -6035,6 +6035,10 @@ func (v *createFolderResponse) GetFolder() Folder { return v.Folder }
 
 // createLayeredSettingResponse is returned by createLayeredSetting on success.
 type createLayeredSettingResponse struct {
+	// If you give the layered setting record the empty name, it will get an auto-generated
+	// name based on the setting and target. This is mainly convenient when creating these
+	// within code itself, but can also be used by API users who don't want to manage a
+	// separate name.
 	LayeredSettings []LayeredSetting `json:"layeredSettings"`
 }
 

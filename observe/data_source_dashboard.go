@@ -33,6 +33,11 @@ func dataSourceDashboard() *schema.Resource {
 				Computed:    true,
 				Description: schemaDashboardNameDescription,
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDashboardDescriptionDescription,
+			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Computed:    true,

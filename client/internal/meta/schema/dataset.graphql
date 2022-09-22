@@ -316,7 +316,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     """
     the short display name, not the list of metric labels
     """
-    label: String!
+    label: String! @deprecated(reason: "We should always use name. Using label causes too much confusion.")
     type: MetricType! @goField(name:MetricType)
     unit: String!
     description: String!
