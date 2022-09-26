@@ -20,6 +20,7 @@ description: |-
 
 ### Optional
 
+- `description` (String) Dashboard description.
 - `icon_url` (String) Icon image.
 - `layout` (String) Dashboard layout in JSON format.
 - `parameter_values` (String) Dashboard parameter values in JSON format.

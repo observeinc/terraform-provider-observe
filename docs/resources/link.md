@@ -3,11 +3,11 @@
 page_title: "observe_link Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  A link connects two datasets through a resource key.
 ---
 # observe_link
 
-
+A link connects two datasets through a resource key.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {

@@ -1,9 +1,10 @@
 schema:
   freshness: |
-    Target freshness for dataset. Reducing the freshness will increase the
+    Target freshness for results. Reducing the freshness will increase the
     frequency with which queries are run, which incurs higher transform costs.
   inputs: |
-    The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+    The inputs map binds dataset OIDs to labels which can be referenced within
+    stage pipelines.
   stage:
     description: |
       A stage processes an input according to the provided pipeline. If no

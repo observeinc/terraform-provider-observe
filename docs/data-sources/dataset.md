@@ -26,10 +26,11 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 ### Read-Only
 
 - `description` (String) Dataset description.
-- `freshness` (String) Target freshness for dataset. Reducing the freshness will increase the
+- `freshness` (String) Target freshness for results. Reducing the freshness will increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
-- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
+stage pipelines.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
 - `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.

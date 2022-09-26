@@ -13,4 +13,3 @@ schema:
     `source_column:target_column`. If the source and target fields have the
     same name, the target field name can be omitted, i.e. `col:col` can be
     written as `col`.
-

@@ -29,7 +29,8 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 - `description` (String) Monitor description.
 - `disabled` (Boolean) Set to `true` to disable monitor.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
-- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
+stage pipelines.
 - `notification_spec` (Block List) (see [below for nested schema](#nestedblock--notification_spec))
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.

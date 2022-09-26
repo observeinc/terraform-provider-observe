@@ -21,6 +21,7 @@ description: |-
 
 ### Read-Only
 
+- `description` (String) Dashboard description.
 - `icon_url` (String) Icon image.
 - `layout` (String) Dashboard layout in JSON format.
 - `name` (String) Dashboard name. Must be unique within workspace.

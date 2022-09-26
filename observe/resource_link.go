@@ -15,6 +15,7 @@ import (
 
 func resourceLink() *schema.Resource {
 	return &schema.Resource{
+		Description:   descriptions.Get("link", "description"),
 		CreateContext: resourceLinkCreate,
 		ReadContext:   resourceLinkRead,
 		UpdateContext: resourceLinkUpdate,

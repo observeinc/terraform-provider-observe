@@ -7,6 +7,7 @@ TESTARGS?=
 SWEEP?=all
 SWEEP_DIR?=./observe
 OBSERVE_ROOT?=$(HOME)/observe
+OBSERVE_DOCS_ROOT?=../observe-docs
 
 default: build
 
@@ -101,6 +102,20 @@ test-compile:
 
 docs:
 	tfplugindocs generate
+
+docs-sync: docs
+	rsync -av \
+		--include="index.md" \
+		--include="*/" \
+		--include="*/dataset.md" \
+		--include="*/datastream.md" \
+		--include="resources/datastream_token.md" \
+		--include="resources/link.md" \
+		--include="*/monitor.md" \
+		--include="data-sources/workspace.md" \
+		--exclude="*" \
+		docs/ \
+		$(OBSERVE_DOCS)/docs/content/terraform/generated
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

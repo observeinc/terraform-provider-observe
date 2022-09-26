@@ -39,7 +39,8 @@ resource "observe_dataset" "http_observations" {
 
 ### Required
 
-- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within stage pipelines.
+- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
+stage pipelines.
 - `name` (String) Dataset name. Must be unique within workspace.
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
@@ -49,7 +50,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 ### Optional
 
 - `description` (String) Dataset description.
-- `freshness` (String) Target freshness for dataset. Reducing the freshness will increase the
+- `freshness` (String) Target freshness for results. Reducing the freshness will increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
