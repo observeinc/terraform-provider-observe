@@ -2,20 +2,8 @@ package meta
 
 import "context"
 
-type configOverrideResponse0 interface {
-	GetLayeredSettingRecords() []LayeredSettingRecord
-}
-
 type configOverrideResponse interface {
 	GetLayeredSettingRecord() LayeredSettingRecord
-}
-
-func configOverrideOrError0(c configOverrideResponse0, err error) (*LayeredSettingRecord, error) {
-	if err != nil {
-		return nil, err
-	}
-	result := c.GetLayeredSettingRecords()
-	return &result[0], nil
 }
 
 func configOverrideOrError(c configOverrideResponse, err error) (*LayeredSettingRecord, error) {
@@ -28,12 +16,12 @@ func configOverrideOrError(c configOverrideResponse, err error) (*LayeredSetting
 
 func (client *Client) CreateLayeredSettingRecord(ctx context.Context, config *LayeredSettingRecordInput) (*LayeredSettingRecord, error) {
 	resp, err := createLayeredSettingRecord(ctx, client.Gql, *config)
-	return configOverrideOrError0(resp, err)
+	return configOverrideOrError(resp, err)
 }
 
 func (client *Client) UpdateLayeredSettingRecord(ctx context.Context, config *LayeredSettingRecordInput) (*LayeredSettingRecord, error) {
 	resp, err := updateLayeredSettingRecord(ctx, client.Gql, *config)
-	return configOverrideOrError0(resp, err)
+	return configOverrideOrError(resp, err)
 }
 
 func (client *Client) GetLayeredSettingRecord(ctx context.Context, id string) (*LayeredSettingRecord, error) {
@@ -43,6 +31,6 @@ func (client *Client) GetLayeredSettingRecord(ctx context.Context, id string) (*
 
 func (client *Client) DeleteLayeredSettingRecord(ctx context.Context, id string) error {
 	resp, err := deleteLayeredSettingRecord(ctx, client.Gql, id)
-	rs := resp.GetDeleteLayeredSettingRecords()
+	rs := resp.GetDeleteLayeredSettingRecord()
 	return resultStatusError(&rs, err)
 }

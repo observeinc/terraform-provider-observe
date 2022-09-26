@@ -6052,12 +6052,12 @@ func (v *createFolderResponse) GetFolder() Folder { return v.Folder }
 
 // createLayeredSettingRecordResponse is returned by createLayeredSettingRecord on success.
 type createLayeredSettingRecordResponse struct {
-	LayeredSettingRecords []LayeredSettingRecord `json:"layeredSettingRecords"`
+	LayeredSettingRecord LayeredSettingRecord `json:"layeredSettingRecord"`
 }
 
-// GetLayeredSettingRecords returns createLayeredSettingRecordResponse.LayeredSettingRecords, and is useful for accessing the field via an interface.
-func (v *createLayeredSettingRecordResponse) GetLayeredSettingRecords() []LayeredSettingRecord {
-	return v.LayeredSettingRecords
+// GetLayeredSettingRecord returns createLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
+func (v *createLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
+	return v.LayeredSettingRecord
 }
 
 // createMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
@@ -6228,24 +6228,24 @@ type deleteFolderResponse struct {
 // GetResultStatus returns deleteFolderResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteFolderResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
-// deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult includes the requested fields of the GraphQL type DeletedLayeredSettingRecordsResult.
-type deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult struct {
+// deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult includes the requested fields of the GraphQL type DeletedLayeredSettingRecordsResult.
+type deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
 }
 
-// GetResultStatus returns deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult.ResultStatus, and is useful for accessing the field via an interface.
-func (v *deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult) GetResultStatus() ResultStatus {
+// GetResultStatus returns deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult) GetResultStatus() ResultStatus {
 	return v.ResultStatus
 }
 
 // deleteLayeredSettingRecordResponse is returned by deleteLayeredSettingRecord on success.
 type deleteLayeredSettingRecordResponse struct {
-	DeleteLayeredSettingRecords deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult `json:"deleteLayeredSettingRecords"`
+	DeleteLayeredSettingRecord deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult `json:"deleteLayeredSettingRecord"`
 }
 
-// GetDeleteLayeredSettingRecords returns deleteLayeredSettingRecordResponse.DeleteLayeredSettingRecords, and is useful for accessing the field via an interface.
-func (v *deleteLayeredSettingRecordResponse) GetDeleteLayeredSettingRecords() deleteLayeredSettingRecordDeleteLayeredSettingRecordsDeletedLayeredSettingRecordsResult {
-	return v.DeleteLayeredSettingRecords
+// GetDeleteLayeredSettingRecord returns deleteLayeredSettingRecordResponse.DeleteLayeredSettingRecord, and is useful for accessing the field via an interface.
+func (v *deleteLayeredSettingRecordResponse) GetDeleteLayeredSettingRecord() deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult {
+	return v.DeleteLayeredSettingRecord
 }
 
 // deleteMonitorResponse is returned by deleteMonitor on success.
@@ -6903,12 +6903,12 @@ func (v *updateFolderResponse) GetFolder() Folder { return v.Folder }
 
 // updateLayeredSettingRecordResponse is returned by updateLayeredSettingRecord on success.
 type updateLayeredSettingRecordResponse struct {
-	LayeredSettingRecords []LayeredSettingRecord `json:"layeredSettingRecords"`
+	LayeredSettingRecord LayeredSettingRecord `json:"layeredSettingRecord"`
 }
 
-// GetLayeredSettingRecords returns updateLayeredSettingRecordResponse.LayeredSettingRecords, and is useful for accessing the field via an interface.
-func (v *updateLayeredSettingRecordResponse) GetLayeredSettingRecords() []LayeredSettingRecord {
-	return v.LayeredSettingRecords
+// GetLayeredSettingRecord returns updateLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
+func (v *updateLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
+	return v.LayeredSettingRecord
 }
 
 // updateMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
@@ -7631,7 +7631,7 @@ func createLayeredSettingRecord(
 		OpName: "createLayeredSettingRecord",
 		Query: `
 mutation createLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
-	layeredSettingRecords: createLayeredSettingRecords(settingRecords: [$settingRecord]) {
+	layeredSettingRecord: createLayeredSettingRecord(settingRecord: $settingRecord) {
 		... LayeredSettingRecord
 	}
 }
@@ -8538,7 +8538,7 @@ func deleteLayeredSettingRecord(
 		OpName: "deleteLayeredSettingRecord",
 		Query: `
 mutation deleteLayeredSettingRecord ($id: ObjectId!) {
-	deleteLayeredSettingRecords(ids: [$id]) {
+	deleteLayeredSettingRecord(id: $id) {
 		resultStatus: result {
 			... ResultStatus
 		}
@@ -11380,7 +11380,7 @@ func updateLayeredSettingRecord(
 		OpName: "updateLayeredSettingRecord",
 		Query: `
 mutation updateLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
-	layeredSettingRecords: updateLayeredSettingRecords(settingRecords: [$settingRecord]) {
+	layeredSettingRecord: updateLayeredSettingRecord(settingRecord: $settingRecord) {
 		... LayeredSettingRecord
 	}
 }

@@ -139,10 +139,10 @@ enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
 }
 
 extend type Mutation {
-    createLayeredSettingRecords(settingRecords:[LayeredSettingRecordInput!]!): [LayeredSettingRecord!]!
-    updateLayeredSettingRecords(settingRecords:[LayeredSettingRecordInput!]!): [LayeredSettingRecord!]!
+    createLayeredSettingRecord(settingRecord:LayeredSettingRecordInput!): LayeredSettingRecord!
+    updateLayeredSettingRecord(settingRecord:LayeredSettingRecordInput!): LayeredSettingRecord!
     clearLayeredSettingRecords(settingRecords:LayeredSettingRecordsQueryInput!): DeletedLayeredSettingRecordsResult!
-    deleteLayeredSettingRecords(ids:[ObjectId!]!): DeletedLayeredSettingRecordsResult!
+    deleteLayeredSettingRecord(id:ObjectId!): DeletedLayeredSettingRecordsResult!
 }
 
 input LayeredSettingRecordInput @goModel(model: "observe/lsetting.LayeredSettingRecordInput") {
