@@ -1,10 +1,10 @@
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
+    datasets {
+      id
+      label
+    }
 }
 
 mutation createWorkspace($config: WorkspaceInput!) {

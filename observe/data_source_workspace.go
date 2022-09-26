@@ -36,10 +36,6 @@ func dataSourceWorkspace() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("common", "schema", "oid"),
 			},
-			"datasets": {
-				Type:     schema.TypeMap,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -76,14 +72,6 @@ func dataSourceWorkspaceRead(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	if err := data.Set("oid", workspace.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	datasets := make(map[string]string)
-	for _, ds := range workspace.Datasets {
-		datasets[ds.Label] = ds.Id
-	}
-	if err := data.Set("datasets", datasets); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
