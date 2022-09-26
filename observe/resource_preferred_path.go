@@ -22,18 +22,18 @@ func resourcePreferredPath() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"folder": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ExactlyOneOf:     []string{"folder", "workspace"},
-				ValidateDiagFunc: validateOID(oid.TypeFolder, oid.TypeWorkspace),
-				DiffSuppressFunc: diffSuppressWhenWorkspace,
-			},
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+			},
+			"folder": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ExactlyOneOf:     []string{"folder", "workspace"},
+				ValidateDiagFunc: validateOID(oid.TypeFolder),
 			},
 			"name": {
 				Type:     schema.TypeString,
