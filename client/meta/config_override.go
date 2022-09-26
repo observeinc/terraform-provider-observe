@@ -3,46 +3,46 @@ package meta
 import "context"
 
 type configOverrideResponse0 interface {
-	GetLayeredSettings() []LayeredSetting
+	GetLayeredSettingRecords() []LayeredSettingRecord
 }
 
 type configOverrideResponse interface {
-	GetLayeredSetting() LayeredSetting
+	GetLayeredSettingRecord() LayeredSettingRecord
 }
 
-func configOverrideOrError0(c configOverrideResponse0, err error) (*LayeredSetting, error) {
+func configOverrideOrError0(c configOverrideResponse0, err error) (*LayeredSettingRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := c.GetLayeredSettings()
+	result := c.GetLayeredSettingRecords()
 	return &result[0], nil
 }
 
-func configOverrideOrError(c configOverrideResponse, err error) (*LayeredSetting, error) {
+func configOverrideOrError(c configOverrideResponse, err error) (*LayeredSettingRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := c.GetLayeredSetting()
+	result := c.GetLayeredSettingRecord()
 	return &result, nil
 }
 
-func (client *Client) CreateLayeredSetting(ctx context.Context, config *LayeredSettingInput) (*LayeredSetting, error) {
-	resp, err := createLayeredSetting(ctx, client.Gql, *config)
+func (client *Client) CreateLayeredSettingRecord(ctx context.Context, config *LayeredSettingRecordInput) (*LayeredSettingRecord, error) {
+	resp, err := createLayeredSettingRecord(ctx, client.Gql, *config)
 	return configOverrideOrError0(resp, err)
 }
 
-func (client *Client) UpdateLayeredSetting(ctx context.Context, config *LayeredSettingInput) (*LayeredSetting, error) {
-	resp, err := updateLayeredSetting(ctx, client.Gql, *config)
+func (client *Client) UpdateLayeredSettingRecord(ctx context.Context, config *LayeredSettingRecordInput) (*LayeredSettingRecord, error) {
+	resp, err := updateLayeredSettingRecord(ctx, client.Gql, *config)
 	return configOverrideOrError0(resp, err)
 }
 
-func (client *Client) GetLayeredSetting(ctx context.Context, id string) (*LayeredSetting, error) {
-	resp, err := getLayeredSetting(ctx, client.Gql, id)
+func (client *Client) GetLayeredSettingRecord(ctx context.Context, id string) (*LayeredSettingRecord, error) {
+	resp, err := getLayeredSettingRecord(ctx, client.Gql, id)
 	return configOverrideOrError(resp, err)
 }
 
-func (client *Client) DeleteLayeredSetting(ctx context.Context, id string) error {
-	resp, err := deleteLayeredSetting(ctx, client.Gql, id)
-	rs := resp.GetDeleteLayeredSettings()
+func (client *Client) DeleteLayeredSettingRecord(ctx context.Context, id string) error {
+	resp, err := deleteLayeredSettingRecord(ctx, client.Gql, id)
+	rs := resp.GetDeleteLayeredSettingRecords()
 	return resultStatusError(&rs, err)
 }

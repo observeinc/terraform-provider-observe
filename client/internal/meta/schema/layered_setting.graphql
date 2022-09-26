@@ -1,21 +1,26 @@
 extend type Query {
     # return the setting settingurations that are in effect for the particular search
-    searchLayeredSettings(query: LayeredSettingsQueryInput): SearchLayeredSettingsResult!
+    searchLayeredSettingRecords(query: LayeredSettingRecordsQueryInput): SearchLayeredSettingRecordsResult!
     # return name and documentation of all possible settings
     possibleLayeredSettings: LayeredSettingDocs!
     # read some particular override record
-    layeredSetting(id: ObjectId!): LayeredSetting!
+    layeredSettingRecord(id: ObjectId!): LayeredSettingRecord!
     # given a setting and a scope of some sort, figure out what the actual value is
-    layeredSettingValue(name:String!, target: LayeredSettingTargetInput): TargetedLayeredSettingValue!
+    layeredSettingValue(name:String!, target: LayeredSettingRecordTargetInput): TargetedLayeredSettingValue!
 }
 
 """
 A Layered Setting is like a feature flag that can be controlled by customers.
-It allows control on a per-"scope" basis, where "scope" could be entire customer,
+It allows control on a per-scope basis, where scope could be entire customer,
 workspace, folder, app, dataset, monitor, or similar, with a broad-to-detailed
 inheritance hierarchy.
+
+A Layered Setting Record is a record setting the value of a Layered Setting at
+a particular scope.  When the value of a Layered Setting is read from a
+particular scope, we merge the Layered Setting Records at each scope that
+contains the requested scope to determine the return value.
 """
-type LayeredSetting implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/lsetting.LayeredSetting") {
+type LayeredSettingRecord implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/lsetting.LayeredSettingRecord") {
     settingAndTargetScope: SettingAndTargetScope!
     value: PrimitiveValue!
 
@@ -23,7 +28,7 @@ type LayeredSetting implements WorkspaceObject & AuditedObject & FolderObject @g
     id: ObjectId!
     """ This is the name of the settings record, not the name of the setting! """
     name: String!
-    # description of this record, not the setting itself
+    """ This is the description of the settings record, not the description of the setting! """
     description: String
     iconUrl: String
     workspaceId: ObjectId!
@@ -45,15 +50,15 @@ type LayeredSetting implements WorkspaceObject & AuditedObject & FolderObject @g
 
 type SettingAndTargetScope @goModel(model: "observe/lsetting.SettingAndTargetScope") {
     setting: String!
-    target: LayeredSettingTarget!
+    target: LayeredSettingRecordTarget!
 }
 
 """
-When settinguring a particular target, a single object ID should be non-null
-in the LayeredSettingTarget. If you want to affect "everything in this folder,
-and also this particular dataset," then create two LayeredSettings.
+When configuring a particular target, a single object ID should be non-null
+in the LayeredSettingRecordTarget. If you want to affect "everything in this folder,
+and also this particular dataset," then create two LayeredSettingRecords.
 """
-type LayeredSettingTarget @goModel(model: "observe/lsetting.LayeredSettingTarget") {
+type LayeredSettingRecordTarget @goModel(model: "observe/lsetting.LayeredSettingRecordTarget") {
     customerId: CustomerId
     workspaceId: ObjectId
     folderId: ObjectId
@@ -79,7 +84,7 @@ type LayeredSettingDescription @goModel(model: "observe/lsetting.LayeredSettingD
 
 type TargetedLayeredSettingValue @goModel(model: "observe/lsetting.TargetedLayeredSettingValue") {
     description: LayeredSettingDescription!
-    settings: [LayeredSetting!]!
+    settingRecords: [LayeredSettingRecord!]!
     value: PrimitiveValue!
 }
 
@@ -87,13 +92,13 @@ type LayeredSettingDocs @goModel(model: "observe/lsetting.LayeredSettingDocs") {
     descriptions: [LayeredSettingDescription!]!
 }
 
-type SearchLayeredSettingsResult @goModel(model: "observe/lsetting.SearchLayeredSettingsResult") {
-    settings: [LayeredSetting!]!
+type SearchLayeredSettingRecordsResult @goModel(model: "observe/lsetting.SearchLayeredSettingRecordsResult") {
+    settingRecords: [LayeredSettingRecord!]!
 }
 
-input LayeredSettingsQueryInput @goModel(model: "observe/lsetting.LayeredSettingsQueryInput") {
+input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredSettingRecordsQueryInput") {
     setting: String
-    target: LayeredSettingTargetInput
+    target: LayeredSettingRecordTargetInput
     """
     This is for "the record lives in this workspace," NOT for "the record affects this workspace."
     """
@@ -109,7 +114,7 @@ input LayeredSettingsQueryInput @goModel(model: "observe/lsetting.LayeredSetting
 }
 
 # The scope is determined by which one field is defined and non-null
-input LayeredSettingTargetInput @goModel(model: "observe/lsetting.LayeredSettingTargetInput") {
+input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.LayeredSettingRecordTargetInput") {
     customerId: CustomerId
     workspaceId: ObjectId
     folderId: ObjectId
@@ -134,25 +139,28 @@ enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
 }
 
 extend type Mutation {
-    """
-    If you give the layered setting record the empty name, it will get an auto-generated
-    name based on the setting and target. This is mainly convenient when creating these
-    within code itself, but can also be used by API users who don't want to manage a
-    separate name.
-    """
-    createLayeredSettings(settings:[LayeredSettingInput!]!): [LayeredSetting!]!
-    updateLayeredSettings(settings:[LayeredSettingInput!]!): [LayeredSetting!]!
-    clearLayeredSettings(settings:LayeredSettingsQueryInput!): DeletedLayeredSettingsResult!
-    deleteLayeredSettings(ids:[ObjectId!]!): DeletedLayeredSettingsResult!
+    createLayeredSettingRecords(settingRecords:[LayeredSettingRecordInput!]!): [LayeredSettingRecord!]!
+    updateLayeredSettingRecords(settingRecords:[LayeredSettingRecordInput!]!): [LayeredSettingRecord!]!
+    clearLayeredSettingRecords(settingRecords:LayeredSettingRecordsQueryInput!): DeletedLayeredSettingRecordsResult!
+    deleteLayeredSettingRecords(ids:[ObjectId!]!): DeletedLayeredSettingRecordsResult!
 }
 
-input LayeredSettingInput @goModel(model: "observe/lsetting.LayeredSettingInput") {
+input LayeredSettingRecordInput @goModel(model: "observe/lsetting.LayeredSettingRecordInput") {
     settingAndTargetScope: SettingAndTargetScopeInput!
     value: PrimitiveValueInput!
 
     # WorkspaceObject
     id: ObjectId
+    """
+    This is the name of the settings record, not the name of the setting!
+
+    If you give the layered setting record the empty name, it will get an auto-generated
+    name based on the setting and target. This is mainly convenient when creating these
+    within code itself, but can also be used by API users who don't want to manage a
+    separate name.
+    """
     name: String!
+    """ This is the description of the settings record, not the description of the setting! """
     description: String
     iconUrl: String
     workspaceId: ObjectId!
@@ -164,15 +172,15 @@ input LayeredSettingInput @goModel(model: "observe/lsetting.LayeredSettingInput"
 
 input SettingAndTargetScopeInput @goModel(model: "observe/lsetting.SettingAndTargetScopeInput") {
     setting: String!
-    target: LayeredSettingTargetInput!
+    target: LayeredSettingRecordTargetInput!
 }
 
-type DeletedLayeredSettingsResult @goModel(model: "observe/lsetting.DeletedLayeredSettingsResult") {
-    settings: [DeletedLayeredSetting!]
+type DeletedLayeredSettingRecordsResult @goModel(model: "observe/lsetting.DeletedLayeredSettingRecordsResult") {
+    settingRecords: [DeletedLayeredSettingRecord!]
     result: ResultStatus!
 }
 
-type DeletedLayeredSetting @goModel(model: "observe/lsetting.DeletedLayeredSetting") {
+type DeletedLayeredSettingRecord @goModel(model: "observe/lsetting.DeletedLayeredSettingRecord") {
     settingAndTargetScope: SettingAndTargetScope!
     id: ObjectId!
 }

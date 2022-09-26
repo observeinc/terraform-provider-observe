@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceLayeredSetting() *schema.Resource {
+func resourceLayeredSettingRecord() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceLayeredSettingCreate,
-		ReadContext:   resourceLayeredSettingRead,
-		UpdateContext: resourceLayeredSettingUpdate,
-		DeleteContext: resourceLayeredSettingDelete,
+		CreateContext: resourceLayeredSettingRecordCreate,
+		ReadContext:   resourceLayeredSettingRecordRead,
+		UpdateContext: resourceLayeredSettingRecordUpdate,
+		DeleteContext: resourceLayeredSettingRecordDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -77,12 +77,12 @@ func resourceLayeredSetting() *schema.Resource {
 	}
 }
 
-func newLayeredSettingConfig(data *schema.ResourceData) (input *gql.LayeredSettingInput, diags diag.Diagnostics) {
+func newLayeredSettingRecordConfig(data *schema.ResourceData) (input *gql.LayeredSettingRecordInput, diags diag.Diagnostics) {
 	workspaceOid, _ := oid.NewOID(data.Get("workspace").(string))
 	name := data.Get("name").(string)
 	setting := data.Get("setting").(string)
 
-	ret := gql.LayeredSettingInput{
+	ret := gql.LayeredSettingRecordInput{
 		Name:        name,
 		WorkspaceId: workspaceOid.Id,
 	}
@@ -97,7 +97,7 @@ func newLayeredSettingConfig(data *schema.ResourceData) (input *gql.LayeredSetti
 	return &ret, nil
 }
 
-func layeredSettingToResourceData(c *gql.LayeredSetting, data *schema.ResourceData) (diags diag.Diagnostics) {
+func layeredSettingRecordToResourceData(c *gql.LayeredSettingRecord, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(c.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -118,14 +118,14 @@ func layeredSettingToResourceData(c *gql.LayeredSetting, data *schema.ResourceDa
 	return diags
 }
 
-func resourceLayeredSettingCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLayeredSettingRecordCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	setting, diags := newLayeredSettingConfig(data)
+	setting, diags := newLayeredSettingRecordConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	result, err := client.CreateLayeredSetting(ctx, setting)
+	result, err := client.CreateLayeredSettingRecord(ctx, setting)
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -135,12 +135,12 @@ func resourceLayeredSettingCreate(ctx context.Context, data *schema.ResourceData
 	}
 
 	data.SetId(result.Id)
-	return append(diags, resourceLayeredSettingRead(ctx, data, meta)...)
+	return append(diags, resourceLayeredSettingRecordRead(ctx, data, meta)...)
 }
 
-func resourceLayeredSettingRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLayeredSettingRecordRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	result, err := client.GetLayeredSetting(ctx, data.Id())
+	result, err := client.GetLayeredSettingRecord(ctx, data.Id())
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -148,19 +148,19 @@ func resourceLayeredSettingRead(ctx context.Context, data *schema.ResourceData, 
 			Detail:   err.Error(),
 		})
 	}
-	return layeredSettingToResourceData(result, data)
+	return layeredSettingRecordToResourceData(result, data)
 }
 
-func resourceLayeredSettingUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLayeredSettingRecordUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	setting, diags := newLayeredSettingConfig(data)
+	setting, diags := newLayeredSettingRecordConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 	dataid := data.Id()
 	setting.Id = &dataid
 
-	result, err := client.UpdateLayeredSetting(ctx, setting)
+	result, err := client.UpdateLayeredSettingRecord(ctx, setting)
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -169,12 +169,12 @@ func resourceLayeredSettingUpdate(ctx context.Context, data *schema.ResourceData
 		})
 	}
 
-	return layeredSettingToResourceData(result, data)
+	return layeredSettingRecordToResourceData(result, data)
 }
 
-func resourceLayeredSettingDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceLayeredSettingRecordDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	if err := client.DeleteLayeredSetting(ctx, data.Id()); err != nil {
+	if err := client.DeleteLayeredSettingRecord(ctx, data.Id()); err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to delete layeredsetting [id=%s]", data.Id()),

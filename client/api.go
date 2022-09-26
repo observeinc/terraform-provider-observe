@@ -330,7 +330,7 @@ func (c *Client) GetChannel(ctx context.Context, id string) (*meta.Channel, erro
 	return c.Meta.GetChannel(ctx, id)
 }
 
-func (c *Client) CreateLayeredSetting(ctx context.Context, input *meta.LayeredSettingInput) (*meta.LayeredSetting, error) {
+func (c *Client) CreateLayeredSettingRecord(ctx context.Context, input *meta.LayeredSettingRecordInput) (*meta.LayeredSettingRecord, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
@@ -339,27 +339,27 @@ func (c *Client) CreateLayeredSetting(ctx context.Context, input *meta.LayeredSe
 		input.ManagedById = c.Config.ManagingObjectID
 	}
 
-	return c.Meta.CreateLayeredSetting(ctx, input)
+	return c.Meta.CreateLayeredSettingRecord(ctx, input)
 }
 
-func (c *Client) UpdateLayeredSetting(ctx context.Context, input *meta.LayeredSettingInput) (*meta.LayeredSetting, error) {
+func (c *Client) UpdateLayeredSettingRecord(ctx context.Context, input *meta.LayeredSettingRecordInput) (*meta.LayeredSettingRecord, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.UpdateLayeredSetting(ctx, input)
+	return c.Meta.UpdateLayeredSettingRecord(ctx, input)
 }
 
-func (c *Client) DeleteLayeredSetting(ctx context.Context, id string) error {
+func (c *Client) DeleteLayeredSettingRecord(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.DeleteLayeredSetting(ctx, id)
+	return c.Meta.DeleteLayeredSettingRecord(ctx, id)
 }
 
-func (c *Client) GetLayeredSetting(ctx context.Context, id string) (*meta.LayeredSetting, error) {
-	return c.Meta.GetLayeredSetting(ctx, id)
+func (c *Client) GetLayeredSettingRecord(ctx context.Context, id string) (*meta.LayeredSettingRecord, error) {
+	return c.Meta.GetLayeredSettingRecord(ctx, id)
 }
 
 // Query for result

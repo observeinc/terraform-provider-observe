@@ -17,26 +17,26 @@ var (
 type Type string
 
 const (
-	TypeApp             Type = "app"
-	TypeBoard           Type = "board"
-	TypeBookmark        Type = "bookmark"
-	TypeBookmarkGroup   Type = "bookmarkgroup"
-	TypeChannel         Type = "channel"
-	TypeChannelAction   Type = "channelaction"
-	TypeCustomer        Type = "customer"
-	TypeDashboard       Type = "dashboard"
-	TypeDataset         Type = "dataset"
-	TypeDatastream      Type = "datastream"
-	TypeDatastreamToken Type = "datastreamtoken"
-	TypeFolder          Type = "folder"
-	TypeLayeredSetting  Type = "layeredsetting"
-	TypeLink            Type = "link"
-	TypeMonitor         Type = "monitor"
-	TypePoller          Type = "poller"
-	TypePreferredPath   Type = "preferredpath"
-	TypeUser            Type = "user"
-	TypeWorksheet       Type = "worksheet"
-	TypeWorkspace       Type = "workspace"
+	TypeApp                  Type = "app"
+	TypeBoard                Type = "board"
+	TypeBookmark             Type = "bookmark"
+	TypeBookmarkGroup        Type = "bookmarkgroup"
+	TypeChannel              Type = "channel"
+	TypeChannelAction        Type = "channelaction"
+	TypeCustomer             Type = "customer"
+	TypeDashboard            Type = "dashboard"
+	TypeDataset              Type = "dataset"
+	TypeDatastream           Type = "datastream"
+	TypeDatastreamToken      Type = "datastreamtoken"
+	TypeFolder               Type = "folder"
+	TypeLayeredSettingRecord Type = "layeredsettingrecord"
+	TypeLink                 Type = "link"
+	TypeMonitor              Type = "monitor"
+	TypePoller               Type = "poller"
+	TypePreferredPath        Type = "preferredpath"
+	TypeUser                 Type = "user"
+	TypeWorksheet            Type = "worksheet"
+	TypeWorkspace            Type = "workspace"
 )
 
 func (t Type) IsValid() bool {
@@ -53,7 +53,7 @@ func (t Type) IsValid() bool {
 	case TypeDatastream:
 	case TypeDatastreamToken:
 	case TypeFolder:
-	case TypeLayeredSetting:
+	case TypeLayeredSettingRecord:
 	case TypeLink:
 	case TypeMonitor:
 	case TypePoller:
@@ -159,8 +159,8 @@ func FolderOid(id string, wsid string) OID {
 	return OID{Id: wsid, Type: TypeFolder, Version: &id}
 }
 
-func LayeredSettingOid(id string) OID {
-	return OID{Id: id, Type: TypeLayeredSetting}
+func LayeredSettingRecordOid(id string) OID {
+	return OID{Id: id, Type: TypeLayeredSettingRecord}
 }
 
 func LinkOid(id string) OID {

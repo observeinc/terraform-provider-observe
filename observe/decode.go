@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func targetDecode(data *schema.ResourceData, target *gql.LayeredSettingTargetInput) diag.Diagnostics {
+func targetDecode(data *schema.ResourceData, target *gql.LayeredSettingRecordTargetInput) diag.Diagnostics {
 	targetOidStr, hasOid := data.GetOk("target")
 	var targetOid *oid.OID
 	if hasOid {
@@ -45,7 +45,7 @@ func targetDecode(data *schema.ResourceData, target *gql.LayeredSettingTargetInp
 	return nil
 }
 
-func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingTarget) (diags diag.Diagnostics) {
+func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingRecordTarget) (diags diag.Diagnostics) {
 	var value string
 	switch {
 	case target.CustomerId != nil:
@@ -67,7 +67,7 @@ func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingTarget) (
 	case target.UserId != nil:
 		value = oid.UserOid(*target.UserId).String()
 	default:
-		diags = append(diags, diag.Errorf("Unknown target for observe_layered_setting: %#v", *target)...)
+		diags = append(diags, diag.Errorf("Unknown target for observe_layered_setting_record: %#v", *target)...)
 	}
 	if value != "" {
 		if err := data.Set("target", value); err != nil {

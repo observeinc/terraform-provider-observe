@@ -1,4 +1,4 @@
-fragment LayeredSetting on LayeredSetting {
+fragment LayeredSettingRecord on LayeredSettingRecord {
     # @genqlient(flatten: true)
     settingAndTargetScope {
         ...SettingAndTargetScope
@@ -23,11 +23,11 @@ fragment SettingAndTargetScope on SettingAndTargetScope {
     setting
     # @genqlient(flatten: true)
     target {
-        ...LayeredSettingTarget
+        ...LayeredSettingRecordTarget
     }
 }
 
-fragment LayeredSettingTarget on LayeredSettingTarget {
+fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
     customerId
     workspaceId
     folderId
@@ -48,68 +48,68 @@ fragment PrimitiveValue on PrimitiveValue {
     duration
 }
 
-# @genqlient(for: "LayeredSettingInput.managedById", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.customerId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.workspaceId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.folderId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.appId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.monitorId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.worksheetId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.dashboardId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.datasetId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.userId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordInput.managedById", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.customerId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.workspaceId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.folderId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.appId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.monitorId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
-mutation createLayeredSetting(
-    $setting: LayeredSettingInput!
+mutation createLayeredSettingRecord(
+    $settingRecord: LayeredSettingRecordInput!
 ) {
     # this will return a slice
     # @genqlient(flatten: true)
-    layeredSettings: createLayeredSettings(settings: [$setting]) {
-    	...LayeredSetting
+    layeredSettingRecords: createLayeredSettingRecords(settingRecords: [$settingRecord]) {
+    	...LayeredSettingRecord
     }
 }
 
-query getLayeredSetting($id: ObjectId!) {
+query getLayeredSettingRecord($id: ObjectId!) {
     # @genqlient(flatten: true)
-    layeredSetting: layeredSetting(id: $id) {
-    	...LayeredSetting
+    layeredSettingRecord: layeredSettingRecord(id: $id) {
+    	...LayeredSettingRecord
     }
 }
 
-# @genqlient(for: "LayeredSettingInput.managedById", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.customerId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.workspaceId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.folderId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.appId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.monitorId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.worksheetId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.dashboardId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.datasetId", omitempty: true)
-# @genqlient(for: "LayeredSettingTargetInput.userId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordInput.managedById", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.customerId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.workspaceId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.folderId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.appId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.monitorId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
-mutation updateLayeredSetting(
-    $setting: LayeredSettingInput!
+mutation updateLayeredSettingRecord(
+    $settingRecord: LayeredSettingRecordInput!
 ) {
     # this returns a slice
     # @genqlient(flatten: true)
-    layeredSettings: updateLayeredSettings(settings: [$setting]) {
-        ...LayeredSetting
+    layeredSettingRecords: updateLayeredSettingRecords(settingRecords: [$settingRecord]) {
+        ...LayeredSettingRecord
     }
 }
 
-mutation deleteLayeredSetting($id: ObjectId!) {
+mutation deleteLayeredSettingRecord($id: ObjectId!) {
     # flatten doesn't work here, because it only works on spreads
-    deleteLayeredSettings: deleteLayeredSettings(ids: [$id]) {
+    deleteLayeredSettingRecords: deleteLayeredSettingRecords(ids: [$id]) {
         # TODO: if graphql ever gets "flat chain syntax," hoist this to the top level
         # @genqlient(flatten: true)
         resultStatus: result {
