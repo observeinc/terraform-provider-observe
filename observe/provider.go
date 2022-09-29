@@ -146,6 +146,7 @@ func Provider() *schema.Provider {
 			"observe_dashboard":              resourceDashboard(),
 			"observe_folder":                 resourceFolder(),
 			"observe_app":                    resourceApp(),
+			"observe_app_datasource":         resourceAppDataSource(),
 			"observe_preferred_path":         resourcePreferredPath(),
 			"observe_default_dashboard":      resourceDefaultDashboard(),
 			"observe_layered_setting_record": resourceLayeredSettingRecord(),

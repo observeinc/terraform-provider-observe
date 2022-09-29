@@ -1,0 +1,39 @@
+fragment AppDataSource on AppDataSource {
+    id
+    name
+    iconUrl
+    description
+    workspaceId
+    managedById
+    sourceUrl
+    instructions
+    # TODO: variables
+}
+
+mutation createAppDataSource($config: AppDataSourceInput!) {
+    # @genqlient(flatten: true)
+    appdatasource: createAppDataSource(source: $config) {
+        ...AppDataSource
+    }
+}
+
+query getAppDataSource($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    appdatasource: appDataSource(id: $id) {
+        ...AppDataSource
+    }
+}
+
+mutation updateAppDataSource($id: ObjectId!, $config: AppDataSourceInput!) {
+    # @genqlient(flatten: true)
+    appdatasource: updateAppDataSource(id:$id, source: $config) {
+        ...AppDataSource
+    }
+}
+
+mutation deleteAppDataSource($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteAppDataSource(id: $id) {
+        ...ResultStatus
+    }
+}

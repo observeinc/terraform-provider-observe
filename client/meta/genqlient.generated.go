@@ -114,6 +114,69 @@ func (v *AppConfig) GetModuleId() string { return v.ModuleId }
 // GetVersion returns AppConfig.Version, and is useful for accessing the field via an interface.
 func (v *AppConfig) GetVersion() string { return v.Version }
 
+// AppDataSource includes the GraphQL fields of AppDataSource requested by the fragment AppDataSource.
+type AppDataSource struct {
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	IconUrl      *string `json:"iconUrl"`
+	Description  *string `json:"description"`
+	WorkspaceId  string  `json:"workspaceId"`
+	ManagedById  *string `json:"managedById"`
+	SourceUrl    string  `json:"sourceUrl"`
+	Instructions string  `json:"instructions"`
+}
+
+// GetId returns AppDataSource.Id, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetId() string { return v.Id }
+
+// GetName returns AppDataSource.Name, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetName() string { return v.Name }
+
+// GetIconUrl returns AppDataSource.IconUrl, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns AppDataSource.Description, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetDescription() *string { return v.Description }
+
+// GetWorkspaceId returns AppDataSource.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetManagedById returns AppDataSource.ManagedById, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetManagedById() *string { return v.ManagedById }
+
+// GetSourceUrl returns AppDataSource.SourceUrl, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetSourceUrl() string { return v.SourceUrl }
+
+// GetInstructions returns AppDataSource.Instructions, and is useful for accessing the field via an interface.
+func (v *AppDataSource) GetInstructions() string { return v.Instructions }
+
+type AppDataSourceInput struct {
+	Name         string             `json:"name"`
+	Description  *string            `json:"description"`
+	SourceUrl    string             `json:"sourceUrl"`
+	Variables    []AppVariableInput `json:"variables"`
+	Instructions string             `json:"instructions"`
+	AppId        string             `json:"appId"`
+}
+
+// GetName returns AppDataSourceInput.Name, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetName() string { return v.Name }
+
+// GetDescription returns AppDataSourceInput.Description, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetDescription() *string { return v.Description }
+
+// GetSourceUrl returns AppDataSourceInput.SourceUrl, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetSourceUrl() string { return v.SourceUrl }
+
+// GetVariables returns AppDataSourceInput.Variables, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetVariables() []AppVariableInput { return v.Variables }
+
+// GetInstructions returns AppDataSourceInput.Instructions, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetInstructions() string { return v.Instructions }
+
+// GetAppId returns AppDataSourceInput.AppId, and is useful for accessing the field via an interface.
+func (v *AppDataSourceInput) GetAppId() string { return v.AppId }
+
 type AppInput struct {
 	ModuleId  string             `json:"moduleId"`
 	Version   string             `json:"version"`
@@ -5090,6 +5153,14 @@ type __clearDefaultDashboardInput struct {
 // GetDsid returns __clearDefaultDashboardInput.Dsid, and is useful for accessing the field via an interface.
 func (v *__clearDefaultDashboardInput) GetDsid() string { return v.Dsid }
 
+// __createAppDataSourceInput is used internally by genqlient
+type __createAppDataSourceInput struct {
+	Config AppDataSourceInput `json:"config"`
+}
+
+// GetConfig returns __createAppDataSourceInput.Config, and is useful for accessing the field via an interface.
+func (v *__createAppDataSourceInput) GetConfig() AppDataSourceInput { return v.Config }
+
 // __createAppInput is used internally by genqlient
 type __createAppInput struct {
 	WorkspaceId string   `json:"workspaceId"`
@@ -5268,6 +5339,14 @@ type __createWorkspaceInput struct {
 // GetConfig returns __createWorkspaceInput.Config, and is useful for accessing the field via an interface.
 func (v *__createWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
 
+// __deleteAppDataSourceInput is used internally by genqlient
+type __deleteAppDataSourceInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteAppDataSourceInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteAppDataSourceInput) GetId() string { return v.Id }
+
 // __deleteAppInput is used internally by genqlient
 type __deleteAppInput struct {
 	Id string `json:"id"`
@@ -5415,6 +5494,14 @@ type __deleteWorkspaceInput struct {
 
 // GetId returns __deleteWorkspaceInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteWorkspaceInput) GetId() string { return v.Id }
+
+// __getAppDataSourceInput is used internally by genqlient
+type __getAppDataSourceInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getAppDataSourceInput.Id, and is useful for accessing the field via an interface.
+func (v *__getAppDataSourceInput) GetId() string { return v.Id }
 
 // __getAppInput is used internally by genqlient
 type __getAppInput struct {
@@ -5754,6 +5841,18 @@ func (v *__setMonitorsForChannelInput) GetChannelId() string { return v.ChannelI
 // GetMonitorIds returns __setMonitorsForChannelInput.MonitorIds, and is useful for accessing the field via an interface.
 func (v *__setMonitorsForChannelInput) GetMonitorIds() []string { return v.MonitorIds }
 
+// __updateAppDataSourceInput is used internally by genqlient
+type __updateAppDataSourceInput struct {
+	Id     string             `json:"id"`
+	Config AppDataSourceInput `json:"config"`
+}
+
+// GetId returns __updateAppDataSourceInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateAppDataSourceInput) GetId() string { return v.Id }
+
+// GetConfig returns __updateAppDataSourceInput.Config, and is useful for accessing the field via an interface.
+func (v *__updateAppDataSourceInput) GetConfig() AppDataSourceInput { return v.Config }
+
 // __updateAppInput is used internally by genqlient
 type __updateAppInput struct {
 	Id     string   `json:"id"`
@@ -5915,6 +6014,14 @@ type clearDefaultDashboardResponse struct {
 
 // GetResultStatus returns clearDefaultDashboardResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *clearDefaultDashboardResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// createAppDataSourceResponse is returned by createAppDataSource on success.
+type createAppDataSourceResponse struct {
+	Appdatasource AppDataSource `json:"appdatasource"`
+}
+
+// GetAppdatasource returns createAppDataSourceResponse.Appdatasource, and is useful for accessing the field via an interface.
+func (v *createAppDataSourceResponse) GetAppdatasource() AppDataSource { return v.Appdatasource }
 
 // createAppResponse is returned by createApp on success.
 type createAppResponse struct {
@@ -6129,6 +6236,14 @@ type createWorkspaceResponse struct {
 // GetWorkspace returns createWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *createWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 
+// deleteAppDataSourceResponse is returned by deleteAppDataSource on success.
+type deleteAppDataSourceResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteAppDataSourceResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteAppDataSourceResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
 // deleteAppResponse is returned by deleteApp on success.
 type deleteAppResponse struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -6287,6 +6402,14 @@ type deleteWorkspaceResponse struct {
 
 // GetResultStatus returns deleteWorkspaceResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// getAppDataSourceResponse is returned by getAppDataSource on success.
+type getAppDataSourceResponse struct {
+	Appdatasource AppDataSource `json:"appdatasource"`
+}
+
+// GetAppdatasource returns getAppDataSourceResponse.Appdatasource, and is useful for accessing the field via an interface.
+func (v *getAppDataSourceResponse) GetAppdatasource() AppDataSource { return v.Appdatasource }
 
 // getAppResponse is returned by getApp on success.
 type getAppResponse struct {
@@ -6766,6 +6889,14 @@ type setMonitorsForChannelResponse struct {
 
 // GetResultStatus returns setMonitorsForChannelResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setMonitorsForChannelResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// updateAppDataSourceResponse is returned by updateAppDataSource on success.
+type updateAppDataSourceResponse struct {
+	Appdatasource AppDataSource `json:"appdatasource"`
+}
+
+// GetAppdatasource returns updateAppDataSourceResponse.Appdatasource, and is useful for accessing the field via an interface.
+func (v *updateAppDataSourceResponse) GetAppdatasource() AppDataSource { return v.Appdatasource }
 
 // updateAppResponse is returned by updateApp on success.
 type updateAppResponse struct {
@@ -7281,6 +7412,48 @@ fragment App on App {
 	var err error
 
 	var data createAppResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	config AppDataSourceInput,
+) (*createAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "createAppDataSource",
+		Query: `
+mutation createAppDataSource ($config: AppDataSourceInput!) {
+	appdatasource: createAppDataSource(source: $config) {
+		... AppDataSource
+	}
+}
+fragment AppDataSource on AppDataSource {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	managedById
+	sourceUrl
+	instructions
+}
+`,
+		Variables: &__createAppDataSourceInput{
+			Config: config,
+		},
+	}
+	var err error
+
+	var data createAppDataSourceResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -8120,6 +8293,43 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
+func deleteAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteAppDataSource",
+		Query: `
+mutation deleteAppDataSource ($id: ObjectId!) {
+	resultStatus: deleteAppDataSource(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteAppDataSourceInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteAppDataSourceResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func deleteBoard(
 	ctx context.Context,
 	client graphql.Client,
@@ -8791,6 +9001,48 @@ fragment App on App {
 	var err error
 
 	var data getAppResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "getAppDataSource",
+		Query: `
+query getAppDataSource ($id: ObjectId!) {
+	appdatasource: appDataSource(id: $id) {
+		... AppDataSource
+	}
+}
+fragment AppDataSource on AppDataSource {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	managedById
+	sourceUrl
+	instructions
+}
+`,
+		Variables: &__getAppDataSourceInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getAppDataSourceResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -11032,6 +11284,50 @@ fragment App on App {
 	var err error
 
 	var data updateAppResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config AppDataSourceInput,
+) (*updateAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateAppDataSource",
+		Query: `
+mutation updateAppDataSource ($id: ObjectId!, $config: AppDataSourceInput!) {
+	appdatasource: updateAppDataSource(id: $id, source: $config) {
+		... AppDataSource
+	}
+}
+fragment AppDataSource on AppDataSource {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	managedById
+	sourceUrl
+	instructions
+}
+`,
+		Variables: &__updateAppDataSourceInput{
+			Id:     id,
+			Config: config,
+		},
+	}
+	var err error
+
+	var data updateAppDataSourceResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

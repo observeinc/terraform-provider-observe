@@ -60,15 +60,7 @@ func resourceApp() *schema.Resource {
 func newAppInput(data *schema.ResourceData) (config *gql.AppInput, diags diag.Diagnostics) {
 	folder, _ := oid.NewOID(data.Get("folder").(string))
 
-	variables := make([]gql.AppVariableInput, 0)
-	for k, v := range makeStringMap(data.Get("variables").(map[string]interface{})) {
-		variable := gql.AppVariableInput{
-			Name:  k,
-			Value: v,
-		}
-		variables = append(variables, variable)
-	}
-
+	variables := makeAppVariableInputs(data.Get("variables").(map[string]interface{}))
 	config = &gql.AppInput{
 		ModuleId:  data.Get("module_id").(string),
 		Version:   data.Get("version").(string),
@@ -77,6 +69,18 @@ func newAppInput(data *schema.ResourceData) (config *gql.AppInput, diags diag.Di
 	}
 
 	return
+}
+
+func makeAppVariableInputs(in map[string]interface{}) []gql.AppVariableInput {
+	variables := make([]gql.AppVariableInput, 0)
+	for k, v := range makeStringMap(in) {
+		variable := gql.AppVariableInput{
+			Name:  k,
+			Value: v,
+		}
+		variables = append(variables, variable)
+	}
+	return variables
 }
 
 func resourceAppCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

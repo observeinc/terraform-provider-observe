@@ -904,3 +904,44 @@ func (c *Client) GetPreferredPath(ctx context.Context, id string) (*meta.Preferr
 func (c *Client) GetTerraform(ctx context.Context, id string, objType meta.TerraformObjectType) (*meta.TerraformDefinition, error) {
 	return c.Meta.GetTerraform(ctx, id, objType)
 }
+
+// CreateAppDataSource creates an appdatasource
+func (c *Client) CreateAppDataSource(ctx context.Context, input *meta.AppDataSourceInput) (*meta.AppDataSource, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	result, err := c.Meta.CreateAppDataSource(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateAppDataSource updates an appdatasource
+func (c *Client) UpdateAppDataSource(ctx context.Context, id string, input *meta.AppDataSourceInput) (*meta.AppDataSource, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.UpdateAppDataSource(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// DeleteAppDataSource
+func (c *Client) DeleteAppDataSource(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteAppDataSource(ctx, id)
+}
+
+// GetAppDataSource by ID
+func (c *Client) GetAppDataSource(ctx context.Context, id string) (*meta.AppDataSource, error) {
+	return c.Meta.GetAppDataSource(ctx, id)
+}
