@@ -414,3 +414,27 @@ func intPtr(i int) *int {
 func stringPtr(s string) *string {
 	return &s
 }
+
+func maybeString(val any, ok bool) string {
+	if val == nil || !ok {
+		return ""
+	}
+	str, is := val.(string)
+	if !is {
+		return ""
+	}
+	return str
+}
+
+func maybeOID(val any, ok bool) *oid.OID {
+	ms := maybeString(val, ok)
+	if ms == "" {
+		return nil
+	}
+	ret, err := oid.NewOID(ms)
+	if err != nil {
+		//	It's a string but not an oid? Shouldn't have passed validation.
+		panic(err)
+	}
+	return ret
+}

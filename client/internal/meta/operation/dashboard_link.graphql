@@ -1,0 +1,42 @@
+fragment DashboardLink on DashboardLink {
+    id
+    name
+    workspaceId
+    folderId
+    # @genqlient(pointer: true)
+    managedById
+    description
+    fromDashboard: fromDashboardId
+    toDashboard: toDashboardId
+    # @genqlient(pointer: true)
+    fromCard
+    linkLabel
+}
+
+query getDashboardLink($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    dashboardLink(id:$id) {
+        ...DashboardLink
+    }
+}
+
+mutation createDashboardLink($input: DashboardLinkInput!) {
+    # @genqlient(flatten: true)
+    dashboardLink: createDashboardLink(link: $input) {
+        ...DashboardLink
+    }
+}
+
+mutation updateDashboardLink($id: ObjectId!, $input: DashboardLinkInput!) {
+    # @genqlient(flatten: true)
+    dashboardLink: updateDashboardLink(id: $id, link: $input) {
+        ...DashboardLink
+    }
+}
+
+mutation deleteDashboardLink($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteDashboardLink(id: $id) {
+        ...ResultStatus
+    }
+}

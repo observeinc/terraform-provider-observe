@@ -148,6 +148,8 @@ func resourcePreferredPathUpdate(ctx context.Context, data *schema.ResourceData,
 }
 
 func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	//	This updates data that were already filled in by create/update, so it's
+	//	mainly used to update defaults / computed values.
 	client := meta.(*observe.Client)
 
 	path, err := client.GetPreferredPath(ctx, data.Id())

@@ -838,6 +838,7 @@ type DashboardInput struct {
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
+	Links           []DashboardLinkInput    `json:"links"`
 }
 
 // GetId returns DashboardInput.Id, and is useful for accessing the field via an interface.
@@ -872,6 +873,107 @@ func (v *DashboardInput) GetParameters() []ParameterSpecInput { return v.Paramet
 
 // GetParameterValues returns DashboardInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *DashboardInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
+
+// GetLinks returns DashboardInput.Links, and is useful for accessing the field via an interface.
+func (v *DashboardInput) GetLinks() []DashboardLinkInput { return v.Links }
+
+// DashboardLink includes the GraphQL fields of DashboardLink requested by the fragment DashboardLink.
+type DashboardLink struct {
+	Id            string  `json:"id"`
+	Name          string  `json:"name"`
+	WorkspaceId   string  `json:"workspaceId"`
+	FolderId      string  `json:"folderId"`
+	ManagedById   *string `json:"managedById"`
+	Description   string  `json:"description"`
+	FromDashboard string  `json:"fromDashboard"`
+	ToDashboard   string  `json:"toDashboard"`
+	FromCard      *string `json:"fromCard"`
+	// The label is presented in the UI. We need this separate from 'name' because 'name'
+	// is a WorkspaceObject specific field, that must be globally unique within the workspace,
+	// and we can't say that all links should display unique labels in the UI. (An alternative
+	// is to just display the name of the target dashboard -- implementors choice.)
+	LinkLabel string `json:"linkLabel"`
+}
+
+// GetId returns DashboardLink.Id, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetId() string { return v.Id }
+
+// GetName returns DashboardLink.Name, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetName() string { return v.Name }
+
+// GetWorkspaceId returns DashboardLink.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetFolderId returns DashboardLink.FolderId, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetFolderId() string { return v.FolderId }
+
+// GetManagedById returns DashboardLink.ManagedById, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetManagedById() *string { return v.ManagedById }
+
+// GetDescription returns DashboardLink.Description, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetDescription() string { return v.Description }
+
+// GetFromDashboard returns DashboardLink.FromDashboard, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetFromDashboard() string { return v.FromDashboard }
+
+// GetToDashboard returns DashboardLink.ToDashboard, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetToDashboard() string { return v.ToDashboard }
+
+// GetFromCard returns DashboardLink.FromCard, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetFromCard() *string { return v.FromCard }
+
+// GetLinkLabel returns DashboardLink.LinkLabel, and is useful for accessing the field via an interface.
+func (v *DashboardLink) GetLinkLabel() string { return v.LinkLabel }
+
+type DashboardLinkInput struct {
+	// If name is empty on create, a unique name will be generated. If name is empty
+	// on update, the name won't be changed.
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	IconUrl     *string `json:"iconUrl"`
+	WorkspaceId string  `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	// If folder is empty on create, it will be put in the default folder. If folder
+	// is empty on update, the existing folder won't be changed.
+	FolderId        *string `json:"folderId"`
+	FromDashboardId string  `json:"fromDashboardId"`
+	ToDashboardId   string  `json:"toDashboardId"`
+	// When fromCard is null, it clears the property.
+	FromCard *string `json:"fromCard"`
+	// linkLabel is the display text of the link label. This is neded because the
+	// 'name' is more like a textual ID and needs to be unique.
+	LinkLabel string `json:"linkLabel"`
+}
+
+// GetName returns DashboardLinkInput.Name, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetName() *string { return v.Name }
+
+// GetDescription returns DashboardLinkInput.Description, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetDescription() *string { return v.Description }
+
+// GetIconUrl returns DashboardLinkInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetWorkspaceId returns DashboardLinkInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetManagedById returns DashboardLinkInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns DashboardLinkInput.FolderId, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetFolderId() *string { return v.FolderId }
+
+// GetFromDashboardId returns DashboardLinkInput.FromDashboardId, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetFromDashboardId() string { return v.FromDashboardId }
+
+// GetToDashboardId returns DashboardLinkInput.ToDashboardId, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetToDashboardId() string { return v.ToDashboardId }
+
+// GetFromCard returns DashboardLinkInput.FromCard, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetFromCard() *string { return v.FromCard }
+
+// GetLinkLabel returns DashboardLinkInput.LinkLabel, and is useful for accessing the field via an interface.
+func (v *DashboardLinkInput) GetLinkLabel() string { return v.LinkLabel }
 
 // DashboardParameterValuesParameterBinding includes the requested fields of the GraphQL type ParameterBinding.
 type DashboardParameterValuesParameterBinding struct {
@@ -5212,6 +5314,14 @@ func (v *__createChannelInput) GetWorkspaceId() string { return v.WorkspaceId }
 // GetChannel returns __createChannelInput.Channel, and is useful for accessing the field via an interface.
 func (v *__createChannelInput) GetChannel() ChannelInput { return v.Channel }
 
+// __createDashboardLinkInput is used internally by genqlient
+type __createDashboardLinkInput struct {
+	Input DashboardLinkInput `json:"input"`
+}
+
+// GetInput returns __createDashboardLinkInput.Input, and is useful for accessing the field via an interface.
+func (v *__createDashboardLinkInput) GetInput() DashboardLinkInput { return v.Input }
+
 // __createDatastreamInput is used internally by genqlient
 type __createDatastreamInput struct {
 	WorkspaceId string          `json:"workspaceId"`
@@ -5402,6 +5512,14 @@ type __deleteDashboardInput struct {
 // GetId returns __deleteDashboardInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteDashboardInput) GetId() string { return v.Id }
 
+// __deleteDashboardLinkInput is used internally by genqlient
+type __deleteDashboardLinkInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteDashboardLinkInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteDashboardLinkInput) GetId() string { return v.Id }
+
 // __deleteDatasetInput is used internally by genqlient
 type __deleteDatasetInput struct {
 	Id  string                   `json:"id"`
@@ -5557,6 +5675,14 @@ type __getDashboardInput struct {
 
 // GetId returns __getDashboardInput.Id, and is useful for accessing the field via an interface.
 func (v *__getDashboardInput) GetId() string { return v.Id }
+
+// __getDashboardLinkInput is used internally by genqlient
+type __getDashboardLinkInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getDashboardLinkInput.Id, and is useful for accessing the field via an interface.
+func (v *__getDashboardLinkInput) GetId() string { return v.Id }
 
 // __getDatasetInput is used internally by genqlient
 type __getDatasetInput struct {
@@ -5900,6 +6026,18 @@ func (v *__updateChannelInput) GetId() string { return v.Id }
 // GetChannel returns __updateChannelInput.Channel, and is useful for accessing the field via an interface.
 func (v *__updateChannelInput) GetChannel() ChannelInput { return v.Channel }
 
+// __updateDashboardLinkInput is used internally by genqlient
+type __updateDashboardLinkInput struct {
+	Id    string             `json:"id"`
+	Input DashboardLinkInput `json:"input"`
+}
+
+// GetId returns __updateDashboardLinkInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateDashboardLinkInput) GetId() string { return v.Id }
+
+// GetInput returns __updateDashboardLinkInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateDashboardLinkInput) GetInput() DashboardLinkInput { return v.Input }
+
 // __updateDatastreamInput is used internally by genqlient
 type __updateDatastreamInput struct {
 	Id         string          `json:"id"`
@@ -6120,6 +6258,16 @@ type createChannelResponse struct {
 // GetChannel returns createChannelResponse.Channel, and is useful for accessing the field via an interface.
 func (v *createChannelResponse) GetChannel() *Channel { return v.Channel }
 
+// createDashboardLinkResponse is returned by createDashboardLink on success.
+type createDashboardLinkResponse struct {
+	// A dashboard link goes from one dashboard (and possibly card within that dashboard)
+	// to another. The link must be in the same workspace as the dashboards it references.
+	DashboardLink DashboardLink `json:"dashboardLink"`
+}
+
+// GetDashboardLink returns createDashboardLinkResponse.DashboardLink, and is useful for accessing the field via an interface.
+func (v *createDashboardLinkResponse) GetDashboardLink() DashboardLink { return v.DashboardLink }
+
 // createDatastreamResponse is returned by createDatastream on success.
 type createDatastreamResponse struct {
 	Datastream Datastream `json:"datastream"`
@@ -6293,6 +6441,14 @@ type deleteChannelResponse struct {
 
 // GetResultStatus returns deleteChannelResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteChannelResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteDashboardLinkResponse is returned by deleteDashboardLink on success.
+type deleteDashboardLinkResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteDashboardLinkResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteDashboardLinkResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteDashboardResponse is returned by deleteDashboard on success.
 type deleteDashboardResponse struct {
@@ -6523,6 +6679,14 @@ type getChannelResponse struct {
 
 // GetChannel returns getChannelResponse.Channel, and is useful for accessing the field via an interface.
 func (v *getChannelResponse) GetChannel() *Channel { return v.Channel }
+
+// getDashboardLinkResponse is returned by getDashboardLink on success.
+type getDashboardLinkResponse struct {
+	DashboardLink DashboardLink `json:"dashboardLink"`
+}
+
+// GetDashboardLink returns getDashboardLinkResponse.DashboardLink, and is useful for accessing the field via an interface.
+func (v *getDashboardLinkResponse) GetDashboardLink() DashboardLink { return v.DashboardLink }
 
 // getDashboardResponse is returned by getDashboard on success.
 type getDashboardResponse struct {
@@ -6994,6 +7158,14 @@ type updateChannelResponse struct {
 
 // GetChannel returns updateChannelResponse.Channel, and is useful for accessing the field via an interface.
 func (v *updateChannelResponse) GetChannel() *Channel { return v.Channel }
+
+// updateDashboardLinkResponse is returned by updateDashboardLink on success.
+type updateDashboardLinkResponse struct {
+	DashboardLink DashboardLink `json:"dashboardLink"`
+}
+
+// GetDashboardLink returns updateDashboardLinkResponse.DashboardLink, and is useful for accessing the field via an interface.
+func (v *updateDashboardLinkResponse) GetDashboardLink() DashboardLink { return v.DashboardLink }
 
 // updateDatastreamResponse is returned by updateDatastream on success.
 type updateDatastreamResponse struct {
@@ -7604,6 +7776,50 @@ fragment ChannelAction on ChannelAction {
 	var err error
 
 	var data createChannelActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	input DashboardLinkInput,
+) (*createDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDashboardLink",
+		Query: `
+mutation createDashboardLink ($input: DashboardLinkInput!) {
+	dashboardLink: createDashboardLink(link: $input) {
+		... DashboardLink
+	}
+}
+fragment DashboardLink on DashboardLink {
+	id
+	name
+	workspaceId
+	folderId
+	managedById
+	description
+	fromDashboard: fromDashboardId
+	toDashboard: toDashboardId
+	fromCard
+	linkLabel
+}
+`,
+		Variables: &__createDashboardLinkInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data createDashboardLinkResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -8551,6 +8767,43 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
+func deleteDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDashboardLink",
+		Query: `
+mutation deleteDashboardLink ($id: ObjectId!) {
+	resultStatus: deleteDashboardLink(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteDashboardLinkInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteDashboardLinkResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func deleteDataset(
 	ctx context.Context,
 	client graphql.Client,
@@ -9370,6 +9623,50 @@ fragment primitiveValueFields on PrimitiveValue {
 	var err error
 
 	var data getDashboardResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDashboardLink",
+		Query: `
+query getDashboardLink ($id: ObjectId!) {
+	dashboardLink(id: $id) {
+		... DashboardLink
+	}
+}
+fragment DashboardLink on DashboardLink {
+	id
+	name
+	workspaceId
+	folderId
+	managedById
+	description
+	fromDashboard: fromDashboardId
+	toDashboard: toDashboardId
+	fromCard
+	linkLabel
+}
+`,
+		Variables: &__getDashboardLinkInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getDashboardLinkResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -11472,6 +11769,52 @@ fragment ChannelAction on ChannelAction {
 	var err error
 
 	var data updateChannelActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input DashboardLinkInput,
+) (*updateDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDashboardLink",
+		Query: `
+mutation updateDashboardLink ($id: ObjectId!, $input: DashboardLinkInput!) {
+	dashboardLink: updateDashboardLink(id: $id, link: $input) {
+		... DashboardLink
+	}
+}
+fragment DashboardLink on DashboardLink {
+	id
+	name
+	workspaceId
+	folderId
+	managedById
+	description
+	fromDashboard: fromDashboardId
+	toDashboard: toDashboardId
+	fromCard
+	linkLabel
+}
+`,
+		Variables: &__updateDashboardLinkInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateDashboardLinkResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

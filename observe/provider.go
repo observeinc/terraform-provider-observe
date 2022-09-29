@@ -150,6 +150,7 @@ func Provider() *schema.Provider {
 			"observe_preferred_path":         resourcePreferredPath(),
 			"observe_default_dashboard":      resourceDefaultDashboard(),
 			"observe_layered_setting_record": resourceLayeredSettingRecord(),
+			"observe_dashboard_link":         resourceDashboardLink(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}
