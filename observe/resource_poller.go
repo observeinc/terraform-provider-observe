@@ -23,6 +23,18 @@ var validPollerKinds = []string{
 	"mongodbatlas",
 }
 
+func requestResourceRegex() *schema.Resource {
+	resource := requestResource()
+
+	// method in this case is a regular expression..
+	resource.Schema["method"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+	}
+
+	return resource
+}
+
 func requestResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -213,7 +225,7 @@ func resourcePoller() *schema.Resource {
 										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem:     requestResource(),
+										Elem:     requestResourceRegex(),
 									},
 									"follow": {
 										Type:     schema.TypeString,
@@ -369,8 +381,8 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 		httpConf := gql.PollerHTTPInput{
 			ContentType: &contentType,
 			Headers:     &parsedHeaders,
-			Requests:    expandPollerHTTPRequests(data.Get("http.0.request").([]interface{})),
-			Rules:       expandPollerHTTPRules(data.Get("http.0.rule").([]interface{})),
+			Requests:    expandPollerHTTPRequests(data, "http.0.request"),
+			Rules:       expandPollerHTTPRules(data, "http.0.rule"),
 		}
 
 		if v, ok := data.GetOk("http.0.endpoint"); ok {
@@ -385,8 +397,8 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 			httpConf.Body = stringPtr(v.(string))
 		}
 
-		if ls := data.Get("http.0.template").([]interface{}); len(ls) > 0 {
-			template := expandPollerHTTPRequest(ls[0].(map[string]interface{}))
+		if _, ok := data.GetOk("http.0.template"); ok {
+			template := expandPollerHTTPRequest(data, "http.0.template.0")
 			httpConf.Template = template
 		}
 
@@ -674,13 +686,14 @@ func flattenPollerHTTPRequest(req *gql.HttpRequestConfig) (flat map[string]inter
 	return
 }
 
-func expandPollerHTTPRequests(l []interface{}) (reqs []gql.PollerHTTPRequestInput) {
+func expandPollerHTTPRequests(data *schema.ResourceData, key string) (reqs []gql.PollerHTTPRequestInput) {
+	l := data.Get(key).([]interface{})
 	if len(l) == 0 {
 		return nil
 	}
 
-	for _, v := range l {
-		if req := expandPollerHTTPRequest(v.(map[string]interface{})); req != nil {
+	for i := range l {
+		if req := expandPollerHTTPRequest(data, fmt.Sprintf("%s.%d", key, i)); req != nil {
 			reqs = append(reqs, *req)
 		}
 	}
@@ -688,34 +701,42 @@ func expandPollerHTTPRequests(l []interface{}) (reqs []gql.PollerHTTPRequestInpu
 	return
 }
 
-func expandPollerHTTPRequest(m map[string]interface{}) *gql.PollerHTTPRequestInput {
-	if len(m) == 0 {
+func expandPollerHTTPRequest(data *schema.ResourceData, key string) *gql.PollerHTTPRequestInput {
+	if v, ok := data.GetOk(key); !ok || v == nil {
 		return nil
 	}
 
-	headers, _ := json.Marshal(m["headers"].(map[string]interface{}))
-	params, _ := json.Marshal(m["params"].(map[string]interface{}))
+	headers, _ := json.Marshal(data.Get(key + ".headers").(map[string]interface{}))
+	params, _ := json.Marshal(data.Get(key + ".params").(map[string]interface{}))
 
-	url := m["url"].(string)
-	method := m["method"].(string)
-	username := m["username"].(string)
-	password := m["password"].(string)
 	parsedHeaders := types.JsonObject(headers)
 	parsedParams := types.JsonObject(params)
-	if len(headers) > 2 {
-		func() {
-
-		}()
-	}
 
 	req := &gql.PollerHTTPRequestInput{
-		Url:      &url,
-		Method:   &method,
-		Username: &username,
-		Password: &password,
-		Headers:  &parsedHeaders,
-		Params:   &parsedParams,
+		Headers: &parsedHeaders,
+		Params:  &parsedParams,
 	}
+
+	if v, ok := data.GetOk(key + ".url"); ok {
+		s := v.(string)
+		req.Url = &s
+	}
+
+	if v, ok := data.GetOk(key + ".method"); ok {
+		s := v.(string)
+		req.Method = &s
+	}
+
+	if v, ok := data.GetOk(key + ".username"); ok {
+		s := v.(string)
+		req.Username = &s
+	}
+
+	if v, ok := data.GetOk(key + ".password"); ok {
+		s := v.(string)
+		req.Password = &s
+	}
+
 	return req
 }
 
@@ -753,32 +774,34 @@ func flattenPollerHTTPRule(rule *gql.PollerConfigPollerHTTPConfigRulesPollerHTTP
 	return
 }
 
-func expandPollerHTTPRules(l []interface{}) (rules []gql.PollerHTTPRuleInput) {
+func expandPollerHTTPRules(data *schema.ResourceData, key string) (rules []gql.PollerHTTPRuleInput) {
+	l := data.Get(key).([]interface{})
 	if len(l) == 0 {
 		return nil
 	}
 
-	for _, v := range l {
-		if req := expandPollerHTTPRule(v.(map[string]interface{})); req != nil {
+	for i := range l {
+		if req := expandPollerHTTPRule(data, fmt.Sprintf("%s.%d", key, i)); req != nil {
 			rules = append(rules, *req)
 		}
 	}
 	return
 }
 
-func expandPollerHTTPRule(m map[string]interface{}) *gql.PollerHTTPRuleInput {
-	if len(m) == 0 {
+func expandPollerHTTPRule(data *schema.ResourceData, key string) *gql.PollerHTTPRuleInput {
+	if _, ok := data.GetOk(key); !ok {
 		return nil
 	}
 
 	var match *gql.PollerHTTPRequestInput
-	if ls := m["match"].([]interface{}); len(ls) > 0 {
-		match = expandPollerHTTPRequest(ls[0].(map[string]interface{}))
+
+	if _, ok := data.GetOk(key + ".match.0"); ok {
+		match = expandPollerHTTPRequest(data, key+".match.0")
 	}
 
 	var decoder *gql.PollerHTTPDecoderInput
-	if ls := m["decoder"].([]interface{}); len(ls) > 0 {
-		decoder = expandPollerHTTPDecoder(ls[0].(map[string]interface{}))
+	if _, ok := data.GetOk(key + ".decoder.0"); ok {
+		decoder = expandPollerHTTPDecoder(data, key+".decoder.0")
 	}
 
 	rule := &gql.PollerHTTPRuleInput{
@@ -786,10 +809,9 @@ func expandPollerHTTPRule(m map[string]interface{}) *gql.PollerHTTPRuleInput {
 		Decoder: decoder,
 	}
 
-	// empty string is not a valid JMESPath expression
-	if m["follow"] != "" {
-		follow := m["follow"].(string)
-		rule.Follow = &follow
+	if v, ok := data.GetOk(key + ".follow"); ok {
+		s := v.(string)
+		rule.Follow = &s
 	}
 
 	return rule
@@ -806,13 +828,13 @@ func flattenPollerHTTPDecoder(decoder *gql.PollerConfigPollerHTTPConfigRulesPoll
 	return []interface{}{m}
 }
 
-func expandPollerHTTPDecoder(m map[string]interface{}) *gql.PollerHTTPDecoderInput {
-	if len(m) == 0 {
+func expandPollerHTTPDecoder(data *schema.ResourceData, key string) *gql.PollerHTTPDecoderInput {
+	if _, ok := data.GetOk(key); !ok {
 		return nil
 	}
 
 	decoder := &gql.PollerHTTPDecoderInput{
-		Type: m["type"].(string),
+		Type: data.Get(key + ".type").(string),
 	}
 	return decoder
 }

@@ -376,6 +376,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.method", ""),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.method", ""),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.follow", "accounts[]"),
 					resource.TestCheckResourceAttr("observe_poller.first", "pubsub.#", "0"),
 					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
