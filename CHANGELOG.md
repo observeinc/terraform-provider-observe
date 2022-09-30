@@ -1,3 +1,21 @@
+## 0.12.0 (2022-09-12)
+
+fix: send null request method rather than empty string
+fix: update layered setting support
+fix: separate folder from workspace
+docs: add makefile, regenerate
+fix: update after layered settings API refactor
+fix(dashboard): add description to terraform
+fix: relax primary_key for promote monitor
+docs: wire in docs for link
+docs: wire dataset and monitor descriptions
+docs: break out descriptions
+docs: update provider docs, regenerate.
+ci: fix env var passed through for test
+feat: rename OBSERVE_TOKEN to OBSERVE_API_TOKEN
+feat: remove `proxy` support in client
+fix: update go dependencies
+
 ## 0.11.3 (2022-09-12)
 
 feat: add support for 'OBSERVE_SOURCE_FORMAT' env variable
