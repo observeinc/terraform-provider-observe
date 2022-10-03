@@ -16,7 +16,9 @@ type Poller struct {
 // Run runs function until exit condition is met, according to poller settings
 func (p *Poller) Run(ctx context.Context, fn func(context.Context) error, exitCond func() bool) error {
 	if p.Timeout != nil {
-		ctx, _ = context.WithTimeout(ctx, *p.Timeout)
+		var cancel func()
+		ctx, cancel = context.WithTimeout(ctx, *p.Timeout)
+		defer cancel()
 	}
 
 	for {
