@@ -61,7 +61,7 @@ type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject @goMo
     updatedDate: Time!
     source: String!
     disabled: Boolean!
-    lastUpdateSource: String!
+    lastUpdateSource: String! @deprecated(reason:"never used, no longer supported will be ignored")
     generatedDatasetIds: [GeneratedDataset!]!
     status: MonitorStatus!
     statusMessage: String!

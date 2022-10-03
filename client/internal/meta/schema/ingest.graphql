@@ -13,6 +13,7 @@ extend type Mutation {
     updatePoller(id: ObjectId!, poller: PollerInput!): Poller!
     createPoller(workspaceId: ObjectId!, poller: PollerInput!): Poller!
     deletePoller(id: ObjectId!): ResultStatus!
+    setPollerDisabled(id: ObjectId!, disabled: Boolean!): ResultStatus!
 
     createDatastream(workspaceId: ObjectId!, datastream: DatastreamInput!): Datastream!
     updateDatastream(id: ObjectId!, datastream: DatastreamInput!): Datastream!
@@ -324,6 +325,8 @@ Config is mandatory, but varies based on the poller kind
 """
 input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     name: String
+    description: String
+    disabled: Boolean
     retries: Int64
     interval: Duration
     chunk: PollerChunkInput

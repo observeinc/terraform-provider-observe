@@ -222,6 +222,7 @@ type AppDataInfo @goModel(model: "observe/meta/metatypes.AppDataInfo") {
 }
 
 type AppVersions @goModel(model: "observe/meta/metatypes.AppVersions") {
+    latestVersion: String!
     versions: [ModuleVersion!]
     updateAvailable: Boolean!
 }

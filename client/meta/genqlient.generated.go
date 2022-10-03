@@ -3924,6 +3924,8 @@ func (v *PollerHTTPRuleInput) GetFollow() *string { return v.Follow }
 // Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
 	Name                 *string                    `json:"name"`
+	Description          *string                    `json:"description"`
+	Disabled             *bool                      `json:"disabled"`
 	Retries              *types.Int64Scalar         `json:"retries"`
 	Interval             *types.DurationScalar      `json:"interval"`
 	Chunk                *PollerChunkInput          `json:"chunk"`
@@ -3940,6 +3942,12 @@ type PollerInput struct {
 
 // GetName returns PollerInput.Name, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetName() *string { return v.Name }
+
+// GetDescription returns PollerInput.Description, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetDescription() *string { return v.Description }
+
+// GetDisabled returns PollerInput.Disabled, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetDisabled() *bool { return v.Disabled }
 
 // GetRetries returns PollerInput.Retries, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetRetries() *types.Int64Scalar { return v.Retries }

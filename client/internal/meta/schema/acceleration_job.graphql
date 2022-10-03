@@ -6,7 +6,7 @@ extend type Mutation {
   status. If the operation fails, an invalid job object is returned together
   with errors.
   """
-  createAccelerationJob(job: AccelerationJobInput): AccelerationJob!
+  createAccelerationJob(job: AccelerationJobInput!): AccelerationJob!
 
   """
   Cancels an acceleration job identified by the jobId. If the operation is
@@ -48,6 +48,16 @@ input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJ
   Optional context provided by the caller.
   """
   context: String
+
+  """
+  If dryRun is set to true, the created job won't actually be added to the
+  system for acceleration. The returned job will have an invalid id (all zero
+  UUID). The dry run can be used to peek what the created job would look like
+  before actually creating it. Note that it's not guaranteed the job ID will be
+  the same between a dry run and a real run. The other fields could also change
+  if the dry run and real run are far apart in time.
+  """
+  dryRun: Boolean
 }
 
 input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
@@ -106,8 +116,8 @@ This is the acceleration job returned from the backend.
 """
 type AccelerationJob @goModel(model: "observe/meta/metatypes.AccelerationJob") {
   """
-  A unique identifier for the acceleration job. -1 indicates an invalid job and
-  other fields are not set.
+  A unique identifier for the acceleration job. An invalid jobId might be
+  returned for a failed create operation or a dry run create operation.
   """
   jobId: String!
 

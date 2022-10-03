@@ -449,7 +449,7 @@ type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
     datasetIsLinkifyInput: Boolean!
 
     """
-    On-demand materialization length for this dataset.
+    On-demand materialization length (in nanoseconds) for this dataset.
     """
     onDemandMatLen: Int64!
 
