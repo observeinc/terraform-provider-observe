@@ -3,9 +3,7 @@ fragment Worksheet on Worksheet {
 	label
 	icon
 	managedById
-	workspace {
-		id
-	}
+	workspaceId
 	# @genqlient(flatten: true)
 	stages {
 		...StageQuery

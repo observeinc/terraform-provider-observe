@@ -5025,12 +5025,12 @@ func (v *WebhookHeaderInput) GetValueTemplate() string { return v.ValueTemplate 
 
 // Worksheet includes the GraphQL fields of Worksheet requested by the fragment Worksheet.
 type Worksheet struct {
-	Id          string                     `json:"id"`
-	Label       string                     `json:"label"`
-	Icon        *string                    `json:"icon"`
-	ManagedById *string                    `json:"managedById"`
-	Workspace   *WorksheetWorkspaceProject `json:"workspace"`
-	Stages      []StageQuery               `json:"stages"`
+	Id          string       `json:"id"`
+	Label       string       `json:"label"`
+	Icon        *string      `json:"icon"`
+	ManagedById *string      `json:"managedById"`
+	WorkspaceId string       `json:"workspaceId"`
+	Stages      []StageQuery `json:"stages"`
 }
 
 // GetId returns Worksheet.Id, and is useful for accessing the field via an interface.
@@ -5045,8 +5045,8 @@ func (v *Worksheet) GetIcon() *string { return v.Icon }
 // GetManagedById returns Worksheet.ManagedById, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetManagedById() *string { return v.ManagedById }
 
-// GetWorkspace returns Worksheet.Workspace, and is useful for accessing the field via an interface.
-func (v *Worksheet) GetWorkspace() *WorksheetWorkspaceProject { return v.Workspace }
+// GetWorkspaceId returns Worksheet.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *Worksheet) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetStages returns Worksheet.Stages, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
@@ -5090,19 +5090,6 @@ func (v *WorksheetInput) GetParameters() []ParameterSpecInput { return v.Paramet
 
 // GetParameterValues returns WorksheetInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
-
-// WorksheetWorkspaceProject includes the requested fields of the GraphQL type Project.
-// The GraphQL type's documentation follows.
-//
-// Project and Workspace are the same thing We call it Workspace in the UI
-// design now, so at some point, maybe update the API to match the updated
-// design?
-type WorksheetWorkspaceProject struct {
-	Id string `json:"id"`
-}
-
-// GetId returns WorksheetWorkspaceProject.Id, and is useful for accessing the field via an interface.
-func (v *WorksheetWorkspaceProject) GetId() string { return v.Id }
 
 // Workspace includes the GraphQL fields of Project requested by the fragment Workspace.
 // The GraphQL type's documentation follows.
@@ -10128,9 +10115,7 @@ fragment Worksheet on Worksheet {
 	label
 	icon
 	managedById
-	workspace {
-		id
-	}
+	workspaceId
 	stages {
 		... StageQuery
 	}
@@ -11096,9 +11081,7 @@ fragment Worksheet on Worksheet {
 	label
 	icon
 	managedById
-	workspace {
-		id
-	}
+	workspaceId
 	stages {
 		... StageQuery
 	}
