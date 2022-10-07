@@ -4226,8 +4226,10 @@ func (v *PreferredPathInput) GetManagedById() *string { return v.ManagedById }
 // The valid combinations are: 'linkName' and possibly 'reverseFromDataset', or
 // 'linkId' and possibly 'reverse'. See PreferredPathStepInput.
 type PreferredPathPathPreferredPathStep struct {
-	LinkId  *string `json:"linkId"`
-	Reverse *bool   `json:"reverse"`
+	LinkId             *string `json:"linkId"`
+	Reverse            *bool   `json:"reverse"`
+	LinkName           *string `json:"linkName"`
+	ReverseFromDataset *string `json:"reverseFromDataset"`
 }
 
 // GetLinkId returns PreferredPathPathPreferredPathStep.LinkId, and is useful for accessing the field via an interface.
@@ -4235,6 +4237,14 @@ func (v *PreferredPathPathPreferredPathStep) GetLinkId() *string { return v.Link
 
 // GetReverse returns PreferredPathPathPreferredPathStep.Reverse, and is useful for accessing the field via an interface.
 func (v *PreferredPathPathPreferredPathStep) GetReverse() *bool { return v.Reverse }
+
+// GetLinkName returns PreferredPathPathPreferredPathStep.LinkName, and is useful for accessing the field via an interface.
+func (v *PreferredPathPathPreferredPathStep) GetLinkName() *string { return v.LinkName }
+
+// GetReverseFromDataset returns PreferredPathPathPreferredPathStep.ReverseFromDataset, and is useful for accessing the field via an interface.
+func (v *PreferredPathPathPreferredPathStep) GetReverseFromDataset() *string {
+	return v.ReverseFromDataset
+}
 
 // There are four modes for how to specify a step along the path:
 // - using a foreign key that exists in the dataset
@@ -8409,6 +8419,8 @@ fragment PreferredPath on PreferredPath {
 	path {
 		linkId
 		reverse
+		linkName
+		reverseFromDataset
 	}
 }
 `,
@@ -10337,6 +10349,8 @@ fragment PreferredPath on PreferredPath {
 	path {
 		linkId
 		reverse
+		linkName
+		reverseFromDataset
 	}
 }
 `,
@@ -12322,6 +12336,8 @@ fragment PreferredPath on PreferredPath {
 	path {
 		linkId
 		reverse
+		linkName
+		reverseFromDataset
 	}
 }
 `,

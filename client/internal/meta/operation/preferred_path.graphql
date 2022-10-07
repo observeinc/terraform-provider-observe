@@ -9,6 +9,8 @@ fragment PreferredPath on PreferredPath {
 	path {
 		linkId
 		reverse
+		linkName
+		reverseFromDataset
 	}
 }
 

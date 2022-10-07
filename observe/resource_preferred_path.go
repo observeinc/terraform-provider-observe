@@ -56,13 +56,27 @@ func resourcePreferredPath() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"link": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							ValidateDiagFunc: validateOID(oid.TypeLink),
 						},
 						"reverse": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"link_label": {
+							Type:     schema.TypeString,
+							Optional: true,
+							// These are not implemented for attributes in TypeList
+							// ExactlyOneOf:  []string{"link", "link_label"},
+							// ConflictsWith: []string{"reverse"},
+						},
+						"reverse_from": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateOID(oid.TypeDataset),
+							// These are not implemented for attributes in TypeList
+							// ConflictsWith:    []string{"link", "reverse"},
 						},
 					},
 				},
@@ -103,12 +117,41 @@ func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPath
 		if v := step["link"]; v != nil {
 			link, _ = oid.NewOID(v.(string))
 		}
-
 		reverse := step["reverse"].(bool)
-		input.Path = append(input.Path, gql.PreferredPathStepInput{
-			LinkId:  &link.Id,
-			Reverse: &reverse,
-		})
+		var linkLabel string
+		if v := step["link_label"]; v != nil {
+			linkLabel = v.(string)
+		}
+		var reverseFrom *oid.OID
+		if v := step["reverse_from"]; v != nil {
+			reverseFrom, _ = oid.NewOID(v.(string))
+		}
+		//	I have to manually error check, because ExactlyOneOf or
+		//	ConflictsWith don't work for TypeList elements (as per provider API
+		//	docs.)
+		ppsi := gql.PreferredPathStepInput{}
+		if link != nil {
+			if linkLabel != "" {
+				diags = append(diags, diag.Errorf("'link_label' is not allowed when also specifying 'link'")[0])
+			}
+			if reverseFrom != nil {
+				diags = append(diags, diag.Errorf("'reverse_from' is not allowed when also specifying 'link'")[0])
+			}
+			ppsi.LinkId = &link.Id
+			ppsi.Reverse = &reverse
+		} else {
+			if linkLabel == "" {
+				diags = append(diags, diag.Errorf("one of 'link' and 'link_label' must be specified for each step")[0])
+			}
+			if reverse {
+				diags = append(diags, diag.Errorf("the 'reverse' option doesn't work with 'link_label'; use 'reverse_from' to specify which dataset to come from.")[0])
+			}
+			ppsi.LinkName = &linkLabel
+			if reverseFrom != nil {
+				ppsi.ReverseFromDataset = &reverseFrom.Id
+			}
+		}
+		input.Path = append(input.Path, ppsi)
 	}
 
 	return
