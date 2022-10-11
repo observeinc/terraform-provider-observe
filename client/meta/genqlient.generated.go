@@ -1864,7 +1864,8 @@ type DeferredForeignKeyInput struct {
 	SrcFields     []string                       `json:"srcFields"`
 	DstFields     []string                       `json:"dstFields"`
 	// The API will make up a label if it's specified as empty.
-	Label *string `json:"label"`
+	Label       *string `json:"label"`
+	ManagedById *string `json:"managedById"`
 }
 
 // GetSourceDataset returns DeferredForeignKeyInput.SourceDataset, and is useful for accessing the field via an interface.
@@ -1885,6 +1886,9 @@ func (v *DeferredForeignKeyInput) GetDstFields() []string { return v.DstFields }
 
 // GetLabel returns DeferredForeignKeyInput.Label, and is useful for accessing the field via an interface.
 func (v *DeferredForeignKeyInput) GetLabel() *string { return v.Label }
+
+// GetManagedById returns DeferredForeignKeyInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *DeferredForeignKeyInput) GetManagedById() *string { return v.ManagedById }
 
 // DeferredForeignKeyResolutionResolvedForeignKey includes the requested fields of the GraphQL type ResolvedForeignKey.
 type DeferredForeignKeyResolutionResolvedForeignKey struct {
