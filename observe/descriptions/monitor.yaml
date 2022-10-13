@@ -10,5 +10,7 @@ schema:
     Monitor name. Must be unique within workspace.
   description: |
     Monitor description.
+  is_template: |
+    This resource is template for creating new monitors
   disabled: |
     Set to `true` to disable monitor.

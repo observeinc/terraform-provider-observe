@@ -76,6 +76,12 @@ func resourceMonitor() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
+			"is_template": {
+				Type:        schema.TypeBool,
+				Default:     false,
+				Optional:    true,
+				Description: descriptions.Get("monitor", "schema", "is_template"),
+			},
 			"disabled": {
 				Type:        schema.TypeBool,
 				Default:     false,
@@ -566,6 +572,7 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 
 	name := data.Get("name").(string)
 	disabled := data.Get("disabled").(bool)
+	isTemplate := data.Get("is_template").(bool)
 
 	overwriteSource := true
 	input = &gql.MonitorInput{
@@ -573,6 +580,7 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 		Query:            query,
 		Rule:             rule,
 		Disabled:         &disabled,
+		IsTemplate:       &isTemplate,
 		NotificationSpec: notificationSpec,
 		OverwriteSource:  &overwriteSource,
 	}
