@@ -1,3 +1,15 @@
+## 0.13.0 (2022-11-14)
+
+fix: preferred_path: allow "error" status on read
+feat: add named link support to observe_preferred_path
+feat: dashboard link support
+feat: add support for model_dfk_master.dfk_managed_by_id
+feat: add is_template for monitors
+fix: use workspaceId
+chore: fix a go vet complaint
+chore: Keep up to date with upstream schema
+feat: Add AppDataSource support
+
 ## 0.12.0 (2022-09-12)
 
 fix: send null request method rather than empty string
