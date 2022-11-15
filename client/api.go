@@ -894,16 +894,18 @@ func (c *Client) DeletePreferredPath(ctx context.Context, id string) error {
 	return c.Meta.DeletePreferredPath(ctx, id)
 }
 
-// GetPreferredPath by ID
+// GetPreferredPath gets the preferred path by ID. If the path is invalid, an error may be returned in addition to the path object.
 func (c *Client) GetPreferredPath(ctx context.Context, id string) (*meta.PreferredPath, error) {
 	resultWithStatus, err := c.Meta.GetPreferredPath(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get preferred path: %w", err)
 	}
+
 	if resultWithStatus.Error != nil {
-		return nil, errors.New(*resultWithStatus.Error)
+		err = errors.New(*resultWithStatus.Error)
 	}
-	return &resultWithStatus.Path.PreferredPath, nil
+
+	return &resultWithStatus.Path.PreferredPath, err
 }
 
 // GetTerraform returns terraform definition

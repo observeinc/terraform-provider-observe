@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -197,7 +198,14 @@ func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, m
 
 	path, err := client.GetPreferredPath(ctx, data.Id())
 	if err != nil {
-		return diag.Errorf("failed to read preferred path: %s", err.Error())
+		if path == nil {
+			return diag.Errorf("failed to read preferred path: %s", err)
+		}
+
+		diags = append(diags, diag.Diagnostic{
+			Summary:  fmt.Sprintf("preferred path %s has error status, ignoring: %s", path.Id, err),
+			Severity: diag.Warning,
+		})
 	}
 
 	if err := data.Set("folder", oid.FolderOid(path.FolderId, path.WorkspaceId).String()); err != nil {
