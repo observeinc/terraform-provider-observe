@@ -98,7 +98,7 @@ func TestAccObserveLinkErrors(t *testing.T) {
 					label     = "%[1]s-link"
 				}
 				`, randomPrefix),
-				ExpectError: regexp.MustCompile(".*not present in the dataset"),
+				ExpectError: regexp.MustCompile(".*not present.*"),
 			},
 			{
 				Config: fmt.Sprintf(linkConfigPreamble+`
