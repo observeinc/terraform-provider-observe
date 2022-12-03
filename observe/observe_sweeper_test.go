@@ -28,6 +28,9 @@ func init() {
 	resource.AddTestSweepers("observe_datastream_sweep", &resource.Sweeper{
 		Name: "observe_datastream_sweep",
 		F:    datastreamSweeperFunc,
+		Dependencies: []string{
+			"observe_poller_sweep",
+		},
 	})
 	resource.AddTestSweepers("observe_folder_sweep", &resource.Sweeper{
 		Name: "observe_folder_sweep",
