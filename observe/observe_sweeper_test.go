@@ -16,6 +16,9 @@ func init() {
 	resource.AddTestSweepers("observe_dataset_sweep", &resource.Sweeper{
 		Name: "observe_dataset_sweep",
 		F:    datasetSweeperFunc,
+		Dependencies: []string{
+			"observe_preferred_path_sweep",
+		},
 	})
 	resource.AddTestSweepers("observe_monitor_sweep", &resource.Sweeper{
 		Name: "observe_monitor_sweep",
@@ -35,6 +38,13 @@ func init() {
 	resource.AddTestSweepers("observe_folder_sweep", &resource.Sweeper{
 		Name: "observe_folder_sweep",
 		F:    folderSweeperFunc,
+		Dependencies: []string{
+			"observe_preferred_path_sweep",
+		},
+	})
+	resource.AddTestSweepers("observe_preferred_path_sweep", &resource.Sweeper{
+		Name: "observe_preferred_path_sweep",
+		F:    preferredPathSweeperFunc,
 	})
 
 }
@@ -271,6 +281,60 @@ func folderSweeperFunc(s string) error {
 	}
 	return nil
 }
+
+func preferredPathSweeperFunc(s string) error {
+	client, err := sharedClient(s)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query preferredPaths($workspaceId: ObjectId!) {
+			preferredPathSearch(terms: {workspaceId: [$workspaceId]}) {
+				results {
+					preferredPath {
+						id
+						name
+					}
+				}
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup preferred paths: %w", err)
+		}
+
+		result = result["preferredPathSearch"].(map[string]interface{})
+
+		for _, i := range result["results"].([]interface{}) {
+			var (
+				result = i.(map[string]interface{})
+				item   = result["preferredPath"].(map[string]interface{})
+
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+			if prefixRe.MatchString(name) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
+				if err := client.DeletePreferredPath(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func TestMain(m *testing.M) {
 	resource.TestMain(m)
 }
