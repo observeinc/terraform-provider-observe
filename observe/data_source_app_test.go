@@ -11,7 +11,8 @@ import (
 func TestAccObserveDataApp(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
-	resource.ParallelTest(t, resource.TestCase{
+	// App tests must not be run in parallel because a given app (by module_id) can only be installed once per workspace
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
