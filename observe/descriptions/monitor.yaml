@@ -9,7 +9,9 @@ schema:
   name: |
     Monitor name. Must be unique within workspace.
   description: |
-    Monitor description.
+    A brief description of the monitor.
+  comment: |
+    A long-form comment describing the content of the monitor.
   is_template: |
     This resource is template for creating new monitors
   disabled: |

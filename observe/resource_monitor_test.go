@@ -22,6 +22,8 @@ func TestAccObserveMonitor(t *testing.T) {
 					name      = "%s"
 					freshness = "4m"
 
+					comment = "a descriptive comment"
+
 					inputs = {
 						"observation" = data.observe_dataset.observation.oid
 					}
@@ -40,6 +42,7 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "comment", "a descriptive comment"),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),

@@ -63,6 +63,11 @@ func resourceMonitor() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("monitor", "schema", "description"),
 			},
+			"comment": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitor", "schema", "comment"),
+			},
 			"freshness": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -597,6 +602,10 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 
 	if v, ok := data.GetOk("description"); ok {
 		input.Description = stringPtr(v.(string))
+	}
+
+	if v, ok := data.GetOk("comment"); ok {
+		input.Comment = stringPtr(v.(string))
 	}
 
 	return
