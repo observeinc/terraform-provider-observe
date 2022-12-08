@@ -20,11 +20,11 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
-					data "observe_query" "%s" {
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+					data "observe_query" "%[1]s" {
 					  start = timestamp()
 
-					  inputs = { "observation" = data.observe_dataset.observation.oid }
+					  inputs = { "test" = observe_datastream.test.dataset }
 
 					  stage {
 						pipeline = <<-EOF
@@ -38,6 +38,10 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 		},
 	})
 }
+
+// TODO: before re-enabling these tests, they must be updated to remove data.observe_dataset.observation
+// and instead create a datastream. The tests that use http_post implicitly expect to post to the observation datastream.
+// Instead, they must include a datastream token in their requests.
 
 // TestAccObserveSourceQuery runs a query - we don't yet expect any data to be returned
 func TestAccObserveSourceQuery(t *testing.T) {

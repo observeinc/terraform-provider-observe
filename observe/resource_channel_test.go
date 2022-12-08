@@ -10,13 +10,13 @@ import (
 
 var (
 	// setup a couple of actions and monitors for use with channels
-	channelConfigPreamble = configPreamble + `
+	channelConfigPreamble = configPreamble + datastreamConfigPreamble + `
 				resource "observe_monitor" "a" {
 				  workspace = data.observe_workspace.default.oid
-				  name      = "%s/a"
+				  name      = "%[1]s/a"
 
 				  inputs = {
-				    "observation" = data.observe_dataset.observation.oid
+				    "test" = observe_datastream.test.dataset
 				  }
 
 				  stage {

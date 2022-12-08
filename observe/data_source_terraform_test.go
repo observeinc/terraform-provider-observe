@@ -17,11 +17,16 @@ func TestAccObserveSourceDatasetTerraform(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
-					resource "observe_dataset" "a" {
+					resource "observe_datastream" "a" {
 						workspace = data.observe_workspace.default.oid
-						name      = "%[1]s"
+						name      = "%[1]s-a"
+					}
 
-						inputs = { "observation" = data.observe_dataset.observation.oid }
+					resource "observe_dataset" "b" {
+						workspace = data.observe_workspace.default.oid
+						name      = "%[1]s-b"
+
+						inputs = { "a" = observe_datastream.a.dataset }
 
 						stage {
 							pipeline = <<-EOF
@@ -31,7 +36,7 @@ func TestAccObserveSourceDatasetTerraform(t *testing.T) {
 					}
 
 					data "observe_terraform" "lookup_by_name" {
-						target = observe_dataset.a.oid
+						target = observe_dataset.b.oid
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

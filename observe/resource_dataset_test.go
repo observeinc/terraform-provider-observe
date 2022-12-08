@@ -16,11 +16,6 @@ var (
 	configPreamble       = fmt.Sprintf(`
 				data "observe_workspace" "default" {
 					name = "%s"
-				}
-
-				data "observe_dataset" "observation" {
-					workspace = data.observe_workspace.default.oid
-					name      = "Observation"
 				}`, defaultWorkspaceName)
 )
 
@@ -40,21 +35,21 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
@@ -63,16 +58,16 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace                        = data.observe_workspace.default.oid
-					name 	                         = "%s-rename"
+					name 	                         = "%[1]s-rename"
 					freshness                        = "1m"
 					on_demand_materialization_length = "48h39s"
 					path_cost                        = "1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -93,16 +88,16 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 			},
 			{
 				PlanOnly: true,
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace                        = data.observe_workspace.default.oid
-					name 	                         = "%s-rename"
+					name 	                         = "%[1]s-rename"
 					freshness                        = "1m"
 					on_demand_materialization_length = "48h0m39s"
 					path_cost                        = 1
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -126,13 +121,13 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -143,19 +138,19 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -166,7 +161,7 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 				),
@@ -184,13 +179,13 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -221,13 +216,13 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -238,7 +233,7 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 					}
 
 					stage {
-					  input    = "observation"
+					  input    = "test"
 					  pipeline = <<-EOF
 					  	filter true
 					  EOF
@@ -255,18 +250,18 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.input", "observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.1.input", "test"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.2.input", ""),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -309,12 +304,12 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
-					inputs = { "observation" = data.observe_dataset.observation.oid }
+					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
 					  pipeline = <<-EOF
@@ -338,12 +333,12 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 			},
 			{
 				// coldrop with no downstream breakage
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
-					inputs = { "observation" = data.observe_dataset.observation.oid }
+					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
 					  pipeline = <<-EOF
@@ -367,12 +362,12 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 			},
 			{
 				// downstream with breakage
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
-					inputs = { "observation" = data.observe_dataset.observation.oid }
+					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
 					  pipeline = <<-EOF
@@ -405,12 +400,12 @@ OBSERVATION_INDEX\]
 				// than one of its dependencies, so we force recomputation.
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
-					inputs = { "observation" = data.observe_dataset.observation.oid }
+					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
 					  pipeline = <<-EOF
@@ -445,14 +440,14 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
 					inputs = { 
-						"observation" = data.observe_dataset.observation.oid
-						"other" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
+						"other" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -478,14 +473,14 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 		// backend, rather than just being set in local state.
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace   = data.observe_workspace.default.oid
-					name 	    = "%s"
-					description = "test"
+					name 	    = "%[1]s-1"
+					description = "test description"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -497,26 +492,26 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 
 				data "observe_dataset" "first" {
 					workspace  = data.observe_workspace.default.oid
-					name 	   = "%[1]s"
+					name 	     = observe_dataset.first.name
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_dataset.first", "description", "test"),
-					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", "test"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "description", "test description"),
+					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", "test description"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace   = data.observe_workspace.default.oid
-					name 	    = "%s"
+					name 	    = "%[1]s-1"
 					description = "updated"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -528,25 +523,25 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 
 				data "observe_dataset" "first" {
 					workspace  = data.observe_workspace.default.oid
-					name 	   = "%[1]s"
+					name 	     = observe_dataset.first.name
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "description", "updated"),
 					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", "updated"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace   = data.observe_workspace.default.oid
-					name 	    = "%[1]s"
+					name 	    = "%[1]s-1"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -558,13 +553,13 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 
 				data "observe_dataset" "first" {
 					workspace  = data.observe_workspace.default.oid
-					name 	   = "%[1]s"
+					name 	   = observe_dataset.first.name
 					depends_on = [observe_dataset.first]
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "description", ""),
 					resource.TestCheckResourceAttr("data.observe_dataset.first", "description", ""),
 				),
@@ -581,13 +576,13 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s first"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
+					  "test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -602,8 +597,8 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 					name 	  = "%[1]s second"
 
 					inputs = {
-					  "observation" = data.observe_dataset.observation.oid
-					  "first"      = observe_dataset.first.oid
+					  "test" = observe_datastream.test.dataset
+					  "first" = observe_dataset.first.oid
 					}
 
 					stage {
@@ -615,7 +610,7 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 					}
 
 					stage {
-					  input    = "observation"
+					  input    = "test"
 					  pipeline = <<-EOF
 					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
 					    union @from_first

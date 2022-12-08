@@ -107,6 +107,20 @@ func validateOID(types ...oid.Type) schema.SchemaValidateDiagFunc {
 	}
 }
 
+func validateOIDType(i interface{}, path cty.Path) (diags diag.Diagnostics) {
+	t := oid.Type(i.(string))
+	if !t.IsValid() {
+		diags = append(diags, diag.Diagnostic{
+			Severity:      diag.Error,
+			Summary:       "invalid OID type",
+			Detail:        fmt.Sprintf("invalid oid type: %s", t),
+			AttributePath: path,
+		})
+	}
+
+	return diags
+}
+
 const (
 	CustomerIdMul int64 = 137
 	MinCustomerId int64 = 100000000000

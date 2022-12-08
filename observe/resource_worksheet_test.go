@@ -44,10 +44,14 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				data "observe_oid" "dataset" {
+					oid = observe_datastream.test.dataset
+				}
+
 				resource "observe_worksheet" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					icon_url  = "test"
 					queries = <<-EOF
 					[
@@ -56,7 +60,7 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 						  "input": [
 							{
 							  "inputName": "kubernetes/Container Logs",
-							  "datasetId": "${data.observe_dataset.observation.id}",
+							  "datasetId": "${data.observe_oid.dataset.id}",
 							  "inputRole": "Data"
 							}
 						  ],
@@ -143,7 +147,7 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 							  {
 								"inputName": "kubernetes/Container Logs",
 								"isUserInput": false,
-								"datasetId": "${data.observe_dataset.observation.id}",
+								"datasetId": "${data.observe_oid.dataset.id}",
 								"inputRole": "Data"
 							  }
 							],

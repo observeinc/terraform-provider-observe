@@ -11,12 +11,12 @@ import (
 
 var (
 	// common to all configs
-	linkConfigPreamble = configPreamble + `
+	linkConfigPreamble = configPreamble + datastreamConfigPreamble + `
 		resource "observe_dataset" "a" {
 			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-A"
 
-			inputs = { "observation" = data.observe_dataset.observation.oid }
+			inputs = { "test" = observe_datastream.test.dataset }
 
 			stage {
 				pipeline = <<-EOF
@@ -92,8 +92,8 @@ func TestAccObserveLinkErrors(t *testing.T) {
 				Config: fmt.Sprintf(linkConfigPreamble+`
 				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
-					source    = data.observe_dataset.observation.oid
-					target    = data.observe_dataset.observation.oid
+					source    = observe_datastream.test.dataset
+					target    = observe_datastream.test.dataset
 					fields    = ["test"]
 					label     = "%[1]s-link"
 				}
@@ -104,8 +104,8 @@ func TestAccObserveLinkErrors(t *testing.T) {
 				Config: fmt.Sprintf(linkConfigPreamble+`
 				resource "observe_link" "example" {
 					workspace = data.observe_workspace.default.oid
-					source    = data.observe_dataset.observation.oid
-					target    = data.observe_dataset.observation.oid
+					source    = observe_datastream.test.dataset
+					target    = observe_datastream.test.dataset
 					fields    = ["OBSERVATION_KIND:FIELDS"]
 					label     = "%[1]s-link"
 				}

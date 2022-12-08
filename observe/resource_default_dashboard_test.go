@@ -12,10 +12,14 @@ import (
 func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
-	dashboardResource := `
+	dashboardResource := datastreamConfigPreamble + `
+		data "observe_oid" "dataset" {
+			oid = observe_datastream.test.dataset
+		}
+
 		resource "observe_dashboard" "default_dashboard_testing" {
 			workspace = data.observe_workspace.default.oid
-			name      = "%s"
+			name      = "%[1]s"
 			icon_url  = "test"
 			stages = <<-EOF
 			[{
@@ -23,7 +27,7 @@ func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 				"input": [{
 				"inputName": "kubernetes/metrics/Container Metrics",
 				"inputRole": "Data",
-				"datasetId": "${data.observe_dataset.observation.id}"
+				"datasetId": "${data.observe_oid.dataset.id}"
 				}]
 			}]
 			EOF
@@ -37,7 +41,7 @@ func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 				// Create a default dashboard
 				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
 				resource "observe_default_dashboard" "set_ddb" {
-					dataset   = data.observe_dataset.observation.oid
+					dataset   = observe_datastream.test.dataset
 					dashboard = resource.observe_dashboard.default_dashboard_testing.oid
 				}
 				`, randomPrefix),
@@ -50,12 +54,12 @@ func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 				// Then read it back as a resource
 				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
 				resource "observe_default_dashboard" "set_ddb" {
-					dataset   = data.observe_dataset.observation.oid
+					dataset   = observe_datastream.test.dataset
 					dashboard = resource.observe_dashboard.default_dashboard_testing.oid
 				}
 
 				data "observe_default_dashboard" "read_ddb" {
-					dataset = data.observe_dataset.observation.oid
+					dataset = observe_datastream.test.dataset
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -68,7 +72,7 @@ func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 				// Then clear it
 				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
 				data "observe_default_dashboard" "read_ddb" {
-					dataset = data.observe_dataset.observation.oid
+					dataset = observe_datastream.test.dataset
 				}
 				`, randomPrefix),
 			},
@@ -76,7 +80,7 @@ func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
 				// And make sure it's gone
 				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
 				data "observe_default_dashboard" "read_ddb" {
-					dataset = data.observe_dataset.observation.oid
+					dataset = observe_datastream.test.dataset
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

@@ -10,7 +10,7 @@ import (
 
 var (
 	// common to all configs
-	bookmarkConfigPreamble = configPreamble + `
+	bookmarkConfigPreamble = configPreamble + datastreamConfigPreamble + `
 		resource "observe_bookmark_group" "a" {
 			workspace 	 = data.observe_workspace.default.oid
 			name      	 = "%[1]s-a"
@@ -34,7 +34,7 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 				  group  = observe_bookmark_group.a.oid
-				  target = data.observe_dataset.observation.oid
+				  target = observe_datastream.test.dataset
 				  name   = "Test"
 				}
 				`, randomPrefix),
@@ -46,7 +46,7 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 				  group    = observe_bookmark_group.a.oid
-				  target   = data.observe_dataset.observation.oid
+				  target   = observe_datastream.test.dataset
 				  name     = "Test"
 				  icon_url = "star"
 				}
@@ -70,7 +70,7 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 				  group  = observe_bookmark_group.a.oid
-				  target = data.observe_dataset.observation.oid
+				  target = observe_datastream.test.dataset
 				  name   = "Test"
 				}
 				`, randomPrefix),
@@ -79,7 +79,7 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 				  group  = observe_bookmark_group.b.oid
-				  target = data.observe_dataset.observation.oid
+				  target = observe_datastream.test.dataset
 				  name   = "Test"
 				}
 				`, randomPrefix),

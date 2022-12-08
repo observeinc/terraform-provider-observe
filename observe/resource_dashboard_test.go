@@ -41,9 +41,18 @@ func TestAccObserveDashboardCreate(t *testing.T) {
 			},
 			{
 				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "kubernetes" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-kubernetes"
+				}
+
+				locals {
+					kubernetes_dataset_id = regex("^o:::dataset:(\\d+)$", observe_datastream.kubernetes.dataset)[0]
+				}
+
 				resource "observe_dashboard" "first" {
 					workspace        = data.observe_workspace.default.oid
-					name             = "%s"
+					name             = "%[1]s"
 					icon_url         = "test"
 					parameter_values = jsonencode(
 						[
@@ -86,7 +95,7 @@ func TestAccObserveDashboardCreate(t *testing.T) {
 						  "input": [
 							{
 							  "inputName": "kubernetes/Container Logs",
-							  "datasetId": "${data.observe_dataset.observation.id}",
+							  "datasetId": "${local.kubernetes_dataset_id}",
 							  "inputRole": "Data"
 							}
 						  ],
@@ -173,7 +182,7 @@ func TestAccObserveDashboardCreate(t *testing.T) {
 							  {
 								"inputName": "kubernetes/Container Logs",
 								"isUserInput": false,
-								"datasetId": "${data.observe_dataset.observation.id}",
+								"datasetId": "${local.kubernetes_dataset_id}",
 								"inputRole": "Data"
 							  }
 							],

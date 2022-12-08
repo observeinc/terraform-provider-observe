@@ -18,17 +18,17 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// simple case: one input, one stage.
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					inputs = {
-					  	"observation" = data.observe_dataset.observation.oid
+					  	"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-						input    = "observation"
+						input    = "test"
 						pipeline = <<-EOF
 							filter true
 						EOF
@@ -36,33 +36,33 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.observation"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
 
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "icon_url"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
-					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", "observation"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", "test"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", "filter true\n"),
 				),
 			},
 			{
 				// you can elide the stage input if only one input is available
 				// you can update dataset properties
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					icon_url  = "test-tube"
 					freshness = "2m"
 					path_cost = 50
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -80,16 +80,16 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 			},
 			{
 				// change it all back
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
-					name 	  = "%s"
+					name 	  = "%[1]s-1"
 
 					icon_url  = "test-tube"
 					freshness = "2m"
 
 					inputs = {
-					  	"observation" = data.observe_dataset.observation.oid
+					  	"test" = observe_datastream.test.dataset
 					}
 
 					stage {

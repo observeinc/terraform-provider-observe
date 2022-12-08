@@ -8,6 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+var (
+	datastreamConfigPreamble = `
+	resource "observe_datastream" "test" {
+		workspace = data.observe_workspace.default.oid
+		name      = "%[1]s"
+	}`
+)
+
 func TestAccObserveDatastreamCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

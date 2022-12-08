@@ -16,14 +16,14 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 					resource "observe_monitor" "first" {
 						workspace = data.observe_workspace.default.oid
-						name      = "%s"
+						name      = "%[1]s"
 						disabled  = true
 
 						inputs = {
-							"observation" = data.observe_dataset.observation.oid
+							"test" = observe_datastream.test.dataset
 						}
 
 						stage {}
@@ -51,13 +51,13 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 					resource "observe_monitor" "first" {
 						workspace = data.observe_workspace.default.oid
-						name      = "%s"
+						name      = "%[1]s"
 
 						inputs = {
-							"observation" = data.observe_dataset.observation.oid
+							"test" = observe_datastream.test.dataset
 						}
 
 						stage {
@@ -96,13 +96,13 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 					resource "observe_monitor" "first" {
 						workspace = data.observe_workspace.default.oid
 						name      = "%[1]s"
 
 						inputs = {
-							"observation" = data.observe_dataset.observation.oid
+							"test" = observe_datastream.test.dataset
 						}
 
 						stage {}
@@ -128,13 +128,13 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 					resource "observe_monitor" "first" {
 						workspace = data.observe_workspace.default.oid
 						name      = "%[1]s"
 
 						inputs = {
-							"observation" = data.observe_dataset.observation.oid
+							"test" = observe_datastream.test.dataset
 						}
 
 						stage {}

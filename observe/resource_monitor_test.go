@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+var monitorConfigPreamble = configPreamble + datastreamConfigPreamble
+
 func TestAccObserveMonitor(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -16,16 +18,16 @@ func TestAccObserveMonitor(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					freshness = "4m"
 
 					comment = "a descriptive comment"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {}
@@ -43,7 +45,7 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "comment", "a descriptive comment"),
-					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_values.0", "1"),
@@ -53,13 +55,13 @@ func TestAccObserveMonitor(t *testing.T) {
 				),
 			},
 			//			{
-			//				Config: fmt.Sprintf(configPreamble+`
+			//				Config: fmt.Sprintf(monitorConfigPreamble +`
 			//				resource "observe_monitor" "first" {
 			//					workspace = data.observe_workspace.default.oid
-			//					name      = "%s"
+			//					name      = "%[1]s"
 			//
 			//					inputs = {
-			//						"observation" = data.observe_dataset.observation.oid
+			//						"test" = observe_datastream.test.dataset
 			//					}
 			//
 			//					stage {
@@ -88,7 +90,7 @@ func TestAccObserveMonitor(t *testing.T) {
 			//				Check: resource.ComposeTestCheckFunc(
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "stage.0.pipeline"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
 			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.count.0"),
@@ -101,13 +103,13 @@ func TestAccObserveMonitor(t *testing.T) {
 			//				),
 			//			},
 			//			{
-			//				Config: fmt.Sprintf(configPreamble+`
+			//				Config: fmt.Sprintf(monitorConfigPreamble +`
 			//				resource "observe_monitor" "first" {
 			//					workspace = data.observe_workspace.default.oid
-			//					name      = "%s"
+			//					name      = "%[1]s"
 			//
 			//					inputs = {
-			//						"observation" = data.observe_dataset.observation.oid
+			//						"test" = observe_datastream.test.dataset
 			//					}
 			//
 			//					stage {
@@ -134,7 +136,7 @@ func TestAccObserveMonitor(t *testing.T) {
 			//				Check: resource.ComposeTestCheckFunc(
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 			//					resource.TestCheckResourceAttrSet("observe_monitor.first", "stage.0.pipeline"),
 			//					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.source_column", "OBSERVATION_KIND"),
 			//					resource.TestCheckNoResourceAttr("observe_monitor.first", "rule.0.count.0"),
@@ -158,13 +160,13 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -189,7 +191,7 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", "colmake temp_number:14"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "70"),
@@ -201,13 +203,13 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -233,7 +235,7 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
-					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.observation"),
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", "colmake temp_number:14"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "70"),
@@ -256,13 +258,13 @@ func TestAccObserveMonitorFacetUpdate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -293,13 +295,13 @@ func TestAccObserveMonitorFacetUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -340,13 +342,13 @@ func TestAccObserveMonitorFacetCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -387,13 +389,13 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -427,14 +429,14 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					disabled  = true
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -473,14 +475,14 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					disabled  = true
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -525,14 +527,14 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					disabled  = true
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -569,14 +571,14 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 			{
 				// Empty columns var produces no change
 				PlanOnly: true,
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(monitorConfigPreamble+`
 				resource "observe_monitor" "first" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%s"
+					name      = "%[1]s"
 					disabled  = true
 
 					inputs = {
-						"observation" = data.observe_dataset.observation.oid
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {

@@ -15,13 +15,13 @@ func TestAccLayeredSettingRecordCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_layered_setting_record" "first" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%s"
+					name        = "%[1]s"
 					setting     = "Scanner.powerLevel"
 					value_int64 = 9009
-					target      = data.observe_dataset.observation.oid
+					target      = observe_datastream.test.dataset
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_layered_setting_record.first", "name", randomPrefix),

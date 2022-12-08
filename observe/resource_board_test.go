@@ -17,10 +17,10 @@ func TestAccObserveBoardUpdate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_board" "first" {
-					dataset  = data.observe_dataset.observation.oid
-					name     = "%s"
+					dataset  = observe_datastream.test.dataset
+					name     = "%[1]s"
 					type     = "set"
 					json     = "{}"
 				}`, randomPrefix),
@@ -31,10 +31,10 @@ func TestAccObserveBoardUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_board" "first" {
-					dataset  = data.observe_dataset.observation.oid
-					name     = "%s-2"
+					dataset  = observe_datastream.test.dataset
+					name     = "%[1]s-2"
 					type     = "set"
 					json     = jsonencode({
 						sections = {
@@ -65,16 +65,16 @@ func TestAccObserveBoardJSON(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_board" "first" {
-					dataset  = data.observe_dataset.observation.oid
+					dataset  = observe_datastream.test.dataset
 					name     = "%[1]s"
 					type     = "set"
 					json     = "{}"
 				}
 
 				resource "observe_board" "second" {
-					dataset  = data.observe_dataset.observation.oid
+					dataset  = observe_datastream.test.dataset
 					name     = "%[1]s"
 					type     = "set"
 					# on plan, value will be unresolved
