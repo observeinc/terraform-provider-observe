@@ -13,37 +13,37 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("observe_dataset_sweep", &resource.Sweeper{
-		Name: "observe_dataset_sweep",
+	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
+		Name: "observe_dataset",
 		F:    datasetSweeperFunc,
 		Dependencies: []string{
-			"observe_preferred_path_sweep",
+			"observe_preferred_path",
 		},
 	})
-	resource.AddTestSweepers("observe_monitor_sweep", &resource.Sweeper{
-		Name: "observe_monitor_sweep",
+	resource.AddTestSweepers("observe_monitor", &resource.Sweeper{
+		Name: "observe_monitor",
 		F:    monitorSweeperFunc,
 	})
-	resource.AddTestSweepers("observe_poller_sweep", &resource.Sweeper{
-		Name: "observe_poller_sweep",
+	resource.AddTestSweepers("observe_poller", &resource.Sweeper{
+		Name: "observe_poller",
 		F:    pollerSweeperFunc,
 	})
-	resource.AddTestSweepers("observe_datastream_sweep", &resource.Sweeper{
-		Name: "observe_datastream_sweep",
+	resource.AddTestSweepers("observe_datastream", &resource.Sweeper{
+		Name: "observe_datastream",
 		F:    datastreamSweeperFunc,
 		Dependencies: []string{
-			"observe_poller_sweep",
+			"observe_poller",
 		},
 	})
-	resource.AddTestSweepers("observe_folder_sweep", &resource.Sweeper{
-		Name: "observe_folder_sweep",
+	resource.AddTestSweepers("observe_folder", &resource.Sweeper{
+		Name: "observe_folder",
 		F:    folderSweeperFunc,
 		Dependencies: []string{
-			"observe_preferred_path_sweep",
+			"observe_preferred_path",
 		},
 	})
-	resource.AddTestSweepers("observe_preferred_path_sweep", &resource.Sweeper{
-		Name: "observe_preferred_path_sweep",
+	resource.AddTestSweepers("observe_preferred_path", &resource.Sweeper{
+		Name: "observe_preferred_path",
 		F:    preferredPathSweeperFunc,
 	})
 
