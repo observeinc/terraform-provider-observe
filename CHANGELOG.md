@@ -1,3 +1,19 @@
+## 0.13.1 (2022-12-16)
+
+test/sweep: add bookmark sweeper
+make: add docker-sweep target
+rm observe/.client.go.swp
+test/sweepers: simplify names
+Remove dependency on built-in observation dataset
+test/sweep: add sweeper for preferred_paths
+feat: add comment argument to resource_monitor for long form descriptions
+add s/master-periodic
+test/sweep: delete pollers before datastreams
+Rename layered_setting_record files to match resource name
+tests: serialize app tests
+test: use -json to prevent output buffering
+fix: remove datasets from workspace lookup
+
 ## 0.13.0 (2022-11-14)
 
 fix: preferred_path: allow "error" status on read
