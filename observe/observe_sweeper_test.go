@@ -46,7 +46,10 @@ func init() {
 		Name: "observe_preferred_path",
 		F:    preferredPathSweeperFunc,
 	})
-
+	resource.AddTestSweepers("observe_bookmark_group", &resource.Sweeper{
+		Name: "observe_bookmark_group",
+		F:    bookmarkGroupSweeperFunc,
+	})
 }
 
 func sharedClient(s string) (*observe.Client, error) {
@@ -327,6 +330,52 @@ func preferredPathSweeperFunc(s string) error {
 			if prefixRe.MatchString(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeletePreferredPath(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func bookmarkGroupSweeperFunc(s string) error {
+	client, err := sharedClient(s)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query bookmarkGroups($workspaceId: ObjectId!) {
+			searchBookmarkGroups(workspaceIds:[$workspaceId]) {
+				id
+				name
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup bookmark groups: %w", err)
+		}
+
+		for _, i := range result["searchBookmarkGroups"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+			if prefixRe.MatchString(name) {
+				log.Printf("[WARN] Deleting bookmark group %s [id=%s]\n", name, id)
+				// Deleting a bookmark group will delete all bookmarks in it
+				if err := client.DeleteBookmarkGroup(ctx, id); err != nil {
 					return err
 				}
 			}
