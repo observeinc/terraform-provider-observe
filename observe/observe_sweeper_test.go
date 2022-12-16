@@ -50,6 +50,10 @@ func init() {
 		Name: "observe_bookmark_group",
 		F:    bookmarkGroupSweeperFunc,
 	})
+	resource.AddTestSweepers("observe_worksheet", &resource.Sweeper{
+		Name: "observe_worksheet",
+		F:    worksheetSweeperFunc,
+	})
 }
 
 func sharedClient(s string) (*observe.Client, error) {
@@ -376,6 +380,55 @@ func bookmarkGroupSweeperFunc(s string) error {
 				log.Printf("[WARN] Deleting bookmark group %s [id=%s]\n", name, id)
 				// Deleting a bookmark group will delete all bookmarks in it
 				if err := client.DeleteBookmarkGroup(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func worksheetSweeperFunc(s string) error {
+	client, err := sharedClient(s)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query worksheets($workspaceId: ObjectId!) {
+			worksheetSearch(terms: {workspaceId: [$workspaceId]}) {
+				worksheets {
+					worksheet {
+						id
+						name
+					}
+				}
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup worksheets: %w", err)
+		}
+
+		for _, i := range result["worksheetSearch"].(map[string]interface{})["worksheets"].([]interface{}) {
+			var (
+				ws   = i.(map[string]interface{})["worksheet"].(map[string]interface{})
+				id   = ws["id"].(string)
+				name = ws["name"].(string)
+			)
+			if prefixRe.MatchString(name) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
+				if err := client.DeleteWorksheet(ctx, id); err != nil {
 					return err
 				}
 			}
