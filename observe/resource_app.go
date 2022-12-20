@@ -120,9 +120,16 @@ func resourceAppUpdate(ctx context.Context, data *schema.ResourceData, meta inte
 		return diags
 	}
 
-	_, err := client.UpdateApp(ctx, data.Id(), config)
+	result, err := client.UpdateApp(ctx, data.Id(), config)
 	if err != nil {
 		return diag.Errorf("failed to update app: %s", err.Error())
+	}
+
+	if result.Status.State != "Installed" {
+		if errStr := result.Status.InternalError; errStr != nil {
+			return diag.Errorf("failed to update app: %s", *errStr)
+		}
+		return diag.Errorf("failed to update app")
 	}
 
 	return append(diags, resourceAppRead(ctx, data, meta)...)
