@@ -859,6 +859,9 @@ func (c *Client) CreatePreferredPath(ctx context.Context, workspaceId string, in
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	resultWithStatus, err := c.Meta.CreatePreferredPath(ctx, workspaceId, input)
 	if err != nil {
 		return nil, err
@@ -874,6 +877,9 @@ func (c *Client) UpdatePreferredPath(ctx context.Context, id string, input *meta
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
 	}
 	resultWithStatus, err := c.Meta.UpdatePreferredPath(ctx, id, input)
 	if err != nil {
