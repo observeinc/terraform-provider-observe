@@ -18,6 +18,7 @@ func init() {
 		F:    datasetSweeperFunc,
 		Dependencies: []string{
 			"observe_preferred_path",
+			"observe_datastream",
 		},
 	})
 	resource.AddTestSweepers("observe_monitor", &resource.Sweeper{
