@@ -28,6 +28,11 @@ docker-sweep:
 	--rm golang:latest \
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make sweep"
 
+docker-check-generated:
+	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	--rm golang:latest \
+		/bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && go generate ./... && git diff --exit-code"
+
 docker-package:
 	docker run --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
@@ -60,7 +65,7 @@ copy-gql-schema:
 	rm client/internal/meta/schema/*.graphql
 	cp -pRd "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
 
-generate: gen-gql-client
+generate: gen-gql-client docs
 
 package: build
 	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
@@ -107,7 +112,7 @@ test-compile:
 	go test -c $(TEST) $(TESTARGS)
 
 docs:
-	tfplugindocs generate
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate
 
 docs-sync: docs
 	rsync -av \

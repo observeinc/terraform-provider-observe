@@ -25,11 +25,13 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
-- `description` (String) Monitor description.
+- `comment` (String) A long-form comment describing the content of the monitor.
+- `description` (String) A brief description of the monitor.
 - `disabled` (Boolean) Set to `true` to disable monitor.
 - `freshness` (String) Target freshness for results. Reducing the freshness will increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+- `is_template` (Boolean) This resource is template for creating new monitors
 - `notification_spec` (Block List, Max: 1) (see [below for nested schema](#nestedblock--notification_spec))
 
 ### Read-Only

@@ -39,7 +39,6 @@ One of `id` or `name` must be provided
 
 ### Read-Only
 
-- `datasets` (Map of String)
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
 

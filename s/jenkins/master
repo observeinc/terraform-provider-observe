@@ -6,6 +6,7 @@ dirty_tree() {
   [[ $(git status --porcelain=v1 2>/dev/null | wc -l) != 0 ]]
 }
 
+make docker-check-generated
 make docker-test-gen-gql-client docker-integration
 
 git update-index -q --refresh

@@ -31,11 +31,10 @@ description: |-
 <a id="nestedblock--step"></a>
 ### Nested Schema for `step`
 
-Required:
-
-- `link` (String)
-
 Optional:
 
+- `link` (String)
+- `link_label` (String)
 - `reverse` (Boolean)
+- `reverse_from` (String)
 

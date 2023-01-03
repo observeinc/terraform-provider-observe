@@ -32,7 +32,6 @@ resource "observe_workspace" "default" {
 
 ### Read-Only
 
-- `datasets` (Map of String)
 - `id` (String) Resource ID for this object.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
