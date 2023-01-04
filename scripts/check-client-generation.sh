@@ -12,7 +12,8 @@ dirty_tree() {
 # multiple operations
 # This can be removed once https://github.com/Khan/genqlient/issues/123 is addressed
 for _ in {1..30}; do
-  make gen-gql-client
+  go generate ./client/meta
+
   if dirty_tree; then
     cat 1>&2 << EOF
 *** BUILD WILL FAIL: GQL client generation has created a dirty tree; this indicates that \

@@ -57,15 +57,13 @@ docker-sign:
 			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
-gen-gql-client:
-	cd client/meta && GOOS= GOARCH= go run -mod=mod github.com/Khan/genqlient
-
 copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm client/internal/meta/schema/*.graphql
 	cp -pRd "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
 
-generate: gen-gql-client docs
+generate:
+	go generate ./...
 
 package: build
 	cd bin/$(VERSION); zip -mgq terraform-provider-observe_$(VERSION)_$(GOOS)_$(GOARCH).zip terraform-provider-observe_$(VERSION)
@@ -111,10 +109,7 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-docs:
-	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate
-
-docs-sync: docs
+docs-sync: generate
 	rsync -av \
 		--include="index.md" \
 		--include="*/" \
