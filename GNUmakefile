@@ -121,6 +121,6 @@ docs-sync: generate
 		--include="data-sources/workspace.md" \
 		--exclude="*" \
 		docs/ \
-		$(OBSERVE_DOCS)/docs/content/terraform/generated
+		$(OBSERVE_DOCS_ROOT)/docs/content/terraform/generated
 
 .PHONY: build generate test sweep testacc vet fmt fmtcheck errcheck test-compile docs
