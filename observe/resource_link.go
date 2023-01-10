@@ -129,7 +129,14 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 
 	link, err := client.GetForeignKey(ctx, data.Id())
 	if err != nil {
-		return diag.Errorf("failed to read foreign key: %s", err.Error())
+		if link == nil {
+			return diag.Errorf("failed to read link: %s", err.Error())
+		}
+
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  err.Error(),
+		})
 	}
 
 	var fields []string

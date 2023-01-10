@@ -288,3 +288,76 @@ func TestLinkSuppression(t *testing.T) {
 		},
 	})
 }
+
+func TestAccOB5629(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			// Create a normal link
+			{
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
+					workspace = data.observe_workspace.default.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key:key"]
+					label     = "%[1]s"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_link.example", "workspace"),
+					resource.TestCheckResourceAttr("observe_link.example", "fields.0", "key"),
+					resource.TestCheckResourceAttr("observe_link.example", "label", randomPrefix),
+				),
+			},
+			// Change the link so it returns an error status. Expect an error when a link is updated.
+			{
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
+					workspace = data.observe_workspace.default.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key:notexist"]
+					label     = "%[1]s"
+				}
+				`, randomPrefix),
+				ExpectError: regexp.MustCompile(`.*failed to update foreign key: The field "notexist" is not present in the dataset.*`),
+			},
+			// Reapply the link. Expect no diff and for the fields to have been updated.
+			// Expect no error when this happens, otherwise a user can't update a erroring link.
+			// Display a warning when a link with an error status is read (not checked below).
+			{
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
+					workspace = data.observe_workspace.default.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key:notexist"]
+					label     = "%[1]s"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_link.example", "fields.0", "key:notexist"),
+				),
+			},
+			// Update the link with an error status. Expect no error, otherwise a user can't update a erroring link.
+			{
+				Config: fmt.Sprintf(linkConfigPreamble+`
+				resource "observe_link" "example" {
+					workspace = data.observe_workspace.default.oid
+					source    = observe_dataset.a.oid
+					target    = observe_dataset.b.oid
+					fields    = ["key:key"]
+					label     = "%[1]s"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_link.example", "fields.0", "key"),
+				),
+			},
+		},
+	})
+}

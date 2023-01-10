@@ -109,14 +109,13 @@ func (c *Client) CreateForeignKey(ctx context.Context, workspaceID string, input
 	}
 	result, err := c.Meta.CreateDeferredForeignKey(ctx, workspaceID, input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create link: %w", err)
 	}
 
 	if result.Status.ErrorText != "" {
-		// call internal API directly since DeleteForeignKey() acquires lock
-		c.Meta.DeleteDeferredForeignKey(ctx, result.Id)
-		return nil, fmt.Errorf(result.Status.ErrorText)
+		return result, errors.New(result.Status.ErrorText)
 	}
+
 	return result, nil
 }
 
@@ -131,18 +130,27 @@ func (c *Client) UpdateForeignKey(ctx context.Context, id string, input *meta.De
 	}
 	result, err := c.Meta.UpdateDeferredForeignKey(ctx, id, input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to update link: %w", err)
 	}
 
 	if result.Status.ErrorText != "" {
-		return nil, fmt.Errorf(result.Status.ErrorText)
+		return result, errors.New(result.Status.ErrorText)
 	}
 	return result, nil
 }
 
 // GetForeignKey returns deferred foreign key
 func (c *Client) GetForeignKey(ctx context.Context, id string) (*meta.DeferredForeignKey, error) {
-	return c.Meta.GetDeferredForeignKey(ctx, id)
+	result, err := c.Meta.GetDeferredForeignKey(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get link: %w", err)
+	}
+
+	if result.Status.ErrorText != "" {
+		return result, fmt.Errorf("link has an error status: %s", result.Status.ErrorText)
+	}
+
+	return result, nil
 }
 
 // LookupForeignKey by source, target and fields
