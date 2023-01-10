@@ -2406,10 +2406,12 @@ func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { retu
 
 // Monitor includes the GraphQL fields of Monitor requested by the fragment Monitor.
 type Monitor struct {
-	WorkspaceId         string            `json:"workspaceId"`
-	Id                  string            `json:"id"`
-	Name                string            `json:"name"`
-	Description         string            `json:"description"`
+	WorkspaceId string `json:"workspaceId"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// Static comment for extra information about a monitor available in notification template.
+	Comment             *string           `json:"comment"`
 	IconUrl             string            `json:"iconUrl"`
 	Disabled            bool              `json:"disabled"`
 	FreshnessGoal       types.Int64Scalar `json:"freshnessGoal"`
@@ -2434,6 +2436,9 @@ func (v *Monitor) GetName() string { return v.Name }
 
 // GetDescription returns Monitor.Description, and is useful for accessing the field via an interface.
 func (v *Monitor) GetDescription() string { return v.Description }
+
+// GetComment returns Monitor.Comment, and is useful for accessing the field via an interface.
+func (v *Monitor) GetComment() *string { return v.Comment }
 
 // GetIconUrl returns Monitor.IconUrl, and is useful for accessing the field via an interface.
 func (v *Monitor) GetIconUrl() string { return v.IconUrl }
@@ -2506,6 +2511,8 @@ type __premarshalMonitor struct {
 
 	Description string `json:"description"`
 
+	Comment *string `json:"comment"`
+
 	IconUrl string `json:"iconUrl"`
 
 	Disabled bool `json:"disabled"`
@@ -2540,6 +2547,7 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 	retval.Id = v.Id
 	retval.Name = v.Name
 	retval.Description = v.Description
+	retval.Comment = v.Comment
 	retval.IconUrl = v.IconUrl
 	retval.Disabled = v.Disabled
 	retval.FreshnessGoal = v.FreshnessGoal
@@ -8114,6 +8122,7 @@ fragment Monitor on Monitor {
 	id
 	name
 	description
+	comment
 	iconUrl
 	disabled
 	freshnessGoal
@@ -10131,6 +10140,7 @@ fragment Monitor on Monitor {
 	id
 	name
 	description
+	comment
 	iconUrl
 	disabled
 	freshnessGoal
@@ -10916,6 +10926,7 @@ fragment Monitor on Monitor {
 	id
 	name
 	description
+	comment
 	iconUrl
 	disabled
 	freshnessGoal
@@ -12113,6 +12124,7 @@ fragment Monitor on Monitor {
 	id
 	name
 	description
+	comment
 	iconUrl
 	disabled
 	freshnessGoal

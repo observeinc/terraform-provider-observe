@@ -3,6 +3,7 @@ fragment Monitor on Monitor {
 	id
 	name
 	description
+	comment
 	iconUrl
 	disabled
 	freshnessGoal

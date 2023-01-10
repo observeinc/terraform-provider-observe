@@ -53,6 +53,11 @@ func dataSourceMonitor() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("monitor", "schema", "description"),
 			},
+			"comment": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor", "schema", "comment"),
+			},
 			"disabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
