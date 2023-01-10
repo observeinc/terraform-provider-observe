@@ -16,7 +16,7 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-var validPollerKinds = []string{
+var pollerBlockTypes = []string{
 	"pubsub",
 	"http",
 	"gcp_monitoring",
@@ -143,7 +143,7 @@ func resourcePoller() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: validPollerKinds,
+				ExactlyOneOf: pollerBlockTypes,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"project_id": {
@@ -167,7 +167,7 @@ func resourcePoller() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: validPollerKinds,
+				ExactlyOneOf: pollerBlockTypes,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"method": {
@@ -254,7 +254,7 @@ func resourcePoller() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: validPollerKinds,
+				ExactlyOneOf: pollerBlockTypes,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"project_id": {
@@ -292,7 +292,7 @@ func resourcePoller() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: validPollerKinds,
+				ExactlyOneOf: pollerBlockTypes,
 				RequiredWith: []string{"interval"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -499,6 +499,9 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		}
 	}
 	if err := data.Set("oid", poller.Oid().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := data.Set("kind", poller.Kind); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

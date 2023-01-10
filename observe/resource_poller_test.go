@@ -49,6 +49,7 @@ func TestAccObservePoller(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),
 					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
@@ -103,6 +104,7 @@ func TestAccObservePoller(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
@@ -185,6 +187,7 @@ func TestAccObservePoller(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "gcp"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-gcp"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "GCPMonitoring"),
 					resource.TestCheckResourceAttr("observe_poller.first", "retries", "5"),
 					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
 					resource.TestCheckResourceAttr("observe_poller.first", "tags.k2", "v2"),
@@ -234,6 +237,7 @@ func TestAccObservePollerMongoDB(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "MongoDBAtlas"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "tags.k1", "v1"),
 					resource.TestCheckResourceAttr("observe_poller.first", "tags.k2", "v2"),
@@ -319,6 +323,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
@@ -368,6 +373,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
@@ -425,6 +431,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.#", "0"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
