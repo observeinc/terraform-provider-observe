@@ -13,6 +13,7 @@ import (
 
 func resourceDashboardLink() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a link between two dashboards, optionally for a specific card. This feature is in development and dashboard links are not yet displayed in the UI.",
 		CreateContext: resourceDashboardLinkCreate,
 		ReadContext:   resourceDashboardLinkRead,
 		UpdateContext: resourceDashboardLinkUpdate,

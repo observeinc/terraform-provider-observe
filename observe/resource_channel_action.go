@@ -14,6 +14,7 @@ import (
 
 func resourceChannelAction() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a channel action, which adds a notification template to the specified channel. Channel actions are used to configure delivery for monitor alerts.",
 		CreateContext: resourceChannelActionCreate,
 		ReadContext:   resourceChannelActionRead,
 		UpdateContext: resourceChannelActionUpdate,

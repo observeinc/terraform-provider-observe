@@ -3,12 +3,12 @@
 page_title: "observe_default_dashboard Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches the default dashboard OID for the specified dataset.
 ---
 
 # observe_default_dashboard (Data Source)
 
-
+Fetches the default dashboard OID for the specified dataset.
 
 
 

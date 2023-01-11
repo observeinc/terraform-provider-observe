@@ -11,6 +11,7 @@ import (
 
 func dataSourceWorksheet() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches metadata for an existing Observe worksheet.",
 		ReadContext: dataSourceWorksheetRead,
 		Schema: map[string]*schema.Schema{
 			"workspace": {

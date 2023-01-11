@@ -37,6 +37,7 @@ func requestResourceRegex() *schema.Resource {
 
 func requestResource() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages a poller, which configures Observe to pull data from a remote source.",
 		Schema: map[string]*schema.Schema{
 			"url": {
 				Type:     schema.TypeString,

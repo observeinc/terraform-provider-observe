@@ -3,12 +3,12 @@
 page_title: "observe_worksheet Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches metadata for an existing Observe worksheet.
 ---
 
 # observe_worksheet (Data Source)
 
-
+Fetches metadata for an existing Observe worksheet.
 
 
 

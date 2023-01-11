@@ -3,12 +3,12 @@
 page_title: "observe_app Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches data for an installed Observe app.
 ---
 
 # observe_app (Data Source)
 
-
+Fetches data for an installed Observe app.
 
 
 

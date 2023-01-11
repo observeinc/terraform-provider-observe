@@ -14,6 +14,7 @@ import (
 )
 
 var sourceDatasetFieldResource = &schema.Resource{
+	Description: "Manages a source dataset directly, including low level Snowflake configuration like the table name. This is an advanced resource. In most cases, you should use a datastream instead.",
 	Schema: map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,

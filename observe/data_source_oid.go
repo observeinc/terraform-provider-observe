@@ -11,6 +11,8 @@ import (
 
 func dataSourceOID() *schema.Resource {
 	return &schema.Resource{
+		Description: "Parses or formats an Observe OID. To parse an OID, only set the `oid` attribute. To format an OID, set the `type`, `id`, and optionally the `version` attributes. This is a logical data source and does not make any API calls.",
+
 		ReadContext: dataSourceOIDRead,
 
 		Schema: map[string]*schema.Schema{

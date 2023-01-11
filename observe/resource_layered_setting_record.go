@@ -14,6 +14,7 @@ import (
 
 func resourceLayeredSettingRecord() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Managed a layered setting record. Layered settings can be used to set configurable parameters at different levels, including specific objects, workspaces, or customers.",
 		CreateContext: resourceLayeredSettingRecordCreate,
 		ReadContext:   resourceLayeredSettingRecordRead,
 		UpdateContext: resourceLayeredSettingRecordUpdate,

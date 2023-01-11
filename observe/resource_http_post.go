@@ -15,6 +15,7 @@ import (
 
 func resourceHTTPPost() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Submits a single observation to Observe. This resource should be considered experimental.",
 		CreateContext: resourceHTTPPostCreate,
 		ReadContext:   resourceNoop,
 		DeleteContext: resourceNoop,

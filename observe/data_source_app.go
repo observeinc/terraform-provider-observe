@@ -12,6 +12,7 @@ import (
 
 func dataSourceApp() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches data for an installed Observe app.",
 		ReadContext: dataSourceAppRead,
 		Schema: map[string]*schema.Schema{
 			"folder": {

@@ -13,6 +13,7 @@ import (
 
 func resourceChannel() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a channel, which specifies a set of monitors for which notifications will be delivered.",
 		CreateContext: resourceChannelCreate,
 		ReadContext:   resourceChannelRead,
 		UpdateContext: resourceChannelUpdate,

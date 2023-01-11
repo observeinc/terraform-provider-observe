@@ -22,6 +22,7 @@ const (
 
 func resourceBookmarkGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a bookmark group.",
 		CreateContext: resourceBookmarkGroupCreate,
 		ReadContext:   resourceBookmarkGroupRead,
 		UpdateContext: resourceBookmarkGroupUpdate,

@@ -24,7 +24,7 @@ const (
 
 func resourceWorksheet() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "Manages an worksheet. Worksheets are used for ad-hoc analysis of datasets.",
 		CreateContext: resourceWorksheetCreate,
 		ReadContext:   resourceWorksheetRead,
 		UpdateContext: resourceWorksheetUpdate,

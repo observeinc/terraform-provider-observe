@@ -10,6 +10,7 @@ import (
 
 func dataSourceDashboard() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches data for an existing Observe dashboard.",
 		ReadContext: dataSourceDashboardRead,
 		Schema: map[string]*schema.Schema{
 			"id": {

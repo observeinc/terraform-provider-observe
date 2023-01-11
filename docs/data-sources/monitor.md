@@ -3,12 +3,12 @@
 page_title: "observe_monitor Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Observe monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
+  Monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
 ---
 
 # observe_monitor (Data Source)
 
-Observe monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
+Monitors provide a flexible way to alert for patterns in your incoming data. A monitor executes a query periodically and applies rules to determine whether to trigger notifications. Notifications are forwarded to subscribed channels, which in turn route notifications to configured channel actions.
 
 
 

@@ -13,6 +13,7 @@ import (
 
 func resourceFolder() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a folder. Folders are used to group other resources together. This resource is still in development and is not yet reflected in the UI.",
 		CreateContext: resourceFolderCreate,
 		UpdateContext: resourceFolderUpdate,
 		ReadContext:   resourceFolderRead,

@@ -3,11 +3,11 @@
 page_title: "observe_dataset Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  An description
+  Manages an Observe dataset. User-defined datasets take a datastream's dataset and transform its data using OPAL.
 ---
 # observe_dataset
 
-An description
+Manages an Observe dataset. User-defined datasets take a datastream's dataset and transform its data using OPAL.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {

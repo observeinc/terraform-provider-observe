@@ -14,6 +14,7 @@ import (
 
 func resourceApp() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Installs an Observe App. Each app can only be installed once per workspace.",
 		CreateContext: resourceAppCreate,
 		UpdateContext: resourceAppUpdate,
 		ReadContext:   resourceAppRead,

@@ -13,6 +13,8 @@ import (
 
 func dataSourceFolder() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches data for an existing Observe folder.",
+
 		ReadContext: dataSourceFolderRead,
 
 		Schema: map[string]*schema.Schema{

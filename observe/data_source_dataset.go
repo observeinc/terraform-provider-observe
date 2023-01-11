@@ -14,6 +14,7 @@ import (
 
 func dataSourceDataset() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches metadata for an existing Observe dataset.",
 		ReadContext: dataSourceDatasetRead,
 		Schema: map[string]*schema.Schema{
 			"workspace": {

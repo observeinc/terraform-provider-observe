@@ -3,12 +3,12 @@
 page_title: "observe_datastream Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches metadata for an existing Observe datastream.
 ---
 
 # observe_datastream (Data Source)
 
-
+Fetches metadata for an existing Observe datastream.
 
 
 

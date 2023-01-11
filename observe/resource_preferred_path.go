@@ -14,6 +14,7 @@ import (
 
 func resourcePreferredPath() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a preferred path. A preferred path specifies useful dataset relationships, optionally passing through multiple links. Preferred paths will be suggested in the UI when using GraphLink.",
 		CreateContext: resourcePreferredPathCreate,
 		ReadContext:   resourcePreferredPathRead,
 		UpdateContext: resourcePreferredPathUpdate,

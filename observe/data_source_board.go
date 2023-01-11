@@ -11,6 +11,9 @@ import (
 
 func dataSourceBoard() *schema.Resource {
 	return &schema.Resource{
+		Description:        "Fetches data for an existing Observe board.",
+		DeprecationMessage: "Boards have been deprecated in favor of dashboards.",
+
 		ReadContext: dataSourceBoardRead,
 
 		Schema: map[string]*schema.Schema{

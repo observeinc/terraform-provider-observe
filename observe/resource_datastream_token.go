@@ -22,7 +22,7 @@ const (
 
 func resourceDatastreamToken() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "Manages a token for a datastream. This token can be used when sending data to Observe, which will be directed into the datastream's dataset.",
 		CreateContext: resourceDatastreamTokenCreate,
 		ReadContext:   resourceDatastreamTokenRead,
 		UpdateContext: resourceDatastreamTokenUpdate,

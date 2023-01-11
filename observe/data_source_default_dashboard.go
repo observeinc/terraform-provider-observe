@@ -11,6 +11,8 @@ import (
 
 func dataSourceDefaultDashboard() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches the default dashboard OID for the specified dataset.",
+
 		ReadContext: dataSourceDefaultDashboardRead,
 
 		Schema: map[string]*schema.Schema{

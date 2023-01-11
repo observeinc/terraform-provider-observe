@@ -23,10 +23,12 @@ const (
 
 func resourceBoard() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBoardCreate,
-		ReadContext:   resourceBoardRead,
-		UpdateContext: resourceBoardUpdate,
-		DeleteContext: resourceBoardDelete,
+		Description:        "Manages an Observe board.",
+		DeprecationMessage: "Boards have been deprecated in favor of dashboards, which can define their own stages for futher processing of datasets.",
+		CreateContext:      resourceBoardCreate,
+		ReadContext:        resourceBoardRead,
+		UpdateContext:      resourceBoardUpdate,
+		DeleteContext:      resourceBoardDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

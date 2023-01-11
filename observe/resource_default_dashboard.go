@@ -12,6 +12,7 @@ import (
 
 func resourceDefaultDashboard() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages the default dashboard for a dataset. This will be displayed in the UI when opening the dataset.",
 		CreateContext: resourceDefaultDashboardSet,
 		UpdateContext: resourceDefaultDashboardSet,
 		ReadContext:   resourceDefaultDashboardRead,

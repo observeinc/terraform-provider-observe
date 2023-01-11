@@ -3,12 +3,12 @@
 page_title: "observe_oid Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Parses or formats an Observe OID. To parse an OID, only set the oid attribute. To format an OID, set the type, id, and optionally the version attributes. This is a logical data source and does not make any API calls.
 ---
 
 # observe_oid (Data Source)
 
-
+Parses or formats an Observe OID. To parse an OID, only set the `oid` attribute. To format an OID, set the `type`, `id`, and optionally the `version` attributes. This is a logical data source and does not make any API calls.
 
 
 

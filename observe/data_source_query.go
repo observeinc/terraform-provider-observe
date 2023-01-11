@@ -17,6 +17,8 @@ import (
 
 func dataSourceQuery() *schema.Resource {
 	return &schema.Resource{
+		Description: "Queries data stored in Observe and returns the results.",
+
 		ReadContext: dataSourceQueryRead,
 
 		Schema: map[string]*schema.Schema{

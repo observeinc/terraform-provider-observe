@@ -13,6 +13,7 @@ import (
 
 func dataSourceDatastream() *schema.Resource {
 	return &schema.Resource{
+		Description: "Fetches metadata for an existing Observe datastream.",
 		ReadContext: dataSourceDatastreamRead,
 		Schema: map[string]*schema.Schema{
 			"workspace": {

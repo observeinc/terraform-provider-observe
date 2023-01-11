@@ -3,12 +3,12 @@
 page_title: "observe_dataset Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches metadata for an existing Observe dataset.
 ---
 
 # observe_dataset (Data Source)
 
-
+Fetches metadata for an existing Observe dataset.
 
 
 

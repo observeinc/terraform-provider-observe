@@ -12,13 +12,14 @@ import (
 
 func dataSourceTerraform() *schema.Resource {
 	return &schema.Resource{
+		Description: "Generates Terraform configuration for a given resource in Observe. Datasets, monitors, and dashboards are supported.",
 		ReadContext: dataSourceTerraformRead,
 		Schema: map[string]*schema.Schema{
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeMonitor, oid.TypeDashboard),
-				Description:      schemaDatasetOIDDescription,
+				Description:      "The OID of the target object, for which Terraform configuration will be generated. This can be a dataset, monitor, or dashboard.",
 			},
 			"resource": {
 				Type:     schema.TypeString,

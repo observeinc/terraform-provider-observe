@@ -3,12 +3,12 @@
 page_title: "observe_folder Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches data for an existing Observe folder.
 ---
 
 # observe_folder (Data Source)
 
-
+Fetches data for an existing Observe folder.
 
 
 

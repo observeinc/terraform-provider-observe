@@ -1,5 +1,5 @@
 description: |
-  An description
+  Manages an Observe dataset. User-defined datasets take a datastream's dataset and transform its data using OPAL.
 schema:
   name: |
     Dataset name. Must be unique within workspace.

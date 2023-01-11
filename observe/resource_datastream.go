@@ -23,7 +23,7 @@ const (
 
 func resourceDatastream() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "Manages a datastream. A datastream represents a source of data being ingested into Observe.",
 		CreateContext: resourceDatastreamCreate,
 		ReadContext:   resourceDatastreamRead,
 		UpdateContext: resourceDatastreamUpdate,

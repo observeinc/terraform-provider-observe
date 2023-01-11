@@ -28,7 +28,7 @@ const (
 
 func resourceDashboard() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "Manages an Observe dashboard, which predefines visualizations of Observe data in a grid of cards.",
 		CreateContext: resourceDashboardCreate,
 		ReadContext:   resourceDashboardRead,
 		UpdateContext: resourceDashboardUpdate,

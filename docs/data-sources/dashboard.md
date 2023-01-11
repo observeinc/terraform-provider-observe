@@ -3,12 +3,12 @@
 page_title: "observe_dashboard Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Fetches data for an existing Observe dashboard.
 ---
 
 # observe_dashboard (Data Source)
 
-
+Fetches data for an existing Observe dashboard.
 
 
 

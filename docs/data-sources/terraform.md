@@ -3,12 +3,12 @@
 page_title: "observe_terraform Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Generates Terraform configuration for a given resource in Observe. Datasets, monitors, and dashboards are supported.
 ---
 
 # observe_terraform (Data Source)
 
-
+Generates Terraform configuration for a given resource in Observe. Datasets, monitors, and dashboards are supported.
 
 
 
@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `target` (String) The Observe ID for dataset.
+- `target` (String) The OID of the target object, for which Terraform configuration will be generated. This can be a dataset, monitor, or dashboard.
 
 ### Read-Only
 

@@ -3,12 +3,12 @@
 page_title: "observe_query Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Queries data stored in Observe and returns the results.
 ---
 
 # observe_query (Data Source)
 
-
+Queries data stored in Observe and returns the results.
 
 
 
