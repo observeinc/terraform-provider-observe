@@ -160,13 +160,15 @@ func Provider() *schema.Provider {
 	// userAgent to create the client, and we need the provider to get
 	// userAgent. So we create provider, grab userAgent, and finally attach the
 	// ConfigureContextFunc.
-	userAgent := provider.UserAgent("terraform-provider-observe", version.ProviderVersion)
+	userAgent := func() string {
+		return provider.UserAgent("terraform-provider-observe", version.ProviderVersion)
+	}
 
 	provider.ConfigureContextFunc = getConfigureContextFunc(userAgent)
 	return provider
 }
 
-func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
+func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFunc {
 
 	// configure call is often called multiple times for same provider config,
 	// causing poor reuse of underlying HTTP client. If provider config doesn't
@@ -174,10 +176,11 @@ func getConfigureContextFunc(userAgent string) schema.ConfigureContextFunc {
 	var cachedClients sync.Map
 
 	return func(ctx context.Context, data *schema.ResourceData) (client interface{}, diags diag.Diagnostics) {
+		ua := userAgent()
 		config := &observe.Config{
 			CustomerID: data.Get("customer").(string),
 			Domain:     data.Get("domain").(string),
-			UserAgent:  &userAgent,
+			UserAgent:  &ua,
 			RetryCount: data.Get("retry_count").(int),
 		}
 
