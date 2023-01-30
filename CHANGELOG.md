@@ -1,3 +1,23 @@
+## 0.13.2 (2023-01-30)
+
+fix: Terraform CLI version in user-agent header
+docs: add missing descriptions to resources
+make: fix variable name for docs repo
+monitor: implement `comment` field for data/import
+fix: warn about observe_link status error
+poller: implement `kind` attribute
+make: remove generate before build
+test: remove custom terraform installer
+docs: remove outdated example
+client: handle GraphQL generation via go generate
+make: remove broken website targets
+sweep: remove datastreams before datasets
+docs: go generate, fail on diff
+make: build static binary without cgo
+feat: Added support for ManagedById to PreferredPath
+fix: surface error on update app
+test/sweep: add worksheet sweeper
+
 ## 0.13.1 (2022-12-16)
 
 test/sweep: add bookmark sweeper
