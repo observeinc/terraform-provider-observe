@@ -977,124 +977,22 @@ func (v *DashboardLinkInput) GetLinkLabel() string { return v.LinkLabel }
 
 // DashboardParameterValuesParameterBinding includes the requested fields of the GraphQL type ParameterBinding.
 type DashboardParameterValuesParameterBinding struct {
-	Id    string                                        `json:"id"`
-	Value DashboardParameterValuesParameterBindingValue `json:"value"`
+	Id    string           `json:"id"`
+	Value types.JsonObject `json:"value"`
 }
 
 // GetId returns DashboardParameterValuesParameterBinding.Id, and is useful for accessing the field via an interface.
 func (v *DashboardParameterValuesParameterBinding) GetId() string { return v.Id }
 
 // GetValue returns DashboardParameterValuesParameterBinding.Value, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBinding) GetValue() DashboardParameterValuesParameterBindingValue {
-	return v.Value
-}
-
-// DashboardParameterValuesParameterBindingValue includes the requested fields of the GraphQL type Value.
-type DashboardParameterValuesParameterBindingValue struct {
-	valueFields `json:"-"`
-}
-
-// GetBool returns DashboardParameterValuesParameterBindingValue.Bool, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetBool() *bool { return v.valueFields.Bool }
-
-// GetFloat64 returns DashboardParameterValuesParameterBindingValue.Float64, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetFloat64() *float64 {
-	return v.valueFields.Float64
-}
-
-// GetInt64 returns DashboardParameterValuesParameterBindingValue.Int64, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetInt64() *types.Int64Scalar {
-	return v.valueFields.Int64
-}
-
-// GetString returns DashboardParameterValuesParameterBindingValue.String, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetString() *string {
-	return v.valueFields.String
-}
-
-// GetArray returns DashboardParameterValuesParameterBindingValue.Array, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetArray() *valueFieldsArrayValueArray {
-	return v.valueFields.Array
-}
-
-// GetLink returns DashboardParameterValuesParameterBindingValue.Link, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetLink() *valueFieldsLinkValueLink {
-	return v.valueFields.Link
-}
-
-// GetDatasetref returns DashboardParameterValuesParameterBindingValue.Datasetref, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBindingValue) GetDatasetref() *valueFieldsDatasetrefValueDatasetref {
-	return v.valueFields.Datasetref
-}
-
-func (v *DashboardParameterValuesParameterBindingValue) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*DashboardParameterValuesParameterBindingValue
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.DashboardParameterValuesParameterBindingValue = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.valueFields)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalDashboardParameterValuesParameterBindingValue struct {
-	Bool *bool `json:"bool"`
-
-	Float64 *float64 `json:"float64"`
-
-	Int64 *types.Int64Scalar `json:"int64"`
-
-	String *string `json:"string"`
-
-	Array *valueFieldsArrayValueArray `json:"array"`
-
-	Link *valueFieldsLinkValueLink `json:"link"`
-
-	Datasetref *valueFieldsDatasetrefValueDatasetref `json:"datasetref"`
-}
-
-func (v *DashboardParameterValuesParameterBindingValue) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *DashboardParameterValuesParameterBindingValue) __premarshalJSON() (*__premarshalDashboardParameterValuesParameterBindingValue, error) {
-	var retval __premarshalDashboardParameterValuesParameterBindingValue
-
-	retval.Bool = v.valueFields.Bool
-	retval.Float64 = v.valueFields.Float64
-	retval.Int64 = v.valueFields.Int64
-	retval.String = v.valueFields.String
-	retval.Array = v.valueFields.Array
-	retval.Link = v.valueFields.Link
-	retval.Datasetref = v.valueFields.Datasetref
-	return &retval, nil
-}
+func (v *DashboardParameterValuesParameterBinding) GetValue() types.JsonObject { return v.Value }
 
 // DashboardParametersParameterSpec includes the requested fields of the GraphQL type ParameterSpec.
 type DashboardParametersParameterSpec struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	// optional default value
-	DefaultValue *DashboardParametersParameterSpecDefaultValue          `json:"defaultValue"`
+	DefaultValue *types.JsonObject                                      `json:"defaultValue"`
 	ValueKind    DashboardParametersParameterSpecValueKindValueTypeSpec `json:"valueKind"`
 }
 
@@ -1105,113 +1003,11 @@ func (v *DashboardParametersParameterSpec) GetId() string { return v.Id }
 func (v *DashboardParametersParameterSpec) GetName() string { return v.Name }
 
 // GetDefaultValue returns DashboardParametersParameterSpec.DefaultValue, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpec) GetDefaultValue() *DashboardParametersParameterSpecDefaultValue {
-	return v.DefaultValue
-}
+func (v *DashboardParametersParameterSpec) GetDefaultValue() *types.JsonObject { return v.DefaultValue }
 
 // GetValueKind returns DashboardParametersParameterSpec.ValueKind, and is useful for accessing the field via an interface.
 func (v *DashboardParametersParameterSpec) GetValueKind() DashboardParametersParameterSpecValueKindValueTypeSpec {
 	return v.ValueKind
-}
-
-// DashboardParametersParameterSpecDefaultValue includes the requested fields of the GraphQL type Value.
-type DashboardParametersParameterSpecDefaultValue struct {
-	valueFields `json:"-"`
-}
-
-// GetBool returns DashboardParametersParameterSpecDefaultValue.Bool, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetBool() *bool { return v.valueFields.Bool }
-
-// GetFloat64 returns DashboardParametersParameterSpecDefaultValue.Float64, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetFloat64() *float64 {
-	return v.valueFields.Float64
-}
-
-// GetInt64 returns DashboardParametersParameterSpecDefaultValue.Int64, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetInt64() *types.Int64Scalar {
-	return v.valueFields.Int64
-}
-
-// GetString returns DashboardParametersParameterSpecDefaultValue.String, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetString() *string {
-	return v.valueFields.String
-}
-
-// GetArray returns DashboardParametersParameterSpecDefaultValue.Array, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetArray() *valueFieldsArrayValueArray {
-	return v.valueFields.Array
-}
-
-// GetLink returns DashboardParametersParameterSpecDefaultValue.Link, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetLink() *valueFieldsLinkValueLink {
-	return v.valueFields.Link
-}
-
-// GetDatasetref returns DashboardParametersParameterSpecDefaultValue.Datasetref, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpecDefaultValue) GetDatasetref() *valueFieldsDatasetrefValueDatasetref {
-	return v.valueFields.Datasetref
-}
-
-func (v *DashboardParametersParameterSpecDefaultValue) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*DashboardParametersParameterSpecDefaultValue
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.DashboardParametersParameterSpecDefaultValue = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.valueFields)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalDashboardParametersParameterSpecDefaultValue struct {
-	Bool *bool `json:"bool"`
-
-	Float64 *float64 `json:"float64"`
-
-	Int64 *types.Int64Scalar `json:"int64"`
-
-	String *string `json:"string"`
-
-	Array *valueFieldsArrayValueArray `json:"array"`
-
-	Link *valueFieldsLinkValueLink `json:"link"`
-
-	Datasetref *valueFieldsDatasetrefValueDatasetref `json:"datasetref"`
-}
-
-func (v *DashboardParametersParameterSpecDefaultValue) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *DashboardParametersParameterSpecDefaultValue) __premarshalJSON() (*__premarshalDashboardParametersParameterSpecDefaultValue, error) {
-	var retval __premarshalDashboardParametersParameterSpecDefaultValue
-
-	retval.Bool = v.valueFields.Bool
-	retval.Float64 = v.valueFields.Float64
-	retval.Int64 = v.valueFields.Int64
-	retval.String = v.valueFields.String
-	retval.Array = v.valueFields.Array
-	retval.Link = v.valueFields.Link
-	retval.Datasetref = v.valueFields.Datasetref
-	return &retval, nil
 }
 
 // DashboardParametersParameterSpecValueKindValueTypeSpec includes the requested fields of the GraphQL type ValueTypeSpec.
@@ -3343,15 +3139,15 @@ func (v *PaginationInput) GetCursorCacheMode() *CursorCacheMode { return v.Curso
 // parallel.  For APIs that take MultiStageQueryInput, parameterValues are part
 // of that query.
 type ParameterBindingInput struct {
-	Id    string     `json:"id"`
-	Value ValueInput `json:"value"`
+	Id    string           `json:"id"`
+	Value types.JsonObject `json:"value"`
 }
 
 // GetId returns ParameterBindingInput.Id, and is useful for accessing the field via an interface.
 func (v *ParameterBindingInput) GetId() string { return v.Id }
 
 // GetValue returns ParameterBindingInput.Value, and is useful for accessing the field via an interface.
-func (v *ParameterBindingInput) GetValue() ValueInput { return v.Value }
+func (v *ParameterBindingInput) GetValue() types.JsonObject { return v.Value }
 
 // Whever you can "save" a worksheet-like entity, you can also save the
 // parameters that go with it. This is so that the worksheet component in the FE
@@ -3363,7 +3159,7 @@ type ParameterSpecInput struct {
 	// user-readable name
 	Name string `json:"name"`
 	// optional default value, must match valueKind if present
-	DefaultValue *ValueInput        `json:"defaultValue"`
+	DefaultValue *types.JsonObject  `json:"defaultValue"`
 	ValueKind    ValueTypeSpecInput `json:"valueKind"`
 }
 
@@ -3374,7 +3170,7 @@ func (v *ParameterSpecInput) GetId() string { return v.Id }
 func (v *ParameterSpecInput) GetName() string { return v.Name }
 
 // GetDefaultValue returns ParameterSpecInput.DefaultValue, and is useful for accessing the field via an interface.
-func (v *ParameterSpecInput) GetDefaultValue() *ValueInput { return v.DefaultValue }
+func (v *ParameterSpecInput) GetDefaultValue() *types.JsonObject { return v.DefaultValue }
 
 // GetValueKind returns ParameterSpecInput.ValueKind, and is useful for accessing the field via an interface.
 func (v *ParameterSpecInput) GetValueKind() ValueTypeSpecInput { return v.ValueKind }
@@ -4985,99 +4781,6 @@ const (
 	TimeUnitMicrosecond TimeUnit = "Microsecond"
 	TimeUnitNanosecond  TimeUnit = "Nanosecond"
 )
-
-type ValueArrayInput struct {
-	Value []PrimitiveValueInput `json:"value"`
-}
-
-// GetValue returns ValueArrayInput.Value, and is useful for accessing the field via an interface.
-func (v *ValueArrayInput) GetValue() []PrimitiveValueInput { return v.Value }
-
-// ValueDatasetrefInput looks a bit like InputDefinitionInput, EXCEPT
-// you can't specify a parameterId as the value of a ValueDatasetrefInput
-// (because that would make little sense.)
-type ValueDatasetrefInput struct {
-	DatasetId   *string `json:"datasetId"`
-	DatasetPath *string `json:"datasetPath"`
-	StageId     *string `json:"stageId"`
-}
-
-// GetDatasetId returns ValueDatasetrefInput.DatasetId, and is useful for accessing the field via an interface.
-func (v *ValueDatasetrefInput) GetDatasetId() *string { return v.DatasetId }
-
-// GetDatasetPath returns ValueDatasetrefInput.DatasetPath, and is useful for accessing the field via an interface.
-func (v *ValueDatasetrefInput) GetDatasetPath() *string { return v.DatasetPath }
-
-// GetStageId returns ValueDatasetrefInput.StageId, and is useful for accessing the field via an interface.
-func (v *ValueDatasetrefInput) GetStageId() *string { return v.StageId }
-
-// The ValueInput specifies a value for a parameter. To specify a null value, specify
-// the particular field, but with the JSON value null. This is needed because values
-// are always of a particular type, and a generic null is not typed.
-type ValueInput struct {
-	Bool       *bool                 `json:"bool,omitempty"`
-	Float64    *float64              `json:"float64,omitempty"`
-	Int64      *types.Int64Scalar    `json:"int64,omitempty"`
-	String     *string               `json:"string,omitempty"`
-	Timestamp  *types.TimeScalar     `json:"timestamp,omitempty"`
-	Duration   *types.Int64Scalar    `json:"duration,omitempty"`
-	Array      *ValueArrayInput      `json:"array,omitempty"`
-	Link       *ValueLinkInput       `json:"link,omitempty"`
-	Datasetref *ValueDatasetrefInput `json:"datasetref,omitempty"`
-}
-
-// GetBool returns ValueInput.Bool, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetBool() *bool { return v.Bool }
-
-// GetFloat64 returns ValueInput.Float64, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetFloat64() *float64 { return v.Float64 }
-
-// GetInt64 returns ValueInput.Int64, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetInt64() *types.Int64Scalar { return v.Int64 }
-
-// GetString returns ValueInput.String, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetString() *string { return v.String }
-
-// GetTimestamp returns ValueInput.Timestamp, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetTimestamp() *types.TimeScalar { return v.Timestamp }
-
-// GetDuration returns ValueInput.Duration, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetDuration() *types.Int64Scalar { return v.Duration }
-
-// GetArray returns ValueInput.Array, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetArray() *ValueArrayInput { return v.Array }
-
-// GetLink returns ValueInput.Link, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetLink() *ValueLinkInput { return v.Link }
-
-// GetDatasetref returns ValueInput.Datasetref, and is useful for accessing the field via an interface.
-func (v *ValueInput) GetDatasetref() *ValueDatasetrefInput { return v.Datasetref }
-
-type ValueKeyValueInput struct {
-	Name  string              `json:"name"`
-	Value PrimitiveValueInput `json:"value"`
-}
-
-// GetName returns ValueKeyValueInput.Name, and is useful for accessing the field via an interface.
-func (v *ValueKeyValueInput) GetName() string { return v.Name }
-
-// GetValue returns ValueKeyValueInput.Value, and is useful for accessing the field via an interface.
-func (v *ValueKeyValueInput) GetValue() PrimitiveValueInput { return v.Value }
-
-type ValueLinkInput struct {
-	DatasetId       string               `json:"datasetId"`
-	PrimaryKeyValue []ValueKeyValueInput `json:"primaryKeyValue"`
-	StoredLabel     *string              `json:"storedLabel"`
-}
-
-// GetDatasetId returns ValueLinkInput.DatasetId, and is useful for accessing the field via an interface.
-func (v *ValueLinkInput) GetDatasetId() string { return v.DatasetId }
-
-// GetPrimaryKeyValue returns ValueLinkInput.PrimaryKeyValue, and is useful for accessing the field via an interface.
-func (v *ValueLinkInput) GetPrimaryKeyValue() []ValueKeyValueInput { return v.PrimaryKeyValue }
-
-// GetStoredLabel returns ValueLinkInput.StoredLabel, and is useful for accessing the field via an interface.
-func (v *ValueLinkInput) GetStoredLabel() *string { return v.StoredLabel }
 
 // These are the OPAL native types that can go into worksheet parameters.  Some
 // of the native OPAL types aren't (currently?) exposed to the worksheet
@@ -6970,26 +6673,6 @@ type lookupWorkspaceResponse struct {
 // GetWorkspace returns lookupWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *lookupWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 
-// primitiveValueFields includes the GraphQL fields of PrimitiveValue requested by the fragment primitiveValueFields.
-type primitiveValueFields struct {
-	Bool    *bool              `json:"bool"`
-	Float64 *float64           `json:"float64"`
-	Int64   *types.Int64Scalar `json:"int64"`
-	String  *string            `json:"string"`
-}
-
-// GetBool returns primitiveValueFields.Bool, and is useful for accessing the field via an interface.
-func (v *primitiveValueFields) GetBool() *bool { return v.Bool }
-
-// GetFloat64 returns primitiveValueFields.Float64, and is useful for accessing the field via an interface.
-func (v *primitiveValueFields) GetFloat64() *float64 { return v.Float64 }
-
-// GetInt64 returns primitiveValueFields.Int64, and is useful for accessing the field via an interface.
-func (v *primitiveValueFields) GetInt64() *types.Int64Scalar { return v.Int64 }
-
-// GetString returns primitiveValueFields.String, and is useful for accessing the field via an interface.
-func (v *primitiveValueFields) GetString() *string { return v.String }
-
 // saveDashboardResponse is returned by saveDashboard on success.
 type saveDashboardResponse struct {
 	Dashboard Dashboard `json:"dashboard"`
@@ -7277,252 +6960,6 @@ type updateWorkspaceResponse struct {
 
 // GetWorkspace returns updateWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *updateWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
-
-// valueFields includes the GraphQL fields of Value requested by the fragment valueFields.
-type valueFields struct {
-	Bool       *bool                                 `json:"bool"`
-	Float64    *float64                              `json:"float64"`
-	Int64      *types.Int64Scalar                    `json:"int64"`
-	String     *string                               `json:"string"`
-	Array      *valueFieldsArrayValueArray           `json:"array"`
-	Link       *valueFieldsLinkValueLink             `json:"link"`
-	Datasetref *valueFieldsDatasetrefValueDatasetref `json:"datasetref"`
-}
-
-// GetBool returns valueFields.Bool, and is useful for accessing the field via an interface.
-func (v *valueFields) GetBool() *bool { return v.Bool }
-
-// GetFloat64 returns valueFields.Float64, and is useful for accessing the field via an interface.
-func (v *valueFields) GetFloat64() *float64 { return v.Float64 }
-
-// GetInt64 returns valueFields.Int64, and is useful for accessing the field via an interface.
-func (v *valueFields) GetInt64() *types.Int64Scalar { return v.Int64 }
-
-// GetString returns valueFields.String, and is useful for accessing the field via an interface.
-func (v *valueFields) GetString() *string { return v.String }
-
-// GetArray returns valueFields.Array, and is useful for accessing the field via an interface.
-func (v *valueFields) GetArray() *valueFieldsArrayValueArray { return v.Array }
-
-// GetLink returns valueFields.Link, and is useful for accessing the field via an interface.
-func (v *valueFields) GetLink() *valueFieldsLinkValueLink { return v.Link }
-
-// GetDatasetref returns valueFields.Datasetref, and is useful for accessing the field via an interface.
-func (v *valueFields) GetDatasetref() *valueFieldsDatasetrefValueDatasetref { return v.Datasetref }
-
-// valueFieldsArrayValueArray includes the requested fields of the GraphQL type ValueArray.
-type valueFieldsArrayValueArray struct {
-	Value []valueFieldsArrayValueArrayValuePrimitiveValue `json:"value"`
-}
-
-// GetValue returns valueFieldsArrayValueArray.Value, and is useful for accessing the field via an interface.
-func (v *valueFieldsArrayValueArray) GetValue() []valueFieldsArrayValueArrayValuePrimitiveValue {
-	return v.Value
-}
-
-// valueFieldsArrayValueArrayValuePrimitiveValue includes the requested fields of the GraphQL type PrimitiveValue.
-type valueFieldsArrayValueArrayValuePrimitiveValue struct {
-	primitiveValueFields `json:"-"`
-}
-
-// GetBool returns valueFieldsArrayValueArrayValuePrimitiveValue.Bool, and is useful for accessing the field via an interface.
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) GetBool() *bool {
-	return v.primitiveValueFields.Bool
-}
-
-// GetFloat64 returns valueFieldsArrayValueArrayValuePrimitiveValue.Float64, and is useful for accessing the field via an interface.
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) GetFloat64() *float64 {
-	return v.primitiveValueFields.Float64
-}
-
-// GetInt64 returns valueFieldsArrayValueArrayValuePrimitiveValue.Int64, and is useful for accessing the field via an interface.
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) GetInt64() *types.Int64Scalar {
-	return v.primitiveValueFields.Int64
-}
-
-// GetString returns valueFieldsArrayValueArrayValuePrimitiveValue.String, and is useful for accessing the field via an interface.
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) GetString() *string {
-	return v.primitiveValueFields.String
-}
-
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*valueFieldsArrayValueArrayValuePrimitiveValue
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.valueFieldsArrayValueArrayValuePrimitiveValue = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.primitiveValueFields)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalvalueFieldsArrayValueArrayValuePrimitiveValue struct {
-	Bool *bool `json:"bool"`
-
-	Float64 *float64 `json:"float64"`
-
-	Int64 *types.Int64Scalar `json:"int64"`
-
-	String *string `json:"string"`
-}
-
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *valueFieldsArrayValueArrayValuePrimitiveValue) __premarshalJSON() (*__premarshalvalueFieldsArrayValueArrayValuePrimitiveValue, error) {
-	var retval __premarshalvalueFieldsArrayValueArrayValuePrimitiveValue
-
-	retval.Bool = v.primitiveValueFields.Bool
-	retval.Float64 = v.primitiveValueFields.Float64
-	retval.Int64 = v.primitiveValueFields.Int64
-	retval.String = v.primitiveValueFields.String
-	return &retval, nil
-}
-
-// valueFieldsDatasetrefValueDatasetref includes the requested fields of the GraphQL type ValueDatasetref.
-type valueFieldsDatasetrefValueDatasetref struct {
-	DatasetId   *string `json:"datasetId"`
-	DatasetPath *string `json:"datasetPath"`
-	StageId     *string `json:"stageId"`
-}
-
-// GetDatasetId returns valueFieldsDatasetrefValueDatasetref.DatasetId, and is useful for accessing the field via an interface.
-func (v *valueFieldsDatasetrefValueDatasetref) GetDatasetId() *string { return v.DatasetId }
-
-// GetDatasetPath returns valueFieldsDatasetrefValueDatasetref.DatasetPath, and is useful for accessing the field via an interface.
-func (v *valueFieldsDatasetrefValueDatasetref) GetDatasetPath() *string { return v.DatasetPath }
-
-// GetStageId returns valueFieldsDatasetrefValueDatasetref.StageId, and is useful for accessing the field via an interface.
-func (v *valueFieldsDatasetrefValueDatasetref) GetStageId() *string { return v.StageId }
-
-// valueFieldsLinkValueLink includes the requested fields of the GraphQL type ValueLink.
-type valueFieldsLinkValueLink struct {
-	DatasetId       string                                                 `json:"datasetId"`
-	PrimaryKeyValue []valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue `json:"primaryKeyValue"`
-	StoredLabel     *string                                                `json:"storedLabel"`
-}
-
-// GetDatasetId returns valueFieldsLinkValueLink.DatasetId, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLink) GetDatasetId() string { return v.DatasetId }
-
-// GetPrimaryKeyValue returns valueFieldsLinkValueLink.PrimaryKeyValue, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLink) GetPrimaryKeyValue() []valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue {
-	return v.PrimaryKeyValue
-}
-
-// GetStoredLabel returns valueFieldsLinkValueLink.StoredLabel, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLink) GetStoredLabel() *string { return v.StoredLabel }
-
-// valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue includes the requested fields of the GraphQL type ValueKeyValue.
-type valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue struct {
-	Name  string                                                                  `json:"name"`
-	Value valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue `json:"value"`
-}
-
-// GetName returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue.Name, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue) GetName() string { return v.Name }
-
-// GetValue returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue.Value, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValue) GetValue() valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue {
-	return v.Value
-}
-
-// valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue includes the requested fields of the GraphQL type PrimitiveValue.
-type valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue struct {
-	primitiveValueFields `json:"-"`
-}
-
-// GetBool returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue.Bool, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) GetBool() *bool {
-	return v.primitiveValueFields.Bool
-}
-
-// GetFloat64 returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue.Float64, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) GetFloat64() *float64 {
-	return v.primitiveValueFields.Float64
-}
-
-// GetInt64 returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue.Int64, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) GetInt64() *types.Int64Scalar {
-	return v.primitiveValueFields.Int64
-}
-
-// GetString returns valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue.String, and is useful for accessing the field via an interface.
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) GetString() *string {
-	return v.primitiveValueFields.String
-}
-
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.primitiveValueFields)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalvalueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue struct {
-	Bool *bool `json:"bool"`
-
-	Float64 *float64 `json:"float64"`
-
-	Int64 *types.Int64Scalar `json:"int64"`
-
-	String *string `json:"string"`
-}
-
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *valueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue) __premarshalJSON() (*__premarshalvalueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue, error) {
-	var retval __premarshalvalueFieldsLinkValueLinkPrimaryKeyValueValueKeyValueValuePrimitiveValue
-
-	retval.Bool = v.primitiveValueFields.Bool
-	retval.Float64 = v.primitiveValueFields.Float64
-	retval.Int64 = v.primitiveValueFields.Int64
-	retval.String = v.primitiveValueFields.String
-	return &retval, nil
-}
 
 func clearDefaultDashboard(
 	ctx context.Context,
