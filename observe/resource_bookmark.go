@@ -47,7 +47,7 @@ func resourceBookmark() *schema.Resource {
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(oid.TypeDataset),
+				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeDashboard),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 		},

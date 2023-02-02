@@ -21,6 +21,7 @@ var (
 			name      	 = "%[1]s-b"
 		}
 		`
+	bookmarkDashboardConfigPreamble = bookmarkConfigPreamble + dashboardConfigPreamble
 )
 
 func TestAccObserveBookmarkCreate(t *testing.T) {
@@ -83,6 +84,44 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 				  name   = "Test"
 				}
 				`, randomPrefix),
+			},
+		},
+	})
+}
+
+func TestAccObserveBookmarkDashboard(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(bookmarkDashboardConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+				  group  = observe_bookmark_group.a.oid
+				  target = observe_dashboard.first.oid
+				  name   = "Test"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttrPair("observe_bookmark.bm", "target", "observe_dashboard.first", "oid"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(bookmarkDashboardConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+				  group    = observe_bookmark_group.a.oid
+				  target   = observe_dashboard.first.oid
+				  name     = "Test"
+				  icon_url = "star"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "icon_url", "star"),
+					resource.TestCheckResourceAttrPair("observe_bookmark.bm", "target", "observe_dashboard.first", "oid"),
+				),
 			},
 		},
 	})
