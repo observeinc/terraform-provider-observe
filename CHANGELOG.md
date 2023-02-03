@@ -1,3 +1,8 @@
+## 0.13.3 (2023-02-02)
+
+bookmark: support dashboards
+dashboard: fix corrupted parameters defaultValue when reading from API
+
 ## 0.13.2 (2023-01-30)
 
 fix: Terraform CLI version in user-agent header
