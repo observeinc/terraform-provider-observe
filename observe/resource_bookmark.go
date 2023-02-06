@@ -15,7 +15,7 @@ import (
 
 func resourceBookmark() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a bookmark to an Observe dataset.",
+		Description:   "Manages a bookmark to an Observe dataset or dashboard.",
 		CreateContext: resourceBookmarkCreate,
 		ReadContext:   resourceBookmarkRead,
 		UpdateContext: resourceBookmarkUpdate,
