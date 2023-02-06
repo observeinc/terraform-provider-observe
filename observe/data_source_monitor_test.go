@@ -24,6 +24,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 
 						description = "description"
 						comment     = "comment"
+						is_template = true
 
 						inputs = {
 							"test" = observe_datastream.test.dataset
@@ -50,6 +51,7 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.observe_monitor.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "disabled", "true"),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "is_template", "true"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "description", "description"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "comment", "comment"),
 					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "stage.0.pipeline", ""),

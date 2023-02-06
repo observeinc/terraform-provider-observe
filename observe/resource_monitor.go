@@ -681,6 +681,10 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		}
 	}
 
+	if err := data.Set("is_template", monitor.IsTemplate); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("disabled", monitor.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

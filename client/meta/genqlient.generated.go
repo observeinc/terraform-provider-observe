@@ -2209,6 +2209,7 @@ type Monitor struct {
 	// Static comment for extra information about a monitor available in notification template.
 	Comment             *string           `json:"comment"`
 	IconUrl             string            `json:"iconUrl"`
+	IsTemplate          bool              `json:"isTemplate"`
 	Disabled            bool              `json:"disabled"`
 	FreshnessGoal       types.Int64Scalar `json:"freshnessGoal"`
 	UseDefaultFreshness bool              `json:"useDefaultFreshness"`
@@ -2238,6 +2239,9 @@ func (v *Monitor) GetComment() *string { return v.Comment }
 
 // GetIconUrl returns Monitor.IconUrl, and is useful for accessing the field via an interface.
 func (v *Monitor) GetIconUrl() string { return v.IconUrl }
+
+// GetIsTemplate returns Monitor.IsTemplate, and is useful for accessing the field via an interface.
+func (v *Monitor) GetIsTemplate() bool { return v.IsTemplate }
 
 // GetDisabled returns Monitor.Disabled, and is useful for accessing the field via an interface.
 func (v *Monitor) GetDisabled() bool { return v.Disabled }
@@ -2311,6 +2315,8 @@ type __premarshalMonitor struct {
 
 	IconUrl string `json:"iconUrl"`
 
+	IsTemplate bool `json:"isTemplate"`
+
 	Disabled bool `json:"disabled"`
 
 	FreshnessGoal types.Int64Scalar `json:"freshnessGoal"`
@@ -2345,6 +2351,7 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 	retval.Description = v.Description
 	retval.Comment = v.Comment
 	retval.IconUrl = v.IconUrl
+	retval.IsTemplate = v.IsTemplate
 	retval.Disabled = v.Disabled
 	retval.FreshnessGoal = v.FreshnessGoal
 	retval.UseDefaultFreshness = v.UseDefaultFreshness
@@ -7561,6 +7568,7 @@ fragment Monitor on Monitor {
 	description
 	comment
 	iconUrl
+	isTemplate
 	disabled
 	freshnessGoal
 	useDefaultFreshness
@@ -9579,6 +9587,7 @@ fragment Monitor on Monitor {
 	description
 	comment
 	iconUrl
+	isTemplate
 	disabled
 	freshnessGoal
 	useDefaultFreshness
@@ -10365,6 +10374,7 @@ fragment Monitor on Monitor {
 	description
 	comment
 	iconUrl
+	isTemplate
 	disabled
 	freshnessGoal
 	useDefaultFreshness
@@ -11563,6 +11573,7 @@ fragment Monitor on Monitor {
 	description
 	comment
 	iconUrl
+	isTemplate
 	disabled
 	freshnessGoal
 	useDefaultFreshness

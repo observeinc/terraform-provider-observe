@@ -5,6 +5,7 @@ fragment Monitor on Monitor {
 	description
 	comment
 	iconUrl
+	isTemplate
 	disabled
 	freshnessGoal
 	useDefaultFreshness
