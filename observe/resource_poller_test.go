@@ -270,6 +270,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
+					disabled  = true
 					interval  = "1m"
 					retries   = 5
 					datastream = observe_datastream.example.oid
@@ -285,6 +286,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "disabled", "true"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.username", "user"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.password", "pass"),
@@ -323,6 +325,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "disabled", "false"),
 					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),

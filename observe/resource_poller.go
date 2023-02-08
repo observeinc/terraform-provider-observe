@@ -103,6 +103,11 @@ func resourcePoller() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"retries": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -328,11 +333,13 @@ func resourcePoller() *schema.Resource {
 }
 
 func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags diag.Diagnostics) {
-	//TODO: handle disabling/enabling pollers
 	input = &gql.PollerInput{}
 
 	if v, ok := data.GetOk("name"); ok {
 		input.Name = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("disabled"); ok {
+		input.Disabled = boolPtr(v.(bool))
 	}
 	if v, ok := data.GetOk("retries"); ok {
 		input.Retries = types.Int64Scalar(int64(v.(int))).Ptr()
@@ -507,6 +514,9 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := data.Set("kind", poller.Kind); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := data.Set("disabled", poller.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

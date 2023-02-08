@@ -21,6 +21,7 @@ description: |-
 
 - `chunk` (Block List, Max: 1) (see [below for nested schema](#nestedblock--chunk))
 - `datastream` (String)
+- `disabled` (Boolean)
 - `gcp_monitoring` (Block List, Max: 1) (see [below for nested schema](#nestedblock--gcp_monitoring))
 - `http` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http))
 - `interval` (String)
