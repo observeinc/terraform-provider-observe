@@ -68,11 +68,11 @@ Optional:
 
 Optional:
 
-- `body` (String)
-- `content_type` (String)
+- `body` (String, Deprecated)
+- `content_type` (String, Deprecated)
 - `endpoint` (String, Deprecated)
-- `headers` (Map of String)
-- `method` (String)
+- `headers` (Map of String, Deprecated)
+- `method` (String, Deprecated)
 - `request` (Block List) (see [below for nested schema](#nestedblock--http--request))
 - `rule` (Block List) (see [below for nested schema](#nestedblock--http--rule))
 - `template` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http--template))

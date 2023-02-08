@@ -180,28 +180,32 @@ func resourcePoller() *schema.Resource {
 								http.MethodPost,
 							}, true),
 							ConflictsWith: []string{"http.0.request"},
+							Deprecated:    "Use request instead to configure a list of one or more requests.",
 						},
 						"body": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"http.0.request"},
+							Deprecated:    "Use request instead to configure a list of one or more requests.",
 						},
 						"endpoint": {
 							Type:          schema.TypeString,
 							Optional:      true,
-							Deprecated:    "use request instead",
 							ConflictsWith: []string{"http.0.request"},
+							Deprecated:    "Use request instead to configure a list of one or more requests.",
 						},
 						"content_type": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"http.0.request"},
+							Deprecated:    "Use request instead to configure a list of one or more requests.",
 						},
 						"headers": {
 							Type:             schema.TypeMap,
 							Optional:         true,
 							ConflictsWith:    []string{"http.0.request"},
 							ValidateDiagFunc: validateMapValues(validateIsString()),
+							Deprecated:       "Use request instead to configure a list of one or more requests.",
 						},
 						"template": {
 							Type:          schema.TypeList,
