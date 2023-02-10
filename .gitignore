@@ -32,3 +32,5 @@ website/vendor
 !command/test-fixtures/**/.terraform
 
 terraform-provider-observe
+
+test-report.xml

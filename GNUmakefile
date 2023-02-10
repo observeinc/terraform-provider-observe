@@ -80,8 +80,8 @@ test: fmtcheck
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-testacc: fmtcheck
-	TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v -json -parallel=5 $(TESTARGS) -timeout 120m
+testacc: 
+	TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v -json -parallel=5 $(TESTARGS) -timeout 120m | go run github.com/jstemmer/go-junit-report/v2 -parser gojson -iocopy -out test-report.xml
 
 vet:
 	@echo "go vet ."
