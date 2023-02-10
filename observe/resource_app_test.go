@@ -41,6 +41,7 @@ func TestAccObserveApp(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_app.example", "module_id", "observeinc/openweather/observe"),
+					resource.TestCheckResourceAttr("observe_app.example", "name", "OpenWeather"),
 					resource.TestCheckResourceAttr("observe_app.example", "version", "0.1.0"),
 				),
 			},

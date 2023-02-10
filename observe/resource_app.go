@@ -157,11 +157,9 @@ func appToResourceData(app *gql.App, data *schema.ResourceData) (diags diag.Diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	/*
-		if err := data.Set("name", app.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	*/
+	if err := data.Set("name", app.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	if err := data.Set("module_id", app.Config.ModuleId); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
