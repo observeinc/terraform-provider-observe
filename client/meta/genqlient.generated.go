@@ -347,6 +347,7 @@ type BookmarkGroupInput struct {
 	IconUrl      *string                    `json:"iconUrl"`
 	WorkspaceId  *string                    `json:"workspaceId"`
 	Presentation *BookmarkGroupPresentation `json:"presentation"`
+	ManagedById  *string                    `json:"managedById"`
 }
 
 // GetName returns BookmarkGroupInput.Name, and is useful for accessing the field via an interface.
@@ -367,6 +368,9 @@ func (v *BookmarkGroupInput) GetWorkspaceId() *string { return v.WorkspaceId }
 // GetPresentation returns BookmarkGroupInput.Presentation, and is useful for accessing the field via an interface.
 func (v *BookmarkGroupInput) GetPresentation() *BookmarkGroupPresentation { return v.Presentation }
 
+// GetManagedById returns BookmarkGroupInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *BookmarkGroupInput) GetManagedById() *string { return v.ManagedById }
+
 type BookmarkGroupPresentation string
 
 const (
@@ -386,6 +390,7 @@ type BookmarkInput struct {
 	TargetId         *string          `json:"targetId"`
 	TargetResourceId *ResourceIdInput `json:"targetResourceId"`
 	GroupId          *string          `json:"groupId"`
+	ManagedById      *string          `json:"managedById"`
 }
 
 // GetName returns BookmarkInput.Name, and is useful for accessing the field via an interface.
@@ -408,6 +413,9 @@ func (v *BookmarkInput) GetTargetResourceId() *ResourceIdInput { return v.Target
 
 // GetGroupId returns BookmarkInput.GroupId, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetGroupId() *string { return v.GroupId }
+
+// GetManagedById returns BookmarkInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *BookmarkInput) GetManagedById() *string { return v.ManagedById }
 
 type ChangeType string
 

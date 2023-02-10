@@ -196,6 +196,9 @@ func (c *Client) CreateBookmarkGroup(ctx context.Context, workspaceId string, in
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	input.WorkspaceId = &workspaceId
 	return c.Meta.CreateOrUpdateBookmarkGroup(ctx, nil, input)
 }
@@ -205,6 +208,9 @@ func (c *Client) UpdateBookmarkGroup(ctx context.Context, id string, input *meta
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
 	}
 	return c.Meta.CreateOrUpdateBookmarkGroup(ctx, &id, input)
 }
@@ -225,6 +231,9 @@ func (c *Client) CreateBookmark(ctx context.Context, input *meta.BookmarkInput) 
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	return c.Meta.CreateOrUpdateBookmark(ctx, nil, input)
 }
 
@@ -233,6 +242,9 @@ func (c *Client) UpdateBookmark(ctx context.Context, id string, input *meta.Book
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
 	}
 	return c.Meta.CreateOrUpdateBookmark(ctx, &id, input)
 }

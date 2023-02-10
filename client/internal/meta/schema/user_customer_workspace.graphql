@@ -346,6 +346,7 @@ type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   customerId: CustomerId!
   userId: UserId!
   userInfo: UserInfo! @goField(forceResolver:true)
+  managedById: ObjectId
 }
 
 """
@@ -360,9 +361,10 @@ input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   targetId: ObjectId
   targetResourceId: ResourceIdInput
   groupId: ObjectId
+  managedById: ObjectId
 }
 
-type BookmarkGroup @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
+type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
   id: ObjectId!
   name: String!
   description: String!
@@ -374,6 +376,8 @@ type BookmarkGroup @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
   userInfo: UserInfo! @goField(forceResolver:true)
   presentation: BookmarkGroupPresentation!
   bookmarks: [Bookmark!] @goField(forceResolver:true)
+  managedBy: WorkspaceObject @goField(forceResolver:true)
+  managedById: ObjectId
 }
 
 input BookmarkGroupInput @goModel(model: "observe/meta/metatypes.BookmarkGroupInput") {
@@ -383,6 +387,7 @@ input BookmarkGroupInput @goModel(model: "observe/meta/metatypes.BookmarkGroupIn
   iconUrl: String
   workspaceId: ObjectId
   presentation: BookmarkGroupPresentation
+  managedById: ObjectId
 }
 
 enum BookmarkGroupPresentation @goModel(model: "observe/meta/metatypes.BookmarkGroupPresentation") {
