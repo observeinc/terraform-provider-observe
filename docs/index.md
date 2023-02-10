@@ -61,19 +61,19 @@ terraform plan
 
 ### Required
 
-- `customer` (String) Observe Customer ID.
+- `customer` (String) Your Observe Customer ID.
 
 ### Optional
 
-- `api_token` (String, Sensitive) Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.
+- `api_token` (String, Sensitive) An Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.
 - `domain` (String) Observe API domain. Defaults to `observeinc.com`.
-- `flags` (String) Used to toggle experimental features.
-- `http_client_timeout` (String) HTTP client timeout. Defaults to 2 minutes.
+- `flags` (String) Toggle experimental features.
+- `http_client_timeout` (String) HTTP client timeout. Defaults to 2m.
 - `insecure` (Boolean) Skip TLS certificate validation.
-- `managing_object_id` (String) Managing object ID.
+- `managing_object_id` (String) ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).
 - `retry_count` (Number) Maximum number of retries on temporary network failures. Defaults to 3.
 - `retry_wait` (String) Time between retries. Defaults to 3s.
 - `source_comment` (String) Source identifier comment. If null, fallback to `user_email`.
 - `source_format` (String) Source identifier format.
-- `user_email` (String) User email. Requires additionally providing `user_password`.
+- `user_email` (String) User email. If supplied, `user_password` is also required.
 - `user_password` (String, Sensitive) Password for provided `user_email`.

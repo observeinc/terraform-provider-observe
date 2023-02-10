@@ -26,13 +26,13 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
-				Description: "Observe Customer ID.",
+				Description: "Your Observe Customer ID.",
 			},
 			"api_token": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_API_TOKEN", nil),
-				Description:   "Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.",
+				Description:   "An Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.",
 				ConflictsWith: []string{"user_email", "user_password"},
 				Sensitive:     true,
 			},
@@ -41,7 +41,7 @@ func Provider() *schema.Provider {
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_EMAIL", nil),
 				RequiredWith: []string{"user_password"},
-				Description:  "User email. Requires additionally providing `user_password`.",
+				Description:  "User email. If supplied, `user_password` is also required.",
 			},
 			"user_password": {
 				Type:         schema.TypeString,
@@ -82,7 +82,7 @@ func Provider() *schema.Provider {
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_FLAGS", ""),
 				ValidateDiagFunc: validateFlags,
 				Optional:         true,
-				Description:      "Used to toggle experimental features.",
+				Description:      "Toggle experimental features.",
 			},
 			"http_client_timeout": {
 				Type:             schema.TypeString,
@@ -90,7 +90,7 @@ func Provider() *schema.Provider {
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_HTTP_CLIENT_TIMEOUT", "2m"),
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
-				Description:      "HTTP client timeout. Defaults to 2 minutes.",
+				Description:      "HTTP client timeout. Defaults to 2m.",
 			},
 			"source_comment": {
 				Type:        schema.TypeString,
@@ -108,7 +108,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_MANAGING_OBJECT_ID", nil),
 				Optional:    true,
-				Description: "Managing object ID.",
+				Description: "ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).",
 			},
 		},
 
