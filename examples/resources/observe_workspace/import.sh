@@ -1,1 +1,1 @@
-terraform import observe_dataset.workspace 4100001
+terraform import observe_workspace.example 4100001

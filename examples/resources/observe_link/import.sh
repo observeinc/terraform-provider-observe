@@ -1,1 +1,1 @@
-terraform import observe_dataset.example 1414010
+terraform import observe_link.example 1414010

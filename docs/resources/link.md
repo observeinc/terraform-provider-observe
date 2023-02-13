@@ -62,5 +62,5 @@ should be used when referring to this object in terraform manifests.
 ## Import
 Import is supported using the following syntax:
 ```shell
-terraform import observe_dataset.example 1414010
+terraform import observe_link.example 1414010
 ```

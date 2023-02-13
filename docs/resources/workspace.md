@@ -19,7 +19,7 @@ segregate between different environments, teams or tenants.
 All Observe accounts have a `Default` workspace. This workspace cannot be deleted.
 ## Example Usage
 ```terraform
-resource "observe_workspace" "default" {
+resource "observe_workspace" "example" {
   name = "Example"
 }
 ```
@@ -38,5 +38,5 @@ should be used when referring to this object in terraform manifests.
 ## Import
 Import is supported using the following syntax:
 ```shell
-terraform import observe_dataset.workspace 4100001
+terraform import observe_workspace.example 4100001
 ```

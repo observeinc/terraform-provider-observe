@@ -1,3 +1,3 @@
-resource "observe_workspace" "default" {
+resource "observe_workspace" "example" {
   name = "Example"
 }
