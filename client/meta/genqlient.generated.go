@@ -993,22 +993,22 @@ func (v *DashboardLinkInput) GetLinkLabel() string { return v.LinkLabel }
 
 // DashboardParameterValuesParameterBinding includes the requested fields of the GraphQL type ParameterBinding.
 type DashboardParameterValuesParameterBinding struct {
-	Id    string           `json:"id"`
-	Value types.JsonObject `json:"value"`
+	Id    string      `json:"id"`
+	Value types.Value `json:"value"`
 }
 
 // GetId returns DashboardParameterValuesParameterBinding.Id, and is useful for accessing the field via an interface.
 func (v *DashboardParameterValuesParameterBinding) GetId() string { return v.Id }
 
 // GetValue returns DashboardParameterValuesParameterBinding.Value, and is useful for accessing the field via an interface.
-func (v *DashboardParameterValuesParameterBinding) GetValue() types.JsonObject { return v.Value }
+func (v *DashboardParameterValuesParameterBinding) GetValue() types.Value { return v.Value }
 
 // DashboardParametersParameterSpec includes the requested fields of the GraphQL type ParameterSpec.
 type DashboardParametersParameterSpec struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	// optional default value
-	DefaultValue *types.JsonObject                                      `json:"defaultValue"`
+	DefaultValue *types.Value                                           `json:"defaultValue"`
 	ValueKind    DashboardParametersParameterSpecValueKindValueTypeSpec `json:"valueKind"`
 }
 
@@ -1019,7 +1019,7 @@ func (v *DashboardParametersParameterSpec) GetId() string { return v.Id }
 func (v *DashboardParametersParameterSpec) GetName() string { return v.Name }
 
 // GetDefaultValue returns DashboardParametersParameterSpec.DefaultValue, and is useful for accessing the field via an interface.
-func (v *DashboardParametersParameterSpec) GetDefaultValue() *types.JsonObject { return v.DefaultValue }
+func (v *DashboardParametersParameterSpec) GetDefaultValue() *types.Value { return v.DefaultValue }
 
 // GetValueKind returns DashboardParametersParameterSpec.ValueKind, and is useful for accessing the field via an interface.
 func (v *DashboardParametersParameterSpec) GetValueKind() DashboardParametersParameterSpecValueKindValueTypeSpec {
@@ -3181,15 +3181,15 @@ func (v *PaginationInput) GetCursorCacheMode() *CursorCacheMode { return v.Curso
 // parallel.  For APIs that take MultiStageQueryInput, parameterValues are part
 // of that query.
 type ParameterBindingInput struct {
-	Id    string           `json:"id"`
-	Value types.JsonObject `json:"value"`
+	Id    string      `json:"id"`
+	Value types.Value `json:"value"`
 }
 
 // GetId returns ParameterBindingInput.Id, and is useful for accessing the field via an interface.
 func (v *ParameterBindingInput) GetId() string { return v.Id }
 
 // GetValue returns ParameterBindingInput.Value, and is useful for accessing the field via an interface.
-func (v *ParameterBindingInput) GetValue() types.JsonObject { return v.Value }
+func (v *ParameterBindingInput) GetValue() types.Value { return v.Value }
 
 // Whever you can "save" a worksheet-like entity, you can also save the
 // parameters that go with it. This is so that the worksheet component in the FE
@@ -3201,7 +3201,7 @@ type ParameterSpecInput struct {
 	// user-readable name
 	Name string `json:"name"`
 	// optional default value, must match valueKind if present
-	DefaultValue *types.JsonObject  `json:"defaultValue"`
+	DefaultValue *types.Value       `json:"defaultValue"`
 	ValueKind    ValueTypeSpecInput `json:"valueKind"`
 }
 
@@ -3212,7 +3212,7 @@ func (v *ParameterSpecInput) GetId() string { return v.Id }
 func (v *ParameterSpecInput) GetName() string { return v.Name }
 
 // GetDefaultValue returns ParameterSpecInput.DefaultValue, and is useful for accessing the field via an interface.
-func (v *ParameterSpecInput) GetDefaultValue() *types.JsonObject { return v.DefaultValue }
+func (v *ParameterSpecInput) GetDefaultValue() *types.Value { return v.DefaultValue }
 
 // GetValueKind returns ParameterSpecInput.ValueKind, and is useful for accessing the field via an interface.
 func (v *ParameterSpecInput) GetValueKind() ValueTypeSpecInput { return v.ValueKind }
