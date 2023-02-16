@@ -266,6 +266,7 @@ type PollerHTTPRequestConfig @goModel(model: "observe/meta/metatypes.PollerHTTPR
    method: String
    username: String
    password: String
+   body: String
    headers: JsonObject
    params: JsonObject
 }
@@ -371,6 +372,7 @@ input PollerHTTPRequestInput @goModel(model: "observe/meta/metatypes.PollerHTTPR
    method: String
    username: String
    password: String
+   body: String
    headers: JsonObject
    params: JsonObject
 }

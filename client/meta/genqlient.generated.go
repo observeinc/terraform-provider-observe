@@ -1952,6 +1952,7 @@ type HttpRequestConfig struct {
 	Method   *string           `json:"method"`
 	Username *string           `json:"username"`
 	Password *string           `json:"password"`
+	Body     *string           `json:"body"`
 	Headers  *types.JsonObject `json:"headers"`
 	Params   *types.JsonObject `json:"params"`
 }
@@ -1967,6 +1968,9 @@ func (v *HttpRequestConfig) GetUsername() *string { return v.Username }
 
 // GetPassword returns HttpRequestConfig.Password, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetPassword() *string { return v.Password }
+
+// GetBody returns HttpRequestConfig.Body, and is useful for accessing the field via an interface.
+func (v *HttpRequestConfig) GetBody() *string { return v.Body }
 
 // GetHeaders returns HttpRequestConfig.Headers, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetHeaders() *types.JsonObject { return v.Headers }
@@ -3867,6 +3871,7 @@ type PollerHTTPRequestInput struct {
 	Method   *string           `json:"method"`
 	Username *string           `json:"username"`
 	Password *string           `json:"password"`
+	Body     *string           `json:"body"`
 	Headers  *types.JsonObject `json:"headers"`
 	Params   *types.JsonObject `json:"params"`
 }
@@ -3882,6 +3887,9 @@ func (v *PollerHTTPRequestInput) GetUsername() *string { return v.Username }
 
 // GetPassword returns PollerHTTPRequestInput.Password, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRequestInput) GetPassword() *string { return v.Password }
+
+// GetBody returns PollerHTTPRequestInput.Body, and is useful for accessing the field via an interface.
+func (v *PollerHTTPRequestInput) GetBody() *string { return v.Body }
 
 // GetHeaders returns PollerHTTPRequestInput.Headers, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRequestInput) GetHeaders() *types.JsonObject { return v.Headers }
@@ -7918,6 +7926,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	body
 	headers
 	params
 }
@@ -9856,6 +9865,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	body
 	headers
 	params
 }
@@ -11850,6 +11860,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	body
 	headers
 	params
 }

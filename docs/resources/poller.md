@@ -83,6 +83,7 @@ Optional:
 
 Optional:
 
+- `body` (String)
 - `headers` (Map of String)
 - `method` (String)
 - `params` (Map of String)
@@ -108,6 +109,7 @@ Optional:
 
 Optional:
 
+- `body` (String)
 - `headers` (Map of String)
 - `method` (String)
 - `params` (Map of String)
@@ -130,6 +132,7 @@ Required:
 
 Optional:
 
+- `body` (String)
 - `headers` (Map of String)
 - `method` (String)
 - `params` (Map of String)

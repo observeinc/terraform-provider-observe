@@ -60,6 +60,10 @@ func requestResource() *schema.Resource {
 					http.MethodPost,
 				}, true),
 			},
+			"body": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"headers": {
 				Type:             schema.TypeMap,
 				Optional:         true,
@@ -686,6 +690,9 @@ func flattenPollerHTTPRequest(req *gql.HttpRequestConfig) (flat map[string]inter
 		"password": req.Password,
 	}
 
+	if req.Body != nil {
+		flat["body"] = req.Body
+	}
 	if req.Headers != nil {
 		if headers, err := req.Headers.Map(); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -753,6 +760,11 @@ func expandPollerHTTPRequest(data *schema.ResourceData, key string) *gql.PollerH
 	if v, ok := data.GetOk(key + ".password"); ok {
 		s := v.(string)
 		req.Password = &s
+	}
+
+	if v, ok := data.GetOk(key + ".body"); ok {
+		s := v.(string)
+		req.Body = &s
 	}
 
 	return req
