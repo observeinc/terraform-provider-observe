@@ -89,8 +89,12 @@ extend type Mutation {
     and another string called "kind." They can be searched using any combination
     of those properties.
     If user ID is not specified, the user tied to the auth token is used.
+    If makePermanent is specified and true, the Blob will immediately be made
+    permanent, else it will only be permanent if it's later read by some other
+    user, or the same user more than an hour later. Non-permanent blobs expire
+    after a few weeks.
     """
-    createOrUpdateBlob(userId: UserId, name: String!, info:BlobInput!): Blob!
+    createOrUpdateBlob(userId: UserId, name: String!, info:BlobInput!, makePermanent: Boolean): Blob!
     deleteBlob(userId: UserId, name: String!): ResultStatus
 
     createOrUpdateBookmarkGroup(id:ObjectId, group:BookmarkGroupInput!): BookmarkGroup!
@@ -167,11 +171,16 @@ type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     ingestInfo: IngestInfo! @goField(forceResolver:true)
 }
 
+
+"""
+Information on the data ingestion endpoint, full URL format is:
+<scheme>://<customerId>.collect.<domain>:<port>/
+"""
 type IngestInfo @goModel(model: "observe/meta/metatypes.IngestInfo") {
-    """
-    ingest domain such as collect.observeinc.com, collect.eu-1.observeinc.com etc
-    """
-    collectUrl: String!
+  collectUrl: String!
+  domain: String!
+  scheme: String!
+  port: String!
 }
 
 input CustomerSsoInput @goModel(model: "observe/meta/metatypes.CustomerSsoInput") {
@@ -324,6 +333,7 @@ interface WorkspaceObject @goModel(model: "observe/meta/metatypes.WorkspaceObjec
 type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   id: ObjectId!
   name: String!
+  description: String!
   iconUrl: String! @deprecated(reason: "will go away; use icon of dataset")
   """
   when storing a bookmark to a thing with ?s=1234-foobar then the 1234-foobar bit is here
@@ -344,6 +354,7 @@ or "created by" timestamps / user auditing, as they are more lightweight.
 """
 input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   name: String
+  description: String
   iconUrl: String @deprecated(reason: "will go away; use icon of dataset")
   urlStateId: String
   targetId: ObjectId
@@ -354,6 +365,8 @@ input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
 type BookmarkGroup @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
   id: ObjectId!
   name: String!
+  description: String!
+  isHome: Boolean!
   iconUrl: String!
   workspaceId: ObjectId!
   customerId: CustomerId!
@@ -365,6 +378,8 @@ type BookmarkGroup @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
 
 input BookmarkGroupInput @goModel(model: "observe/meta/metatypes.BookmarkGroupInput") {
   name: String
+  description: String
+  isHome: Boolean
   iconUrl: String
   workspaceId: ObjectId
   presentation: BookmarkGroupPresentation

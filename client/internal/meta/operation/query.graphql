@@ -3,7 +3,6 @@ fragment TaskResult on TaskResult {
 	stageId
 	startTime
 	endTime
-	error
 	resultCursor
 	resultSchema {
 		typedefDefinition

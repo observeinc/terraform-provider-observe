@@ -67,7 +67,7 @@ func resourceWorksheet() *schema.Resource {
 
 func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, diags diag.Diagnostics) {
 	input = &gql.WorksheetInput{
-		Label: data.Get("name").(string),
+		Name: stringPtr(data.Get("name").(string)),
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {

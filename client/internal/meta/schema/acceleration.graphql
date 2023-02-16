@@ -1,0 +1,214 @@
+interface AccelerableObject @goModel(model: "observe/meta/metatypes.AccelerableObject") {
+    accelerationInfo: AccelerationInfo!
+    # TODO:
+    # * Add accelerable: Boolean!
+    # * Add this interface to monitors
+    # * Add accelerationDisabled when implemented on monitors
+    # * Add compilationError and onDemandMaterializationLength if they apply to monitors too?
+}
+
+type AccelerationError @goModel(model: "observe/meta/metatypes.AccelerationError") {
+    """
+    The dataset that has the acceleration error.
+    """
+    datasetId: ObjectId!
+    datasetName: String!
+
+    """
+    Internal transform ID where the acceleration error occurs.
+    """
+    transformId: String
+
+    """
+    When did the error last occur
+    """
+    time: Time!
+
+    """
+    Error text
+    """
+    text: String!
+}
+
+"""
+Describes the minimum target staleness of any datasets and monitors downstream
+of this dataset/monitor, and the set of datasets and monitors downstream of
+this dataset that have that target staleness. Currently only considers
+configured target staleness.
+"""
+type MinimumDownstreamTargetStaleness @goModel(model: "observe/meta/metatypes.MinimumDownstreamTargetStaleness") {
+    """
+    Minimum target staleness of all datasets/monitors downstream of this one.
+    Currently this only considers the configured target staleness of downstream
+    datasets/monitors.
+    """
+    minimumDownstreamTargetStalenessSeconds: Float!
+
+    """
+    List of Downstream datasets that have the configured target staleness in
+    minimumDownstreamTargetStalenessSeconds
+    """
+    datasetIds: [ObjectId!]
+
+    """
+    List of Downstream monitors that have the configured target staleness in
+    minimumDownstreamTargetStalenessSeconds
+    """
+    monitorIds: [ObjectId!]
+}
+
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+enum StreamingState @goModel(model: "observe/meta/metatypes.AccelerationState") {
+    Initializing
+    Live
+    Unavailable
+    Disabled
+    Error
+}
+
+enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
+    """
+    Dataset is newly created/updated and acceleration has just started. It can
+    be queried through inlining.
+    """
+    Initializing
+
+    """
+    Normal operation, we are actively accelerating new data as they come in.
+    """
+    Live
+
+    """
+    Acceleration is unavailable because the dataset or its upstream dataset is
+    broken (has compilation error). The dataset cannot be queried.
+    """
+    Unavailable
+
+    """
+    Acceleration is intentionally disabled, and the dataset can still be queried
+    (through inlining). This covers the case where the dataset is not accelerable or
+    acceleration is explicitly disabled.
+    """
+    Disabled
+
+    """
+    Acceleration is failing at runtime. As a result querying the dataset may
+    return outdated results. This is critical error and usually cannot be fixed
+    by the user.
+    """
+    Error
+}
+
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+type StreamingInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: StreamingState!
+    stalenessSeconds: Float
+    configuredTargetStalenessSeconds: Float
+    targetStalenessSeconds: Float
+    alwaysAccelerated: Boolean
+    acceleratedRangeStart: Time
+    targetAcceleratedRangeStart: Time
+    freshnessTime: Time
+    errors: [AccelerationError]!
+}
+
+type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: AccelerationState!
+
+    """
+    Staleness of the dataset (averaged over some moving window). 5min means we
+    may not return data received in the last 5 minutes. A float value in
+    seconds.
+    Empty if alwaysAccelerated is true.
+    """
+    stalenessSeconds: Float
+
+    """
+    Configured staleness target of the dataset. 2min means the staleness of
+    the dataset should not exceed 2mins. May differ from the originally
+    configured value of the dataset if Dataset.freshnessDesired is nil, in
+    which case we fill in a default, or if there is a layered setting override.
+    Empty if alwaysAccelerated is true.
+    """
+    configuredTargetStalenessSeconds: Float
+
+    """
+    The actual target staleness target of the dataset. Note that this can be
+    higher than the configured staleness target, due to decaying. Also if
+    this value is different from the field above, it means the dataset is
+    hibernated.
+    Empty if alwaysAccelerated is true.
+    """
+    targetStalenessSeconds: Float
+
+    """
+    The target staleness of this dataset when taking downstream dataset
+    staleness targets and credit manager overrides for this dataset into
+    account.  Does not take into account decay or governor overrides for
+    downstream datasets.
+    Empty if alwaysAccelerated is true.
+
+    How to decipher this value:
+    * If effectiveTargetStalenessSeconds > configuredTargetStalenessSeconds, then the credit manager is active on this dataset, and effectiveTargetStalenessSeconds == rateLimitOverrideTargetStalenessSeconds
+    * If effectiveTargetStalenessSeconds < configuredTargetStalenessSeconds, then a downstream dataset/monitor has a lower configured freshness goal, check minimumDownstreamTargetStaleness to see where this comes from
+    * Otherwise, effectiveTargetStalenessSeconds == configuredTargetStalenessSeconds and the freshness goal is operating as configured
+    """
+    effectiveTargetStalenessSeconds: Float
+
+    """
+    The target staleness override for this dataset from the credit manager, if
+    a transform credit rate limit is configured and is causing this dataset's
+    configured freshness goal to be overridden.
+    """
+    rateLimitOverrideTargetStalenessSeconds: Float
+
+    """
+    The minimum configured target staleness across all datasets downstream of
+    this dataset. Can be used to warn if the current or potential target
+    staleness values for this dataset will be ignored due to configured
+    staleness targets for downstream datasets.
+    """
+    minimumDownstreamTargetStaleness: MinimumDownstreamTargetStaleness
+
+    """
+    Whether the dataset is "always accelerated", i.e., any query should hit
+    accelerated data. If this is true then acceleratedRangeStart and
+    targetAcceleratedRangeStart are not used.
+    """
+    alwaysAccelerated: Boolean
+
+    """
+    The starting time of the "accelerated" range (i.e., materialized range).
+    Querying data before this time can result in inlining and might be slow.
+    A null value means nothing is materialized yet.
+    """
+    acceleratedRangeStart: Time
+
+    """
+    The target of accelerated range start for backfilling. If this value is
+    different from the actual accelerated range start, it means we are actively
+    backfilling more data, and the difference between the two can be treated as
+    a "progress" indication. The target is determined by historical queries.
+    """
+    targetAcceleratedRangeStart: Time
+
+    """
+    The freshness time of the dataset.
+    """
+    freshnessTime: Time
+
+    """
+    Effective on demand materialization is either the configured override value
+    for the dataset or the default value from the transformer config.
+    """
+    effectiveOnDemandMaterializationLength: Int64!
+
+    """
+    Acceleration errors. Only not null if the state is "Error". Note that right
+    now it only includes acceleration error of the particular dataset, but in
+    the future shall include upstream dataset's errors.
+    """
+    errors: [AccelerationError]!
+}

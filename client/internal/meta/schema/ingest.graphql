@@ -246,13 +246,17 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
     chunk: PollerChunkConfig
     tags: JsonObject
 
-    method: String
-    body: String
-    endpoint: String
-    contentType: String
-    headers: JsonObject
+    method: String @deprecated(reason: "Use requests instead")
+    body: String @deprecated(reason: "Use requests instead")
+    endpoint: String @deprecated(reason: "Use requests instead")
+    contentType: String @deprecated(reason: "Use requests instead")
+    headers: JsonObject @deprecated(reason: "Use requests instead")
 
+    """
+    Default HTTP request configuration that will be used for all requests. Keys declared in requests will override these values.
+    """
     template: PollerHTTPRequestConfig
+
     requests: [PollerHTTPRequestConfig!]
     rules: [PollerHTTPRuleConfig!]
 }

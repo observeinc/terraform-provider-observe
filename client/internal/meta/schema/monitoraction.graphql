@@ -1,0 +1,55 @@
+# Support for making connections between monitors and actions
+# this file is auto-generated, do not edit
+extend type Query {
+    monitorAction(id: ObjectId!): MonitorAction!
+    searchMonitorAction(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorActionSearchResult!
+}
+
+extend type Mutation {
+    createMonitorAction(input: MonitorActionInput!): MonitorAction!
+    updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction!
+    deleteMonitorAction(id: ObjectId!): ResultStatus!
+}
+
+type MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
+    # payload
+    monitorID: ObjectId!
+    actionID: ObjectId!
+    channelID: ObjectId
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+    # FolderObject
+    folderId: ObjectId!
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionInput") {
+    # payload
+    monitorID: ObjectId!
+    actionID: ObjectId!
+    channelID: ObjectId
+    # WorkspaceObject
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorActionSearchResult @goModel(model: "observe/meta/metatypes.MonitorActionSearchResult") {
+    results: [MonitorAction!]!
+}

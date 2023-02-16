@@ -23,7 +23,7 @@ extend type Query {
     run the query, and export the results to a cursor, then prepare the export URL for
     that cursor with the same parameters as exportCursor(), and return that URL.
     """
-    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, rowCount: Int64, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
+    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
 
     """
     Pull more results from a cursor. rollupFilter provides more granular
@@ -43,6 +43,19 @@ extend type Query {
     datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!]): [TaskResult]!
 
     stats(startTime: Time!, endTime: Time!, wkCols: [StatsWKCol!], dsQueries: [StatsDatasetQueryInput!]!): StatsQueryResult
+
+    """
+    Eventually this should be replaced by the usage dashboard, which has more
+    complete stats than this limited API.
+    """
+    queryRateLimitingStats(workspaceId: ObjectId!): QueryRateLimitingStats
+
+    """
+    Returns some daily stats on the transform usage based on the data stored in the customer's
+    SYSTEM datastream. Currently, we return only aggregate usage information. In the future, we will
+    also return governor specific state.
+    """
+    transformRateLimitingStats(workspaceId: ObjectId!): TransformRateLimitingStats
 }
 
 enum CursorCacheMode @goModel(model: "observe/meta/metatypes.CursorCacheMode") {
@@ -100,6 +113,19 @@ input TimeSinceEpoch @goModel(model: "observe/meta/metatypes.TimeSinceEpoch") {
     unit: TimeUnit
 }
 
+enum RateLimitOption @goModel(model: "observe/meta/metatypes.RateLimitOption") {
+    """
+    Default behavior. Rate limiting is enforced unless it is explicitly
+    disabled at the customer or user level using some other mechanism.
+    """
+    EnforceRateLimit
+    """
+    Set this to bypass rate limiting for this query. Credits used by queries
+    that bypass the rate limit are not counted towards the rate limit.
+    """
+    BypassRateLimit
+}
+
 input QueryParams @goModel(model: "observe/meta/metagql.QueryParamsInput") {
     """
     Please specify exact one of startTime and startTimeSinceEpoch.
@@ -112,6 +138,12 @@ input QueryParams @goModel(model: "observe/meta/metagql.QueryParamsInput") {
     endTime: Time
     endTimeSinceEpoch: TimeSinceEpoch
 
+    """
+    Use this to specify rate limiting options for this query. To bypass the
+    rate limit for all queries by this user for a certain amount of time, see
+    the QueryGovernor.bypassUntil layered setting instead
+    """
+    rateLimitOption: RateLimitOption
 
     """
     Queries may have some parameter values bound
@@ -256,12 +288,18 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     resultMetadata: ResultMetadata
 
     """
-    If there's a compiler or execution error, they are returned here. Multiple
-    errors are joined into a single string, so for multiple parse errors, it's
-    better to get those from parsedPipeline to be able to indicate each error
-    separately.
+    Warnings that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific warnings
+    TODO: move ParsedPipeline.warnings here?
     """
-    error: String
+    warnings: [TaskResultWarning!]
+
+    """
+    Errors that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific errors
+    TODO: move ParsedPipeline.errors here?
+    """
+    errors: [TaskResultError!]
 }
 
 type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
@@ -388,6 +426,10 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     ResultMetadata but we need to send this back earlier as part of schema.
     """
     acceleratedWindows: [TimeRange!]!
+    """
+    Information about the OPAL sort column ordering
+    """
+    sortColumnOrdering: [ColumnOrder!]
 }
 
 type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
@@ -409,6 +451,74 @@ type ObjectFieldDef @goModel(model: "observe/compiler/comptypes.ObjectFieldDef")
     isHidden: Boolean
     isConst: Boolean
     isMetric: Boolean
+}
+
+type ColumnOrder @goModel(model: "observe/meta/metatypes.ColumnOrder") {
+    columnName: String!
+    ascending: Boolean!
+    nullOrdering: NullOrdering!
+}
+
+"""
+Generic interface for a warning from a task result. Warnings are not fatal, and can be returned alongside query results.
+"""
+interface TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarning") {
+  message: String!
+}
+
+"""
+Warning that the customer is approaching the credit limit
+"""
+type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningRateLimit") {
+  message: String!
+
+  """
+  Credits left in the credit budget that can be used right now, or null if no
+  rate limit is configured
+  """
+  creditsRemainingInBudget: Float!
+}
+
+"""
+Warning that there are some datasets cannot be bounded when compiling the opal.
+"""
+type TaskResultWarningBinding implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningBinding") {
+    message: String!
+}
+
+"""
+Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+"""
+interface TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultError") {
+  message: String!
+}
+
+"""
+A generic error type to return legacy errors in that do not have more specific types yet
+"""
+type TaskResultErrorGeneric implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorGeneric") {
+  message: String!
+}
+
+"""
+Error that the query was blocked due to the query rate limit set for this customer
+"""
+type TaskResultErrorRateLimit implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorRateLimit") {
+  message: String!
+
+  """
+  Credits left in the credit budget that can be used right now, or null if no
+  rate limit is configured
+  """
+  creditsRemainingInBudget: Float!
+}
+
+"""
+Error that a stage fails to bind the dataset to the physical table (i.e., fail
+to inline or use best effort binding).
+"""
+type TaskResultErrorBinding implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorBinding") {
+    message: String!
 }
 
 """
@@ -521,6 +631,10 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     defines the last verb within the query or subquery to run.
     """
     runUntilLocation: SourceLocInput
+    """
+    Parameter values for parameters scoped to this stage
+    """
+    parameterValues: [ParameterBindingInput!]
 }
 
 """
@@ -921,7 +1035,7 @@ enum NullOrdering @goModel(model: "observe/meta/metatypes.NullOrdering") {
     Last
 }
 
-input ColumnOrderInput @goModel(model: "observe/meta/metaparser.ColumnOrderInput") {
+input ColumnOrderInput @goModel(model: "observe/meta/metatypes.ColumnOrderInput") {
     columnName: String!
     """
     default is descending, which is great for timestamps
@@ -1001,4 +1115,58 @@ Not to be confused with the stats result for some dataset() query.
 type StatsQueryResult @goModel(model: "observe/meta/metastats.Result") {
     queryId: String!
     dsResults: [StatsDatasetQueryResult]!
+}
+
+enum QueryRateLimitingState @goModel(model: "observe/meta/metatypes.QueryRateLimitingState") {
+    """
+    The query governor is configured and enforced, but we are not at any limits
+    """
+	Ok
+
+    """
+    The query governor has not been configured, e.g. it is disabled
+    """
+	NotConfigured
+
+	SoftLimit
+	HardLimit
+}
+
+type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLimitingStats") {
+    """
+    Current rate limiting state for this customer
+    """
+    state: QueryRateLimitingState!
+
+    """
+    Credits left in the credit budget that can be used right now, or null if no
+    rate limit is configured
+    """
+    creditsRemainingInBudget: Float
+
+    """
+    Credits used in the past 24 hours until now
+    """
+    creditsUsedPast24Hours: Float!
+
+    """
+    Daily average credits used over the past 30 days
+    """
+    dailyAvgCreditUsagePast30Days: Float!
+}
+
+type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.TransformRateLimitingStats") {
+    """
+    Returns the daily ongoing transform credit usage for the past 7 days. Note that if the customer
+    has been active for less than 7 days, the time horizon for the computation is restricted to the
+    actual timeframe in which the customer was active.
+    """
+    dailyOngoingTransformCreditsUsedPast7Days: Float!
+
+    """
+    Returns the daily ongoing transform credit usage for the past 30 days. Note that if the customer
+    has been active for less than 30 days, the time horizon for the computation is restricted to the
+    actual timeframe in which the customer was active.
+    """
+    dailyOngoingTransformCreditsUsedPast30Days: Float!
 }

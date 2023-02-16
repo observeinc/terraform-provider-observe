@@ -78,19 +78,6 @@ interface AuditedObject @goModel(model: "observe/meta/metatypes.AuditedObject") 
 }
 
 """
-Used to indicate WorkspaceObjects managed via terraform
-"""
-type TerraformObject implements WorkspaceObject @goModel(model: "observe/meta/metatypes.TerraformObject") {
-    id: ObjectId!
-    name: String!
-    description: String
-    iconUrl: String
-    workspaceId: ObjectId!
-    managedBy: WorkspaceObject
-    managedById: ObjectId
-}
-
-"""
 stats common to all tokens (ingest, api etc)
 """
 interface TokenStats @goModel(model: "observe/meta/metatypes.TokenStats") {
@@ -163,5 +150,3 @@ type ResultStatus @goModel(model: "observe/meta/metatypes.ResultStatus") {
     errorMessage: String!
     detailedInfo: JsonObject
 }
-
-

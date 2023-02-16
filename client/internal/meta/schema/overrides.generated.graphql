@@ -1,0 +1,463 @@
+# This file is auto-generated -- do not edit
+
+# ---- Customer properties ----
+
+type LayeredCustomerCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomerCustomer") {
+    snowflakeShareName: String
+}
+
+input LayeredCustomerCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerCustomerInput") {
+    snowflakeShareName: String @goField(forceResolver: true)
+}
+
+type LayeredCustomerDataRetention @goModel(model:"observe/meta/metatypes.LayeredCustomerDataRetention") {
+    periodDays: Int64
+}
+
+input LayeredCustomerDataRetentionInput @goModel(model:"observe/meta/metatypes.LayeredCustomerDataRetentionInput") {
+    periodDays: Int64 @goField(forceResolver: true)
+}
+
+type LayeredCustomerDataset @goModel(model:"observe/meta/metatypes.LayeredCustomerDataset") {
+    freshnessDesired: Int64
+    snowflakeSharingEnabled: Boolean
+}
+
+input LayeredCustomerDatasetInput @goModel(model:"observe/meta/metatypes.LayeredCustomerDatasetInput") {
+    freshnessDesired: Int64 @goField(forceResolver: true)
+    snowflakeSharingEnabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredCustomerLinkify @goModel(model:"observe/meta/metatypes.LayeredCustomerLinkify") {
+    joinSourceDisabled: Boolean
+    joinTargetDisabled: Boolean
+}
+
+input LayeredCustomerLinkifyInput @goModel(model:"observe/meta/metatypes.LayeredCustomerLinkifyInput") {
+    joinSourceDisabled: Boolean @goField(forceResolver: true)
+    joinTargetDisabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredCustomerMonitor @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitor") {
+    freshnessGoal: Int64
+}
+
+input LayeredCustomerMonitorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorInput") {
+    freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredCustomerQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernor") {
+    creditsPerDay: Float
+}
+
+input LayeredCustomerQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernorInput") {
+    creditsPerDay: Float @goField(forceResolver: true)
+}
+
+type LayeredCustomerScanner @goModel(model:"observe/meta/metatypes.LayeredCustomerScanner") {
+    powerLevel: Int64
+}
+
+input LayeredCustomerScannerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredCustomerTransformGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerTransformGovernor") {
+    creditsPerDay: Float
+    enforced: Boolean
+}
+
+input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerTransformGovernorInput") {
+    creditsPerDay: Float @goField(forceResolver: true)
+    enforced: Boolean @goField(forceResolver: true)
+}
+
+type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
+    customer: LayeredCustomerCustomer!
+    dataRetention: LayeredCustomerDataRetention!
+    dataset: LayeredCustomerDataset!
+    linkify: LayeredCustomerLinkify!
+    monitor: LayeredCustomerMonitor!
+    queryGovernor: LayeredCustomerQueryGovernor!
+    scanner: LayeredCustomerScanner!
+    transformGovernor: LayeredCustomerTransformGovernor!
+}
+
+input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
+    customer: LayeredCustomerCustomerInput
+    dataRetention: LayeredCustomerDataRetentionInput
+    dataset: LayeredCustomerDatasetInput
+    linkify: LayeredCustomerLinkifyInput
+    monitor: LayeredCustomerMonitorInput
+    queryGovernor: LayeredCustomerQueryGovernorInput
+    scanner: LayeredCustomerScannerInput
+    transformGovernor: LayeredCustomerTransformGovernorInput
+}
+
+extend type Customer {
+    effectiveSettings: LayeredCustomer! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveCustomerSettings(workspaceId: ObjectId!, input: LayeredCustomerInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Workspace properties ----
+
+type LayeredWorkspaceDataRetention @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDataRetention") {
+    periodDays: Int64
+}
+
+input LayeredWorkspaceDataRetentionInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDataRetentionInput") {
+    periodDays: Int64 @goField(forceResolver: true)
+}
+
+type LayeredWorkspaceDataset @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDataset") {
+    freshnessDesired: Int64
+}
+
+input LayeredWorkspaceDatasetInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDatasetInput") {
+    freshnessDesired: Int64 @goField(forceResolver: true)
+}
+
+type LayeredWorkspaceLinkify @goModel(model:"observe/meta/metatypes.LayeredWorkspaceLinkify") {
+    joinSourceDisabled: Boolean
+    joinTargetDisabled: Boolean
+}
+
+input LayeredWorkspaceLinkifyInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceLinkifyInput") {
+    joinSourceDisabled: Boolean @goField(forceResolver: true)
+    joinTargetDisabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredWorkspaceMonitor @goModel(model:"observe/meta/metatypes.LayeredWorkspaceMonitor") {
+    freshnessGoal: Int64
+}
+
+input LayeredWorkspaceMonitorInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceMonitorInput") {
+    freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredWorkspaceScanner @goModel(model:"observe/meta/metatypes.LayeredWorkspaceScanner") {
+    powerLevel: Int64
+}
+
+input LayeredWorkspaceScannerInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredWorkspace @goModel(model:"observe/meta/metatypes.LayeredWorkspace") {
+    dataRetention: LayeredWorkspaceDataRetention!
+    dataset: LayeredWorkspaceDataset!
+    linkify: LayeredWorkspaceLinkify!
+    monitor: LayeredWorkspaceMonitor!
+    scanner: LayeredWorkspaceScanner!
+}
+
+input LayeredWorkspaceInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceInput") {
+    dataRetention: LayeredWorkspaceDataRetentionInput
+    dataset: LayeredWorkspaceDatasetInput
+    linkify: LayeredWorkspaceLinkifyInput
+    monitor: LayeredWorkspaceMonitorInput
+    scanner: LayeredWorkspaceScannerInput
+}
+
+extend type Project {
+    effectiveSettings: LayeredWorkspace! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveProjectSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorkspaceInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Folder properties ----
+
+type LayeredFolderScanner @goModel(model:"observe/meta/metatypes.LayeredFolderScanner") {
+    powerLevel: Int64
+}
+
+input LayeredFolderScannerInput @goModel(model:"observe/meta/metatypes.LayeredFolderScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredFolder @goModel(model:"observe/meta/metatypes.LayeredFolder") {
+    scanner: LayeredFolderScanner!
+}
+
+input LayeredFolderInput @goModel(model:"observe/meta/metatypes.LayeredFolderInput") {
+    scanner: LayeredFolderScannerInput
+}
+
+extend type Folder {
+    effectiveSettings: LayeredFolder! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveFolderSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredFolderInput!): [LayeredSettingRecord!]!
+}
+
+# ---- App properties ----
+
+type LayeredAppDataset @goModel(model:"observe/meta/metatypes.LayeredAppDataset") {
+    freshnessDesired: Int64
+}
+
+input LayeredAppDatasetInput @goModel(model:"observe/meta/metatypes.LayeredAppDatasetInput") {
+    freshnessDesired: Int64 @goField(forceResolver: true)
+}
+
+type LayeredAppMonitor @goModel(model:"observe/meta/metatypes.LayeredAppMonitor") {
+    freshnessGoal: Int64
+}
+
+input LayeredAppMonitorInput @goModel(model:"observe/meta/metatypes.LayeredAppMonitorInput") {
+    freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredAppScanner @goModel(model:"observe/meta/metatypes.LayeredAppScanner") {
+    powerLevel: Int64
+}
+
+input LayeredAppScannerInput @goModel(model:"observe/meta/metatypes.LayeredAppScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredApp @goModel(model:"observe/meta/metatypes.LayeredApp") {
+    dataset: LayeredAppDataset!
+    monitor: LayeredAppMonitor!
+    scanner: LayeredAppScanner!
+}
+
+input LayeredAppInput @goModel(model:"observe/meta/metatypes.LayeredAppInput") {
+    dataset: LayeredAppDatasetInput
+    monitor: LayeredAppMonitorInput
+    scanner: LayeredAppScannerInput
+}
+
+extend type App {
+    effectiveSettings: LayeredApp! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveAppSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredAppInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Monitor properties ----
+
+type LayeredMonitorMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitor") {
+    freshnessGoal: Int64
+}
+
+input LayeredMonitorMonitorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitorInput") {
+    freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredMonitorScanner @goModel(model:"observe/meta/metatypes.LayeredMonitorScanner") {
+    powerLevel: Int64
+}
+
+input LayeredMonitorScannerInput @goModel(model:"observe/meta/metatypes.LayeredMonitorScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitor") {
+    monitor: LayeredMonitorMonitor!
+    scanner: LayeredMonitorScanner!
+}
+
+input LayeredMonitorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorInput") {
+    monitor: LayeredMonitorMonitorInput
+    scanner: LayeredMonitorScannerInput
+}
+
+extend type Monitor {
+    effectiveSettings: LayeredMonitor! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveMonitorSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredMonitorInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Worksheet properties ----
+
+type LayeredWorksheetScanner @goModel(model:"observe/meta/metatypes.LayeredWorksheetScanner") {
+    powerLevel: Int64
+}
+
+input LayeredWorksheetScannerInput @goModel(model:"observe/meta/metatypes.LayeredWorksheetScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredWorksheet @goModel(model:"observe/meta/metatypes.LayeredWorksheet") {
+    scanner: LayeredWorksheetScanner!
+}
+
+input LayeredWorksheetInput @goModel(model:"observe/meta/metatypes.LayeredWorksheetInput") {
+    scanner: LayeredWorksheetScannerInput
+}
+
+extend type Worksheet {
+    effectiveSettings: LayeredWorksheet! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveWorksheetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorksheetInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Dashboard properties ----
+
+type LayeredDashboardScanner @goModel(model:"observe/meta/metatypes.LayeredDashboardScanner") {
+    powerLevel: Int64
+}
+
+input LayeredDashboardScannerInput @goModel(model:"observe/meta/metatypes.LayeredDashboardScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredDashboard @goModel(model:"observe/meta/metatypes.LayeredDashboard") {
+    scanner: LayeredDashboardScanner!
+}
+
+input LayeredDashboardInput @goModel(model:"observe/meta/metatypes.LayeredDashboardInput") {
+    scanner: LayeredDashboardScannerInput
+}
+
+extend type Dashboard {
+    effectiveSettings: LayeredDashboard! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveDashboardSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDashboardInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Datastream properties ----
+
+type LayeredDatastreamDataRetention @goModel(model:"observe/meta/metatypes.LayeredDatastreamDataRetention") {
+    periodDays: Int64
+}
+
+input LayeredDatastreamDataRetentionInput @goModel(model:"observe/meta/metatypes.LayeredDatastreamDataRetentionInput") {
+    periodDays: Int64 @goField(forceResolver: true)
+}
+
+type LayeredDatastreamScanner @goModel(model:"observe/meta/metatypes.LayeredDatastreamScanner") {
+    powerLevel: Int64
+}
+
+input LayeredDatastreamScannerInput @goModel(model:"observe/meta/metatypes.LayeredDatastreamScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredDatastream @goModel(model:"observe/meta/metatypes.LayeredDatastream") {
+    dataRetention: LayeredDatastreamDataRetention!
+    scanner: LayeredDatastreamScanner!
+}
+
+input LayeredDatastreamInput @goModel(model:"observe/meta/metatypes.LayeredDatastreamInput") {
+    dataRetention: LayeredDatastreamDataRetentionInput
+    scanner: LayeredDatastreamScannerInput
+}
+
+extend type Datastream {
+    effectiveSettings: LayeredDatastream! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveDatastreamSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatastreamInput!): [LayeredSettingRecord!]!
+}
+
+# ---- Dataset properties ----
+
+type LayeredDatasetDataset @goModel(model:"observe/meta/metatypes.LayeredDatasetDataset") {
+    freshnessDesired: Int64
+    snowflakeSharingEnabled: Boolean
+}
+
+input LayeredDatasetDatasetInput @goModel(model:"observe/meta/metatypes.LayeredDatasetDatasetInput") {
+    freshnessDesired: Int64 @goField(forceResolver: true)
+    snowflakeSharingEnabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredDatasetLinkify @goModel(model:"observe/meta/metatypes.LayeredDatasetLinkify") {
+    joinSourceDisabled: Boolean
+    joinTargetDisabled: Boolean
+}
+
+input LayeredDatasetLinkifyInput @goModel(model:"observe/meta/metatypes.LayeredDatasetLinkifyInput") {
+    joinSourceDisabled: Boolean @goField(forceResolver: true)
+    joinTargetDisabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredDatasetScanner @goModel(model:"observe/meta/metatypes.LayeredDatasetScanner") {
+    powerLevel: Int64
+}
+
+input LayeredDatasetScannerInput @goModel(model:"observe/meta/metatypes.LayeredDatasetScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredDataset @goModel(model:"observe/meta/metatypes.LayeredDataset") {
+    dataset: LayeredDatasetDataset!
+    linkify: LayeredDatasetLinkify!
+    scanner: LayeredDatasetScanner!
+}
+
+input LayeredDatasetInput @goModel(model:"observe/meta/metatypes.LayeredDatasetInput") {
+    dataset: LayeredDatasetDatasetInput
+    linkify: LayeredDatasetLinkifyInput
+    scanner: LayeredDatasetScannerInput
+}
+
+extend type Dataset {
+    effectiveSettings: LayeredDataset! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveDatasetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatasetInput!): [LayeredSettingRecord!]!
+}
+
+# ---- User properties ----
+
+type LayeredUserLinkify @goModel(model:"observe/meta/metatypes.LayeredUserLinkify") {
+    joinSourceDisabled: Boolean
+}
+
+input LayeredUserLinkifyInput @goModel(model:"observe/meta/metatypes.LayeredUserLinkifyInput") {
+    joinSourceDisabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredUserQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredUserQueryGovernor") {
+    bypassUntil: Time
+}
+
+input LayeredUserQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredUserQueryGovernorInput") {
+    bypassUntil: Time @goField(forceResolver: true)
+}
+
+type LayeredUserScanner @goModel(model:"observe/meta/metatypes.LayeredUserScanner") {
+    powerLevel: Int64
+}
+
+input LayeredUserScannerInput @goModel(model:"observe/meta/metatypes.LayeredUserScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
+    linkify: LayeredUserLinkify!
+    queryGovernor: LayeredUserQueryGovernor!
+    scanner: LayeredUserScanner!
+}
+
+input LayeredUserInput @goModel(model:"observe/meta/metatypes.LayeredUserInput") {
+    linkify: LayeredUserLinkifyInput
+    queryGovernor: LayeredUserQueryGovernorInput
+    scanner: LayeredUserScannerInput
+}
+
+extend type User {
+    effectiveSettings: LayeredUser! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+	saveUserSettings(workspaceId: ObjectId!, uid: UserId!, input: LayeredUserInput!): [LayeredSettingRecord!]!
+}

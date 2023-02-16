@@ -66,6 +66,7 @@ type LayeredSettingRecordTarget @goModel(model: "observe/lsetting.LayeredSetting
     monitorId: ObjectId
     worksheetId: ObjectId
     dashboardId: ObjectId
+    datastreamId: ObjectId
     datasetId: ObjectId
     userId: UserId
 }
@@ -121,6 +122,7 @@ input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.LayeredS
     appId: ObjectId
     worksheetId: ObjectId
     dashboardId: ObjectId
+    datastreamId: ObjectId
     monitorId: ObjectId
     datasetId: ObjectId
     userId: UserId
@@ -133,6 +135,7 @@ enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
     App
     Worksheet
     Dashboard
+    Datastream
     Monitor
     Dataset
     User

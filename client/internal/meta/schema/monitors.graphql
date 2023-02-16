@@ -15,6 +15,7 @@ extend type Query {
     Get sample notification data for a monitor.
     """
     getMonitorSampleData(monitorId: ObjectId!): MonitorSampleData
+    monitorPreviewSampleDataQuery(monitorInput: MonitorInput!, queryParams: QueryParams!): MonitorSampleData
 }
 
 extend type Mutation {
@@ -28,7 +29,23 @@ extend type Mutation {
     deleteChannel(id: ObjectId!): ResultStatus!
 
     createMonitor(workspaceId: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
+    createMonitorWithActions(workspaceId: ObjectId!, monitor: MonitorInput!, newActions:[ActionInput!]!, addActionsToMonitorIds:[ObjectId!]!): MonitorUpdateResult!
     updateMonitor(id: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
+    """
+    Update the monitor.
+    - monitor: updates monitor metadata.
+    - newActions: new actions to create. See createChannelAction.
+    - updateActions: existing actions to update. See updateChannelAction.
+    - removeActionsFromMonitorIds: unlink existing actions from this monitor. Private actions will be deleted.
+    - addActionsToMonitorIds: link existing actions to this monitor.
+    """
+    updateMonitorWithActions(
+        id: ObjectId!,
+        monitor: MonitorInput,
+        newActions:[ActionInput!],
+        updateActions:[ActionUpdateInput!],
+        removeActionsFromMonitorIds:[ObjectId!],
+        addActionsToMonitorIds:[ObjectId!]): MonitorUpdateResult!
     deleteMonitor(id: ObjectId!): ResultStatus!
     disableMonitor(id: ObjectId!): ResultStatus!
     debugRenderMonitor(monitor:MonitorInput!): MonitorRender!
@@ -40,7 +57,7 @@ extend type Mutation {
     setChannelsForChannelAction(actionId: ObjectId!, channelIds:[ObjectId!]!): ResultStatus!
 }
 
-type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Monitor") {
+type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Monitor") {
     id: ObjectId!
     name: String!
     iconUrl: String!
@@ -66,8 +83,11 @@ type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject @goMo
     status: MonitorStatus!
     statusMessage: String!
     isTemplate: Boolean!
-    freshnessGoal: Int64!
     useDefaultFreshness: Boolean!
+
+    # AcceleratedObject
+    freshnessGoal: Int64! @deprecated(reason:"use AccelerationInfo instead")
+    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
 
     """
     The source stage may be empty, just specifying an input dataset,
@@ -78,7 +98,8 @@ type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject @goMo
     rule: MonitorRule!
     notificationSpec: NotificationSpecification!
 
-    channels: [Channel!]!
+    channels: [Channel!] @deprecated(reason:"field will be removed in favor of actionIds")
+    actions: [ChannelAction!]!
 }
 
 type MonitorUpdateResult @goModel(model: "observe/meta/metatypes.MonitorUpdateResult") {
@@ -136,6 +157,8 @@ type NotificationSpecification @goModel(model: "observe/meta/metatypes.Notificat
     selection: NotificationSelection!    @deprecated(reason:"no longer supported will be ignored") # only matters when talking about distinct resources
     selectionValue: Number!             @deprecated(reason:"no longer supported will be ignored") # for selection
     reminderFrequency: Duration!        # how frequently reminder notifications are sent when alert is open.
+    notifyOnReminder: Boolean
+    notifyOnClose: Boolean
 }
 
 input NotificationSpecificationInput @goModel(model: "observe/meta/metatypes.NotificationSpecificationInput") {
@@ -143,6 +166,16 @@ input NotificationSpecificationInput @goModel(model: "observe/meta/metatypes.Not
     merge: NotificationMerge
     selection: NotificationSelection @deprecated(reason:"no longer supported will be ignored")
     selectionValue: Number @deprecated(reason:"no longer supported will be ignored")
+
+    # TODO(OB-15357): make notifyOnReminder and notifyOnClose required after we migrate.
+    """
+    Check if we should send reminder notifications at the specified reminderFrequency.
+    """
+    notifyOnReminder: Boolean
+    """
+    Send a notification when this alert becomes inactive.
+    """
+    notifyOnClose: Boolean
     reminderFrequency: Duration
 }
 
@@ -511,6 +544,7 @@ input ChannelInput @goModel(model: "observe/meta/metatypes.ChannelInput") {
     description: String
 }
 
+# TODO(OB-14177): rename this to Action.
 interface ChannelAction @goModel(model: "observe/meta/metatypes.ChannelAction") {
     id: ObjectId!
     name: String!
@@ -524,9 +558,11 @@ interface ChannelAction @goModel(model: "observe/meta/metatypes.ChannelAction") 
     updatedByInfo: UserInfo!
     updatedDate: Time!
     rateLimit: Duration!
-    channels: [Channel!]! @goField(forceResolver:true)
+    channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+    monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
 type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatypes.EmailAction") {
@@ -542,7 +578,7 @@ type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatype
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
     rateLimit: Duration!
-    channels: [Channel!]! @goField(forceResolver:true)
+    channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
     targetUsers: [UserId!]!
     targetAddresses: [String!]!
@@ -551,6 +587,8 @@ type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatype
     isHtml: Boolean!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+    monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
 input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
@@ -560,10 +598,31 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
     rateLimit: Duration
     notifyOnClose: Boolean
     notifyOnReminder: Boolean
+    # TODO(OB-14177): make this required.
+    isPrivate: Boolean
 
     email: EmailActionInput
     webhook: WebhookActionInput
 }
+
+"""
+Input for updateMonitorWithActions.updateActions()
+"""
+input ActionUpdateInput @goModel(model: "observe/meta/metatypes.ActionUpdateInput") {
+    id: ObjectId!
+    name: String
+    iconUrl: String
+    description: String
+    rateLimit: Duration
+    notifyOnClose: Boolean
+    notifyOnReminder: Boolean
+    # TODO(OB-14177): make this required.
+    isPrivate: Boolean
+
+    email: EmailActionInput
+    webhook: WebhookActionInput
+}
+
 
 input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput") {
     targetUsers: [UserId!]
@@ -586,7 +645,7 @@ type WebhookAction implements ChannelAction @goModel(model: "observe/meta/metaty
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
     rateLimit: Duration!
-    channels: [Channel!]! @goField(forceResolver:true)
+    channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
     urlTemplate: String!
     method: String!
@@ -594,6 +653,8 @@ type WebhookAction implements ChannelAction @goModel(model: "observe/meta/metaty
     bodyTemplate: String!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+    monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
 input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionInput") {
@@ -632,12 +693,14 @@ type UnknownAction implements ChannelAction @goModel(model: "observe/meta/metaty
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
     rateLimit: Duration!
-    channels: [Channel!]! @goField(forceResolver:true)
+    channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
     message: String!
     payload: String!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+    monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
 type ActiveNotification @goModel(model: "observe/meta/metatypes.ActiveNotification") {

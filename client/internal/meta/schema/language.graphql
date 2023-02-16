@@ -89,6 +89,7 @@ type ParsedPipeline @goModel(model: "observe/meta/metatypes.ParsedPipeline") {
 
 type ParsedParameter @goModel(model: "observe/compiler/comptypes.ParsedParameter") {
     id: String!
+    stageId: String
     locations: [SourceLoc!]
     providedInQueryInput: Boolean!
     usedInPipeline: Boolean!

@@ -26,6 +26,7 @@ extend type Query {
     getBoards(datasetId: ObjectId!, type: BoardType, name: String): [Board!]!
     getBoard(id: ObjectId!): Board!
 
+    datasetAndMonitorBillingInfo(workspaceId: ObjectId!, atTime: Time): DatasetAndMonitorBillingInfo!
 }
 
 extend type Mutation {
@@ -91,7 +92,6 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     current: TransformVersion
     currentVersion: Time!
     version(version: Time!): TransformVersion @goField(forceResolver:true)
-    versions: [TransformVersion] @goField(forceResolver:true)
 }
 
 input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
@@ -143,6 +143,8 @@ type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
     params: JsonObject
     pipeline: String!
     layout: JsonObject
+    parameters: [ParameterSpec!]
+    parameterValues: [ParameterBinding!]
 }
 
 input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
@@ -155,6 +157,8 @@ input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput")
     input: [InputDefinitionInput!]!
     pipeline: String!
     layout: JsonObject
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
 }
 
 type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResult") {
@@ -234,15 +238,12 @@ type RelatedKey @goModel(model: "observe/meta/metatypes.RelatedKey") {
     dstFields: [String!]
 }
 
-type Dataset implements WorkspaceObject & FolderObject @goModel(model: "observe/meta/metatypes.Dataset") {
+type Dataset implements WorkspaceObject & FolderObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Dataset") {
     id: ObjectId!
     version: Time!
     workspaceId: ObjectId!
     kind: DatasetKind!
-    """
-    deprecated in favor of name
-    """
-    label: String!
+    label: String! @deprecated(reason: "use name instead")
     name: String!
     description: String
     source: String
@@ -262,7 +263,7 @@ type Dataset implements WorkspaceObject & FolderObject @goModel(model: "observe/
     relatedKeys: [RelatedKey!]
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
-    lastSaved: Time!
+    lastSaved: Time! @deprecated(reason: "use updatedDate instead")
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
     sourceTable: SourceTableDefinition @goField(forceResolver:true)
@@ -270,19 +271,34 @@ type Dataset implements WorkspaceObject & FolderObject @goModel(model: "observe/
     interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
     metrics: [Metric!]! @goField(forceResolver:true)
     boards: [Board!]! @goField(forceResolver:true)
-    accelerable: Boolean!
-    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
-    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
-    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
     alignment: TimeAlignment
-    savedByInfo: UserInfo @goField(forceResolver:true)
     compilationError: CompilationError
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
+
+    """
+    Optional custom configured override value of the on demand materialization
+    range for the dataset.
+    """
     onDemandMaterializationLength: Int64
+
     defaultDashboardId: ObjectId
     defaultInstanceDashboardId: ObjectId
+
+    # AccelerableObject (or fields that should eventually move to that interface)
+    accelerable: Boolean!
+    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
+    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
+    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
+
+    # AuditedObject
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedDate: Time!
 }
 
 enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
@@ -330,146 +346,6 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     userDefined: Boolean!
     heuristics: MetricHeuristics
 }
-
-type AccelerationError @goModel(model: "observe/meta/metatypes.AccelerationError") {
-    """
-    The dataset that has the acceleration error.
-    """
-    datasetId: ObjectId!
-    datasetName: String!
-
-    """
-    Internal transform ID where the acceleration error occurs.
-    """
-    transformId: String
-
-    """
-    When did the error last occur
-    """
-    time: Time!
-
-    """
-    Error text
-    """
-    text: String!
-}
-
-# FIXME: to be removed once the frontend has changed to the renamed
-# accelerationInfo field
-enum StreamingState @goModel(model: "observe/meta/metatypes.AccelerationState") {
-    Initializing
-    Live
-    Unavailable
-    Disabled
-    Error
-}
-
-enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
-    """
-    Dataset is newly created/updated and acceleration has just started. It can
-    be queried through inlining.
-    """
-    Initializing
-
-    """
-    Normal operation, we are actively accelerating new data as they come in.
-    """
-    Live
-
-    """
-    Acceleration is unavailable because the dataset or its upstream dataset is
-    broken (has compilation error). The dataset cannot be queried.
-    """
-    Unavailable
-
-    """
-    Acceleration is intentionally disabled, and the dataset can still be queried
-    (through inlining). This covers the case where the dataset is not accelerable or
-    acceleration is explicitly disabled.
-    """
-    Disabled
-
-    """
-    Acceleration is failing at runtime. As a result querying the dataset may
-    return outdated results. This is critical error and usually cannot be fixed
-    by the user.
-    """
-    Error
-}
-
-# FIXME: to be removed once the frontend has changed to the renamed
-# accelerationInfo field
-type StreamingInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
-    state: StreamingState!
-    stalenessSeconds: Float
-    configuredTargetStalenessSeconds: Float
-    targetStalenessSeconds: Float
-    alwaysAccelerated: Boolean
-    acceleratedRangeStart: Time
-    targetAcceleratedRangeStart: Time
-    freshnessTime: Time
-    errors: [AccelerationError]!
-}
-
-type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
-    state: AccelerationState!
-
-    """
-    Staleness of the dataset (averaged over some moving window). 5min means we
-    may not return data received in the last 5 minutes. A float value in
-    seconds.
-    """
-    stalenessSeconds: Float
-
-    """
-    Configured staleness target of the dataset. 2min means the staleness of
-    the dataset should not exceed 2mins.
-    """
-    configuredTargetStalenessSeconds: Float
-
-    """
-    The actual target staleness target of the dataset. Note that this can be
-    higher than the configured staleness target, due to decaying. Also if
-    this value is different from the field above, it means the dataset is
-    hibernated.
-    """
-    targetStalenessSeconds: Float
-
-    """
-    Whether the dataset is "always accelerated", i.e., any query should hit
-    accelerated data. If this is true then acceleratedRangeStart and
-    targetAcceleratedRangeStart are not used.
-    """
-    alwaysAccelerated: Boolean
-
-    """
-    The starting time of the "accelerated" range (i.e., materialized range).
-    Querying data before this time can result in inlining and might be slow.
-    A null value means nothing is materialized yet.
-    """
-    acceleratedRangeStart: Time
-
-    """
-    The target of accelerated range start for backfilling. If this value is
-    different from the actual accelerated range start, it means we are actively
-    backfilling more data, and the difference between the two can be treated as
-    a "progress" indication. The target is determined by historical queries.
-    """
-    targetAcceleratedRangeStart: Time
-
-    """
-    The freshmess time of the dataset.
-    """
-    freshnessTime: Time
-
-    """
-    Acceleration errors. Only not null if the state is "Error". Note that right
-    now it only includes acceleration error of the particular dataset, but in
-    the future shall include upstream dataset's errors.
-    """
-    errors: [AccelerationError]!
-}
-
 
 type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
     id: ObjectId!
@@ -800,4 +676,14 @@ input BoardInput @goModel(model: "observe/meta/metatypes.BoardInput") {
     source: String
 }
 
+type DatasetAndMonitorBillingInfo @goModel(model: "observe/meta/metatypes.DatasetAndMonitorBillingInfo") {
+    datasets24h: [ObjectBillingInfo!]!
+    monitors24h: [ObjectBillingInfo!]!
+}
 
+type ObjectBillingInfo @goModel(model: "observe/meta/metatypes.ObjectBillingInfo") {
+    id: ObjectId!
+    periodFrom: Time!
+    periodTo: Time!
+    credits: Float!
+}

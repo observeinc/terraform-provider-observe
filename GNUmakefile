@@ -6,7 +6,7 @@ VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
 SWEEP?=all
 SWEEP_DIR?=./observe
-OBSERVE_ROOT?=$(HOME)/observe
+OBSERVE_ROOT?=../observe
 OBSERVE_DOCS_ROOT?=../observe-docs
 
 default: build
@@ -59,8 +59,8 @@ docker-sign:
 
 copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
-	rm client/internal/meta/schema/*.graphql
-	cp -pRd "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
+	rm -f client/internal/meta/schema/*.graphql
+	cp -pR "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
 
 generate:
 	go generate ./...

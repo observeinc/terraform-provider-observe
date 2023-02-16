@@ -18,6 +18,7 @@ type ActionInput struct {
 	RateLimit        *types.DurationScalar `json:"rateLimit"`
 	NotifyOnClose    *bool                 `json:"notifyOnClose"`
 	NotifyOnReminder *bool                 `json:"notifyOnReminder"`
+	IsPrivate        *bool                 `json:"isPrivate"`
 	Email            *EmailActionInput     `json:"email"`
 	Webhook          *WebhookActionInput   `json:"webhook"`
 }
@@ -39,6 +40,9 @@ func (v *ActionInput) GetNotifyOnClose() *bool { return v.NotifyOnClose }
 
 // GetNotifyOnReminder returns ActionInput.NotifyOnReminder, and is useful for accessing the field via an interface.
 func (v *ActionInput) GetNotifyOnReminder() *bool { return v.NotifyOnReminder }
+
+// GetIsPrivate returns ActionInput.IsPrivate, and is useful for accessing the field via an interface.
+func (v *ActionInput) GetIsPrivate() *bool { return v.IsPrivate }
 
 // GetEmail returns ActionInput.Email, and is useful for accessing the field via an interface.
 func (v *ActionInput) GetEmail() *EmailActionInput { return v.Email }
@@ -334,6 +338,8 @@ func (v *BookmarkGroup) GetWorkspaceId() string { return v.WorkspaceId }
 
 type BookmarkGroupInput struct {
 	Name         *string                    `json:"name"`
+	Description  *string                    `json:"description"`
+	IsHome       *bool                      `json:"isHome"`
 	IconUrl      *string                    `json:"iconUrl"`
 	WorkspaceId  *string                    `json:"workspaceId"`
 	Presentation *BookmarkGroupPresentation `json:"presentation"`
@@ -341,6 +347,12 @@ type BookmarkGroupInput struct {
 
 // GetName returns BookmarkGroupInput.Name, and is useful for accessing the field via an interface.
 func (v *BookmarkGroupInput) GetName() *string { return v.Name }
+
+// GetDescription returns BookmarkGroupInput.Description, and is useful for accessing the field via an interface.
+func (v *BookmarkGroupInput) GetDescription() *string { return v.Description }
+
+// GetIsHome returns BookmarkGroupInput.IsHome, and is useful for accessing the field via an interface.
+func (v *BookmarkGroupInput) GetIsHome() *bool { return v.IsHome }
 
 // GetIconUrl returns BookmarkGroupInput.IconUrl, and is useful for accessing the field via an interface.
 func (v *BookmarkGroupInput) GetIconUrl() *string { return v.IconUrl }
@@ -364,6 +376,7 @@ const (
 // or "created by" timestamps / user auditing, as they are more lightweight.
 type BookmarkInput struct {
 	Name             *string          `json:"name"`
+	Description      *string          `json:"description"`
 	IconUrl          *string          `json:"iconUrl"`
 	UrlStateId       *string          `json:"urlStateId"`
 	TargetId         *string          `json:"targetId"`
@@ -373,6 +386,9 @@ type BookmarkInput struct {
 
 // GetName returns BookmarkInput.Name, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetName() *string { return v.Name }
+
+// GetDescription returns BookmarkInput.Description, and is useful for accessing the field via an interface.
+func (v *BookmarkInput) GetDescription() *string { return v.Description }
 
 // GetIconUrl returns BookmarkInput.IconUrl, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetIconUrl() *string { return v.IconUrl }
@@ -1104,18 +1120,19 @@ func (v *DashboardStagesStageQueryInputInputDefinition) GetStageId() *string { r
 
 // Dataset includes the GraphQL fields of Dataset requested by the fragment Dataset.
 type Dataset struct {
-	WorkspaceId string `json:"workspaceId"`
-	Id          string `json:"id"`
-	// deprecated in favor of name
-	Label                         string                                   `json:"label"`
-	FreshnessDesired              *types.Int64Scalar                       `json:"freshnessDesired"`
-	Description                   *string                                  `json:"description"`
-	IconUrl                       *string                                  `json:"iconUrl"`
-	Version                       types.TimeScalar                         `json:"version"`
-	LastSaved                     types.TimeScalar                         `json:"lastSaved"`
-	PathCost                      *types.Int64Scalar                       `json:"pathCost"`
-	Source                        *string                                  `json:"source"`
-	ManagedById                   *string                                  `json:"managedById"`
+	WorkspaceId      string             `json:"workspaceId"`
+	Id               string             `json:"id"`
+	Label            string             `json:"label"`
+	FreshnessDesired *types.Int64Scalar `json:"freshnessDesired"`
+	Description      *string            `json:"description"`
+	IconUrl          *string            `json:"iconUrl"`
+	Version          types.TimeScalar   `json:"version"`
+	LastSaved        types.TimeScalar   `json:"lastSaved"`
+	PathCost         *types.Int64Scalar `json:"pathCost"`
+	Source           *string            `json:"source"`
+	ManagedById      *string            `json:"managedById"`
+	// Optional custom configured override value of the on demand materialization
+	// range for the dataset.
 	OnDemandMaterializationLength *types.Int64Scalar                       `json:"onDemandMaterializationLength"`
 	ForeignKeys                   []DatasetForeignKeysForeignKey           `json:"foreignKeys"`
 	Transform                     *DatasetTransform                        `json:"transform"`
@@ -1899,9 +1916,10 @@ func (v *Folder) GetDescription() *string { return v.Description }
 func (v *Folder) GetWorkspaceId() string { return v.WorkspaceId }
 
 type FolderInput struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	IconUrl     *string `json:"iconUrl"`
+	Name             *string             `json:"name"`
+	Description      *string             `json:"description"`
+	IconUrl          *string             `json:"iconUrl"`
+	PersonalToUserId *types.UserIdScalar `json:"personalToUserId"`
 }
 
 // GetName returns FolderInput.Name, and is useful for accessing the field via an interface.
@@ -1912,6 +1930,9 @@ func (v *FolderInput) GetDescription() *string { return v.Description }
 
 // GetIconUrl returns FolderInput.IconUrl, and is useful for accessing the field via an interface.
 func (v *FolderInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetPersonalToUserId returns FolderInput.PersonalToUserId, and is useful for accessing the field via an interface.
+func (v *FolderInput) GetPersonalToUserId() *types.UserIdScalar { return v.PersonalToUserId }
 
 // HttpRequestConfig includes the GraphQL fields of PollerHTTPRequestConfig requested by the fragment HttpRequestConfig.
 type HttpRequestConfig struct {
@@ -2162,15 +2183,16 @@ func (v *LayeredSettingRecordTarget) GetDatasetId() *string { return v.DatasetId
 func (v *LayeredSettingRecordTarget) GetUserId() *types.UserIdScalar { return v.UserId }
 
 type LayeredSettingRecordTargetInput struct {
-	CustomerId  *string             `json:"customerId,omitempty"`
-	WorkspaceId *string             `json:"workspaceId,omitempty"`
-	FolderId    *string             `json:"folderId,omitempty"`
-	AppId       *string             `json:"appId,omitempty"`
-	WorksheetId *string             `json:"worksheetId,omitempty"`
-	DashboardId *string             `json:"dashboardId,omitempty"`
-	MonitorId   *string             `json:"monitorId,omitempty"`
-	DatasetId   *string             `json:"datasetId,omitempty"`
-	UserId      *types.UserIdScalar `json:"userId,omitempty"`
+	CustomerId   *string             `json:"customerId,omitempty"`
+	WorkspaceId  *string             `json:"workspaceId,omitempty"`
+	FolderId     *string             `json:"folderId,omitempty"`
+	AppId        *string             `json:"appId,omitempty"`
+	WorksheetId  *string             `json:"worksheetId,omitempty"`
+	DashboardId  *string             `json:"dashboardId,omitempty"`
+	DatastreamId *string             `json:"datastreamId"`
+	MonitorId    *string             `json:"monitorId,omitempty"`
+	DatasetId    *string             `json:"datasetId,omitempty"`
+	UserId       *types.UserIdScalar `json:"userId,omitempty"`
 }
 
 // GetCustomerId returns LayeredSettingRecordTargetInput.CustomerId, and is useful for accessing the field via an interface.
@@ -2190,6 +2212,9 @@ func (v *LayeredSettingRecordTargetInput) GetWorksheetId() *string { return v.Wo
 
 // GetDashboardId returns LayeredSettingRecordTargetInput.DashboardId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetDashboardId() *string { return v.DashboardId }
+
+// GetDatastreamId returns LayeredSettingRecordTargetInput.DatastreamId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTargetInput) GetDatastreamId() *string { return v.DatastreamId }
 
 // GetMonitorId returns LayeredSettingRecordTargetInput.MonitorId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetMonitorId() *string { return v.MonitorId }
@@ -3060,11 +3085,15 @@ const (
 )
 
 type NotificationSpecificationInput struct {
-	Importance        *NotificationImportance `json:"importance"`
-	Merge             *NotificationMerge      `json:"merge"`
-	Selection         *NotificationSelection  `json:"selection"`
-	SelectionValue    *types.NumberScalar     `json:"selectionValue"`
-	ReminderFrequency *types.DurationScalar   `json:"reminderFrequency"`
+	Importance     *NotificationImportance `json:"importance"`
+	Merge          *NotificationMerge      `json:"merge"`
+	Selection      *NotificationSelection  `json:"selection"`
+	SelectionValue *types.NumberScalar     `json:"selectionValue"`
+	// Check if we should send reminder notifications at the specified reminderFrequency.
+	NotifyOnReminder *bool `json:"notifyOnReminder"`
+	// Send a notification when this alert becomes inactive.
+	NotifyOnClose     *bool                 `json:"notifyOnClose"`
+	ReminderFrequency *types.DurationScalar `json:"reminderFrequency"`
 }
 
 // GetImportance returns NotificationSpecificationInput.Importance, and is useful for accessing the field via an interface.
@@ -3080,6 +3109,12 @@ func (v *NotificationSpecificationInput) GetSelection() *NotificationSelection {
 func (v *NotificationSpecificationInput) GetSelectionValue() *types.NumberScalar {
 	return v.SelectionValue
 }
+
+// GetNotifyOnReminder returns NotificationSpecificationInput.NotifyOnReminder, and is useful for accessing the field via an interface.
+func (v *NotificationSpecificationInput) GetNotifyOnReminder() *bool { return v.NotifyOnReminder }
+
+// GetNotifyOnClose returns NotificationSpecificationInput.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *NotificationSpecificationInput) GetNotifyOnClose() *bool { return v.NotifyOnClose }
 
 // GetReminderFrequency returns NotificationSpecificationInput.ReminderFrequency, and is useful for accessing the field via an interface.
 func (v *NotificationSpecificationInput) GetReminderFrequency() *types.DurationScalar {
@@ -3534,20 +3569,21 @@ func (v *PollerConfigPollerGCPMonitoringConfig) GetTotalLimit() *types.Int64Scal
 
 // PollerConfigPollerHTTPConfig includes the requested fields of the GraphQL type PollerHTTPConfig.
 type PollerConfigPollerHTTPConfig struct {
-	Typename    *string                                                 `json:"__typename"`
-	Name        *string                                                 `json:"name"`
-	Retries     *types.Int64Scalar                                      `json:"retries"`
-	Interval    *types.DurationScalar                                   `json:"interval"`
-	Tags        *types.JsonObject                                       `json:"tags"`
-	Chunk       *PollerConfigChunkPollerChunkConfig                     `json:"chunk"`
-	Method      *string                                                 `json:"method"`
-	Body        *string                                                 `json:"body"`
-	Endpoint    *string                                                 `json:"endpoint"`
-	ContentType *string                                                 `json:"contentType"`
-	Headers     *types.JsonObject                                       `json:"headers"`
-	Template    *HttpRequestConfig                                      `json:"template"`
-	Requests    []HttpRequestConfig                                     `json:"requests"`
-	Rules       []PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig `json:"rules"`
+	Typename    *string                             `json:"__typename"`
+	Name        *string                             `json:"name"`
+	Retries     *types.Int64Scalar                  `json:"retries"`
+	Interval    *types.DurationScalar               `json:"interval"`
+	Tags        *types.JsonObject                   `json:"tags"`
+	Chunk       *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+	Method      *string                             `json:"method"`
+	Body        *string                             `json:"body"`
+	Endpoint    *string                             `json:"endpoint"`
+	ContentType *string                             `json:"contentType"`
+	Headers     *types.JsonObject                   `json:"headers"`
+	// Default HTTP request configuration that will be used for all requests. Keys declared in requests will override these values.
+	Template *HttpRequestConfig                                      `json:"template"`
+	Requests []HttpRequestConfig                                     `json:"requests"`
+	Rules    []PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig `json:"rules"`
 }
 
 // GetTypename returns PollerConfigPollerHTTPConfig.Typename, and is useful for accessing the field via an interface.
@@ -4284,6 +4320,10 @@ type QueryParams struct {
 	// Please specify exact one of endTime and endTimeSinceEpoch.
 	EndTime           *types.TimeScalar `json:"endTime"`
 	EndTimeSinceEpoch *TimeSinceEpoch   `json:"endTimeSinceEpoch"`
+	// Use this to specify rate limiting options for this query. To bypass the
+	// rate limit for all queries by this user for a certain amount of time, see
+	// the QueryGovernor.bypassUntil layered setting instead
+	RateLimitOption *RateLimitOption `json:"rateLimitOption"`
 	// Queries may have some parameter values bound
 	OpalParameters []ParameterBindingInput `json:"opalParameters"`
 }
@@ -4300,8 +4340,22 @@ func (v *QueryParams) GetEndTime() *types.TimeScalar { return v.EndTime }
 // GetEndTimeSinceEpoch returns QueryParams.EndTimeSinceEpoch, and is useful for accessing the field via an interface.
 func (v *QueryParams) GetEndTimeSinceEpoch() *TimeSinceEpoch { return v.EndTimeSinceEpoch }
 
+// GetRateLimitOption returns QueryParams.RateLimitOption, and is useful for accessing the field via an interface.
+func (v *QueryParams) GetRateLimitOption() *RateLimitOption { return v.RateLimitOption }
+
 // GetOpalParameters returns QueryParams.OpalParameters, and is useful for accessing the field via an interface.
 func (v *QueryParams) GetOpalParameters() []ParameterBindingInput { return v.OpalParameters }
+
+type RateLimitOption string
+
+const (
+	// Default behavior. Rate limiting is enforced unless it is explicitly
+	// disabled at the customer or user level using some other mechanism.
+	RateLimitOptionEnforceratelimit RateLimitOption = "EnforceRateLimit"
+	// Set this to bypass rate limiting for this query. Credits used by queries
+	// that bypass the rate limit are not counted towards the rate limit.
+	RateLimitOptionBypassratelimit RateLimitOption = "BypassRateLimit"
+)
 
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
@@ -4496,6 +4550,8 @@ type StageInput struct {
 	// A location within the pipeline. Used to support "run query up to cursor" type functionality, where this location
 	// defines the last verb within the query or subquery to run.
 	RunUntilLocation *SourceLocInput `json:"runUntilLocation"`
+	// Parameter values for parameters scoped to this stage
+	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
 
 // GetLabel returns StageInput.Label, and is useful for accessing the field via an interface.
@@ -4530,6 +4586,9 @@ func (v *StageInput) GetBestEffortBinding() *bool { return v.BestEffortBinding }
 
 // GetRunUntilLocation returns StageInput.RunUntilLocation, and is useful for accessing the field via an interface.
 func (v *StageInput) GetRunUntilLocation() *SourceLocInput { return v.RunUntilLocation }
+
+// GetParameterValues returns StageInput.ParameterValues, and is useful for accessing the field via an interface.
+func (v *StageInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
 
 type StagePresentationInput struct {
 	// limit can be per-query in addition to per-request; the min() is applied
@@ -4602,10 +4661,12 @@ type StageQueryInput struct {
 	StageID *string `json:"stageID,omitempty"`
 	StageId *string `json:"stageId,omitempty"`
 	// make id required when we've removed all deprecated use of stageId
-	Id       *string                `json:"id,omitempty"`
-	Input    []InputDefinitionInput `json:"input"`
-	Pipeline string                 `json:"pipeline"`
-	Layout   *types.JsonObject      `json:"layout"`
+	Id              *string                 `json:"id,omitempty"`
+	Input           []InputDefinitionInput  `json:"input"`
+	Pipeline        string                  `json:"pipeline"`
+	Layout          *types.JsonObject       `json:"layout"`
+	Parameters      []ParameterSpecInput    `json:"parameters"`
+	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
 
 // GetStageID returns StageQueryInput.StageID, and is useful for accessing the field via an interface.
@@ -4625,6 +4686,12 @@ func (v *StageQueryInput) GetPipeline() string { return v.Pipeline }
 
 // GetLayout returns StageQueryInput.Layout, and is useful for accessing the field via an interface.
 func (v *StageQueryInput) GetLayout() *types.JsonObject { return v.Layout }
+
+// GetParameters returns StageQueryInput.Parameters, and is useful for accessing the field via an interface.
+func (v *StageQueryInput) GetParameters() []ParameterSpecInput { return v.Parameters }
+
+// GetParameterValues returns StageQueryInput.ParameterValues, and is useful for accessing the field via an interface.
+func (v *StageQueryInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
 
 // StageQueryInputInputDefinition includes the requested fields of the GraphQL type InputDefinition.
 type StageQueryInputInputDefinition struct {
@@ -4664,11 +4731,6 @@ type TaskResult struct {
 	// The time range which this set of results cover.
 	StartTime *types.TimeScalar `json:"startTime"`
 	EndTime   *types.TimeScalar `json:"endTime"`
-	// If there's a compiler or execution error, they are returned here. Multiple
-	// errors are joined into a single string, so for multiple parse errors, it's
-	// better to get those from parsedPipeline to be able to indicate each error
-	// separately.
-	Error *string `json:"error"`
 	// You used to paginate the data yourself out of S3 -- not needed anymore
 	ResultCursor *interface{} `json:"resultCursor"`
 	// how to understand the columns in the result from Snowflake --
@@ -4686,9 +4748,6 @@ func (v *TaskResult) GetStartTime() *types.TimeScalar { return v.StartTime }
 
 // GetEndTime returns TaskResult.EndTime, and is useful for accessing the field via an interface.
 func (v *TaskResult) GetEndTime() *types.TimeScalar { return v.EndTime }
-
-// GetError returns TaskResult.Error, and is useful for accessing the field via an interface.
-func (v *TaskResult) GetError() *string { return v.Error }
 
 // GetResultCursor returns TaskResult.ResultCursor, and is useful for accessing the field via an interface.
 func (v *TaskResult) GetResultCursor() *interface{} { return v.ResultCursor }
@@ -4888,21 +4947,23 @@ func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
 type WorksheetInput struct {
 	// if id is not specified, a new worksheet is created
 	Id              *string                 `json:"id"`
-	Label           string                  `json:"label"`
+	Name            *string                 `json:"name"`
 	WorkspaceId     string                  `json:"workspaceId"`
 	ManagedById     *string                 `json:"managedById"`
 	Layout          *types.JsonObject       `json:"layout"`
-	Icon            *string                 `json:"icon"`
+	IconUrl         *string                 `json:"iconUrl"`
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
+	Label           *string                 `json:"label"`
+	Icon            *string                 `json:"icon"`
 }
 
 // GetId returns WorksheetInput.Id, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetId() *string { return v.Id }
 
-// GetLabel returns WorksheetInput.Label, and is useful for accessing the field via an interface.
-func (v *WorksheetInput) GetLabel() string { return v.Label }
+// GetName returns WorksheetInput.Name, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetName() *string { return v.Name }
 
 // GetWorkspaceId returns WorksheetInput.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetWorkspaceId() string { return v.WorkspaceId }
@@ -4913,8 +4974,8 @@ func (v *WorksheetInput) GetManagedById() *string { return v.ManagedById }
 // GetLayout returns WorksheetInput.Layout, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetLayout() *types.JsonObject { return v.Layout }
 
-// GetIcon returns WorksheetInput.Icon, and is useful for accessing the field via an interface.
-func (v *WorksheetInput) GetIcon() *string { return v.Icon }
+// GetIconUrl returns WorksheetInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetIconUrl() *string { return v.IconUrl }
 
 // GetStages returns WorksheetInput.Stages, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetStages() []StageQueryInput { return v.Stages }
@@ -4924,6 +4985,12 @@ func (v *WorksheetInput) GetParameters() []ParameterSpecInput { return v.Paramet
 
 // GetParameterValues returns WorksheetInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
+
+// GetLabel returns WorksheetInput.Label, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetLabel() *string { return v.Label }
+
+// GetIcon returns WorksheetInput.Icon, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetIcon() *string { return v.Icon }
 
 // Workspace includes the GraphQL fields of Project requested by the fragment Workspace.
 // The GraphQL type's documentation follows.
@@ -4948,8 +5015,7 @@ func (v *Workspace) GetDatasets() []*WorkspaceDatasetsDataset { return v.Dataset
 
 // WorkspaceDatasetsDataset includes the requested fields of the GraphQL type Dataset.
 type WorkspaceDatasetsDataset struct {
-	Id string `json:"id"`
-	// deprecated in favor of name
+	Id    string `json:"id"`
 	Label string `json:"label"`
 }
 
@@ -9268,7 +9334,6 @@ fragment TaskResult on TaskResult {
 	stageId
 	startTime
 	endTime
-	error
 	resultCursor
 	resultSchema {
 		typedefDefinition
