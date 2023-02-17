@@ -56,10 +56,10 @@ func resourceBookmarkGroup() *schema.Resource {
 			"presentation": {
 				Type: schema.TypeString,
 				ValidateDiagFunc: validateStringInSlice([]string{
-					"PerUserWorkspace",
-					"PerCustomerWorkspace",
+					string(gql.BookmarkGroupPresentationPeruserworkspace),
+					string(gql.BookmarkGroupPresentationPercustomerworkspace),
 				}, false),
-				Default:     "PerCustomerWorkspace",
+				Default:     gql.BookmarkGroupPresentationPercustomerworkspace,
 				Optional:    true,
 				Description: schemaBookmarkGroupPresentationDescription,
 			},
