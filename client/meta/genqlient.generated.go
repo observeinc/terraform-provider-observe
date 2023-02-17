@@ -320,6 +320,7 @@ func (v *Bookmark) GetGroupId() string { return v.GroupId }
 type BookmarkGroup struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
+	Description string `json:"description"`
 	IconUrl     string `json:"iconUrl"`
 	WorkspaceId string `json:"workspaceId"`
 }
@@ -329,6 +330,9 @@ func (v *BookmarkGroup) GetId() string { return v.Id }
 
 // GetName returns BookmarkGroup.Name, and is useful for accessing the field via an interface.
 func (v *BookmarkGroup) GetName() string { return v.Name }
+
+// GetDescription returns BookmarkGroup.Description, and is useful for accessing the field via an interface.
+func (v *BookmarkGroup) GetDescription() string { return v.Description }
 
 // GetIconUrl returns BookmarkGroup.IconUrl, and is useful for accessing the field via an interface.
 func (v *BookmarkGroup) GetIconUrl() string { return v.IconUrl }
@@ -7782,6 +7786,7 @@ mutation createOrUpdateBookmarkGroup ($id: ObjectId, $group: BookmarkGroupInput!
 fragment BookmarkGroup on BookmarkGroup {
 	id
 	name
+	description
 	iconUrl
 	workspaceId
 }
@@ -8934,6 +8939,7 @@ query getBookmarkGroup ($id: ObjectId!) {
 fragment BookmarkGroup on BookmarkGroup {
 	id
 	name
+	description
 	iconUrl
 	workspaceId
 }

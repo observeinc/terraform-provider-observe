@@ -18,14 +18,16 @@ func TestAccObserveBookmarkGroup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_bookmark_group" "example" {
-					workspace 	 = data.observe_workspace.default.oid
-					name      	 = "%[1]s"
+					workspace   = data.observe_workspace.default.oid
+					name        = "%[1]s"
+					description = "Test bookmark group"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_bookmark_group.example", "workspace"),
 					resource.TestCheckResourceAttrSet("observe_bookmark_group.example", "oid"),
 					resource.TestCheckResourceAttr("observe_bookmark_group.example", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_bookmark_group.example", "description", "Test bookmark group"),
 					resource.TestCheckResourceAttr("observe_bookmark_group.example", "presentation", "PerCustomerWorkspace"),
 				),
 			},

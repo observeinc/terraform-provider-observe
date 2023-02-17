@@ -1,6 +1,7 @@
 fragment BookmarkGroup on BookmarkGroup {
 	id
 	name
+	description
 	iconUrl
 	workspaceId
 }

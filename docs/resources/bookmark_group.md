@@ -19,6 +19,7 @@ Manages a bookmark group.
 
 ### Optional
 
+- `description` (String) Description of bookmark group.
 - `icon_url` (String) Icon used when presenting bookmark group.
 - `presentation` (String)
 

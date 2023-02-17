@@ -16,6 +16,7 @@ const (
 	schemaBookmarkGroupOIDDescription          = "Observe ID of the bookmark group."
 	schemaBookmarkGroupWorkspaceDescription    = "OID of workspace bookmark group belongs to."
 	schemaBookmarkGroupNameDescription         = "Name of bookmark group."
+	schemaBookmarkGroupDescriptionDescription  = "Description of bookmark group."
 	schemaBookmarkGroupIconDescription         = "Icon used when presenting bookmark group."
 	schemaBookmarkGroupPresentationDescription = ""
 )
@@ -48,6 +49,11 @@ func resourceBookmarkGroup() *schema.Resource {
 				Required:    true,
 				Description: schemaBookmarkGroupNameDescription,
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: schemaBookmarkGroupDescriptionDescription,
+			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -68,18 +74,16 @@ func resourceBookmarkGroup() *schema.Resource {
 }
 
 func newBookmarkGroupConfig(data *schema.ResourceData) (input *gql.BookmarkGroupInput, diags diag.Diagnostics) {
-	name := data.Get("name").(string)
 	input = &gql.BookmarkGroupInput{
-		Name: &name,
+		Name:        stringPtr(data.Get("name").(string)),
+		Description: stringPtr(data.Get("description").(string)),
 	}
+
+	p := gql.BookmarkGroupPresentation(data.Get("presentation").(string))
+	input.Presentation = &p
 
 	if v, ok := data.GetOk("icon_url"); ok {
 		input.IconUrl = stringPtr(v.(string))
-	}
-
-	if v, ok := data.GetOk("presentation"); ok {
-		presentation := gql.BookmarkGroupPresentation(v.(string))
-		input.Presentation = &presentation
 	}
 
 	return input, diags
@@ -87,6 +91,10 @@ func newBookmarkGroupConfig(data *schema.ResourceData) (input *gql.BookmarkGroup
 
 func bookmarkGroupToResourceData(bg *gql.BookmarkGroup, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("name", bg.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("description", bg.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
