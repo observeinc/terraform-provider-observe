@@ -52,6 +52,9 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.lookback_time", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.reminder_frequency", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_reminder", "false"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_close", "false"),
 				),
 			},
 			//			{
@@ -185,7 +188,9 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					}
 
 					notification_spec {
-                        merge = "merged"
+						merge = "merged"
+						reminder_frequency = "5m"
+						notify_on_close = true
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -199,6 +204,9 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.threshold_agg_function", "at_all_times"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.reminder_frequency", "5m0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_reminder", "true"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_close", "true"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
 				),
 			},

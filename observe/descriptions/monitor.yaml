@@ -16,3 +16,11 @@ schema:
     This resource is template for creating new monitors
   disabled: |
     Set to `true` to disable monitor.
+  notification_spec:
+    reminder_frequency: |
+      How often to send reminders when a monitor notification is triggered.
+      To disable reminder notifications, omit this attribute.
+    notify_on_reminder:
+      Whether notification reminders are enabled for this monitor. To enable them, set `reminder_frequency`.
+    notify_on_close: |
+      Enables a final update when a monitor notification is closed (no longer triggered).

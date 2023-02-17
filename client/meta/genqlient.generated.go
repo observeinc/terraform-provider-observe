@@ -2523,8 +2523,11 @@ func (v *MonitorInput) GetChannels() []string { return v.Channels }
 // MonitorNotificationSpecNotificationSpecification includes the requested fields of the GraphQL type NotificationSpecification.
 type MonitorNotificationSpecNotificationSpecification struct {
 	// should these go in each applicable Rule instead?
-	Merge      *NotificationMerge     `json:"merge"`
-	Importance NotificationImportance `json:"importance"`
+	Merge             *NotificationMerge     `json:"merge"`
+	Importance        NotificationImportance `json:"importance"`
+	NotifyOnReminder  *bool                  `json:"notifyOnReminder"`
+	ReminderFrequency types.DurationScalar   `json:"reminderFrequency"`
+	NotifyOnClose     *bool                  `json:"notifyOnClose"`
 }
 
 // GetMerge returns MonitorNotificationSpecNotificationSpecification.Merge, and is useful for accessing the field via an interface.
@@ -2535,6 +2538,21 @@ func (v *MonitorNotificationSpecNotificationSpecification) GetMerge() *Notificat
 // GetImportance returns MonitorNotificationSpecNotificationSpecification.Importance, and is useful for accessing the field via an interface.
 func (v *MonitorNotificationSpecNotificationSpecification) GetImportance() NotificationImportance {
 	return v.Importance
+}
+
+// GetNotifyOnReminder returns MonitorNotificationSpecNotificationSpecification.NotifyOnReminder, and is useful for accessing the field via an interface.
+func (v *MonitorNotificationSpecNotificationSpecification) GetNotifyOnReminder() *bool {
+	return v.NotifyOnReminder
+}
+
+// GetReminderFrequency returns MonitorNotificationSpecNotificationSpecification.ReminderFrequency, and is useful for accessing the field via an interface.
+func (v *MonitorNotificationSpecNotificationSpecification) GetReminderFrequency() types.DurationScalar {
+	return v.ReminderFrequency
+}
+
+// GetNotifyOnClose returns MonitorNotificationSpecNotificationSpecification.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *MonitorNotificationSpecNotificationSpecification) GetNotifyOnClose() *bool {
+	return v.NotifyOnClose
 }
 
 // MonitorQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
@@ -7692,6 +7710,9 @@ fragment Monitor on Monitor {
 	notificationSpec {
 		merge
 		importance
+		notifyOnReminder
+		reminderFrequency
+		notifyOnClose
 	}
 }
 fragment StageQuery on StageQuery {
@@ -9712,6 +9733,9 @@ fragment Monitor on Monitor {
 	notificationSpec {
 		merge
 		importance
+		notifyOnReminder
+		reminderFrequency
+		notifyOnClose
 	}
 }
 fragment StageQuery on StageQuery {
@@ -10499,6 +10523,9 @@ fragment Monitor on Monitor {
 	notificationSpec {
 		merge
 		importance
+		notifyOnReminder
+		reminderFrequency
+		notifyOnClose
 	}
 }
 fragment StageQuery on StageQuery {
@@ -11698,6 +11725,9 @@ fragment Monitor on Monitor {
 	notificationSpec {
 		merge
 		importance
+		notifyOnReminder
+		reminderFrequency
+		notifyOnClose
 	}
 }
 fragment StageQuery on StageQuery {

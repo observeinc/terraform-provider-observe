@@ -62,6 +62,9 @@ fragment Monitor on Monitor {
 	notificationSpec {
 		merge
 		importance
+		notifyOnReminder
+		reminderFrequency
+		notifyOnClose
 	}
 }
 

@@ -157,4 +157,11 @@ Optional:
 
 - `importance` (String)
 - `merge` (String)
+- `notify_on_close` (Boolean) Enables a final update when a monitor notification is closed (no longer triggered).
+- `reminder_frequency` (String) How often to send reminders when a monitor notification is triggered.
+To disable reminder notifications, omit this attribute.
+
+Read-Only:
+
+- `notify_on_reminder` (Boolean) Whether notification reminders are enabled for this monitor. To enable them, set `reminder_frequency`.
 

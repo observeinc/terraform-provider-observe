@@ -355,6 +355,24 @@ func resourceMonitor() *schema.Resource {
 							Default:          "merged",
 							ValidateDiagFunc: validateEnums(gql.AllNotificationMerges),
 						},
+						"reminder_frequency": {
+							Type:             schema.TypeString,
+							Description:      descriptions.Get("monitor", "schema", "notification_spec", "reminder_frequency"),
+							Optional:         true,
+							ValidateDiagFunc: validateTimeDuration,
+							DiffSuppressFunc: diffSuppressTimeDuration,
+						},
+						"notify_on_reminder": {
+							Type:        schema.TypeBool,
+							Description: descriptions.Get("monitor", "schema", "notification_spec", "notify_on_reminder"),
+							Computed:    true,
+						},
+						"notify_on_close": {
+							Type:        schema.TypeBool,
+							Description: descriptions.Get("monitor", "schema", "notification_spec", "notify_on_close"),
+							Optional:    true,
+							Default:     false,
+						},
 					},
 				},
 			},
@@ -540,6 +558,16 @@ func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *gql
 	notificationSpec = &gql.NotificationSpecificationInput{
 		Importance: &defaultImportance,
 		Merge:      &defaultMerge,
+	}
+
+	if v, ok := data.GetOk("notification_spec.0.reminder_frequency"); ok {
+		d, _ := types.ParseDurationScalar(v.(string))
+		notificationSpec.ReminderFrequency = d
+		notificationSpec.NotifyOnReminder = boolPtr(*d != 0)
+	}
+
+	if v, ok := data.GetOk("notification_spec.0.notify_on_close"); ok {
+		notificationSpec.NotifyOnClose = boolPtr(v.(bool))
 	}
 
 	if v, ok := data.GetOk("notification_spec.0.importance"); ok {
@@ -784,14 +812,24 @@ func flattenRule(input gql.MonitorRule) interface{} {
 }
 
 func flattenNotificationSpec(spec gql.MonitorNotificationSpecNotificationSpecification) interface{} {
-	var results []interface{}
-
-	results = append(results, map[string]interface{}{
+	result := map[string]interface{}{
 		"merge":      toSnake(string(*spec.Merge)),
 		"importance": toSnake(string(spec.Importance)),
-	})
+	}
 
-	return results
+	if spec.ReminderFrequency != 0 {
+		result["reminder_frequency"] = spec.ReminderFrequency.String()
+	}
+
+	if spec.NotifyOnReminder != nil {
+		result["notify_on_reminder"] = *spec.NotifyOnReminder
+	}
+
+	if spec.NotifyOnClose != nil {
+		result["notify_on_close"] = *spec.NotifyOnClose
+	}
+
+	return []interface{}{result}
 }
 
 func resourceMonitorDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
