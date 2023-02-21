@@ -29,9 +29,14 @@ docker-sweep:
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make sweep"
 
 docker-check-generated:
+# This step runs `go build`, via `go generate`. This container runs as root.
+# In environments including Jenkins, the directory owner will differ from the container user.
+# This causes `go build` to fail, reporting an error about VCS stamping, originating from git.
+# Informing git that this directory is safe allows the build to proceed:
+# https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
 	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
-		/bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && go generate ./... && git diff --exit-code"
+		/bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory \"$$(pwd)\" && go generate ./... && git diff --exit-code"
 
 docker-package:
 	docker run --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
