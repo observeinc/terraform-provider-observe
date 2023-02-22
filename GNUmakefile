@@ -36,7 +36,7 @@ docker-check-generated:
 # https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
 	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
-		/bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory \"$$(pwd)\" && go generate ./... && git diff --exit-code"
+		/bin/bash -x -c 'cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory "$$(pwd)" && go generate ./... && git diff --exit-code'
 
 docker-package:
 	docker run --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
