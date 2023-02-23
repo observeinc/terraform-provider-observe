@@ -1,3 +1,14 @@
+## 0.13.5 (2023-02-23)
+
+* build: fix `docker-package` target
+* monitor: add support for setting reminders
+* bookmark_group: add description field
+* build: fix `pwd` in `check-generated`
+* build: fix errors during `go generate` in Jenkins
+* dashboard: implement custom Go type for handling parameter defaultValue
+* bookmark_group: reference presentation settings from GQL schema
+* gql: update schema
+
 ## 0.13.4 (2023-02-16)
 
 * docs: fix import examples
