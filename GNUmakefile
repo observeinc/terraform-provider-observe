@@ -28,12 +28,13 @@ docker-sweep:
 	--rm golang:latest \
 	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make sweep"
 
-docker-check-generated:
-# This step runs `go build`, via `go generate`. This container runs as root.
+# The following targets (docker-check-generated, docker-package) invoke `go build` in a container.
+# This container runs as root.
 # In environments including Jenkins, the directory owner will differ from the container user.
 # This causes `go build` to fail, reporting an error about VCS stamping, originating from git.
 # Informing git that this directory is safe allows the build to proceed:
 # https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
+docker-check-generated:
 	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
 		/bin/bash -x -c 'cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory "$$(pwd)" && go generate ./... && git diff --exit-code'
@@ -41,15 +42,16 @@ docker-check-generated:
 docker-package:
 	docker run --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
-	    /bin/bash -c " \
+	    /bin/bash -c ' \
 		cd src/github.com/observeinc/terraform-provider-observe && \
+		git config --global --add safe.directory "$$(pwd)" && \
 		apt-get update && \
 		apt-get install -y zip && \
 		rm -rf bin && \
 		GOOS=darwin GOARCH=amd64 make package && \
 		GOOS=darwin GOARCH=arm64 make package && \
 		GOOS=linux GOARCH=amd64 make package && \
-		GOOS=linux GOARCH=arm64 make package"
+		GOOS=linux GOARCH=arm64 make package'
 
 docker-sign:
 	docker run --network=host -v `pwd`:/root/build \
