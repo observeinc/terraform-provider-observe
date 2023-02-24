@@ -1,3 +1,8 @@
+## 0.13.6 (2023-02-24)
+
+* dashboard: fix defaultValue.primaryKeyValue[].name
+* bookmarks: add managedById
+
 ## 0.13.5 (2023-02-23)
 
 * build: fix `docker-package` target
