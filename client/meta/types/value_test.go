@@ -89,11 +89,11 @@ func TestValueJSON(t *testing.T) {
 		},
 		{
 			name: "link",
-			json: `{"link":{"datasetId":"123456","primaryKeyValue":[{"key":"foo","value":{"string":"bar"}}],"storedLabel":"l"}}`,
+			json: `{"link":{"datasetId":"123456","primaryKeyValue":[{"name":"foo","value":{"string":"bar"}}],"storedLabel":"l"}}`,
 			value: MustNewValue(ValueLink{
 				DatasetId: "123456",
 				PrimaryKeyValue: []*ValueKeyValue{
-					{Key: "foo", Value: MustNewValue("bar")},
+					{Name: "foo", Value: MustNewValue("bar")},
 				},
 				StoredLabel: MustNewValue("l").String,
 			}),

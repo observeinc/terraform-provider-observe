@@ -135,7 +135,7 @@ type ValueLink struct {
 }
 
 type ValueKeyValue struct {
-	Key   string `json:"key,omitempty"`
+	Name  string `json:"name,omitempty"`
 	Value *Value `json:"value,omitempty"`
 }
 
