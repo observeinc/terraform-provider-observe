@@ -1,3 +1,8 @@
+## 0.13.7 (2023-02-24)
+
+* dashboard: marshal float64 as float64 instead of string
+* dashboard: handle defaultValue.int64 as int string
+
 ## 0.13.6 (2023-02-24)
 
 * dashboard: fix defaultValue.primaryKeyValue[].name
