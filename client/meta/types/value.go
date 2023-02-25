@@ -22,7 +22,7 @@ type Value struct {
 type ValueData struct {
 	Bool       *bool            `json:"bool,omitempty"`
 	Float64    *float64         `json:"float64,omitempty"`
-	Int64      *int64           `json:"int64,omitempty"`
+	Int64      *Int64Scalar     `json:"int64,omitempty"`
 	String     *string          `json:"string,omitempty"`
 	Timestamp  *TimeScalar      `json:"timestamp,omitempty"`
 	Duration   *DurationScalar  `json:"duration,omitempty"`
@@ -55,7 +55,8 @@ func MustNewValue(v any) *Value {
 	case float64:
 		return &Value{ValueData: ValueData{Float64: &v}}
 	case int64:
-		return &Value{ValueData: ValueData{Int64: &v}}
+		i := Int64Scalar(v)
+		return &Value{ValueData: ValueData{Int64: &i}}
 	case string:
 		return &Value{ValueData: ValueData{String: &v}}
 	case TimeScalar:

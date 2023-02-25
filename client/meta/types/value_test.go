@@ -39,7 +39,7 @@ func TestValueJSON(t *testing.T) {
 		},
 		{
 			name:  "int64",
-			json:  `{"int64":1}`,
+			json:  `{"int64":"1"}`,
 			value: MustNewValue(int64(1)),
 		},
 		{
