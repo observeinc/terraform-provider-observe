@@ -21,7 +21,7 @@ type Value struct {
 // ValueData holds a concrete non-null value of one of the supported types.
 type ValueData struct {
 	Bool       *bool            `json:"bool,omitempty"`
-	Float64    *float64         `json:"float64,omitempty"`
+	Float64    *NumberScalar    `json:"float64,omitempty"`
 	Int64      *Int64Scalar     `json:"int64,omitempty"`
 	String     *string          `json:"string,omitempty"`
 	Timestamp  *TimeScalar      `json:"timestamp,omitempty"`
@@ -53,7 +53,8 @@ func MustNewValue(v any) *Value {
 	case bool:
 		return &Value{ValueData: ValueData{Bool: &v}}
 	case float64:
-		return &Value{ValueData: ValueData{Float64: &v}}
+		f := NumberScalar(v)
+		return &Value{ValueData: ValueData{Float64: &f}}
 	case int64:
 		i := Int64Scalar(v)
 		return &Value{ValueData: ValueData{Int64: &i}}

@@ -29,7 +29,7 @@ func TestValueJSON(t *testing.T) {
 		},
 		{
 			name:  "float64",
-			json:  `{"float64":1.1}`,
+			json:  `{"float64":1.100000}`,
 			value: MustNewValue(1.1),
 		},
 		{
@@ -198,7 +198,7 @@ func TestValueUnmarshalJSONErrors(t *testing.T) {
 		},
 		{
 			name:  "too many",
-			json:  `{"bool":true,"float64":1.1}`,
+			json:  `{"bool":true,"float64":1.100000}`,
 			error: "expected exactly one value type",
 		},
 	}
