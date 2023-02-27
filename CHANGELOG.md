@@ -1,3 +1,7 @@
+## 0.13.8 (2023-02-27)
+
+* fix: restore marshaling of floats as strings
+
 ## 0.13.7 (2023-02-24)
 
 * dashboard: marshal float64 as float64 instead of string
