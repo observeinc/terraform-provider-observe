@@ -16,6 +16,10 @@ func TestValueJSON(t *testing.T) {
 		name  string
 		json  string
 		value *Value
+
+		// sourceJSON is the JSON returned by the API (unmarshaled), if it is different than the JSON sent to the API (marshaled).
+		// TODO: remove this when the API correctly unmarshals JSON numbers.
+		sourceJSON string
 	}{
 		{
 			name:  "bool",
@@ -28,9 +32,12 @@ func TestValueJSON(t *testing.T) {
 			value: NewNullValue(ValueTypeBool),
 		},
 		{
-			name:  "float64",
-			json:  `{"float64":1.100000}`,
-			value: MustNewValue(1.1),
+			name: "float64",
+			// TODO: remove the string quotes when the API correctly unmarshals JSON numbers.
+			json: `{"float64":"1.100000"}`,
+			// TODO: remove this when the API correctly unmarshals JSON numbers.
+			sourceJSON: `{"float64":1.100000}`,
+			value:      MustNewValue(1.1),
 		},
 		{
 			name:  "null float64",
@@ -128,8 +135,13 @@ func TestValueJSON(t *testing.T) {
 			t.Run("unmarshal", func(t *testing.T) {
 				t.Parallel()
 
+				j := tc.json
+				if tc.sourceJSON != "" {
+					j = tc.sourceJSON
+				}
+
 				var got Value
-				if err := json.Unmarshal([]byte(tc.json), &got); err != nil {
+				if err := json.Unmarshal([]byte(j), &got); err != nil {
 					t.Fatal(err)
 				}
 
@@ -198,7 +210,7 @@ func TestValueUnmarshalJSONErrors(t *testing.T) {
 		},
 		{
 			name:  "too many",
-			json:  `{"bool":true,"float64":1.100000}`,
+			json:  `{"bool":true,"float64":"1.100000"}`,
 			error: "expected exactly one value type",
 		},
 	}

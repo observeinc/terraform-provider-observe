@@ -258,6 +258,60 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 	})
 }
 
+func TestAccObserveMonitorThresholdFloat(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorConfigPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = "colmake temp_number:14"
+					}
+
+
+					rule {
+                        source_column    = "temp_number"
+
+						threshold {
+                            compare_function = "greater"
+                            compare_values   = [ 0.5 ]
+                            lookback_time    = "10m0s"
+						}
+					}
+
+					notification_spec {
+						merge = "merged"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", "colmake temp_number:14"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_function", "greater"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.compare_values.0", "0.5"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.lookback_time", "10m0s"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.threshold.0.threshold_agg_function", "at_all_times"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveMonitorFacetUpdate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
