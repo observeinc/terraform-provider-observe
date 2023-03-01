@@ -15,7 +15,7 @@ import (
 
 func resourceBookmark() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a bookmark to an Observe dataset or dashboard.",
+		Description:   "Bookmark an Observe resource for easy access.",
 		CreateContext: resourceBookmarkCreate,
 		ReadContext:   resourceBookmarkRead,
 		UpdateContext: resourceBookmarkUpdate,
@@ -47,6 +47,7 @@ func resourceBookmark() *schema.Resource {
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
+				Description:      "The OID of the resource to bookmark. Datasets and dashboards are currently supported.",
 				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeDashboard),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 			},

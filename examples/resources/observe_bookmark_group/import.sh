@@ -1,0 +1,1 @@
+terraform import observe_boomark_group.example 1414010
