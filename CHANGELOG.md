@@ -1,3 +1,10 @@
+## 0.13.9 (2023-03-02)
+
+* poller: Allow a request body to be used HTTP requests
+* docs: add example for default_dashboard
+* docs: add examples for bookmarks/groups
+* docs: add example for observe_folder
+
 ## 0.13.8 (2023-02-27)
 
 * fix: restore marshaling of floats as strings
