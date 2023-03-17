@@ -5037,9 +5037,8 @@ func (v *WorksheetInput) GetIcon() *string { return v.Icon }
 // design now, so at some point, maybe update the API to match the updated
 // design?
 type Workspace struct {
-	Id       string                      `json:"id"`
-	Label    string                      `json:"label"`
-	Datasets []*WorkspaceDatasetsDataset `json:"datasets"`
+	Id    string `json:"id"`
+	Label string `json:"label"`
 }
 
 // GetId returns Workspace.Id, and is useful for accessing the field via an interface.
@@ -5047,21 +5046,6 @@ func (v *Workspace) GetId() string { return v.Id }
 
 // GetLabel returns Workspace.Label, and is useful for accessing the field via an interface.
 func (v *Workspace) GetLabel() string { return v.Label }
-
-// GetDatasets returns Workspace.Datasets, and is useful for accessing the field via an interface.
-func (v *Workspace) GetDatasets() []*WorkspaceDatasetsDataset { return v.Datasets }
-
-// WorkspaceDatasetsDataset includes the requested fields of the GraphQL type Dataset.
-type WorkspaceDatasetsDataset struct {
-	Id    string `json:"id"`
-	Label string `json:"label"`
-}
-
-// GetId returns WorkspaceDatasetsDataset.Id, and is useful for accessing the field via an interface.
-func (v *WorkspaceDatasetsDataset) GetId() string { return v.Id }
-
-// GetLabel returns WorkspaceDatasetsDataset.Label, and is useful for accessing the field via an interface.
-func (v *WorkspaceDatasetsDataset) GetLabel() string { return v.Label }
 
 type WorkspaceInput struct {
 	Label    *string           `json:"label"`
@@ -8022,10 +8006,6 @@ mutation createWorkspace ($config: WorkspaceInput!) {
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
 }
 `,
 		Variables: &__createWorkspaceInput{
@@ -10052,10 +10032,6 @@ query getWorkspace ($id: ObjectId!) {
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
 }
 `,
 		Variables: &__getWorkspaceInput{
@@ -10194,10 +10170,6 @@ query listWorkspaces {
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
 }
 `,
 	}
@@ -10595,10 +10567,6 @@ query lookupWorkspace ($name: String!) {
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
 }
 `,
 		Variables: &__lookupWorkspaceInput{
@@ -11957,10 +11925,6 @@ mutation updateWorkspace ($id: ObjectId!, $config: WorkspaceInput!) {
 fragment Workspace on Project {
 	id
 	label
-	datasets {
-		id
-		label
-	}
 }
 `,
 		Variables: &__updateWorkspaceInput{

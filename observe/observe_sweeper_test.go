@@ -95,10 +95,32 @@ func datasetSweeperFunc(s string) error {
 	}
 
 	for _, workspace := range workspaces {
-		for _, ds := range workspace.Datasets {
-			if prefixRe.MatchString(ds.Label) {
-				log.Printf("[WARN] Deleting %s [id=%s]\n", ds.Label, ds.Id)
-				if err := client.DeleteDataset(ctx, ds.Id); err != nil {
+		result, err := client.Meta.Run(ctx, `
+		query getDatasetsInWorkspace($workspaceId: ObjectId!) {
+		    datasetsInWorkspace($workspaceId: $workspaceId) {
+			    id
+			    datasets {
+			        id
+			        label
+			    }
+		    }
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup datasets: %w", err)
+		}
+
+		for _, i := range result["datasetsInWorkspace"].([]interface{}) {
+			var (
+				item  = i.(map[string]interface{})
+				label = item["label"].(string)
+				id    = item["id"].(string)
+			)
+			if prefixRe.MatchString(label) {
+				log.Printf("[WARN] Deleting %s [id=%s]\n", label, id)
+				if err := client.DeleteDataset(ctx, id); err != nil {
 					return err
 				}
 			}
