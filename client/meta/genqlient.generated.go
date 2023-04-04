@@ -4395,6 +4395,22 @@ const (
 	RateLimitOptionBypassratelimit RateLimitOption = "BypassRateLimit"
 )
 
+// RbacGroup includes the GraphQL fields of RbacGroup requested by the fragment RbacGroup.
+type RbacGroup struct {
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// GetId returns RbacGroup.Id, and is useful for accessing the field via an interface.
+func (v *RbacGroup) GetId() string { return v.Id }
+
+// GetName returns RbacGroup.Name, and is useful for accessing the field via an interface.
+func (v *RbacGroup) GetName() string { return v.Name }
+
+// GetDescription returns RbacGroup.Description, and is useful for accessing the field via an interface.
+func (v *RbacGroup) GetDescription() string { return v.Description }
+
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
 	PrimaryKeyValue []ColumnAndValueInput `json:"primaryKeyValue"`
@@ -5592,6 +5608,14 @@ type __getPreferredPathInput struct {
 // GetId returns __getPreferredPathInput.Id, and is useful for accessing the field via an interface.
 func (v *__getPreferredPathInput) GetId() string { return v.Id }
 
+// __getRbacGroupInput is used internally by genqlient
+type __getRbacGroupInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getRbacGroupInput.Id, and is useful for accessing the field via an interface.
+func (v *__getRbacGroupInput) GetId() string { return v.Id }
+
 // __getTerraformInput is used internally by genqlient
 type __getTerraformInput struct {
 	Id string              `json:"id"`
@@ -6612,6 +6636,24 @@ type getPreferredPathResponse struct {
 func (v *getPreferredPathResponse) GetPreferredPathWithStatus() PreferredPathWithStatus {
 	return v.PreferredPathWithStatus
 }
+
+// getRbacGroupResponse is returned by getRbacGroup on success.
+type getRbacGroupResponse struct {
+	// Read an individual group
+	RbacGroup RbacGroup `json:"rbacGroup"`
+}
+
+// GetRbacGroup returns getRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
+func (v *getRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
+
+// getRbacGroupsResponse is returned by getRbacGroups on success.
+type getRbacGroupsResponse struct {
+	// All groups defined in this tenant.
+	RbacGroups []RbacGroup `json:"rbacGroups"`
+}
+
+// GetRbacGroups returns getRbacGroupsResponse.RbacGroups, and is useful for accessing the field via an interface.
+func (v *getRbacGroupsResponse) GetRbacGroups() []RbacGroup { return v.RbacGroups }
 
 // getTerraformResponse is returned by getTerraform on success.
 type getTerraformResponse struct {
@@ -9910,6 +9952,76 @@ fragment PreferredPath on PreferredPath {
 	var err error
 
 	var data getPreferredPathResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroup",
+		Query: `
+query getRbacGroup ($id: ORN!) {
+	rbacGroup(id: $id) {
+		... RbacGroup
+	}
+}
+fragment RbacGroup on RbacGroup {
+	id
+	name
+	description
+}
+`,
+		Variables: &__getRbacGroupInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getRbacGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getRbacGroups(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroups",
+		Query: `
+query getRbacGroups {
+	rbacGroups {
+		... RbacGroup
+	}
+}
+fragment RbacGroup on RbacGroup {
+	id
+	name
+	description
+}
+`,
+	}
+	var err error
+
+	var data getRbacGroupsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

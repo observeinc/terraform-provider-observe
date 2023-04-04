@@ -979,3 +979,13 @@ func (c *Client) DeleteAppDataSource(ctx context.Context, id string) error {
 func (c *Client) GetAppDataSource(ctx context.Context, id string) (*meta.AppDataSource, error) {
 	return c.Meta.GetAppDataSource(ctx, id)
 }
+
+// GetRbacGroup by ID
+func (c *Client) GetRbacGroup(ctx context.Context, id string) (*meta.RbacGroup, error) {
+	return c.Meta.GetRbacGroup(ctx, id)
+}
+
+// LookupRbacGroup by name.
+func (c *Client) LookupRbacGroup(ctx context.Context, name string) (*meta.RbacGroup, error) {
+	return c.Meta.LookupRbacGroup(ctx, name)
+}

@@ -159,6 +159,8 @@ bindings:
     type: string
   ObjectId:
     type: string
+  ORN:
+    type: string
 
   # Unused types
   SnowflakeCursor:

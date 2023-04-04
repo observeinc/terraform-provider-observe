@@ -1,0 +1,221 @@
+extend type Query {
+    """
+    Read an individual group
+    """
+    rbacGroup(id: ORN!): RbacGroup!
+
+    """
+    Read an individual group member
+    """
+    rbacGroupmember(id: ORN!): RbacGroupmember!
+
+    """
+    Read an individual statement
+    """
+    rbacStatement(id: ORN!): RbacStatement!
+
+    """
+    All groups defined in this tenant.
+    """
+    rbacGroups: [RbacGroup!]!
+
+    """
+    All group memberships defined in this tenant.
+    """
+    rbacGroupmembers: [RbacGroupmember!]!
+
+    """
+    All RBAC statements defined in this tenant.
+    """
+    rbacStatements: [RbacStatement!]!
+
+    """
+    Given a particular user, and a particular object/role request, return what would happen.
+    """
+    rbacTestRequest(u: UserId!, r: RbacRequestInput!): RbacTestRequestResult!
+
+    """
+    Given a particular object, return all statements that would affect that object, independent of context.
+    """
+    rbacObjectMatches(o: RbacRequestObjectInput!): [RbacStatement!]!
+
+    """
+    Given a particular user, return all statements that would affect that user, independent of context.
+    This is the same as User.rbacStatements.
+    """
+    rbacUserMatches(u: UserId!): [RbacStatement!]!
+}
+
+extend type User {
+    """
+    All groups this user is member of, direct or indirect.
+    """
+    rbacGroups: [RbacGroup!]! @goField(forceResolver: true)
+
+    """
+    All RBAC statements that apply to this user, through direct, group (direct or indirect,) or all.
+    This is the same as Query.rbacUserMatches().
+    """
+    rbacStatements: [RbacStatement!]! @goField(forceResolver: true)
+
+    """
+    Direct memberships of this user (not indirect groups!)
+    """
+    rbacGroupmembers: [RbacGroupmember!]! @goField(forceResolver: true)
+}
+
+#extend type Mutation {
+#}
+
+scalar ORN @goModel(model: "observe/authorization/id.ORN")
+
+enum RbacRole @goModel(model: "observe/rbac/policy.Role") {
+    Manager
+    Editor
+    Viewer
+    Ingester
+    Lister
+}
+
+type RbacGroup implements AuditedObject @goModel(model: "observe/rbac/policy.Group") {
+    id: ORN!
+    name: String!
+    description: String! @goField(name:"Comment")
+
+    memberUserIds: [UserId!]!
+    memberGroupIds: [ORN!]!
+    memberOfGroupIds: [ORN!]!
+
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    updatedDate: Time!
+}
+
+input RbacGroupInput @goModel(model: "observe/rbac/policy.Group") {
+    name: String!
+    description: String! @goField(name: "Comment")
+}
+
+type RbacGroupmember implements AuditedObject @goModel(model: "observe/rbac/policy.Groupmember") {
+    id: ORN!
+    description: String! @goField(name: "Comment")
+    groupId: ORN! @goField(name: "Group")
+    memberUserId: UserId @goField(name: "MemberUser")
+    memberGroupId: ORN @goField(name: "MemberGroup")
+
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    updatedDate: Time!
+}
+
+input RbacGroupmemberInput @goModel(model: "observe/rbac/policy.Groupmember") {
+    description: String! @goField(name: "Comment")
+    groupId: ORN! @goField(name: "Group")
+    memberUserId: UserId @goField(name: "MemberUser")
+    memberGroupId: ORN @goField(name: "MemberGroup")
+}
+
+type RbacSubject @goModel(model: "observe/rbac/policy.Subject") {
+    userId: UserId @goField(name: "User")
+    groupId: ORN @goField(name: "Group")
+    all: Boolean
+}
+
+input RbacSubjectInput @goModel(model: "observe/rbac/policy.Subject") {
+    userId: UserId @goField(name: "User")
+    groupId: ORN @goField(name: "Group")
+    all: Boolean
+}
+
+type RbacObject @goModel(model: "observe/rbac/policy.Object") {
+    objectId: ObjectId @goField(name: "Object")
+    folderId: ObjectId @goField(name: "Folder")
+    workspaceId: ObjectId @goField(name: "Workspace")
+    type: String
+    name: String
+    owner: Boolean
+    all: Boolean
+}
+
+input RbacObjectInput @goModel(model: "observe/rbac/policy.Object") {
+    objectId: ObjectId @goField(name: "Object")
+    folderId: ObjectId @goField(name: "Folder")
+    workspaceId: ObjectId @goField(name: "Workspace")
+    type: String
+    name: String
+    owner: Boolean
+    all: Boolean
+}
+
+type RbacStatement implements AuditedObject @goModel(model: "observe/rbac/policy.Statement") {
+    id: ORN!
+    description: String! @goField(name: "Comment")
+    subject: RbacSubject!
+    object: RbacObject!
+    role: RbacRole!
+
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+    updatedDate: Time!
+}
+
+input RbacStatementInput @goModel(model: "observe/rbac/policy.Statement") {
+    description: String! @goField(name: "Comment")
+    subject: RbacSubjectInput!
+    object: RbacObjectInput!
+    role: RbacRole!
+}
+
+"""
+A RequestSubject is different from a Subject, because the RequestSubject
+provides all of the values, such that each Statement can match against
+it based on its own scoped values. These are only used as inputs, when
+attempting to pre-flight some particular RBAC check.
+
+This is expressed as a scalar, because custom unmarshaling to a map from
+a list doesn't work otherwise in the version of gqlgen we're stuck with.
+
+{
+    userId: UserId!
+    groupIds: [ORN!]!
+}
+"""
+scalar RbacRequestSubject @goModel(model: "observe/rbac/policy.RequestSubject")
+
+"""
+A RequestObject is different from an Object, because the RequestObject
+provides all of the values, such that each Statement can match against
+it based on its own scoped values. For values that aren't possible to
+determine (mainly, folder for things not in folders, or objectid for
+non-ID components like 'superadmin') provide the literal "0". These
+are only used as inputs, when attempting to pre-flight some particular
+RBAC check.
+"""
+input RbacRequestObjectInput @goModel(model: "observe/rbac/policy.RequestObject") {
+    objectId: ObjectId! @goField(name: "Object")
+    folderId: ObjectId! @goField(name: "Folder")
+    workspaceId: ObjectId! @goField(name: "Workspace")
+    type: String!
+    name: String!
+    isOwner: Boolean!
+}
+
+input RbacRequestInput @goModel(model: "observe/rbac/policy.Request") {
+    object: RbacRequestObjectInput!
+    role: RbacRole!
+}
+
+type RbacTestRequestResult @goModel(model: "observe/meta/metatypes.RbacTestRequestResult") {
+    result: Boolean!
+    matching: RbacStatement
+}
+

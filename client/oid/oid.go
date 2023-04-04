@@ -38,6 +38,7 @@ const (
 	TypeUser                 Type = "user"
 	TypeWorksheet            Type = "worksheet"
 	TypeWorkspace            Type = "workspace"
+	TypeRbacGroup            Type = "rbacgroup"
 )
 
 func (t Type) IsValid() bool {
@@ -63,6 +64,7 @@ func (t Type) IsValid() bool {
 	case TypeUser:
 	case TypeWorksheet:
 	case TypeWorkspace:
+	case TypeRbacGroup:
 	default:
 		return false
 	}
@@ -207,4 +209,10 @@ func WorksheetOid(id string) OID {
 
 func WorkspaceOid(id string) OID {
 	return OID{Id: id, Type: TypeWorkspace}
+}
+
+func RbacGroupOid(id string) OID {
+	// note: id is an ORN of the form `o::<customerid>:rbacgroup:<coid>`
+	// the generated OID currently adds a prefix `o:::rbacgroup:` to the above string
+	return OID{Id: id, Type: TypeRbacGroup}
 }

@@ -1,0 +1,19 @@
+fragment RbacGroup on RbacGroup {
+	id
+        name
+        description
+}
+
+query getRbacGroup($id: ORN!) {
+	# @genqlient(flatten: true)
+	rbacGroup: rbacGroup(id: $id) {
+		...RbacGroup
+	}
+}
+
+query getRbacGroups() {
+	# @genqlient(flatten: true)
+	rbacGroups: rbacGroups {
+		...RbacGroup
+	}
+}
