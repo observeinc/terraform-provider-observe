@@ -1,0 +1,12 @@
+fragment User on User {
+	id
+	email
+        comment
+}
+
+query getUser($id: UserId!) {
+	# @genqlient(flatten: true)
+	user: user(id: $id) {
+		...User
+	}
+}

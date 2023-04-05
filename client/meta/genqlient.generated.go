@@ -4902,6 +4902,22 @@ const (
 	TimeUnitNanosecond  TimeUnit = "Nanosecond"
 )
 
+// User includes the GraphQL fields of User requested by the fragment User.
+type User struct {
+	Id      types.UserIdScalar `json:"id"`
+	Email   string             `json:"email"`
+	Comment *string            `json:"comment"`
+}
+
+// GetId returns User.Id, and is useful for accessing the field via an interface.
+func (v *User) GetId() types.UserIdScalar { return v.Id }
+
+// GetEmail returns User.Email, and is useful for accessing the field via an interface.
+func (v *User) GetEmail() string { return v.Email }
+
+// GetComment returns User.Comment, and is useful for accessing the field via an interface.
+func (v *User) GetComment() *string { return v.Comment }
+
 // These are the OPAL native types that can go into worksheet parameters.  Some
 // of the native OPAL types aren't (currently?) exposed to the worksheet
 // parameters, but it's likely we will expand this to the full roster over time.
@@ -5627,6 +5643,14 @@ func (v *__getTerraformInput) GetId() string { return v.Id }
 
 // GetTy returns __getTerraformInput.Ty, and is useful for accessing the field via an interface.
 func (v *__getTerraformInput) GetTy() TerraformObjectType { return v.Ty }
+
+// __getUserInput is used internally by genqlient
+type __getUserInput struct {
+	Id types.UserIdScalar `json:"id"`
+}
+
+// GetId returns __getUserInput.Id, and is useful for accessing the field via an interface.
+func (v *__getUserInput) GetId() types.UserIdScalar { return v.Id }
 
 // __getWorksheetInput is used internally by genqlient
 type __getWorksheetInput struct {
@@ -6520,6 +6544,22 @@ type getChannelResponse struct {
 // GetChannel returns getChannelResponse.Channel, and is useful for accessing the field via an interface.
 func (v *getChannelResponse) GetChannel() *Channel { return v.Channel }
 
+// getCurrentCustomerCustomer includes the requested fields of the GraphQL type Customer.
+type getCurrentCustomerCustomer struct {
+	Users []*User `json:"users"`
+}
+
+// GetUsers returns getCurrentCustomerCustomer.Users, and is useful for accessing the field via an interface.
+func (v *getCurrentCustomerCustomer) GetUsers() []*User { return v.Users }
+
+// getCurrentCustomerResponse is returned by getCurrentCustomer on success.
+type getCurrentCustomerResponse struct {
+	Customer *getCurrentCustomerCustomer `json:"customer"`
+}
+
+// GetCustomer returns getCurrentCustomerResponse.Customer, and is useful for accessing the field via an interface.
+func (v *getCurrentCustomerResponse) GetCustomer() *getCurrentCustomerCustomer { return v.Customer }
+
 // getDashboardLinkResponse is returned by getDashboardLink on success.
 type getDashboardLinkResponse struct {
 	DashboardLink DashboardLink `json:"dashboardLink"`
@@ -6662,6 +6702,14 @@ type getTerraformResponse struct {
 
 // GetTerraform returns getTerraformResponse.Terraform, and is useful for accessing the field via an interface.
 func (v *getTerraformResponse) GetTerraform() TerraformDefinition { return v.Terraform }
+
+// getUserResponse is returned by getUser on success.
+type getUserResponse struct {
+	User *User `json:"user"`
+}
+
+// GetUser returns getUserResponse.User, and is useful for accessing the field via an interface.
+func (v *getUserResponse) GetUser() *User { return v.User }
 
 // getWorksheetResponse is returned by getWorksheet on success.
 type getWorksheetResponse struct {
@@ -9125,6 +9173,41 @@ fragment ChannelAction on ChannelAction {
 	return &data, err
 }
 
+func getCurrentCustomer(
+	ctx context.Context,
+	client graphql.Client,
+) (*getCurrentCustomerResponse, error) {
+	req := &graphql.Request{
+		OpName: "getCurrentCustomer",
+		Query: `
+query getCurrentCustomer {
+	customer: currentCustomer {
+		users {
+			... User
+		}
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+}
+`,
+	}
+	var err error
+
+	var data getCurrentCustomerResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func getDashboard(
 	ctx context.Context,
 	client graphql.Client,
@@ -10062,6 +10145,43 @@ fragment TerraformDefinition on TerraformDefinition {
 	var err error
 
 	var data getTerraformResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getUser(
+	ctx context.Context,
+	client graphql.Client,
+	id types.UserIdScalar,
+) (*getUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "getUser",
+		Query: `
+query getUser ($id: UserId!) {
+	user(id: $id) {
+		... User
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+}
+`,
+		Variables: &__getUserInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getUserResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

@@ -1,0 +1,8 @@
+query getCurrentCustomer() {
+	customer: currentCustomer {
+                # @genqlient(flatten: true)
+                users {
+			...User
+                }
+	}
+}

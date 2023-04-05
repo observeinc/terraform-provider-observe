@@ -989,3 +989,13 @@ func (c *Client) GetRbacGroup(ctx context.Context, id string) (*meta.RbacGroup, 
 func (c *Client) LookupRbacGroup(ctx context.Context, name string) (*meta.RbacGroup, error) {
 	return c.Meta.LookupRbacGroup(ctx, name)
 }
+
+// GetUser by ID
+func (c *Client) GetUser(ctx context.Context, id string) (*meta.User, error) {
+	return c.Meta.GetUser(ctx, id)
+}
+
+// LookupUser by email.
+func (c *Client) LookupUser(ctx context.Context, email string) (*meta.User, error) {
+	return c.Meta.LookupUser(ctx, email)
+}

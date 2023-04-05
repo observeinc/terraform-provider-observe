@@ -15,7 +15,7 @@ func (u UserIdScalar) MarshalJSON() ([]byte, error) {
 func (u *UserIdScalar) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
-		return fmt.Errorf("could not parse time as JSON string: %w", err)
+		return fmt.Errorf("could not parse userId as JSON string: %w", err)
 	}
 	uid, err := strconv.ParseInt(s, 10, 64)
 	if err != nil || uid < 1 {
