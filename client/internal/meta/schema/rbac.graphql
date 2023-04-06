@@ -44,6 +44,11 @@ extend type Query {
     This is the same as User.rbacStatements.
     """
     rbacUserMatches(u: UserId!): [RbacStatement!]!
+
+    """
+    Get RBAC group by name, if it exists
+    """
+    rbacGroupByName(name: String!): RbacGroup!
 }
 
 extend type User {
@@ -64,8 +69,19 @@ extend type User {
     rbacGroupmembers: [RbacGroupmember!]! @goField(forceResolver: true)
 }
 
-#extend type Mutation {
-#}
+extend type Mutation {
+    createRbacGroup(input: RbacGroupInput!): RbacGroup!
+    updateRbacGroup(id: ORN!, input: RbacGroupInput!): RbacGroup!
+    deleteRbacGroup(id: ORN!): ResultStatus!
+
+    createRbacGroupmember(input: RbacGroupmemberInput!): RbacGroupmember!
+    updateRbacGroupmember(id: ORN!, input: RbacGroupmemberInput!): RbacGroupmember!
+    deleteRbacGroupmember(id: ORN!): ResultStatus!
+
+    createRbacStatement(input: RbacStatementInput!): RbacStatement!
+    updateRbacStatement(id: ORN!, input: RbacStatementInput!): RbacStatement!
+    deleteRbacStatement(id: ORN!): ResultStatus!
+}
 
 scalar ORN @goModel(model: "observe/authorization/id.ORN")
 
@@ -219,3 +235,48 @@ type RbacTestRequestResult @goModel(model: "observe/meta/metatypes.RbacTestReque
     matching: RbacStatement
 }
 
+#     """
+#     Return information about statements that lock some particular object. This
+#     is inferred from statements installed targeting a particular object, which
+#     may or may not have been created through the "lock" API.
+#     """
+#     rbacObjectLockStatements(id: ObjectId!): RbacLockResult!
+# 
+#     """
+#     The use case of "make this one object impossible to read for non-admins."
+#     This will create an object-specific statement that grants Lister to everyone.
+#     If such a staement already exists, it will just return it.
+#     You, the caller, will need to have Manager permission, and a rule will also
+#     be created that makes you Manager of the specific object.
+#     To undo the lock, remove the lock statement.
+#     To find the lock statements for an object later, use rbacObjectLockStatements(),
+#     which extracts the lock statements from the full set of statements.
+#     """
+#     rbacLockObject(id: ObjectId!): RbacLockResult!
+#     """
+#     Once you have a "locked" object, you can grant a particular user some particular
+#     permission role. The caller must have Manager role for the object.
+#     To undo the grant, remove the statement.
+#     """
+#     rbacGrantObjectUserRole(id: ObjectId!, uid: UserId!, role: RbacRole!): RbacStatement!
+#     """
+#     Once you have a "locked" object, you can grant a particular group some particular
+#     permission role. The caller must have Manager role for the object.
+#     To undo the grant, remove the statement.
+#     """
+#     rbacGrantObjectGroupRole(id: ObjectId!, group: ORN!, role: RbacRole!): RbacStatement!
+# 
+# type RbacLockResult @goModel(model: "observe/meta/metatypes.RbacLockResult") {
+#     """
+#     The "lock" is the statement that forces users to not query the object.
+#     """
+#     lock: RbacStatement!
+#     """
+#     The "lock" is the statement that allows whoever created the lock to manage the object.
+#     """
+#     admin: RbacStatement!
+#     """
+#     The "grants" are various grant statements that affect the particular object.
+#     """
+#     grants: [RbacStatement!]!
+# }

@@ -4411,6 +4411,17 @@ func (v *RbacGroup) GetName() string { return v.Name }
 // GetDescription returns RbacGroup.Description, and is useful for accessing the field via an interface.
 func (v *RbacGroup) GetDescription() string { return v.Description }
 
+type RbacGroupInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// GetName returns RbacGroupInput.Name, and is useful for accessing the field via an interface.
+func (v *RbacGroupInput) GetName() string { return v.Name }
+
+// GetDescription returns RbacGroupInput.Description, and is useful for accessing the field via an interface.
+func (v *RbacGroupInput) GetDescription() string { return v.Description }
+
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
 	PrimaryKeyValue []ColumnAndValueInput `json:"primaryKeyValue"`
@@ -5288,6 +5299,14 @@ func (v *__createPreferredPathInput) GetWorkspaceId() string { return v.Workspac
 // GetConfig returns __createPreferredPathInput.Config, and is useful for accessing the field via an interface.
 func (v *__createPreferredPathInput) GetConfig() PreferredPathInput { return v.Config }
 
+// __createRbacGroupInput is used internally by genqlient
+type __createRbacGroupInput struct {
+	Config RbacGroupInput `json:"config"`
+}
+
+// GetConfig returns __createRbacGroupInput.Config, and is useful for accessing the field via an interface.
+func (v *__createRbacGroupInput) GetConfig() RbacGroupInput { return v.Config }
+
 // __createWorkspaceInput is used internally by genqlient
 type __createWorkspaceInput struct {
 	Config WorkspaceInput `json:"config"`
@@ -5443,6 +5462,14 @@ type __deletePreferredPathInput struct {
 
 // GetId returns __deletePreferredPathInput.Id, and is useful for accessing the field via an interface.
 func (v *__deletePreferredPathInput) GetId() string { return v.Id }
+
+// __deleteRbacGroupInput is used internally by genqlient
+type __deleteRbacGroupInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteRbacGroupInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteRbacGroupInput) GetId() string { return v.Id }
 
 // __deleteWorksheetInput is used internally by genqlient
 type __deleteWorksheetInput struct {
@@ -5996,6 +6023,18 @@ func (v *__updatePreferredPathInput) GetId() string { return v.Id }
 // GetConfig returns __updatePreferredPathInput.Config, and is useful for accessing the field via an interface.
 func (v *__updatePreferredPathInput) GetConfig() PreferredPathInput { return v.Config }
 
+// __updateRbacGroupInput is used internally by genqlient
+type __updateRbacGroupInput struct {
+	Id     string         `json:"id"`
+	Config RbacGroupInput `json:"config"`
+}
+
+// GetId returns __updateRbacGroupInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateRbacGroupInput) GetId() string { return v.Id }
+
+// GetConfig returns __updateRbacGroupInput.Config, and is useful for accessing the field via an interface.
+func (v *__updateRbacGroupInput) GetConfig() RbacGroupInput { return v.Config }
+
 // __updateWorkspaceInput is used internally by genqlient
 type __updateWorkspaceInput struct {
 	Id     string         `json:"id"`
@@ -6236,6 +6275,14 @@ func (v *createPreferredPathResponse) GetPreferredPathWithStatus() PreferredPath
 	return v.PreferredPathWithStatus
 }
 
+// createRbacGroupResponse is returned by createRbacGroup on success.
+type createRbacGroupResponse struct {
+	RbacGroup RbacGroup `json:"rbacGroup"`
+}
+
+// GetRbacGroup returns createRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
+func (v *createRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
+
 // createWorkspaceResponse is returned by createWorkspace on success.
 type createWorkspaceResponse struct {
 	// When creating a workspace, all users for the customer will be granted
@@ -6405,6 +6452,14 @@ type deletePreferredPathResponse struct {
 
 // GetResultStatus returns deletePreferredPathResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deletePreferredPathResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteRbacGroupResponse is returned by deleteRbacGroup on success.
+type deleteRbacGroupResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteRbacGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteRbacGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteWorksheetResponse is returned by deleteWorksheet on success.
 type deleteWorksheetResponse struct {
@@ -7137,6 +7192,14 @@ type updatePreferredPathResponse struct {
 func (v *updatePreferredPathResponse) GetPreferredPathWithStatus() PreferredPathWithStatus {
 	return v.PreferredPathWithStatus
 }
+
+// updateRbacGroupResponse is returned by updateRbacGroup on success.
+type updateRbacGroupResponse struct {
+	RbacGroup RbacGroup `json:"rbacGroup"`
+}
+
+// GetRbacGroup returns updateRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
+func (v *updateRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
 
 // updateWorkspaceResponse is returned by updateWorkspace on success.
 type updateWorkspaceResponse struct {
@@ -8080,6 +8143,43 @@ fragment PreferredPath on PreferredPath {
 	return &data, err
 }
 
+func createRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	config RbacGroupInput,
+) (*createRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "createRbacGroup",
+		Query: `
+mutation createRbacGroup ($config: RbacGroupInput!) {
+	rbacGroup: createRbacGroup(input: $config) {
+		... RbacGroup
+	}
+}
+fragment RbacGroup on RbacGroup {
+	id
+	name
+	description
+}
+`,
+		Variables: &__createRbacGroupInput{
+			Config: config,
+		},
+	}
+	var err error
+
+	var data createRbacGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func createWorkspace(
 	ctx context.Context,
 	client graphql.Client,
@@ -8775,6 +8875,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deletePreferredPathResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteRbacGroup",
+		Query: `
+mutation deleteRbacGroup ($id: ORN!) {
+	resultStatus: deleteRbacGroup(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteRbacGroupInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteRbacGroupResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -12129,6 +12266,45 @@ fragment PreferredPath on PreferredPath {
 	var err error
 
 	var data updatePreferredPathResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config RbacGroupInput,
+) (*updateRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateRbacGroup",
+		Query: `
+mutation updateRbacGroup ($id: ORN!, $config: RbacGroupInput!) {
+	rbacGroup: updateRbacGroup(id: $id, input: $config) {
+		... RbacGroup
+	}
+}
+fragment RbacGroup on RbacGroup {
+	id
+	name
+	description
+}
+`,
+		Variables: &__updateRbacGroupInput{
+			Id:     id,
+			Config: config,
+		},
+	}
+	var err error
+
+	var data updateRbacGroupResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

@@ -154,6 +154,7 @@ func Provider() *schema.Provider {
 			"observe_default_dashboard":      resourceDefaultDashboard(),
 			"observe_layered_setting_record": resourceLayeredSettingRecord(),
 			"observe_dashboard_link":         resourceDashboardLink(),
+			"observe_rbac_group":             resourceRbacGroup(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

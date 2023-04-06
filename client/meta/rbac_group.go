@@ -19,9 +19,24 @@ func rbacGroupOrError(r rbacGroupResponse, err error) (*RbacGroup, error) {
 	return &result, nil
 }
 
+func (client *Client) CreateRbacGroup(ctx context.Context, input *RbacGroupInput) (*RbacGroup, error) {
+	resp, err := createRbacGroup(ctx, client.Gql, *input)
+	return rbacGroupOrError(resp, err)
+}
+
 func (client *Client) GetRbacGroup(ctx context.Context, id string) (*RbacGroup, error) {
 	resp, err := getRbacGroup(ctx, client.Gql, id)
 	return rbacGroupOrError(resp, err)
+}
+
+func (client *Client) UpdateRbacGroup(ctx context.Context, id string, input *RbacGroupInput) (*RbacGroup, error) {
+	resp, err := updateRbacGroup(ctx, client.Gql, id, *input)
+	return rbacGroupOrError(resp, err)
+}
+
+func (client *Client) DeleteRbacGroup(ctx context.Context, id string) error {
+	resp, err := deleteRbacGroup(ctx, client.Gql, id)
+	return resultStatusError(resp, err)
 }
 
 func (client *Client) LookupRbacGroup(ctx context.Context, name string) (*RbacGroup, error) {

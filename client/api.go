@@ -980,6 +980,33 @@ func (c *Client) GetAppDataSource(ctx context.Context, id string) (*meta.AppData
 	return c.Meta.GetAppDataSource(ctx, id)
 }
 
+// CreateRbacGroup creates an rbacgroup
+func (c *Client) CreateRbacGroup(ctx context.Context, input *meta.RbacGroupInput) (*meta.RbacGroup, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.CreateRbacGroup(ctx, input)
+}
+
+// UpdateRbacGroup updates an rbacgroup
+func (c *Client) UpdateRbacGroup(ctx context.Context, id string, input *meta.RbacGroupInput) (*meta.RbacGroup, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateRbacGroup(ctx, id, input)
+}
+
+// DeleteRbacGroup
+func (c *Client) DeleteRbacGroup(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteRbacGroup(ctx, id)
+}
+
 // GetRbacGroup by ID
 func (c *Client) GetRbacGroup(ctx context.Context, id string) (*meta.RbacGroup, error) {
 	return c.Meta.GetRbacGroup(ctx, id)

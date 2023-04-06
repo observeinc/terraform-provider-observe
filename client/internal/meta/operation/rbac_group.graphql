@@ -4,6 +4,13 @@ fragment RbacGroup on RbacGroup {
         description
 }
 
+mutation createRbacGroup($config: RbacGroupInput!) {
+    # @genqlient(flatten: true)
+    rbacGroup: createRbacGroup(input: $config) {
+        ...RbacGroup
+    }
+}
+
 query getRbacGroup($id: ORN!) {
 	# @genqlient(flatten: true)
 	rbacGroup: rbacGroup(id: $id) {
@@ -16,4 +23,18 @@ query getRbacGroups() {
 	rbacGroups: rbacGroups {
 		...RbacGroup
 	}
+}
+
+mutation updateRbacGroup($id: ORN!, $config: RbacGroupInput!) {
+    # @genqlient(flatten: true)
+    rbacGroup: updateRbacGroup(id:$id, input: $config) {
+        ...RbacGroup
+    }
+}
+
+mutation deleteRbacGroup($id: ORN!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteRbacGroup(id: $id) {
+        ...ResultStatus
+    }
 }
