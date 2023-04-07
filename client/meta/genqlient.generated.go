@@ -4422,6 +4422,49 @@ func (v *RbacGroupInput) GetName() string { return v.Name }
 // GetDescription returns RbacGroupInput.Description, and is useful for accessing the field via an interface.
 func (v *RbacGroupInput) GetDescription() string { return v.Description }
 
+// RbacGroupmember includes the GraphQL fields of RbacGroupmember requested by the fragment RbacGroupmember.
+type RbacGroupmember struct {
+	Id            string              `json:"id"`
+	Description   string              `json:"description"`
+	GroupId       string              `json:"groupId"`
+	MemberUserId  *types.UserIdScalar `json:"memberUserId"`
+	MemberGroupId *string             `json:"memberGroupId"`
+}
+
+// GetId returns RbacGroupmember.Id, and is useful for accessing the field via an interface.
+func (v *RbacGroupmember) GetId() string { return v.Id }
+
+// GetDescription returns RbacGroupmember.Description, and is useful for accessing the field via an interface.
+func (v *RbacGroupmember) GetDescription() string { return v.Description }
+
+// GetGroupId returns RbacGroupmember.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmember) GetGroupId() string { return v.GroupId }
+
+// GetMemberUserId returns RbacGroupmember.MemberUserId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmember) GetMemberUserId() *types.UserIdScalar { return v.MemberUserId }
+
+// GetMemberGroupId returns RbacGroupmember.MemberGroupId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmember) GetMemberGroupId() *string { return v.MemberGroupId }
+
+type RbacGroupmemberInput struct {
+	Description   string              `json:"description"`
+	GroupId       string              `json:"groupId"`
+	MemberUserId  *types.UserIdScalar `json:"memberUserId"`
+	MemberGroupId *string             `json:"memberGroupId"`
+}
+
+// GetDescription returns RbacGroupmemberInput.Description, and is useful for accessing the field via an interface.
+func (v *RbacGroupmemberInput) GetDescription() string { return v.Description }
+
+// GetGroupId returns RbacGroupmemberInput.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmemberInput) GetGroupId() string { return v.GroupId }
+
+// GetMemberUserId returns RbacGroupmemberInput.MemberUserId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmemberInput) GetMemberUserId() *types.UserIdScalar { return v.MemberUserId }
+
+// GetMemberGroupId returns RbacGroupmemberInput.MemberGroupId, and is useful for accessing the field via an interface.
+func (v *RbacGroupmemberInput) GetMemberGroupId() *string { return v.MemberGroupId }
+
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
 	PrimaryKeyValue []ColumnAndValueInput `json:"primaryKeyValue"`
@@ -5307,6 +5350,14 @@ type __createRbacGroupInput struct {
 // GetConfig returns __createRbacGroupInput.Config, and is useful for accessing the field via an interface.
 func (v *__createRbacGroupInput) GetConfig() RbacGroupInput { return v.Config }
 
+// __createRbacGroupmemberInput is used internally by genqlient
+type __createRbacGroupmemberInput struct {
+	Config RbacGroupmemberInput `json:"config"`
+}
+
+// GetConfig returns __createRbacGroupmemberInput.Config, and is useful for accessing the field via an interface.
+func (v *__createRbacGroupmemberInput) GetConfig() RbacGroupmemberInput { return v.Config }
+
 // __createWorkspaceInput is used internally by genqlient
 type __createWorkspaceInput struct {
 	Config WorkspaceInput `json:"config"`
@@ -5470,6 +5521,14 @@ type __deleteRbacGroupInput struct {
 
 // GetId returns __deleteRbacGroupInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteRbacGroupInput) GetId() string { return v.Id }
+
+// __deleteRbacGroupmemberInput is used internally by genqlient
+type __deleteRbacGroupmemberInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteRbacGroupmemberInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteRbacGroupmemberInput) GetId() string { return v.Id }
 
 // __deleteWorksheetInput is used internally by genqlient
 type __deleteWorksheetInput struct {
@@ -5658,6 +5717,14 @@ type __getRbacGroupInput struct {
 
 // GetId returns __getRbacGroupInput.Id, and is useful for accessing the field via an interface.
 func (v *__getRbacGroupInput) GetId() string { return v.Id }
+
+// __getRbacGroupmemberInput is used internally by genqlient
+type __getRbacGroupmemberInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getRbacGroupmemberInput.Id, and is useful for accessing the field via an interface.
+func (v *__getRbacGroupmemberInput) GetId() string { return v.Id }
 
 // __getTerraformInput is used internally by genqlient
 type __getTerraformInput struct {
@@ -6035,6 +6102,18 @@ func (v *__updateRbacGroupInput) GetId() string { return v.Id }
 // GetConfig returns __updateRbacGroupInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateRbacGroupInput) GetConfig() RbacGroupInput { return v.Config }
 
+// __updateRbacGroupmemberInput is used internally by genqlient
+type __updateRbacGroupmemberInput struct {
+	Id     string               `json:"id"`
+	Config RbacGroupmemberInput `json:"config"`
+}
+
+// GetId returns __updateRbacGroupmemberInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateRbacGroupmemberInput) GetId() string { return v.Id }
+
+// GetConfig returns __updateRbacGroupmemberInput.Config, and is useful for accessing the field via an interface.
+func (v *__updateRbacGroupmemberInput) GetConfig() RbacGroupmemberInput { return v.Config }
+
 // __updateWorkspaceInput is used internally by genqlient
 type __updateWorkspaceInput struct {
 	Id     string         `json:"id"`
@@ -6283,6 +6362,16 @@ type createRbacGroupResponse struct {
 // GetRbacGroup returns createRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
 func (v *createRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
 
+// createRbacGroupmemberResponse is returned by createRbacGroupmember on success.
+type createRbacGroupmemberResponse struct {
+	RbacGroupmember RbacGroupmember `json:"rbacGroupmember"`
+}
+
+// GetRbacGroupmember returns createRbacGroupmemberResponse.RbacGroupmember, and is useful for accessing the field via an interface.
+func (v *createRbacGroupmemberResponse) GetRbacGroupmember() RbacGroupmember {
+	return v.RbacGroupmember
+}
+
 // createWorkspaceResponse is returned by createWorkspace on success.
 type createWorkspaceResponse struct {
 	// When creating a workspace, all users for the customer will be granted
@@ -6460,6 +6549,14 @@ type deleteRbacGroupResponse struct {
 
 // GetResultStatus returns deleteRbacGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteRbacGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteRbacGroupmemberResponse is returned by deleteRbacGroupmember on success.
+type deleteRbacGroupmemberResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteRbacGroupmemberResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteRbacGroupmemberResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteWorksheetResponse is returned by deleteWorksheet on success.
 type deleteWorksheetResponse struct {
@@ -6740,6 +6837,15 @@ type getRbacGroupResponse struct {
 
 // GetRbacGroup returns getRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
 func (v *getRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
+
+// getRbacGroupmemberResponse is returned by getRbacGroupmember on success.
+type getRbacGroupmemberResponse struct {
+	// Read an individual group member
+	RbacGroupmember RbacGroupmember `json:"rbacGroupmember"`
+}
+
+// GetRbacGroupmember returns getRbacGroupmemberResponse.RbacGroupmember, and is useful for accessing the field via an interface.
+func (v *getRbacGroupmemberResponse) GetRbacGroupmember() RbacGroupmember { return v.RbacGroupmember }
 
 // getRbacGroupsResponse is returned by getRbacGroups on success.
 type getRbacGroupsResponse struct {
@@ -7200,6 +7306,16 @@ type updateRbacGroupResponse struct {
 
 // GetRbacGroup returns updateRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
 func (v *updateRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
+
+// updateRbacGroupmemberResponse is returned by updateRbacGroupmember on success.
+type updateRbacGroupmemberResponse struct {
+	RbacGroupmember RbacGroupmember `json:"rbacGroupmember"`
+}
+
+// GetRbacGroupmember returns updateRbacGroupmemberResponse.RbacGroupmember, and is useful for accessing the field via an interface.
+func (v *updateRbacGroupmemberResponse) GetRbacGroupmember() RbacGroupmember {
+	return v.RbacGroupmember
+}
 
 // updateWorkspaceResponse is returned by updateWorkspace on success.
 type updateWorkspaceResponse struct {
@@ -8180,6 +8296,45 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
+func createRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	config RbacGroupmemberInput,
+) (*createRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "createRbacGroupmember",
+		Query: `
+mutation createRbacGroupmember ($config: RbacGroupmemberInput!) {
+	rbacGroupmember: createRbacGroupmember(input: $config) {
+		... RbacGroupmember
+	}
+}
+fragment RbacGroupmember on RbacGroupmember {
+	id
+	description
+	groupId
+	memberUserId
+	memberGroupId
+}
+`,
+		Variables: &__createRbacGroupmemberInput{
+			Config: config,
+		},
+	}
+	var err error
+
+	var data createRbacGroupmemberResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func createWorkspace(
 	ctx context.Context,
 	client graphql.Client,
@@ -8912,6 +9067,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteRbacGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteRbacGroupmember",
+		Query: `
+mutation deleteRbacGroupmember ($id: ORN!) {
+	resultStatus: deleteRbacGroupmember(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteRbacGroupmemberInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteRbacGroupmemberResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10209,6 +10401,45 @@ fragment RbacGroup on RbacGroup {
 	var err error
 
 	var data getRbacGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroupmember",
+		Query: `
+query getRbacGroupmember ($id: ORN!) {
+	rbacGroupmember(id: $id) {
+		... RbacGroupmember
+	}
+}
+fragment RbacGroupmember on RbacGroupmember {
+	id
+	description
+	groupId
+	memberUserId
+	memberGroupId
+}
+`,
+		Variables: &__getRbacGroupmemberInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getRbacGroupmemberResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -12305,6 +12536,47 @@ fragment RbacGroup on RbacGroup {
 	var err error
 
 	var data updateRbacGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config RbacGroupmemberInput,
+) (*updateRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateRbacGroupmember",
+		Query: `
+mutation updateRbacGroupmember ($id: ORN!, $config: RbacGroupmemberInput!) {
+	rbacGroupmember: updateRbacGroupmember(id: $id, input: $config) {
+		... RbacGroupmember
+	}
+}
+fragment RbacGroupmember on RbacGroupmember {
+	id
+	description
+	groupId
+	memberUserId
+	memberGroupId
+}
+`,
+		Variables: &__updateRbacGroupmemberInput{
+			Id:     id,
+			Config: config,
+		},
+	}
+	var err error
+
+	var data updateRbacGroupmemberResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

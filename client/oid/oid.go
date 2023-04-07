@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
 var (
 	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z]+):(?P<id>\d+)(/(?P<version>.*))?`)
+	ornRegex      = regexp.MustCompile(`o::(?P<customer>\d+):(?P<type>[a-z]+):(?P<id>\d+)?`)
 	errInvalidOID = errors.New("invalid oid")
 )
 
@@ -39,6 +41,7 @@ const (
 	TypeWorksheet            Type = "worksheet"
 	TypeWorkspace            Type = "workspace"
 	TypeRbacGroup            Type = "rbacgroup"
+	TypeRbacGroupmember      Type = "rbacgroupmember"
 )
 
 func (t Type) IsValid() bool {
@@ -65,6 +68,7 @@ func (t Type) IsValid() bool {
 	case TypeWorksheet:
 	case TypeWorkspace:
 	case TypeRbacGroup:
+	case TypeRbacGroupmember:
 	default:
 		return false
 	}
@@ -78,7 +82,7 @@ type OID struct {
 }
 
 func (o OID) String() string {
-	id := o.Id
+	id := strings.Trim(o.Id, "\"")
 	if o.Version != nil {
 		id += "/" + *o.Version
 	}
@@ -86,7 +90,8 @@ func (o OID) String() string {
 }
 
 func NewOID(s string) (*OID, error) {
-	match := oidRegex.FindStringSubmatch(s)
+	orn, oidStr := extractORN(s)
+	match := oidRegex.FindStringSubmatch(oidStr)
 	if len(match) == 0 {
 		return nil, errInvalidOID
 	}
@@ -101,7 +106,7 @@ func NewOID(s string) (*OID, error) {
 				return nil, fmt.Errorf("unknown type: %w", errInvalidOID)
 			}
 		case "id":
-			oid.Id = match[i]
+			oid.Id = oneOf(orn, match[i])
 		case "version":
 			if s := match[i]; s != "" {
 				oid.Version = &s
@@ -113,6 +118,31 @@ func NewOID(s string) (*OID, error) {
 		return nil, errInvalidOID
 	}
 	return oid, nil
+}
+
+func oneOf(vals ...string) string {
+	for _, s := range vals {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
+// extractORN returns an ORN and an OID
+//   - If input has an ORN o:::rbacgroup:o::123458:rbacgroup:8000002523
+//     Output would be: "o::123458:rbacgroup:8000002523", "o:::rbacgroup:8000002523"
+//   - If input is a regular OID o:::user:12345678
+//     Output would be: "", "o:::user:12345678"
+func extractORN(s string) (orn, oid string) {
+	match := ornRegex.FindStringSubmatch(s)
+	if len(match) == 0 {
+		return "", s
+	}
+	orn = match[0]
+	id := match[len(match)-1]
+	oid = strings.Replace(s, orn, id, -1)
+	return orn, oid
 }
 
 func AppOid(id string) OID {
@@ -215,4 +245,10 @@ func RbacGroupOid(id string) OID {
 	// note: id is an ORN of the form `o::<customerid>:rbacgroup:<coid>`
 	// the generated OID currently adds a prefix `o:::rbacgroup:` to the above string
 	return OID{Id: id, Type: TypeRbacGroup}
+}
+
+func RbacGroupmemberOid(id string) OID {
+	// note: id is an ORN of the form `o::<customerid>:rbacgroupmember:<coid>`
+	// the generated OID currently adds a prefix `o:::rbacgroupmember:` to the above string
+	return OID{Id: id, Type: TypeRbacGroupmember}
 }

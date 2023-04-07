@@ -1026,3 +1026,35 @@ func (c *Client) GetUser(ctx context.Context, id string) (*meta.User, error) {
 func (c *Client) LookupUser(ctx context.Context, email string) (*meta.User, error) {
 	return c.Meta.LookupUser(ctx, email)
 }
+
+// CreateRbacGroupmember creates an rbacgroupmember
+func (c *Client) CreateRbacGroupmember(ctx context.Context, input *meta.RbacGroupmemberInput) (*meta.RbacGroupmember, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.CreateRbacGroupmember(ctx, input)
+}
+
+// UpdateRbacGroupmember updates an rbacgroupmember
+func (c *Client) UpdateRbacGroupmember(ctx context.Context, id string, input *meta.RbacGroupmemberInput) (*meta.RbacGroupmember, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateRbacGroupmember(ctx, id, input)
+}
+
+// DeleteRbacGroupmember
+func (c *Client) DeleteRbacGroupmember(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteRbacGroupmember(ctx, id)
+}
+
+// GetRbacGroupmember by ID
+func (c *Client) GetRbacGroupmember(ctx context.Context, id string) (*meta.RbacGroupmember, error) {
+	return c.Meta.GetRbacGroupmember(ctx, id)
+}
