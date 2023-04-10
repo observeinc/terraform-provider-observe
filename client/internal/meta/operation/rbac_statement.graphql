@@ -1,0 +1,47 @@
+fragment RbacStatement on RbacStatement {
+	id
+        description
+        subject {
+                userId
+                groupId
+                all
+        }
+        object {
+                objectId
+                folderId
+                workspaceId
+                type
+                name
+                owner
+                all
+        }
+        role
+}
+
+mutation createRbacStatement($config: RbacStatementInput!) {
+    # @genqlient(flatten: true)
+    rbacStatement: createRbacStatement(input: $config) {
+        ...RbacStatement
+    }
+}
+
+query getRbacStatement($id: ORN!) {
+	# @genqlient(flatten: true)
+	rbacStatement: rbacStatement(id: $id) {
+		...RbacStatement
+	}
+}
+
+mutation updateRbacStatement($id: ORN!, $config: RbacStatementInput!) {
+    # @genqlient(flatten: true)
+    rbacStatement: updateRbacStatement(id:$id, input: $config) {
+        ...RbacStatement
+    }
+}
+
+mutation deleteRbacStatement($id: ORN!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteRbacStatement(id: $id) {
+        ...ResultStatus
+    }
+}

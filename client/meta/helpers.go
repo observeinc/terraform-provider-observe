@@ -72,6 +72,14 @@ var AllThresholdAggFunctions = []ThresholdAggFunction{
 	ThresholdAggFunctionIntotal,
 }
 
+var AllRbacRoles = []RbacRole{
+	RbacRoleManager,
+	RbacRoleEditor,
+	RbacRoleViewer,
+	RbacRoleIngester,
+	RbacRoleLister,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }

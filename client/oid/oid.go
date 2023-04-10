@@ -42,6 +42,7 @@ const (
 	TypeWorkspace            Type = "workspace"
 	TypeRbacGroup            Type = "rbacgroup"
 	TypeRbacGroupmember      Type = "rbacgroupmember"
+	TypeRbacStatement        Type = "rbacstatement"
 )
 
 func (t Type) IsValid() bool {
@@ -69,6 +70,7 @@ func (t Type) IsValid() bool {
 	case TypeWorkspace:
 	case TypeRbacGroup:
 	case TypeRbacGroupmember:
+	case TypeRbacStatement:
 	default:
 		return false
 	}
@@ -251,4 +253,10 @@ func RbacGroupmemberOid(id string) OID {
 	// note: id is an ORN of the form `o::<customerid>:rbacgroupmember:<coid>`
 	// the generated OID currently adds a prefix `o:::rbacgroupmember:` to the above string
 	return OID{Id: id, Type: TypeRbacGroupmember}
+}
+
+func RbacStatementOid(id string) OID {
+	// note: id is an ORN of the form `o::<customerid>:rbacstatement:<coid>`
+	// the generated OID currently adds a prefix `o:::rbacstatement:` to the above string
+	return OID{Id: id, Type: TypeRbacStatement}
 }

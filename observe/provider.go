@@ -156,6 +156,7 @@ func Provider() *schema.Provider {
 			"observe_dashboard_link":         resourceDashboardLink(),
 			"observe_rbac_group":             resourceRbacGroup(),
 			"observe_rbac_group_member":      resourceRbacGroupmember(),
+			"observe_rbac_statement":         resourceRbacStatement(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

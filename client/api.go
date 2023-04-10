@@ -1058,3 +1058,35 @@ func (c *Client) DeleteRbacGroupmember(ctx context.Context, id string) error {
 func (c *Client) GetRbacGroupmember(ctx context.Context, id string) (*meta.RbacGroupmember, error) {
 	return c.Meta.GetRbacGroupmember(ctx, id)
 }
+
+// CreateRbacStatement creates an rbacstatement
+func (c *Client) CreateRbacStatement(ctx context.Context, input *meta.RbacStatementInput) (*meta.RbacStatement, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.CreateRbacStatement(ctx, input)
+}
+
+// UpdateRbacStatement updates an rbacstatement
+func (c *Client) UpdateRbacStatement(ctx context.Context, id string, input *meta.RbacStatementInput) (*meta.RbacStatement, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateRbacStatement(ctx, id, input)
+}
+
+// DeleteRbacStatement
+func (c *Client) DeleteRbacStatement(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteRbacStatement(ctx, id)
+}
+
+// GetRbacStatement by ID
+func (c *Client) GetRbacStatement(ctx context.Context, id string) (*meta.RbacStatement, error) {
+	return c.Meta.GetRbacStatement(ctx, id)
+}
