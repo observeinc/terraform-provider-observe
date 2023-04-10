@@ -26,7 +26,7 @@ func datasetOrError(d datasetResponse, err error) (*Dataset, error) {
 }
 
 func dep() *DependencyHandlingInput {
-	mode := SaveModeUpdateDataset
+	mode := SaveModeUpdateDatasetAndDependenciesIgnoringAllErrors
 	return &DependencyHandlingInput{SaveMode: &mode}
 }
 
