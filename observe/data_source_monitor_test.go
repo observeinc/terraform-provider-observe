@@ -40,7 +40,10 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 							}
 						}
 
-						notification_spec {}
+						notification_spec {
+							importance      = "informational"
+							notify_on_close = true
+						}
 					}
 
 					data "observe_monitor" "lookup" {

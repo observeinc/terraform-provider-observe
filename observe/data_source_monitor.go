@@ -287,6 +287,18 @@ func dataSourceMonitor() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"reminder_frequency": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"notify_on_reminder": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"notify_on_close": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},

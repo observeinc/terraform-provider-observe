@@ -132,6 +132,9 @@ Read-Only:
 
 - `importance` (String)
 - `merge` (String)
+- `notify_on_close` (Boolean)
+- `notify_on_reminder` (Boolean)
+- `reminder_frequency` (String)
 
 
 <a id="nestedblock--stage"></a>
