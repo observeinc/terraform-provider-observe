@@ -1,0 +1,1 @@
+terraform import observe_rbac_statement.example 1414010
