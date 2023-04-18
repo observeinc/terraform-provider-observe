@@ -49,6 +49,11 @@ extend type Query {
     Get RBAC group by name, if it exists
     """
     rbacGroupByName(name: String!): RbacGroup!
+
+    """
+    Get the group users will be assigned to by default
+    """
+    rbacDefaultGroup: RbacGroup!
 }
 
 extend type User {
@@ -81,6 +86,13 @@ extend type Mutation {
     createRbacStatement(input: RbacStatementInput!): RbacStatement!
     updateRbacStatement(id: ORN!, input: RbacStatementInput!): RbacStatement!
     deleteRbacStatement(id: ORN!): ResultStatus!
+
+    """
+    Set the default group that users will be assigned to. Must currently be one
+    of the pre-defined "reader", "writer", or "admin" groups!
+    """
+    setRbacDefaultGroup(id: ORN!): ResultStatus!
+    unsetRbacDefaultGroup: ResultStatus!
 }
 
 scalar ORN @goModel(model: "observe/authorization/id.ORN")

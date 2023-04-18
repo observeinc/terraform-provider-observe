@@ -1,0 +1,20 @@
+query getRbacDefaultGroup() {
+	# @genqlient(flatten: true)
+	rbacDefaultGroup: rbacDefaultGroup() {
+		...RbacGroup
+	}
+}
+
+mutation setRbacDefaultGroup($id: ORN!) {
+    # @genqlient(flatten: true)
+    resultStatus: setRbacDefaultGroup(id: $id) {
+        ...ResultStatus
+    }
+}
+
+mutation unsetRbacDefaultGroup() {
+    # @genqlient(flatten: true)
+    resultStatus: unsetRbacDefaultGroup() {
+        ...ResultStatus
+    }
+}

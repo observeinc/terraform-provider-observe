@@ -6095,6 +6095,14 @@ func (v *__setMonitorsForChannelInput) GetChannelId() string { return v.ChannelI
 // GetMonitorIds returns __setMonitorsForChannelInput.MonitorIds, and is useful for accessing the field via an interface.
 func (v *__setMonitorsForChannelInput) GetMonitorIds() []string { return v.MonitorIds }
 
+// __setRbacDefaultGroupInput is used internally by genqlient
+type __setRbacDefaultGroupInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __setRbacDefaultGroupInput.Id, and is useful for accessing the field via an interface.
+func (v *__setRbacDefaultGroupInput) GetId() string { return v.Id }
+
 // __updateAppDataSourceInput is used internally by genqlient
 type __updateAppDataSourceInput struct {
 	Id     string             `json:"id"`
@@ -7028,6 +7036,15 @@ func (v *getPreferredPathResponse) GetPreferredPathWithStatus() PreferredPathWit
 	return v.PreferredPathWithStatus
 }
 
+// getRbacDefaultGroupResponse is returned by getRbacDefaultGroup on success.
+type getRbacDefaultGroupResponse struct {
+	// Get the group users will be assigned to by default
+	RbacDefaultGroup RbacGroup `json:"rbacDefaultGroup"`
+}
+
+// GetRbacDefaultGroup returns getRbacDefaultGroupResponse.RbacDefaultGroup, and is useful for accessing the field via an interface.
+func (v *getRbacDefaultGroupResponse) GetRbacDefaultGroup() RbacGroup { return v.RbacDefaultGroup }
+
 // getRbacGroupResponse is returned by getRbacGroup on success.
 type getRbacGroupResponse struct {
 	// Read an individual group
@@ -7307,6 +7324,24 @@ type setMonitorsForChannelResponse struct {
 
 // GetResultStatus returns setMonitorsForChannelResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setMonitorsForChannelResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// setRbacDefaultGroupResponse is returned by setRbacDefaultGroup on success.
+type setRbacDefaultGroupResponse struct {
+	// Set the default group that users will be assigned to. Must currently be one
+	// of the pre-defined "reader", "writer", or "admin" groups!
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns setRbacDefaultGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *setRbacDefaultGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// unsetRbacDefaultGroupResponse is returned by unsetRbacDefaultGroup on success.
+type unsetRbacDefaultGroupResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns unsetRbacDefaultGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *unsetRbacDefaultGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // updateAppDataSourceResponse is returned by updateAppDataSource on success.
 type updateAppDataSourceResponse struct {
@@ -10679,6 +10714,39 @@ fragment PreferredPath on PreferredPath {
 	return &data, err
 }
 
+func getRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacDefaultGroup",
+		Query: `
+query getRbacDefaultGroup {
+	rbacDefaultGroup {
+		... RbacGroup
+	}
+}
+fragment RbacGroup on RbacGroup {
+	id
+	name
+	description
+}
+`,
+	}
+	var err error
+
+	var data getRbacDefaultGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func getRbacGroup(
 	ctx context.Context,
 	client graphql.Client,
@@ -12036,6 +12104,76 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data setMonitorsForChannelResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func setRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*setRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "setRbacDefaultGroup",
+		Query: `
+mutation setRbacDefaultGroup ($id: ORN!) {
+	resultStatus: setRbacDefaultGroup(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__setRbacDefaultGroupInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data setRbacDefaultGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func unsetRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+) (*unsetRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "unsetRbacDefaultGroup",
+		Query: `
+mutation unsetRbacDefaultGroup {
+	resultStatus: unsetRbacDefaultGroup {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+	}
+	var err error
+
+	var data unsetRbacDefaultGroupResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

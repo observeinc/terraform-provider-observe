@@ -155,6 +155,7 @@ func Provider() *schema.Provider {
 			"observe_layered_setting_record": resourceLayeredSettingRecord(),
 			"observe_dashboard_link":         resourceDashboardLink(),
 			"observe_rbac_group":             resourceRbacGroup(),
+			"observe_rbac_default_group":     resourceRbacDefaultGroup(),
 			"observe_rbac_group_member":      resourceRbacGroupmember(),
 			"observe_rbac_statement":         resourceRbacStatement(),
 		},
