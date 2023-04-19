@@ -53,9 +53,10 @@ func resourceDataset() *schema.Resource {
 				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: descriptions.Get("dataset", "schema", "name"),
+				Type:             schema.TypeString,
+				Required:         true,
+				Description:      descriptions.Get("dataset", "schema", "name"),
+				ValidateDiagFunc: validateDatasetName(),
 			},
 			"description": {
 				Type:        schema.TypeString,

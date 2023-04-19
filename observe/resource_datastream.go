@@ -39,9 +39,10 @@ func resourceDatastream() *schema.Resource {
 				Description:      schemaDatastreamWorkspaceDescription,
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: schemaDatastreamNameDescription,
+				Type:             schema.TypeString,
+				Required:         true,
+				Description:      schemaDatastreamNameDescription,
+				ValidateDiagFunc: validateDatastreamName(),
 			},
 			"description": {
 				Type:        schema.TypeString,

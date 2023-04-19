@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -122,11 +123,13 @@ func validateOIDType(i interface{}, path cty.Path) (diags diag.Diagnostics) {
 }
 
 const (
-	CustomerIdMul int64 = 137
-	MinCustomerId int64 = 100000000000
-	MaxCustomerId int64 = 200000000000
-	MinUserId     int64 = 1000
-	MaxUserId     int64 = 9999999
+	CustomerIdMul          int64  = 137
+	MinCustomerId          int64  = 100000000000
+	MaxCustomerId          int64  = 200000000000
+	MinUserId              int64  = 1000
+	MaxUserId              int64  = 9999999
+	InvalidObjectNameChars string = `:"\`
+	MaxNameLength          int    = 127
 )
 
 func validateCID() schema.SchemaValidateDiagFunc {
@@ -451,4 +454,15 @@ func maybeOID(val any, ok bool) *oid.OID {
 		panic(err)
 	}
 	return ret
+}
+
+func validateDatasetName() schema.SchemaValidateDiagFunc {
+	return validation.ToDiagFunc(validation.All(
+		validation.StringLenBetween(1, MaxNameLength),
+		validation.StringDoesNotContainAny(InvalidObjectNameChars),
+	))
+}
+
+func validateDatastreamName() schema.SchemaValidateDiagFunc {
+	return validateDatasetName()
 }

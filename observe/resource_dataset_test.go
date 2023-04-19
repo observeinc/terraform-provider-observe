@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -24,6 +25,58 @@ func getenv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				PlanOnly: true,
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s%s"  # exceeds MaxNameLength
+
+					inputs = {
+					  "test" = observe_datastream.test.dataset
+					}
+
+					stage {}
+				}`, randomPrefix, strings.Repeat("a", MaxNameLength)),
+				ExpectError: regexp.MustCompile("expected length of name to be.*"),
+			},
+		},
+	})
+}
+
+func TestAccObserveDatasetNameValidationInvalidCharacter(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				PlanOnly: true,
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s with colon :"
+
+					inputs = {
+					  "test" = observe_datastream.test.dataset
+					}
+
+					stage {}
+				}`, randomPrefix),
+				ExpectError: regexp.MustCompile("expected value of name to not contain.*"),
+			},
+		},
+	})
 }
 
 // Verify we can change dataset properties: e.g. name and freshness
