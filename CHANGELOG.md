@@ -1,3 +1,16 @@
+## 0.13.10 (2023-04-19)
+* rbac_default_group: add resource.observe_rbac_default_group
+* docs(rbac): add examples
+* rbac_statement: add resource.observe_rbac_statement
+* monitor: add missing fields in data source definition
+* fix: adjust SaveMode in dataset
+* rbac_group_member: add resource.observe_rbac_group_member
+* rbac_group: add resource resource.observe_rbac_group
+* user: add datasource data.observe_user
+* rbac_group: add datasource data.observe_rbac_group
+* workspace: avoid fetching datasets when getting workspace
+* docs(poller): add example (HTTP)
+
 ## 0.13.9 (2023-03-02)
 
 * poller: Allow a request body to be used HTTP requests
