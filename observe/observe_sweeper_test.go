@@ -57,7 +57,17 @@ func init() {
 	})
 }
 
-func sharedClient(s string) (*observe.Client, error) {
+type client struct {
+	*observe.Client
+	MatchName func(string) bool
+}
+
+func sharedClient(pattern string) (*client, error) {
+	patternRe, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile name pattern: %s", err)
+	}
+
 	config := &observe.Config{
 		CustomerID: os.Getenv("OBSERVE_CUSTOMER"),
 		Domain:     os.Getenv("OBSERVE_DOMAIN"),
@@ -74,15 +84,22 @@ func sharedClient(s string) (*observe.Client, error) {
 		config.ApiToken = &token
 	}
 
-	return observe.New(config)
+	oclient, err := observe.New(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{
+		Client: oclient,
+		MatchName: func(s string) bool {
+			fmt.Printf("matching %s %v %s\n", s, patternRe.MatchString(s), pattern)
+			return patternRe.MatchString(s)
+		},
+	}, nil
 }
 
-var (
-	prefixRe = regexp.MustCompile(`^tf-\d{16,}`)
-)
-
-func datasetSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func datasetSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -120,7 +137,7 @@ func datasetSweeperFunc(s string) error {
 				id          = item["id"].(string)
 				managedById = item["managedById"]
 			)
-			if prefixRe.MatchString(label) && managedById == nil {
+			if client.MatchName(label) && managedById == nil {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", label, id)
 				if err := client.DeleteDataset(ctx, id); err != nil {
 					return err
@@ -131,8 +148,8 @@ func datasetSweeperFunc(s string) error {
 	return nil
 }
 
-func monitorSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func monitorSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -165,7 +182,7 @@ func monitorSweeperFunc(s string) error {
 				name = item["name"].(string)
 				id   = item["id"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeleteMonitor(ctx, id); err != nil {
 					return err
@@ -176,8 +193,8 @@ func monitorSweeperFunc(s string) error {
 	return nil
 }
 
-func pollerSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func pollerSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -213,7 +230,7 @@ func pollerSweeperFunc(s string) error {
 				config = item["config"].(map[string]interface{})
 			)
 			name := config["name"].(string)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeletePoller(ctx, id); err != nil {
 					return err
@@ -224,8 +241,8 @@ func pollerSweeperFunc(s string) error {
 	return nil
 }
 
-func datastreamSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func datastreamSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -258,7 +275,7 @@ func datastreamSweeperFunc(s string) error {
 				id   = item["id"].(string)
 				name = item["name"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeleteDatastream(ctx, id); err != nil {
 					return err
@@ -269,8 +286,8 @@ func datastreamSweeperFunc(s string) error {
 	return nil
 }
 
-func folderSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func folderSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -303,7 +320,7 @@ func folderSweeperFunc(s string) error {
 				id   = item["id"].(string)
 				name = item["name"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeleteFolder(ctx, id); err != nil {
 					return err
@@ -314,8 +331,8 @@ func folderSweeperFunc(s string) error {
 	return nil
 }
 
-func preferredPathSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func preferredPathSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -356,7 +373,7 @@ func preferredPathSweeperFunc(s string) error {
 				id   = item["id"].(string)
 				name = item["name"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeletePreferredPath(ctx, id); err != nil {
 					return err
@@ -367,8 +384,8 @@ func preferredPathSweeperFunc(s string) error {
 	return nil
 }
 
-func bookmarkGroupSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func bookmarkGroupSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -401,7 +418,7 @@ func bookmarkGroupSweeperFunc(s string) error {
 				id   = item["id"].(string)
 				name = item["name"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting bookmark group %s [id=%s]\n", name, id)
 				// Deleting a bookmark group will delete all bookmarks in it
 				if err := client.DeleteBookmarkGroup(ctx, id); err != nil {
@@ -413,8 +430,8 @@ func bookmarkGroupSweeperFunc(s string) error {
 	return nil
 }
 
-func worksheetSweeperFunc(s string) error {
-	client, err := sharedClient(s)
+func worksheetSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
 	}
@@ -451,7 +468,7 @@ func worksheetSweeperFunc(s string) error {
 				id   = ws["id"].(string)
 				name = ws["name"].(string)
 			)
-			if prefixRe.MatchString(name) {
+			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting %s [id=%s]\n", name, id)
 				if err := client.DeleteWorksheet(ctx, id); err != nil {
 					return err
