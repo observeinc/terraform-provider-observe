@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
@@ -24,17 +25,19 @@ func dataSourceDataset() *schema.Resource {
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
-				RequiredWith: []string{"workspace"},
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				RequiredWith:     []string{"workspace"},
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 				Description: descriptions.Get("dataset", "schema", "name") +
 					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `name` or `id` must be set.",
 			},
@@ -117,7 +120,7 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 
 	if explicitId != "" {
 		d, err = client.GetDataset(ctx, explicitId)
-	} else if name != "" {
+	} else {
 		defer func() {
 			// right now SDK does not report where this error happened,
 			// so we need to provide a little extra context

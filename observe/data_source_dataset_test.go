@@ -127,3 +127,20 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble + `
+				data "observe_dataset" "missing" {
+				  workspace = data.observe_workspace.default.oid
+				  name      = ""
+				}`),
+				ExpectError: regexp.MustCompile("not be an empty string"),
+			},
+		},
+	})
+}
