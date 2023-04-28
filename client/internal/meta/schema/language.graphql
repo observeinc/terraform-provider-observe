@@ -68,9 +68,25 @@ enum PipelineWarningKind @goModel(model: "observe/compiler/comptypes.PipelineWar
     """
     NoEffect
     """
+    Type is changed with a potential precision loss
+    """
+    ColumnPrecisionLoss
+    """
     A deprecated verb/function specification is used.
     """
     Deprecated
+    """
+    A subquery is unused
+    """
+    UnusedSubquery
+    """
+    Filter is applied to a constant expression
+    """
+    FilterOnConstant
+    """
+    An internal verb is used
+    """
+    Internal
 }
 
 type PipelineWarning @goModel(model: "observe/meta/metatypes.PipelineWarning") {

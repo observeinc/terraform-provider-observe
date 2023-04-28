@@ -135,6 +135,7 @@ type AccelerationJob @goModel(model: "observe/meta/metatypes.AccelerationJob") {
   The user that created the acceleration job.
   """
   createdBy: ObjectId!
+  createdByInfo: UserInfo! @goField(forceResolver:true)
 
   """
   When the acceleration job was created.

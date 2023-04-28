@@ -36,6 +36,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
     worksheetId
     dashboardId
     datasetId
+    datastreamId
     userId
 }
 

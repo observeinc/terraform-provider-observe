@@ -126,6 +126,12 @@ enum RateLimitOption @goModel(model: "observe/meta/metatypes.RateLimitOption") {
     BypassRateLimit
 }
 
+"""
+QueryParams are for parameters intrinsic to the *query*, not the *presentation*
+of the query. One way to think about this, is that anything that goes in here
+should be equally applicable to invocations by transformer, monitors, exports,
+or worksheets.
+"""
 input QueryParams @goModel(model: "observe/meta/metagql.QueryParamsInput") {
     """
     Please specify exact one of startTime and startTimeSinceEpoch.
@@ -300,6 +306,24 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     TODO: move ParsedPipeline.errors here?
     """
     errors: [TaskResultError!]
+
+    """
+    True if this is a TaskResult for stats query whose data is sampled.
+    """
+    isSampled: Boolean!
+
+    """
+    Search match metadata, returned for ResultKindData results if was requested
+    in the StagePresentationInput.searchMatchKind
+    """
+    searchMatchMetadata: SearchMatchMetadata
+}
+
+type SearchMatchMetadata @goModel(model: "observe/meta/metaparser.SearchMatchMetadata") {
+    """
+    List of columns that have contributed to resulting data matching the search
+    """
+    columns: [String!]!
 }
 
 type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
@@ -454,7 +478,7 @@ type ObjectFieldDef @goModel(model: "observe/compiler/comptypes.ObjectFieldDef")
 }
 
 type ColumnOrder @goModel(model: "observe/meta/metatypes.ColumnOrder") {
-    columnName: String!
+    columnId: String!
     ascending: Boolean!
     nullOrdering: NullOrdering!
 }
@@ -925,6 +949,13 @@ input InputDefinitionInput @goModel(model: "observe/meta/metatypes.InputDefiniti
     parameterId: String
 }
 
+"""
+StagePresentationInput is about how to format the results of the query. Here is
+where you can ask for things like linkified results, rolled up results, stats
+from the results, schema-only results, and so forth. These requests are
+generally made by interactive systems, and are not generally applicable to
+other use cases.
+"""
 input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePresentationInput") {
     """
     limit can be per-query in addition to per-request; the min() is applied
@@ -950,6 +981,13 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     Columns will be aggregated into arrays.
     """
     rollup: RollupOptionInput
+    """
+    resultKinds map to which fields of TaskResult will end up containing
+    information in results (when using datasetProgressive for querying.) Note that not
+    all the fields may be set at the same time, data may be split across
+    multiple separate TaskResult structs in the result stream. However, in
+    aggregate, all the data requested in resultKinds will be responded.
+    """
     resultKinds: [ResultKind]
     """
     When wantBuckets is set, time-binning verbs without explicit resolution specification
@@ -957,6 +995,23 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     buckets. When exact number of buckets is not possible, more buckets will be generated.
     """
     wantBuckets: Int64
+    """
+    When set to SearchMatchColumns, TaskResult.TODO for ResultKindData responses
+    will contain a list of column names that produced matches for some of the filters in
+    the pipeline
+    """
+    searchMatchKind: SearchMatchKind
+}
+
+enum SearchMatchKind @goModel(model: "observe/meta/metatypes.SearchMatchKind") {
+    """
+    Search match  data is not needed
+    """
+    SearchMatchNone,
+    """
+    Send back a list of columns that have contributed to resulting data matching the search
+    """
+    SearchMatchColumns
 }
 
 input RollupOptionInput @goModel(model: "observe/meta/metaparser.RollupOptionInput") {

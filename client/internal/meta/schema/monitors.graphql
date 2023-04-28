@@ -1,15 +1,27 @@
 extend type Query {
-    getChannelAction(id: ObjectId!): ChannelAction
-    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [ChannelAction!]!
+    monitorAction(id: ObjectId!): MonitorAction
+    getChannelAction(id: ObjectId!): ChannelAction @deprecated(reason:"use monitorAction instead")
+    searchMonitorActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [MonitorAction!]!
+    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [ChannelAction!]! @deprecated(reason:"use searchMonitorActions instead")
     getChannel(id: ObjectId!): Channel
     searchChannels(workspaceId: ObjectId, name: String, boundToMonitors: [ObjectId!]): [Channel!]!
 
     monitor(id: ObjectId!): Monitor!
+    """
+    Get the monitor state at the provided point in time.
+    Version is a timestamp in nanoseconds.
+    """
+    monitorVersion(id: ObjectId!, version: String!): Monitor!
     monitorsInWorkspace(workspaceId: ObjectId!): [Monitor!]!
     monitorsForDataset(datasetId: ObjectId!): [Monitor!]!
     notificationsForDataset(datasetId: ObjectId!): [Monitor!]!
     activeNotifications(channelIds: [ObjectId!], importance: NotificationImportance): ActiveNotificationInfo!
     monitorPreviewQuery(monitorInput: MonitorInput!): MultiStageQuery
+    """
+    Get the query which produces notifications a monitor would have produced at the given version.
+    Version is a timestamp in nanoseconds.
+    """
+    notificationQuery(monitorId: ObjectId!, version: String!): MultiStageQuery
 
     """
     Get sample notification data for a monitor.
@@ -19,10 +31,15 @@ extend type Query {
 }
 
 extend type Mutation {
-    createChannelAction(workspaceId: ObjectId!, action: ActionInput!): ChannelAction!
-    updateChannelAction(id: ObjectId!, action: ActionInput!): ChannelAction!
-    deleteChannelAction(id: ObjectId!): ResultStatus!
-    testChannelAction(action: ActionInput!, payload: String!): ResultStatus!
+    createMonitorAction(input: MonitorActionInput!): MonitorAction!
+    updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction!
+    deleteMonitorAction(id: ObjectId!): ResultStatus!
+    testMonitorAction(input: MonitorActionInput!, payload: String!): ResultStatus!
+
+    createChannelAction(workspaceId: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use createMonitorAction instead")
+    updateChannelAction(id: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use updateMonitorAction instead")
+    deleteChannelAction(id: ObjectId!): ResultStatus! @deprecated(reason:"use deleteMonitorAction instead")
+    testChannelAction(action: ActionInput!, payload: String!): ResultStatus! @deprecated(reason:"use testMonitorAction instead")
 
     createChannel(workspaceId: ObjectId!, channel: ChannelInput!, actions: [ObjectId!]): Channel!
     updateChannel(id: ObjectId!, channel: ChannelInput, actions: [ObjectId!]): Channel!
@@ -57,49 +74,99 @@ extend type Mutation {
     setChannelsForChannelAction(actionId: ObjectId!, channelIds:[ObjectId!]!): ResultStatus!
 }
 
-type Monitor implements DatasetGenerator & WorkspaceObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Monitor") {
+type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Monitor") {
+    # WorkspaceObject
     id: ObjectId!
     name: String!
     iconUrl: String!
     description: String!
-    """
-    Static comment for extra information about a monitor available in notification template.
-    """
-    comment: String
     workspaceId: ObjectId!
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
 
+    # AuditedObject
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
     updatedBy: UserId!
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
+
+    # Monitor
     source: String!
-    disabled: Boolean!
-    lastUpdateSource: String! @deprecated(reason:"never used, no longer supported will be ignored")
-    generatedDatasetIds: [GeneratedDataset!]!
-    status: MonitorStatus!
-    statusMessage: String!
     isTemplate: Boolean!
     useDefaultFreshness: Boolean!
-
-    # AcceleratedObject
-    freshnessGoal: Int64! @deprecated(reason:"use AccelerationInfo instead")
-    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
-
+    disabled: Boolean! @deprecated(reason:"use accelerationDisabled instead")
+    lastUpdateSource: String! @deprecated(reason:"never used, no longer supported will be ignored")
+    """
+    Static comment for extra information about a monitor available in notification template.
+    """
+    comment: String
     """
     The source stage may be empty, just specifying an input dataset,
     or it may include actual transform work
     """
     query: MultiStageQuery!
-
     rule: MonitorRule!
     notificationSpec: NotificationSpecification!
-
     channels: [Channel!] @deprecated(reason:"field will be removed in favor of actionIds")
-    actions: [ChannelAction!]!
+    actions: [MonitorAction!]!
+
+    """
+    We preserve monitor update history. Historic monitors do not have activeMonitorInfo populated,
+    only the most current (active) monitors do.
+    """
+    activeMonitorInfo: ActiveMonitorInfo @goField(forceResolver:true)
+
+
+    # Fields that will be removed once FE migrates to using `activeMonitorInfo`.
+    # AccelerableObject
+    freshnessGoal: Int64! @deprecated(reason:"use activeMonitorInfo.freshnessGoal instead")
+    accelerationInfo: AccelerationInfo! @goField(forceResolver:true) @deprecated(reason:"use activeMonitorInfo.accelerationInfo instead")
+    accelerationDisabled: Boolean! @goField(name:disabled) @deprecated(reason:"use activeMonitorInfo.accelerationDisabled instead")
+
+    # Monitor
+    generatedDatasetIds: [GeneratedDataset!]! @deprecated(reason:"use activeMonitorInfo.generatedDatasetIds instead")
+    status: MonitorStatus! @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
+    statusMessage: String! @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
+    """
+    Check what state this monitor is in.
+    """
+    statusInfo: MonitorStatusInfo! @goField(forceResolver:true) @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
+}
+
+type ActiveMonitorInfo implements AccelerableObject @goModel(model: "observe/meta/metatypes.ActiveMonitorInfo")  {
+    # AccelerableObject
+    accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
+    accelerationDisabled: Boolean!
+
+    # Monitor
+    """
+    Check what state this monitor is in.
+    """
+    statusInfo: MonitorStatusInfo! @goField(forceResolver:true)
+    generatedDatasetIds: [GeneratedDataset!]!
+    """
+    Currently active global and per-monitor mute rules, sorted by the startDate.
+    """
+    muteRules: [MonitorMuteRule!]! @goField(forceResolver:true)
+}
+
+type MonitorStatusInfoError implements ErrorInstance @goModel(model: "observe/meta/metatypes.MonitorStatusInfoError") {
+    """
+    When did the error last occur.
+    """
+    time: Time!
+
+    """
+    Error text.
+    """
+    errorText: String!
+}
+
+type MonitorStatusInfo @goModel(model: "observe/meta/metatypes.MonitorStatusInfo") {
+    status: MonitorStatus!
+    errors: [ErrorInstance!]!
 }
 
 type MonitorUpdateResult @goModel(model: "observe/meta/metatypes.MonitorUpdateResult") {
@@ -131,7 +198,8 @@ input MonitorInput @goModel(model: "observe/meta/metatypes.MonitorInput") {
     The optional id of the object that owns the monitor. Ex: the id of an app that installs the monitor.
     """
     managedById: ObjectId
-    disabled: Boolean
+    disabled: Boolean @deprecated(reason:"use accelerationDisabled instead")
+    accelerationDisabled: Boolean @goField(name:disabled)
     isTemplate: Boolean
     """
     Similar to dataset freshness goal, this is in Nanoseconds when received from UI.
@@ -534,7 +602,7 @@ type Channel @goModel(model: "observe/meta/metatypes.Channel") {
     updatedBy: UserId!
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
-    actions: [ChannelAction!]! @goField(name:CacheActions)
+    actions: [MonitorAction!]! @goField(name:CacheActions)
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
@@ -544,8 +612,7 @@ input ChannelInput @goModel(model: "observe/meta/metatypes.ChannelInput") {
     description: String
 }
 
-# TODO(OB-14177): rename this to Action.
-interface ChannelAction @goModel(model: "observe/meta/metatypes.ChannelAction") {
+interface MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
     id: ObjectId!
     name: String!
     iconUrl: String!
@@ -565,7 +632,28 @@ interface ChannelAction @goModel(model: "observe/meta/metatypes.ChannelAction") 
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
-type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatypes.EmailAction") {
+# TODO(OB-14177): remove this, we have MonitorAction now.
+interface ChannelAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
+    id: ObjectId!
+    name: String!
+    iconUrl: String!
+    description: String!
+    workspaceId: ObjectId!
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    createdDate: Time!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    updatedDate: Time!
+    rateLimit: Duration!
+    channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+    monitors: [Monitor!]! @goField(forceResolver:true)
+}
+
+type EmailAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.EmailAction") {
     id: ObjectId!
     name: String!
     iconUrl: String!
@@ -580,8 +668,6 @@ type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatype
     rateLimit: Duration!
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
-    targetUsers: [UserId!]!
-    targetAddresses: [String!]!
     subjectTemplate: String!
     bodyTemplate: String!
     isHtml: Boolean!
@@ -589,6 +675,29 @@ type EmailAction implements ChannelAction @goModel(model: "observe/meta/metatype
     notifyOnReminder: Boolean!
     isPrivate: Boolean!
     monitors: [Monitor!]! @goField(forceResolver:true)
+
+    targetUsers: [UserId!]!
+    targetAddresses: [String!]!
+    targetUserStates: [EmailActionUserState!]! @goField(forceResolver:true)
+    targetEmailStates: [EmailActionEmailState!]! @goField(forceResolver:true)
+}
+
+enum EmailActionTargetState @goModel(model: "observe/meta/metatypes.AddressState") {
+	Verified
+	NotVerified
+	Pending
+	Unsubscribed
+	Bounced
+}
+
+type EmailActionUserState @goModel(model: "observe/meta/metatypes.EmailActionUserState") {
+    userId: UserId!
+    state: EmailActionTargetState!
+}
+
+type EmailActionEmailState @goModel(model: "observe/meta/metatypes.EmailActionEmailState") {
+    email: String!
+    state: EmailActionTargetState!
 }
 
 input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
@@ -603,6 +712,26 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
 
     email: EmailActionInput
     webhook: WebhookActionInput
+}
+
+input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionInput") {
+    # payload
+    rateLimit: Duration
+    notifyOnClose: Boolean!
+    notifyOnReminder: Boolean!
+    isPrivate: Boolean!
+
+    email: EmailActionInput
+    webhook: WebhookActionInput
+
+    # WorkspaceObject
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    # FolderObject
+    folderId: ObjectId
 }
 
 """
@@ -632,7 +761,7 @@ input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput"
     isHtml: Boolean
 }
 
-type WebhookAction implements ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
+type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
     id: ObjectId!
     name: String!
     iconUrl: String!
@@ -680,7 +809,7 @@ about what went wrong for the action goes into message, and
 some JSON payload that may or may not be decodable goes into
 payload.
 """
-type UnknownAction implements ChannelAction @goModel(model: "observe/meta/metatypes.UnknownAction") {
+type UnknownAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.UnknownAction") {
     id: ObjectId!
     name: String!
     iconUrl: String!

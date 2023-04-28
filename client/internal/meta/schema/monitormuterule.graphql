@@ -1,0 +1,125 @@
+# Mute rules for monitors
+# this file is auto-generated, do not edit
+interface MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterObject") {
+    filterType: MonitorMuteRuleFilterType!
+}
+
+extend type Mutation {
+    createMonitorMuteRuleForMonitors(input: MonitorMuteRuleInput!, monitorIds: [ObjectId!]!): MonitorMuteRule!
+    updateMonitorMuteRuleForMonitors(id: ObjectId!, input: MonitorMuteRuleInput!, monitorIds: [ObjectId!]!): MonitorMuteRule!
+}
+
+extend type Query {
+    monitorMuteRule(id: ObjectId!): MonitorMuteRule!
+    searchMonitorMuteRule(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorMuteRuleSearchResult!
+}
+
+extend type Mutation {
+    createMonitorMuteRule(input: MonitorMuteRuleInput!): MonitorMuteRule!
+    updateMonitorMuteRule(id: ObjectId!, input: MonitorMuteRuleInput!): MonitorMuteRule!
+    deleteMonitorMuteRule(id: ObjectId!): ResultStatus!
+}
+
+enum MonitorMuteRuleFilterType @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterType") {
+  FilterPerColumn
+  FilterPerResource
+}
+
+type MonitorMuteRule implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorMuteRule") {
+    # payload
+    """
+    Apply the mute rule from this date, defaulting to now when missing.
+    """
+    startDate: Time
+    """
+    How long the mute rule will apply, starting from startDate. Empty duration mutes the monitor indefinitely.
+    """
+    duration: Duration
+    filter: MonitorMuteRuleFilterObject
+    # not in output: filterPerColumn: MonitorMuteRuleFilterPerColumn
+    # not in output: filterPerResource: MonitorMuteRuleFilterPerResource
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorMuteRuleInput @goModel(model: "observe/meta/metatypes.MonitorMuteRuleInput") {
+    # payload
+    startDate: Time
+    duration: Duration
+    # not in input: filter: MonitorMuteRuleFilterObject
+    filterPerColumn: MonitorMuteRuleFilterPerColumnInput
+    filterPerResource: MonitorMuteRuleFilterPerResourceInput
+    # WorkspaceObject
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorMuteRuleSearchResult @goModel(model: "observe/meta/metatypes.MonitorMuteRuleSearchResult") {
+    results: [MonitorMuteRule!]!
+}
+type MonitorMuteRuleFilterPerColumn implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerColumn") {
+    # payload
+    filterType: MonitorMuteRuleFilterType!
+    columnID: String!
+    values: [String!]!
+}
+
+input MonitorMuteRuleFilterPerColumnInput @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerColumnInput") {
+    # payload
+    # not in input: filterType: MonitorMuteRuleFilterType!
+    columnID: String!
+    values: [String!]!
+}
+
+type MonitorMuteRuleFilterPerResource implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerResource") {
+    # payload
+    filterType: MonitorMuteRuleFilterType!
+    targetDataseID: Int64!
+    """
+    valuesPerColumnID are a list of values, where each value is an array, sorted in the same order as the primary key columns that identify each individual resource in the target dataset.
+    """
+    valuesPerColumnID: [[String!]!]!
+}
+
+input MonitorMuteRuleFilterPerResourceInput @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerResourceInput") {
+    # payload
+    # not in input: filterType: MonitorMuteRuleFilterType!
+    targetDataseID: Int64!
+    valuesPerColumnID: [[String!]!]!
+}
+
+type MonitorMuteRuleAttachment @goModel(model: "observe/meta/metatypes.MonitorMuteRuleAttachment") {
+    # payload
+    monitorID: ObjectId!
+    monitorMuteRuleID: ObjectId!
+}
+
+input MonitorMuteRuleAttachmentInput @goModel(model: "observe/meta/metatypes.MonitorMuteRuleAttachmentInput") {
+    # payload
+    monitorID: ObjectId!
+    monitorMuteRuleID: ObjectId!
+}
+

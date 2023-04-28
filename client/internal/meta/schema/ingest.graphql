@@ -7,6 +7,11 @@ extend type Query {
     datastreams(workspaceId: ObjectId!, name: String): [Datastream!]!
 
     datastreamToken(id: String!): DatastreamToken!
+
+    """
+    Get a filedrop by ID
+    """
+    filedrop(id: ObjectId!): Filedrop!
 }
 
 extend type Mutation {
@@ -22,6 +27,19 @@ extend type Mutation {
     createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
     updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
     deleteDatastreamToken(id: String!): ResultStatus!
+
+    """
+    Create a new filedrop
+    """
+    createFiledrop(datastreamId: ObjectId!, filedrop: FiledropInput!): Filedrop!
+    """
+    Update an existing filedrop
+    """
+    updateFiledrop(id: ObjectId!, filedrop: FiledropInput!): Filedrop!
+    """
+    delete an existing filedrop
+    """
+    deleteFiledrop(id: ObjectId!): ResultStatus!
 }
 
 """
@@ -118,6 +136,7 @@ type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.Da
     disabled: Boolean!
 
     datastreamId: ObjectId!
+    managedById: ObjectId
     stats: DatastreamTokenStats @goField(forceResolver:true)
     """
     only populated for creates
@@ -218,12 +237,18 @@ type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig
     size: Int64
 }
 
+type PollerApiRequestLimitConfig @goModel(model: "observe/meta/metatypes.PollerApiRequestLimitConfig") {
+    maxReqRate: Float
+    maxTotalReq: Int64
+}
+
 interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
     # TODO: remove this field once the FE no longer uses it.
     name: String @deprecated(reason:"use poller.name instead")
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 }
 
@@ -232,6 +257,7 @@ type PollerPubSubConfig implements PollerConfig @goModel(model: "observe/meta/me
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 
     projectId: String!
@@ -244,6 +270,7 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 
     method: String @deprecated(reason: "Use requests instead")
@@ -286,6 +313,7 @@ type PollerGCPMonitoringConfig implements PollerConfig @goModel(model: "observe/
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 
     projectId: String!
@@ -301,6 +329,7 @@ type PollerMongoDBAtlasConfig implements PollerConfig @goModel(model: "observe/m
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 
     publicKey: String!
@@ -314,6 +343,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
+    apiReqLimit: PollerApiRequestLimitConfig
     tags: JsonObject
 
     key: String!
@@ -323,6 +353,21 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
     enabled: Boolean!
     size: Int64
+}
+
+input PollerApiRequestLimitInput @goModel(model: "observe/meta/metatypes.PollerApiRequestLimitInput") {
+    """
+    maxReqRate is the maximum number of requests per second. If this request
+    rate limit would be exceeded, the poller blocks. For example, a rate limit
+    of 12.5 will cause the poller to at most make ~12.5 API calls per second.
+    """
+    maxReqRate: Float
+    """
+    maxTotalReq is the maximum number of requests to make per poller run.
+    For example, for a poller with interval 15 minutes, a poller run occurs
+    every 15 minutes.
+    """
+    maxTotalReq: Int64
 }
 
 """
@@ -336,6 +381,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     interval: Duration
     chunk: PollerChunkInput
     tags: JsonObject
+    apiReqLimit: PollerApiRequestLimitInput
     datastreamId: ObjectId
     pubsubConfig: PollerPubSubInput
     httpConfig: PollerHTTPInput
@@ -408,3 +454,100 @@ input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerCo
     secret: String!
 }
 
+"""
+A data source that loads data from a cloud object storage service provider into Observe platform
+Must be associated with a datastream
+"""
+type Filedrop implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Filedrop") {
+    id: ObjectId!
+    """
+    Name that identifies the filedrop. Must be unique within the workspace
+    """
+    name: String!
+    description: String
+    iconUrl: String
+    customerId: CustomerId!
+    workspaceId: ObjectId!
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedDate: Time!
+
+    config: FiledropConfig!
+    """
+    status of the filedrop
+    """
+    status: FiledropStatus!
+    """
+    ID of the datastream associated with the filedrop
+    """
+    datastreamId: ObjectId!
+    """
+    ID of the datastream token managed by the filedrop
+    """
+    datastreamTokenId: String!
+
+    endpoint: FiledropEndpoint!
+}
+
+enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
+    Initializing
+    Running
+    Updating
+    Disabled
+}
+
+"""
+User provided configuration that defines a filedrop
+"""
+type FiledropConfig @goModel(model: "observe/meta/metatypes.FiledropConfig") {
+    provider: FiledropProviderConfig!
+}
+
+"""
+Configurations related to the cloud object storage service provider
+"""
+interface FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderConfig") {
+    type: String!
+}
+
+type FiledropProviderAWSConfig implements FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderAWSConfig") {
+    type: String!
+    """
+    AWS region of the filedrop
+    """
+    region: String!
+    """
+    User provided IAM role to access the filedrop
+    """
+    roleArn: String!
+}
+
+"""
+Information of the Observe-created filedrop endpoint
+"""
+interface FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropEndpoint") {
+    type: String!
+}
+
+type FiledropS3Endpoint implements FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropS3Endpoint") {
+    type: String!
+    arn: String!
+    s3Alias: String!
+    prefix: String!
+}
+
+input FiledropInput @goModel(model: "observe/meta/metatypes.FiledropInput") {
+    name: String
+    description: String
+    aws: FiledropProviderAWSInput
+}
+
+input FiledropProviderAWSInput @goModel(model: "observe/meta/metatypes.FiledropProviderAWSInput") {
+    region: String!
+    roleArn: String!
+}

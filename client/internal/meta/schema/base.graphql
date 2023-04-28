@@ -6,9 +6,9 @@ schema {
 
 type Query
 
-type Mutation 
+type Mutation
 
-type Subscription 
+type Subscription
 
 directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
@@ -20,12 +20,12 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
-scalar Any @goModel(model: "observe/meta/metatypes.AnyScalar")
-scalar CustomerId @goModel(model: "observe/meta/metatypes.CustomerIdScalar")
-scalar Duration @goModel(model: "observe/meta/metatypes.DurationScalar")
-scalar Int64 @goModel(model: "observe/meta/metatypes.Int64Scalar")
+scalar Any @goModel(model: "observe/meta/metascalar.Any")
+scalar CustomerId @goModel(model: "observe/authorization/id.CustomerId")
+scalar Duration @goModel(model: "observe/compiler/comptypes.Duration")
+scalar Int64 @goModel(model: "observe/meta/metascalar.Int64")
 scalar JsonObject @goModel(model: "observe/meta/metatypes.ObjectScalar")
-scalar Number @goModel(model: "observe/meta/metatypes.NumberScalar")
+scalar Number @goModel(model: "observe/meta/metascalar.Number")
 scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectIdScalar")
 scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
 scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
@@ -34,8 +34,8 @@ scalar StringOrID @goModel(model: "observe/meta/metatypes.StringOrID")
 """
 Time presented in RFC3339 format.
 """
-scalar Time @goModel(model: "observe/meta/metatypes.TimeScalar")
-scalar UserId @goModel(model: "observe/meta/metatypes.UserIdScalar")
+scalar Time @goModel(model: "observe/meta/metascalar.Time")
+scalar UserId @goModel(model: "observe/authorization/id.UserId")
 
 """
 At some point in the future, we may have Segments as business objects,
@@ -49,11 +49,6 @@ enum ObjectKind @goModel(model: "observe/meta/metatypes.ObjectKind") {
   Monitor
   Resource
   Dashboard
-}
-
-interface DatasetGenerator @goModel(model: "observe/meta/metatypes.DatasetGenerator") {
-    id: ObjectId!
-    generatedDatasetIds: [GeneratedDataset!]!
 }
 
 """
@@ -149,4 +144,16 @@ type ResultStatus @goModel(model: "observe/meta/metatypes.ResultStatus") {
     success: Boolean!
     errorMessage: String!
     detailedInfo: JsonObject
+}
+
+interface ErrorInstance @goModel(model: "observe/meta/metatypes.ErrorInstance") {
+    """
+    When did the error last occur.
+    """
+    time: Time!
+
+    """
+    Error text.
+    """
+    errorText: String!
 }

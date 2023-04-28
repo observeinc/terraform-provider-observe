@@ -391,6 +391,7 @@ type BookmarkInput struct {
 	TargetResourceId *ResourceIdInput `json:"targetResourceId"`
 	GroupId          *string          `json:"groupId"`
 	ManagedById      *string          `json:"managedById"`
+	WorkspaceId      *string          `json:"workspaceId"`
 }
 
 // GetName returns BookmarkInput.Name, and is useful for accessing the field via an interface.
@@ -416,6 +417,9 @@ func (v *BookmarkInput) GetGroupId() *string { return v.GroupId }
 
 // GetManagedById returns BookmarkInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetManagedById() *string { return v.ManagedById }
+
+// GetWorkspaceId returns BookmarkInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *BookmarkInput) GetWorkspaceId() *string { return v.WorkspaceId }
 
 type ChangeType string
 
@@ -1318,13 +1322,14 @@ type DatasetInput struct {
 	// Format - source/comment. Examples - monitor/471142069, web/user created.
 	Source *string `json:"source"`
 	// Used only when id is specified - that is to say, only when the dataset is updated.
-	OverwriteSource  *bool              `json:"overwriteSource"`
-	Deleted          *bool              `json:"deleted,omitempty"`
-	LatencyDesired   *types.Int64Scalar `json:"latencyDesired"`
-	FreshnessDesired *types.Int64Scalar `json:"freshnessDesired"`
-	IconUrl          *string            `json:"iconUrl"`
-	Layout           *types.JsonObject  `json:"layout"`
-	PathCost         *types.Int64Scalar `json:"pathCost"`
+	OverwriteSource      *bool              `json:"overwriteSource"`
+	Deleted              *bool              `json:"deleted,omitempty"`
+	AccelerationDisabled *bool              `json:"accelerationDisabled"`
+	LatencyDesired       *types.Int64Scalar `json:"latencyDesired"`
+	FreshnessDesired     *types.Int64Scalar `json:"freshnessDesired"`
+	IconUrl              *string            `json:"iconUrl"`
+	Layout               *types.JsonObject  `json:"layout"`
+	PathCost             *types.Int64Scalar `json:"pathCost"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
 	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
@@ -1349,6 +1354,9 @@ func (v *DatasetInput) GetOverwriteSource() *bool { return v.OverwriteSource }
 
 // GetDeleted returns DatasetInput.Deleted, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetDeleted() *bool { return v.Deleted }
+
+// GetAccelerationDisabled returns DatasetInput.AccelerationDisabled, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetAccelerationDisabled() *bool { return v.AccelerationDisabled }
 
 // GetLatencyDesired returns DatasetInput.LatencyDesired, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetLatencyDesired() *types.Int64Scalar { return v.LatencyDesired }
@@ -2160,15 +2168,16 @@ func (v *LayeredSettingRecordInput) GetFolderId() *string { return v.FolderId }
 // in the LayeredSettingRecordTarget. If you want to affect "everything in this folder,
 // and also this particular dataset," then create two LayeredSettingRecords.
 type LayeredSettingRecordTarget struct {
-	CustomerId  *string             `json:"customerId"`
-	WorkspaceId *string             `json:"workspaceId"`
-	FolderId    *string             `json:"folderId"`
-	AppId       *string             `json:"appId"`
-	MonitorId   *string             `json:"monitorId"`
-	WorksheetId *string             `json:"worksheetId"`
-	DashboardId *string             `json:"dashboardId"`
-	DatasetId   *string             `json:"datasetId"`
-	UserId      *types.UserIdScalar `json:"userId"`
+	CustomerId   *string             `json:"customerId"`
+	WorkspaceId  *string             `json:"workspaceId"`
+	FolderId     *string             `json:"folderId"`
+	AppId        *string             `json:"appId"`
+	MonitorId    *string             `json:"monitorId"`
+	WorksheetId  *string             `json:"worksheetId"`
+	DashboardId  *string             `json:"dashboardId"`
+	DatasetId    *string             `json:"datasetId"`
+	DatastreamId *string             `json:"datastreamId"`
+	UserId       *types.UserIdScalar `json:"userId"`
 }
 
 // GetCustomerId returns LayeredSettingRecordTarget.CustomerId, and is useful for accessing the field via an interface.
@@ -2194,6 +2203,9 @@ func (v *LayeredSettingRecordTarget) GetDashboardId() *string { return v.Dashboa
 
 // GetDatasetId returns LayeredSettingRecordTarget.DatasetId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetDatasetId() *string { return v.DatasetId }
+
+// GetDatastreamId returns LayeredSettingRecordTarget.DatastreamId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTarget) GetDatastreamId() *string { return v.DatastreamId }
 
 // GetUserId returns LayeredSettingRecordTarget.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetUserId() *types.UserIdScalar { return v.UserId }
@@ -2471,9 +2483,10 @@ type MonitorInput struct {
 	// Only when the monitor is updated.
 	OverwriteSource *bool `json:"overwriteSource,omitempty"`
 	// The optional id of the object that owns the monitor. Ex: the id of an app that installs the monitor.
-	ManagedById *string `json:"managedById"`
-	Disabled    *bool   `json:"disabled"`
-	IsTemplate  *bool   `json:"isTemplate"`
+	ManagedById          *string `json:"managedById"`
+	Disabled             *bool   `json:"disabled"`
+	AccelerationDisabled *bool   `json:"accelerationDisabled"`
+	IsTemplate           *bool   `json:"isTemplate"`
 	// Similar to dataset freshness goal, this is in Nanoseconds when received from UI.
 	// Only changes setting if useDefaultFreshness is false
 	FreshnessGoal *types.Int64Scalar `json:"freshnessGoal,omitempty"`
@@ -2508,6 +2521,9 @@ func (v *MonitorInput) GetManagedById() *string { return v.ManagedById }
 
 // GetDisabled returns MonitorInput.Disabled, and is useful for accessing the field via an interface.
 func (v *MonitorInput) GetDisabled() *bool { return v.Disabled }
+
+// GetAccelerationDisabled returns MonitorInput.AccelerationDisabled, and is useful for accessing the field via an interface.
+func (v *MonitorInput) GetAccelerationDisabled() *bool { return v.AccelerationDisabled }
 
 // GetIsTemplate returns MonitorInput.IsTemplate, and is useful for accessing the field via an interface.
 func (v *MonitorInput) GetIsTemplate() *bool { return v.IsTemplate }
@@ -3364,6 +3380,23 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 	return &retval, nil
 }
 
+type PollerApiRequestLimitInput struct {
+	// maxReqRate is the maximum number of requests per second. If this request
+	// rate limit would be exceeded, the poller blocks. For example, a rate limit
+	// of 12.5 will cause the poller to at most make ~12.5 API calls per second.
+	MaxReqRate *float64 `json:"maxReqRate"`
+	// maxTotalReq is the maximum number of requests to make per poller run.
+	// For example, for a poller with interval 15 minutes, a poller run occurs
+	// every 15 minutes.
+	MaxTotalReq *types.Int64Scalar `json:"maxTotalReq"`
+}
+
+// GetMaxReqRate returns PollerApiRequestLimitInput.MaxReqRate, and is useful for accessing the field via an interface.
+func (v *PollerApiRequestLimitInput) GetMaxReqRate() *float64 { return v.MaxReqRate }
+
+// GetMaxTotalReq returns PollerApiRequestLimitInput.MaxTotalReq, and is useful for accessing the field via an interface.
+func (v *PollerApiRequestLimitInput) GetMaxTotalReq() *types.Int64Scalar { return v.MaxTotalReq }
+
 type PollerChunkInput struct {
 	Enabled bool               `json:"enabled"`
 	Size    *types.Int64Scalar `json:"size"`
@@ -3914,19 +3947,20 @@ func (v *PollerHTTPRuleInput) GetFollow() *string { return v.Follow }
 
 // Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
-	Name                 *string                    `json:"name"`
-	Description          *string                    `json:"description"`
-	Disabled             *bool                      `json:"disabled"`
-	Retries              *types.Int64Scalar         `json:"retries"`
-	Interval             *types.DurationScalar      `json:"interval"`
-	Chunk                *PollerChunkInput          `json:"chunk"`
-	Tags                 *types.JsonObject          `json:"tags"`
-	DatastreamId         *string                    `json:"datastreamId"`
-	PubsubConfig         *PollerPubSubInput         `json:"pubsubConfig"`
-	HttpConfig           *PollerHTTPInput           `json:"httpConfig"`
-	GcpConfig            *PollerGCPMonitoringInput  `json:"gcpConfig"`
-	MongoDBAtlasConfig   *PollerMongoDBAtlasInput   `json:"mongoDBAtlasConfig"`
-	ConfluentCloudConfig *PollerConfluentCloudInput `json:"confluentCloudConfig"`
+	Name                 *string                     `json:"name"`
+	Description          *string                     `json:"description"`
+	Disabled             *bool                       `json:"disabled"`
+	Retries              *types.Int64Scalar          `json:"retries"`
+	Interval             *types.DurationScalar       `json:"interval"`
+	Chunk                *PollerChunkInput           `json:"chunk"`
+	Tags                 *types.JsonObject           `json:"tags"`
+	ApiReqLimit          *PollerApiRequestLimitInput `json:"apiReqLimit"`
+	DatastreamId         *string                     `json:"datastreamId"`
+	PubsubConfig         *PollerPubSubInput          `json:"pubsubConfig"`
+	HttpConfig           *PollerHTTPInput            `json:"httpConfig"`
+	GcpConfig            *PollerGCPMonitoringInput   `json:"gcpConfig"`
+	MongoDBAtlasConfig   *PollerMongoDBAtlasInput    `json:"mongoDBAtlasConfig"`
+	ConfluentCloudConfig *PollerConfluentCloudInput  `json:"confluentCloudConfig"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
 	ManagedById *string `json:"managedById"`
 }
@@ -3951,6 +3985,9 @@ func (v *PollerInput) GetChunk() *PollerChunkInput { return v.Chunk }
 
 // GetTags returns PollerInput.Tags, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetTags() *types.JsonObject { return v.Tags }
+
+// GetApiReqLimit returns PollerInput.ApiReqLimit, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetApiReqLimit() *PollerApiRequestLimitInput { return v.ApiReqLimit }
 
 // GetDatastreamId returns PollerInput.DatastreamId, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetDatastreamId() *string { return v.DatastreamId }
@@ -4351,6 +4388,10 @@ func (v *PrimitiveValueInput) GetTimestamp() *types.TimeScalar { return v.Timest
 // GetDuration returns PrimitiveValueInput.Duration, and is useful for accessing the field via an interface.
 func (v *PrimitiveValueInput) GetDuration() *types.Int64Scalar { return v.Duration }
 
+// QueryParams are for parameters intrinsic to the *query*, not the *presentation*
+// of the query. One way to think about this, is that anything that goes in here
+// should be equally applicable to invocations by transformer, monitors, exports,
+// or worksheets.
 type QueryParams struct {
 	// Please specify exact one of startTime and startTimeSinceEpoch.
 	StartTime           *types.TimeScalar `json:"startTime"`
@@ -4702,6 +4743,15 @@ const (
 	SaveModePreflightdatasetanddependencies SaveMode = "PreflightDatasetAndDependencies"
 )
 
+type SearchMatchKind string
+
+const (
+	// Search match  data is not needed
+	SearchMatchKindSearchmatchnone SearchMatchKind = "SearchMatchNone"
+	// Send back a list of columns that have contributed to resulting data matching the search
+	SearchMatchKindSearchmatchcolumns SearchMatchKind = "SearchMatchColumns"
+)
+
 // SettingAndTargetScope includes the GraphQL fields of SettingAndTargetScope requested by the fragment SettingAndTargetScope.
 type SettingAndTargetScope struct {
 	Setting string                     `json:"setting"`
@@ -4845,6 +4895,11 @@ func (v *StageInput) GetRunUntilLocation() *SourceLocInput { return v.RunUntilLo
 // GetParameterValues returns StageInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *StageInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
 
+// StagePresentationInput is about how to format the results of the query. Here is
+// where you can ask for things like linkified results, rolled up results, stats
+// from the results, schema-only results, and so forth. These requests are
+// generally made by interactive systems, and are not generally applicable to
+// other use cases.
 type StagePresentationInput struct {
 	// limit can be per-query in addition to per-request; the min() is applied
 	Limit *types.Int64Scalar `json:"limit"`
@@ -4859,12 +4914,21 @@ type StagePresentationInput struct {
 	Linkify *bool `json:"linkify"`
 	// When rollup is set, resources will be rolled up into the query time window
 	// Columns will be aggregated into arrays.
-	Rollup      *RollupOptionInput `json:"rollup"`
-	ResultKinds []*ResultKind      `json:"resultKinds"`
+	Rollup *RollupOptionInput `json:"rollup"`
+	// resultKinds map to which fields of TaskResult will end up containing
+	// information in results (when using datasetProgressive for querying.) Note that not
+	// all the fields may be set at the same time, data may be split across
+	// multiple separate TaskResult structs in the result stream. However, in
+	// aggregate, all the data requested in resultKinds will be responded.
+	ResultKinds []*ResultKind `json:"resultKinds"`
 	// When wantBuckets is set, time-binning verbs without explicit resolution specification
 	// will automatically find a human-friendly resolution and generate the wanted number of
 	// buckets. When exact number of buckets is not possible, more buckets will be generated.
 	WantBuckets *types.Int64Scalar `json:"wantBuckets"`
+	// When set to SearchMatchColumns, TaskResult.TODO for ResultKindData responses
+	// will contain a list of column names that produced matches for some of the filters in
+	// the pipeline
+	SearchMatchKind *SearchMatchKind `json:"searchMatchKind"`
 }
 
 // GetLimit returns StagePresentationInput.Limit, and is useful for accessing the field via an interface.
@@ -4887,6 +4951,9 @@ func (v *StagePresentationInput) GetResultKinds() []*ResultKind { return v.Resul
 
 // GetWantBuckets returns StagePresentationInput.WantBuckets, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetWantBuckets() *types.Int64Scalar { return v.WantBuckets }
+
+// GetSearchMatchKind returns StagePresentationInput.SearchMatchKind, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetSearchMatchKind() *SearchMatchKind { return v.SearchMatchKind }
 
 // StageQuery includes the GraphQL fields of StageQuery requested by the fragment StageQuery.
 type StageQuery struct {
@@ -8131,6 +8198,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	worksheetId
 	dashboardId
 	datasetId
+	datastreamId
 	userId
 }
 `,
@@ -10428,6 +10496,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	worksheetId
 	dashboardId
 	datasetId
+	datastreamId
 	userId
 }
 `,
@@ -12705,6 +12774,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	worksheetId
 	dashboardId
 	datasetId
+	datastreamId
 	userId
 }
 `,

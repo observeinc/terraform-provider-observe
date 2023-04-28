@@ -61,6 +61,12 @@ extend type Query {
     you may actually, currently, do, without re-authorizing.
     """
     currentPermissions: PermissionList!
+
+    """
+    Ask whether a particular user has currently pending delegated login requests.
+    If so, you may wish to present then and confirm/deny them.
+    """
+    pendingDelegatedLogins: [PendingDelegatedLogin!]!
 }
 
 extend type Mutation {
@@ -94,21 +100,32 @@ extend type Mutation {
     user, or the same user more than an hour later. Non-permanent blobs expire
     after a few weeks.
     """
-    createOrUpdateBlob(userId: UserId, name: String!, info:BlobInput!, makePermanent: Boolean): Blob!
+    createOrUpdateBlob(userId: UserId, name: String!, info:BlobInput!, makePermanent: Boolean): Blob! @deprecated(reason:"use createBlob or updateBlob instead")
+    createBlob(userId: UserId, name: String!, info:BlobInput!, makePermanent: Boolean): Blob!
+    updateBlob(userId: UserId, name: String!, info:BlobInput!, makePermanent: Boolean): Blob!
     deleteBlob(userId: UserId, name: String!): ResultStatus
 
-    createOrUpdateBookmarkGroup(id:ObjectId, group:BookmarkGroupInput!): BookmarkGroup!
+    createOrUpdateBookmarkGroup(id:ObjectId, group:BookmarkGroupInput!): BookmarkGroup! @deprecated(reason:"use createBookmarkGroup or updateBookmarkGroup instead")
+    createBookmarkGroup(group:BookmarkGroupInput!): BookmarkGroup!
+    updateBookmarkGroup(id:ObjectId, group:BookmarkGroupInput!): BookmarkGroup!
     """
     Deleting a bookmark group will also delete the bookmarks. This is not undo-able;
     we really wipe them from the database!
     """
     deleteBookmarkGroup(id: ObjectId!): ResultStatus!
 
-    createOrUpdateBookmark(id:ObjectId, bookmark:BookmarkInput!): Bookmark!
+    createOrUpdateBookmark(id:ObjectId, bookmark:BookmarkInput!): Bookmark! @deprecated(reason:"use createBookmark or updateBookmark instead")
+    createBookmark(bookmark:BookmarkInput!): Bookmark!
+    updateBookmark(id:ObjectId, bookmark:BookmarkInput!): Bookmark!
     """
     Deleting a bookmark is not undoable; we really wipe it from the database!
     """
     deleteBookmark(id:ObjectId!): ResultStatus!
+
+    """
+    Tell yea or nay for a given login request.
+    """
+    resolvePendingDelegatedLogin(serverToken: String!, accept: Boolean!): ResultStatus!
 }
 
 """
@@ -334,7 +351,7 @@ type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   id: ObjectId!
   name: String!
   description: String!
-  iconUrl: String! @deprecated(reason: "will go away; use icon of dataset")
+  iconUrl: String!
   """
   when storing a bookmark to a thing with ?s=1234-foobar then the 1234-foobar bit is here
   """
@@ -356,12 +373,13 @@ or "created by" timestamps / user auditing, as they are more lightweight.
 input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   name: String
   description: String
-  iconUrl: String @deprecated(reason: "will go away; use icon of dataset")
+  iconUrl: String
   urlStateId: String
   targetId: ObjectId
   targetResourceId: ResourceIdInput
   groupId: ObjectId
   managedById: ObjectId
+  workspaceId: ObjectId
 }
 
 type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
@@ -435,5 +453,13 @@ enum SimpleScope @goModel(model: "observe/meta/metatypes.SimpleScope") {
     ScopeWorld
 }
 
-
+type PendingDelegatedLogin @goModel(model: "observe/authorization.PendingDelegatedLogin") {
+    emailAddress:    String!
+    clientToken:     String!
+    serverToken:     String!
+    createdDate:     Time!
+    userId:          UserId!
+    integrationId:   String!
+    integrationName: String!
+}
 

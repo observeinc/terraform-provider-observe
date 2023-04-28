@@ -243,8 +243,9 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     version: Time!
     workspaceId: ObjectId!
     kind: DatasetKind!
-    label: String! @deprecated(reason: "use name instead")
+    label: String! @deprecated(reason: "use name instead") @goField(forceResolver: true)
     name: String!
+    path: String!
     description: String
     source: String
     lastUpdateSource: String
@@ -291,6 +292,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
+    accelerationDisabled: Boolean! @goField(name:materializationDisabled)
 
     # AuditedObject
     createdBy: UserId!
@@ -309,7 +311,7 @@ enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
     Sample
 }
 
-type MetricTag @goModel(model: "observe/meta/metatypes.MetricTag") {
+type MetricTag @goModel(model: "observe/compiler/comptypes.MetricTag") {
     column: String!
     path: String!
 }
@@ -320,10 +322,12 @@ as analysis on metric name, or aggregation based metric discovery. They may be i
 Any heuristics may be unavailable for any metric, due to missing data or other edge cases
 where the heuristic estimation method does not apply.
 """
-type MetricHeuristics @goModel(model: "observe/meta/metatypes.MetricHeuristics") {
+type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristics") {
     validLinkLabels: [String!]
     numOfPoints: Int64
     cardinality: Int64
+    interval: Duration
+    intervalStddev: Duration
     tags: [MetricTag!]
 }
 
@@ -363,9 +367,16 @@ type DatasetEnumerationResult @goModel(model: "observe/meta/metatypes.DatasetEnu
     dataset: Dataset
 }
 
+type SourceTablePartitionDefinition @goModel(model: "observe/meta/metatypes.SourceTablePartitionDefinition") {
+  name: String!
+  intervalStart: Int64!
+  intervalEnd: Int64!
+}
+
 type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDefinition") {
     schema: String!
-    tableName: String!
+    tableName: String! @deprecated(reason:"use partitions instead")
+    partitions: [SourceTablePartitionDefinition!]!
     fields: [SourceTableFieldDefinition!]!
     validFromField: String
     batchSeqField: String
@@ -484,6 +495,7 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     """
     overwriteSource: Boolean
     deleted: Boolean
+    accelerationDisabled: Boolean @goField(name:materializationDisabled)
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String

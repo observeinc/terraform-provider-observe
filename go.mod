@@ -10,6 +10,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.23.0
 	github.com/jstemmer/go-junit-report/v2 v2.0.0
 	github.com/mitchellh/hashstructure v1.1.0
+	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -66,7 +67,7 @@ require (
 	github.com/zclconf/go-cty v1.11.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
-	golang.org/x/sys v0.0.0-20220913175220-63ea55921009 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220915135415-7fd63a7952de // indirect

@@ -1,17 +1,17 @@
 # Support for making connections between monitors and actions
 # this file is auto-generated, do not edit
 extend type Query {
-    monitorAction(id: ObjectId!): MonitorAction!
-    searchMonitorAction(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorActionSearchResult!
+    monitorActionAttachment(id: ObjectId!): MonitorActionAttachment!
+    searchMonitorActionAttachment(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorActionAttachmentSearchResult!
 }
 
 extend type Mutation {
-    createMonitorAction(input: MonitorActionInput!): MonitorAction!
-    updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction!
-    deleteMonitorAction(id: ObjectId!): ResultStatus!
+    createMonitorActionAttachment(input: MonitorActionAttachmentInput!): MonitorActionAttachment!
+    updateMonitorActionAttachment(id: ObjectId!, input: MonitorActionAttachmentInput!): MonitorActionAttachment!
+    deleteMonitorActionAttachment(id: ObjectId!): ResultStatus!
 }
 
-type MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
+type MonitorActionAttachment implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorActionAttachment") {
     # payload
     monitorID: ObjectId!
     actionID: ObjectId!
@@ -24,8 +24,10 @@ type MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
     description: String
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
+
     # FolderObject
     folderId: ObjectId!
+
     # AuditedObject
     createdBy: UserId!
     createdDate: Time!
@@ -35,7 +37,7 @@ type MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
     updatedByInfo: UserInfo! @goField(forceResolver: true)
 }
 
-input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionInput") {
+input MonitorActionAttachmentInput @goModel(model: "observe/meta/metatypes.MonitorActionAttachmentInput") {
     # payload
     monitorID: ObjectId!
     actionID: ObjectId!
@@ -46,10 +48,11 @@ input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionIn
     iconUrl: String
     description: String
     managedById: ObjectId
+
     # FolderObject
     folderId: ObjectId
 }
 
-type MonitorActionSearchResult @goModel(model: "observe/meta/metatypes.MonitorActionSearchResult") {
-    results: [MonitorAction!]!
+type MonitorActionAttachmentSearchResult @goModel(model: "observe/meta/metatypes.MonitorActionAttachmentSearchResult") {
+    results: [MonitorActionAttachment!]!
 }

@@ -1,0 +1,75 @@
+extend type Query {
+    """
+    Provide a question to answer (up to 255 characters) and any previous
+    question IDs.
+    """
+    getHelp(question: String!, previousIds: [String!]): HelpResponse!
+    """
+    If you have an ID token from a previous question, you can retrieve the entire
+    history of that conversation, assuming it's yours and not some other users.
+    """
+    getHelpHistory(qid: String!): [HelpRecord!]!
+    """
+    Given some context, generate code completions.
+    The outputStage of the query is the stage we want to complete for, and
+    the contextLine is where we want text. If omitted or outside the text,
+    we assume the cursor is at the end of the text of that stage.
+    If the cursor is at the very start of the text, it is on line 1. This means
+    that line 0 means "end of text" as per the above.
+    You can request between 1 and 7 completions. Larger number of completions
+    for big code snippets may not work. The default is 3.
+    You can also provide ids for previous completions for as-yet TBD context.
+    If you increase randomness (default 0) you will get different responses.
+    This is helpful if all responses you got were bad and the user wants to
+    see something else. Useful values are 0 .. 10
+    """
+    getCodeCompletion(query: MultiStageQueryInput!, contextLine: Int64, numCompletions: Int64, previousIds: [String!], randomness: Int64): CodeCompletionResponse!
+}
+
+extend type Mutation {
+    """
+    Score a help response as more or less helpful.
+    Any negative value counts as "bad" and any positive value counts as "good."
+    """
+    scoreHelp(id:String!, score:Int64!): ResultStatus!
+    """
+    Score a code completion. Positive is "good" and negative is "bad."
+    """
+    scoreCodeCompletion(id:String!, score:Int64!): ResultStatus!
+}
+
+type HelpResponse @goModel(model:"observe/meta/metatypes.HelpResponse") {
+    items: [HelpResponseItem!]!
+}
+
+type HelpResponseItem @goModel(model:"observe/meta/metatypes.HelpResponseItem") {
+    sender: String!
+    message: String!
+    url: String
+    """
+    Any question you get the answer to, is allocated an ID. This ID can be
+    provided for context in subsequent questions, and can also be scored
+    with scoreHelp().
+    """
+    id: String!
+}
+
+type HelpRecord @goModel(model:"observe/meta/metakind.HelpRecord") {
+    token: String!
+    when: Time!
+    what: String!
+    query: String
+    answer: String
+    score: Int64
+}
+
+type CodeCompletionResponse @goModel(model:"observe/meta/metatypes.CodeCompletionResponse") {
+    errorMessage: String
+    suggestions: [CodeCompletion!]
+}
+
+type CodeCompletion @goModel(model:"observe/meta/metatypes.CodeCompletion") {
+    insert: String
+    line: Int64
+    id: String!
+}

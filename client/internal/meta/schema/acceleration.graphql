@@ -1,13 +1,13 @@
 interface AccelerableObject @goModel(model: "observe/meta/metatypes.AccelerableObject") {
     accelerationInfo: AccelerationInfo!
+    accelerationDisabled: Boolean!
     # TODO:
     # * Add accelerable: Boolean!
     # * Add this interface to monitors
-    # * Add accelerationDisabled when implemented on monitors
     # * Add compilationError and onDemandMaterializationLength if they apply to monitors too?
 }
 
-type AccelerationError @goModel(model: "observe/meta/metatypes.AccelerationError") {
+type AccelerationError implements ErrorInstance @goModel(model: "observe/meta/metatypes.AccelerationError") {
     """
     The dataset that has the acceleration error.
     """
@@ -27,7 +27,7 @@ type AccelerationError @goModel(model: "observe/meta/metatypes.AccelerationError
     """
     Error text
     """
-    text: String!
+    errorText: String!
 }
 
 """
@@ -130,7 +130,11 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     the dataset should not exceed 2mins. May differ from the originally
     configured value of the dataset if Dataset.freshnessDesired is nil, in
     which case we fill in a default, or if there is a layered setting override.
-    Empty if alwaysAccelerated is true.
+
+    This can be empty if alwaysAccelerated is true, the dataset is
+    initializing, or there is an internal error processing the dataset. This
+    should be filled in for datasets that are disabled or have compilation
+    errors, though.
     """
     configuredTargetStalenessSeconds: Float
 
