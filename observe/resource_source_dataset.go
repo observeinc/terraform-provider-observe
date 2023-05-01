@@ -196,7 +196,7 @@ func newSourceDatasetConfig(data *schema.ResourceData) (*gql.DatasetDefinitionIn
 }
 
 func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("name", d.Label); err != nil {
+	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

@@ -185,7 +185,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("name", d.Label); err != nil {
+	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

@@ -1138,7 +1138,7 @@ func (v *DashboardStagesStageQueryInputInputDefinition) GetStageId() *string { r
 type Dataset struct {
 	WorkspaceId      string             `json:"workspaceId"`
 	Id               string             `json:"id"`
-	Label            string             `json:"label"`
+	Name             string             `json:"name"`
 	FreshnessDesired *types.Int64Scalar `json:"freshnessDesired"`
 	Description      *string            `json:"description"`
 	IconUrl          *string            `json:"iconUrl"`
@@ -1162,8 +1162,8 @@ func (v *Dataset) GetWorkspaceId() string { return v.WorkspaceId }
 // GetId returns Dataset.Id, and is useful for accessing the field via an interface.
 func (v *Dataset) GetId() string { return v.Id }
 
-// GetLabel returns Dataset.Label, and is useful for accessing the field via an interface.
-func (v *Dataset) GetLabel() string { return v.Label }
+// GetName returns Dataset.Name, and is useful for accessing the field via an interface.
+func (v *Dataset) GetName() string { return v.Name }
 
 // GetFreshnessDesired returns Dataset.FreshnessDesired, and is useful for accessing the field via an interface.
 func (v *Dataset) GetFreshnessDesired() *types.Int64Scalar { return v.FreshnessDesired }
@@ -10111,7 +10111,7 @@ query getDataset ($id: ObjectId!) {
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl
@@ -11161,7 +11161,7 @@ query listDatasets {
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl
@@ -11351,7 +11351,7 @@ query lookupDataset ($workspaceId: ObjectId!, $name: String!) {
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl
@@ -11807,7 +11807,7 @@ mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: 
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl
@@ -11920,7 +11920,7 @@ mutation saveSourceDataset ($workspaceId: ObjectId!, $datasetDefinition: Dataset
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl

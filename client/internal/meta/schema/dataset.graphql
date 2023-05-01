@@ -343,6 +343,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     rollup: String!
     aggregate: String!
     interval: Duration
+    suggestedBucketSize: Duration
     """
     Whether the metric has been defined explicitly by user.
     Non-user-defined metrics are discovered by scanning metric data.

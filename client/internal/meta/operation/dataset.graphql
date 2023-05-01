@@ -1,7 +1,7 @@
 fragment Dataset on Dataset {
 	workspaceId
 	id
-	label
+	name
 	freshnessDesired
 	description
 	iconUrl
