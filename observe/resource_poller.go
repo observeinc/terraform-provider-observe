@@ -51,6 +51,12 @@ func requestResource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"auth_scheme": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateEnums(gql.AllPollerHTTPRequestAuthSchemes),
+				DiffSuppressFunc: diffSuppressEnums,
+			},
 			"method": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -684,10 +690,11 @@ func flattenPollerHTTPRequest(req *gql.HttpRequestConfig) (flat map[string]inter
 	}
 
 	flat = map[string]interface{}{
-		"url":      req.Url,
-		"method":   req.Method,
-		"username": req.Username,
-		"password": req.Password,
+		"url":         req.Url,
+		"method":      req.Method,
+		"username":    req.Username,
+		"password":    req.Password,
+		"auth_scheme": req.AuthScheme,
 	}
 
 	if req.Body != nil {
@@ -760,6 +767,11 @@ func expandPollerHTTPRequest(data *schema.ResourceData, key string) *gql.PollerH
 	if v, ok := data.GetOk(key + ".password"); ok {
 		s := v.(string)
 		req.Password = &s
+	}
+
+	if v, ok := data.GetOk(key + ".auth_scheme"); ok {
+		s := gql.PollerHTTPRequestAuthScheme(toCamel(v.(string)))
+		req.AuthScheme = &s
 	}
 
 	if v, ok := data.GetOk(key + ".body"); ok {

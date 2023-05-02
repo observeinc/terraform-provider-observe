@@ -80,6 +80,11 @@ var AllRbacRoles = []RbacRole{
 	RbacRoleLister,
 }
 
+var AllPollerHTTPRequestAuthSchemes = []PollerHTTPRequestAuthScheme{
+	PollerHTTPRequestAuthSchemeBasic,
+	PollerHTTPRequestAuthSchemeDigest,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }

@@ -288,11 +288,18 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
     rules: [PollerHTTPRuleConfig!]
 }
 
+
+enum PollerHTTPRequestAuthScheme @goModel(model: "observe/ingest/crawler/client.AuthScheme") {
+    Basic
+    Digest
+}
+
 type PollerHTTPRequestConfig @goModel(model: "observe/meta/metatypes.PollerHTTPRequestInput") {
    url: String
    method: String
    username: String
    password: String
+   authScheme: PollerHTTPRequestAuthScheme
    body: String
    headers: JsonObject
    params: JsonObject
@@ -418,6 +425,7 @@ input PollerHTTPRequestInput @goModel(model: "observe/meta/metatypes.PollerHTTPR
    method: String
    username: String
    password: String
+   authScheme: PollerHTTPRequestAuthScheme
    body: String
    headers: JsonObject
    params: JsonObject

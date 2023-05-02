@@ -402,6 +402,10 @@ func validateEnums(stringerSlice interface{}) schema.SchemaValidateDiagFunc {
 	return validateStringInSlice(snakeCased(stringerSlice), true)
 }
 
+func diffSuppressEnums(k, prv, nxt string, d *schema.ResourceData) bool {
+	return toSnake(prv) == toSnake(nxt)
+}
+
 func describeEnums(stringerSlice interface{}, desc string) string {
 	return fmt.Sprintf("%s Accepted values: %s", desc, strings.Join(snakeCased(stringerSlice), ", "))
 }

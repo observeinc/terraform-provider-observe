@@ -274,6 +274,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 						template {
 							username = "user"
 							password = "pass"
+							auth_scheme = "digest"
 							headers = {
 								"accept" = "application/json"
 							}
@@ -298,6 +299,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.username", "user"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.password", "pass"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.auth_scheme", "Digest"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.headers.accept", "application/json"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.0.params.#", "0"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
@@ -325,6 +327,9 @@ func TestAccObservePollerHTTP(t *testing.T) {
 
 					http {
 						request {
+							username    = "user"
+							password    = "pass"
+							auth_scheme = "Digest"
 							url    = "https://example.com/path"
 						}
 
@@ -356,6 +361,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.#", "0"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.auth_scheme", "Digest"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.1.url", "https://example.com/path2"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.match.0.url", "https://example.com/path"),
 					resource.TestCheckResourceAttr("observe_poller.first", "http.0.rule.0.decoder.0.type", "prometheus"),

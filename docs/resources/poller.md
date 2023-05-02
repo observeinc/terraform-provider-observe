@@ -123,6 +123,7 @@ Optional:
 
 Optional:
 
+- `auth_scheme` (String)
 - `body` (String)
 - `headers` (Map of String)
 - `method` (String)
@@ -149,6 +150,7 @@ Optional:
 
 Optional:
 
+- `auth_scheme` (String)
 - `body` (String)
 - `headers` (Map of String)
 - `method` (String)
@@ -172,6 +174,7 @@ Required:
 
 Optional:
 
+- `auth_scheme` (String)
 - `body` (String)
 - `headers` (Map of String)
 - `method` (String)

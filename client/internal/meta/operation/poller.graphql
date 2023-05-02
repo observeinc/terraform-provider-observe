@@ -3,6 +3,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	authScheme
 	body
 	headers
 	params

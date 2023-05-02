@@ -1968,13 +1968,14 @@ func (v *FolderInput) GetPersonalToUserId() *types.UserIdScalar { return v.Perso
 
 // HttpRequestConfig includes the GraphQL fields of PollerHTTPRequestConfig requested by the fragment HttpRequestConfig.
 type HttpRequestConfig struct {
-	Url      *string           `json:"url"`
-	Method   *string           `json:"method"`
-	Username *string           `json:"username"`
-	Password *string           `json:"password"`
-	Body     *string           `json:"body"`
-	Headers  *types.JsonObject `json:"headers"`
-	Params   *types.JsonObject `json:"params"`
+	Url        *string                      `json:"url"`
+	Method     *string                      `json:"method"`
+	Username   *string                      `json:"username"`
+	Password   *string                      `json:"password"`
+	AuthScheme *PollerHTTPRequestAuthScheme `json:"authScheme"`
+	Body       *string                      `json:"body"`
+	Headers    *types.JsonObject            `json:"headers"`
+	Params     *types.JsonObject            `json:"params"`
 }
 
 // GetUrl returns HttpRequestConfig.Url, and is useful for accessing the field via an interface.
@@ -1988,6 +1989,9 @@ func (v *HttpRequestConfig) GetUsername() *string { return v.Username }
 
 // GetPassword returns HttpRequestConfig.Password, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetPassword() *string { return v.Password }
+
+// GetAuthScheme returns HttpRequestConfig.AuthScheme, and is useful for accessing the field via an interface.
+func (v *HttpRequestConfig) GetAuthScheme() *PollerHTTPRequestAuthScheme { return v.AuthScheme }
 
 // GetBody returns HttpRequestConfig.Body, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetBody() *string { return v.Body }
@@ -4228,14 +4232,22 @@ func (v *PollerHTTPInput) GetRequests() []PollerHTTPRequestInput { return v.Requ
 // GetRules returns PollerHTTPInput.Rules, and is useful for accessing the field via an interface.
 func (v *PollerHTTPInput) GetRules() []PollerHTTPRuleInput { return v.Rules }
 
+type PollerHTTPRequestAuthScheme string
+
+const (
+	PollerHTTPRequestAuthSchemeBasic  PollerHTTPRequestAuthScheme = "Basic"
+	PollerHTTPRequestAuthSchemeDigest PollerHTTPRequestAuthScheme = "Digest"
+)
+
 type PollerHTTPRequestInput struct {
-	Url      *string           `json:"url"`
-	Method   *string           `json:"method"`
-	Username *string           `json:"username"`
-	Password *string           `json:"password"`
-	Body     *string           `json:"body"`
-	Headers  *types.JsonObject `json:"headers"`
-	Params   *types.JsonObject `json:"params"`
+	Url        *string                      `json:"url"`
+	Method     *string                      `json:"method"`
+	Username   *string                      `json:"username"`
+	Password   *string                      `json:"password"`
+	AuthScheme *PollerHTTPRequestAuthScheme `json:"authScheme"`
+	Body       *string                      `json:"body"`
+	Headers    *types.JsonObject            `json:"headers"`
+	Params     *types.JsonObject            `json:"params"`
 }
 
 // GetUrl returns PollerHTTPRequestInput.Url, and is useful for accessing the field via an interface.
@@ -4249,6 +4261,9 @@ func (v *PollerHTTPRequestInput) GetUsername() *string { return v.Username }
 
 // GetPassword returns PollerHTTPRequestInput.Password, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRequestInput) GetPassword() *string { return v.Password }
+
+// GetAuthScheme returns PollerHTTPRequestInput.AuthScheme, and is useful for accessing the field via an interface.
+func (v *PollerHTTPRequestInput) GetAuthScheme() *PollerHTTPRequestAuthScheme { return v.AuthScheme }
 
 // GetBody returns PollerHTTPRequestInput.Body, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRequestInput) GetBody() *string { return v.Body }
@@ -9152,6 +9167,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	authScheme
 	body
 	headers
 	params
@@ -11459,6 +11475,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	authScheme
 	body
 	headers
 	params
@@ -13812,6 +13829,7 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	method
 	username
 	password
+	authScheme
 	body
 	headers
 	params
