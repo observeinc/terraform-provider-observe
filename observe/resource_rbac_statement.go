@@ -202,8 +202,8 @@ func newRbacObjectInput(data *schema.ResourceData) (gql.RbacObjectInput, error) 
 		if oname, ok := data.GetOk("object.0.name"); ok {
 			object.Name = stringPtr(oname.(string))
 		}
-		object.Owner = boolPtr(data.Get("object.0.owner").(bool))
 	}
+	object.Owner = boolPtr(data.Get("object.0.owner").(bool))
 	object.All = boolPtr(data.Get("object.0.all").(bool))
 	return object, nil
 }
