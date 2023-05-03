@@ -11,3 +11,5 @@ schema:
     paths between two datasets.
   on_demand_materialization_length: |
     The maximum on-demand materialization length for the dataset.
+  acceleration_disabled: |
+    Disables periodic materialization of the dataset

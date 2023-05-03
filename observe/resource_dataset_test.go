@@ -108,6 +108,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "false"),
 				),
 			},
 			{
@@ -123,6 +124,8 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					  "test" = observe_datastream.test.dataset
 					}
 
+					acceleration_disabled = true
+
 					stage {
 					  pipeline = <<-EOF
 					  	filter true
@@ -137,10 +140,10 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "48h0m39s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "true"),
 				),
 			},
 			{
-				PlanOnly: true,
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace                        = data.observe_workspace.default.oid

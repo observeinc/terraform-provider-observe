@@ -49,6 +49,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
+- `acceleration_disabled` (Boolean) Disables periodic materialization of the dataset
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Reducing the freshness will increase the
 frequency with which queries are run, which incurs higher transform costs.

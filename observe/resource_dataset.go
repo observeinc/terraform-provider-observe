@@ -87,6 +87,12 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      descriptions.Get("transform", "schema", "freshness"),
 			},
+			"acceleration_disabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: descriptions.Get("dataset", "schema", "acceleration_disabled"),
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -170,6 +176,9 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 		input.IconUrl = stringPtr(v.(string))
 	}
 
+	b := data.Get("acceleration_disabled").(bool)
+	input.AccelerationDisabled = &b
+
 	if v, ok := data.GetOk("path_cost"); ok {
 		input.PathCost = types.Int64Scalar(v.(int)).Ptr()
 	} else {
@@ -211,6 +220,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		if err := data.Set("icon_url", d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("acceleration_disabled", d.AccelerationDisabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	var currentCost int

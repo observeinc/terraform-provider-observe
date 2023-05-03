@@ -1136,17 +1136,18 @@ func (v *DashboardStagesStageQueryInputInputDefinition) GetStageId() *string { r
 
 // Dataset includes the GraphQL fields of Dataset requested by the fragment Dataset.
 type Dataset struct {
-	WorkspaceId      string             `json:"workspaceId"`
-	Id               string             `json:"id"`
-	Name             string             `json:"name"`
-	FreshnessDesired *types.Int64Scalar `json:"freshnessDesired"`
-	Description      *string            `json:"description"`
-	IconUrl          *string            `json:"iconUrl"`
-	Version          types.TimeScalar   `json:"version"`
-	LastSaved        types.TimeScalar   `json:"lastSaved"`
-	PathCost         *types.Int64Scalar `json:"pathCost"`
-	Source           *string            `json:"source"`
-	ManagedById      *string            `json:"managedById"`
+	WorkspaceId          string             `json:"workspaceId"`
+	Id                   string             `json:"id"`
+	Name                 string             `json:"name"`
+	FreshnessDesired     *types.Int64Scalar `json:"freshnessDesired"`
+	Description          *string            `json:"description"`
+	IconUrl              *string            `json:"iconUrl"`
+	AccelerationDisabled bool               `json:"accelerationDisabled"`
+	Version              types.TimeScalar   `json:"version"`
+	LastSaved            types.TimeScalar   `json:"lastSaved"`
+	PathCost             *types.Int64Scalar `json:"pathCost"`
+	Source               *string            `json:"source"`
+	ManagedById          *string            `json:"managedById"`
 	// Optional custom configured override value of the on demand materialization
 	// range for the dataset.
 	OnDemandMaterializationLength *types.Int64Scalar                       `json:"onDemandMaterializationLength"`
@@ -1173,6 +1174,9 @@ func (v *Dataset) GetDescription() *string { return v.Description }
 
 // GetIconUrl returns Dataset.IconUrl, and is useful for accessing the field via an interface.
 func (v *Dataset) GetIconUrl() *string { return v.IconUrl }
+
+// GetAccelerationDisabled returns Dataset.AccelerationDisabled, and is useful for accessing the field via an interface.
+func (v *Dataset) GetAccelerationDisabled() bool { return v.AccelerationDisabled }
 
 // GetVersion returns Dataset.Version, and is useful for accessing the field via an interface.
 func (v *Dataset) GetVersion() types.TimeScalar { return v.Version }
@@ -10822,6 +10826,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost
@@ -11934,6 +11939,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost
@@ -12126,6 +12132,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost
@@ -12584,6 +12591,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost
@@ -12699,6 +12707,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost

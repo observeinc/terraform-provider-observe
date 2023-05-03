@@ -17,6 +17,7 @@ Fetches metadata for an existing Observe dataset.
 
 ### Optional
 
+- `acceleration_disabled` (Boolean)
 - `id` (String) Resource ID for this object.
 One of `name` or `id` must be set.
 - `name` (String) Dataset name. Must be unique within workspace.

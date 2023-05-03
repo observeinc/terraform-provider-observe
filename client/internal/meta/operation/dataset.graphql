@@ -5,6 +5,7 @@ fragment Dataset on Dataset {
 	freshnessDesired
 	description
 	iconUrl
+	accelerationDisabled
 	version
 	lastSaved
 	pathCost
