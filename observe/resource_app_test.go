@@ -32,7 +32,7 @@ func TestAccObserveApp(t *testing.T) {
 				  folder    = observe_folder.example.oid
 
 				  module_id = "observeinc/openweather/observe"
-				  version   = "0.1.0"
+				  version   = "0.2.1"
 
 				  variables = {
 					datastream = observe_datastream.example.id
@@ -42,7 +42,7 @@ func TestAccObserveApp(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_app.example", "module_id", "observeinc/openweather/observe"),
 					resource.TestCheckResourceAttr("observe_app.example", "name", "OpenWeather"),
-					resource.TestCheckResourceAttr("observe_app.example", "version", "0.1.0"),
+					resource.TestCheckResourceAttr("observe_app.example", "version", "0.2.1"),
 				),
 			},
 		},

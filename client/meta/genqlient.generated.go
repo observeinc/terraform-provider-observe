@@ -1324,7 +1324,7 @@ type DatasetInput struct {
 	// Used only when id is specified - that is to say, only when the dataset is updated.
 	OverwriteSource      *bool              `json:"overwriteSource"`
 	Deleted              *bool              `json:"deleted,omitempty"`
-	AccelerationDisabled *bool              `json:"accelerationDisabled"`
+	AccelerationDisabled *bool              `json:"accelerationDisabled,omitempty"`
 	LatencyDesired       *types.Int64Scalar `json:"latencyDesired"`
 	FreshnessDesired     *types.Int64Scalar `json:"freshnessDesired"`
 	IconUrl              *string            `json:"iconUrl"`
@@ -2485,7 +2485,7 @@ type MonitorInput struct {
 	// The optional id of the object that owns the monitor. Ex: the id of an app that installs the monitor.
 	ManagedById          *string `json:"managedById"`
 	Disabled             *bool   `json:"disabled"`
-	AccelerationDisabled *bool   `json:"accelerationDisabled"`
+	AccelerationDisabled *bool   `json:"accelerationDisabled,omitempty"`
 	IsTemplate           *bool   `json:"isTemplate"`
 	// Similar to dataset freshness goal, this is in Nanoseconds when received from UI.
 	// Only changes setting if useDefaultFreshness is false

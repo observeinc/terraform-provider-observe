@@ -61,6 +61,7 @@ fragment Dataset on Dataset {
 }
 
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -120,6 +121,7 @@ query listDatasets{
 
 # @genqlient(for: "DatasetFieldTypeInput.nullable", omitempty: true)
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)

@@ -10,7 +10,7 @@ resource "observe_app" "example" {
   folder    = observe_folder.example.oid
 
   module_id = "observeinc/openweather/observe"
-  version   = "0.1.0"
+  version   = "0.2.1"
 
   variables = {
     datastream = observe_datastream.example.id

@@ -4,36 +4,36 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=observe
 VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
-SWEEP?=^tf-\d{16}
+SWEEP?=^tf-\\d{16}
 SWEEP_DIR?=./observe
 OBSERVE_ROOT?=../observe
 OBSERVE_DOCS_ROOT?=../observe-docs
 
 default: build
 
-docker-test-gen-gql-client:
-	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
-	--rm golang:latest \
-		/bin/bash -c "src/github.com/observeinc/terraform-provider-observe/scripts/check-client-generation.sh"
-
-docker-integration:
-	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
-	-e OBSERVE_CUSTOMER -e OBSERVE_API_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
-	--rm golang:latest \
-	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make testacc"
-
-docker-sweep:
-	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
-	-e OBSERVE_CUSTOMER -e OBSERVE_API_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
-	--rm golang:latest \
-	    /bin/bash -c "cd src/github.com/observeinc/terraform-provider-observe && make sweep"
-
-# The following targets (docker-check-generated, docker-package) invoke `go build` in a container.
+# The following targets (docker-*, except sign) invoke `go build` in a container.
 # This container runs as root.
 # In environments including Jenkins, the directory owner will differ from the container user.
 # This causes `go build` to fail, reporting an error about VCS stamping, originating from git.
 # Informing git that this directory is safe allows the build to proceed:
 # https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
+docker-test-gen-gql-client:
+	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	--rm golang:latest \
+		/bin/bash -c 'git config --global --add safe.directory "$$(pwd)" && src/github.com/observeinc/terraform-provider-observe/scripts/check-client-generation.sh'
+
+docker-integration:
+	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	-e OBSERVE_CUSTOMER -e OBSERVE_API_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
+	--rm golang:latest \
+	    /bin/bash -c 'cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory "$$(pwd)" && make testacc'
+
+docker-sweep:
+	docker run -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
+	-e OBSERVE_CUSTOMER -e OBSERVE_API_TOKEN -e OBSERVE_DOMAIN -e OBSERVE_USER_EMAIL -e OBSERVE_USER_PASSWORD -e OBSERVE_WORKSPACE \
+	--rm golang:latest \
+	    /bin/bash -c 'cd src/github.com/observeinc/terraform-provider-observe && git config --global --add safe.directory "$$(pwd)" && make sweep'
+
 docker-check-generated:
 	docker run -t --network=host -v `pwd`:/go/src/github.com/observeinc/terraform-provider-observe \
 	--rm golang:latest \
@@ -88,7 +88,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: 
-	TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v -json -parallel=5 $(TESTARGS) -timeout 120m | go run github.com/jstemmer/go-junit-report/v2 -parser gojson -iocopy -out test-report.xml
+	TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v -json -parallel=5 $(TESTARGS) -timeout 120m | go run github.com/jstemmer/go-junit-report/v2 -set-exit-code -parser gojson -iocopy -out test-report.xml
 
 vet:
 	@echo "go vet ."

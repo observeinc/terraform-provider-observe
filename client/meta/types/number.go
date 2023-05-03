@@ -8,9 +8,7 @@ import (
 type NumberScalar float64
 
 func (n NumberScalar) MarshalJSON() ([]byte, error) {
-	return json.Marshal(n.String())
-	// TODO: restore when API correctly unmarshals JSON numbers
-	// return []byte(n.String()), nil
+	return []byte(n.String()), nil
 }
 
 func (n *NumberScalar) UnmarshalJSON(data []byte) error {
