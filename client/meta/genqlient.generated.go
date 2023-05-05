@@ -1383,20 +1383,22 @@ func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
 
 // DatasetSourceTableSourceTableDefinition includes the requested fields of the GraphQL type SourceTableDefinition.
 type DatasetSourceTableSourceTableDefinition struct {
-	Schema                string                                                                    `json:"schema"`
-	TableName             string                                                                    `json:"tableName"`
-	SourceUpdateTableName *string                                                                   `json:"sourceUpdateTableName"`
-	IsInsertOnly          *bool                                                                     `json:"isInsertOnly"`
-	BatchSeqField         *string                                                                   `json:"batchSeqField"`
-	ValidFromField        *string                                                                   `json:"validFromField"`
-	Fields                []DatasetSourceTableSourceTableDefinitionFieldsSourceTableFieldDefinition `json:"fields"`
+	Schema                string                                                                            `json:"schema"`
+	Partitions            []DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition `json:"partitions"`
+	SourceUpdateTableName *string                                                                           `json:"sourceUpdateTableName"`
+	IsInsertOnly          *bool                                                                             `json:"isInsertOnly"`
+	BatchSeqField         *string                                                                           `json:"batchSeqField"`
+	ValidFromField        *string                                                                           `json:"validFromField"`
+	Fields                []DatasetSourceTableSourceTableDefinitionFieldsSourceTableFieldDefinition         `json:"fields"`
 }
 
 // GetSchema returns DatasetSourceTableSourceTableDefinition.Schema, and is useful for accessing the field via an interface.
 func (v *DatasetSourceTableSourceTableDefinition) GetSchema() string { return v.Schema }
 
-// GetTableName returns DatasetSourceTableSourceTableDefinition.TableName, and is useful for accessing the field via an interface.
-func (v *DatasetSourceTableSourceTableDefinition) GetTableName() string { return v.TableName }
+// GetPartitions returns DatasetSourceTableSourceTableDefinition.Partitions, and is useful for accessing the field via an interface.
+func (v *DatasetSourceTableSourceTableDefinition) GetPartitions() []DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition {
+	return v.Partitions
+}
 
 // GetSourceUpdateTableName returns DatasetSourceTableSourceTableDefinition.SourceUpdateTableName, and is useful for accessing the field via an interface.
 func (v *DatasetSourceTableSourceTableDefinition) GetSourceUpdateTableName() *string {
@@ -1433,6 +1435,16 @@ func (v *DatasetSourceTableSourceTableDefinitionFieldsSourceTableFieldDefinition
 // GetSqlType returns DatasetSourceTableSourceTableDefinitionFieldsSourceTableFieldDefinition.SqlType, and is useful for accessing the field via an interface.
 func (v *DatasetSourceTableSourceTableDefinitionFieldsSourceTableFieldDefinition) GetSqlType() string {
 	return v.SqlType
+}
+
+// DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition includes the requested fields of the GraphQL type SourceTablePartitionDefinition.
+type DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition struct {
+	Name string `json:"name"`
+}
+
+// GetName returns DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition.Name, and is useful for accessing the field via an interface.
+func (v *DatasetSourceTableSourceTableDefinitionPartitionsSourceTablePartitionDefinition) GetName() string {
+	return v.Name
 }
 
 // DatasetTransform includes the requested fields of the GraphQL type Transform.
@@ -10157,7 +10169,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField
@@ -11207,7 +11221,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField
@@ -11397,7 +11413,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField
@@ -11853,7 +11871,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField
@@ -11966,7 +11986,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField

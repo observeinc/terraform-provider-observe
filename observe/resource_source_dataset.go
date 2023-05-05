@@ -204,8 +204,20 @@ func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("table_name", d.SourceTable.TableName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if len(d.SourceTable.Partitions) == 1 {
+		tableName := d.SourceTable.Partitions[0].Name
+		if err := data.Set("table_name", tableName); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		errorMessage := fmt.Sprintf("Unable to set table_name, expected 1 partition but found %d", len(d.SourceTable.Partitions))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Invalid number of partitions",
+			Detail:   errorMessage,
+		})
+
+		return diags
 	}
 
 	if d.SourceTable.SourceUpdateTableName != nil {

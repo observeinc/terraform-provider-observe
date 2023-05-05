@@ -48,7 +48,9 @@ fragment Dataset on Dataset {
 	}
 	sourceTable {
 		schema
-		tableName
+		partitions {
+			name
+		}
 		sourceUpdateTableName
 		isInsertOnly
 		batchSeqField
