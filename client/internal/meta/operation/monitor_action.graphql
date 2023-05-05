@@ -1,0 +1,55 @@
+fragment MonitorAction on MonitorAction {
+    id
+    name
+    iconUrl
+    description
+    workspaceId
+    rateLimit
+    notifyOnClose
+    isPrivate
+
+    __typename
+    ... on EmailAction {
+        targetAddresses
+        subjectTemplate
+        bodyTemplate
+        isHtml
+    }
+    ... on WebhookAction {
+        urlTemplate
+        method
+        headers {
+            header
+            valueTemplate
+        }
+        bodyTemplate
+    }
+}
+
+mutation createMonitorAction($monitorAction: MonitorActionInput!) {
+    # @genqlient(flatten: true, pointer: true)
+    monitorAction: createMonitorAction(input: $monitorAction) {
+        ...MonitorAction
+    }
+}
+
+query getMonitorAction($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    monitorAction: monitorAction(id: $id) {
+        ...MonitorAction
+    }
+}
+
+mutation updateMonitorAction($id: ObjectId!, $monitorAction: MonitorActionInput!) {
+    # @genqlient(flatten: true, pointer: true)
+    monitorAction: updateMonitorAction(id:$id, input: $monitorAction) {
+        ...MonitorAction
+    }
+}
+
+mutation deleteMonitorAction($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteMonitorAction(id: $id) {
+        ...ResultStatus
+    }
+}

@@ -2439,6 +2439,323 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 	return &retval, nil
 }
 
+// MonitorAction includes the GraphQL fields of MonitorAction requested by the fragment MonitorAction.
+//
+// MonitorAction is implemented by the following types:
+// MonitorActionEmailAction
+// MonitorActionWebhookAction
+// MonitorActionUnknownAction
+type MonitorAction interface {
+	implementsGraphQLInterfaceMonitorAction()
+	// GetId returns the interface-field "id" from its implementation.
+	GetId() string
+	// GetName returns the interface-field "name" from its implementation.
+	GetName() string
+	// GetIconUrl returns the interface-field "iconUrl" from its implementation.
+	GetIconUrl() string
+	// GetDescription returns the interface-field "description" from its implementation.
+	GetDescription() string
+	// GetWorkspaceId returns the interface-field "workspaceId" from its implementation.
+	GetWorkspaceId() string
+	// GetRateLimit returns the interface-field "rateLimit" from its implementation.
+	GetRateLimit() types.DurationScalar
+	// GetNotifyOnClose returns the interface-field "notifyOnClose" from its implementation.
+	GetNotifyOnClose() bool
+	// GetIsPrivate returns the interface-field "isPrivate" from its implementation.
+	GetIsPrivate() bool
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+}
+
+func (v *MonitorActionEmailAction) implementsGraphQLInterfaceMonitorAction()   {}
+func (v *MonitorActionWebhookAction) implementsGraphQLInterfaceMonitorAction() {}
+func (v *MonitorActionUnknownAction) implementsGraphQLInterfaceMonitorAction() {}
+
+func __unmarshalMonitorAction(b []byte, v *MonitorAction) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "EmailAction":
+		*v = new(MonitorActionEmailAction)
+		return json.Unmarshal(b, *v)
+	case "WebhookAction":
+		*v = new(MonitorActionWebhookAction)
+		return json.Unmarshal(b, *v)
+	case "UnknownAction":
+		*v = new(MonitorActionUnknownAction)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing MonitorAction.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for MonitorAction: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalMonitorAction(v *MonitorAction) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *MonitorActionEmailAction:
+		typename = "EmailAction"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorActionEmailAction
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorActionWebhookAction:
+		typename = "WebhookAction"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorActionWebhookAction
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorActionUnknownAction:
+		typename = "UnknownAction"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorActionUnknownAction
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for MonitorAction: "%T"`, v)
+	}
+}
+
+// MonitorAction includes the GraphQL fields of EmailAction requested by the fragment MonitorAction.
+type MonitorActionEmailAction struct {
+	Id              string               `json:"id"`
+	Name            string               `json:"name"`
+	IconUrl         string               `json:"iconUrl"`
+	Description     string               `json:"description"`
+	WorkspaceId     string               `json:"workspaceId"`
+	RateLimit       types.DurationScalar `json:"rateLimit"`
+	NotifyOnClose   bool                 `json:"notifyOnClose"`
+	IsPrivate       bool                 `json:"isPrivate"`
+	Typename        *string              `json:"__typename"`
+	TargetAddresses []string             `json:"targetAddresses"`
+	SubjectTemplate string               `json:"subjectTemplate"`
+	BodyTemplate    string               `json:"bodyTemplate"`
+	IsHtml          bool                 `json:"isHtml"`
+}
+
+// GetId returns MonitorActionEmailAction.Id, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetId() string { return v.Id }
+
+// GetName returns MonitorActionEmailAction.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorActionEmailAction.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetIconUrl() string { return v.IconUrl }
+
+// GetDescription returns MonitorActionEmailAction.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetDescription() string { return v.Description }
+
+// GetWorkspaceId returns MonitorActionEmailAction.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetRateLimit returns MonitorActionEmailAction.RateLimit, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetRateLimit() types.DurationScalar { return v.RateLimit }
+
+// GetNotifyOnClose returns MonitorActionEmailAction.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetNotifyOnClose() bool { return v.NotifyOnClose }
+
+// GetIsPrivate returns MonitorActionEmailAction.IsPrivate, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetIsPrivate() bool { return v.IsPrivate }
+
+// GetTypename returns MonitorActionEmailAction.Typename, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetTypename() *string { return v.Typename }
+
+// GetTargetAddresses returns MonitorActionEmailAction.TargetAddresses, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetTargetAddresses() []string { return v.TargetAddresses }
+
+// GetSubjectTemplate returns MonitorActionEmailAction.SubjectTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetSubjectTemplate() string { return v.SubjectTemplate }
+
+// GetBodyTemplate returns MonitorActionEmailAction.BodyTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetBodyTemplate() string { return v.BodyTemplate }
+
+// GetIsHtml returns MonitorActionEmailAction.IsHtml, and is useful for accessing the field via an interface.
+func (v *MonitorActionEmailAction) GetIsHtml() bool { return v.IsHtml }
+
+// MonitorActionHeadersWebhookHeader includes the requested fields of the GraphQL type WebhookHeader.
+type MonitorActionHeadersWebhookHeader struct {
+	Header        string `json:"header"`
+	ValueTemplate string `json:"valueTemplate"`
+}
+
+// GetHeader returns MonitorActionHeadersWebhookHeader.Header, and is useful for accessing the field via an interface.
+func (v *MonitorActionHeadersWebhookHeader) GetHeader() string { return v.Header }
+
+// GetValueTemplate returns MonitorActionHeadersWebhookHeader.ValueTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorActionHeadersWebhookHeader) GetValueTemplate() string { return v.ValueTemplate }
+
+type MonitorActionInput struct {
+	RateLimit        *types.DurationScalar `json:"rateLimit"`
+	NotifyOnClose    bool                  `json:"notifyOnClose"`
+	NotifyOnReminder bool                  `json:"notifyOnReminder"`
+	IsPrivate        bool                  `json:"isPrivate"`
+	Email            *EmailActionInput     `json:"email"`
+	Webhook          *WebhookActionInput   `json:"webhook"`
+	WorkspaceId      string                `json:"workspaceId"`
+	Name             string                `json:"name"`
+	IconUrl          *string               `json:"iconUrl"`
+	Description      *string               `json:"description"`
+	ManagedById      *string               `json:"managedById"`
+	FolderId         *string               `json:"folderId"`
+}
+
+// GetRateLimit returns MonitorActionInput.RateLimit, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetRateLimit() *types.DurationScalar { return v.RateLimit }
+
+// GetNotifyOnClose returns MonitorActionInput.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetNotifyOnClose() bool { return v.NotifyOnClose }
+
+// GetNotifyOnReminder returns MonitorActionInput.NotifyOnReminder, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetNotifyOnReminder() bool { return v.NotifyOnReminder }
+
+// GetIsPrivate returns MonitorActionInput.IsPrivate, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetIsPrivate() bool { return v.IsPrivate }
+
+// GetEmail returns MonitorActionInput.Email, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetEmail() *EmailActionInput { return v.Email }
+
+// GetWebhook returns MonitorActionInput.Webhook, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetWebhook() *WebhookActionInput { return v.Webhook }
+
+// GetWorkspaceId returns MonitorActionInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns MonitorActionInput.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorActionInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorActionInput.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns MonitorActionInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns MonitorActionInput.FolderId, and is useful for accessing the field via an interface.
+func (v *MonitorActionInput) GetFolderId() *string { return v.FolderId }
+
+// MonitorAction includes the GraphQL fields of UnknownAction requested by the fragment MonitorAction.
+type MonitorActionUnknownAction struct {
+	Id            string               `json:"id"`
+	Name          string               `json:"name"`
+	IconUrl       string               `json:"iconUrl"`
+	Description   string               `json:"description"`
+	WorkspaceId   string               `json:"workspaceId"`
+	RateLimit     types.DurationScalar `json:"rateLimit"`
+	NotifyOnClose bool                 `json:"notifyOnClose"`
+	IsPrivate     bool                 `json:"isPrivate"`
+	Typename      *string              `json:"__typename"`
+}
+
+// GetId returns MonitorActionUnknownAction.Id, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetId() string { return v.Id }
+
+// GetName returns MonitorActionUnknownAction.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorActionUnknownAction.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetIconUrl() string { return v.IconUrl }
+
+// GetDescription returns MonitorActionUnknownAction.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetDescription() string { return v.Description }
+
+// GetWorkspaceId returns MonitorActionUnknownAction.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetRateLimit returns MonitorActionUnknownAction.RateLimit, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetRateLimit() types.DurationScalar { return v.RateLimit }
+
+// GetNotifyOnClose returns MonitorActionUnknownAction.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetNotifyOnClose() bool { return v.NotifyOnClose }
+
+// GetIsPrivate returns MonitorActionUnknownAction.IsPrivate, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetIsPrivate() bool { return v.IsPrivate }
+
+// GetTypename returns MonitorActionUnknownAction.Typename, and is useful for accessing the field via an interface.
+func (v *MonitorActionUnknownAction) GetTypename() *string { return v.Typename }
+
+// MonitorAction includes the GraphQL fields of WebhookAction requested by the fragment MonitorAction.
+type MonitorActionWebhookAction struct {
+	Id            string                              `json:"id"`
+	Name          string                              `json:"name"`
+	IconUrl       string                              `json:"iconUrl"`
+	Description   string                              `json:"description"`
+	WorkspaceId   string                              `json:"workspaceId"`
+	RateLimit     types.DurationScalar                `json:"rateLimit"`
+	NotifyOnClose bool                                `json:"notifyOnClose"`
+	IsPrivate     bool                                `json:"isPrivate"`
+	Typename      *string                             `json:"__typename"`
+	UrlTemplate   string                              `json:"urlTemplate"`
+	Method        string                              `json:"method"`
+	Headers       []MonitorActionHeadersWebhookHeader `json:"headers"`
+	BodyTemplate  string                              `json:"bodyTemplate"`
+}
+
+// GetId returns MonitorActionWebhookAction.Id, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetId() string { return v.Id }
+
+// GetName returns MonitorActionWebhookAction.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorActionWebhookAction.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetIconUrl() string { return v.IconUrl }
+
+// GetDescription returns MonitorActionWebhookAction.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetDescription() string { return v.Description }
+
+// GetWorkspaceId returns MonitorActionWebhookAction.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetRateLimit returns MonitorActionWebhookAction.RateLimit, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetRateLimit() types.DurationScalar { return v.RateLimit }
+
+// GetNotifyOnClose returns MonitorActionWebhookAction.NotifyOnClose, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetNotifyOnClose() bool { return v.NotifyOnClose }
+
+// GetIsPrivate returns MonitorActionWebhookAction.IsPrivate, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetIsPrivate() bool { return v.IsPrivate }
+
+// GetTypename returns MonitorActionWebhookAction.Typename, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetTypename() *string { return v.Typename }
+
+// GetUrlTemplate returns MonitorActionWebhookAction.UrlTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetUrlTemplate() string { return v.UrlTemplate }
+
+// GetMethod returns MonitorActionWebhookAction.Method, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetMethod() string { return v.Method }
+
+// GetHeaders returns MonitorActionWebhookAction.Headers, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetHeaders() []MonitorActionHeadersWebhookHeader {
+	return v.Headers
+}
+
+// GetBodyTemplate returns MonitorActionWebhookAction.BodyTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorActionWebhookAction) GetBodyTemplate() string { return v.BodyTemplate }
+
 type MonitorGroupByColumnPathInput struct {
 	Column string `json:"column"`
 	Path   string `json:"path"`
@@ -5508,6 +5825,14 @@ func (v *__createLayeredSettingRecordInput) GetSettingRecord() LayeredSettingRec
 	return v.SettingRecord
 }
 
+// __createMonitorActionInput is used internally by genqlient
+type __createMonitorActionInput struct {
+	MonitorAction MonitorActionInput `json:"monitorAction"`
+}
+
+// GetMonitorAction returns __createMonitorActionInput.MonitorAction, and is useful for accessing the field via an interface.
+func (v *__createMonitorActionInput) GetMonitorAction() MonitorActionInput { return v.MonitorAction }
+
 // __createMonitorInput is used internally by genqlient
 type __createMonitorInput struct {
 	WorkspaceId string       `json:"workspaceId"`
@@ -5724,6 +6049,14 @@ type __deleteLayeredSettingRecordInput struct {
 // GetId returns __deleteLayeredSettingRecordInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteLayeredSettingRecordInput) GetId() string { return v.Id }
 
+// __deleteMonitorActionInput is used internally by genqlient
+type __deleteMonitorActionInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteMonitorActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteMonitorActionInput) GetId() string { return v.Id }
+
 // __deleteMonitorInput is used internally by genqlient
 type __deleteMonitorInput struct {
 	Id string `json:"id"`
@@ -5927,6 +6260,14 @@ type __getLayeredSettingRecordInput struct {
 
 // GetId returns __getLayeredSettingRecordInput.Id, and is useful for accessing the field via an interface.
 func (v *__getLayeredSettingRecordInput) GetId() string { return v.Id }
+
+// __getMonitorActionInput is used internally by genqlient
+type __getMonitorActionInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getMonitorActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__getMonitorActionInput) GetId() string { return v.Id }
 
 // __getMonitorInput is used internally by genqlient
 type __getMonitorInput struct {
@@ -6312,6 +6653,18 @@ func (v *__updateLayeredSettingRecordInput) GetSettingRecord() LayeredSettingRec
 	return v.SettingRecord
 }
 
+// __updateMonitorActionInput is used internally by genqlient
+type __updateMonitorActionInput struct {
+	Id            string             `json:"id"`
+	MonitorAction MonitorActionInput `json:"monitorAction"`
+}
+
+// GetId returns __updateMonitorActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateMonitorActionInput) GetId() string { return v.Id }
+
+// GetMonitorAction returns __updateMonitorActionInput.MonitorAction, and is useful for accessing the field via an interface.
+func (v *__updateMonitorActionInput) GetMonitorAction() MonitorActionInput { return v.MonitorAction }
+
 // __updateMonitorInput is used internally by genqlient
 type __updateMonitorInput struct {
 	Id      string       `json:"id"`
@@ -6566,6 +6919,80 @@ func (v *createLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSe
 	return v.LayeredSettingRecord
 }
 
+// createMonitorActionResponse is returned by createMonitorAction on success.
+type createMonitorActionResponse struct {
+	MonitorAction *MonitorAction `json:"-"`
+}
+
+// GetMonitorAction returns createMonitorActionResponse.MonitorAction, and is useful for accessing the field via an interface.
+func (v *createMonitorActionResponse) GetMonitorAction() *MonitorAction { return v.MonitorAction }
+
+func (v *createMonitorActionResponse) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*createMonitorActionResponse
+		MonitorAction json.RawMessage `json:"monitorAction"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.createMonitorActionResponse = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.MonitorAction
+		src := firstPass.MonitorAction
+		if len(src) != 0 && string(src) != "null" {
+			*dst = new(MonitorAction)
+			err = __unmarshalMonitorAction(
+				src, *dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal createMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalcreateMonitorActionResponse struct {
+	MonitorAction json.RawMessage `json:"monitorAction"`
+}
+
+func (v *createMonitorActionResponse) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *createMonitorActionResponse) __premarshalJSON() (*__premarshalcreateMonitorActionResponse, error) {
+	var retval __premarshalcreateMonitorActionResponse
+
+	{
+
+		dst := &retval.MonitorAction
+		src := v.MonitorAction
+		if src != nil {
+			var err error
+			*dst, err = __marshalMonitorAction(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Unable to marshal createMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return &retval, nil
+}
+
 // createMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
 type createMonitorMonitorMonitorUpdateResult struct {
 	Monitor Monitor `json:"monitor"`
@@ -6795,6 +7222,14 @@ type deleteLayeredSettingRecordResponse struct {
 func (v *deleteLayeredSettingRecordResponse) GetDeleteLayeredSettingRecord() deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult {
 	return v.DeleteLayeredSettingRecord
 }
+
+// deleteMonitorActionResponse is returned by deleteMonitorAction on success.
+type deleteMonitorActionResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteMonitorActionResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteMonitorActionResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteMonitorResponse is returned by deleteMonitor on success.
 type deleteMonitorResponse struct {
@@ -7087,6 +7522,80 @@ type getLayeredSettingRecordResponse struct {
 // GetLayeredSettingRecord returns getLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
 func (v *getLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
 	return v.LayeredSettingRecord
+}
+
+// getMonitorActionResponse is returned by getMonitorAction on success.
+type getMonitorActionResponse struct {
+	MonitorAction *MonitorAction `json:"-"`
+}
+
+// GetMonitorAction returns getMonitorActionResponse.MonitorAction, and is useful for accessing the field via an interface.
+func (v *getMonitorActionResponse) GetMonitorAction() *MonitorAction { return v.MonitorAction }
+
+func (v *getMonitorActionResponse) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*getMonitorActionResponse
+		MonitorAction json.RawMessage `json:"monitorAction"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.getMonitorActionResponse = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.MonitorAction
+		src := firstPass.MonitorAction
+		if len(src) != 0 && string(src) != "null" {
+			*dst = new(MonitorAction)
+			err = __unmarshalMonitorAction(
+				src, *dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal getMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalgetMonitorActionResponse struct {
+	MonitorAction json.RawMessage `json:"monitorAction"`
+}
+
+func (v *getMonitorActionResponse) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *getMonitorActionResponse) __premarshalJSON() (*__premarshalgetMonitorActionResponse, error) {
+	var retval __premarshalgetMonitorActionResponse
+
+	{
+
+		dst := &retval.MonitorAction
+		src := v.MonitorAction
+		if src != nil {
+			var err error
+			*dst, err = __marshalMonitorAction(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Unable to marshal getMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return &retval, nil
 }
 
 // getMonitorResponse is returned by getMonitor on success.
@@ -7580,6 +8089,80 @@ type updateLayeredSettingRecordResponse struct {
 // GetLayeredSettingRecord returns updateLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
 func (v *updateLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
 	return v.LayeredSettingRecord
+}
+
+// updateMonitorActionResponse is returned by updateMonitorAction on success.
+type updateMonitorActionResponse struct {
+	MonitorAction *MonitorAction `json:"-"`
+}
+
+// GetMonitorAction returns updateMonitorActionResponse.MonitorAction, and is useful for accessing the field via an interface.
+func (v *updateMonitorActionResponse) GetMonitorAction() *MonitorAction { return v.MonitorAction }
+
+func (v *updateMonitorActionResponse) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*updateMonitorActionResponse
+		MonitorAction json.RawMessage `json:"monitorAction"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.updateMonitorActionResponse = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.MonitorAction
+		src := firstPass.MonitorAction
+		if len(src) != 0 && string(src) != "null" {
+			*dst = new(MonitorAction)
+			err = __unmarshalMonitorAction(
+				src, *dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal updateMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalupdateMonitorActionResponse struct {
+	MonitorAction json.RawMessage `json:"monitorAction"`
+}
+
+func (v *updateMonitorActionResponse) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *updateMonitorActionResponse) __premarshalJSON() (*__premarshalupdateMonitorActionResponse, error) {
+	var retval __premarshalupdateMonitorActionResponse
+
+	{
+
+		dst := &retval.MonitorAction
+		src := v.MonitorAction
+		if src != nil {
+			var err error
+			*dst, err = __marshalMonitorAction(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Unable to marshal updateMonitorActionResponse.MonitorAction: %w", err)
+			}
+		}
+	}
+	return &retval, nil
 }
 
 // updateMonitorMonitorMonitorUpdateResult includes the requested fields of the GraphQL type MonitorUpdateResult.
@@ -8337,6 +8920,65 @@ fragment StageQuery on StageQuery {
 	var err error
 
 	var data createMonitorResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	monitorAction MonitorActionInput,
+) (*createMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorAction",
+		Query: `
+mutation createMonitorAction ($monitorAction: MonitorActionInput!) {
+	monitorAction: createMonitorAction(input: $monitorAction) {
+		__typename
+		... MonitorAction
+	}
+}
+fragment MonitorAction on MonitorAction {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	rateLimit
+	notifyOnClose
+	isPrivate
+	__typename
+	... on EmailAction {
+		targetAddresses
+		subjectTemplate
+		bodyTemplate
+		isHtml
+	}
+	... on WebhookAction {
+		urlTemplate
+		method
+		headers {
+			header
+			valueTemplate
+		}
+		bodyTemplate
+	}
+}
+`,
+		Variables: &__createMonitorActionInput{
+			MonitorAction: monitorAction,
+		},
+	}
+	var err error
+
+	var data createMonitorActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -9338,6 +9980,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteMonitorResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorAction",
+		Query: `
+mutation deleteMonitorAction ($id: ObjectId!) {
+	resultStatus: deleteMonitorAction(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteMonitorActionInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteMonitorActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10632,6 +11311,65 @@ fragment StageQuery on StageQuery {
 	var err error
 
 	var data getMonitorResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorAction",
+		Query: `
+query getMonitorAction ($id: ObjectId!) {
+	monitorAction(id: $id) {
+		__typename
+		... MonitorAction
+	}
+}
+fragment MonitorAction on MonitorAction {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	rateLimit
+	notifyOnClose
+	isPrivate
+	__typename
+	... on EmailAction {
+		targetAddresses
+		subjectTemplate
+		bodyTemplate
+		isHtml
+	}
+	... on WebhookAction {
+		urlTemplate
+		method
+		headers {
+			header
+			valueTemplate
+		}
+		bodyTemplate
+	}
+}
+`,
+		Variables: &__getMonitorActionInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getMonitorActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -12923,6 +13661,67 @@ fragment StageQuery on StageQuery {
 	var err error
 
 	var data updateMonitorResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	monitorAction MonitorActionInput,
+) (*updateMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorAction",
+		Query: `
+mutation updateMonitorAction ($id: ObjectId!, $monitorAction: MonitorActionInput!) {
+	monitorAction: updateMonitorAction(id: $id, input: $monitorAction) {
+		__typename
+		... MonitorAction
+	}
+}
+fragment MonitorAction on MonitorAction {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	rateLimit
+	notifyOnClose
+	isPrivate
+	__typename
+	... on EmailAction {
+		targetAddresses
+		subjectTemplate
+		bodyTemplate
+		isHtml
+	}
+	... on WebhookAction {
+		urlTemplate
+		method
+		headers {
+			header
+			valueTemplate
+		}
+		bodyTemplate
+	}
+}
+`,
+		Variables: &__updateMonitorActionInput{
+			Id:            id,
+			MonitorAction: monitorAction,
+		},
+	}
+	var err error
+
+	var data updateMonitorActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

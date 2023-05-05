@@ -1,0 +1,16 @@
+description:
+  A single kind of alert, such as an email to a particular recipient. A monitor 
+  action defines the type (email or webhook), the destination (an email address 
+  or webhook URL), and the message template. A monitor action may be used by 
+  multiple monitors.
+
+schema:
+  name: |
+    Monitor action name. Must be unique within workspace.
+  description: |
+    A brief description of the monitor action.
+  rate_limit: |
+    Limits 10 alerts to the defined time period. For email actions the minimum 
+    is 10m. For webhook actions the minimum is 1s.
+  notify_on_close: |
+    Enables a final update when a monitor action notification is closed (no longer triggered).

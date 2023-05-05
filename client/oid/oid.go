@@ -35,6 +35,7 @@ const (
 	TypeLayeredSettingRecord Type = "layeredsettingrecord"
 	TypeLink                 Type = "link"
 	TypeMonitor              Type = "monitor"
+	TypeMonitorAction        Type = "monitoraction"
 	TypePoller               Type = "poller"
 	TypePreferredPath        Type = "preferredpath"
 	TypeUser                 Type = "user"

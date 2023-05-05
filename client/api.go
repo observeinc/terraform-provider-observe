@@ -275,7 +275,7 @@ func (c *Client) CreateChannelAction(ctx context.Context, workspaceId string, in
 	return result, nil
 }
 
-// UpdateChannelAction updates a bookmark
+// UpdateChannelAction updates a channel action
 func (c *Client) UpdateChannelAction(ctx context.Context, id string, input *meta.ActionInput, channels []string) (*meta.ChannelAction, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
@@ -393,6 +393,47 @@ func (c *Client) Query(ctx context.Context, stages []*meta.StageInput, params *m
 	return c.Meta.DatasetQueryOutput(ctx, stages, params)
 }
 
+// CreateMonitorAction creates a monitor action
+func (c *Client) CreateMonitorAction(ctx context.Context, input *meta.MonitorActionInput) (*meta.MonitorAction, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.CreateMonitorAction(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateMonitorAction updates a monitor action
+func (c *Client) UpdateMonitorAction(ctx context.Context, id string, input *meta.MonitorActionInput) (*meta.MonitorAction, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.UpdateMonitorAction(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DeleteMonitorAction deletes a monitor action
+func (c *Client) DeleteMonitorAction(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorAction(ctx, id)
+}
+
+// GetMonitorAction returns a monitor action by ID
+func (c *Client) GetMonitorAction(ctx context.Context, id string) (*meta.MonitorAction, error) {
+	return c.Meta.GetMonitorAction(ctx, id)
+}
+
 // CreateMonitor creates a monitor
 func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, input *meta.MonitorInput) (*meta.Monitor, error) {
 	if !c.Flags[flagObs2110] {
@@ -430,7 +471,7 @@ func (c *Client) UpdateMonitor(ctx context.Context, id string, input *meta.Monit
 	return c.Meta.UpdateMonitor(ctx, id, input)
 }
 
-// DeleteMonitor
+// DeleteMonitor deletes a monitor
 func (c *Client) DeleteMonitor(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
