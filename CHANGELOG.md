@@ -1,3 +1,13 @@
+## 0.13.11 (2023-05-05)
+* fix: fix tests
+* fix: always set optional owner property in rbac_statement
+* [OB-14910] Dataset name instead of label
+* dataset (source): validate that id and name are not empty strings
+* layered_setting_record: add datastream as supported target type
+* [OB-16012] datastream / dataset: add validation rules to the name
+* ci: pass in pattern to sweeper
+* fix: fix sweeper test for datasets
+
 ## 0.13.10 (2023-04-19)
 * rbac_default_group: add resource.observe_rbac_default_group
 * docs(rbac): add examples
