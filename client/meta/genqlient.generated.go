@@ -2580,6 +2580,77 @@ func __marshalMonitorAction(v *MonitorAction) ([]byte, error) {
 	}
 }
 
+// MonitorActionAttachment includes the GraphQL fields of MonitorActionAttachment requested by the fragment MonitorActionAttachment.
+type MonitorActionAttachment struct {
+	MonitorID   string  `json:"monitorID"`
+	ActionID    string  `json:"actionID"`
+	Id          string  `json:"id"`
+	WorkspaceId string  `json:"workspaceId"`
+	Name        string  `json:"name"`
+	IconUrl     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+}
+
+// GetMonitorID returns MonitorActionAttachment.MonitorID, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetMonitorID() string { return v.MonitorID }
+
+// GetActionID returns MonitorActionAttachment.ActionID, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetActionID() string { return v.ActionID }
+
+// GetId returns MonitorActionAttachment.Id, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetId() string { return v.Id }
+
+// GetWorkspaceId returns MonitorActionAttachment.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns MonitorActionAttachment.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorActionAttachment.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorActionAttachment.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachment) GetDescription() *string { return v.Description }
+
+type MonitorActionAttachmentInput struct {
+	MonitorID   string  `json:"monitorID"`
+	ActionID    string  `json:"actionID"`
+	ChannelID   *string `json:"channelID"`
+	WorkspaceId string  `json:"workspaceId"`
+	Name        *string `json:"name"`
+	IconUrl     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+	ManagedById *string `json:"managedById"`
+	FolderId    *string `json:"folderId"`
+}
+
+// GetMonitorID returns MonitorActionAttachmentInput.MonitorID, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetMonitorID() string { return v.MonitorID }
+
+// GetActionID returns MonitorActionAttachmentInput.ActionID, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetActionID() string { return v.ActionID }
+
+// GetChannelID returns MonitorActionAttachmentInput.ChannelID, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetChannelID() *string { return v.ChannelID }
+
+// GetWorkspaceId returns MonitorActionAttachmentInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns MonitorActionAttachmentInput.Name, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetName() *string { return v.Name }
+
+// GetIconUrl returns MonitorActionAttachmentInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorActionAttachmentInput.Description, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns MonitorActionAttachmentInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns MonitorActionAttachmentInput.FolderId, and is useful for accessing the field via an interface.
+func (v *MonitorActionAttachmentInput) GetFolderId() *string { return v.FolderId }
+
 // MonitorAction includes the GraphQL fields of EmailAction requested by the fragment MonitorAction.
 type MonitorActionEmailAction struct {
 	Id          string `json:"id"`
@@ -5977,6 +6048,16 @@ func (v *__createLayeredSettingRecordInput) GetSettingRecord() LayeredSettingRec
 	return v.SettingRecord
 }
 
+// __createMonitorActionAttachmentInput is used internally by genqlient
+type __createMonitorActionAttachmentInput struct {
+	MonitorActionAttachment MonitorActionAttachmentInput `json:"monitorActionAttachment"`
+}
+
+// GetMonitorActionAttachment returns __createMonitorActionAttachmentInput.MonitorActionAttachment, and is useful for accessing the field via an interface.
+func (v *__createMonitorActionAttachmentInput) GetMonitorActionAttachment() MonitorActionAttachmentInput {
+	return v.MonitorActionAttachment
+}
+
 // __createMonitorActionInput is used internally by genqlient
 type __createMonitorActionInput struct {
 	MonitorAction MonitorActionInput `json:"monitorAction"`
@@ -6201,6 +6282,14 @@ type __deleteLayeredSettingRecordInput struct {
 // GetId returns __deleteLayeredSettingRecordInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteLayeredSettingRecordInput) GetId() string { return v.Id }
 
+// __deleteMonitorActionAttachmentInput is used internally by genqlient
+type __deleteMonitorActionAttachmentInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteMonitorActionAttachmentInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteMonitorActionAttachmentInput) GetId() string { return v.Id }
+
 // __deleteMonitorActionInput is used internally by genqlient
 type __deleteMonitorActionInput struct {
 	Id string `json:"id"`
@@ -6412,6 +6501,14 @@ type __getLayeredSettingRecordInput struct {
 
 // GetId returns __getLayeredSettingRecordInput.Id, and is useful for accessing the field via an interface.
 func (v *__getLayeredSettingRecordInput) GetId() string { return v.Id }
+
+// __getMonitorActionAttachmentInput is used internally by genqlient
+type __getMonitorActionAttachmentInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getMonitorActionAttachmentInput.Id, and is useful for accessing the field via an interface.
+func (v *__getMonitorActionAttachmentInput) GetId() string { return v.Id }
 
 // __getMonitorActionInput is used internally by genqlient
 type __getMonitorActionInput struct {
@@ -6813,6 +6910,20 @@ func (v *__updateLayeredSettingRecordInput) GetSettingRecord() LayeredSettingRec
 	return v.SettingRecord
 }
 
+// __updateMonitorActionAttachmentInput is used internally by genqlient
+type __updateMonitorActionAttachmentInput struct {
+	Id                      string                       `json:"id"`
+	MonitorActionAttachment MonitorActionAttachmentInput `json:"monitorActionAttachment"`
+}
+
+// GetId returns __updateMonitorActionAttachmentInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateMonitorActionAttachmentInput) GetId() string { return v.Id }
+
+// GetMonitorActionAttachment returns __updateMonitorActionAttachmentInput.MonitorActionAttachment, and is useful for accessing the field via an interface.
+func (v *__updateMonitorActionAttachmentInput) GetMonitorActionAttachment() MonitorActionAttachmentInput {
+	return v.MonitorActionAttachment
+}
+
 // __updateMonitorActionInput is used internally by genqlient
 type __updateMonitorActionInput struct {
 	Id            string             `json:"id"`
@@ -7077,6 +7188,16 @@ type createLayeredSettingRecordResponse struct {
 // GetLayeredSettingRecord returns createLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
 func (v *createLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
 	return v.LayeredSettingRecord
+}
+
+// createMonitorActionAttachmentResponse is returned by createMonitorActionAttachment on success.
+type createMonitorActionAttachmentResponse struct {
+	MonitorActionAttachment *MonitorActionAttachment `json:"monitorActionAttachment"`
+}
+
+// GetMonitorActionAttachment returns createMonitorActionAttachmentResponse.MonitorActionAttachment, and is useful for accessing the field via an interface.
+func (v *createMonitorActionAttachmentResponse) GetMonitorActionAttachment() *MonitorActionAttachment {
+	return v.MonitorActionAttachment
 }
 
 // createMonitorActionResponse is returned by createMonitorAction on success.
@@ -7383,6 +7504,14 @@ func (v *deleteLayeredSettingRecordResponse) GetDeleteLayeredSettingRecord() del
 	return v.DeleteLayeredSettingRecord
 }
 
+// deleteMonitorActionAttachmentResponse is returned by deleteMonitorActionAttachment on success.
+type deleteMonitorActionAttachmentResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteMonitorActionAttachmentResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteMonitorActionAttachmentResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
 // deleteMonitorActionResponse is returned by deleteMonitorAction on success.
 type deleteMonitorActionResponse struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -7682,6 +7811,16 @@ type getLayeredSettingRecordResponse struct {
 // GetLayeredSettingRecord returns getLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
 func (v *getLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
 	return v.LayeredSettingRecord
+}
+
+// getMonitorActionAttachmentResponse is returned by getMonitorActionAttachment on success.
+type getMonitorActionAttachmentResponse struct {
+	MonitorActionAttachment *MonitorActionAttachment `json:"monitorActionAttachment"`
+}
+
+// GetMonitorActionAttachment returns getMonitorActionAttachmentResponse.MonitorActionAttachment, and is useful for accessing the field via an interface.
+func (v *getMonitorActionAttachmentResponse) GetMonitorActionAttachment() *MonitorActionAttachment {
+	return v.MonitorActionAttachment
 }
 
 // getMonitorActionResponse is returned by getMonitorAction on success.
@@ -8257,6 +8396,16 @@ type updateLayeredSettingRecordResponse struct {
 // GetLayeredSettingRecord returns updateLayeredSettingRecordResponse.LayeredSettingRecord, and is useful for accessing the field via an interface.
 func (v *updateLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSettingRecord {
 	return v.LayeredSettingRecord
+}
+
+// updateMonitorActionAttachmentResponse is returned by updateMonitorActionAttachment on success.
+type updateMonitorActionAttachmentResponse struct {
+	MonitorActionAttachment *MonitorActionAttachment `json:"monitorActionAttachment"`
+}
+
+// GetMonitorActionAttachment returns updateMonitorActionAttachmentResponse.MonitorActionAttachment, and is useful for accessing the field via an interface.
+func (v *updateMonitorActionAttachmentResponse) GetMonitorActionAttachment() *MonitorActionAttachment {
+	return v.MonitorActionAttachment
 }
 
 // updateMonitorActionResponse is returned by updateMonitorAction on success.
@@ -9147,6 +9296,47 @@ fragment MonitorAction on MonitorAction {
 	var err error
 
 	var data createMonitorActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	monitorActionAttachment MonitorActionAttachmentInput,
+) (*createMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorActionAttachment",
+		Query: `
+mutation createMonitorActionAttachment ($monitorActionAttachment: MonitorActionAttachmentInput!) {
+	monitorActionAttachment: createMonitorActionAttachment(input: $monitorActionAttachment) {
+		... MonitorActionAttachment
+	}
+}
+fragment MonitorActionAttachment on MonitorActionAttachment {
+	monitorID
+	actionID
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+}
+`,
+		Variables: &__createMonitorActionAttachmentInput{
+			MonitorActionAttachment: monitorActionAttachment,
+		},
+	}
+	var err error
+
+	var data createMonitorActionAttachmentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10186,6 +10376,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteMonitorActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorActionAttachment",
+		Query: `
+mutation deleteMonitorActionAttachment ($id: ObjectId!) {
+	resultStatus: deleteMonitorActionAttachment(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteMonitorActionAttachmentInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteMonitorActionAttachmentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -11540,6 +11767,47 @@ fragment MonitorAction on MonitorAction {
 	var err error
 
 	var data getMonitorActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorActionAttachment",
+		Query: `
+query getMonitorActionAttachment ($id: ObjectId!) {
+	monitorActionAttachment(id: $id) {
+		... MonitorActionAttachment
+	}
+}
+fragment MonitorActionAttachment on MonitorActionAttachment {
+	monitorID
+	actionID
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+}
+`,
+		Variables: &__getMonitorActionAttachmentInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getMonitorActionAttachmentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -13932,6 +14200,49 @@ fragment MonitorAction on MonitorAction {
 	var err error
 
 	var data updateMonitorActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	monitorActionAttachment MonitorActionAttachmentInput,
+) (*updateMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorActionAttachment",
+		Query: `
+mutation updateMonitorActionAttachment ($id: ObjectId!, $monitorActionAttachment: MonitorActionAttachmentInput!) {
+	monitorActionAttachment: updateMonitorActionAttachment(id: $id, input: $monitorActionAttachment) {
+		... MonitorActionAttachment
+	}
+}
+fragment MonitorActionAttachment on MonitorActionAttachment {
+	monitorID
+	actionID
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+}
+`,
+		Variables: &__updateMonitorActionAttachmentInput{
+			Id:                      id,
+			MonitorActionAttachment: monitorActionAttachment,
+		},
+	}
+	var err error
+
+	var data updateMonitorActionAttachmentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

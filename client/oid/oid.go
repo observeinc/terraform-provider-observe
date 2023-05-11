@@ -19,31 +19,32 @@ var (
 type Type string
 
 const (
-	TypeApp                  Type = "app"
-	TypeAppDataSource        Type = "appdatasource"
-	TypeBoard                Type = "board"
-	TypeBookmark             Type = "bookmark"
-	TypeBookmarkGroup        Type = "bookmarkgroup"
-	TypeChannel              Type = "channel"
-	TypeChannelAction        Type = "channelaction"
-	TypeCustomer             Type = "customer"
-	TypeDashboard            Type = "dashboard"
-	TypeDataset              Type = "dataset"
-	TypeDatastream           Type = "datastream"
-	TypeDatastreamToken      Type = "datastreamtoken"
-	TypeFolder               Type = "folder"
-	TypeLayeredSettingRecord Type = "layeredsettingrecord"
-	TypeLink                 Type = "link"
-	TypeMonitor              Type = "monitor"
-	TypeMonitorAction        Type = "monitoraction"
-	TypePoller               Type = "poller"
-	TypePreferredPath        Type = "preferredpath"
-	TypeUser                 Type = "user"
-	TypeWorksheet            Type = "worksheet"
-	TypeWorkspace            Type = "workspace"
-	TypeRbacGroup            Type = "rbacgroup"
-	TypeRbacGroupmember      Type = "rbacgroupmember"
-	TypeRbacStatement        Type = "rbacstatement"
+	TypeApp                     Type = "app"
+	TypeAppDataSource           Type = "appdatasource"
+	TypeBoard                   Type = "board"
+	TypeBookmark                Type = "bookmark"
+	TypeBookmarkGroup           Type = "bookmarkgroup"
+	TypeChannel                 Type = "channel"
+	TypeChannelAction           Type = "channelaction"
+	TypeCustomer                Type = "customer"
+	TypeDashboard               Type = "dashboard"
+	TypeDataset                 Type = "dataset"
+	TypeDatastream              Type = "datastream"
+	TypeDatastreamToken         Type = "datastreamtoken"
+	TypeFolder                  Type = "folder"
+	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
+	TypeLink                    Type = "link"
+	TypeMonitor                 Type = "monitor"
+	TypeMonitorAction           Type = "monitoraction"
+	TypeMonitorActionAttachment Type = "monitoractionattachment"
+	TypePoller                  Type = "poller"
+	TypePreferredPath           Type = "preferredpath"
+	TypeUser                    Type = "user"
+	TypeWorksheet               Type = "worksheet"
+	TypeWorkspace               Type = "workspace"
+	TypeRbacGroup               Type = "rbacgroup"
+	TypeRbacGroupmember         Type = "rbacgroupmember"
+	TypeRbacStatement           Type = "rbacstatement"
 )
 
 func (t Type) IsValid() bool {
@@ -64,6 +65,8 @@ func (t Type) IsValid() bool {
 	case TypeLayeredSettingRecord:
 	case TypeLink:
 	case TypeMonitor:
+	case TypeMonitorAction:
+	case TypeMonitorActionAttachment:
 	case TypePoller:
 	case TypePreferredPath:
 	case TypeUser:
@@ -210,6 +213,10 @@ func LinkOid(id string) OID {
 
 func MonitorOid(id string) OID {
 	return OID{Id: id, Type: TypeMonitor}
+}
+
+func MonitorActionOid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorAction}
 }
 
 func PollerOid(id string) OID {

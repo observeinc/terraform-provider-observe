@@ -485,6 +485,47 @@ func (c *Client) GetMonitor(ctx context.Context, id string) (*meta.Monitor, erro
 	return c.Meta.GetMonitor(ctx, id)
 }
 
+// CreateMonitorActionAttachment creates a monitor action attachment
+func (c *Client) CreateMonitorActionAttachment(ctx context.Context, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.CreateMonitorActionAttachment(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateMonitorActionAttachment updates a monitor action attachment
+func (c *Client) UpdateMonitorActionAttachment(ctx context.Context, id string, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.UpdateMonitorActionAttachment(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DeleteMonitorActionAttachment deletes a monitor action attachment
+func (c *Client) DeleteMonitorActionAttachment(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorActionAttachment(ctx, id)
+}
+
+// GetMonitorActionAttachment returns a monitor action attachment by ID
+func (c *Client) GetMonitorActionAttachment(ctx context.Context, id string) (*meta.MonitorActionAttachment, error) {
+	return c.Meta.GetMonitorActionAttachment(ctx, id)
+}
+
 // LookupMonitor returns monitor by name
 func (c *Client) LookupMonitor(ctx context.Context, workspaceId string, id string) (*meta.Monitor, error) {
 	return c.Meta.LookupMonitor(ctx, workspaceId, id)

@@ -1,0 +1,13 @@
+description:
+  Support for making connections between monitors and monitor actions. Monitor actions 
+  are called "Shared Actions" in the UI.
+
+schema:
+  name: |
+    Monitor action attachment name. Must be unique within workspace.
+  description: |
+    A brief description of the monitor action attachment.
+  monitor: |
+    The Observe ID of the monitor that you want to connect to the monitor action.
+  action: |
+    The Observe ID of the monitor action that you want to connect to the monitor

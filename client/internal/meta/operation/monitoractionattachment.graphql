@@ -1,0 +1,42 @@
+fragment MonitorActionAttachment on MonitorActionAttachment {
+    monitorID
+    actionID
+    id
+    workspaceId
+    name
+    iconUrl
+    description
+}
+
+query getMonitorActionAttachment($id: ObjectId!) {
+    # @genqlient(flatten: true, pointer: true)
+    monitorActionAttachment: monitorActionAttachment(id: $id) {
+        ...MonitorActionAttachment
+    }
+}
+
+mutation createMonitorActionAttachment(
+    $monitorActionAttachment: MonitorActionAttachmentInput!
+) {
+    # @genqlient(flatten: true, pointer: true)
+    monitorActionAttachment: createMonitorActionAttachment(input: $monitorActionAttachment) {
+        ...MonitorActionAttachment
+    }
+}
+
+mutation updateMonitorActionAttachment(
+    $id: ObjectId!,
+    $monitorActionAttachment: MonitorActionAttachmentInput!
+) {
+    # @genqlient(flatten: true, pointer: true)
+    monitorActionAttachment: updateMonitorActionAttachment(id:$id, input: $monitorActionAttachment) {
+        ...MonitorActionAttachment
+    }
+}
+
+mutation deleteMonitorActionAttachment($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteMonitorActionAttachment(id: $id) {
+        ...ResultStatus
+    }
+}
