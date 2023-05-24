@@ -16,6 +16,10 @@ fragment App on App {
     outputs
 }
 
+fragment ModuleVersion on ModuleVersion {
+    version
+}
+
 mutation createApp($workspaceId: ObjectId!, $config: AppInput!) {
     # @genqlient(flatten: true)
     app: createApp(workspaceId:$workspaceId, app: $config) {
@@ -50,5 +54,12 @@ query lookupApp($workspaceId: ObjectId!, $name: String!) {
     # @genqlient(flatten: true)
     apps(workspaceId: $workspaceId, name: $name) {
         ...App
+    }
+}
+
+query lookupModuleVersions($id: String!) {
+    # @genqlient(flatten: true, pointer: true)
+    moduleVersions(id: $id) {
+        ...ModuleVersion
     }
 }

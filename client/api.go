@@ -914,6 +914,10 @@ func (c *Client) LookupApp(ctx context.Context, workspaceID string, name string)
 	return c.Meta.LookupApp(ctx, workspaceID, name)
 }
 
+func (c *Client) LookupModuleVersions(ctx context.Context, id string) ([]*meta.ModuleVersion, error) {
+	return c.Meta.LookupModuleVersions(ctx, id)
+}
+
 // CreatePreferredPath creates a preferred path
 func (c *Client) CreatePreferredPath(ctx context.Context, workspaceId string, input *meta.PreferredPathInput) (*meta.PreferredPath, error) {
 	if !c.Flags[flagObs2110] {

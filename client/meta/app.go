@@ -54,6 +54,19 @@ func (client *Client) LookupApp(ctx context.Context, workspaceId, name string) (
 	}
 }
 
+func (client *Client) LookupModuleVersions(ctx context.Context, id string) ([]*ModuleVersion, error) {
+	resp, err := lookupModuleVersions(ctx, client.Gql, id)
+	if err != nil {
+		return nil, err
+	}
+	// If the app exists, but there are no versions
+	// published yet, return an error
+	if len(resp.GetModuleVersions()) == 0 {
+		return nil, errors.New("no module versions found")
+	}
+	return resp.GetModuleVersions(), nil
+}
+
 func (a *App) Oid() *oid.OID {
 	return &oid.OID{
 		Id:   a.Id,

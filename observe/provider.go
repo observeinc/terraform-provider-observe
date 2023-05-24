@@ -124,6 +124,7 @@ func Provider() *schema.Provider {
 			"observe_dashboard":         dataSourceDashboard(),
 			"observe_folder":            dataSourceFolder(),
 			"observe_app":               dataSourceApp(),
+			"observe_app_version":       dataSourceAppVersion(),
 			"observe_default_dashboard": dataSourceDefaultDashboard(),
 			"observe_terraform":         dataSourceTerraform(),
 			"observe_oid":               dataSourceOID(),

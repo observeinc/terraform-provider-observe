@@ -2273,6 +2273,17 @@ func (v *LayeredSettingRecordTargetInput) GetDatasetId() *string { return v.Data
 // GetUserId returns LayeredSettingRecordTargetInput.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { return v.UserId }
 
+// ModuleVersion includes the GraphQL fields of ModuleVersion requested by the fragment ModuleVersion.
+// The GraphQL type's documentation follows.
+//
+// ModuleVersion represents the metadata for a specific version of an application
+type ModuleVersion struct {
+	Version string `json:"version"`
+}
+
+// GetVersion returns ModuleVersion.Version, and is useful for accessing the field via an interface.
+func (v *ModuleVersion) GetVersion() string { return v.Version }
+
 // Monitor includes the GraphQL fields of Monitor requested by the fragment Monitor.
 type Monitor struct {
 	WorkspaceId string `json:"workspaceId"`
@@ -6420,6 +6431,14 @@ func (v *__lookupFolderInput) GetWorkspaceId() string { return v.WorkspaceId }
 // GetName returns __lookupFolderInput.Name, and is useful for accessing the field via an interface.
 func (v *__lookupFolderInput) GetName() string { return v.Name }
 
+// __lookupModuleVersionsInput is used internally by genqlient
+type __lookupModuleVersionsInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __lookupModuleVersionsInput.Id, and is useful for accessing the field via an interface.
+func (v *__lookupModuleVersionsInput) GetId() string { return v.Id }
+
 // __lookupMonitorInput is used internally by genqlient
 type __lookupMonitorInput struct {
 	WorkspaceId string `json:"workspaceId"`
@@ -7821,6 +7840,14 @@ type lookupFolderResponse struct {
 
 // GetFolder returns lookupFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *lookupFolderResponse) GetFolder() *lookupFolderFolderProject { return v.Folder }
+
+// lookupModuleVersionsResponse is returned by lookupModuleVersions on success.
+type lookupModuleVersionsResponse struct {
+	ModuleVersions []*ModuleVersion `json:"moduleVersions"`
+}
+
+// GetModuleVersions returns lookupModuleVersionsResponse.ModuleVersions, and is useful for accessing the field via an interface.
+func (v *lookupModuleVersionsResponse) GetModuleVersions() []*ModuleVersion { return v.ModuleVersions }
 
 // lookupMonitorMonitorProject includes the requested fields of the GraphQL type Project.
 // The GraphQL type's documentation follows.
@@ -12297,6 +12324,41 @@ fragment Folder on Folder {
 	var err error
 
 	var data lookupFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func lookupModuleVersions(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*lookupModuleVersionsResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupModuleVersions",
+		Query: `
+query lookupModuleVersions ($id: String!) {
+	moduleVersions(id: $id) {
+		... ModuleVersion
+	}
+}
+fragment ModuleVersion on ModuleVersion {
+	version
+}
+`,
+		Variables: &__lookupModuleVersionsInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data lookupModuleVersionsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
