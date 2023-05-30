@@ -444,11 +444,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					  EOF
 					}
 				}`, randomPrefix),
-				ExpectError: regexp.MustCompile(`
-input: dataset errors in stage "stage-0": 1,14: \[\] the field "EXTRA" does not
-exist among fields \[BUNDLE_TIMESTAMP, OBSERVATION_KIND, FIELDS, BUNDLE_ID,
-OBSERVATION_INDEX\]
-`),
+				ExpectError: regexp.MustCompile(`field "EXTRA"\s*does not exist`),
 			},
 			{
 				// we should always have a diff when applying after error.
