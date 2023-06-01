@@ -1,3 +1,12 @@
+## 0.13.12 (2023-06-01)
+
+* dataset: make error matcher whitespace-agnostic
+* dataset: fix overly specific error matcher in test
+* [OB-16320] Allow the provider to set acceleration_disabled on datasets
+* feat: support auth_scheme in observe_poller
+* feat: add monitor actions resource
+* [OB-17369] Stop using sourceTable.tableName and instead use sourceTable.partitions.name
+
 ## 0.13.11 (2023-05-05)
 * fix: fix tests
 * fix: always set optional owner property in rbac_statement
