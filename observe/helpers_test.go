@@ -1,6 +1,8 @@
 package observe
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -154,4 +156,16 @@ func TestToCamel(t *testing.T) {
 			t.Fatalf("toSnake failed: expected %s, got %s", tt.Input, result)
 		}
 	}
+}
+
+// newMultilineErrorRegexp creates a regexp that matches the given string,
+// allowing for any whitespace (including newlines) anywhere a space is present
+// in the input. The Terraform provider test framework executes the Terraform
+// CLI, which wraps errors returned from providers at a particular column width.
+// This makes test steps that use ExpectError especially brittle with longer
+// error messages, which may wrap at a different word if the existing error
+// message is prefixed with additional text.
+func newMultilineErrorRegexp(s string) *regexp.Regexp {
+	s = strings.ReplaceAll(s, " ", `\s`)
+	return regexp.MustCompile(s)
 }

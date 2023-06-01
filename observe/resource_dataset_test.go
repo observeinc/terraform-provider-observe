@@ -444,7 +444,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					  EOF
 					}
 				}`, randomPrefix),
-				ExpectError: regexp.MustCompile(`field "EXTRA"\s*does not exist`),
+				ExpectError: newMultilineErrorRegexp(`field "EXTRA" does not exist`),
 			},
 			{
 				// we should always have a diff when applying after error.
