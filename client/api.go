@@ -1232,3 +1232,34 @@ func (c *Client) DeleteFiledrop(ctx context.Context, id string) error {
 func (c *Client) GetFiledrop(ctx context.Context, id string) (*meta.Filedrop, error) {
 	return c.Meta.GetFiledrop(ctx, id)
 }
+
+func (c *Client) GetSnowflakeShareOutbound(ctx context.Context, id string) (*meta.SnowflakeShareOutbound, error) {
+	return c.Meta.GetSnowflakeShareOutbound(ctx, id)
+}
+
+func (c *Client) CreateSnowflakeShareOutbound(ctx context.Context, workspaceId string, input *meta.SnowflakeShareOutboundInput) (*meta.SnowflakeShareOutbound, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.CreateSnowflakeShareOutbound(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateSnowflakeShareOutbound(ctx context.Context, id string, input *meta.SnowflakeShareOutboundInput) (*meta.SnowflakeShareOutbound, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.UpdateSnowflakeShareOutbound(ctx, id, input)
+}
+
+func (c *Client) DeleteSnowflakeShareOutbound(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.DeleteSnowflakeShareOutbound(ctx, id)
+}

@@ -5775,6 +5775,88 @@ func (v *SettingAndTargetScopeInput) GetSetting() string { return v.Setting }
 // GetTarget returns SettingAndTargetScopeInput.Target, and is useful for accessing the field via an interface.
 func (v *SettingAndTargetScopeInput) GetTarget() LayeredSettingRecordTargetInput { return v.Target }
 
+// SnowflakeAccount includes the GraphQL fields of SnowflakeAccount requested by the fragment SnowflakeAccount.
+type SnowflakeAccount struct {
+	// The name of the organization that owns the Snowflake account.
+	Organization string `json:"organization"`
+	// The name of the Snowflake account.
+	Account string `json:"account"`
+}
+
+// GetOrganization returns SnowflakeAccount.Organization, and is useful for accessing the field via an interface.
+func (v *SnowflakeAccount) GetOrganization() string { return v.Organization }
+
+// GetAccount returns SnowflakeAccount.Account, and is useful for accessing the field via an interface.
+func (v *SnowflakeAccount) GetAccount() string { return v.Account }
+
+type SnowflakeAccountInput struct {
+	Account      string `json:"account"`
+	Organization string `json:"organization"`
+}
+
+// GetAccount returns SnowflakeAccountInput.Account, and is useful for accessing the field via an interface.
+func (v *SnowflakeAccountInput) GetAccount() string { return v.Account }
+
+// GetOrganization returns SnowflakeAccountInput.Organization, and is useful for accessing the field via an interface.
+func (v *SnowflakeAccountInput) GetOrganization() string { return v.Organization }
+
+// SnowflakeShareOutbound includes the GraphQL fields of SnowflakeShareOutbound requested by the fragment SnowflakeShareOutbound.
+type SnowflakeShareOutbound struct {
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	WorkspaceId string  `json:"workspaceId"`
+	// The fully qualified name of the Snowflake share, for use in a consumer account.
+	ShareName string `json:"shareName"`
+	// The Snowlake accounts that have access to the share.
+	Accounts []SnowflakeAccount `json:"accounts"`
+}
+
+// GetId returns SnowflakeShareOutbound.Id, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetId() string { return v.Id }
+
+// GetName returns SnowflakeShareOutbound.Name, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetName() string { return v.Name }
+
+// GetDescription returns SnowflakeShareOutbound.Description, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetDescription() *string { return v.Description }
+
+// GetWorkspaceId returns SnowflakeShareOutbound.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetShareName returns SnowflakeShareOutbound.ShareName, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetShareName() string { return v.ShareName }
+
+// GetAccounts returns SnowflakeShareOutbound.Accounts, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutbound) GetAccounts() []SnowflakeAccount { return v.Accounts }
+
+type SnowflakeShareOutboundInput struct {
+	Accounts    []SnowflakeAccountInput `json:"accounts"`
+	Name        string                  `json:"name"`
+	IconUrl     *string                 `json:"iconUrl"`
+	Description *string                 `json:"description"`
+	ManagedById *string                 `json:"managedById"`
+	FolderId    *string                 `json:"folderId"`
+}
+
+// GetAccounts returns SnowflakeShareOutboundInput.Accounts, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetAccounts() []SnowflakeAccountInput { return v.Accounts }
+
+// GetName returns SnowflakeShareOutboundInput.Name, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetName() string { return v.Name }
+
+// GetIconUrl returns SnowflakeShareOutboundInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns SnowflakeShareOutboundInput.Description, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns SnowflakeShareOutboundInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns SnowflakeShareOutboundInput.FolderId, and is useful for accessing the field via an interface.
+func (v *SnowflakeShareOutboundInput) GetFolderId() *string { return v.FolderId }
+
 type SourceLocInput struct {
 	Row types.Int64Scalar `json:"row"`
 	Col types.Int64Scalar `json:"col"`
@@ -6624,6 +6706,18 @@ type __createRbacStatementInput struct {
 // GetConfig returns __createRbacStatementInput.Config, and is useful for accessing the field via an interface.
 func (v *__createRbacStatementInput) GetConfig() RbacStatementInput { return v.Config }
 
+// __createSnowflakeShareOutboundInput is used internally by genqlient
+type __createSnowflakeShareOutboundInput struct {
+	WorkspaceId string                      `json:"workspaceId"`
+	Input       SnowflakeShareOutboundInput `json:"input"`
+}
+
+// GetWorkspaceId returns __createSnowflakeShareOutboundInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__createSnowflakeShareOutboundInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetInput returns __createSnowflakeShareOutboundInput.Input, and is useful for accessing the field via an interface.
+func (v *__createSnowflakeShareOutboundInput) GetInput() SnowflakeShareOutboundInput { return v.Input }
+
 // __createWorkspaceInput is used internally by genqlient
 type __createWorkspaceInput struct {
 	Config WorkspaceInput `json:"config"`
@@ -6827,6 +6921,14 @@ type __deleteRbacStatementInput struct {
 
 // GetId returns __deleteRbacStatementInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteRbacStatementInput) GetId() string { return v.Id }
+
+// __deleteSnowflakeShareOutboundInput is used internally by genqlient
+type __deleteSnowflakeShareOutboundInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteSnowflakeShareOutboundInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteSnowflakeShareOutboundInput) GetId() string { return v.Id }
 
 // __deleteWorksheetInput is used internally by genqlient
 type __deleteWorksheetInput struct {
@@ -7056,6 +7158,14 @@ type __getRbacStatementInput struct {
 // GetId returns __getRbacStatementInput.Id, and is useful for accessing the field via an interface.
 func (v *__getRbacStatementInput) GetId() string { return v.Id }
 
+// __getSnowflakeShareOutboundInput is used internally by genqlient
+type __getSnowflakeShareOutboundInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getSnowflakeShareOutboundInput.Id, and is useful for accessing the field via an interface.
+func (v *__getSnowflakeShareOutboundInput) GetId() string { return v.Id }
+
 // __getTerraformInput is used internally by genqlient
 type __getTerraformInput struct {
 	Id string              `json:"id"`
@@ -7159,6 +7269,18 @@ func (v *__lookupMonitorInput) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetName returns __lookupMonitorInput.Name, and is useful for accessing the field via an interface.
 func (v *__lookupMonitorInput) GetName() string { return v.Name }
+
+// __lookupSnowflakeShareOutboundInput is used internally by genqlient
+type __lookupSnowflakeShareOutboundInput struct {
+	Name        string `json:"name"`
+	WorkspaceId string `json:"workspaceId"`
+}
+
+// GetName returns __lookupSnowflakeShareOutboundInput.Name, and is useful for accessing the field via an interface.
+func (v *__lookupSnowflakeShareOutboundInput) GetName() string { return v.Name }
+
+// GetWorkspaceId returns __lookupSnowflakeShareOutboundInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__lookupSnowflakeShareOutboundInput) GetWorkspaceId() string { return v.WorkspaceId }
 
 // __lookupWorkspaceInput is used internally by genqlient
 type __lookupWorkspaceInput struct {
@@ -7509,6 +7631,18 @@ func (v *__updateRbacStatementInput) GetId() string { return v.Id }
 
 // GetConfig returns __updateRbacStatementInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateRbacStatementInput) GetConfig() RbacStatementInput { return v.Config }
+
+// __updateSnowflakeShareOutboundInput is used internally by genqlient
+type __updateSnowflakeShareOutboundInput struct {
+	Id    string                      `json:"id"`
+	Input SnowflakeShareOutboundInput `json:"input"`
+}
+
+// GetId returns __updateSnowflakeShareOutboundInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateSnowflakeShareOutboundInput) GetId() string { return v.Id }
+
+// GetInput returns __updateSnowflakeShareOutboundInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateSnowflakeShareOutboundInput) GetInput() SnowflakeShareOutboundInput { return v.Input }
 
 // __updateWorkspaceInput is used internally by genqlient
 type __updateWorkspaceInput struct {
@@ -7868,6 +8002,14 @@ type createRbacStatementResponse struct {
 // GetRbacStatement returns createRbacStatementResponse.RbacStatement, and is useful for accessing the field via an interface.
 func (v *createRbacStatementResponse) GetRbacStatement() RbacStatement { return v.RbacStatement }
 
+// createSnowflakeShareOutboundResponse is returned by createSnowflakeShareOutbound on success.
+type createSnowflakeShareOutboundResponse struct {
+	Share SnowflakeShareOutbound `json:"share"`
+}
+
+// GetShare returns createSnowflakeShareOutboundResponse.Share, and is useful for accessing the field via an interface.
+func (v *createSnowflakeShareOutboundResponse) GetShare() SnowflakeShareOutbound { return v.Share }
+
 // createWorkspaceResponse is returned by createWorkspace on success.
 type createWorkspaceResponse struct {
 	// When creating a workspace, all users for the customer will be granted
@@ -8085,6 +8227,14 @@ type deleteRbacStatementResponse struct {
 
 // GetResultStatus returns deleteRbacStatementResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteRbacStatementResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteSnowflakeShareOutboundResponse is returned by deleteSnowflakeShareOutbound on success.
+type deleteSnowflakeShareOutboundResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteSnowflakeShareOutboundResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteSnowflakeShareOutboundResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteWorksheetResponse is returned by deleteWorksheet on success.
 type deleteWorksheetResponse struct {
@@ -8494,6 +8644,14 @@ type getRbacStatementResponse struct {
 // GetRbacStatement returns getRbacStatementResponse.RbacStatement, and is useful for accessing the field via an interface.
 func (v *getRbacStatementResponse) GetRbacStatement() RbacStatement { return v.RbacStatement }
 
+// getSnowflakeShareOutboundResponse is returned by getSnowflakeShareOutbound on success.
+type getSnowflakeShareOutboundResponse struct {
+	Share SnowflakeShareOutbound `json:"share"`
+}
+
+// GetShare returns getSnowflakeShareOutboundResponse.Share, and is useful for accessing the field via an interface.
+func (v *getSnowflakeShareOutboundResponse) GetShare() SnowflakeShareOutbound { return v.Share }
+
 // getTerraformResponse is returned by getTerraform on success.
 type getTerraformResponse struct {
 	Terraform TerraformDefinition `json:"terraform"`
@@ -8656,6 +8814,26 @@ type lookupMonitorResponse struct {
 
 // GetMonitor returns lookupMonitorResponse.Monitor, and is useful for accessing the field via an interface.
 func (v *lookupMonitorResponse) GetMonitor() *lookupMonitorMonitorProject { return v.Monitor }
+
+// lookupSnowflakeShareOutboundResponse is returned by lookupSnowflakeShareOutbound on success.
+type lookupSnowflakeShareOutboundResponse struct {
+	Shares lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult `json:"shares"`
+}
+
+// GetShares returns lookupSnowflakeShareOutboundResponse.Shares, and is useful for accessing the field via an interface.
+func (v *lookupSnowflakeShareOutboundResponse) GetShares() lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult {
+	return v.Shares
+}
+
+// lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult includes the requested fields of the GraphQL type SnowflakeShareOutboundSearchResult.
+type lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult struct {
+	Results []SnowflakeShareOutbound `json:"results"`
+}
+
+// GetResults returns lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult.Results, and is useful for accessing the field via an interface.
+func (v *lookupSnowflakeShareOutboundSharesSnowflakeShareOutboundSearchResult) GetResults() []SnowflakeShareOutbound {
+	return v.Results
+}
 
 // lookupWorkspaceResponse is returned by lookupWorkspace on success.
 type lookupWorkspaceResponse struct {
@@ -9080,6 +9258,14 @@ type updateRbacStatementResponse struct {
 
 // GetRbacStatement returns updateRbacStatementResponse.RbacStatement, and is useful for accessing the field via an interface.
 func (v *updateRbacStatementResponse) GetRbacStatement() RbacStatement { return v.RbacStatement }
+
+// updateSnowflakeShareOutboundResponse is returned by updateSnowflakeShareOutbound on success.
+type updateSnowflakeShareOutboundResponse struct {
+	Share SnowflakeShareOutbound `json:"share"`
+}
+
+// GetShare returns updateSnowflakeShareOutboundResponse.Share, and is useful for accessing the field via an interface.
+func (v *updateSnowflakeShareOutboundResponse) GetShare() SnowflakeShareOutbound { return v.Share }
 
 // updateWorkspaceResponse is returned by updateWorkspace on success.
 type updateWorkspaceResponse struct {
@@ -10318,6 +10504,54 @@ fragment RbacStatement on RbacStatement {
 	return &data, err
 }
 
+func createSnowflakeShareOutbound(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	input SnowflakeShareOutboundInput,
+) (*createSnowflakeShareOutboundResponse, error) {
+	req := &graphql.Request{
+		OpName: "createSnowflakeShareOutbound",
+		Query: `
+mutation createSnowflakeShareOutbound ($workspaceId: ObjectId!, $input: SnowflakeShareOutboundInput!) {
+	share: createSnowflakeShareOutbound(workspaceId: $workspaceId, input: $input) {
+		... SnowflakeShareOutbound
+	}
+}
+fragment SnowflakeShareOutbound on SnowflakeShareOutbound {
+	id
+	name
+	description
+	workspaceId
+	shareName
+	accounts {
+		... SnowflakeAccount
+	}
+}
+fragment SnowflakeAccount on SnowflakeAccount {
+	organization
+	account
+}
+`,
+		Variables: &__createSnowflakeShareOutboundInput{
+			WorkspaceId: workspaceId,
+			Input:       input,
+		},
+	}
+	var err error
+
+	var data createSnowflakeShareOutboundResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func createWorkspace(
 	ctx context.Context,
 	client graphql.Client,
@@ -11235,6 +11469,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteRbacStatementResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteSnowflakeShareOutbound(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteSnowflakeShareOutboundResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteSnowflakeShareOutbound",
+		Query: `
+mutation deleteSnowflakeShareOutbound ($id: ObjectId!) {
+	resultStatus: deleteSnowflakeShareOutbound(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteSnowflakeShareOutboundInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteSnowflakeShareOutboundResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -12866,6 +13137,52 @@ fragment RbacStatement on RbacStatement {
 	return &data, err
 }
 
+func getSnowflakeShareOutbound(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getSnowflakeShareOutboundResponse, error) {
+	req := &graphql.Request{
+		OpName: "getSnowflakeShareOutbound",
+		Query: `
+query getSnowflakeShareOutbound ($id: ObjectId!) {
+	share: snowflakeShareOutbound(id: $id) {
+		... SnowflakeShareOutbound
+	}
+}
+fragment SnowflakeShareOutbound on SnowflakeShareOutbound {
+	id
+	name
+	description
+	workspaceId
+	shareName
+	accounts {
+		... SnowflakeAccount
+	}
+}
+fragment SnowflakeAccount on SnowflakeAccount {
+	organization
+	account
+}
+`,
+		Variables: &__getSnowflakeShareOutboundInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getSnowflakeShareOutboundResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func getTerraform(
 	ctx context.Context,
 	client graphql.Client,
@@ -13563,6 +13880,56 @@ fragment StageQuery on StageQuery {
 	var err error
 
 	var data lookupMonitorResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func lookupSnowflakeShareOutbound(
+	ctx context.Context,
+	client graphql.Client,
+	name string,
+	workspaceId string,
+) (*lookupSnowflakeShareOutboundResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupSnowflakeShareOutbound",
+		Query: `
+query lookupSnowflakeShareOutbound ($name: String!, $workspaceId: ObjectId!) {
+	shares: searchSnowflakeShareOutbound(nameExact: $name, workspaceId: $workspaceId) {
+		results {
+			... SnowflakeShareOutbound
+		}
+	}
+}
+fragment SnowflakeShareOutbound on SnowflakeShareOutbound {
+	id
+	name
+	description
+	workspaceId
+	shareName
+	accounts {
+		... SnowflakeAccount
+	}
+}
+fragment SnowflakeAccount on SnowflakeAccount {
+	organization
+	account
+}
+`,
+		Variables: &__lookupSnowflakeShareOutboundInput{
+			Name:        name,
+			WorkspaceId: workspaceId,
+		},
+	}
+	var err error
+
+	var data lookupSnowflakeShareOutboundResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -15298,6 +15665,54 @@ fragment RbacStatement on RbacStatement {
 	var err error
 
 	var data updateRbacStatementResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateSnowflakeShareOutbound(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input SnowflakeShareOutboundInput,
+) (*updateSnowflakeShareOutboundResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateSnowflakeShareOutbound",
+		Query: `
+mutation updateSnowflakeShareOutbound ($id: ObjectId!, $input: SnowflakeShareOutboundInput!) {
+	share: updateSnowflakeShareOutbound(id: $id, input: $input) {
+		... SnowflakeShareOutbound
+	}
+}
+fragment SnowflakeShareOutbound on SnowflakeShareOutbound {
+	id
+	name
+	description
+	workspaceId
+	shareName
+	accounts {
+		... SnowflakeAccount
+	}
+}
+fragment SnowflakeAccount on SnowflakeAccount {
+	organization
+	account
+}
+`,
+		Variables: &__updateSnowflakeShareOutboundInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateSnowflakeShareOutboundResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

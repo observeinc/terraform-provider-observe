@@ -46,6 +46,7 @@ const (
 	TypeRbacGroup               Type = "rbacgroup"
 	TypeRbacGroupmember         Type = "rbacgroupmember"
 	TypeRbacStatement           Type = "rbacstatement"
+	TypeSnowflakeShareOutbound  Type = "snowflakeshareoutbound"
 )
 
 func (t Type) IsValid() bool {
@@ -76,6 +77,7 @@ func (t Type) IsValid() bool {
 	case TypeRbacGroup:
 	case TypeRbacGroupmember:
 	case TypeRbacStatement:
+	case TypeSnowflakeShareOutbound:
 	default:
 		return false
 	}
