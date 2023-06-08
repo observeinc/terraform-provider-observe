@@ -1,0 +1,92 @@
+# this file is auto-generated, do not edit
+extend type Query {
+    snowflakeShareOutbound(id: ObjectId!): SnowflakeShareOutbound!
+    searchSnowflakeShareOutbound(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): SnowflakeShareOutboundSearchResult!
+}
+
+extend type Mutation {
+    createSnowflakeShareOutbound(workspaceId: ObjectId!, input: SnowflakeShareOutboundInput!): SnowflakeShareOutbound!
+    updateSnowflakeShareOutbound(id: ObjectId!, input: SnowflakeShareOutboundInput!): SnowflakeShareOutbound!
+    deleteSnowflakeShareOutbound(id: ObjectId!): ResultStatus!
+}
+
+type SnowflakeShareOutbound implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeShareOutbound") {
+    # payload
+    """
+    The fully qualified name of the Snowflake share, for use in a consumer account.
+    """
+    shareName: String!
+    """
+    The Snowlake accounts that have access to the share.
+    """
+    accounts: [SnowflakeAccount!]!
+    shareNameInternal: String!
+    databaseName: String!
+    schemaName: String!
+    # tramp data: computedShareName: String!
+    # tramp data: computedShareNameInternal: String!
+    # tramp data: computedDatabaseName: String!
+    # tramp data: computedSchemaName: String!
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input SnowflakeShareOutboundInput @goModel(model: "observe/meta/metatypes.SnowflakeShareOutboundInput") {
+    # payload
+    # not in input: shareName: String!
+    accounts: [SnowflakeAccountInput!]!
+    # not in input: shareNameInternal: String!
+    # not in input: databaseName: String!
+    # not in input: schemaName: String!
+    # tramp field: computedShareName: String!
+    # tramp field: computedShareNameInternal: String!
+    # tramp field: computedDatabaseName: String!
+    # tramp field: computedSchemaName: String!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type SnowflakeShareOutboundSearchResult @goModel(model: "observe/meta/metatypes.SnowflakeShareOutboundSearchResult") {
+    results: [SnowflakeShareOutbound!]!
+}
+type SnowflakeAccount @goModel(model: "observe/meta/metatypes.SnowflakeAccount") {
+    # payload
+    """
+    The name of the Snowflake account.
+    """
+    account: String!
+    """
+    The name of the organization that owns the Snowflake account.
+    """
+    organization: String!
+}
+
+input SnowflakeAccountInput @goModel(model: "observe/meta/metatypes.SnowflakeAccountInput") {
+    # payload
+    account: String!
+    organization: String!
+}
+

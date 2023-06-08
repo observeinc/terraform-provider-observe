@@ -319,11 +319,21 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     searchMatchMetadata: SearchMatchMetadata
 }
 
-type SearchMatchMetadata @goModel(model: "observe/meta/metaparser.SearchMatchMetadata") {
+type SearchMatchMetadata @goModel(model: "observe/meta/metatypes.SearchMatchMetadata") {
     """
     List of columns that have contributed to resulting data matching the search
     """
     columns: [String!]!
+    """
+    List of regexes to highlight the matches. There can be multiple elements for the same column
+    """
+    regexes: [SearchMatchColumnRegex!]!
+}
+
+type SearchMatchColumnRegex @goModel(model: "observe/meta/metatypes.SearchMatchColumnRegex") {
+    column: String!
+    regex: String!
+    negated: Boolean!
 }
 
 type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
@@ -980,7 +990,16 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     When rollup is set, resources will be rolled up into the query time window
     Columns will be aggregated into arrays.
     """
-    rollup: RollupOptionInput
+    rollup: RollupOptionInput @deprecated(reason: "use rollupMode")
+    """
+    rollupMode, if specified, overrides rollup.
+    Always: Roll up the result, grouping by primary key if possible,
+    otherwise by grouping all rows together.
+    Never: Don't roll up the result.
+    Auto: Roll up the result if it is a Resource, otherwise don't roll up
+    the result.
+    """
+    rollupMode: RollupMode
     """
     resultKinds map to which fields of TaskResult will end up containing
     information in results (when using datasetProgressive for querying.) Note that not
@@ -1001,6 +1020,22 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     the pipeline
     """
     searchMatchKind: SearchMatchKind
+}
+
+enum RollupMode @goModel(model: "observe/compiler/comptypes.RollupMode") {
+    """
+    Roll up the result, grouping by primary key if possible,
+    otherwise by grouping all rows together.
+    """
+    Always,
+    """
+    Don't roll up the result.
+    """
+    Never,
+    """
+    Roll up the result if it is a Resource, otherwise don't roll up the result.
+    """
+    Auto
 }
 
 enum SearchMatchKind @goModel(model: "observe/meta/metatypes.SearchMatchKind") {

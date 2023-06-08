@@ -4,6 +4,18 @@ interface MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.Mo
     filterType: MonitorMuteRuleFilterType!
 }
 
+extend type Query {
+    """
+    Get mute rule filters which include only resources.
+    Empty monitorIds fetches filter objects for all existing monitors.
+    """
+    monitorMuteRuleFiltersForMonitors(monitorIds: [ObjectId!]!): [MonitorMuteRuleFilterPerResource!]!
+    """
+    Get mute rule filters which include columns and resources.
+    """
+    monitorMuteRuleFiltersForMonitor(monitorId: ObjectId!): [MonitorMuteRuleFilterObject!]!
+}
+
 extend type Mutation {
     createMonitorMuteRuleForMonitors(input: MonitorMuteRuleInput!, monitorIds: [ObjectId!]!): MonitorMuteRule!
     updateMonitorMuteRuleForMonitors(id: ObjectId!, input: MonitorMuteRuleInput!, monitorIds: [ObjectId!]!): MonitorMuteRule!
@@ -21,6 +33,7 @@ extend type Mutation {
 }
 
 enum MonitorMuteRuleFilterType @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterType") {
+  FilterAll
   FilterPerColumn
   FilterPerResource
 }
@@ -80,6 +93,13 @@ input MonitorMuteRuleInput @goModel(model: "observe/meta/metatypes.MonitorMuteRu
 type MonitorMuteRuleSearchResult @goModel(model: "observe/meta/metatypes.MonitorMuteRuleSearchResult") {
     results: [MonitorMuteRule!]!
 }
+type MonitorMuteRuleFilterAll implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterAll") {
+    # payload
+    filterType: MonitorMuteRuleFilterType!
+}
+
+
+
 type MonitorMuteRuleFilterPerColumn implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerColumn") {
     # payload
     filterType: MonitorMuteRuleFilterType!
@@ -97,18 +117,16 @@ input MonitorMuteRuleFilterPerColumnInput @goModel(model: "observe/meta/metatype
 type MonitorMuteRuleFilterPerResource implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerResource") {
     # payload
     filterType: MonitorMuteRuleFilterType!
-    targetDataseID: Int64!
     """
-    valuesPerColumnID are a list of values, where each value is an array, sorted in the same order as the primary key columns that identify each individual resource in the target dataset.
+    resourceIds expect datasetId and the primaryKeyValue.name to be the same across all provided resource ids objects.
     """
-    valuesPerColumnID: [[String!]!]!
+    resourceIds: [ResourceId!]!
 }
 
 input MonitorMuteRuleFilterPerResourceInput @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerResourceInput") {
     # payload
     # not in input: filterType: MonitorMuteRuleFilterType!
-    targetDataseID: Int64!
-    valuesPerColumnID: [[String!]!]!
+    resourceIds: [ResourceIdInput!]!
 }
 
 type MonitorMuteRuleAttachment @goModel(model: "observe/meta/metatypes.MonitorMuteRuleAttachment") {

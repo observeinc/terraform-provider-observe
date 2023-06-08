@@ -44,7 +44,7 @@ input MonitorActionAttachmentInput @goModel(model: "observe/meta/metatypes.Monit
     channelID: ObjectId
     # WorkspaceObject
     workspaceId: ObjectId!
-    name: String!
+    name: String
     iconUrl: String
     description: String
     managedById: ObjectId

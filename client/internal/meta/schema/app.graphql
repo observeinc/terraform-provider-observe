@@ -16,6 +16,7 @@ extend type Query {
     app(id: ObjectId!): App!
     apps(workspaceId: ObjectId!, name: String): [App!]!
     appConfig(id: ObjectId!, targetVersion: String!): AppConfig!
+    appChanges(id: ObjectId!, app: AppInput!): AppChanges!
 
     appDataSource(id: ObjectId!): AppDataSource!
     searchAppDataSources(workspaceId: ObjectId!, appId: ObjectId): [AppDataSource!]!
@@ -128,6 +129,30 @@ input AppInput @goModel(model: "observe/meta/metatypes.AppInput") {
     version: String!
     variables: [AppVariableInput!]
     folderId: ObjectId
+}
+
+enum AppChangeType @goModel(model: "observe/meta/metatypes.AppChangeType") {
+    Create
+    Update
+    Delete
+}
+
+type AppChangeCount @goModel(model: "observe/meta/metatypes.AppChangeCount") {
+  type: AppChangeType!
+  count: Int64!
+}
+
+type AppResourceChange @goModel(model: "observe/meta/metatypes.AppResourceChange") {
+    resourceType: ObjectKind!
+    counts: [AppChangeCount!]!
+}
+
+type AppChanges @goModel(model: "observe/meta/metatypes.AppChanges") {
+    error: String
+    internalError: String
+
+    counts: [AppChangeCount!]!
+    resourceChanges: [AppResourceChange!]!
 }
 
 type AppConfig @goModel(model: "observe/meta/metatypes.AppConfig") {

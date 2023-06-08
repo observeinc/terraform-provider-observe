@@ -39,7 +39,7 @@ extend type Subscription {
     resourceSearch(input: ResourceSearchInput!): ResourceSearchResult!
 }
 
-type DatasetMatchData @goModel(model: "observe/meta/metaparser.DatasetMatchData") {
+type DatasetMatchData @goModel(model: "observe/meta/metatypes.DatasetMatchData") {
     score: Float!
     matchedProject: [ObjectId!]
     matchedLabel: [String!]
@@ -49,7 +49,7 @@ type DatasetMatchData @goModel(model: "observe/meta/metaparser.DatasetMatchData"
     matchedInterface: [String!]
 }
 
-type DatasetMatch @goModel(model: "observe/meta/metaparser.DatasetMatch") {
+type DatasetMatch @goModel(model: "observe/meta/metatypes.DatasetMatch") {
     dataset: Dataset!
     matchData: DatasetMatchData!
 }
@@ -266,3 +266,18 @@ type MetricMatch @goModel(model: "observe/meta/metatypes.MetricMatch") {
     datasetId: ObjectId
 }
 
+
+enum MetricState @goModel(model: "observe/meta/metatypes.MetricState"){
+    """
+    A metric in Active state is usable and currently reporting
+    """
+    Active
+    """
+    A metric in Inactive state is usable, but not currently reporting
+    """
+    Inactive
+    """
+    A metric in Error state is unusable because the metric dataset has errors in its definition
+    """
+    Error
+}

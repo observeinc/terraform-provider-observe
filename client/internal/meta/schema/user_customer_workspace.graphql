@@ -346,6 +346,17 @@ interface WorkspaceObject @goModel(model: "observe/meta/metatypes.WorkspaceObjec
     managedById: ObjectId
 }
 
+enum BookmarkKind @goModel(model: "observe/meta/metatypes.BookmarkKind") {
+  Dataset
+  Worksheet
+  BookmarkGroup
+  Monitor
+  Resource
+  Dashboard
+  LogExplorer
+  MetricExplorer
+}
+
 
 type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   id: ObjectId!
@@ -364,6 +375,7 @@ type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   userId: UserId!
   userInfo: UserInfo! @goField(forceResolver:true)
   managedById: ObjectId
+  bookmarkKind: BookmarkKind!
 }
 
 """
@@ -380,6 +392,7 @@ input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   groupId: ObjectId
   managedById: ObjectId
   workspaceId: ObjectId
+  bookmarkKind: BookmarkKind
 }
 
 type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {

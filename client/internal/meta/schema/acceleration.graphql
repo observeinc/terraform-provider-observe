@@ -188,7 +188,13 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     Querying data before this time can result in inlining and might be slow.
     A null value means nothing is materialized yet.
     """
-    acceleratedRangeStart: Time
+    acceleratedRangeStart: Time @deprecated(reason: "Use acceleratedRanges")
+
+    """
+    The list of "accelerated" ranges (materialized ranges). Querying data outside
+    of this range can result in inlining and be slow.
+    """
+    acceleratedRanges: [TimeRange!]!
 
     """
     The target of accelerated range start for backfilling. If this value is
@@ -196,7 +202,15 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     backfilling more data, and the difference between the two can be treated as
     a "progress" indication. The target is determined by historical queries.
     """
-    targetAcceleratedRangeStart: Time
+    targetAcceleratedRangeStart: Time @deprecated(reason: "Use targetAcceleratedRanges")
+
+    """
+    The target accelerated ranges. If this value is different from the actual
+    accelerated range start, it means we are actively backfilling more data, and
+    the difference between the two can be treated as a "progress" indication.
+    The target is determined by historical queries.
+    """
+    targetAcceleratedRanges: [TimeRange!]!
 
     """
     The freshness time of the dataset.

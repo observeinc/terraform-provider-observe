@@ -334,6 +334,10 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
 type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     name: String!
     """
+    Format: <dataset-alias>.<metric-name>. If an alias is not defined for the dataset, the name is instead used as the alias
+    """
+    nameWithPath: String!
+    """
     the short display name, not the list of metric labels
     """
     label: String! @deprecated(reason: "We should always use name. Using label causes too much confusion.")
@@ -350,6 +354,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     """
     userDefined: Boolean!
     heuristics: MetricHeuristics
+    state: MetricState!
 }
 
 type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {

@@ -24,6 +24,12 @@ extend type Query {
     see something else. Useful values are 0 .. 10
     """
     getCodeCompletion(query: MultiStageQueryInput!, contextLine: Int64, numCompletions: Int64, previousIds: [String!], randomness: Int64): CodeCompletionResponse!
+    """
+    Given some data, generate possible extraction actions on it.
+    The 'columnName' is the name of the column, and the 'data' is an example of the data.
+    Score the result of the extraction using scoreCodeCompletion().
+    """
+    getDataExtraction(data: String!, avoidColumnNames: [String!]): DataExtractionResponse!
 }
 
 extend type Mutation {
@@ -73,3 +79,15 @@ type CodeCompletion @goModel(model:"observe/meta/metatypes.CodeCompletion") {
     line: Int64
     id: String!
 }
+
+type DataExtractionResponse @goModel(model:"observe/meta/metatypes.DataExtractionResponse") {
+    errorMessage: String
+    extractions: [DataExtraction!]
+}
+
+type DataExtraction @goModel(model:"observe/meta/metatypes.DataExtraction") {
+    statement: String!
+    explanation: String!
+    id: String!
+}
+

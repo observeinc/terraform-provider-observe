@@ -392,6 +392,7 @@ type BookmarkInput struct {
 	GroupId          *string          `json:"groupId"`
 	ManagedById      *string          `json:"managedById"`
 	WorkspaceId      *string          `json:"workspaceId"`
+	BookmarkKind     *BookmarkKind    `json:"bookmarkKind"`
 }
 
 // GetName returns BookmarkInput.Name, and is useful for accessing the field via an interface.
@@ -420,6 +421,22 @@ func (v *BookmarkInput) GetManagedById() *string { return v.ManagedById }
 
 // GetWorkspaceId returns BookmarkInput.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetBookmarkKind returns BookmarkInput.BookmarkKind, and is useful for accessing the field via an interface.
+func (v *BookmarkInput) GetBookmarkKind() *BookmarkKind { return v.BookmarkKind }
+
+type BookmarkKind string
+
+const (
+	BookmarkKindDataset        BookmarkKind = "Dataset"
+	BookmarkKindWorksheet      BookmarkKind = "Worksheet"
+	BookmarkKindBookmarkgroup  BookmarkKind = "BookmarkGroup"
+	BookmarkKindMonitor        BookmarkKind = "Monitor"
+	BookmarkKindResource       BookmarkKind = "Resource"
+	BookmarkKindDashboard      BookmarkKind = "Dashboard"
+	BookmarkKindLogexplorer    BookmarkKind = "LogExplorer"
+	BookmarkKindMetricexplorer BookmarkKind = "MetricExplorer"
+)
 
 type ChangeType string
 
@@ -2477,6 +2494,11 @@ type MonitorAction interface {
 	// GetWorkspaceId returns the interface-field "workspaceId" from its implementation.
 	GetWorkspaceId() string
 	// GetRateLimit returns the interface-field "rateLimit" from its implementation.
+	// The GraphQL interface field's documentation follows.
+	//
+	// Rate limit measured in nanoseconds.
+	// For email actions the minimum is: 10 / 10min
+	// For webhook actions the minimum is: 10 / 1s
 	GetRateLimit() types.DurationScalar
 	// GetNotifyOnClose returns the interface-field "notifyOnClose" from its implementation.
 	GetNotifyOnClose() bool
@@ -2560,11 +2582,14 @@ func __marshalMonitorAction(v *MonitorAction) ([]byte, error) {
 
 // MonitorAction includes the GraphQL fields of EmailAction requested by the fragment MonitorAction.
 type MonitorActionEmailAction struct {
-	Id              string               `json:"id"`
-	Name            string               `json:"name"`
-	IconUrl         string               `json:"iconUrl"`
-	Description     string               `json:"description"`
-	WorkspaceId     string               `json:"workspaceId"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	IconUrl     string `json:"iconUrl"`
+	Description string `json:"description"`
+	WorkspaceId string `json:"workspaceId"`
+	// Rate limit measured in nanoseconds.
+	// For email actions the minimum is: 10 / 10min
+	// For webhook actions the minimum is: 10 / 1s
 	RateLimit       types.DurationScalar `json:"rateLimit"`
 	NotifyOnClose   bool                 `json:"notifyOnClose"`
 	IsPrivate       bool                 `json:"isPrivate"`
@@ -2627,6 +2652,9 @@ func (v *MonitorActionHeadersWebhookHeader) GetHeader() string { return v.Header
 func (v *MonitorActionHeadersWebhookHeader) GetValueTemplate() string { return v.ValueTemplate }
 
 type MonitorActionInput struct {
+	// Rate limit measured in nanoseconds.
+	// For email actions the minimum is: 10 / 10min
+	// For webhook actions the minimum is: 10 / 1s
 	RateLimit        *types.DurationScalar `json:"rateLimit"`
 	NotifyOnClose    bool                  `json:"notifyOnClose"`
 	NotifyOnReminder bool                  `json:"notifyOnReminder"`
@@ -2679,11 +2707,14 @@ func (v *MonitorActionInput) GetFolderId() *string { return v.FolderId }
 
 // MonitorAction includes the GraphQL fields of UnknownAction requested by the fragment MonitorAction.
 type MonitorActionUnknownAction struct {
-	Id            string               `json:"id"`
-	Name          string               `json:"name"`
-	IconUrl       string               `json:"iconUrl"`
-	Description   string               `json:"description"`
-	WorkspaceId   string               `json:"workspaceId"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	IconUrl     string `json:"iconUrl"`
+	Description string `json:"description"`
+	WorkspaceId string `json:"workspaceId"`
+	// Rate limit measured in nanoseconds.
+	// For email actions the minimum is: 10 / 10min
+	// For webhook actions the minimum is: 10 / 1s
 	RateLimit     types.DurationScalar `json:"rateLimit"`
 	NotifyOnClose bool                 `json:"notifyOnClose"`
 	IsPrivate     bool                 `json:"isPrivate"`
@@ -2719,11 +2750,14 @@ func (v *MonitorActionUnknownAction) GetTypename() *string { return v.Typename }
 
 // MonitorAction includes the GraphQL fields of WebhookAction requested by the fragment MonitorAction.
 type MonitorActionWebhookAction struct {
-	Id            string                              `json:"id"`
-	Name          string                              `json:"name"`
-	IconUrl       string                              `json:"iconUrl"`
-	Description   string                              `json:"description"`
-	WorkspaceId   string                              `json:"workspaceId"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	IconUrl     string `json:"iconUrl"`
+	Description string `json:"description"`
+	WorkspaceId string `json:"workspaceId"`
+	// Rate limit measured in nanoseconds.
+	// For email actions the minimum is: 10 / 10min
+	// For webhook actions the minimum is: 10 / 1s
 	RateLimit     types.DurationScalar                `json:"rateLimit"`
 	NotifyOnClose bool                                `json:"notifyOnClose"`
 	IsPrivate     bool                                `json:"isPrivate"`
@@ -2947,6 +2981,7 @@ func (v *MonitorQueryMultiStageQuery) GetStages() []*StageQuery { return v.Stage
 //
 // MonitorRule is implemented by the following types:
 // MonitorRuleMonitorRuleThreshold
+// MonitorRuleMonitorRuleLog
 // MonitorRuleMonitorRuleChange
 // MonitorRuleMonitorRuleFacet
 // MonitorRuleMonitorRuleCount
@@ -2962,6 +2997,7 @@ type MonitorRule interface {
 }
 
 func (v *MonitorRuleMonitorRuleThreshold) implementsGraphQLInterfaceMonitorRule() {}
+func (v *MonitorRuleMonitorRuleLog) implementsGraphQLInterfaceMonitorRule()       {}
 func (v *MonitorRuleMonitorRuleChange) implementsGraphQLInterfaceMonitorRule()    {}
 func (v *MonitorRuleMonitorRuleFacet) implementsGraphQLInterfaceMonitorRule()     {}
 func (v *MonitorRuleMonitorRuleCount) implementsGraphQLInterfaceMonitorRule()     {}
@@ -2983,6 +3019,9 @@ func __unmarshalMonitorRule(b []byte, v *MonitorRule) error {
 	switch tn.TypeName {
 	case "MonitorRuleThreshold":
 		*v = new(MonitorRuleMonitorRuleThreshold)
+		return json.Unmarshal(b, *v)
+	case "MonitorRuleLog":
+		*v = new(MonitorRuleMonitorRuleLog)
 		return json.Unmarshal(b, *v)
 	case "MonitorRuleChange":
 		*v = new(MonitorRuleMonitorRuleChange)
@@ -3015,6 +3054,14 @@ func __marshalMonitorRule(v *MonitorRule) ([]byte, error) {
 		result := struct {
 			TypeName string `json:"__typename"`
 			*MonitorRuleMonitorRuleThreshold
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorRuleMonitorRuleLog:
+		typename = "MonitorRuleLog"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorRuleMonitorRuleLog
 		}{typename, v}
 		return json.Marshal(result)
 	case *MonitorRuleMonitorRuleChange:
@@ -3168,6 +3215,7 @@ type MonitorRuleInput struct {
 	CountRule     *MonitorRuleCountInput     `json:"countRule"`
 	FacetRule     *MonitorRuleFacetInput     `json:"facetRule"`
 	ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule"`
+	LogRule       *MonitorRuleLogInput       `json:"logRule"`
 	PromoteRule   *MonitorRulePromoteInput   `json:"promoteRule"`
 }
 
@@ -3201,8 +3249,40 @@ func (v *MonitorRuleInput) GetFacetRule() *MonitorRuleFacetInput { return v.Face
 // GetThresholdRule returns MonitorRuleInput.ThresholdRule, and is useful for accessing the field via an interface.
 func (v *MonitorRuleInput) GetThresholdRule() *MonitorRuleThresholdInput { return v.ThresholdRule }
 
+// GetLogRule returns MonitorRuleInput.LogRule, and is useful for accessing the field via an interface.
+func (v *MonitorRuleInput) GetLogRule() *MonitorRuleLogInput { return v.LogRule }
+
 // GetPromoteRule returns MonitorRuleInput.PromoteRule, and is useful for accessing the field via an interface.
 func (v *MonitorRuleInput) GetPromoteRule() *MonitorRulePromoteInput { return v.PromoteRule }
+
+type MonitorRuleLogInput struct {
+	CompareFunction      *CompareFunction      `json:"compareFunction"`
+	CompareValues        []types.NumberScalar  `json:"compareValues"`
+	LookbackTime         *types.DurationScalar `json:"lookbackTime"`
+	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
+	ExpressionSummary    *string               `json:"expressionSummary"`
+	LogStageId           *string               `json:"logStageId"`
+}
+
+// GetCompareFunction returns MonitorRuleLogInput.CompareFunction, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetCompareFunction() *CompareFunction { return v.CompareFunction }
+
+// GetCompareValues returns MonitorRuleLogInput.CompareValues, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetCompareValues() []types.NumberScalar { return v.CompareValues }
+
+// GetLookbackTime returns MonitorRuleLogInput.LookbackTime, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
+
+// GetThresholdAggFunction returns MonitorRuleLogInput.ThresholdAggFunction, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetThresholdAggFunction() *ThresholdAggFunction {
+	return v.ThresholdAggFunction
+}
+
+// GetExpressionSummary returns MonitorRuleLogInput.ExpressionSummary, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetExpressionSummary() *string { return v.ExpressionSummary }
+
+// GetLogStageId returns MonitorRuleLogInput.LogStageId, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetLogStageId() *string { return v.LogStageId }
 
 // MonitorRuleMonitorRuleChange includes the requested fields of the GraphQL type MonitorRuleChange.
 type MonitorRuleMonitorRuleChange struct {
@@ -3327,6 +3407,24 @@ func (v *MonitorRuleMonitorRuleFacet) GetTimeValue() *types.NumberScalar { retur
 // GetLookbackTime returns MonitorRuleMonitorRuleFacet.LookbackTime, and is useful for accessing the field via an interface.
 func (v *MonitorRuleMonitorRuleFacet) GetLookbackTime() types.DurationScalar { return v.LookbackTime }
 
+// MonitorRuleMonitorRuleLog includes the requested fields of the GraphQL type MonitorRuleLog.
+type MonitorRuleMonitorRuleLog struct {
+	Typename      *string                                    `json:"__typename"`
+	SourceColumn  string                                     `json:"sourceColumn"`
+	GroupByGroups []MonitorRuleGroupByGroupsMonitorGroupInfo `json:"groupByGroups"`
+}
+
+// GetTypename returns MonitorRuleMonitorRuleLog.Typename, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetTypename() *string { return v.Typename }
+
+// GetSourceColumn returns MonitorRuleMonitorRuleLog.SourceColumn, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetSourceColumn() string { return v.SourceColumn }
+
+// GetGroupByGroups returns MonitorRuleMonitorRuleLog.GroupByGroups, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetGroupByGroups() []MonitorRuleGroupByGroupsMonitorGroupInfo {
+	return v.GroupByGroups
+}
+
 // MonitorRuleMonitorRulePromote includes the requested fields of the GraphQL type MonitorRulePromote.
 type MonitorRuleMonitorRulePromote struct {
 	Typename         *string                                    `json:"__typename"`
@@ -3419,6 +3517,7 @@ type MonitorRuleThresholdInput struct {
 	CompareValues        []types.NumberScalar  `json:"compareValues"`
 	LookbackTime         *types.DurationScalar `json:"lookbackTime"`
 	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
+	ExpressionSummary    *string               `json:"expressionSummary"`
 }
 
 // GetCompareFunction returns MonitorRuleThresholdInput.CompareFunction, and is useful for accessing the field via an interface.
@@ -3434,6 +3533,9 @@ func (v *MonitorRuleThresholdInput) GetLookbackTime() *types.DurationScalar { re
 func (v *MonitorRuleThresholdInput) GetThresholdAggFunction() *ThresholdAggFunction {
 	return v.ThresholdAggFunction
 }
+
+// GetExpressionSummary returns MonitorRuleThresholdInput.ExpressionSummary, and is useful for accessing the field via an interface.
+func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.ExpressionSummary }
 
 type MultiStageQueryInput struct {
 	OutputStage     string                  `json:"outputStage"`
@@ -3727,23 +3829,6 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 	}
 	return &retval, nil
 }
-
-type PollerApiRequestLimitInput struct {
-	// maxReqRate is the maximum number of requests per second. If this request
-	// rate limit would be exceeded, the poller blocks. For example, a rate limit
-	// of 12.5 will cause the poller to at most make ~12.5 API calls per second.
-	MaxReqRate *float64 `json:"maxReqRate"`
-	// maxTotalReq is the maximum number of requests to make per poller run.
-	// For example, for a poller with interval 15 minutes, a poller run occurs
-	// every 15 minutes.
-	MaxTotalReq *types.Int64Scalar `json:"maxTotalReq"`
-}
-
-// GetMaxReqRate returns PollerApiRequestLimitInput.MaxReqRate, and is useful for accessing the field via an interface.
-func (v *PollerApiRequestLimitInput) GetMaxReqRate() *float64 { return v.MaxReqRate }
-
-// GetMaxTotalReq returns PollerApiRequestLimitInput.MaxTotalReq, and is useful for accessing the field via an interface.
-func (v *PollerApiRequestLimitInput) GetMaxTotalReq() *types.Int64Scalar { return v.MaxTotalReq }
 
 type PollerChunkInput struct {
 	Enabled bool               `json:"enabled"`
@@ -4306,20 +4391,21 @@ func (v *PollerHTTPRuleInput) GetFollow() *string { return v.Follow }
 
 // Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
-	Name                 *string                     `json:"name"`
-	Description          *string                     `json:"description"`
-	Disabled             *bool                       `json:"disabled"`
-	Retries              *types.Int64Scalar          `json:"retries"`
-	Interval             *types.DurationScalar       `json:"interval"`
-	Chunk                *PollerChunkInput           `json:"chunk"`
-	Tags                 *types.JsonObject           `json:"tags"`
-	ApiReqLimit          *PollerApiRequestLimitInput `json:"apiReqLimit"`
-	DatastreamId         *string                     `json:"datastreamId"`
-	PubsubConfig         *PollerPubSubInput          `json:"pubsubConfig"`
-	HttpConfig           *PollerHTTPInput            `json:"httpConfig"`
-	GcpConfig            *PollerGCPMonitoringInput   `json:"gcpConfig"`
-	MongoDBAtlasConfig   *PollerMongoDBAtlasInput    `json:"mongoDBAtlasConfig"`
-	ConfluentCloudConfig *PollerConfluentCloudInput  `json:"confluentCloudConfig"`
+	Name                   *string                    `json:"name"`
+	Description            *string                    `json:"description"`
+	Disabled               *bool                      `json:"disabled"`
+	Retries                *types.Int64Scalar         `json:"retries"`
+	Interval               *types.DurationScalar      `json:"interval"`
+	Chunk                  *PollerChunkInput          `json:"chunk"`
+	Tags                   *types.JsonObject          `json:"tags"`
+	ApiReqLimit            *RateLimitInput            `json:"apiReqLimit"`
+	DatastreamId           *string                    `json:"datastreamId"`
+	PubsubConfig           *PollerPubSubInput         `json:"pubsubConfig"`
+	HttpConfig             *PollerHTTPInput           `json:"httpConfig"`
+	GcpConfig              *PollerGCPMonitoringInput  `json:"gcpConfig"`
+	MongoDBAtlasConfig     *PollerMongoDBAtlasInput   `json:"mongoDBAtlasConfig"`
+	ConfluentCloudConfig   *PollerConfluentCloudInput `json:"confluentCloudConfig"`
+	SkipExternalValidation *bool                      `json:"skipExternalValidation"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
 	ManagedById *string `json:"managedById"`
 }
@@ -4346,7 +4432,7 @@ func (v *PollerInput) GetChunk() *PollerChunkInput { return v.Chunk }
 func (v *PollerInput) GetTags() *types.JsonObject { return v.Tags }
 
 // GetApiReqLimit returns PollerInput.ApiReqLimit, and is useful for accessing the field via an interface.
-func (v *PollerInput) GetApiReqLimit() *PollerApiRequestLimitInput { return v.ApiReqLimit }
+func (v *PollerInput) GetApiReqLimit() *RateLimitInput { return v.ApiReqLimit }
 
 // GetDatastreamId returns PollerInput.DatastreamId, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetDatastreamId() *string { return v.DatastreamId }
@@ -4367,6 +4453,9 @@ func (v *PollerInput) GetMongoDBAtlasConfig() *PollerMongoDBAtlasInput { return 
 func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 	return v.ConfluentCloudConfig
 }
+
+// GetSkipExternalValidation returns PollerInput.SkipExternalValidation, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetSkipExternalValidation() *bool { return v.SkipExternalValidation }
 
 // GetManagedById returns PollerInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetManagedById() *string { return v.ManagedById }
@@ -4784,6 +4873,17 @@ func (v *QueryParams) GetRateLimitOption() *RateLimitOption { return v.RateLimit
 // GetOpalParameters returns QueryParams.OpalParameters, and is useful for accessing the field via an interface.
 func (v *QueryParams) GetOpalParameters() []ParameterBindingInput { return v.OpalParameters }
 
+type RateLimitInput struct {
+	Rate  float64            `json:"rate"`
+	Burst *types.Int64Scalar `json:"burst"`
+}
+
+// GetRate returns RateLimitInput.Rate, and is useful for accessing the field via an interface.
+func (v *RateLimitInput) GetRate() float64 { return v.Rate }
+
+// GetBurst returns RateLimitInput.Burst, and is useful for accessing the field via an interface.
+func (v *RateLimitInput) GetBurst() *types.Int64Scalar { return v.Burst }
+
 type RateLimitOption string
 
 const (
@@ -5069,6 +5169,18 @@ const (
 	RollupFilterModeAll  RollupFilterMode = "All"
 )
 
+type RollupMode string
+
+const (
+	// Roll up the result, grouping by primary key if possible,
+	// otherwise by grouping all rows together.
+	RollupModeAlways RollupMode = "Always"
+	// Don't roll up the result.
+	RollupModeNever RollupMode = "Never"
+	// Roll up the result if it is a Resource, otherwise don't roll up the result.
+	RollupModeAuto RollupMode = "Auto"
+)
+
 type RollupOptionInput struct {
 	// If unrollColumns is set, the columns specified will be unrolled after being
 	// grouped by primary key and ordered by time. Empty unrollColumns will produce
@@ -5274,6 +5386,13 @@ type StagePresentationInput struct {
 	// When rollup is set, resources will be rolled up into the query time window
 	// Columns will be aggregated into arrays.
 	Rollup *RollupOptionInput `json:"rollup"`
+	// rollupMode, if specified, overrides rollup.
+	// Always: Roll up the result, grouping by primary key if possible,
+	// otherwise by grouping all rows together.
+	// Never: Don't roll up the result.
+	// Auto: Roll up the result if it is a Resource, otherwise don't roll up
+	// the result.
+	RollupMode *RollupMode `json:"rollupMode"`
 	// resultKinds map to which fields of TaskResult will end up containing
 	// information in results (when using datasetProgressive for querying.) Note that not
 	// all the fields may be set at the same time, data may be split across
@@ -5304,6 +5423,9 @@ func (v *StagePresentationInput) GetLinkify() *bool { return v.Linkify }
 
 // GetRollup returns StagePresentationInput.Rollup, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetRollup() *RollupOptionInput { return v.Rollup }
+
+// GetRollupMode returns StagePresentationInput.RollupMode, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetRollupMode() *RollupMode { return v.RollupMode }
 
 // GetResultKinds returns StagePresentationInput.ResultKinds, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetResultKinds() []*ResultKind { return v.ResultKinds }

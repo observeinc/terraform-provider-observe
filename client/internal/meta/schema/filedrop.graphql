@@ -1,0 +1,68 @@
+# A data source that loads data from a cloud object storage service provider into Observe platform Must be associated with a datastream
+# this file is auto-generated, do not edit
+extend type Query {
+    filedrop(id: ObjectId!): Filedrop!
+    searchFiledrop(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): FiledropSearchResult!
+}
+
+extend type Mutation {
+    createFiledrop(workspaceId: ObjectId!, input: FiledropInput!): Filedrop!
+    updateFiledrop(id: ObjectId!, input: FiledropInput!): Filedrop!
+    deleteFiledrop(id: ObjectId!): ResultStatus!
+}
+
+enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
+  Disabled
+  Initializing
+  Running
+  Updating
+}
+
+type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Filedrop") {
+    # payload
+    status: FiledropStatus!
+    datastreamID: Int64!
+    datastreamTokenID: String!
+    config: JsonObject!
+    # not in output: metadata: JsonObject!
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input FiledropInput @goModel(model: "observe/meta/metatypes.FiledropInput") {
+    # payload
+    # not in input: status: FiledropStatus!
+    datastreamID: Int64!
+    # not in input: datastreamTokenID: String!
+    config: JsonObject!
+    # not in input: metadata: JsonObject!
+    # WorkspaceObject
+    name: String
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type FiledropSearchResult @goModel(model: "observe/meta/metatypes.FiledropSearchResult") {
+    results: [Filedrop!]!
+}

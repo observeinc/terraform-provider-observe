@@ -28,8 +28,9 @@ enum PipelineSymbolType @goModel(model: "observe/meta/metatypes.PipelineSymbolTy
 type PipelineSymbol @goModel(model: "observe/meta/metatypes.PipelineSymbol") {
     row: Int64! @deprecated(reason:"use location.row instead")
     col: Int64! @deprecated(reason:"use location.col instead")
-    location: SourceLoc!
-    text: String!
+    location: SourceLoc! @deprecated(reason: "use span.start instead")
+    span: SourceSpan!
+    text: String! @deprecated(reason: "use span and query text")
     comment: String!
     """
     yes a token can have more than one type

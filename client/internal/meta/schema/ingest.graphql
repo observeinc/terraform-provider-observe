@@ -9,9 +9,9 @@ extend type Query {
     datastreamToken(id: String!): DatastreamToken!
 
     """
-    Get a filedrop by ID
+    Get a skyswirl by ID
     """
-    filedrop(id: ObjectId!): Filedrop!
+    skyswirl(id: ObjectId!): Skyswirl!
 }
 
 extend type Mutation {
@@ -29,17 +29,17 @@ extend type Mutation {
     deleteDatastreamToken(id: String!): ResultStatus!
 
     """
-    Create a new filedrop
+    Create a new skyswirl
     """
-    createFiledrop(datastreamId: ObjectId!, filedrop: FiledropInput!): Filedrop!
+    createSkyswirl(datastreamId: ObjectId!, skyswirl: SkyswirlInput!): Skyswirl!
     """
-    Update an existing filedrop
+    Update an existing skyswirl
     """
-    updateFiledrop(id: ObjectId!, filedrop: FiledropInput!): Filedrop!
+    updateSkyswirl(id: ObjectId!, skyswirl: SkyswirlInput!): Skyswirl!
     """
-    delete an existing filedrop
+    delete an existing skyswirl
     """
-    deleteFiledrop(id: ObjectId!): ResultStatus!
+    deleteSkyswirl(id: ObjectId!): ResultStatus!
 }
 
 """
@@ -237,10 +237,6 @@ type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig
     size: Int64
 }
 
-type PollerApiRequestLimitConfig @goModel(model: "observe/meta/metatypes.PollerApiRequestLimitConfig") {
-    maxReqRate: Float
-    maxTotalReq: Int64
-}
 
 interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
     # TODO: remove this field once the FE no longer uses it.
@@ -248,7 +244,7 @@ interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 }
 
@@ -257,7 +253,7 @@ type PollerPubSubConfig implements PollerConfig @goModel(model: "observe/meta/me
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 
     projectId: String!
@@ -270,7 +266,7 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 
     method: String @deprecated(reason: "Use requests instead")
@@ -289,7 +285,7 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
 }
 
 
-enum PollerHTTPRequestAuthScheme @goModel(model: "observe/ingest/crawler/client.AuthScheme") {
+enum PollerHTTPRequestAuthScheme @goModel(model: "observe/meta/metatypes.PollerHTTPRequestAuthScheme") {
     Basic
     Digest
 }
@@ -320,7 +316,7 @@ type PollerGCPMonitoringConfig implements PollerConfig @goModel(model: "observe/
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 
     projectId: String!
@@ -336,7 +332,7 @@ type PollerMongoDBAtlasConfig implements PollerConfig @goModel(model: "observe/m
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 
     publicKey: String!
@@ -350,7 +346,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
-    apiReqLimit: PollerApiRequestLimitConfig
+    apiReqLimit: RateLimitConfig
     tags: JsonObject
 
     key: String!
@@ -360,22 +356,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
     enabled: Boolean!
     size: Int64
-}
-
-input PollerApiRequestLimitInput @goModel(model: "observe/meta/metatypes.PollerApiRequestLimitInput") {
-    """
-    maxReqRate is the maximum number of requests per second. If this request
-    rate limit would be exceeded, the poller blocks. For example, a rate limit
-    of 12.5 will cause the poller to at most make ~12.5 API calls per second.
-    """
-    maxReqRate: Float
-    """
-    maxTotalReq is the maximum number of requests to make per poller run.
-    For example, for a poller with interval 15 minutes, a poller run occurs
-    every 15 minutes.
-    """
-    maxTotalReq: Int64
-}
+} 
 
 """
 Config is mandatory, but varies based on the poller kind
@@ -388,13 +369,14 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     interval: Duration
     chunk: PollerChunkInput
     tags: JsonObject
-    apiReqLimit: PollerApiRequestLimitInput
+    apiReqLimit: RateLimitInput
     datastreamId: ObjectId
     pubsubConfig: PollerPubSubInput
     httpConfig: PollerHTTPInput
     gcpConfig: PollerGCPMonitoringInput
     mongoDBAtlasConfig: PollerMongoDBAtlasInput
     confluentCloudConfig: PollerConfluentCloudInput
+    skipExternalValidation: Boolean
 
     """
     The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
@@ -466,10 +448,10 @@ input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerCo
 A data source that loads data from a cloud object storage service provider into Observe platform
 Must be associated with a datastream
 """
-type Filedrop implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Filedrop") {
+type Skyswirl implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Skyswirl") {
     id: ObjectId!
     """
-    Name that identifies the filedrop. Must be unique within the workspace
+    Name that identifies the skyswirl. Must be unique within the workspace
     """
     name: String!
     description: String
@@ -485,24 +467,24 @@ type Filedrop implements WorkspaceObject & AuditedObject @goModel(model: "observ
     createdDate: Time!
     updatedDate: Time!
 
-    config: FiledropConfig!
+    config: SkyswirlConfig!
     """
-    status of the filedrop
+    status of the skyswirl
     """
-    status: FiledropStatus!
+    status: SkyswirlStatus!
     """
-    ID of the datastream associated with the filedrop
+    ID of the datastream associated with the skyswirl
     """
     datastreamId: ObjectId!
     """
-    ID of the datastream token managed by the filedrop
+    ID of the datastream token managed by the skyswirl
     """
     datastreamTokenId: String!
 
-    endpoint: FiledropEndpoint!
+    endpoint: SkyswirlEndpoint!
 }
 
-enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
+enum SkyswirlStatus @goModel(model: "observe/meta/metatypes.SkyswirlStatus") {
     Initializing
     Running
     Updating
@@ -510,52 +492,53 @@ enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
 }
 
 """
-User provided configuration that defines a filedrop
+User provided configuration that defines a skyswirl
 """
-type FiledropConfig @goModel(model: "observe/meta/metatypes.FiledropConfig") {
-    provider: FiledropProviderConfig!
+type SkyswirlConfig @goModel(model: "observe/meta/metatypes.SkyswirlConfig") {
+    provider: SkyswirlProviderConfig!
 }
 
 """
 Configurations related to the cloud object storage service provider
 """
-interface FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderConfig") {
+interface SkyswirlProviderConfig @goModel(model: "observe/meta/metatypes.SkyswirlProviderConfig") {
     type: String!
 }
 
-type FiledropProviderAWSConfig implements FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderAWSConfig") {
+type SkyswirlProviderAWSConfig implements SkyswirlProviderConfig @goModel(model: "observe/meta/metatypes.SkyswirlProviderAWSConfig") {
     type: String!
     """
-    AWS region of the filedrop
+    AWS region of the skyswirl
     """
     region: String!
     """
-    User provided IAM role to access the filedrop
+    User provided IAM role to access the skyswirl
     """
     roleArn: String!
 }
 
 """
-Information of the Observe-created filedrop endpoint
+Information of the Observe-created skyswirl endpoint
 """
-interface FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropEndpoint") {
+interface SkyswirlEndpoint @goModel(model: "observe/meta/metatypes.SkyswirlEndpoint") {
     type: String!
 }
 
-type FiledropS3Endpoint implements FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropS3Endpoint") {
+type SkyswirlS3Endpoint implements SkyswirlEndpoint @goModel(model: "observe/meta/metatypes.SkyswirlS3Endpoint") {
     type: String!
     arn: String!
     s3Alias: String!
     prefix: String!
 }
 
-input FiledropInput @goModel(model: "observe/meta/metatypes.FiledropInput") {
+input SkyswirlInput @goModel(model: "observe/meta/metatypes.SkyswirlInput") {
     name: String
     description: String
-    aws: FiledropProviderAWSInput
+    aws: SkyswirlProviderAWSInput
 }
 
-input FiledropProviderAWSInput @goModel(model: "observe/meta/metatypes.FiledropProviderAWSInput") {
+input SkyswirlProviderAWSInput @goModel(model: "observe/meta/metatypes.SkyswirlProviderAWSInput") {
     region: String!
     roleArn: String!
 }
+

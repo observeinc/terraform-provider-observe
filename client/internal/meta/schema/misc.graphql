@@ -121,3 +121,21 @@ input DeferredForeignKeyInput @goModel(model: "observe/meta/metatypes.DeferredFo
     managedById: ObjectId
 }
 
+type RateLimitConfig @goModel(model: "observe/meta/metatypes.RateLimitConfig") {
+    rate: Float!
+    burst: Int64
+}
+
+# RateLimitInput configures a rate limiter which controls how frequently events are allowed to happen.
+# It implements a "token bucket" of size 'burst', initially full and refilled at rate 'rate' tokens per second.
+# Informally, in any large enough time interval, the Limiter limits the rate to r tokens per second, with a maximum burst size of b events.
+# See https://en.wikipedia.org/wiki/Token_bucket for more about token buckets.
+input RateLimitInput @goModel(model: "observe/meta/metatypes.RateLimitInput") {
+    # rate defines the maximum frequency of some events. rate is represented as number of events per second.
+    rate: Float!
+
+    # Increasing 'burst' allows for processing more elements before the rate limiter rejects or blocks events.
+    # Specifically, it is the size of the the token bucket.
+    burst: Int64
+}
+

@@ -1,0 +1,80 @@
+# Outbound dataset share objects
+# this file is auto-generated, do not edit
+extend type Query {
+    datasetOutboundShare(id: ObjectId!): DatasetOutboundShare!
+    searchDatasetOutboundShare(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DatasetOutboundShareSearchResult!
+}
+
+extend type Mutation {
+    createDatasetOutboundShare(workspaceId: ObjectId!, datasetID: ObjectId!, outboundShareID: ObjectId!, input: DatasetOutboundShareInput!): DatasetOutboundShare!
+    updateDatasetOutboundShare(id: ObjectId!, input: DatasetOutboundShareInput!): DatasetOutboundShare!
+    deleteDatasetOutboundShare(id: ObjectId!): ResultStatus!
+}
+
+enum DatasetOutboundShareState @goModel(model: "observe/meta/metatypes.DatasetOutboundShareState") {
+  Error
+  Live
+  Pending
+  Unavailable
+}
+
+type DatasetOutboundShareStatus @goModel(model: "observe/meta/metatypes.DatasetOutboundShareStatus") {
+    # payload
+    state: DatasetOutboundShareState!
+    error: String
+}
+
+input DatasetOutboundShareStatusInput @goModel(model: "observe/meta/metatypes.DatasetOutboundShareStatusInput") {
+    # payload
+    state: DatasetOutboundShareState!
+    error: String
+}
+
+type DatasetOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DatasetOutboundShare") {
+    # payload
+    datasetID: ObjectId!
+    outboundShareID: ObjectId!
+    schemaName: String!
+    viewName: String!
+    status: DatasetOutboundShareStatus! @goField(forceResolver: true)
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input DatasetOutboundShareInput @goModel(model: "observe/meta/metatypes.DatasetOutboundShareInput") {
+    # payload
+    # immutable: datasetID: ObjectId!
+    # immutable: outboundShareID: ObjectId!
+    schemaName: String!
+    viewName: String!
+    # resolver: status: DatasetOutboundShareStatusInput!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type DatasetOutboundShareSearchResult @goModel(model: "observe/meta/metatypes.DatasetOutboundShareSearchResult") {
+    results: [DatasetOutboundShare!]!
+}

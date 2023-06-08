@@ -320,6 +320,7 @@ type MonitorRuleThreshold implements MonitorRule @goModel(model: "observe/meta/m
     compareValues: [Number!]!
     lookbackTime: Duration!
     thresholdAggFunction: ThresholdAggFunction!
+    expressionSummary: String!
 }
 
 input MonitorRuleThresholdInput @goModel(model: "observe/meta/metatypes.MonitorRuleThresholdInput") {
@@ -327,6 +328,34 @@ input MonitorRuleThresholdInput @goModel(model: "observe/meta/metatypes.MonitorR
     compareValues: [Number!]
     lookbackTime: Duration
     thresholdAggFunction: ThresholdAggFunction
+    expressionSummary: String
+}
+
+type MonitorRuleLog implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleLog") {
+    ruleKind: MonitorRuleKind!
+    layout: JsonObject!
+    sourceColumn: String!
+    groupByGroups: [MonitorGroupInfo!]
+
+    groupBy: MonitorGrouping! @deprecated(reason:"use groupByGroups instead")
+    groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
+    groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
+
+    compareFunction: CompareFunction!
+    compareValues: [Number!]!
+    lookbackTime: Duration!
+    thresholdAggFunction: ThresholdAggFunction!
+    expressionSummary: String!
+    logStageId: String!
+}
+
+input MonitorRuleLogInput @goModel(model: "observe/meta/metatypes.MonitorRuleLogInput") {
+    compareFunction: CompareFunction
+    compareValues: [Number!]
+    lookbackTime: Duration
+    thresholdAggFunction: ThresholdAggFunction
+    expressionSummary: String
+    logStageId: String
 }
 
 type MonitorRuleChange implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleChange") {
@@ -475,11 +504,13 @@ input MonitorRuleInput @goModel(model: "observe/meta/metatypes.MonitorRuleInput"
     countRule: MonitorRuleCountInput
     facetRule: MonitorRuleFacetInput
     thresholdRule: MonitorRuleThresholdInput
+    logRule: MonitorRuleLogInput
     promoteRule: MonitorRulePromoteInput
 }
 
 enum MonitorRuleKind @goModel(model: "observe/meta/metatypes.MonitorRuleKind") {
     Threshold
+    Log
     Change
     Facet
     Count
@@ -497,6 +528,8 @@ enum MonitorStatus @goModel(model: "observe/meta/metatypes.MonitorStatus") {
     Creating
     Monitoring
     Stopped
+    Triggering
+    Error
 }
 
 enum NotificationImportance @goModel(model: "observe/meta/metatypes.NotificationImportance") {
@@ -624,6 +657,11 @@ interface MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") 
     updatedBy: UserId!
     updatedByInfo: UserInfo!
     updatedDate: Time!
+    """
+    Rate limit measured in nanoseconds.
+    For email actions the minimum is: 10 / 10min
+    For webhook actions the minimum is: 10 / 1s
+    """
     rateLimit: Duration!
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
     notifyOnClose: Boolean!
@@ -716,6 +754,11 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
 
 input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionInput") {
     # payload
+    """
+    Rate limit measured in nanoseconds.
+    For email actions the minimum is: 10 / 10min
+    For webhook actions the minimum is: 10 / 1s
+    """
     rateLimit: Duration
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!

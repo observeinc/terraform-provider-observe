@@ -140,6 +140,11 @@ input SourceLocInput @goModel(model: "observe/compiler/comptypes.SourceLocation"
     col: Int64!
 }
 
+type SourceSpan @goModel(model: "observe/compiler/comptypes.SourceSpan") {
+    start: SourceLoc!
+    end: SourceLoc!
+}
+
 type ResultStatus @goModel(model: "observe/meta/metatypes.ResultStatus") {
     success: Boolean!
     errorMessage: String!
