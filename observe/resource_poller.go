@@ -133,6 +133,12 @@ func resourcePoller() *schema.Resource {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
+			"skip_external_validation": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Skips validating any provided external API credentials against their external APIs.",
+			},
 			"chunk": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -365,6 +371,9 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 		} else {
 			input.Interval = types.DurationScalar(interval).Ptr()
 		}
+	}
+	if v, ok := data.GetOk("skip_external_validation"); ok {
+		input.SkipExternalValidation = boolPtr(v.(bool))
 	}
 	if v, ok := data.GetOk("tags"); ok {
 		tags, err := json.Marshal(makeStringMap(v.(map[string]interface{})))

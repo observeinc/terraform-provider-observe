@@ -68,6 +68,7 @@ resource "observe_poller" "weather" {
 - `mongodbatlas` (Block List, Max: 1) (see [below for nested schema](#nestedblock--mongodbatlas))
 - `pubsub` (Block List, Max: 1) (see [below for nested schema](#nestedblock--pubsub))
 - `retries` (Number)
+- `skip_external_validation` (Boolean) Skips validating any provided external API credentials against their external APIs.
 - `tags` (Map of String)
 
 ### Read-Only
