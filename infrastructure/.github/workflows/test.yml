@@ -1,0 +1,46 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Acceptance tests
+        timeout-minutes: 25
+        run: make testacc
+        env:
+          # Environment variables for configuring the provider
+          OBSERVE_CUSTOMER: ${{ vars.OBSERVE_CUSTOMER }}
+          OBSERVE_DOMAIN: ${{ vars.OBSERVE_DOMAIN }}
+          OBSERVE_USER: ${{ vars.OBSERVE_USER }}
+          OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
+          OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
+
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - run: go generate ./...
+      - name: git diff
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit
