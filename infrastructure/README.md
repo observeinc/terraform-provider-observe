@@ -6,6 +6,10 @@ This directory is a Terraform module that defines backing infrastructure for the
 
 This module is not applied automatically. After merging changes, you should `terraform apply` locally.
 
+### Requirements
+
+* Set `GITHUB_TOKEN` to a GitHub access token with at least the `repo` scope
+
 ## Contents
 
 ### Testing

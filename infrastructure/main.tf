@@ -1,5 +1,5 @@
 locals {
-  repository = "observeinc/terraform-provider-observe"
+  repository = "terraform-provider-observe"
 }
 
 resource "github_actions_secret" "observe_provider_password" {
