@@ -25,7 +25,7 @@ jobs:
           # Environment variables for configuring the provider
           OBSERVE_CUSTOMER: ${{ vars.OBSERVE_CUSTOMER }}
           OBSERVE_DOMAIN: ${{ vars.OBSERVE_DOMAIN }}
-          OBSERVE_USER: ${{ vars.OBSERVE_USER }}
+          OBSERVE_USER_EMAIL: ${{ vars.OBSERVE_USER_EMAIL }}
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
 
