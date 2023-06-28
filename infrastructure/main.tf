@@ -1,5 +1,5 @@
 locals {
-  repository = "observeinc/terraform-provider-observe"
+  repository = "terraform-provider-observe"
 }
 
 resource "github_actions_secret" "observe_provider_password" {
@@ -13,10 +13,10 @@ resource "github_actions_secret" "observe_provider_password" {
 
 resource "github_actions_variable" "observe_provider" {
   for_each = {
-    OBSERVE_CUSTOMER  = "127814973959"
-    OBSERVE_DOMAIN    = "observe-eng.com"
-    OBSERVE_USER      = "github-terraform-provider@observeinc.com"
-    OBSERVE_WORKSPACE = "Kubernetes"
+    OBSERVE_CUSTOMER   = "127814973959"
+    OBSERVE_DOMAIN     = "observe-eng.com"
+    OBSERVE_USER_EMAIL = "github-terraform-provider@observeinc.com"
+    OBSERVE_WORKSPACE  = "Kubernetes"
   }
 
   repository    = local.repository
