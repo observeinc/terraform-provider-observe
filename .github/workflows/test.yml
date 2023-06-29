@@ -9,6 +9,12 @@ on:
 jobs:
   acceptance:
     runs-on: ubuntu-latest
+    # Limit tests to 1 concurrent run because:
+    # - Datastreams are limited to 10 per customer
+    # - Apps can only be installed once per workspace
+    # When these limitations are removed, multiple acceptance tests runs can be execute concurrently.
+    concurrency:
+      group: tests
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
