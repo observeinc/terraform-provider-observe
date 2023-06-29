@@ -34,13 +34,13 @@ jobs:
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: success() || failure()
         with:
           name: test-report.xml
           path: test-report.xml
       - name: Test Report
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: success() || failure()
         with:
           files: test-report.xml
           comment_mode: 'off'
