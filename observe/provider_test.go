@@ -21,8 +21,6 @@ func TestProvider(t *testing.T) {
 	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
-
-	t.Fatal("Example test failure")
 }
 
 func testAccPreCheck(t *testing.T) {
