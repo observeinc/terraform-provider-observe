@@ -1,0 +1,30 @@
+description:
+  A Filedrop loads files from a cloud object storage service (currently S3) directly into Observe, bypassing the Observe collection API. Filedrop is currently in preview and is not available by default. To inquire about Filedrop's availability, contact support@observeinc.com.
+
+schema:
+  name: |
+    Filedrop name. Must be unique within workspace.
+  description: |
+    A brief description of the filedrop.
+  status: |
+    The current running status of the filedrop.
+  datastream: |
+    The OID of the datastream that the filedrop loads data into.
+  config:
+    format:
+      type: |
+        The file format of the file that you will be dropping.
+    provider:
+      aws:
+        region: |
+          The region where the role ARN exists that you will be dropping files to.
+        role_arn: |
+          Your IAM role that Observe allows to drop data into the particular filedrop.
+  endpoint:
+    s3:
+      arn: |
+        The S3 bucket ARN.
+      bucket: |
+        The bucket that you will drop data into.
+      prefix: |
+        The S3 bucket prefix for the filedrop.

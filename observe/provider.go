@@ -161,6 +161,7 @@ func Provider() *schema.Provider {
 			"observe_rbac_default_group":        resourceRbacDefaultGroup(),
 			"observe_rbac_group_member":         resourceRbacGroupmember(),
 			"observe_rbac_statement":            resourceRbacStatement(),
+			"observe_filedrop":                  resourceFiledrop(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}
