@@ -39,6 +39,7 @@ jobs:
         with:
           files: test-report.xml
           comment_mode: 'off'
+          check_name: report
   generate:
     runs-on: ubuntu-latest
     steps:
