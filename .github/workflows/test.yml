@@ -33,7 +33,11 @@ jobs:
           OBSERVE_USER_EMAIL: ${{ vars.OBSERVE_USER_EMAIL }}
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
-      - name: Publish Test Results
+      - uses: actions/upload-artifact@v3
+        with:
+          name: test-report.xml
+          path: test-report.xml
+      - name: Test Report
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
