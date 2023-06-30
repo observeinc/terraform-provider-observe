@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - infrastructure/**
+      - .github/workflows/terraform.yml
 
 jobs:
   check:
