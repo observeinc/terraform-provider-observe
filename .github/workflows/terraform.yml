@@ -3,11 +3,20 @@ name: terraform
 on:
   pull_request:
     paths:
-      - infrastructure/**
-      - .github/workflows/terraform.yml
+      - 'infrastructure/**'
+      - '**/*.tf'
+      - '.github/workflows/terraform.yml'
 
 jobs:
-  check:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+  validate-infastructure:
+    name: validate (infrastructure/)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -15,10 +24,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
-      - name: terraform fmt
-        run: terraform fmt -check -recursive
-      - name: terraform init
-        run: terraform init -backend=false
-      - name: terraform validate
-        run: terraform validate -no-color
-
+      - run: terraform init
+      - run: terraform validate
