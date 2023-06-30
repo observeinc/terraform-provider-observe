@@ -24,5 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
-      - run: terraform init
+      - name: terraform init
+        run: terraform init -backend=false
       - run: terraform validate
