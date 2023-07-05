@@ -16,6 +16,11 @@ jobs:
     concurrency:
       group: tests
     timeout-minutes: 30
+    permissions:
+      # https://github.com/EnricoMi/publish-unit-test-result-action#permissions
+      contents: read
+      issues: read
+      checks: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -34,7 +39,18 @@ jobs:
           OBSERVE_USER_EMAIL: ${{ vars.OBSERVE_USER_EMAIL }}
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
-
+      - uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: test-report.xml
+          path: test-report.xml
+      - name: Test Report
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: success() || failure()
+        with:
+          files: test-report.xml
+          comment_mode: 'off'
+          check_name: report
   generate:
     runs-on: ubuntu-latest
     steps:
