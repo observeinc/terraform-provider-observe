@@ -2,13 +2,18 @@ locals {
   repository = "terraform-provider-observe"
 }
 
-resource "github_actions_secret" "observe_provider_password" {
-  repository  = local.repository
-  secret_name = "OBSERVE_USER_PASSWORD"
+resource "github_actions_secret" "secrets" {
+  for_each = setsubtract(fileset("${path.module}/secrets", "*"), ["README.md"])
 
-  # To generate this value:
-  # gh secret set --no-store OBSERVE_USER_PASSWORD
-  encrypted_value = "9WqMEnZeoJFvJVN5jwnXMxV40jixuGlrJHj96J12L1M06ByimWK1GpKFwTfU+05nDt98Z7PRJf6DaaIGi8i1LLOq5g=="
+  repository  = local.repository
+  secret_name = each.key
+
+  encrypted_value = file("${path.module}/secrets/${each.key}}")
+}
+
+moved {
+  from = github_actions_secret.observe_provider_password
+  to   = github_actions_secret.secrets["OBSERVE_PROVIDER_PASSWORD"]
 }
 
 resource "github_actions_variable" "observe_provider" {
