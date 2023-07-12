@@ -1,6 +1,6 @@
 locals {
   organization = "observeinc"
-  repository = "terraform-provider-observe"
+  repository   = "terraform-provider-observe"
 }
 
 resource "github_actions_secret" "secrets" {
