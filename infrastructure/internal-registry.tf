@@ -7,6 +7,7 @@ resource "github_actions_variable" "aws_release_role" {
   value         = aws_iam_role.github_actions_release.arn
 }
 
+# https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
 resource "aws_iam_role" "github_actions_release" {
   name = "${local.repository}-gha-release"
 
