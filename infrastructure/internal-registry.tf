@@ -63,9 +63,15 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     }
 
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "${local.oidc_claim_prefix}:sub"
-      values   = ["repo:${local.organization}/${local.repository}"]
+
+      # Matches any workflow run in this repository
+      # TODO: lock this down to the specific workflow and refs that should be allowed to publish
+      # Since AWS doesn't support custom OIDC claims, we will need to customize the sub claim:
+      # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect
+      # https://registry.terraform.io/providers/integrations/github/latest/docs/resources/actions_repository_oidc_subject_claim_customization_template
+      values   = ["repo:${local.organization}/${local.repository}:*"] 
     }
 
     condition {
