@@ -3,6 +3,6 @@ data "observe_workspace" "default" {
 }
 
 resource "observe_bookmark_group" "example" {
-  workspace 	 = data.observe_workspace.default.oid
-  name      	 = "Example"
+  workspace = data.observe_workspace.default.oid
+  name      = "Example"
 }

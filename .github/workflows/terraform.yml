@@ -1,0 +1,16 @@
+name: terraform
+
+on:
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '.github/workflows/terraform.yml'
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name: terraform fmt
+        uses: dflook/terraform-fmt-check@v1

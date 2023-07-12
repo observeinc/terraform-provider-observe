@@ -1,4 +1,4 @@
 resource "observe_rbac_group" "example" {
-  name = "engineering"
+  name        = "engineering"
   description = "Engineering RBAC Group"
 }
