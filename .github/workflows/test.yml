@@ -5,6 +5,13 @@ on:
     branches:
       - master
   pull_request:
+    paths:
+      - '**'
+      - '!README.md'
+      - '!infrastructure/**'
+      - '!.github/**'
+      - '.github/workflows/test.yml'
+
 
 jobs:
   acceptance:
