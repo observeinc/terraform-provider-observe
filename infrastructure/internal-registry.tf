@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       # Since AWS doesn't support custom OIDC claims, we will need to customize the sub claim:
       # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect
       # https://registry.terraform.io/providers/integrations/github/latest/docs/resources/actions_repository_oidc_subject_claim_customization_template
-      values   = ["repo:${local.organization}/${local.repository}:*"] 
+      values = ["repo:${local.organization}/${local.repository}:*"]
     }
 
     condition {
