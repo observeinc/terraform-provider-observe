@@ -1,0 +1,19 @@
+name: infrastructure
+
+on:
+  pull_request:
+    paths:
+      - 'infrastructure/**'
+      - '.github/workflows/infrastructure.yml'
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name: terraform validate
+        uses: dflook/terraform-validate@v1
+        with:
+          path: infrastructure
