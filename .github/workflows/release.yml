@@ -22,12 +22,18 @@ jobs:
           go-version-file: go.mod
       - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        id: gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
           args: release --clean ${{ env.flags }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
       - uses: actions/upload-artifact@v2
         with:
           name: archives
