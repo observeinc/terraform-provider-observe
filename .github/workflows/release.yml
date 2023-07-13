@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      - if: ${{ !startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/heads/prerelease/') }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
