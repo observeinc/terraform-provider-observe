@@ -1,5 +1,6 @@
 locals {
-  repository = "terraform-provider-observe"
+  organization = "observeinc"
+  repository   = "terraform-provider-observe"
 }
 
 resource "github_actions_secret" "secrets" {
@@ -8,7 +9,7 @@ resource "github_actions_secret" "secrets" {
   repository  = local.repository
   secret_name = each.key
 
-  encrypted_value = file("${path.module}/secrets/${each.key}}")
+  encrypted_value = file("${path.module}/secrets/${each.key}")
 }
 
 moved {
