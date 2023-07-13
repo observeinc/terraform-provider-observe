@@ -45,5 +45,8 @@ jobs:
         with:
           name: archives
           path:
-            dist/*.{zip,json,ya?ml}
-            dist/*SHA256SUMS*
+            dist/*.zip
+            dist/*.json
+            dist/*.ya?ml
+            dist/*.sig
+            dist/*_SHA256SUMS
