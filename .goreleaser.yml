@@ -8,7 +8,6 @@ builds:
   ldflags:
     - '-s -w -X version.ProviderVersion={{.Version}}'
   goos:
-    - freebsd
     - windows
     - linux
     - darwin
