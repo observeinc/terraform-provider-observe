@@ -49,6 +49,6 @@ jobs:
           path:
             dist/*.zip
             dist/*.json
-            dist/*.ya?ml
+            dist/*.yaml
             dist/*.sig
             dist/*_SHA256SUMS
