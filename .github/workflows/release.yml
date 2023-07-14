@@ -2,6 +2,19 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        type: boolean
+        description: Publish Release
+        default: false
+      tag:
+        type: string
+        description: Tag Name
+        required: true
+      previous-tag:
+        type: string
+        description: Previous Tag Name
+        default: '' # GoReleaser will detect the previous tag if not specified
   push:
     tags:
       - v*
@@ -38,6 +51,8 @@ jobs:
         with:
           args: release --clean ${{ env.flags }}
         env:
+          GORELEASER_CURRENT_TAG: ${{ inputs.tag || github.ref_name }}
+          GORELEASER_PREVIOUS_TAG: ${{ inputs.previous-tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
       - uses: actions/upload-artifact@v3
