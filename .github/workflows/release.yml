@@ -17,7 +17,7 @@ on:
         default: '' # GoReleaser will detect the previous tag if not specified
   push:
     tags:
-      - v*
+      - '*'
 
 jobs:
   goreleaser:
