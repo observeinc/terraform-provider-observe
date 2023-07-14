@@ -33,3 +33,4 @@ jobs:
         with:
           name: binaries
           path: dist/
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 0  }}
