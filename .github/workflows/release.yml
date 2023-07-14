@@ -32,7 +32,17 @@ jobs:
       id-token: write
     env:
       flags: ''
+      tag: ${{ inputs.tag || github.ref_name }}
     steps:
+      - name: Validate semver tag
+        uses: matt-usurp/validate-semver@v1
+        with:
+          version: ${{ env.tag }}
+      - name: Validate tag prefix (v)
+        if: ${{ !startsWith(github.ref_name, 'v') }}
+        run: |
+          echo "::error::Tag name must start with 'v' (https://developer.hashicorp.com/terraform/registry/providers/publishing#creating-a-github-release)"
+          exit 1
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -57,7 +67,7 @@ jobs:
         with:
           args: release --clean ${{ env.flags }}
         env:
-          GORELEASER_CURRENT_TAG: ${{ inputs.tag || github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ env.tag }}
           GORELEASER_PREVIOUS_TAG: ${{ inputs.previous-tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
