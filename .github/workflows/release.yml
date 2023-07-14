@@ -56,9 +56,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: Create tag
         if: ${{ inputs.tag }}
-        uses: rickstaa/action-create-tag@v1
-        with:
-          tag: ${{ inputs.tag }}
+        run: git tag -l "$tag" || git tag "$tag"
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
