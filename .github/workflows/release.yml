@@ -72,7 +72,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'push'
         with:
           name: archives
           path: |
