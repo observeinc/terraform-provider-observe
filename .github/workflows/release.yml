@@ -39,7 +39,7 @@ jobs:
         with:
           version: ${{ env.tag }}
       - name: Validate tag prefix (v)
-        if: ${{ !startsWith(github.ref_name, 'v') }}
+        if: ${{ !startsWith(env.tag, 'v') }}
         run: |
           echo "::error::Tag name must start with 'v' (https://developer.hashicorp.com/terraform/registry/providers/publishing#creating-a-github-release)"
           exit 1
