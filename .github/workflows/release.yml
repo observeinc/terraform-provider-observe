@@ -48,7 +48,7 @@ jobs:
         if: github.event_name == 'push'
         with:
           name: archives
-          path:
+          path: |
             dist/*.zip
             dist/*.json
             dist/*.yaml
