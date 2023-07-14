@@ -1,14 +1,12 @@
 name: release
 
 on:
-  pull_request:
   workflow_dispatch:
   push:
     tags:
       - v*
     branches:
       - master
-      - prerelease/*
 
 jobs:
   goreleaser:
@@ -28,10 +26,8 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - if: ${{ !startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/heads/prerelease/') }}
+      - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
-      - if: ${{ startsWith(github.ref, 'refs/heads/prerelease/') }}
-        run: echo "flags=--skip-validate" >> $GITHUB_ENV
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         id: gpg
