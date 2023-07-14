@@ -39,13 +39,19 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      - name: Enable snapshot mode
+        if: ${{ !inputs.publish }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         id: gpg
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Create tag
+        if: ${{ inputs.tag }}
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: ${{ inputs.tag }}
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
