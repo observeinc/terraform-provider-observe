@@ -112,7 +112,7 @@ jobs:
           
             mkdir -p "$dir"
             echo "Copying ${name} to ${dir}"
-            cp "$path" "$dir"
+            cp --verbose "$path" "$dir"
           
             ((i++))
           done < <(jq -c '.[] | select(.type == "Archive")' dist/artifacts.json)
