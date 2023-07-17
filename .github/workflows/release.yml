@@ -102,16 +102,22 @@ jobs:
           jq -c '.[] | select(.type == "archive")' dist/artifacts.json | while read archive; do
             os=$(echo "$archive" | jq -r '.goos')
             arch=$(echo "$archive" | jq -r '.goarch')
+            name=$(echo "$archive" | jq -r '.name')
             path=$(echo "$archive" | jq -r '.path')
 
-            dir="${upload_dir}/${os}/${arch}"
+            dir="${upload_dir}/os=${os}/arch=${arch}"
 
             mkdir -p "$dir"
+            echo "Copying ${name} to ${dir}"
             cp "$path" "$dir"
           done
       - name: Copy checksum/signature
         run: |
-          jq -r '.[] | select(.type | IN("Checksum", "Signature")) | .path' dist/artifacts.json | while read path; do
+          jq -c '.[] | select(.type | IN("Checksum", "Signature"))' dist/artifacts.json | while read path; do
+            name=$(echo "$path" | jq -r '.name')
+            path=$(echo "$path" | jq -r '.path')  
+            
+            echo "Copying ${name} to ${upload_dir}"
             cp "$path" "$upload_dir"
           done
       - name: Copy to S3
