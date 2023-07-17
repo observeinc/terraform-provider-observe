@@ -50,7 +50,7 @@ data "aws_iam_openid_connect_provider" "github_actions" {
 }
 
 locals {
-  oidc_claim_prefix = trimprefix("https://", data.aws_iam_openid_connect_provider.github_actions.url)
+  oidc_claim_prefix = trimprefix(data.aws_iam_openid_connect_provider.github_actions.url, "https://")
 }
 
 data "aws_iam_policy_document" "github_actions_assume_role" {
