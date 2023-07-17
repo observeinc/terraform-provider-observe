@@ -26,7 +26,6 @@ jobs:
       group: release-${{ github.ref }}
     permissions:
       contents: write
-      id-token: write
     env:
       flags: ''
       tag: ${{ inputs.tag || github.ref_name }}
@@ -46,10 +45,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-west-2
       - name: Enable snapshot mode
         if: ${{ !inputs.publish }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
@@ -79,3 +74,47 @@ jobs:
             dist/*.yaml
             dist/*.sig
             dist/*_SHA256SUMS
+  s3:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    env:
+      flags: ''
+      tag: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+      - uses: actions/download-artifact@v2
+        with:
+          name: archives
+          path: dist
+      - name: Enable dry run mode
+        if: ${{ !inputs.publish }}
+        run: echo "flags=--dry-run" >> $GITHUB_ENV
+      - name: Create upload directory 
+        run: 
+          mkdir upload
+          echo "upload_dir=upload" >> $GITHUB_ENV
+      - name: Copy archives
+        run: |
+          jq -c '.[] | select(.type == "archive")' dist/artifacts.json | while read archive; do
+            os=$(echo "$archive" | jq -r '.goos')
+            arch=$(echo "$archive" | jq -r '.goarch')
+            path=$(echo "$archive" | jq -r '.path')
+
+            dir="${upload_dir}/${os}/${arch}"
+
+            mkdir -p "$dir"
+            cp "$path" "$dir"
+          done
+      - name: Copy checksum/signature
+        run: |
+          jq -r '.[] | select(.type | IN("Checksum", "Signature")) | .path' dist/artifacts.json | while read path; do
+            cp "$path" "$upload_dir"
+          done
+      - name: Copy to S3
+        run: |
+          aws s3 cp $flags --recursive "$upload_dir" "s3://${{ vars.AWS_S3_REGISTRY_BUCKET }}/${{ vars.AWS_S3_REGISTRY_PREFIX }}/version=${tag}/"

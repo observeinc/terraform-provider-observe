@@ -7,6 +7,18 @@ resource "github_actions_variable" "aws_release_role" {
   value         = aws_iam_role.github_actions_release.arn
 }
 
+resource "github_actions_variable" "aws_s3_registry" {
+  for_each = {
+    bucket = data.aws_s3_bucket.terraform_registry.bucket
+    prefix = local.registry_bucket_prefix
+  }
+
+  repository = local.repository
+
+  variable_name = "AWS_S3_REGISTRY_${uppercase(each.key)}"
+  value         = each.value
+}
+
 # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
 resource "aws_iam_role" "github_actions_release" {
   name = "${local.repository}-gha-release"
@@ -29,6 +41,11 @@ data "aws_s3_bucket" "terraform_registry" {
   bucket = "observeinc-terraform-registry"
 }
 
+locals {
+  # https://github.com/observeinc/boring-registry
+  registry_bucket_prefix = "artifacts/v1/providers/namespace=observeinc/name=observe"
+}
+
 data "aws_iam_policy_document" "registry_write" {
   statement {
     actions = [
@@ -37,8 +54,7 @@ data "aws_iam_policy_document" "registry_write" {
     ]
 
     resources = [
-      # https://github.com/observeinc/boring-registry
-      "${data.aws_s3_bucket.terraform_registry.arn}/artifacts/v1/providers/namespace=observeinc/name=observe/*"
+      "${data.aws_s3_bucket.terraform_registry.arn}/${local.registry_bucket_prefix}/*"
     ]
   }
 
