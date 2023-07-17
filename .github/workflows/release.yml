@@ -82,6 +82,7 @@ jobs:
     env:
       flags: ''
       tag: ${{ inputs.tag || github.ref_name }}
+      upload_dir: upload
     steps:
       - uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -95,9 +96,7 @@ jobs:
         if: ${{ !inputs.publish }}
         run: echo "flags=--dry-run" >> $GITHUB_ENV
       - name: Create upload directory 
-        run: 
-          mkdir upload
-          echo "upload_dir=upload" >> $GITHUB_ENV
+        run: mkdir "$upload_dir"
       - name: Copy archives
         run: |
           jq -c '.[] | select(.type == "archive")' dist/artifacts.json | while read archive; do
