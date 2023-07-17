@@ -162,17 +162,19 @@ jobs:
           cd "$(mktemp -d)"
           mkdir -p "$s3_uri"
           cd "s3:"
-          cp --recursive "$upload_dir" "${bucket}/${prefix}"
+          cp --recursive "$upload_dir/*" "${bucket}/${prefix}"
 
           {
-            echo "## S3 Registry Results"
+            echo "## S3 Registry Uploads"
 
             if [[ "$flags" == "--dryrun" ]]; then
-              echo '_Dry run mode was enabled, no files were actually uploaded to S3._'
+              echo '⚠️ _Dry run mode was enabled, no files were actually uploaded to S3._'
             fi
 
-            echo "The following files were uploaded to the \`${bucket}\` bucket in S3:"
+            * **Archives:** ${{ steps.archives.outputs.count }}
+            * **Signatures:** ${{ steps.signatures.outputs.count }}
+
             echo '```'
-            tree "$bucket"
+            tree "$bucket" --no-report
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
