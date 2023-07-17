@@ -82,7 +82,7 @@ jobs:
     env:
       flags: ''
       tag: ${{ inputs.tag || github.ref_name }}
-      upload_dir: upload
+      upload_dir: ${{ github.workspace }}/upload
     steps:
       - uses: aws-actions/configure-aws-credentials@v2
         with:
