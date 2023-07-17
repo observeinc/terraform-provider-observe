@@ -155,20 +155,24 @@ jobs:
           prefix="${{ vars.AWS_S3_REGISTRY_PREFIX }}/version=${tag}/"
           s3_uri="s3://${bucket}/${prefix}"
 
+          echo "::group::aws s3 cp"
           aws s3 cp $flags --recursive "$upload_dir" "$s3_uri"
+          echo "::endgroup::"
 
           cd "$(mktemp -d)"
           mkdir -p "$s3_uri"
           cd "s3:"
           cp --recursive "$upload_dir" "${bucket}/${prefix}"
 
-          echo "## S3 Registry Results"
+          {
+            echo "## S3 Registry Results"
 
-          if [[ "$flags" == "--dryrun" ]]; then
-            echo '_Dry run mode was enabled, no files were actually uploaded to S3._'
-          fi
+            if [[ "$flags" == "--dryrun" ]]; then
+              echo '_Dry run mode was enabled, no files were actually uploaded to S3._'
+            fi
 
-          echo "The following files were uploaded to the \`${bucket}\` bucket in S3:"
-          echo '```'
-          tree "$bucket"
-          echo '```'
+            echo "The following files were uploaded to the \`${bucket}\` bucket in S3:"
+            echo '```'
+            tree "$bucket"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
