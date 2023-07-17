@@ -114,7 +114,7 @@ jobs:
           
             mkdir -p "$dir"
             echo "Copying ${name} to ${dir}"
-            cp --verbose "$path" "$dir"
+            cp --verbose "$path" "$dir" || echo "Failed to copy ${name} to ${dir}"
           
             ((i++))
 
