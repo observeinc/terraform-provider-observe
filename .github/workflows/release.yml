@@ -121,7 +121,7 @@ jobs:
             echo "$i"
           done < <(jq -c '.[] | select(.type == "Archive")' dist/artifacts.json)
           
-          echo "count=${i}" >> "$GITHUB_OUTPUT"        
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
       - id: signatures
         name: Copy checksum/signature
         run: |
@@ -137,7 +137,7 @@ jobs:
             ((i++))
           done < <(jq -c '.[] | select(.type | IN("Checksum", "Signature"))' dist/artifacts.json)
           
-          echo "count=${i}" >> "$GITHUB_OUTPUT"        
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
       - name: Validate archives
         if: ${{ steps.archives.outputs.count == '0' }}
         run: |
@@ -148,6 +148,10 @@ jobs:
         run: |
           echo "::error::Expected 2 signatures, got ${{ steps.signatures.outputs.count }}, aborting release"
           exit 1
+      - name: Print upload tree
+        if: always()
+        working-directory: ${{ env.upload_dir }}
+        run: tree
       - name: Copy to S3
         run: |
           aws s3 cp $flags --recursive "$upload_dir" "s3://${{ vars.AWS_S3_REGISTRY_BUCKET }}/${{ vars.AWS_S3_REGISTRY_PREFIX }}/version=${tag}/"
