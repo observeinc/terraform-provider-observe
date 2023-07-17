@@ -101,6 +101,7 @@ jobs:
       - id: archives
         name: Copy archives
         run: |
+          set -x
           i=0
 
           while read -r archive; do
