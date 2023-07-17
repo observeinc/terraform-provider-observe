@@ -162,7 +162,7 @@ jobs:
           cd "$(mktemp -d)"
           mkdir -p "$s3_uri"
           cd "s3:"
-          cp --recursive "$upload_dir/*" "${bucket}/${prefix}"
+          cp --recursive "$upload_dir/"* "${bucket}/${prefix}"
 
           {
             echo "## S3 Registry Uploads"
