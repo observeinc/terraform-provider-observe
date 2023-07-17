@@ -36,7 +36,10 @@ data "aws_iam_policy_document" "registry_write" {
       "s3:PutObject",
     ]
 
-    resources = ["${data.aws_s3_bucket.terraform_registry.arn}/*"]
+    resources = [
+      # https://github.com/observeinc/boring-registry
+      "${data.aws_s3_bucket.terraform_registry.arn}/artifacts/v1/providers/namespace=observeinc/name=observe/*"
+    ]
   }
 
   statement {
