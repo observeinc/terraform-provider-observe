@@ -97,8 +97,11 @@ jobs:
         run: echo "flags=--dryrun" >> $GITHUB_ENV
       - name: Create upload directory 
         run: mkdir "$upload_dir"
-      - name: Copy archives
+      - id: archives
+        name: Copy archives
         run: |
+          i=0
+
           jq -c '.[] | select(.type == "Archive")' dist/artifacts.json | while read archive; do
             os=$(echo "$archive" | jq -r '.goos')
             arch=$(echo "$archive" | jq -r '.goarch')
@@ -110,16 +113,37 @@ jobs:
             mkdir -p "$dir"
             echo "Copying ${name} to ${dir}"
             cp "$path" "$dir"
+
+            i++
           done
-      - name: Copy checksum/signature
+
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
+      - id: signatures
+        name: Copy checksum/signature
         run: |
+          i=0
+
           jq -c '.[] | select(.type | IN("Checksum", "Signature"))' dist/artifacts.json | while read path; do
             name=$(echo "$path" | jq -r '.name')
             path=$(echo "$path" | jq -r '.path')  
             
             echo "Copying ${name} to ${upload_dir}"
             cp "$path" "$upload_dir"
+
+            i++
           done
+
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
+      - name: Validate archives
+        if: ${{ steps.archives.outputs.count == '0' }}
+        run: |
+          echo "::error::No archives found, aborting release"
+          exit 1
+      - name: Validate signatures
+        if: ${{ steps.signatures.outputs.count != '2' }}
+        run: |
+          echo "::error::Expected 2 signatures, got ${{ steps.signatures.outputs.count }}, aborting release"
+          exit 1
       - name: Copy to S3
         run: |
           aws s3 cp $flags --recursive "$upload_dir" "s3://${{ vars.AWS_S3_REGISTRY_BUCKET }}/${{ vars.AWS_S3_REGISTRY_PREFIX }}/version=${tag}/"
