@@ -114,7 +114,7 @@ jobs:
             echo "Copying ${name} to ${dir}"
             cp "$path" "$dir"
 
-            i++
+            ((i++))
           done
 
           echo "count=${i}" >> "$GITHUB_OUTPUT"
@@ -130,7 +130,7 @@ jobs:
             echo "Copying ${name} to ${upload_dir}"
             cp "$path" "$upload_dir"
 
-            i++
+            ((i++))
           done
 
           echo "count=${i}" >> "$GITHUB_OUTPUT"
