@@ -94,7 +94,7 @@ jobs:
           path: dist
       - name: Enable dry run mode
         if: ${{ !inputs.publish }}
-        run: echo "flags=--dry-run" >> $GITHUB_ENV
+        run: echo "flags=--dryrun" >> $GITHUB_ENV
       - name: Create upload directory 
         run: mkdir "$upload_dir"
       - name: Copy archives
