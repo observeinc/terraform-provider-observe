@@ -171,10 +171,10 @@ jobs:
               echo '⚠️ _Dry run mode was enabled, no files were actually uploaded to S3._'
             fi
 
-            * **Archives:** ${{ steps.archives.outputs.count }}
-            * **Signatures:** ${{ steps.signatures.outputs.count }}
+            echo '* **Archives:** ${{ steps.archives.outputs.count }}'
+            echo '* **Signatures:** ${{ steps.signatures.outputs.count }}'
 
             echo '```'
-            tree "$bucket" --no-report
+            tree --noreport "$bucket"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
