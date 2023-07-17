@@ -15,7 +15,7 @@ resource "github_actions_variable" "aws_s3_registry" {
 
   repository = local.repository
 
-  variable_name = "AWS_S3_REGISTRY_${uppercase(each.key)}"
+  variable_name = "AWS_S3_REGISTRY_${upper(each.key)}"
   value         = each.value
 }
 
