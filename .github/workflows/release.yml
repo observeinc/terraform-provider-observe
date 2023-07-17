@@ -113,7 +113,7 @@ jobs:
           
             mkdir -p "$dir"
             echo "Copying ${name} to ${dir}"
-            cp --verbose "$path" "$dir" || echo "Failed to copy ${name} to ${dir}"
+            cp "$path" "$dir"
           
             ((i++)) || true
           done < <(jq -c '.[] | select(.type == "Archive")' ${{ steps.artifacts.outputs.download-path }}/artifacts.json)
