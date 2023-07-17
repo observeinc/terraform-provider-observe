@@ -8,9 +8,13 @@ on:
     paths:
       - '**'
       - '!README.md'
+      - '!LICENSE'
       - '!infrastructure/**'
       - '!.github/**'
       - '.github/workflows/test.yml'
+      - '!.goreleaser.yml'
+      - '!terraform-registry-manifest.json'
+      - '!.git*'
 
 
 jobs:

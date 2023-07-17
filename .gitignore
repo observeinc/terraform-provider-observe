@@ -34,3 +34,5 @@ website/vendor
 terraform-provider-observe
 
 test-report.xml
+
+dist/

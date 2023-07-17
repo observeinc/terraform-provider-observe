@@ -1,0 +1,77 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        type: boolean
+        description: Publish Release
+        default: false
+      tag:
+        type: string
+        description: Tag Name
+        required: true
+      previous-tag:
+        type: string
+        description: Previous Tag Name
+        default: '' # GoReleaser will detect the previous tag if not specified
+  push:
+    tags:
+      - '*'
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref }}
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      flags: ''
+      tag: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - name: Validate semver tag
+        uses: matt-usurp/validate-semver@v1
+        with:
+          version: ${{ env.tag }}
+      - name: Validate tag prefix (v)
+        if: ${{ !startsWith(env.tag, 'v') }}
+        run: |
+          echo "::error::Tag name must start with 'v' (https://developer.hashicorp.com/terraform/registry/providers/publishing#creating-a-github-release)"
+          exit 1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+      - name: Enable snapshot mode
+        if: ${{ !inputs.publish }}
+        run: echo "flags=--snapshot" >> $GITHUB_ENV
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        id: gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Create tag
+        if: ${{ inputs.tag }}
+        run: git tag -l "$tag" || git tag "$tag"
+      - name: GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          args: release --clean ${{ env.flags }}
+        env:
+          GORELEASER_CURRENT_TAG: ${{ env.tag }}
+          GORELEASER_PREVIOUS_TAG: ${{ inputs.previous-tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: archives
+          path: |
+            dist/*.zip
+            dist/*.json
+            dist/*.yaml
+            dist/*.sig
+            dist/*_SHA256SUMS
