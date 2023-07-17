@@ -88,7 +88,8 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-2
-      - uses: actions/download-artifact@v3
+      - id: artifacts
+        uses: actions/download-artifact@v3
         with:
           name: archives
           path: dist
@@ -109,8 +110,6 @@ jobs:
             path=$(jq -r '.path' <<< "$archive")
           
             dir="${upload_dir}/os=${os}/arch=${arch}"
-
-            ls -l dist/
           
             mkdir -p "$dir"
             echo "Copying ${name} to ${dir}"
@@ -119,7 +118,7 @@ jobs:
             ((i++))
 
             echo "$i"
-          done < <(jq -c '.[] | select(.type == "Archive")' dist/artifacts.json)
+          done < <(jq -c '.[] | select(.type == "Archive")' ${{ steps.artifacts.outputs.download-path }}/artifacts.json)
           
           echo "count=${i}" >> "$GITHUB_OUTPUT"
       - id: signatures
@@ -135,7 +134,7 @@ jobs:
             cp "$path" "$upload_dir"
           
             ((i++))
-          done < <(jq -c '.[] | select(.type | IN("Checksum", "Signature"))' dist/artifacts.json)
+          done < <(jq -c '.[] | select(.type | IN("Checksum", "Signature"))' ${{ steps.artifacts.outputs.download-path }}/artifacts.json)
           
           echo "count=${i}" >> "$GITHUB_OUTPUT"
       - name: Validate archives
