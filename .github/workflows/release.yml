@@ -46,6 +46,10 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-west-2
       - name: Enable snapshot mode
         if: ${{ !inputs.publish }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV

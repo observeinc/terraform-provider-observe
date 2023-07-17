@@ -45,3 +45,7 @@ release:
   replace_existing_draft: true
   prerelease: auto
 
+blobs:
+  - provider: s3
+    bucket: observeinc-terraform-registry
+    folder: artifacts/v1/providers/namespace=observeinc/name=observe/version={{ .Version }}/os={{ .Os }}/arch={{ .Arch}}
