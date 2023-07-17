@@ -99,7 +99,7 @@ jobs:
         run: mkdir "$upload_dir"
       - name: Copy archives
         run: |
-          jq -c '.[] | select(.type == "archive")' dist/artifacts.json | while read archive; do
+          jq -c '.[] | select(.type == "Archive")' dist/artifacts.json | while read archive; do
             os=$(echo "$archive" | jq -r '.goos')
             arch=$(echo "$archive" | jq -r '.goarch')
             name=$(echo "$archive" | jq -r '.name')
