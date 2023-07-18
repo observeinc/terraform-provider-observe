@@ -74,6 +74,14 @@ jobs:
             dist/*.yaml
             dist/*.sig
             dist/*_SHA256SUMS
+      - if: ${{ env.flags == '--snapshot' }}
+        name: Record snapshot warnings
+        run: |
+          echo "::warning::Snapshot release, not publishing artifacts"
+          {
+            echo '⚠️ _GoReleaser ran in [snapshot mode](https://goreleaser.com/customization/snapshots/) and did not publish any artifacts._'
+            echo 'Snapshot builds are available as job artifacts.'
+          } >> "$GITHUB_STEP_SUMMARY"
   s3:
     needs: goreleaser
     runs-on: ubuntu-latest
