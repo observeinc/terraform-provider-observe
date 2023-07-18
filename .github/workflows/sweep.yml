@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: tests
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -51,7 +51,7 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Sweepers
-        timeout-minutes: 8
+        timeout-minutes: 3
         run: make sweep
         env:
           # Environment variables for configuring the provider
