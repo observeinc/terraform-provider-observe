@@ -50,8 +50,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
-      - name: Sweepers
-        timeout-minutes: 3
+      - timeout-minutes: 3
         run: make sweep
         env:
           # Environment variables for configuring the provider
