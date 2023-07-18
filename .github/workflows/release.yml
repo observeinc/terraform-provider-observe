@@ -26,7 +26,6 @@ jobs:
       group: release-${{ github.ref }}
     permissions:
       contents: write
-      id-token: write
     env:
       flags: ''
       tag: ${{ inputs.tag || github.ref_name }}
@@ -56,7 +55,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: Create tag
         if: ${{ inputs.tag }}
-        run: git tag -l "$tag" || git tag "$tag"
+        run: git rev-parse --quiet --verify "refs/tags/$tag" || git tag "$tag"
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
@@ -75,3 +74,110 @@ jobs:
             dist/*.yaml
             dist/*.sig
             dist/*_SHA256SUMS
+      - if: ${{ env.flags == '--snapshot' }}
+        name: Snapshot warning
+        run: echo "::warning::Snapshot release, not publishing artifacts (https://goreleaser.com/customization/snapshots/)"
+  s3:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    env:
+      flags: ''
+      tag: ${{ inputs.tag || github.ref_name }}
+      upload_dir: ${{ github.workspace }}/upload
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+      - id: artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: archives
+          path: dist
+      - name: Enable dry run mode
+        if: ${{ !inputs.publish }}
+        run: echo "flags=--dryrun" >> $GITHUB_ENV
+      - name: Create upload directory 
+        run: mkdir "$upload_dir"
+      - id: archives
+        name: Copy archives
+        run: |
+          i=0
+
+          while read -r archive; do
+            os=$(jq -r '.goos' <<< "$archive")
+            arch=$(jq -r '.goarch' <<< "$archive")
+            name=$(jq -r '.name' <<< "$archive")
+            path=$(jq -r '.path' <<< "$archive")
+          
+            dir="${upload_dir}/os=${os}/arch=${arch}"
+          
+            mkdir -p "$dir"
+            echo "Copying ${name} to ${dir}"
+            cp "$path" "$dir"
+          
+            ((i++)) || true
+          done < <(jq -c '.[] | select(.type == "Archive")' ${{ steps.artifacts.outputs.download-path }}/artifacts.json)
+          
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
+      - id: signatures
+        name: Copy checksum/signature
+        run: |
+          i=0
+
+          while read -r path; do
+            name=$(jq -r '.name' <<< "$path")
+            path=$(jq -r '.path' <<< "$path")
+          
+            echo "Copying ${name} to ${upload_dir}"
+            cp "$path" "$upload_dir"
+          
+            ((i++)) || true
+          done < <(jq -c '.[] | select(.type | IN("Checksum", "Signature"))' ${{ steps.artifacts.outputs.download-path }}/artifacts.json)
+          
+          echo "count=${i}" >> "$GITHUB_OUTPUT"
+      - name: Validate archives
+        if: ${{ steps.archives.outputs.count == '0' }}
+        run: |
+          echo "::error::No archives found, aborting release"
+          exit 1
+      - name: Validate signatures
+        if: ${{ steps.signatures.outputs.count != '2' }}
+        run: |
+          echo "::error::Expected 2 signatures, got ${{ steps.signatures.outputs.count }}, aborting release"
+          exit 1
+      - name: Print upload tree
+        if: always()
+        working-directory: ${{ env.upload_dir }}
+        run: tree
+      - name: Copy to S3
+        run: |
+          bucket="${{ vars.AWS_S3_REGISTRY_BUCKET }}"
+          prefix="${{ vars.AWS_S3_REGISTRY_PREFIX }}/version=${tag}/"
+          s3_uri="s3://${bucket}/${prefix}"
+
+          echo "::group::aws s3 cp"
+          aws s3 cp $flags --recursive "$upload_dir" "$s3_uri"
+          echo "::endgroup::"
+
+          cd "$(mktemp -d)"
+          mkdir -p "$s3_uri"
+          cd "s3:"
+          cp --recursive "$upload_dir/"* "${bucket}/${prefix}"
+
+          {
+            echo "## S3 Registry Uploads"
+
+            if [[ "$flags" == "--dryrun" ]]; then
+              echo '⚠️ _Dry run mode was enabled, no files were actually uploaded to S3._'
+            fi
+
+            echo '* **Archives:** ${{ steps.archives.outputs.count }}'
+            echo '* **Signatures:** ${{ steps.signatures.outputs.count }}'
+
+            echo '```'
+            tree --noreport "$bucket"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
