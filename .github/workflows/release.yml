@@ -48,7 +48,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Enable snapshot mode
-        if: ${{ !inputs.publish }}
+        if: ${{ github.event_name == "workflow_dispatch" && !inputs.publish }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
@@ -99,7 +99,7 @@ jobs:
           name: archives
           path: dist
       - name: Enable dry run mode
-        if: ${{ !inputs.publish }}
+        if: ${{ github.event_name == "workflow_dispatch" && !inputs.publish }}
         run: echo "flags=--dryrun" >> $GITHUB_ENV
       - name: Create upload directory 
         run: mkdir "$upload_dir"
