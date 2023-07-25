@@ -7,7 +7,7 @@ resource "observe_datastream" "example" {
 }
 
 resource "observe_app" "example" {
-  folder    = observe_folder.example.oid
+  folder = observe_folder.example.oid
 
   module_id = "observeinc/openweather/observe"
   version   = "0.2.1"

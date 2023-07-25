@@ -3,8 +3,8 @@ data "observe_workspace" "default" {
 }
 
 resource "observe_bookmark_group" "example" {
-  workspace 	 = data.observe_workspace.default.oid
-  name      	 = "Example"
+  workspace = data.observe_workspace.default.oid
+  name      = "Example"
 }
 
 # Dataset
@@ -15,9 +15,9 @@ data "observe_dataset" "example" {
 }
 
 resource "observe_bookmark" "dataset" {
-  workspace 	 = data.observe_workspace.default.oid
-  name      	 = "Example"
-  target       = data.observe_dataset.example.oid
+  workspace = data.observe_workspace.default.oid
+  name      = "Example"
+  target    = data.observe_dataset.example.oid
 }
 
 # Dashboard
@@ -28,7 +28,7 @@ data "observe_dashboard" "example" {
 }
 
 resource "observe_bookmark" "dashboard" {
-  workspace 	 = data.observe_workspace.default.oid
-  name      	 = "Example"
-  target       = data.observe_dashboard.example.oid
+  workspace = data.observe_workspace.default.oid
+  name      = "Example"
+  target    = data.observe_dashboard.example.oid
 }
