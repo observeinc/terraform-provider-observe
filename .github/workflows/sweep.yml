@@ -26,7 +26,7 @@ jobs:
       - id: job
         name: 'Check job match (acceptance)'
         if: ${{ steps.event.outputs.match == 'true' }}
-        run: 
+        run: |
           conclusion="$(gh run view ${{ github.event.workflow_run.run_number }} --json jobs | jq -r '.jobs[] | select(.name == "acceptance") | .conclusion')"
           if [ "$conclusion" == "failure" ]; then
             echo match=true >> "$GITHUB_OUTPUT"
