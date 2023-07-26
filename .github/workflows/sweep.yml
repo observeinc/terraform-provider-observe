@@ -37,8 +37,6 @@ jobs:
     needs: should
     if: ${{ needs.should.outputs.match == 'true' }}}
     runs-on: ubuntu-latest
-    concurrency:
-      group: tests
     timeout-minutes: 5
     permissions:
       contents: read
