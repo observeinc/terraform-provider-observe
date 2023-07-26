@@ -20,6 +20,8 @@ on:
 jobs:
   acceptance:
     runs-on: ubuntu-latest
+    concurrency:
+      group: tests-${{ github.ref }}
     timeout-minutes: 30
     permissions:
       # https://github.com/EnricoMi/publish-unit-test-result-action#permissions
