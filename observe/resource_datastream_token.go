@@ -95,6 +95,10 @@ func datastreamTokenToResourceData(d *gql.DatastreamToken, data *schema.Resource
 		}
 	}
 
+	if err := data.Set("datastream", oid.DatastreamOid(d.DatastreamId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("disabled", d.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
