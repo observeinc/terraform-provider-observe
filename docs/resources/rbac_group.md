@@ -11,7 +11,7 @@ Manages a RBAC group.
 ## Example Usage
 ```terraform
 resource "observe_rbac_group" "example" {
-  name = "engineering"
+  name        = "engineering"
   description = "Engineering RBAC Group"
 }
 ```
