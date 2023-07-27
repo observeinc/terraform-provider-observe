@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,7 +29,7 @@ func resourceDatastreamToken() *schema.Resource {
 		UpdateContext: resourceDatastreamTokenUpdate,
 		DeleteContext: resourceDatastreamTokenDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDatastreamTokenImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"datastream": {
@@ -177,4 +178,14 @@ func resourceDatastreamTokenDelete(ctx context.Context, data *schema.ResourceDat
 		return diag.Errorf("failed to delete datastream: %s", err)
 	}
 	return diags
+}
+
+func resourceDatastreamTokenImport(ctx context.Context, data *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if secret := os.Getenv("SECRET"); secret != "" {
+		if err := data.Set("secret", secret); err != nil {
+			return nil, err
+		}
+	}
+
+	return []*schema.ResourceData{data}, nil
 }
