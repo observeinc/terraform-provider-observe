@@ -9,12 +9,8 @@ on:
 jobs:
   acceptance:
     runs-on: ubuntu-latest
-    # Limit tests to 1 concurrent run because:
-    # - Datastreams are limited to 10 per customer
-    # - Apps can only be installed once per workspace
-    # When these limitations are removed, multiple acceptance tests runs can be execute concurrently.
     concurrency:
-      group: tests
+      group: tests-${{ github.ref }}
     timeout-minutes: 30
     permissions:
       # https://github.com/EnricoMi/publish-unit-test-result-action#permissions
