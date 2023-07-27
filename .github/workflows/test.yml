@@ -31,7 +31,7 @@ jobs:
           terraform_wrapper: false
       - name: Acceptance tests
         timeout-minutes: 25
-        run: make testacc
+        run: make testacc TESTARGS="-failfast"
         env:
           # Environment variables for configuring the provider
           OBSERVE_CUSTOMER: ${{ vars.OBSERVE_CUSTOMER }}
