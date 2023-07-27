@@ -5,17 +5,6 @@ on:
     branches:
       - master
   pull_request:
-    paths:
-      - '**'
-      - '!README.md'
-      - '!LICENSE'
-      - '!infrastructure/**'
-      - '!.github/**'
-      - '.github/workflows/test.yml'
-      - '!.goreleaser.yml'
-      - '!terraform-registry-manifest.json'
-      - '!.git*'
-
 
 jobs:
   acceptance:
@@ -38,7 +27,7 @@ jobs:
           terraform_wrapper: false
       - name: Acceptance tests
         timeout-minutes: 25
-        run: make testacc
+        run: make testacc TESTARGS="-failfast"
         env:
           # Environment variables for configuring the provider
           OBSERVE_CUSTOMER: ${{ vars.OBSERVE_CUSTOMER }}
