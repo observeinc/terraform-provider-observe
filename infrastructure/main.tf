@@ -14,7 +14,7 @@ resource "github_actions_secret" "secrets" {
 
 moved {
   from = github_actions_secret.observe_provider_password
-  to   = github_actions_secret.secrets["OBSERVE_PROVIDER_PASSWORD"]
+  to = github_actions_secret.secrets["OBSERVE_PROVIDER_PASSWORD"]
 }
 
 resource "github_actions_variable" "observe_provider" {
