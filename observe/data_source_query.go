@@ -232,8 +232,11 @@ func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagno
 
 		for _, name := range sortedNames {
 			input := inputs[name]
-			// don't add defaultInput a second time
-			if input != defaultInput && strings.Contains(stage.Pipeline, "@"+input.InputName) {
+			if input == defaultInput {
+				continue
+			}
+
+			if strings.Contains(stage.Pipeline, fmt.Sprintf("@%s", input.InputName)) || strings.Contains(stage.Pipeline, fmt.Sprintf("@%q", input.InputName)) {
 				stageInput.Input = append(stageInput.Input, *input)
 			}
 		}
