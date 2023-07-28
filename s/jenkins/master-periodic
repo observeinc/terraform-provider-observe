@@ -1,5 +1,0 @@
-#!/bin/bash -xe
-git clean -f -d
-git fetch origin
-
-make docker-test-gen-gql-client docker-integration

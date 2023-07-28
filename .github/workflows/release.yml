@@ -48,8 +48,8 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Enable snapshot mode
-        if: ${{ github.event_name == "workflow_dispatch" && !inputs.publish }}
-        run: echo "flags=--snapshot" >> $GITHUB_ENV
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.publish }}
+        run: echo "flags=--snapshot" >> "$GITHUB_ENV"
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         id: gpg
@@ -99,8 +99,8 @@ jobs:
           name: archives
           path: dist
       - name: Enable dry run mode
-        if: ${{ github.event_name == "workflow_dispatch" && !inputs.publish }}
-        run: echo "flags=--dryrun" >> $GITHUB_ENV
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.publish }}
+        run: echo "flags=--dryrun" >> "$GITHUB_ENV"
       - name: Create upload directory 
         run: mkdir "$upload_dir"
       - id: archives
@@ -161,6 +161,7 @@ jobs:
           s3_uri="s3://${bucket}/${prefix}"
 
           echo "::group::aws s3 cp"
+          # shellcheck disable=SC2086
           aws s3 cp $flags --recursive "$upload_dir" "$s3_uri"
           echo "::endgroup::"
 
