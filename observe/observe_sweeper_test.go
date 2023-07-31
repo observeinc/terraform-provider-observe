@@ -13,27 +13,50 @@ import (
 )
 
 func init() {
+	resource.AddTestSweepers("observe_workspace", &resource.Sweeper{
+		Name: "observe_workspace",
+		F:    workspaceSweeperFunc,
+		Dependencies: []string{
+			"observe_dataset",
+			"observe_monitor",
+			"observe_poller",
+			"observe_datastream",
+			"observe_folder",
+			"observe_preferred_path",
+			"observe_bookmark_group",
+			"observe_worksheet",
+			"observe_app",
+		},
+	})
 	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
 		Name: "observe_dataset",
 		F:    datasetSweeperFunc,
 		Dependencies: []string{
 			"observe_preferred_path",
 			"observe_datastream",
+			"observe_app",
 		},
 	})
 	resource.AddTestSweepers("observe_monitor", &resource.Sweeper{
 		Name: "observe_monitor",
 		F:    monitorSweeperFunc,
+		Dependencies: []string{
+			"observe_app",
+		},
 	})
 	resource.AddTestSweepers("observe_poller", &resource.Sweeper{
 		Name: "observe_poller",
 		F:    pollerSweeperFunc,
+		Dependencies: []string{
+			"observe_app",
+		},
 	})
 	resource.AddTestSweepers("observe_datastream", &resource.Sweeper{
 		Name: "observe_datastream",
 		F:    datastreamSweeperFunc,
 		Dependencies: []string{
 			"observe_poller",
+			"observe_app",
 		},
 	})
 	resource.AddTestSweepers("observe_folder", &resource.Sweeper{
@@ -41,6 +64,7 @@ func init() {
 		F:    folderSweeperFunc,
 		Dependencies: []string{
 			"observe_preferred_path",
+			"observe_app",
 		},
 	})
 	resource.AddTestSweepers("observe_preferred_path", &resource.Sweeper{
@@ -54,6 +78,10 @@ func init() {
 	resource.AddTestSweepers("observe_worksheet", &resource.Sweeper{
 		Name: "observe_worksheet",
 		F:    worksheetSweeperFunc,
+	})
+	resource.AddTestSweepers("observe_app", &resource.Sweeper{
+		Name: "observe_app",
+		F:    appSweeperFunc,
 	})
 }
 
@@ -96,6 +124,30 @@ func sharedClient(pattern string) (*client, error) {
 			return patternRe.MatchString(s)
 		},
 	}, nil
+}
+
+func workspaceSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		if client.MatchName(workspace.Label) {
+			log.Printf("[WARN] Deleting %s [id=%s]\n", workspace.Label, workspace.Id)
+			if err := client.DeleteWorkspace(ctx, workspace.Id); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func datasetSweeperFunc(pattern string) error {
@@ -476,6 +528,51 @@ func worksheetSweeperFunc(pattern string) error {
 			}
 		}
 	}
+	return nil
+}
+
+func appSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query apps($workspaceId: ObjectId!) {
+			apps(workspaceId: $workspaceId) {
+				id
+				name
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup apps: %w", err)
+		}
+
+		for _, i := range result["apps"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+
+			log.Printf("[WARN] Deleting app %s [id=%s]\n", name, id)
+			if err := client.DeleteApp(ctx, id); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
