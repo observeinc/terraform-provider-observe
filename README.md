@@ -64,6 +64,12 @@ In order to run the full suite of acceptance tests, run `make testacc`.
 make testacc
 ```
 
+To print debug logs during acceptance tests, including all HTTP requests and responses, set `TF_LOG=debug`:
+
+```sh
+TF_LOG=debug make testacc
+```
+
 ## Managing Dependencies
 
 Terraform providers use [Go modules][go modules] to manage the dependencies. To add or update a dependency, you would run the following (`v1.2.3` of `foo` is a new package we want to add):
