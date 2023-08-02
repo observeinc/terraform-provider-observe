@@ -649,8 +649,12 @@ func rbacStatementSweeperFunc(pattern string) error {
 		var (
 			item        = i.(map[string]interface{})
 			id          = item["id"].(string)
-			description = item["description"].(string)
+			description string
 		)
+
+		if item["description"] != nil {
+			description = item["description"].(string)
+		}
 
 		if client.MatchName(description) {
 			log.Printf("[WARN] Deleting rbac statement [id=%s]\n", id)
