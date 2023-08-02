@@ -88,7 +88,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: 
-	TF_ACC=1 gotestsum \
+	TF_ACC=1 go run gotest.tools/gotestsum \
 		--packages './...' \
 		--format testname \
 		--junitfile test-report.xml \
