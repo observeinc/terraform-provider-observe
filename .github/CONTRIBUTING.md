@@ -21,7 +21,9 @@ make testacc
 
 ## Pull Requests
 
-To submit a change for consideration, [open a pull request](https://github.com/observeinc/terraform-provider-observe/compare). 
+To submit a change for consideration, [open a pull request](https://github.com/observeinc/terraform-provider-observe/compare). When updating your pull request, push a new commit. Do not rewrite history and force-push if you can avoid it, since this makes it impossible for reviewers to see what changed since their last review.
+
+Only the "squash" merge strategy is enabled for this repository, so every pull request will become a single commit upon merge, with the pull request title as the commit message.
 
 ## Releasing
 
