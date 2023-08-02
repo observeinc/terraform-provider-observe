@@ -9,7 +9,6 @@ import (
 )
 
 func TestAccObserveDatastreamTokenCreate(t *testing.T) {
-	t.Skip("currently borked")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -35,6 +34,7 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_datastream_token.example", "name", "World"),
 					resource.TestCheckResourceAttrSet("observe_datastream_token.example", "secret"),
+					resource.TestCheckResourceAttrPair("observe_datastream_token.example", "datastream", "observe_datastream.example", "oid"),
 				),
 			},
 			{
@@ -56,6 +56,7 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_datastream_token.example", "name", "Worlds"),
 					resource.TestCheckResourceAttrSet("observe_datastream_token.example", "secret"),
+					resource.TestCheckResourceAttrPair("observe_datastream_token.example", "datastream", "observe_datastream.example", "oid"),
 				),
 			},
 		},
