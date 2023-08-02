@@ -26,7 +26,7 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Acceptance tests
-        run: make testacc TESTARGS="-failfast"
+        run: make testacc
         env:
           # Environment variables for configuring the provider
           OBSERVE_CUSTOMER: ${{ vars.OBSERVE_CUSTOMER }}
@@ -34,11 +34,15 @@ jobs:
           OBSERVE_USER_EMAIL: ${{ vars.OBSERVE_USER_EMAIL }}
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
+
+          TF_LOG: ${{ runner.debug == '1' && 'DEBUG' || 'ERROR' }}
       - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
-          name: test-report.xml
-          path: test-report.xml
+          name: reports
+          path: |
+            test-report.xml
+            test-output.json
       - name: Test Report
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: success() || failure()

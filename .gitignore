@@ -34,5 +34,6 @@ website/vendor
 terraform-provider-observe
 
 test-report.xml
+test-output.json
 
 dist/

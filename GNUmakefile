@@ -88,8 +88,13 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: 
-	TF_LOG=DEBUG TF_ACC=1 go test $(TEST) -v -json -parallel=5 $(TESTARGS) -timeout 120m | go run github.com/jstemmer/go-junit-report/v2 -set-exit-code -parser gojson -iocopy -out test-report.xml
-
+	TF_ACC=1 go run gotest.tools/gotestsum \
+		--packages './...' \
+		--format testname \
+		--junitfile test-report.xml \
+		--jsonfile test-output.json \
+		--rerun-fails=3 \
+		-- -parallel=5 $(TESTARGS)
 vet:
 	@echo "go vet ."
 	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \
