@@ -9,7 +9,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
-	github.com/jstemmer/go-junit-report/v2 v2.0.1-0.20230321231245-7933520f1e28
 	github.com/mitchellh/hashstructure v1.1.0
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	gopkg.in/yaml.v2 v2.4.0
