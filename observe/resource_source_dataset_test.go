@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
