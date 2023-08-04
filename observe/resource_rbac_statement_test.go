@@ -22,7 +22,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    group = observe_rbac_group.example.oid
 				  }
@@ -33,7 +33,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.group"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -53,7 +53,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    group = observe_rbac_group.example.oid
 				  }
@@ -64,7 +64,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.group"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -84,7 +84,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    group = observe_rbac_group.example.oid
 				  }
@@ -95,7 +95,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.group"),
 				),
@@ -118,7 +118,7 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
                 }
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[2]s"
 				  subject {
 				    user = data.observe_user.system.oid
 				  }
@@ -127,9 +127,9 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 				  }
 				  role = "Lister"
 				}
-				`, systemUser()),
+				`, systemUser(), randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.user"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -149,7 +149,7 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[2]s"
 				  subject {
 				    user = data.observe_user.system.oid
 				  }
@@ -160,7 +160,7 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 				}
 				`, systemUser(), randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.user"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -173,15 +173,17 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 }
 
 func TestAccObserveRbacStatementAllCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    all = true
 				  }
@@ -190,9 +192,9 @@ func TestAccObserveRbacStatementAllCreate(t *testing.T) {
 				  }
 				  role = "Lister"
 				}
-				`),
+				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.all"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -205,15 +207,17 @@ func TestAccObserveRbacStatementAllCreate(t *testing.T) {
 }
 
 func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    all = true
 				  }
@@ -222,9 +226,9 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				  }
 				  role = "Lister"
 				}
-				`),
+				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.all"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -233,10 +237,10 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    all = true
 				  }
@@ -246,9 +250,9 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				  }
 				  role = "Lister"
 				}
-				`),
+				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.all"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
@@ -258,10 +262,10 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "example"
+				  description = "%[1]s"
 				  subject {
 				    all = true
 				  }
@@ -271,9 +275,9 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				  }
 				  role = "Lister"
 				}
-				`),
+				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", "example"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.all"),
 					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),

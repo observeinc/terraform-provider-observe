@@ -26,6 +26,7 @@ func init() {
 			"observe_bookmark_group",
 			"observe_worksheet",
 			"observe_app",
+			"observe_rbac_statement",
 		},
 	})
 	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
@@ -82,6 +83,17 @@ func init() {
 	resource.AddTestSweepers("observe_app", &resource.Sweeper{
 		Name: "observe_app",
 		F:    appSweeperFunc,
+	})
+	resource.AddTestSweepers("observe_rbac_statement", &resource.Sweeper{
+		Name: "observe_rbac_statement",
+		F:    rbacStatementSweeperFunc,
+	})
+	resource.AddTestSweepers("observe_rbac_group", &resource.Sweeper{
+		Name: "rbac_group",
+		F:    rbacGroupSweeperFunc,
+		Dependencies: []string{
+			"observe_rbac_statement",
+		},
 	})
 }
 
@@ -568,6 +580,82 @@ func appSweeperFunc(pattern string) error {
 
 			log.Printf("[WARN] Deleting app %s [id=%s]\n", name, id)
 			if err := client.DeleteApp(ctx, id); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func rbacGroupSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	result, err := client.Meta.Run(ctx, `
+	query rbacGroups {
+		rbacGroups {
+			id
+			name
+		}
+	}`, nil)
+
+	if err != nil {
+		return fmt.Errorf("failed to lookup rbac groups: %w", err)
+	}
+
+	for _, i := range result["rbacGroups"].([]interface{}) {
+		var (
+			item = i.(map[string]interface{})
+			id   = item["id"].(string)
+			name = item["name"].(string)
+		)
+
+		if client.MatchName(name) {
+			log.Printf("[WARN] Deleting rbac group %s [id=%s]\n", name, id)
+			if err := client.DeleteRbacGroup(ctx, id); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func rbacStatementSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	result, err := client.Meta.Run(ctx, `
+	query rbacStatements {
+		rbacStatements {
+			id
+   			description
+		}
+	}`, nil)
+
+	if err != nil {
+		return fmt.Errorf("failed to lookup rbac statements: %w", err)
+	}
+
+	for _, i := range result["rbacStatements"].([]interface{}) {
+		var (
+			item        = i.(map[string]interface{})
+			id          = item["id"].(string)
+			description = item["description"].(string)
+		)
+
+		if client.MatchName(description) {
+			log.Printf("[WARN] Deleting rbac statement [id=%s]\n", id)
+			if err := client.DeleteRbacStatement(ctx, id); err != nil {
 				return err
 			}
 		}
