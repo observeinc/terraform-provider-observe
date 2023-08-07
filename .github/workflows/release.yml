@@ -15,9 +15,6 @@ on:
         type: string
         description: Previous Tag Name
         default: '' # GoReleaser will detect the previous tag if not specified
-  push:
-    tags:
-      - '*'
 
 jobs:
   goreleaser:
