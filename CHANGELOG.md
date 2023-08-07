@@ -1,3 +1,9 @@
+Current releases and their changelogs are available via GitHub [Releases](https://github.com/observeinc/terraform-provider-observe/releases). Past releases are listed below for reference. 
+
+_This document is frozen and will receive no further updates._
+
+<hr>
+
 ## 0.13.12 (2023-06-01)
 
 * dataset: make error matcher whitespace-agnostic
