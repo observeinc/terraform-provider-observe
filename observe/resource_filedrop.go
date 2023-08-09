@@ -215,7 +215,7 @@ func resourceFiledropCreate(ctx context.Context, data *schema.ResourceData, meta
 				Severity:      diag.Error,
 				Summary:       "failed to parse filedrop datastream ID",
 				Detail:        err.Error(),
-				AttributePath: cty.Path{cty.GetAttrStep{Name: "workspace"}},
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "datastream"}},
 			},
 		}
 	}
@@ -225,10 +225,9 @@ func resourceFiledropCreate(ctx context.Context, data *schema.ResourceData, meta
 	if err != nil {
 		return diag.Diagnostics{
 			diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       "failed to create filedrop",
-				Detail:        err.Error(),
-				AttributePath: cty.Path{cty.GetAttrStep{Name: "workspace"}},
+				Severity: diag.Error,
+				Summary:  "failed to create filedrop",
+				Detail:   err.Error(),
 			},
 		}
 	}

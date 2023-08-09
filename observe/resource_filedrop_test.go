@@ -12,8 +12,9 @@ var filedropConfigPreamble = configPreamble + datastreamConfigPreamble
 
 func TestAccObserveFiledrop(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
+	filedropRoleArn := os.Getenv("OBSERVE_FILEDROP_ROLE_ARN")
 	if os.Getenv("CI") != "true" {
-		// The role_arn "arn:aws:iam::723346149663:role/jyc-snowpipe-assume-role" were manually created for the provider CI Observe account.
+		// The role_arn `OBSERVE_FILEDROP_ROLE_ARN` was manually created for the provider CI Observe account.
 		// This test fails if the role_arn does not exist
 		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's AWS account.")
 	}
@@ -34,17 +35,17 @@ func TestAccObserveFiledrop(t *testing.T) {
 						provider {
 							aws {
 								region  = "us-west-2"
-								role_arn = "arn:aws:iam::723346149663:role/jyc-snowpipe-assume-role"
+								role_arn = "%[2]s"
 							}
 						}
 					}
-				}`, randomPrefix),
+				}`, randomPrefix, filedropRoleArn),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_filedrop.example", "name", randomPrefix),
 					resource.TestCheckResourceAttrSet("observe_filedrop.example", "status"),
 					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.format.0.type", "json"),
 					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.provider.0.aws.0.region", "us-west-2"),
-					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.provider.0.aws.0.role_arn", "arn:aws:iam::723346149663:role/jyc-snowpipe-assume-role"),
+					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.provider.0.aws.0.role_arn", filedropRoleArn),
 					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.arn"),
 					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.bucket"),
 					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.prefix"),
