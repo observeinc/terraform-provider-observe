@@ -1944,6 +1944,460 @@ const (
 	FacetFunctionIsnotnull      FacetFunction = "IsNotNull"
 )
 
+// Filedrop includes the GraphQL fields of Filedrop requested by the fragment Filedrop.
+type Filedrop struct {
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	IconUrl     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+	WorkspaceId string  `json:"workspaceId"`
+	// status of the filedrop
+	Status FiledropStatus `json:"status"`
+	// ID of the datastream associated with the filedrop
+	DatastreamID string           `json:"datastreamID"`
+	Config       FiledropConfig   `json:"config"`
+	Endpoint     FiledropEndpoint `json:"-"`
+}
+
+// GetId returns Filedrop.Id, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetId() string { return v.Id }
+
+// GetName returns Filedrop.Name, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetName() string { return v.Name }
+
+// GetIconUrl returns Filedrop.IconUrl, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns Filedrop.Description, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetDescription() *string { return v.Description }
+
+// GetWorkspaceId returns Filedrop.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetStatus returns Filedrop.Status, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetStatus() FiledropStatus { return v.Status }
+
+// GetDatastreamID returns Filedrop.DatastreamID, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetDatastreamID() string { return v.DatastreamID }
+
+// GetConfig returns Filedrop.Config, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetConfig() FiledropConfig { return v.Config }
+
+// GetEndpoint returns Filedrop.Endpoint, and is useful for accessing the field via an interface.
+func (v *Filedrop) GetEndpoint() FiledropEndpoint { return v.Endpoint }
+
+func (v *Filedrop) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*Filedrop
+		Endpoint json.RawMessage `json:"endpoint"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.Filedrop = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Endpoint
+		src := firstPass.Endpoint
+		if len(src) != 0 && string(src) != "null" {
+			err = __unmarshalFiledropEndpoint(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal Filedrop.Endpoint: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalFiledrop struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	IconUrl *string `json:"iconUrl"`
+
+	Description *string `json:"description"`
+
+	WorkspaceId string `json:"workspaceId"`
+
+	Status FiledropStatus `json:"status"`
+
+	DatastreamID string `json:"datastreamID"`
+
+	Config FiledropConfig `json:"config"`
+
+	Endpoint json.RawMessage `json:"endpoint"`
+}
+
+func (v *Filedrop) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *Filedrop) __premarshalJSON() (*__premarshalFiledrop, error) {
+	var retval __premarshalFiledrop
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.IconUrl = v.IconUrl
+	retval.Description = v.Description
+	retval.WorkspaceId = v.WorkspaceId
+	retval.Status = v.Status
+	retval.DatastreamID = v.DatastreamID
+	retval.Config = v.Config
+	{
+
+		dst := &retval.Endpoint
+		src := v.Endpoint
+		var err error
+		*dst, err = __marshalFiledropEndpoint(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"Unable to marshal Filedrop.Endpoint: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// FiledropConfig includes the requested fields of the GraphQL type FiledropConfig.
+type FiledropConfig struct {
+	Format   FiledropConfigFormatFiledropFormatConfig     `json:"format"`
+	Provider FiledropConfigProviderFiledropProviderConfig `json:"-"`
+}
+
+// GetFormat returns FiledropConfig.Format, and is useful for accessing the field via an interface.
+func (v *FiledropConfig) GetFormat() FiledropConfigFormatFiledropFormatConfig { return v.Format }
+
+// GetProvider returns FiledropConfig.Provider, and is useful for accessing the field via an interface.
+func (v *FiledropConfig) GetProvider() FiledropConfigProviderFiledropProviderConfig {
+	return v.Provider
+}
+
+func (v *FiledropConfig) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*FiledropConfig
+		Provider json.RawMessage `json:"provider"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.FiledropConfig = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Provider
+		src := firstPass.Provider
+		if len(src) != 0 && string(src) != "null" {
+			err = __unmarshalFiledropConfigProviderFiledropProviderConfig(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal FiledropConfig.Provider: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalFiledropConfig struct {
+	Format FiledropConfigFormatFiledropFormatConfig `json:"format"`
+
+	Provider json.RawMessage `json:"provider"`
+}
+
+func (v *FiledropConfig) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *FiledropConfig) __premarshalJSON() (*__premarshalFiledropConfig, error) {
+	var retval __premarshalFiledropConfig
+
+	retval.Format = v.Format
+	{
+
+		dst := &retval.Provider
+		src := v.Provider
+		var err error
+		*dst, err = __marshalFiledropConfigProviderFiledropProviderConfig(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"Unable to marshal FiledropConfig.Provider: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// FiledropConfigFormatFiledropFormatConfig includes the requested fields of the GraphQL type FiledropFormatConfig.
+type FiledropConfigFormatFiledropFormatConfig struct {
+	Type FiledropFormatType `json:"type"`
+}
+
+// GetType returns FiledropConfigFormatFiledropFormatConfig.Type, and is useful for accessing the field via an interface.
+func (v *FiledropConfigFormatFiledropFormatConfig) GetType() FiledropFormatType { return v.Type }
+
+type FiledropConfigInput struct {
+	Format      FiledropFormatConfigInput       `json:"format"`
+	ProviderAws *FiledropProviderAwsConfigInput `json:"providerAws"`
+}
+
+// GetFormat returns FiledropConfigInput.Format, and is useful for accessing the field via an interface.
+func (v *FiledropConfigInput) GetFormat() FiledropFormatConfigInput { return v.Format }
+
+// GetProviderAws returns FiledropConfigInput.ProviderAws, and is useful for accessing the field via an interface.
+func (v *FiledropConfigInput) GetProviderAws() *FiledropProviderAwsConfigInput { return v.ProviderAws }
+
+// FiledropConfigProviderFiledropProviderAwsConfig includes the requested fields of the GraphQL type FiledropProviderAwsConfig.
+type FiledropConfigProviderFiledropProviderAwsConfig struct {
+	Typename *string `json:"__typename"`
+	// AWS region of the filedrop
+	Region string `json:"region"`
+	// User provided IAM role to access the filedrop
+	RoleArn string `json:"roleArn"`
+}
+
+// GetTypename returns FiledropConfigProviderFiledropProviderAwsConfig.Typename, and is useful for accessing the field via an interface.
+func (v *FiledropConfigProviderFiledropProviderAwsConfig) GetTypename() *string { return v.Typename }
+
+// GetRegion returns FiledropConfigProviderFiledropProviderAwsConfig.Region, and is useful for accessing the field via an interface.
+func (v *FiledropConfigProviderFiledropProviderAwsConfig) GetRegion() string { return v.Region }
+
+// GetRoleArn returns FiledropConfigProviderFiledropProviderAwsConfig.RoleArn, and is useful for accessing the field via an interface.
+func (v *FiledropConfigProviderFiledropProviderAwsConfig) GetRoleArn() string { return v.RoleArn }
+
+// FiledropConfigProviderFiledropProviderConfig includes the requested fields of the GraphQL interface FiledropProviderConfig.
+//
+// FiledropConfigProviderFiledropProviderConfig is implemented by the following types:
+// FiledropConfigProviderFiledropProviderAwsConfig
+// The GraphQL type's documentation follows.
+//
+// Configurations related to the cloud object storage service provider
+type FiledropConfigProviderFiledropProviderConfig interface {
+	implementsGraphQLInterfaceFiledropConfigProviderFiledropProviderConfig()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+}
+
+func (v *FiledropConfigProviderFiledropProviderAwsConfig) implementsGraphQLInterfaceFiledropConfigProviderFiledropProviderConfig() {
+}
+
+func __unmarshalFiledropConfigProviderFiledropProviderConfig(b []byte, v *FiledropConfigProviderFiledropProviderConfig) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "FiledropProviderAwsConfig":
+		*v = new(FiledropConfigProviderFiledropProviderAwsConfig)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing FiledropProviderConfig.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for FiledropConfigProviderFiledropProviderConfig: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalFiledropConfigProviderFiledropProviderConfig(v *FiledropConfigProviderFiledropProviderConfig) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *FiledropConfigProviderFiledropProviderAwsConfig:
+		typename = "FiledropProviderAwsConfig"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*FiledropConfigProviderFiledropProviderAwsConfig
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for FiledropConfigProviderFiledropProviderConfig: "%T"`, v)
+	}
+}
+
+// FiledropEndpoint includes the requested fields of the GraphQL interface FiledropEndpoint.
+//
+// FiledropEndpoint is implemented by the following types:
+// FiledropEndpointFiledropS3Endpoint
+// The GraphQL type's documentation follows.
+//
+// Information of the Observe-created filedrop endpoint
+type FiledropEndpoint interface {
+	implementsGraphQLInterfaceFiledropEndpoint()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+}
+
+func (v *FiledropEndpointFiledropS3Endpoint) implementsGraphQLInterfaceFiledropEndpoint() {}
+
+func __unmarshalFiledropEndpoint(b []byte, v *FiledropEndpoint) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "FiledropS3Endpoint":
+		*v = new(FiledropEndpointFiledropS3Endpoint)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing FiledropEndpoint.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for FiledropEndpoint: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalFiledropEndpoint(v *FiledropEndpoint) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *FiledropEndpointFiledropS3Endpoint:
+		typename = "FiledropS3Endpoint"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*FiledropEndpointFiledropS3Endpoint
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for FiledropEndpoint: "%T"`, v)
+	}
+}
+
+// FiledropEndpointFiledropS3Endpoint includes the requested fields of the GraphQL type FiledropS3Endpoint.
+type FiledropEndpointFiledropS3Endpoint struct {
+	Typename *string `json:"__typename"`
+	// IAM arn of the S3 access point
+	Arn string `json:"arn"`
+	// Bucket style alias of the S3 access point
+	Bucket string `json:"bucket"`
+	// filedrop's prefix path within the S3 access point
+	Prefix string `json:"prefix"`
+}
+
+// GetTypename returns FiledropEndpointFiledropS3Endpoint.Typename, and is useful for accessing the field via an interface.
+func (v *FiledropEndpointFiledropS3Endpoint) GetTypename() *string { return v.Typename }
+
+// GetArn returns FiledropEndpointFiledropS3Endpoint.Arn, and is useful for accessing the field via an interface.
+func (v *FiledropEndpointFiledropS3Endpoint) GetArn() string { return v.Arn }
+
+// GetBucket returns FiledropEndpointFiledropS3Endpoint.Bucket, and is useful for accessing the field via an interface.
+func (v *FiledropEndpointFiledropS3Endpoint) GetBucket() string { return v.Bucket }
+
+// GetPrefix returns FiledropEndpointFiledropS3Endpoint.Prefix, and is useful for accessing the field via an interface.
+func (v *FiledropEndpointFiledropS3Endpoint) GetPrefix() string { return v.Prefix }
+
+type FiledropFormatConfigInput struct {
+	Type FiledropFormatType `json:"type"`
+}
+
+// GetType returns FiledropFormatConfigInput.Type, and is useful for accessing the field via an interface.
+func (v *FiledropFormatConfigInput) GetType() FiledropFormatType { return v.Type }
+
+type FiledropFormatType string
+
+const (
+	FiledropFormatTypeCsv     FiledropFormatType = "Csv"
+	FiledropFormatTypeJson    FiledropFormatType = "Json"
+	FiledropFormatTypeParquet FiledropFormatType = "Parquet"
+)
+
+type FiledropInput struct {
+	Config      FiledropConfigInput `json:"config"`
+	Name        *string             `json:"name"`
+	IconUrl     *string             `json:"iconUrl"`
+	Description *string             `json:"description"`
+	ManagedById *string             `json:"managedById"`
+	FolderId    *string             `json:"folderId"`
+}
+
+// GetConfig returns FiledropInput.Config, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetConfig() FiledropConfigInput { return v.Config }
+
+// GetName returns FiledropInput.Name, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetName() *string { return v.Name }
+
+// GetIconUrl returns FiledropInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns FiledropInput.Description, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns FiledropInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns FiledropInput.FolderId, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetFolderId() *string { return v.FolderId }
+
+type FiledropProviderAwsConfigInput struct {
+	Region  string `json:"region"`
+	RoleArn string `json:"roleArn"`
+}
+
+// GetRegion returns FiledropProviderAwsConfigInput.Region, and is useful for accessing the field via an interface.
+func (v *FiledropProviderAwsConfigInput) GetRegion() string { return v.Region }
+
+// GetRoleArn returns FiledropProviderAwsConfigInput.RoleArn, and is useful for accessing the field via an interface.
+func (v *FiledropProviderAwsConfigInput) GetRoleArn() string { return v.RoleArn }
+
+type FiledropStatus string
+
+const (
+	FiledropStatusDisabled     FiledropStatus = "Disabled"
+	FiledropStatusInitializing FiledropStatus = "Initializing"
+	FiledropStatusRunning      FiledropStatus = "Running"
+	FiledropStatusUpdating     FiledropStatus = "Updating"
+)
+
 // Folder includes the GraphQL fields of Folder requested by the fragment Folder.
 type Folder struct {
 	Id          string  `json:"id"`
@@ -6026,6 +6480,22 @@ func (v *__createDeferredForeignKeyInput) GetWorkspaceId() string { return v.Wor
 // GetKeyInput returns __createDeferredForeignKeyInput.KeyInput, and is useful for accessing the field via an interface.
 func (v *__createDeferredForeignKeyInput) GetKeyInput() DeferredForeignKeyInput { return v.KeyInput }
 
+// __createFiledropInput is used internally by genqlient
+type __createFiledropInput struct {
+	WorkspaceID  string        `json:"workspaceID"`
+	DatastreamID string        `json:"datastreamID"`
+	Input        FiledropInput `json:"input"`
+}
+
+// GetWorkspaceID returns __createFiledropInput.WorkspaceID, and is useful for accessing the field via an interface.
+func (v *__createFiledropInput) GetWorkspaceID() string { return v.WorkspaceID }
+
+// GetDatastreamID returns __createFiledropInput.DatastreamID, and is useful for accessing the field via an interface.
+func (v *__createFiledropInput) GetDatastreamID() string { return v.DatastreamID }
+
+// GetInput returns __createFiledropInput.Input, and is useful for accessing the field via an interface.
+func (v *__createFiledropInput) GetInput() FiledropInput { return v.Input }
+
 // __createFolderInput is used internally by genqlient
 type __createFolderInput struct {
 	WorkspaceId string      `json:"workspaceId"`
@@ -6266,6 +6736,14 @@ type __deleteDeferredForeignKeyInput struct {
 // GetId returns __deleteDeferredForeignKeyInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteDeferredForeignKeyInput) GetId() string { return v.Id }
 
+// __deleteFiledropInput is used internally by genqlient
+type __deleteFiledropInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteFiledropInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteFiledropInput) GetId() string { return v.Id }
+
 // __deleteFolderInput is used internally by genqlient
 type __deleteFolderInput struct {
 	Id string `json:"id"`
@@ -6485,6 +6963,14 @@ type __getDeferredForeignKeyInput struct {
 
 // GetId returns __getDeferredForeignKeyInput.Id, and is useful for accessing the field via an interface.
 func (v *__getDeferredForeignKeyInput) GetId() string { return v.Id }
+
+// __getFiledropInput is used internally by genqlient
+type __getFiledropInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getFiledropInput.Id, and is useful for accessing the field via an interface.
+func (v *__getFiledropInput) GetId() string { return v.Id }
 
 // __getFolderInput is used internally by genqlient
 type __getFolderInput struct {
@@ -6888,6 +7374,18 @@ func (v *__updateDeferredForeignKeyInput) GetId() string { return v.Id }
 // GetKeyInput returns __updateDeferredForeignKeyInput.KeyInput, and is useful for accessing the field via an interface.
 func (v *__updateDeferredForeignKeyInput) GetKeyInput() DeferredForeignKeyInput { return v.KeyInput }
 
+// __updateFiledropInput is used internally by genqlient
+type __updateFiledropInput struct {
+	Id    string        `json:"id"`
+	Input FiledropInput `json:"input"`
+}
+
+// GetId returns __updateFiledropInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateFiledropInput) GetId() string { return v.Id }
+
+// GetInput returns __updateFiledropInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateFiledropInput) GetInput() FiledropInput { return v.Input }
+
 // __updateFolderInput is used internally by genqlient
 type __updateFolderInput struct {
 	Id     string      `json:"id"`
@@ -7171,6 +7669,14 @@ type createDeferredForeignKeyResponse struct {
 func (v *createDeferredForeignKeyResponse) GetDeferredForeignKey() *DeferredForeignKey {
 	return v.DeferredForeignKey
 }
+
+// createFiledropResponse is returned by createFiledrop on success.
+type createFiledropResponse struct {
+	Filedrop *Filedrop `json:"filedrop"`
+}
+
+// GetFiledrop returns createFiledropResponse.Filedrop, and is useful for accessing the field via an interface.
+func (v *createFiledropResponse) GetFiledrop() *Filedrop { return v.Filedrop }
 
 // createFolderResponse is returned by createFolder on success.
 type createFolderResponse struct {
@@ -7475,6 +7981,14 @@ type deleteDeferredForeignKeyResponse struct {
 
 // GetResultStatus returns deleteDeferredForeignKeyResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteDeferredForeignKeyResponse) GetResultStatus() *ResultStatus { return v.ResultStatus }
+
+// deleteFiledropResponse is returned by deleteFiledrop on success.
+type deleteFiledropResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteFiledropResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteFiledropResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteFolderResponse is returned by deleteFolder on success.
 type deleteFolderResponse struct {
@@ -7794,6 +8308,14 @@ type getDeferredForeignKeyResponse struct {
 func (v *getDeferredForeignKeyResponse) GetDeferredForeignKey() *DeferredForeignKey {
 	return v.DeferredForeignKey
 }
+
+// getFiledropResponse is returned by getFiledrop on success.
+type getFiledropResponse struct {
+	Filedrop *Filedrop `json:"filedrop"`
+}
+
+// GetFiledrop returns getFiledropResponse.Filedrop, and is useful for accessing the field via an interface.
+func (v *getFiledropResponse) GetFiledrop() *Filedrop { return v.Filedrop }
 
 // getFolderResponse is returned by getFolder on success.
 type getFolderResponse struct {
@@ -8379,6 +8901,14 @@ type updateDeferredForeignKeyResponse struct {
 func (v *updateDeferredForeignKeyResponse) GetDeferredForeignKey() *DeferredForeignKey {
 	return v.DeferredForeignKey
 }
+
+// updateFiledropResponse is returned by updateFiledrop on success.
+type updateFiledropResponse struct {
+	Filedrop *Filedrop `json:"filedrop"`
+}
+
+// GetFiledrop returns updateFiledropResponse.Filedrop, and is useful for accessing the field via an interface.
+func (v *updateFiledropResponse) GetFiledrop() *Filedrop { return v.Filedrop }
 
 // updateFolderResponse is returned by updateFolder on success.
 type updateFolderResponse struct {
@@ -9007,6 +9537,71 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	var err error
 
 	var data createDeferredForeignKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceID string,
+	datastreamID string,
+	input FiledropInput,
+) (*createFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "createFiledrop",
+		Query: `
+mutation createFiledrop ($workspaceID: ObjectId!, $datastreamID: ObjectId!, $input: FiledropInput!) {
+	filedrop: createFiledrop(workspaceId: $workspaceID, datastreamID: $datastreamID, input: $input) {
+		... Filedrop
+	}
+}
+fragment Filedrop on Filedrop {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	status
+	datastreamID
+	config {
+		format {
+			type
+		}
+		provider {
+			__typename
+			... on FiledropProviderAwsConfig {
+				region
+				roleArn
+			}
+		}
+	}
+	endpoint {
+		__typename
+		... on FiledropS3Endpoint {
+			arn
+			bucket
+			prefix
+		}
+	}
+}
+`,
+		Variables: &__createFiledropInput{
+			WorkspaceID:  workspaceID,
+			DatastreamID: datastreamID,
+			Input:        input,
+		},
+	}
+	var err error
+
+	var data createFiledropResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10226,6 +10821,43 @@ fragment ResultStatus on ResultStatus {
 	var err error
 
 	var data deleteDeferredForeignKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func deleteFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteFiledrop",
+		Query: `
+mutation deleteFiledrop ($id: ObjectId!) {
+	resultStatus: deleteFiledrop(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteFiledropInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteFiledropResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -11485,6 +12117,67 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	var err error
 
 	var data getDeferredForeignKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "getFiledrop",
+		Query: `
+query getFiledrop ($id: ObjectId!) {
+	filedrop(id: $id) {
+		... Filedrop
+	}
+}
+fragment Filedrop on Filedrop {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	status
+	datastreamID
+	config {
+		format {
+			type
+		}
+		provider {
+			__typename
+			... on FiledropProviderAwsConfig {
+				region
+				roleArn
+			}
+		}
+	}
+	endpoint {
+		__typename
+		... on FiledropS3Endpoint {
+			arn
+			bucket
+			prefix
+		}
+	}
+}
+`,
+		Variables: &__getFiledropInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getFiledropResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -13909,6 +14602,69 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	var err error
 
 	var data updateDeferredForeignKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input FiledropInput,
+) (*updateFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateFiledrop",
+		Query: `
+mutation updateFiledrop ($id: ObjectId!, $input: FiledropInput!) {
+	filedrop: updateFiledrop(id: $id, input: $input) {
+		... Filedrop
+	}
+}
+fragment Filedrop on Filedrop {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	status
+	datastreamID
+	config {
+		format {
+			type
+		}
+		provider {
+			__typename
+			... on FiledropProviderAwsConfig {
+				region
+				roleArn
+			}
+		}
+	}
+	endpoint {
+		__typename
+		... on FiledropS3Endpoint {
+			arn
+			bucket
+			prefix
+		}
+	}
+}
+`,
+		Variables: &__updateFiledropInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateFiledropResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

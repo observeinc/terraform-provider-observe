@@ -34,6 +34,7 @@ jobs:
           OBSERVE_USER_EMAIL: ${{ vars.OBSERVE_USER_EMAIL }}
           OBSERVE_USER_PASSWORD: ${{ secrets.OBSERVE_USER_PASSWORD }}
           OBSERVE_WORKSPACE: ${{ vars.OBSERVE_WORKSPACE }}
+          OBSERVE_FILEDROP_ROLE_ARN: ${{ vars.OBSERVE_FILEDROP_ROLE_ARN }}
 
           TF_LOG: ${{ runner.debug == '1' && 'DEBUG' || 'ERROR' }}
       - uses: actions/upload-artifact@v3

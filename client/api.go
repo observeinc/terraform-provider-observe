@@ -1191,3 +1191,44 @@ func (c *Client) DeleteRbacStatement(ctx context.Context, id string) error {
 func (c *Client) GetRbacStatement(ctx context.Context, id string) (*meta.RbacStatement, error) {
 	return c.Meta.GetRbacStatement(ctx, id)
 }
+
+// CreateFiledrop creates a filedrop
+func (c *Client) CreateFiledrop(ctx context.Context, workspaceId string, datastreamId string, input *meta.FiledropInput) (*meta.Filedrop, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.CreateFiledrop(ctx, workspaceId, datastreamId, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateFiledrop updates a filedrop
+func (c *Client) UpdateFiledrop(ctx context.Context, id string, input *meta.FiledropInput) (*meta.Filedrop, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Meta.UpdateFiledrop(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DeleteFiledrop deletes a filedrop
+func (c *Client) DeleteFiledrop(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteFiledrop(ctx, id)
+}
+
+// GetFiledrop returns a filedrop by ID
+func (c *Client) GetFiledrop(ctx context.Context, id string) (*meta.Filedrop, error) {
+	return c.Meta.GetFiledrop(ctx, id)
+}

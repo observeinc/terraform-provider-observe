@@ -1,0 +1,59 @@
+fragment Filedrop on Filedrop {
+    id
+    name
+    iconUrl
+    description
+    workspaceId
+    status
+    datastreamID
+    config {
+        format {
+            type
+        }
+        provider {
+            ... on FiledropProviderAwsConfig {
+                region
+                roleArn
+            }
+        }
+    }
+    endpoint {
+        ... on FiledropS3Endpoint {
+            arn
+            bucket
+            prefix
+        }
+    }
+}
+
+query getFiledrop($id: ObjectId!) {
+    # @genqlient(pointer: true, flatten: true)
+    filedrop: filedrop(id: $id) {
+        ...Filedrop
+    }
+}
+
+mutation createFiledrop(
+    $workspaceID: ObjectId!,
+    $datastreamID: ObjectId!,
+    $input: FiledropInput!
+) {
+    # @genqlient(pointer: true, flatten: true)
+    filedrop: createFiledrop(workspaceId: $workspaceID, datastreamID: $datastreamID, input: $input) {
+        ...Filedrop
+    }
+}
+
+mutation updateFiledrop($id: ObjectId!, $input: FiledropInput!) {
+    # @genqlient(pointer: true, flatten: true)
+    filedrop: updateFiledrop(id: $id, input: $input) {
+        ...Filedrop
+    }
+}
+
+mutation deleteFiledrop($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    resultStatus: deleteFiledrop(id: $id) {
+        ...ResultStatus
+    }
+}

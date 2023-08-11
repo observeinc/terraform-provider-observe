@@ -85,6 +85,12 @@ var AllPollerHTTPRequestAuthSchemes = []PollerHTTPRequestAuthScheme{
 	PollerHTTPRequestAuthSchemeDigest,
 }
 
+var AllFiledropFormatTypes = []FiledropFormatType{
+	FiledropFormatTypeParquet,
+	FiledropFormatTypeCsv,
+	FiledropFormatTypeJson,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }
