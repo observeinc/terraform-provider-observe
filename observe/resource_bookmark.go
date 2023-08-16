@@ -51,6 +51,12 @@ func resourceBookmark() *schema.Resource {
 				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeDashboard),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
+			"bookmark_kind": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      describeEnums(gql.AllBookmarkKindTypes, "The kind of page you want your bookmark to take you to. If this field is not set, the bookmark will take you to an appropriate default page for the bookmark target."),
+				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
+			},
 		},
 	}
 }
@@ -60,17 +66,24 @@ func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, dia
 		name         = data.Get("name").(string)
 		groupOid, _  = oid.NewOID(data.Get("group").(string))
 		targetOid, _ = oid.NewOID(data.Get("target").(string))
+		bookmarkKind = gql.BookmarkKind(toCamel(data.Get("bookmark_kind").(string)))
 	)
 
 	input = &gql.BookmarkInput{
-		Name:     &name,
-		TargetId: &targetOid.Id,
-		GroupId:  &groupOid.Id,
+		Name:         &name,
+		TargetId:     &targetOid.Id,
+		GroupId:      &groupOid.Id,
+		BookmarkKind: &bookmarkKind,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
 		input.IconUrl = stringPtr(v.(string))
 	}
+
+	//if v, ok := data.GetOk("bookmark_kind"); ok {
+	//	bookmarkKind := gql.BookmarkKind(toCamel(v.(string)))
+	//	input.BookmarkKind = &bookmarkKind
+	//}
 
 	return input, diags
 }
@@ -103,6 +116,10 @@ func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags d
 	}
 
 	if err := data.Set("oid", b.Oid().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("bookmark_kind", toSnake(string(b.GetBookmarkKind()))); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

@@ -290,12 +290,13 @@ const (
 
 // Bookmark includes the GraphQL fields of Bookmark requested by the fragment Bookmark.
 type Bookmark struct {
-	Id           string     `json:"id"`
-	Name         string     `json:"name"`
-	IconUrl      string     `json:"iconUrl"`
-	TargetId     string     `json:"targetId"`
-	TargetIdKind ObjectKind `json:"targetIdKind"`
-	GroupId      string     `json:"groupId"`
+	Id           string       `json:"id"`
+	Name         string       `json:"name"`
+	IconUrl      string       `json:"iconUrl"`
+	TargetId     string       `json:"targetId"`
+	TargetIdKind ObjectKind   `json:"targetIdKind"`
+	GroupId      string       `json:"groupId"`
+	BookmarkKind BookmarkKind `json:"bookmarkKind"`
 }
 
 // GetId returns Bookmark.Id, and is useful for accessing the field via an interface.
@@ -315,6 +316,9 @@ func (v *Bookmark) GetTargetIdKind() ObjectKind { return v.TargetIdKind }
 
 // GetGroupId returns Bookmark.GroupId, and is useful for accessing the field via an interface.
 func (v *Bookmark) GetGroupId() string { return v.GroupId }
+
+// GetBookmarkKind returns Bookmark.BookmarkKind, and is useful for accessing the field via an interface.
+func (v *Bookmark) GetBookmarkKind() BookmarkKind { return v.BookmarkKind }
 
 // BookmarkGroup includes the GraphQL fields of BookmarkGroup requested by the fragment BookmarkGroup.
 type BookmarkGroup struct {
@@ -9964,6 +9968,7 @@ fragment Bookmark on Bookmark {
 	targetId
 	targetIdKind
 	groupId
+	bookmarkKind
 }
 `,
 		Variables: &__createOrUpdateBookmarkInput{
@@ -11466,6 +11471,7 @@ fragment Bookmark on Bookmark {
 	targetId
 	targetIdKind
 	groupId
+	bookmarkKind
 }
 `,
 		Variables: &__getBookmarkInput{
