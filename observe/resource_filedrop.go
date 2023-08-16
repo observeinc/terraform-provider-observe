@@ -34,7 +34,8 @@ func resourceFiledrop() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: descriptions.Get("filedrop", "schema", "name"),
 			},
 			"icon_url": {
@@ -155,8 +156,11 @@ func resourceFiledrop() *schema.Resource {
 
 func newFiledropConfig(data *schema.ResourceData) (input *gql.FiledropInput, diags diag.Diagnostics) {
 	input = &gql.FiledropInput{
-		Name:   stringPtr(data.Get("name").(string)),
 		Config: expandFiledropConfig(data.Get("config.0").(map[string]interface{})),
+	}
+
+	if v, ok := data.GetOk("name"); ok {
+		input.Name = stringPtr(v.(string))
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
