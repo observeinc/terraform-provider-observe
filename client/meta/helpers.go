@@ -98,7 +98,6 @@ var AllBookmarkKindTypes = []BookmarkKind{
 	BookmarkKindDashboard,
 	BookmarkKindLogexplorer,
 	BookmarkKindMetricexplorer,
-	BookmarkKind(""),
 }
 
 type resultStatusResponse interface {

@@ -66,24 +66,22 @@ func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, dia
 		name         = data.Get("name").(string)
 		groupOid, _  = oid.NewOID(data.Get("group").(string))
 		targetOid, _ = oid.NewOID(data.Get("target").(string))
-		bookmarkKind = gql.BookmarkKind(toCamel(data.Get("bookmark_kind").(string)))
 	)
 
 	input = &gql.BookmarkInput{
-		Name:         &name,
-		TargetId:     &targetOid.Id,
-		GroupId:      &groupOid.Id,
-		BookmarkKind: &bookmarkKind,
+		Name:     &name,
+		TargetId: &targetOid.Id,
+		GroupId:  &groupOid.Id,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
 		input.IconUrl = stringPtr(v.(string))
 	}
 
-	//if v, ok := data.GetOk("bookmark_kind"); ok {
-	//	bookmarkKind := gql.BookmarkKind(toCamel(v.(string)))
-	//	input.BookmarkKind = &bookmarkKind
-	//}
+	if v, ok := data.GetOk("bookmark_kind"); ok {
+		bookmarkKind := gql.BookmarkKind(toCamel(v.(string)))
+		input.BookmarkKind = &bookmarkKind
+	}
 
 	return input, diags
 }
