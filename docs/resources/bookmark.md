@@ -56,6 +56,7 @@ resource "observe_bookmark" "dashboard" {
 
 ### Optional
 
+- `bookmark_kind` (String) The kind of page you want your bookmark to take you to. If this field is not set, the bookmark will take you to an appropriate default page for the bookmark target. Accepted values: dataset, dashboard, log_explorer, metric_explorer
 - `icon_url` (String)
 
 ### Read-Only
