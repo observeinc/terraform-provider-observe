@@ -194,10 +194,10 @@ Information on the data ingestion endpoint, full URL format is:
 <scheme>://<customerId>.collect.<domain>:<port>/
 """
 type IngestInfo @goModel(model: "observe/meta/metatypes.IngestInfo") {
-  collectUrl: String!
-  domain: String!
-  scheme: String!
-  port: String!
+    collectUrl: String!
+    domain: String!
+    scheme: String!
+    port: String!
 }
 
 input CustomerSsoInput @goModel(model: "observe/meta/metatypes.CustomerSsoInput") {
@@ -347,35 +347,35 @@ interface WorkspaceObject @goModel(model: "observe/meta/metatypes.WorkspaceObjec
 }
 
 enum BookmarkKind @goModel(model: "observe/meta/metatypes.BookmarkKind") {
-  Dataset
-  Worksheet
-  BookmarkGroup
-  Monitor
-  Resource
-  Dashboard
-  LogExplorer
-  MetricExplorer
+    Dataset
+    Worksheet
+    BookmarkGroup
+    Monitor
+    Resource
+    Dashboard
+    LogExplorer
+    MetricExplorer
 }
 
 
 type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
-  id: ObjectId!
-  name: String!
-  description: String!
-  iconUrl: String!
-  """
-  when storing a bookmark to a thing with ?s=1234-foobar then the 1234-foobar bit is here
-  """
-  urlStateId: String
-  targetId: ObjectId!
-  targetIdKind: ObjectKind!
-  targetResourceId: ResourceId
-  groupId: ObjectId!
-  customerId: CustomerId!
-  userId: UserId!
-  userInfo: UserInfo! @goField(forceResolver:true)
-  managedById: ObjectId
-  bookmarkKind: BookmarkKind!
+    id: ObjectId!
+    name: String!
+    description: String!
+    iconUrl: String!
+    """
+    when storing a bookmark to a thing with ?s=1234-foobar then the 1234-foobar bit is here
+    """
+    urlStateId: String
+    targetId: ObjectId!
+    targetIdKind: ObjectKind!
+    targetResourceId: ResourceId
+    groupId: ObjectId!
+    customerId: CustomerId!
+    userId: UserId!
+    userInfo: UserInfo! @goField(forceResolver:true)
+    managedById: ObjectId
+    bookmarkKind: BookmarkKind!
 }
 
 """
@@ -383,49 +383,49 @@ Bookmarks have their own identity, but they don't have "last changed by"
 or "created by" timestamps / user auditing, as they are more lightweight.
 """
 input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
-  name: String
-  description: String
-  iconUrl: String
-  urlStateId: String
-  targetId: ObjectId
-  targetResourceId: ResourceIdInput
-  groupId: ObjectId
-  managedById: ObjectId
-  workspaceId: ObjectId
-  bookmarkKind: BookmarkKind
+    name: String
+    description: String
+    iconUrl: String
+    urlStateId: String
+    targetId: ObjectId
+    targetResourceId: ResourceIdInput
+    groupId: ObjectId
+    managedById: ObjectId
+    workspaceId: ObjectId
+    bookmarkKind: BookmarkKind
 }
 
 type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {
-  id: ObjectId!
-  name: String!
-  description: String!
-  isHome: Boolean!
-  iconUrl: String!
-  workspaceId: ObjectId!
-  customerId: CustomerId!
-  userId: UserId!
-  userInfo: UserInfo! @goField(forceResolver:true)
-  presentation: BookmarkGroupPresentation!
-  bookmarks: [Bookmark!] @goField(forceResolver:true)
-  managedBy: WorkspaceObject @goField(forceResolver:true)
-  managedById: ObjectId
+    id: ObjectId!
+    name: String!
+    description: String!
+    isHome: Boolean!
+    iconUrl: String!
+    workspaceId: ObjectId!
+    customerId: CustomerId!
+    userId: UserId!
+    userInfo: UserInfo! @goField(forceResolver:true)
+    presentation: BookmarkGroupPresentation!
+    bookmarks: [Bookmark!] @goField(forceResolver:true)
+    managedBy: WorkspaceObject @goField(forceResolver:true)
+    managedById: ObjectId
 }
 
 input BookmarkGroupInput @goModel(model: "observe/meta/metatypes.BookmarkGroupInput") {
-  name: String
-  description: String
-  isHome: Boolean
-  iconUrl: String
-  workspaceId: ObjectId
-  presentation: BookmarkGroupPresentation
-  managedById: ObjectId
+    name: String
+    description: String
+    isHome: Boolean
+    iconUrl: String
+    workspaceId: ObjectId
+    presentation: BookmarkGroupPresentation
+    managedById: ObjectId
 }
 
 enum BookmarkGroupPresentation @goModel(model: "observe/meta/metatypes.BookmarkGroupPresentation") {
-  PerCustomerWorkspace
-  PerUserWorkspace
-  PerUser
-  Hidden
+    PerCustomerWorkspace
+    PerUserWorkspace
+    PerUser
+    Hidden
 }
 
 """

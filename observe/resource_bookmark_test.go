@@ -126,3 +126,55 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveBookmarkKind(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+				  group  = observe_bookmark_group.a.oid
+				  target = observe_datastream.test.dataset
+				  name   = "Test"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", ""),
+				),
+			},
+			{
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+				  group         = observe_bookmark_group.a.oid
+				  target        = observe_datastream.test.dataset
+				  name          = "Test"
+				  bookmark_kind = "log_explorer"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", "log_explorer"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+				  group         = observe_bookmark_group.a.oid
+				  target        = observe_datastream.test.dataset
+				  name          = "Test"
+				  bookmark_kind = "metric_explorer"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", "metric_explorer"),
+				),
+			},
+		},
+	})
+}
