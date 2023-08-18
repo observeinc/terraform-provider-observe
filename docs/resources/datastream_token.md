@@ -42,4 +42,12 @@ resource "observe_datastream_token" "example" {
 - `id` (String) The ID of this resource.
 - `oid` (String) The Observe ID for datastream token.
 - `secret` (String, Sensitive)
+## Import
+Import is supported using the following syntax:
+```shell
+# Set SECRET to import with the token secret
+SECRET=the-token-secret terraform import observe_datastream_token.example 1414010
 
+# Otherwise, because token secrets cannot be read from the API, it will be null
+terraform import observe_datastream_token.example 1414010
+```
