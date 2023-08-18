@@ -16,13 +16,13 @@ A Filedrop loads files from a cloud object storage service (currently S3) direct
 
 - `config` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--config))
 - `datastream` (String) The OID of the datastream that the filedrop loads data into.
-- `name` (String) Filedrop name. Must be unique within workspace.
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `description` (String) A brief description of the filedrop.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+- `name` (String) Filedrop name. Must be unique within workspace.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

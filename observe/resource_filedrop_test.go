@@ -26,6 +26,34 @@ func TestAccObserveFiledrop(t *testing.T) {
 				Config: fmt.Sprintf(filedropConfigPreamble+`
 				resource "observe_filedrop" "example" {
 					workspace  = data.observe_workspace.default.oid
+					datastream = observe_datastream.test.oid
+					config {
+						format {
+							type = "json"
+						}
+						provider {
+							aws {
+								region  = "us-west-2"
+								role_arn = "%[2]s"
+							}
+						}
+					}
+				}`, randomPrefix, filedropRoleArn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_filedrop.example", "name"),
+					resource.TestCheckResourceAttrSet("observe_filedrop.example", "status"),
+					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.format.0.type", "json"),
+					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.provider.0.aws.0.region", "us-west-2"),
+					resource.TestCheckResourceAttr("observe_filedrop.example", "config.0.provider.0.aws.0.role_arn", filedropRoleArn),
+					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.arn"),
+					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.bucket"),
+					resource.TestCheckResourceAttrSet("observe_filedrop.example", "endpoint.0.s3.0.prefix"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(filedropConfigPreamble+`
+				resource "observe_filedrop" "example" {
+					workspace  = data.observe_workspace.default.oid
 					name       = "%[1]s"
 					datastream = observe_datastream.test.oid
 					config {
