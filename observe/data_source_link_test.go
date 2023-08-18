@@ -27,11 +27,9 @@ func TestAccObserveSourceLink(t *testing.T) {
 				}
 
 				data "observe_link" "check" {
-					source     = observe_dataset.a.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
-					// wait for foreign key to be set
-					depends_on = [observe_link.example]
+					source = observe_link.example.source
+					target = observe_link.example.target
+					fields = ["key"]
 				}
 				`, randomPrefix),
 			},

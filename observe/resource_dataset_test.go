@@ -543,9 +543,8 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.default.oid
-					name 	     = observe_dataset.first.name
-					depends_on = [observe_dataset.first]
+					workspace = data.observe_workspace.default.oid
+					name 	    = observe_dataset.first.name
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
@@ -574,9 +573,8 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.default.oid
-					name 	     = observe_dataset.first.name
-					depends_on = [observe_dataset.first]
+					workspace = data.observe_workspace.default.oid
+					name 	    = observe_dataset.first.name
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
@@ -604,9 +602,8 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 				}
 
 				data "observe_dataset" "first" {
-					workspace  = data.observe_workspace.default.oid
-					name 	   = observe_dataset.first.name
-					depends_on = [observe_dataset.first]
+					workspace = data.observe_workspace.default.oid
+					name 	    = observe_dataset.first.name
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),

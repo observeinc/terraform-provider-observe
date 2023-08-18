@@ -42,9 +42,7 @@ func TestAccObserveDataApp(t *testing.T) {
 
 				data "observe_app" "example" {
 				  folder = observe_folder.example.oid
-				  name   = "OpenWeather"
-
-				  depends_on = [observe_app.example]
+				  name   = observe_app.example.name
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),

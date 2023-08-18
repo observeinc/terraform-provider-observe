@@ -66,7 +66,6 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 					data "observe_dataset" "lookup_by_name" {
 						workspace  = data.observe_workspace.default.oid
 						name       = observe_dataset.b.name
-						depends_on = [observe_dataset.b]
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -95,8 +94,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 
 						data "observe_dataset" "lookup_by_id" {
-							id         = observe_dataset.b.id
-							depends_on = [observe_dataset.b]
+							id = observe_dataset.b.id
 						}
 					`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

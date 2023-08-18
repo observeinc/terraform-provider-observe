@@ -130,9 +130,8 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-					    depends_on = [observe_monitor.first]
-						workspace  = data.observe_workspace.default.oid
-						name       = "%[1]s"
+						workspace = data.observe_workspace.default.oid
+						name      = observe_monitor.first.name
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -168,9 +167,8 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 					}
 
 					data "observe_monitor" "lookup" {
-					    depends_on = [observe_monitor.first]
-						workspace  = data.observe_workspace.default.oid
-						name       = "%[1]s"
+						workspace = data.observe_workspace.default.oid
+						name      = observe_monitor.first.name
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

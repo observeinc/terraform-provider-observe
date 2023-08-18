@@ -134,10 +134,9 @@ func TestAccOBS2432(t *testing.T) {
 				}
 
 				data "observe_link" "verify_example" {
-					source     = observe_dataset.a.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
-					depends_on = [observe_link.example]
+					source = observe_link.example.source
+					target = observe_link.example.target
+					fields = observe_link.example.fields
 				}
 				`, randomPrefix),
 			},
@@ -152,30 +151,28 @@ func TestAccOBS2432(t *testing.T) {
 				}
 
 				data "observe_link" "check_example" {
-					source     = observe_dataset.a.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
-					depends_on = [observe_link.example]
+					source = observe_link.example.source
+					target = observe_link.example.target
+					fields = observe_link.example.fields
 				}
 
 				resource "observe_dataset" "c" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%[1]s-C"
 
-					inputs = { "a" = observe_dataset.a.oid }
+					inputs = { "a" = observe_link.example.source }
 
 					stage {
 						pipeline = <<-EOF
 							filter true
 						EOF
 					}
-					depends_on = [observe_link.example]
 				}
 
 				data "observe_link" "check_propagated" {
-					source     = observe_dataset.c.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
+					source = observe_dataset.c.oid
+					target = observe_dataset.b.oid
+					fields = observe_link.example.fields
 				}
 				`, randomPrefix),
 			},
@@ -209,17 +206,15 @@ func TestAccOBS2110(t *testing.T) {
 				}
 
 				data "observe_link" "verify_first" {
-					source     = observe_dataset.a.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
-					depends_on = [observe_link.first]
+					source = observe_link.first.source
+					target = observe_link.first.target
+					fields = observe_link.first.fields
 				}
 
 				data "observe_link" "verify_second" {
-					source     = observe_dataset.a.oid
-					target     = observe_dataset.b.oid
-					fields     = ["key"]
-					depends_on = [observe_link.second]
+					source = observe_link.second.source
+					target = observe_link.second.target
+					fields = observe_link.second.fields
 				}
 				`, randomPrefix),
 				ExpectNonEmptyPlan: false,
