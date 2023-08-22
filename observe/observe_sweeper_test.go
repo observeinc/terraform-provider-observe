@@ -687,10 +687,8 @@ func filedropSweeperFunc(pattern string) error {
 		query filedrops($workspaceId: ObjectId!, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
 			searchFiledrop(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
 				results {
-					filedrop {
-						id
-						name
-					}
+					id
+					name
 				}
 			}
 		}`, map[string]interface{}{
