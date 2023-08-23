@@ -58,6 +58,7 @@ func init() {
 		Dependencies: []string{
 			"observe_poller",
 			"observe_app",
+			"observe_filedrop",
 		},
 	})
 	resource.AddTestSweepers("observe_folder", &resource.Sweeper{
@@ -94,6 +95,10 @@ func init() {
 		Dependencies: []string{
 			"observe_rbac_statement",
 		},
+	})
+	resource.AddTestSweepers("observe_filedrop", &resource.Sweeper{
+		Name: "observe_filedrop",
+		F:    filedropSweeperFunc,
 	})
 }
 
@@ -656,6 +661,55 @@ func rbacStatementSweeperFunc(pattern string) error {
 		if client.MatchName(description) {
 			log.Printf("[WARN] Deleting rbac statement [id=%s]\n", id)
 			if err := client.DeleteRbacStatement(ctx, id); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func filedropSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(ctx, `
+		query filedrops($workspaceId: ObjectId!) {
+			searchFiledrop(workspaceId: $workspaceId) {
+				results {
+					id
+					name
+				}
+			}
+		}`, map[string]interface{}{
+			"workspaceId": workspace.Id,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to lookup filedrops: %w", err)
+		}
+
+		result = result["searchFiledrop"].(map[string]interface{})
+
+		for _, i := range result["results"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+
+			log.Printf("[WARN] Deleting filedrop %s [id=%s]\n", name, id)
+			if err := client.DeleteFiledrop(ctx, id); err != nil {
 				return err
 			}
 		}
