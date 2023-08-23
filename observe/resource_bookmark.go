@@ -54,7 +54,7 @@ func resourceBookmark() *schema.Resource {
 			"bookmark_kind": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Description:      describeEnums(gql.AllBookmarkKindTypes, "The kind of page you want your bookmark to take you to. If this field is not set, the bookmark will take you to an appropriate default page for the bookmark target."),
+				Description:      describeEnums(gql.AllBookmarkKindTypes, "The target page for your bookmark. An appropriate default will be used if not set."),
 				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
 			},
 		},
