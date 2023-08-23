@@ -684,18 +684,15 @@ func filedropSweeperFunc(pattern string) error {
 
 	for _, workspace := range workspaces {
 		result, err := client.Meta.Run(ctx, `
-		query filedrops($workspaceId: ObjectId!, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
-			searchFiledrop(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+		query filedrops($workspaceId: ObjectId!) {
+			searchFiledrop(workspaceId: $workspaceId) {
 				results {
 					id
 					name
 				}
 			}
 		}`, map[string]interface{}{
-			"workspaceId":   workspace.Id,
-			"folderId":      nil,
-			"nameExact":     nil,
-			"nameSubstring": nil,
+			"workspaceId": workspace.Id,
 		})
 
 		if err != nil {
