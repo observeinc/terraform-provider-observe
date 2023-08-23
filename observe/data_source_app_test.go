@@ -11,20 +11,23 @@ import (
 func TestAccObserveDataApp(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
-	// App tests must not be run in parallel because a given app (by module_id) can only be installed once per workspace
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(`
+				resource "observe_workspace" "example" {
+					name = "%[1]s"
+				}
+
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
+				  workspace = observe_workspace.example.oid
 				  name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
+				  workspace = observe_workspace.example.oid
 				  name      = "%[1]s"
 				}
 
@@ -50,14 +53,18 @@ func TestAccObserveDataApp(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+`
+				Config: fmt.Sprintf(`
+				resource "observe_workspace" "example" {
+					name = "%[1]s"
+				}
+
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
+				  workspace = observe_workspace.example.oid
 				  name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
+				  workspace = observe_workspace.example.oid
 				  name      = "%[1]s"
 				}
 
