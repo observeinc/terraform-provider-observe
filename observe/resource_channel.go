@@ -13,11 +13,12 @@ import (
 
 func resourceChannel() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a channel, which specifies a set of monitors for which notifications will be delivered.",
-		CreateContext: resourceChannelCreate,
-		ReadContext:   resourceChannelRead,
-		UpdateContext: resourceChannelUpdate,
-		DeleteContext: resourceChannelDelete,
+		Description:        "Manages a channel, which specifies a set of monitors for which notifications will be delivered.",
+		DeprecationMessage: "Channels are deprecated in favor of attaching Monitor Actions to Monitors. See `observe_monitor_action_attachment`.",
+		CreateContext:      resourceChannelCreate,
+		ReadContext:        resourceChannelRead,
+		UpdateContext:      resourceChannelUpdate,
+		DeleteContext:      resourceChannelDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
