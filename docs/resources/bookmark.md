@@ -56,6 +56,7 @@ resource "observe_bookmark" "dashboard" {
 
 ### Optional
 
+- `bookmark_kind` (String) The target page for your bookmark. An appropriate default will be used if not set. Accepted values: dataset, dashboard, log_explorer, metric_explorer
 - `icon_url` (String)
 
 ### Read-Only

@@ -31,6 +31,7 @@ const (
 	TypeDataset                 Type = "dataset"
 	TypeDatastream              Type = "datastream"
 	TypeDatastreamToken         Type = "datastreamtoken"
+	TypeFiledrop                Type = "filedrop"
 	TypeFolder                  Type = "folder"
 	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
 	TypeLink                    Type = "link"

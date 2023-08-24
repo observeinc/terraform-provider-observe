@@ -5,6 +5,7 @@ fragment Bookmark on Bookmark {
 	targetId
 	targetIdKind
 	groupId
+	bookmarkKind
 }
 
 mutation createOrUpdateBookmark(

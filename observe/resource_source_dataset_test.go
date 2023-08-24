@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,6 +13,13 @@ import (
 func TestAccObserveSourceDatasetResource(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
+
+	if os.Getenv("CI") != "true" {
+		// The schemas "EXTERNAL" and "EXTERNAL2" were manually created for the provider CI Observe account.
+		// While the test still passes even if the schema does not exist, it probably shouldn't, since Snowflake errors on the underlying commands.
+		// The tables are entirely non-existent which is likewise not validated.
+		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's Snowflake database.")
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

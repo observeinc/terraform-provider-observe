@@ -94,7 +94,10 @@ testacc:
 		--junitfile test-report.xml \
 		--jsonfile test-output.json \
 		--rerun-fails=3 \
-		-- -parallel=5 $(TESTARGS)
+		-- \
+		-parallel=5 \
+		-timeout 30m \
+		$(TESTARGS)
 vet:
 	@echo "go vet ."
 	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \

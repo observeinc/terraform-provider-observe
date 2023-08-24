@@ -23,9 +23,8 @@ func TestAccObserveSourceFolder(t *testing.T) {
 					}
 
 					data "observe_folder" "lookup_by_name" {
-						workspace  = data.observe_workspace.default.oid
-						name       = "%[1]s"
-						depends_on = [observe_folder.a]
+						workspace = data.observe_workspace.default.oid
+						name      = observe_folder.a.name
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

@@ -23,9 +23,8 @@ func TestAccObserveSourceDatastream(t *testing.T) {
 					}
 
 					data "observe_datastream" "lookup_by_name" {
-						workspace  = data.observe_workspace.default.oid
-						name       = observe_datastream.a.name
-						depends_on = [observe_datastream.a]
+						workspace = data.observe_workspace.default.oid
+						name      = observe_datastream.a.name
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -40,9 +39,8 @@ func TestAccObserveSourceDatastream(t *testing.T) {
 						}
 
 						data "observe_datastream" "lookup_by_id" {
-							workspace  = data.observe_workspace.default.oid
-							id         = observe_datastream.a.id
-							depends_on = [observe_datastream.a]
+							workspace = data.observe_workspace.default.oid
+							id        = observe_datastream.a.id
 						}
 					`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
