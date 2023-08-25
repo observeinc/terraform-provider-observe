@@ -283,7 +283,13 @@ func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingRecordTar
 }
 
 func primitiveValueDecode(data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
-	valueBool, hasBool := data.GetOk("value_bool")
+	// value_bool must be read with GetOkExists because it is both optional and has no default
+	// GetOk returns !ok for the zero value of the type
+	// GetOkExists, which is deprecated, is the only way to handle this schema as declared
+	// Fixing this requires refactoring the schema (breaking). A more appropriate way to handle this API would be to have `type` and `value` fields, both strings.
+	// The `value` would be a JSON-encoded string of the appropriate type.
+	valueBool, hasBool := data.GetOkExists("value_bool")
+
 	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
 	valueInt, hasInt := data.GetOk("value_int64")
 	valueFloat, hasFloat := data.GetOk("value_float64")
