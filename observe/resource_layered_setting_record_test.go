@@ -16,30 +16,42 @@ func TestAccLayeredSettingRecord(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
-				resource "observe_layered_setting_record" "datasource" {
+				resource "observe_layered_setting_record" "datasource_int64" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%[1]s-dataset"
+					name        = "%[1]s-dataset-int64"
 					setting     = "Scanner.powerLevel"
 					value_int64 = 9009
 					target      = observe_datastream.test.dataset
 				}
 				
-				resource "observe_layered_setting_record" "datastream" {
+				resource "observe_layered_setting_record" "datastream_int64" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%[1]s-datastream"
+					name        = "%[1]s-datastream-int64"
 					setting     = "Scanner.powerLevel"
 					value_int64 = 9009
 					target      = observe_datastream.test.oid
 				}
+
+				resource "observe_layered_setting_record" "datasource_bool" {
+					workspace   = data.observe_workspace.default.oid
+					name        = "%[1]s-dataset-bool"
+					setting     = "Dataset.periodicReclusteringDisabled"
+					value_bool  = false
+					target      = observe_datastream.test.dataset
+				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource", "name", randomPrefix+"-dataset"),
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource", "value_int64", "9009"),
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource", "setting", "Scanner.powerLevel"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_int64", "name", randomPrefix+"-dataset-int64"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_int64", "value_int64", "9009"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_int64", "setting", "Scanner.powerLevel"),
 
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream", "name", randomPrefix+"-datastream"),
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream", "value_int64", "9009"),
-					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream", "setting", "Scanner.powerLevel"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream_int64", "name", randomPrefix+"-datastream-int64"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream_int64", "value_int64", "9009"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datastream_int64", "setting", "Scanner.powerLevel"),
+
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "name", randomPrefix+"-dataset-bool"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "value_bool", "false"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "setting", "Dataset.periodicReclusteringDisabled"),
 				),
 			},
 		},
