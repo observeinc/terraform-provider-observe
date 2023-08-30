@@ -801,6 +801,48 @@ func (v *ColumnOrderInput) GetAscending() *bool { return v.Ascending }
 // GetNullOrdering returns ColumnOrderInput.NullOrdering, and is useful for accessing the field via an interface.
 func (v *ColumnOrderInput) GetNullOrdering() *NullOrdering { return v.NullOrdering }
 
+type ColumnStatsInput struct {
+	// Something which is a string, or which is inferred to be an ID, will
+	// return a list of the top K values + counts
+	TopKCount *types.Int64Scalar `json:"topKCount"`
+	// Whether to generate compound TopK for link columns. Note that this will
+	// disable the normal TopK results for link columns.
+	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks"`
+	// Maximum number of histograms to return.
+	//
+	// Integer, float, duration columns return histograms.
+	//
+	// Set to 0 to disable histograms.
+	// Set to <0 for an unlimited number of histograms.
+	// Set to null to let the backend decide a suitable limit.
+	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms"`
+	// Number of buckets per histogram.
+	//
+	// Set to 0 to disable histograms.
+	// Set to null to let the backend decide.
+	HistogramBucketCount *types.Int64Scalar `json:"histogramBucketCount"`
+	// Whether to compute distinct value count per column. This applies to string
+	// column or column inferred to be an ID. null or false would disable it.
+	NeedDistinctCount *bool `json:"needDistinctCount"`
+}
+
+// GetTopKCount returns ColumnStatsInput.TopKCount, and is useful for accessing the field via an interface.
+func (v *ColumnStatsInput) GetTopKCount() *types.Int64Scalar { return v.TopKCount }
+
+// GetUseCompoundTopKForLinks returns ColumnStatsInput.UseCompoundTopKForLinks, and is useful for accessing the field via an interface.
+func (v *ColumnStatsInput) GetUseCompoundTopKForLinks() *bool { return v.UseCompoundTopKForLinks }
+
+// GetMaxNbHistograms returns ColumnStatsInput.MaxNbHistograms, and is useful for accessing the field via an interface.
+func (v *ColumnStatsInput) GetMaxNbHistograms() *types.Int64Scalar { return v.MaxNbHistograms }
+
+// GetHistogramBucketCount returns ColumnStatsInput.HistogramBucketCount, and is useful for accessing the field via an interface.
+func (v *ColumnStatsInput) GetHistogramBucketCount() *types.Int64Scalar {
+	return v.HistogramBucketCount
+}
+
+// GetNeedDistinctCount returns ColumnStatsInput.NeedDistinctCount, and is useful for accessing the field via an interface.
+func (v *ColumnStatsInput) GetNeedDistinctCount() *bool { return v.NeedDistinctCount }
+
 type CompareFunction string
 
 const (
@@ -810,12 +852,8 @@ const (
 	CompareFunctionGreaterorequal CompareFunction = "GreaterOrEqual"
 	CompareFunctionLess           CompareFunction = "Less"
 	CompareFunctionLessorequal    CompareFunction = "LessOrEqual"
-	// lower value inclusive, upper value exclusive
-	CompareFunctionIninterval CompareFunction = "InInterval"
-	// lower value exclusive, upper value inclusive
-	CompareFunctionNotininterval CompareFunction = "NotInInterval"
-	CompareFunctionIsnull        CompareFunction = "IsNull"
-	CompareFunctionIsnotnull     CompareFunction = "IsNotNull"
+	CompareFunctionIsnull         CompareFunction = "IsNull"
+	CompareFunctionIsnotnull      CompareFunction = "IsNotNull"
 )
 
 type CursorCacheMode string
@@ -1406,6 +1444,33 @@ func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
 // GetManagedById returns DatasetInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
 
+type DatasetLinkSchemaInput struct {
+	TargetDataset    *types.Int64Scalar `json:"targetDataset"`
+	TargetStageLabel *string            `json:"targetStageLabel"`
+	TargetLabelField *string            `json:"targetLabelField"`
+	Label            string             `json:"label"`
+	SrcFields        []string           `json:"srcFields"`
+	DstFields        []string           `json:"dstFields"`
+}
+
+// GetTargetDataset returns DatasetLinkSchemaInput.TargetDataset, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
+
+// GetTargetStageLabel returns DatasetLinkSchemaInput.TargetStageLabel, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetTargetStageLabel() *string { return v.TargetStageLabel }
+
+// GetTargetLabelField returns DatasetLinkSchemaInput.TargetLabelField, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetTargetLabelField() *string { return v.TargetLabelField }
+
+// GetLabel returns DatasetLinkSchemaInput.Label, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetLabel() string { return v.Label }
+
+// GetSrcFields returns DatasetLinkSchemaInput.SrcFields, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetSrcFields() []string { return v.SrcFields }
+
+// GetDstFields returns DatasetLinkSchemaInput.DstFields, and is useful for accessing the field via an interface.
+func (v *DatasetLinkSchemaInput) GetDstFields() []string { return v.DstFields }
+
 // DatasetSourceTableSourceTableDefinition includes the requested fields of the GraphQL type SourceTableDefinition.
 type DatasetSourceTableSourceTableDefinition struct {
 	Schema                string                                                                            `json:"schema"`
@@ -1585,8 +1650,9 @@ func (v *DatasetTypedefDefObjectTypedefFieldsObjectFieldDefTypeObjectFieldType) 
 }
 
 type DatasetTypedefInput struct {
-	Anykey *bool                  `json:"anykey"`
-	Fields []DatasetFieldDefInput `json:"fields"`
+	Anykey   *bool                   `json:"anykey"`
+	Fields   []DatasetFieldDefInput  `json:"fields"`
+	LinkDesc *DatasetLinkSchemaInput `json:"linkDesc"`
 }
 
 // GetAnykey returns DatasetTypedefInput.Anykey, and is useful for accessing the field via an interface.
@@ -1594,6 +1660,9 @@ func (v *DatasetTypedefInput) GetAnykey() *bool { return v.Anykey }
 
 // GetFields returns DatasetTypedefInput.Fields, and is useful for accessing the field via an interface.
 func (v *DatasetTypedefInput) GetFields() []DatasetFieldDefInput { return v.Fields }
+
+// GetLinkDesc returns DatasetTypedefInput.LinkDesc, and is useful for accessing the field via an interface.
+func (v *DatasetTypedefInput) GetLinkDesc() *DatasetLinkSchemaInput { return v.LinkDesc }
 
 // Datastream includes the GraphQL fields of Datastream requested by the fragment Datastream.
 type Datastream struct {
@@ -1737,7 +1806,7 @@ type DefaultStatsInput struct {
 	// Set to 0 to disable sparklines.
 	// Set to null to let the backend decide.
 	SparklineBucketCount *types.Int64Scalar `json:"sparklineBucketCount"`
-	// The function used to summarize buckets can be chosen; default is avg()
+	// The function used to summarize buckets can be chosen; default is count()
 	SparklineFunction *string `json:"sparklineFunction"`
 	// If timestamp columns are included, they will be returned as
 	// sparkline(count) (notwithstanding any sparklineFunction for float values)
@@ -1920,6 +1989,11 @@ type EmailActionInput struct {
 	SubjectTemplate *string              `json:"subjectTemplate"`
 	BodyTemplate    *string              `json:"bodyTemplate"`
 	IsHtml          *bool                `json:"isHtml"`
+	// Fragments are fields that users can edit on simple mode.
+	// For example,
+	// fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
+	// is available in all other templates as {{fragments.title}}
+	Fragments *types.JsonObject `json:"fragments"`
 }
 
 // GetTargetUsers returns EmailActionInput.TargetUsers, and is useful for accessing the field via an interface.
@@ -1936,6 +2010,9 @@ func (v *EmailActionInput) GetBodyTemplate() *string { return v.BodyTemplate }
 
 // GetIsHtml returns EmailActionInput.IsHtml, and is useful for accessing the field via an interface.
 func (v *EmailActionInput) GetIsHtml() *bool { return v.IsHtml }
+
+// GetFragments returns EmailActionInput.Fragments, and is useful for accessing the field via an interface.
+func (v *EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
 
 type FacetFunction string
 
@@ -2356,6 +2433,7 @@ const (
 )
 
 type FiledropInput struct {
+	Disabled    *bool               `json:"disabled"`
 	Config      FiledropConfigInput `json:"config"`
 	Name        *string             `json:"name"`
 	IconUrl     *string             `json:"iconUrl"`
@@ -2363,6 +2441,9 @@ type FiledropInput struct {
 	ManagedById *string             `json:"managedById"`
 	FolderId    *string             `json:"folderId"`
 }
+
+// GetDisabled returns FiledropInput.Disabled, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetDisabled() *bool { return v.Disabled }
 
 // GetConfig returns FiledropInput.Config, and is useful for accessing the field via an interface.
 func (v *FiledropInput) GetConfig() FiledropConfigInput { return v.Config }
@@ -5663,6 +5744,8 @@ const (
 	ResultKindResultkindschema          ResultKind = "ResultKindSchema"
 	ResultKindResultkinddata            ResultKind = "ResultKindData"
 	ResultKindResultkindstats           ResultKind = "ResultKindStats"
+	ResultKindResultkindcolumnstats     ResultKind = "ResultKindColumnStats"
+	ResultKindResultkindvolumestats     ResultKind = "ResultKindVolumeStats"
 	ResultKindResultkindsuppress        ResultKind = "ResultKindSuppress"
 	ResultKindResultkindprogress        ResultKind = "ResultKindProgress"
 	ResultKindResultkindmetricdiscovery ResultKind = "ResultKindMetricDiscovery"
@@ -5831,12 +5914,8 @@ func (v *SourceTableFieldDefinitionInput) GetName() string { return v.Name }
 func (v *SourceTableFieldDefinitionInput) GetSqlType() string { return v.SqlType }
 
 type StageInput struct {
-	// we need the label to be able to reference this stage in later Stages' InputDefinitionInput
-	// XXX: Obsolete, replaced by "stageId" below. Ignored if "stageId" is set.
-	Label   *string `json:"label"`
-	StageID *string `json:"stageID"`
 	// unique ID that other stages can reference in their InputDefinitionInput
-	StageId *string `json:"stageId"`
+	StageId string `json:"stageId"`
 	// Which inputs are defined for this stage?
 	Inputs []InputDefinitionInput `json:"inputs"`
 	// What is the processing?
@@ -5850,6 +5929,8 @@ type StageInput struct {
 	Pagination *PaginationInput `json:"pagination"`
 	// If set, run this stage with progressive execution
 	Progressive *bool `json:"progressive"`
+	// If set and progressive is also set, we will try to run the query incrementally
+	Incremental *bool `json:"incremental"`
 	// If set, backend will try to run this stage with best effort binding mode
 	BestEffortBinding *bool `json:"bestEffortBinding"`
 	// A location within the pipeline. Used to support "run query up to cursor" type functionality, where this location
@@ -5859,14 +5940,8 @@ type StageInput struct {
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
 
-// GetLabel returns StageInput.Label, and is useful for accessing the field via an interface.
-func (v *StageInput) GetLabel() *string { return v.Label }
-
-// GetStageID returns StageInput.StageID, and is useful for accessing the field via an interface.
-func (v *StageInput) GetStageID() *string { return v.StageID }
-
 // GetStageId returns StageInput.StageId, and is useful for accessing the field via an interface.
-func (v *StageInput) GetStageId() *string { return v.StageId }
+func (v *StageInput) GetStageId() string { return v.StageId }
 
 // GetInputs returns StageInput.Inputs, and is useful for accessing the field via an interface.
 func (v *StageInput) GetInputs() []InputDefinitionInput { return v.Inputs }
@@ -5885,6 +5960,9 @@ func (v *StageInput) GetPagination() *PaginationInput { return v.Pagination }
 
 // GetProgressive returns StageInput.Progressive, and is useful for accessing the field via an interface.
 func (v *StageInput) GetProgressive() *bool { return v.Progressive }
+
+// GetIncremental returns StageInput.Incremental, and is useful for accessing the field via an interface.
+func (v *StageInput) GetIncremental() *bool { return v.Incremental }
 
 // GetBestEffortBinding returns StageInput.BestEffortBinding, and is useful for accessing the field via an interface.
 func (v *StageInput) GetBestEffortBinding() *bool { return v.BestEffortBinding }
@@ -5906,6 +5984,10 @@ type StagePresentationInput struct {
 	// defaultStats, if specified, calculates stats for any column that matches a
 	// predetermined set of rules, and returns those stats.
 	DefaultStats *DefaultStatsInput `json:"defaultStats"`
+	// columnStats configuration
+	ColumnStats *ColumnStatsInput `json:"columnStats"`
+	// volumeStats configuration
+	VolumeStats *VolumeStatsInput `json:"volumeStats"`
 	// orderColumns determines order of returned data rows
 	OrderColumns []ColumnOrderInput `json:"orderColumns"`
 	// when linkify is true, the server will resolve all declared foreign keys
@@ -5927,7 +6009,7 @@ type StagePresentationInput struct {
 	// all the fields may be set at the same time, data may be split across
 	// multiple separate TaskResult structs in the result stream. However, in
 	// aggregate, all the data requested in resultKinds will be responded.
-	ResultKinds []*ResultKind `json:"resultKinds"`
+	ResultKinds []ResultKind `json:"resultKinds"`
 	// When wantBuckets is set, time-binning verbs without explicit resolution specification
 	// will automatically find a human-friendly resolution and generate the wanted number of
 	// buckets. When exact number of buckets is not possible, more buckets will be generated.
@@ -5944,6 +6026,12 @@ func (v *StagePresentationInput) GetLimit() *types.Int64Scalar { return v.Limit 
 // GetDefaultStats returns StagePresentationInput.DefaultStats, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetDefaultStats() *DefaultStatsInput { return v.DefaultStats }
 
+// GetColumnStats returns StagePresentationInput.ColumnStats, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetColumnStats() *ColumnStatsInput { return v.ColumnStats }
+
+// GetVolumeStats returns StagePresentationInput.VolumeStats, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetVolumeStats() *VolumeStatsInput { return v.VolumeStats }
+
 // GetOrderColumns returns StagePresentationInput.OrderColumns, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetOrderColumns() []ColumnOrderInput { return v.OrderColumns }
 
@@ -5957,7 +6045,7 @@ func (v *StagePresentationInput) GetRollup() *RollupOptionInput { return v.Rollu
 func (v *StagePresentationInput) GetRollupMode() *RollupMode { return v.RollupMode }
 
 // GetResultKinds returns StagePresentationInput.ResultKinds, and is useful for accessing the field via an interface.
-func (v *StagePresentationInput) GetResultKinds() []*ResultKind { return v.ResultKinds }
+func (v *StagePresentationInput) GetResultKinds() []ResultKind { return v.ResultKinds }
 
 // GetWantBuckets returns StagePresentationInput.WantBuckets, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetWantBuckets() *types.Int64Scalar { return v.WantBuckets }
@@ -6054,10 +6142,16 @@ func (v *StageQueryInputInputDefinition) GetDatasetPath() *string { return v.Dat
 func (v *StageQueryInputInputDefinition) GetStageId() *string { return v.StageId }
 
 // TaskResult includes the GraphQL fields of TaskResult requested by the fragment TaskResult.
+// The GraphQL type's documentation follows.
+//
+// Results returned from datasetProgressive and datasetQueryOutput.
+// Note that we want to split this type up into individual types per result kind, because this allows
+// to better specify (narrow down) which data is present in which result type.
+// To better constrain this, the individual result types (currently only TaskResult and LiveQueryFreshnessUpdateResult)
+// implement the interfaces of the subscriptions' / queries' result interfaces.
+// Currently the only interface is LiveQueryResult, but there will be more when we split up TaskResult.
 type TaskResult struct {
-	// TODO: Move query ID generation out of QueryManager and closer to the UI,
-	// and make the field mandatory. We want to always provide users with a
-	// query ID for bug reporting and investigations.
+	// The Observe Query identifier
 	QueryId string  `json:"queryId"`
 	StageId *string `json:"stageId"`
 	// The time range which this set of results cover.
@@ -6234,12 +6328,37 @@ func (v *ValueTypeSpecInput) GetArrayItemType() *ValueTypeSpecInput { return v.A
 // GetKeyForDatasetId returns ValueTypeSpecInput.KeyForDatasetId, and is useful for accessing the field via an interface.
 func (v *ValueTypeSpecInput) GetKeyForDatasetId() *string { return v.KeyForDatasetId }
 
+type VolumeStatsInput struct {
+	// Number of buckets to compute the volume over time.
+	// Set to 0 to disable volume over time stats.
+	// Set to null to let the backend decide.
+	BucketCount *types.Int64Scalar `json:"bucketCount"`
+	// Whether to compute the total number of rows. null or false would disable it.
+	NeedTotalCount *bool `json:"needTotalCount"`
+}
+
+// GetBucketCount returns VolumeStatsInput.BucketCount, and is useful for accessing the field via an interface.
+func (v *VolumeStatsInput) GetBucketCount() *types.Int64Scalar { return v.BucketCount }
+
+// GetNeedTotalCount returns VolumeStatsInput.NeedTotalCount, and is useful for accessing the field via an interface.
+func (v *VolumeStatsInput) GetNeedTotalCount() *bool { return v.NeedTotalCount }
+
 type WebhookActionInput struct {
+	// If the templateName is not set, it will be set as an empty string.
+	TemplateName *string              `json:"templateName"`
 	UrlTemplate  *string              `json:"urlTemplate"`
 	Method       *string              `json:"method"`
 	Headers      []WebhookHeaderInput `json:"headers"`
 	BodyTemplate *string              `json:"bodyTemplate"`
+	// Fragments are fields that users can edit on simple mode.
+	// For example,
+	// fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
+	// is available in all other templates as {{fragments.title}}
+	Fragments *types.JsonObject `json:"fragments"`
 }
+
+// GetTemplateName returns WebhookActionInput.TemplateName, and is useful for accessing the field via an interface.
+func (v *WebhookActionInput) GetTemplateName() *string { return v.TemplateName }
 
 // GetUrlTemplate returns WebhookActionInput.UrlTemplate, and is useful for accessing the field via an interface.
 func (v *WebhookActionInput) GetUrlTemplate() *string { return v.UrlTemplate }
@@ -6252,6 +6371,9 @@ func (v *WebhookActionInput) GetHeaders() []WebhookHeaderInput { return v.Header
 
 // GetBodyTemplate returns WebhookActionInput.BodyTemplate, and is useful for accessing the field via an interface.
 func (v *WebhookActionInput) GetBodyTemplate() *string { return v.BodyTemplate }
+
+// GetFragments returns WebhookActionInput.Fragments, and is useful for accessing the field via an interface.
+func (v *WebhookActionInput) GetFragments() *types.JsonObject { return v.Fragments }
 
 type WebhookHeaderInput struct {
 	Header        string `json:"header"`

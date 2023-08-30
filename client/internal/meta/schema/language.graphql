@@ -88,6 +88,10 @@ enum PipelineWarningKind @goModel(model: "observe/compiler/comptypes.PipelineWar
     An internal verb is used
     """
     Internal
+    """
+    Generic warning that doesn't require any extra handling by the front end
+    """
+    Generic
 }
 
 type PipelineWarning @goModel(model: "observe/meta/metatypes.PipelineWarning") {
