@@ -1471,6 +1471,111 @@ func (v *DatasetLinkSchemaInput) GetSrcFields() []string { return v.SrcFields }
 // GetDstFields returns DatasetLinkSchemaInput.DstFields, and is useful for accessing the field via an interface.
 func (v *DatasetLinkSchemaInput) GetDstFields() []string { return v.DstFields }
 
+// DatasetOutboundShare includes the GraphQL fields of DatasetOutboundShare requested by the fragment DatasetOutboundShare.
+type DatasetOutboundShare struct {
+	Id              string  `json:"id"`
+	Name            string  `json:"name"`
+	Description     *string `json:"description"`
+	WorkspaceId     string  `json:"workspaceId"`
+	FolderId        string  `json:"folderId"`
+	DatasetID       string  `json:"datasetID"`
+	OutboundShareID string  `json:"outboundShareID"`
+	SchemaName      string  `json:"schemaName"`
+	ViewName        string  `json:"viewName"`
+	// The freshness goal for the outbound share, in nanoseconds. This determines the maximum staleness for the shared dataset. Newer data may not yet be accelerated (materialized) and will not be returned in Snowflake queries for the share. To avoid additional acceleration and minimize cost, set this to 1 hour (3600000000000), the maximum staleness of datasets when freshness decay is active.
+	FreshnessGoal types.Int64Scalar          `json:"freshnessGoal"`
+	Status        DatasetOutboundShareStatus `json:"status"`
+}
+
+// GetId returns DatasetOutboundShare.Id, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetId() string { return v.Id }
+
+// GetName returns DatasetOutboundShare.Name, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetName() string { return v.Name }
+
+// GetDescription returns DatasetOutboundShare.Description, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetDescription() *string { return v.Description }
+
+// GetWorkspaceId returns DatasetOutboundShare.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetFolderId returns DatasetOutboundShare.FolderId, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetFolderId() string { return v.FolderId }
+
+// GetDatasetID returns DatasetOutboundShare.DatasetID, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetDatasetID() string { return v.DatasetID }
+
+// GetOutboundShareID returns DatasetOutboundShare.OutboundShareID, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetOutboundShareID() string { return v.OutboundShareID }
+
+// GetSchemaName returns DatasetOutboundShare.SchemaName, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetSchemaName() string { return v.SchemaName }
+
+// GetViewName returns DatasetOutboundShare.ViewName, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetViewName() string { return v.ViewName }
+
+// GetFreshnessGoal returns DatasetOutboundShare.FreshnessGoal, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetFreshnessGoal() types.Int64Scalar { return v.FreshnessGoal }
+
+// GetStatus returns DatasetOutboundShare.Status, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetStatus() DatasetOutboundShareStatus { return v.Status }
+
+type DatasetOutboundShareInput struct {
+	SchemaName    string            `json:"schemaName"`
+	ViewName      string            `json:"viewName"`
+	FreshnessGoal types.Int64Scalar `json:"freshnessGoal"`
+	Name          string            `json:"name"`
+	IconUrl       *string           `json:"iconUrl"`
+	Description   *string           `json:"description"`
+	ManagedById   *string           `json:"managedById"`
+	FolderId      *string           `json:"folderId"`
+}
+
+// GetSchemaName returns DatasetOutboundShareInput.SchemaName, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetSchemaName() string { return v.SchemaName }
+
+// GetViewName returns DatasetOutboundShareInput.ViewName, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetViewName() string { return v.ViewName }
+
+// GetFreshnessGoal returns DatasetOutboundShareInput.FreshnessGoal, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetFreshnessGoal() types.Int64Scalar { return v.FreshnessGoal }
+
+// GetName returns DatasetOutboundShareInput.Name, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetName() string { return v.Name }
+
+// GetIconUrl returns DatasetOutboundShareInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns DatasetOutboundShareInput.Description, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns DatasetOutboundShareInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns DatasetOutboundShareInput.FolderId, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetFolderId() *string { return v.FolderId }
+
+type DatasetOutboundShareState string
+
+const (
+	DatasetOutboundShareStateError       DatasetOutboundShareState = "Error"
+	DatasetOutboundShareStateLive        DatasetOutboundShareState = "Live"
+	DatasetOutboundShareStatePending     DatasetOutboundShareState = "Pending"
+	DatasetOutboundShareStateUnavailable DatasetOutboundShareState = "Unavailable"
+)
+
+// DatasetOutboundShareStatus includes the requested fields of the GraphQL type DatasetOutboundShareStatus.
+type DatasetOutboundShareStatus struct {
+	State DatasetOutboundShareState `json:"state"`
+	Error *string                   `json:"error"`
+}
+
+// GetState returns DatasetOutboundShareStatus.State, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareStatus) GetState() DatasetOutboundShareState { return v.State }
+
+// GetError returns DatasetOutboundShareStatus.Error, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareStatus) GetError() *string { return v.Error }
+
 // DatasetSourceTableSourceTableDefinition includes the requested fields of the GraphQL type SourceTableDefinition.
 type DatasetSourceTableSourceTableDefinition struct {
 	Schema                string                                                                            `json:"schema"`
@@ -6652,6 +6757,26 @@ type __createDashboardLinkInput struct {
 // GetInput returns __createDashboardLinkInput.Input, and is useful for accessing the field via an interface.
 func (v *__createDashboardLinkInput) GetInput() DashboardLinkInput { return v.Input }
 
+// __createDatasetOutboundShareInput is used internally by genqlient
+type __createDatasetOutboundShareInput struct {
+	WorkspaceId     string                    `json:"workspaceId"`
+	DatasetID       string                    `json:"datasetID"`
+	OutboundShareID string                    `json:"outboundShareID"`
+	Input           DatasetOutboundShareInput `json:"input"`
+}
+
+// GetWorkspaceId returns __createDatasetOutboundShareInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__createDatasetOutboundShareInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetDatasetID returns __createDatasetOutboundShareInput.DatasetID, and is useful for accessing the field via an interface.
+func (v *__createDatasetOutboundShareInput) GetDatasetID() string { return v.DatasetID }
+
+// GetOutboundShareID returns __createDatasetOutboundShareInput.OutboundShareID, and is useful for accessing the field via an interface.
+func (v *__createDatasetOutboundShareInput) GetOutboundShareID() string { return v.OutboundShareID }
+
+// GetInput returns __createDatasetOutboundShareInput.Input, and is useful for accessing the field via an interface.
+func (v *__createDatasetOutboundShareInput) GetInput() DatasetOutboundShareInput { return v.Input }
+
 // __createDatastreamInput is used internally by genqlient
 type __createDatastreamInput struct {
 	WorkspaceId string          `json:"workspaceId"`
@@ -6932,6 +7057,14 @@ func (v *__deleteDatasetInput) GetId() string { return v.Id }
 // GetDep returns __deleteDatasetInput.Dep, and is useful for accessing the field via an interface.
 func (v *__deleteDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
 
+// __deleteDatasetOutboundShareInput is used internally by genqlient
+type __deleteDatasetOutboundShareInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteDatasetOutboundShareInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteDatasetOutboundShareInput) GetId() string { return v.Id }
+
 // __deleteDatastreamInput is used internally by genqlient
 type __deleteDatastreamInput struct {
 	Id string `json:"id"`
@@ -7147,6 +7280,14 @@ type __getDatasetInput struct {
 
 // GetId returns __getDatasetInput.Id, and is useful for accessing the field via an interface.
 func (v *__getDatasetInput) GetId() string { return v.Id }
+
+// __getDatasetOutboundShareInput is used internally by genqlient
+type __getDatasetOutboundShareInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getDatasetOutboundShareInput.Id, and is useful for accessing the field via an interface.
+func (v *__getDatasetOutboundShareInput) GetId() string { return v.Id }
 
 // __getDatasetQueryOutputInput is used internally by genqlient
 type __getDatasetQueryOutputInput struct {
@@ -7586,6 +7727,18 @@ func (v *__updateDashboardLinkInput) GetId() string { return v.Id }
 // GetInput returns __updateDashboardLinkInput.Input, and is useful for accessing the field via an interface.
 func (v *__updateDashboardLinkInput) GetInput() DashboardLinkInput { return v.Input }
 
+// __updateDatasetOutboundShareInput is used internally by genqlient
+type __updateDatasetOutboundShareInput struct {
+	Id    string                    `json:"id"`
+	Input DatasetOutboundShareInput `json:"input"`
+}
+
+// GetId returns __updateDatasetOutboundShareInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateDatasetOutboundShareInput) GetId() string { return v.Id }
+
+// GetInput returns __updateDatasetOutboundShareInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateDatasetOutboundShareInput) GetInput() DatasetOutboundShareInput { return v.Input }
+
 // __updateDatastreamInput is used internally by genqlient
 type __updateDatastreamInput struct {
 	Id         string          `json:"id"`
@@ -7901,6 +8054,16 @@ type createDashboardLinkResponse struct {
 
 // GetDashboardLink returns createDashboardLinkResponse.DashboardLink, and is useful for accessing the field via an interface.
 func (v *createDashboardLinkResponse) GetDashboardLink() DashboardLink { return v.DashboardLink }
+
+// createDatasetOutboundShareResponse is returned by createDatasetOutboundShare on success.
+type createDatasetOutboundShareResponse struct {
+	DatasetOutboundShare DatasetOutboundShare `json:"datasetOutboundShare"`
+}
+
+// GetDatasetOutboundShare returns createDatasetOutboundShareResponse.DatasetOutboundShare, and is useful for accessing the field via an interface.
+func (v *createDatasetOutboundShareResponse) GetDatasetOutboundShare() DatasetOutboundShare {
+	return v.DatasetOutboundShare
+}
 
 // createDatastreamResponse is returned by createDatastream on success.
 type createDatastreamResponse struct {
@@ -8218,6 +8381,14 @@ type deleteDashboardResponse struct {
 // GetResultStatus returns deleteDashboardResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteDashboardResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
+// deleteDatasetOutboundShareResponse is returned by deleteDatasetOutboundShare on success.
+type deleteDatasetOutboundShareResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteDatasetOutboundShareResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteDatasetOutboundShareResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
 // deleteDatasetResponse is returned by deleteDataset on success.
 type deleteDatasetResponse struct {
 	ResultStatus *ResultStatus `json:"resultStatus"`
@@ -8527,6 +8698,16 @@ type getDashboardResponse struct {
 
 // GetDashboard returns getDashboardResponse.Dashboard, and is useful for accessing the field via an interface.
 func (v *getDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
+
+// getDatasetOutboundShareResponse is returned by getDatasetOutboundShare on success.
+type getDatasetOutboundShareResponse struct {
+	DatasetOutboundShare DatasetOutboundShare `json:"datasetOutboundShare"`
+}
+
+// GetDatasetOutboundShare returns getDatasetOutboundShareResponse.DatasetOutboundShare, and is useful for accessing the field via an interface.
+func (v *getDatasetOutboundShareResponse) GetDatasetOutboundShare() DatasetOutboundShare {
+	return v.DatasetOutboundShare
+}
 
 // getDatasetQueryOutputResponse is returned by getDatasetQueryOutput on success.
 type getDatasetQueryOutputResponse struct {
@@ -9178,6 +9359,16 @@ type updateDashboardLinkResponse struct {
 // GetDashboardLink returns updateDashboardLinkResponse.DashboardLink, and is useful for accessing the field via an interface.
 func (v *updateDashboardLinkResponse) GetDashboardLink() DashboardLink { return v.DashboardLink }
 
+// updateDatasetOutboundShareResponse is returned by updateDatasetOutboundShare on success.
+type updateDatasetOutboundShareResponse struct {
+	DatasetOutboundShare DatasetOutboundShare `json:"datasetOutboundShare"`
+}
+
+// GetDatasetOutboundShare returns updateDatasetOutboundShareResponse.DatasetOutboundShare, and is useful for accessing the field via an interface.
+func (v *updateDatasetOutboundShareResponse) GetDatasetOutboundShare() DatasetOutboundShare {
+	return v.DatasetOutboundShare
+}
+
 // updateDatastreamResponse is returned by updateDatastream on success.
 type updateDatastreamResponse struct {
 	Datastream Datastream `json:"datastream"`
@@ -9711,6 +9902,60 @@ fragment DashboardLink on DashboardLink {
 	var err error
 
 	var data createDashboardLinkResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func createDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	datasetID string,
+	outboundShareID string,
+	input DatasetOutboundShareInput,
+) (*createDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDatasetOutboundShare",
+		Query: `
+mutation createDatasetOutboundShare ($workspaceId: ObjectId!, $datasetID: ObjectId!, $outboundShareID: ObjectId!, $input: DatasetOutboundShareInput!) {
+	datasetOutboundShare: createDatasetOutboundShare(workspaceId: $workspaceId, datasetID: $datasetID, outboundShareID: $outboundShareID, input: $input) {
+		... DatasetOutboundShare
+	}
+}
+fragment DatasetOutboundShare on DatasetOutboundShare {
+	id
+	name
+	description
+	workspaceId
+	folderId
+	datasetID
+	outboundShareID
+	schemaName
+	viewName
+	freshnessGoal
+	status {
+		state
+		error
+	}
+}
+`,
+		Variables: &__createDatasetOutboundShareInput{
+			WorkspaceId:     workspaceId,
+			DatasetID:       datasetID,
+			OutboundShareID: outboundShareID,
+			Input:           input,
+		},
+	}
+	var err error
+
+	var data createDatasetOutboundShareResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -11082,6 +11327,43 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
+func deleteDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDatasetOutboundShare",
+		Query: `
+mutation deleteDatasetOutboundShare ($id: ObjectId!) {
+	resultStatus: deleteDatasetOutboundShare(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`,
+		Variables: &__deleteDatasetOutboundShareInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteDatasetOutboundShareResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 func deleteDatastream(
 	ctx context.Context,
 	client graphql.Client,
@@ -12310,6 +12592,54 @@ fragment StageQuery on StageQuery {
 	var err error
 
 	var data getDatasetResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func getDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatasetOutboundShare",
+		Query: `
+query getDatasetOutboundShare ($id: ObjectId!) {
+	datasetOutboundShare(id: $id) {
+		... DatasetOutboundShare
+	}
+}
+fragment DatasetOutboundShare on DatasetOutboundShare {
+	id
+	name
+	description
+	workspaceId
+	folderId
+	datasetID
+	outboundShareID
+	schemaName
+	viewName
+	freshnessGoal
+	status {
+		state
+		error
+	}
+}
+`,
+		Variables: &__getDatasetOutboundShareInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getDatasetOutboundShareResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -14959,6 +15289,56 @@ fragment DashboardLink on DashboardLink {
 	var err error
 
 	var data updateDashboardLinkResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+func updateDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input DatasetOutboundShareInput,
+) (*updateDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDatasetOutboundShare",
+		Query: `
+mutation updateDatasetOutboundShare ($id: ObjectId!, $input: DatasetOutboundShareInput!) {
+	datasetOutboundShare: updateDatasetOutboundShare(id: $id, input: $input) {
+		... DatasetOutboundShare
+	}
+}
+fragment DatasetOutboundShare on DatasetOutboundShare {
+	id
+	name
+	description
+	workspaceId
+	folderId
+	datasetID
+	outboundShareID
+	schemaName
+	viewName
+	freshnessGoal
+	status {
+		state
+		error
+	}
+}
+`,
+		Variables: &__updateDatasetOutboundShareInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateDatasetOutboundShareResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

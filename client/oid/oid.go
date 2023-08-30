@@ -47,6 +47,7 @@ const (
 	TypeRbacGroupmember         Type = "rbacgroupmember"
 	TypeRbacStatement           Type = "rbacstatement"
 	TypeSnowflakeShareOutbound  Type = "snowflakeshareoutbound"
+	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
 )
 
 func (t Type) IsValid() bool {
@@ -78,6 +79,7 @@ func (t Type) IsValid() bool {
 	case TypeRbacGroupmember:
 	case TypeRbacStatement:
 	case TypeSnowflakeShareOutbound:
+	case TypeDatasetOutboundShare:
 	default:
 		return false
 	}
@@ -270,4 +272,8 @@ func RbacStatementOid(id string) OID {
 	// note: id is an ORN of the form `o::<customerid>:rbacstatement:<coid>`
 	// the generated OID currently adds a prefix `o:::rbacstatement:` to the above string
 	return OID{Id: id, Type: TypeRbacStatement}
+}
+
+func SnowflakeShareOutboundOid(id string) OID {
+	return OID{Id: id, Type: TypeSnowflakeShareOutbound}
 }
