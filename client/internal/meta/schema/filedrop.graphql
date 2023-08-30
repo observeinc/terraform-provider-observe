@@ -14,6 +14,13 @@ interface FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropEndpo
     type: FiledropEndpointType!
 }
 
+extend type Mutation {
+    """
+    Enable or disable an existing filedrop
+    """
+    setFiledropDisabled(id: ObjectId!, disabled: Boolean!): ResultStatus!
+}
+
 extend type Query {
     filedrop(id: ObjectId!): Filedrop!
     searchFiledrop(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): FiledropSearchResult!
@@ -26,24 +33,24 @@ extend type Mutation {
 }
 
 enum FiledropEndpointType @goModel(model: "observe/meta/metatypes.FiledropEndpointType") {
-    S3
+  S3
 }
 
 enum FiledropFormatType @goModel(model: "observe/meta/metatypes.FiledropFormatType") {
-    Csv
-    Json
-    Parquet
+  Csv
+  Json
+  Parquet
 }
 
 enum FiledropProviderType @goModel(model: "observe/meta/metatypes.FiledropProviderType") {
-    Aws
+  Aws
 }
 
 enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
-    Disabled
-    Initializing
-    Running
-    Updating
+  Disabled
+  Initializing
+  Running
+  Updating
 }
 
 type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Filedrop") {
@@ -52,6 +59,7 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
     status of the filedrop
     """
     status: FiledropStatus!
+    disabled: Boolean
     """
     ID of the datastream associated with the filedrop
     """
@@ -63,6 +71,7 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
     config: FiledropConfig!
     endpoint: FiledropEndpoint!
     # tramp data: metadata: FiledropMetadata!
+    stats: DatastreamTokenStats @goField(forceResolver: true)
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -87,11 +96,13 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
 input FiledropInput @goModel(model: "observe/meta/metatypes.FiledropInput") {
     # payload
     # not in input: status: FiledropStatus!
-    # immutable: datastreamID: Int64!
+    disabled: Boolean
+    # immutable: datastreamID: ObjectId!
     # not in input: datastreamTokenID: String!
     config: FiledropConfigInput!
     # not in input: endpoint: FiledropEndpoint!
     # tramp field: metadata: FiledropMetadataInput!
+    # resolver: stats: DatastreamTokenStats
     # WorkspaceObject
     name: String
     iconUrl: String
@@ -166,4 +177,18 @@ type FiledropS3Endpoint implements FiledropEndpoint @goModel(model: "observe/met
     """
     prefix: String!
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

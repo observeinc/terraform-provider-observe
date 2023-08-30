@@ -33,6 +33,7 @@ query getFiledrop($id: ObjectId!) {
     }
 }
 
+# @genqlient(for: "FiledropInput.disabled", omitempty: true)
 mutation createFiledrop(
     $workspaceID: ObjectId!,
     $datastreamID: ObjectId!,
@@ -44,7 +45,11 @@ mutation createFiledrop(
     }
 }
 
-mutation updateFiledrop($id: ObjectId!, $input: FiledropInput!) {
+# @genqlient(for: "FiledropInput.disabled", omitempty: true)
+mutation updateFiledrop(
+    $id: ObjectId!,
+    $input: FiledropInput!
+) {
     # @genqlient(pointer: true, flatten: true)
     filedrop: updateFiledrop(id: $id, input: $input) {
         ...Filedrop
