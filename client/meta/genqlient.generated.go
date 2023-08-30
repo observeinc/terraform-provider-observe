@@ -2433,7 +2433,7 @@ const (
 )
 
 type FiledropInput struct {
-	Disabled    *bool               `json:"disabled"`
+	Disabled    *bool               `json:"disabled,omitempty"`
 	Config      FiledropConfigInput `json:"config"`
 	Name        *string             `json:"name"`
 	IconUrl     *string             `json:"iconUrl"`
