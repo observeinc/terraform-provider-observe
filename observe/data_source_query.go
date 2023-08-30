@@ -289,21 +289,18 @@ func newQueryConfig(data *schema.ResourceData) (query []*gql.StageInput, params 
 	// Convert here rather than replicating all the conversion logic.
 	stageInputs := make([]gql.StageInput, len(multiStageQueryInput.Stages))
 	for i, s := range multiStageQueryInput.Stages {
-		resultKindSuppress := gql.ResultKindResultkindsuppress
 		stageInputs[i] = gql.StageInput{
 			Inputs:   s.Input,
-			StageId:  s.Id,
+			StageId:  *s.Id,
 			Pipeline: s.Pipeline,
 			Presentation: &gql.StagePresentationInput{
-				ResultKinds: []*gql.ResultKind{&resultKindSuppress},
+				ResultKinds: []gql.ResultKind{gql.ResultKindResultkindsuppress},
 			},
 		}
 	}
 
 	outputStage := stageInputs[len(stageInputs)-1]
-	resultKindData := gql.ResultKindResultkinddata
-	resultKindSchema := gql.ResultKindResultkindschema
-	outputStage.Presentation.ResultKinds = []*gql.ResultKind{&resultKindData, &resultKindSchema}
+	outputStage.Presentation.ResultKinds = []gql.ResultKind{gql.ResultKindResultkinddata, gql.ResultKindResultkindschema}
 	limitParsed := types.Int64Scalar(limit)
 	outputStage.Presentation.Limit = &limitParsed
 
