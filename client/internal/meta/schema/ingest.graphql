@@ -7,11 +7,6 @@ extend type Query {
     datastreams(workspaceId: ObjectId!, name: String): [Datastream!]!
 
     datastreamToken(id: String!): DatastreamToken!
-
-    """
-    Get a skyswirl by ID
-    """
-    skyswirl(id: ObjectId!): Skyswirl!
 }
 
 extend type Mutation {
@@ -27,19 +22,6 @@ extend type Mutation {
     createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
     updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
     deleteDatastreamToken(id: String!): ResultStatus!
-
-    """
-    Create a new skyswirl
-    """
-    createSkyswirl(datastreamId: ObjectId!, skyswirl: SkyswirlInput!): Skyswirl!
-    """
-    Update an existing skyswirl
-    """
-    updateSkyswirl(id: ObjectId!, skyswirl: SkyswirlInput!): Skyswirl!
-    """
-    delete an existing skyswirl
-    """
-    deleteSkyswirl(id: ObjectId!): ResultStatus!
 }
 
 """
@@ -106,6 +88,7 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     disabled: Boolean!
     tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
+    filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
 }
 
@@ -443,102 +426,3 @@ input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerCo
     key: String!
     secret: String!
 }
-
-"""
-A data source that loads data from a cloud object storage service provider into Observe platform
-Must be associated with a datastream
-"""
-type Skyswirl implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Skyswirl") {
-    id: ObjectId!
-    """
-    Name that identifies the skyswirl. Must be unique within the workspace
-    """
-    name: String!
-    description: String
-    iconUrl: String
-    customerId: CustomerId!
-    workspaceId: ObjectId!
-    managedBy: WorkspaceObject @goField(forceResolver:true)
-    managedById: ObjectId
-    createdBy: UserId!
-    createdByInfo: UserInfo! @goField(forceResolver:true)
-    updatedBy: UserId!
-    updatedByInfo: UserInfo! @goField(forceResolver:true)
-    createdDate: Time!
-    updatedDate: Time!
-
-    config: SkyswirlConfig!
-    """
-    status of the skyswirl
-    """
-    status: SkyswirlStatus!
-    """
-    ID of the datastream associated with the skyswirl
-    """
-    datastreamId: ObjectId!
-    """
-    ID of the datastream token managed by the skyswirl
-    """
-    datastreamTokenId: String!
-
-    endpoint: SkyswirlEndpoint!
-}
-
-enum SkyswirlStatus @goModel(model: "observe/meta/metatypes.SkyswirlStatus") {
-    Initializing
-    Running
-    Updating
-    Disabled
-}
-
-"""
-User provided configuration that defines a skyswirl
-"""
-type SkyswirlConfig @goModel(model: "observe/meta/metatypes.SkyswirlConfig") {
-    provider: SkyswirlProviderConfig!
-}
-
-"""
-Configurations related to the cloud object storage service provider
-"""
-interface SkyswirlProviderConfig @goModel(model: "observe/meta/metatypes.SkyswirlProviderConfig") {
-    type: String!
-}
-
-type SkyswirlProviderAWSConfig implements SkyswirlProviderConfig @goModel(model: "observe/meta/metatypes.SkyswirlProviderAWSConfig") {
-    type: String!
-    """
-    AWS region of the skyswirl
-    """
-    region: String!
-    """
-    User provided IAM role to access the skyswirl
-    """
-    roleArn: String!
-}
-
-"""
-Information of the Observe-created skyswirl endpoint
-"""
-interface SkyswirlEndpoint @goModel(model: "observe/meta/metatypes.SkyswirlEndpoint") {
-    type: String!
-}
-
-type SkyswirlS3Endpoint implements SkyswirlEndpoint @goModel(model: "observe/meta/metatypes.SkyswirlS3Endpoint") {
-    type: String!
-    arn: String!
-    s3Alias: String!
-    prefix: String!
-}
-
-input SkyswirlInput @goModel(model: "observe/meta/metatypes.SkyswirlInput") {
-    name: String
-    description: String
-    aws: SkyswirlProviderAWSInput
-}
-
-input SkyswirlProviderAWSInput @goModel(model: "observe/meta/metatypes.SkyswirlProviderAWSInput") {
-    region: String!
-    roleArn: String!
-}
-

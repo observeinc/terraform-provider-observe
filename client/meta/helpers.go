@@ -17,8 +17,6 @@ var AllCompareFunctions = []CompareFunction{
 	CompareFunctionGreaterorequal,
 	CompareFunctionLess,
 	CompareFunctionLessorequal,
-	CompareFunctionIninterval,
-	CompareFunctionNotininterval,
 	CompareFunctionIsnull,
 	CompareFunctionIsnotnull,
 }

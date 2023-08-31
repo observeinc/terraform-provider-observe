@@ -6,6 +6,38 @@ extend type Subscription {
     times out the underlying queries.
     """
     datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!]): [TaskResult]!
+
+    """
+    Similar endpoint as datasetProgressive, but runs this query in Live streaming mode. All stages are currently grouped by
+    their default input dataset (recursively in case it is another stage) and when new data arrives in that dataset then
+    the stages' queries are re-executed.
+
+    Different to datasetProgressive:
+    * StageInput.Progressive is forced to false
+    * StageInput.BestEffortBinding is forced to false
+    * params is of type LiveQueryParams, which
+    + Has a query window size (duration) instead of a frame (start, end). The actual query window frame for the queries is determined
+    by (start = now - duration, end = now), where "now" is the time when new data arrived in the dataset.
+    + Has an optional parameter runImmediately, which when set will make all queries run immediately once before waiting for data updates.
+
+    In Live Mode:
+    * Observe queries are run repeatedly, once after new data was ingested for the datasets which participate in each stage.
+    * After this subscription was started, the handler starts checking for new data ingested.
+    * As soon as for a stage's main input new data was ingested, that stage is re-executed and that new result returned.
+    * In case the client wants to immediately run the query once without waiting for new data, it must set the optional parameter `runImmediately`.
+    * Each stage is executed individually, as with the datasetProgressive subscription.
+    * This subscription will stop in the following cases:
+    * The client explicitly stops it.
+    * After 5 minutes as a safeguard against high credit burn.
+    Afterwards, Live Mode stays enabled another 1 minute as a grace period to allow the client to continue Live Mode through a new subscription.
+    * The websocket connection is lost / times out.
+    Afterwards, Live Mode stays enabled another 3 minutes to accomodate for e.g. lossy connections and allow the user to reconnect and start a fresh subscription.
+    Otherwise, it continuesly sends new complete results as soon as new data is available in the main input.
+    * The value of StageInput.progressive will be ignored.
+    * The query window is moved, not extended.
+    * Until we have real incremental execution we always send "complete" (non-incremental) results to the client.
+    """
+    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, parameterValues:[ParameterBindingInput!]): [LiveQueryResult]!
 }
 
 extend type Query {
@@ -157,6 +189,33 @@ input QueryParams @goModel(model: "observe/meta/metagql.QueryParamsInput") {
     opalParameters: [ParameterBindingInput!] @deprecated(reason:"Use parameterValues instead")
 }
 
+"""
+QueryParams are for parameters intrinsic to Live *query*, not the *presentation*
+of the query. One way to think about this, is that anything that goes in here
+should be equally applicable to invocations by transformer, monitors, exports,
+or worksheets.
+"""
+input LiveQueryParams @goModel(model: "observe/meta/metagql.LiveQueryParamsInput") {
+    """
+    Live queries are run with a sliding query window where the end time is always
+    the current time and the start time is derived through this duration. For instance,
+    this can be "the last 5 minutes".
+    """
+    queryWindowSize: Duration!
+
+    """
+    Use this to specify rate limiting options for this query. To bypass the
+    rate limit for all queries by this user for a certain amount of time, see
+    the QueryGovernor.bypassUntil layered setting instead
+    """
+    rateLimitOption: RateLimitOption
+
+    """
+    Whether the query is run immediately once before waiting for data updates.
+    """
+    runImmediately: Boolean
+}
+
 # Scalar so we can use a custom marshaler for higher performance.
 #
 #type PaginatedResults {
@@ -214,14 +273,52 @@ type ExportCursorResult @goModel(model: "observe/meta/metatypes.ExportCursorResu
     exportFormat: ExportFileFormat
 }
 
-type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
+"""
+Results which are returned from subscription datasetLiveQuery all implement this interface.
+"""
+interface LiveQueryResult @goModel(model: "observe/meta/metaparser.LiveQueryResult") {
+    # shared fields among all types of live mode results
 
     stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
 
+    # TODO: Move query ID generation out of QueryManager and closer to the UI,
+    # and make the field mandatory. We want to always provide users with a
+    # query ID for bug reporting and investigations.
     """
-    TODO: Move query ID generation out of QueryManager and closer to the UI,
-    and make the field mandatory. We want to always provide users with a
-    query ID for bug reporting and investigations.
+    The Observe Query identifier
+    """
+    queryId: String!
+
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageId: String #!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    # TODO: move ParsedPipeline.errors here?
+    """
+    Errors that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific errors
+    """
+    errors: [TaskResultError!]
+}
+
+"""
+Results returned from datasetProgressive and datasetQueryOutput.
+Note that we want to split this type up into individual types per result kind, because this allows
+to better specify (narrow down) which data is present in which result type.
+To better constrain this, the individual result types (currently only TaskResult and LiveQueryFreshnessUpdateResult)
+implement the interfaces of the subscriptions' / queries' result interfaces.
+Currently the only interface is LiveQueryResult, but there will be more when we split up TaskResult.
+"""
+type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metaparser.TaskResult") {
+
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    # TODO: Move query ID generation out of QueryManager and closer to the UI,
+    # and make the field mandatory. We want to always provide users with a
+    # query ID for bug reporting and investigations.
+    """
+    The Observe Query identifier
     """
     queryId: String!
     """
@@ -270,6 +367,16 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     resultSchema: TaskResultSchema
 
     """
+    Column stats results. Not null only if resultKind is ResultKindColumnStats
+    """
+    columnStats: ColumnStatsResults
+
+    """
+    Volume stats results. Not null only if resultKind is ResultKindVolumeStats
+    """
+    volumeStats: VolumeStatsResults
+
+    """
     A parse/compile error is still a "successful" request, so HTTP status is OK,
     but the parse/compile error is pointed into the right part of the code in
     this result part.
@@ -293,17 +400,17 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     """
     resultMetadata: ResultMetadata
 
+    # TODO: move ParsedPipeline.warnings here?
     """
     Warnings that apply to this stage as a whole rather than the OPAL. See
     parsedPipeline for OPAL-specific warnings
-    TODO: move ParsedPipeline.warnings here?
     """
     warnings: [TaskResultWarning!]
 
+    # TODO: move ParsedPipeline.errors here?
     """
     Errors that apply to this stage as a whole rather than the OPAL. See
     parsedPipeline for OPAL-specific errors
-    TODO: move ParsedPipeline.errors here?
     """
     errors: [TaskResultError!]
 
@@ -317,6 +424,156 @@ type TaskResult @goModel(model: "observe/meta/metaparser.TaskResult") {
     in the StagePresentationInput.searchMatchKind
     """
     searchMatchMetadata: SearchMatchMetadata
+}
+
+type LiveQueryFreshnessUpdateResult implements LiveQueryResult @goModel(model: "observe/meta/metaparser.LiveQueryFreshnessUpdateResult") {
+
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    # TODO: Move query ID generation out of QueryManager and closer to the UI,
+    # and make the field mandatory. We want to always provide users with a
+    # query ID for bug reporting and investigations.
+    """
+    The Observe Query identifier
+    """
+    queryId: String!
+
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageId: String #!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    """
+    Errors that apply to this stage as a whole,
+    """
+    errors: [TaskResultError!]
+
+    """
+    Update related to the data freshness.
+    """
+    freshnessUpdate: FreshnessUpdate!
+}
+
+type FreshnessUpdate @goModel(model: "observe/meta/metaparser.FreshnessUpdate") {
+    """
+    The latest ingestion time is the most recent time that we ingested
+    new data that may influence (depending on the query) the
+    query result.
+    """
+    latestIngestionTime: Time
+
+
+    """
+    The latest materialization time is the most recent time that the bottom most
+    datasets for the given query were materializated. This may influence
+    (depending on the query) the query result.
+    """
+    latestMaterializationTime: Time
+}
+
+type ColumnStatTopKValue @goModel(model: "observe/meta/metatypes.ColumnStatTopKValue") {
+    """
+    The value
+    """
+    value: String!
+    """
+    A value between 0 and 1 to show how frequent this value may appear in the
+    column.  1 means the value appears 100% of the time, while ~0 means the
+    value almost never appears in the column (0 is not a valid value).
+    """
+    frequency: Float!
+}
+
+type ColumnStatHistogram @goModel(model: "observe/meta/metatypes.ColumnStatHistogram") {
+    """
+    Min value of the column
+    """
+    min: Float!
+    """
+    Max value of the column
+    """
+    max: Float!
+    """
+    Count of values within each bucket
+    """
+    buckets: [Int64!]!
+}
+
+type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
+    column: String!
+    """
+    Top-K most frequent values. Null if disabled or unavailable.
+    """
+    topK: [ColumnStatTopKValue!]
+    """
+    Approximate number of distinct values. Null if disabled or unavailable.
+    """
+    distinctCount: Int64
+    """
+    Histogram of the values. Null if disabled or unavailable.
+    """
+    histogram: ColumnStatHistogram
+}
+
+type ColumnStatsResults @goModel(model: "observe/meta/metatypes.ColumnStatsResults") {
+    """
+    The number of rows that the stats are computed over. The semantic of the row
+    limit is the same as the row limit in data request (i.e., top N rows based
+    on the specific sorting orders).
+    """
+    rowCount: Int64!
+
+    """
+    Whether the stats results cover all data in the query results. If the field
+    is true, one should assume that the returned stats are only an
+    approximation, and can check the rowCount to find out how large the sample
+    size is.
+    """
+    isSampled: Boolean!
+
+    """
+    Per column stats
+    """
+    stats: [ColumnStats!]!
+}
+
+type VolumeStatsResults @goModel(model: "observe/meta/metatypes.VolumeStatsResults") {
+    """
+    Volume stats may be disabled by the backend. If it is disabled, all other
+    fields except disabledReason are null.
+    """
+    isDisabled: Boolean!
+
+    """
+    Reason for being disabled
+    """
+    disabledReason: String
+
+    """
+    Whether the stats results cover all data in the query results. If the field
+    is true, one should assume that the returned stats are an approximation.
+    """
+    isSampled: Boolean
+
+    """
+    Size of each bucket
+    """
+    interval: Duration
+
+    """
+    Start time of the first bucket
+    """
+    base: Time
+
+    """
+    Number of rows within each bucket. This contains estimated values if isSampled is true.
+    """
+    buckets: [Int64!]
+
+    """
+    Total number of rows within the query window. This contains an estimated value if isSampled is true.
+    """
+    totalCount: Int64
 }
 
 type SearchMatchMetadata @goModel(model: "observe/meta/metatypes.SearchMatchMetadata") {
@@ -431,6 +688,7 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     keys: [[String!]!]
     foreignKeys: [ForeignKey!]
     relatedKeys: [RelatedKey!]
+    groupingKey: GroupingKey
     """
     this is the same schema as Typedef.definition
     """
@@ -464,11 +722,26 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     Information about the OPAL sort column ordering
     """
     sortColumnOrdering: [ColumnOrder!]
+
+    """
+    Information about the limit returned by the backend
+    """
+    limit: Int64
 }
 
 type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
     anykey: Boolean
     fields: [ObjectFieldDef!]
+    linkDesc: LinkSchema
+}
+
+type LinkSchema @goModel(model: "observe/compiler/comptypes.LinkSchema") {
+    targetDataset: Int64
+    targetStageLabel: String
+    targetLabelField: String
+    label: String!
+    srcFields: [String!]!
+    dstFields: [String!]!
 }
 
 type ObjectFieldType @goModel(model: "observe/compiler/comptypes.ObjectFieldType") {
@@ -497,54 +770,217 @@ type ColumnOrder @goModel(model: "observe/meta/metatypes.ColumnOrder") {
 Generic interface for a warning from a task result. Warnings are not fatal, and can be returned alongside query results.
 """
 interface TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarning") {
-  message: String!
+    """
+    Warning type identifier, common for all warnings of the same type
+    """
+    messageTypeId: String!
+    """
+    Unique warning instance identifier
+    """
+    messageId: String!
+    """
+    Warning location in the pipeline
+    """
+    span: SourceSpan
+    """
+    Warning text, returned without any decorations like message type ID
+    """
+    text: String!
+    """
+    Warning message, can be decorated with warning type ID, source location and other bits
+    """
+    message: String!
 }
 
 """
 Warning that the customer is approaching the credit limit
 """
 type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningRateLimit") {
-  message: String!
+    messageTypeId: String!
+    messageId: String!
+    """
+    Warning location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
 
-  """
-  Credits left in the credit budget that can be used right now, or null if no
-  rate limit is configured
-  """
-  creditsRemainingInBudget: Float!
+    """
+    Credits left in the credit budget that can be used right now, or null if no
+    rate limit is configured
+    """
+    creditsRemainingInBudget: Float!
 }
 
 """
 Warning that there are some datasets cannot be bounded when compiling the opal.
 """
 type TaskResultWarningBinding implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningBinding") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Warning location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
     message: String!
 }
+
+"""
+Reason to be returned as part of the DatasetStalenessInfo
+"""
+enum StalenessReason @goModel(model: "observe/meta/metatypes.StalenessReason") {
+    CreditManagerOverride         # Staleness attributed to ACM override
+    UnusedDatasetHibernating      # Staleness attributed to unused dataset freshness decay
+    ConfiguredFreshnessGoal       # Staleness attributed to the set freshness goal
+    SlowAcceleration              # Staleness attributed due to slow transform execution
+}
+
+
+"""
+Warning that the query results are stale
+"""
+type TaskResultWarningStaleResults implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningStalenessResults") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+    staleness: [DatasetStalenessInfo!]!
+}
+
+type DatasetStalenessInfo @goModel(model: "observe/meta/metatypes.DatasetStalenessInfo") {
+    # TODO: At the moment we only offer this for datasets. We might need to introduce these
+    # warnings also for monitors, e.g., for the Acceleration Manager
+    datasetId: ObjectId!
+
+    """
+    How stale this dataset is
+    """
+    stalenessDuration: Duration!
+
+    """
+    Why this dataset is stale
+    """
+    stalenessReason: StalenessReason!
+}
+
 
 """
 Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
 """
 interface TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultError") {
-  message: String!
+    """
+    Error type identifier, common for all errors of the same type
+    """
+    messageTypeId: String!
+    """
+    Unique error instance identifier
+    """
+    messageId: String!
+    """
+    Error location in the pipeline
+    """
+    span: SourceSpan
+    """
+    Error text, returned without any decorations like message type ID
+    """
+    text: String!
+    """
+    Error message, can be decorated with message type ID, source location and other bits
+    """
+    message: String!
 }
 
 """
 A generic error type to return legacy errors in that do not have more specific types yet
 """
 type TaskResultErrorGeneric implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorGeneric") {
-  message: String!
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+A generic error type to return legacy warnings in that do not have more specific types yet
+"""
+type TaskResultWarningGeneric implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningGeneric") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+An error returned when a stage cannot be compiled because it forms a dependency loop with some of its inputs
+"""
+type TaskResultErrorStageDependencyLoop implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorStageDependencyLoop") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of the stage that triggered an error
+    """
+    firstStageId: String!
+    """
+    IDs of all the stages forming a loop, firstStageId must be among them
+    """
+    stageIds: [String!]!
+}
+
+"""
+An error returned when a stage cannot be compiled because input stages have errors
+"""
+type TaskResultErrorStageHasDependenciesWithErrors implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorStageHasDependenciesWithErrors") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of the stage that triggered an error
+    """
+    stageId: String!
+    """
+    List of errors found in the upstream stages
+    """
+    upstreamStageErrors: [StageErrors!]!
+}
+
+"""
+Errors found in a given stage
+"""
+type StageErrors @goModel(model: "observe/meta/metatypes.StageErrors") {
+    stageId: String!
+    errors: [TaskResultError!]!
 }
 
 """
 Error that the query was blocked due to the query rate limit set for this customer
 """
 type TaskResultErrorRateLimit implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorRateLimit") {
-  message: String!
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of error
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
 
-  """
-  Credits left in the credit budget that can be used right now, or null if no
-  rate limit is configured
-  """
-  creditsRemainingInBudget: Float!
+    """
+    Credits left in the credit budget that can be used right now, or null if no
+    rate limit is configured
+    """
+    creditsRemainingInBudget: Float!
 }
 
 """
@@ -552,6 +988,13 @@ Error that a stage fails to bind the dataset to the physical table (i.e., fail
 to inline or use best effort binding).
 """
 type TaskResultErrorBinding implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorBinding") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of error
+    """
+    span: SourceSpan
+    text: String!
     message: String!
 }
 
@@ -612,25 +1055,21 @@ type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
 What pieces of result to include in the response to an OPAL query.
 """
 enum ResultKind @goModel(model: "observe/meta/metaparser.ResultKind") {
-    ResultKindSchema   # Return the schema of the OPAL query
-    ResultKindData     # Return the data of the OPAL query
-    ResultKindStats    # Return the stats on the data of the OPAL query
-    ResultKindSuppress # Don't execute/return results
-    ResultKindProgress # Return the progress of the OPAL query
+    ResultKindSchema      # Return the schema of the OPAL query
+    ResultKindData        # Return the data of the OPAL query
+    ResultKindStats       # Return the stats on the data of the OPAL query
+    ResultKindColumnStats # Return column stats on the data of the OPAL query
+    ResultKindVolumeStats # Return volume stats on the data of the OPAL query
+    ResultKindSuppress    # Don't execute/return results
+    ResultKindProgress    # Return the progress of the OPAL query
     ResultKindMetricDiscovery # Return a schema of the OPAL query with discovered metric information (MetricHeuristics) attached
 }
 
 input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     """
-    we need the label to be able to reference this stage in later Stages' InputDefinitionInput
-    XXX: Obsolete, replaced by "stageId" below. Ignored if "stageId" is set.
-    """
-    label: String @deprecated(reason:"remove this soon")
-    stageID: String @deprecated(reason: "use stageId instead")
-    """
     unique ID that other stages can reference in their InputDefinitionInput
     """
-    stageId: String @goField(name:StageID)
+    stageId: String! @goField(name:StageID)
     """
     Which inputs are defined for this stage?
     """
@@ -656,6 +1095,10 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     If set, run this stage with progressive execution
     """
     progressive: Boolean
+    """
+    If set and progressive is also set, we will try to run the query incrementally
+    """
+    incremental: Boolean @deprecated(reason: "this is work in progress; will be removed")
     """
     If set, backend will try to run this stage with best effort binding mode
     """
@@ -977,6 +1420,14 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     """
     defaultStats: DefaultStatsInput
     """
+    columnStats configuration
+    """
+    columnStats: ColumnStatsInput
+    """
+    volumeStats configuration
+    """
+    volumeStats: VolumeStatsInput
+    """
     orderColumns determines order of returned data rows
     """
     orderColumns: [ColumnOrderInput!]
@@ -1007,7 +1458,7 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     multiple separate TaskResult structs in the result stream. However, in
     aggregate, all the data requested in resultKinds will be responded.
     """
-    resultKinds: [ResultKind]
+    resultKinds: [ResultKind!]
     """
     When wantBuckets is set, time-binning verbs without explicit resolution specification
     will automatically find a human-friendly resolution and generate the wanted number of
@@ -1100,7 +1551,7 @@ input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInp
     """
     sparklineBucketCount: Int64
     """
-    The function used to summarize buckets can be chosen; default is avg()
+    The function used to summarize buckets can be chosen; default is count()
     """
     sparklineFunction: String
     """
@@ -1113,6 +1564,59 @@ input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInp
     disable the normal TopK results for link columns.
     """
     useCompoundTopKForLinks: Boolean
+}
+
+input ColumnStatsInput @goModel(model: "observe/meta/metatypes.ColumnStatsInput") {
+    """
+    Something which is a string, or which is inferred to be an ID, will
+    return a list of the top K values + counts
+    """
+    topKCount: Int64
+
+    """
+    Whether to generate compound TopK for link columns. Note that this will
+    disable the normal TopK results for link columns.
+    """
+    useCompoundTopKForLinks: Boolean
+
+    """
+    Maximum number of histograms to return.
+
+    Integer, float, duration columns return histograms.
+
+    Set to 0 to disable histograms.
+    Set to <0 for an unlimited number of histograms.
+    Set to null to let the backend decide a suitable limit.
+    """
+    maxNbHistograms: Int64
+
+    """
+    Number of buckets per histogram.
+
+    Set to 0 to disable histograms.
+    Set to null to let the backend decide.
+    """
+    histogramBucketCount: Int64
+
+    """
+    Whether to compute distinct value count per column. This applies to string
+    column or column inferred to be an ID. null or false would disable it.
+    """
+    needDistinctCount: Boolean
+}
+
+input VolumeStatsInput @goModel(model: "observe/meta/metatypes.VolumeStatsInput") {
+    """
+    Number of buckets to compute the volume over time.
+    Set to 0 to disable volume over time stats.
+    Set to null to let the backend decide.
+    """
+    bucketCount: Int64
+
+    """
+    Whether to compute the total number of rows. null or false would disable it.
+    """
+    needTotalCount: Boolean
 }
 
 enum NullOrdering @goModel(model: "observe/meta/metatypes.NullOrdering") {
@@ -1211,15 +1715,15 @@ enum QueryRateLimitingState @goModel(model: "observe/meta/metatypes.QueryRateLim
     """
     The query governor is configured and enforced, but we are not at any limits
     """
-	Ok
+    Ok
 
     """
     The query governor has not been configured, e.g. it is disabled
     """
-	NotConfigured
+    NotConfigured
 
-	SoftLimit
-	HardLimit
+    SoftLimit
+    HardLimit
 }
 
 type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLimitingStats") {

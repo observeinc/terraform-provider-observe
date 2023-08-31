@@ -146,12 +146,21 @@ input LayeredWorkspaceScannerInput @goModel(model:"observe/meta/metatypes.Layere
     powerLevel: Int64 @goField(forceResolver: true)
 }
 
+type LayeredWorkspaceWorkspace @goModel(model:"observe/meta/metatypes.LayeredWorkspaceWorkspace") {
+    autoRunSetting: String
+}
+
+input LayeredWorkspaceWorkspaceInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceWorkspaceInput") {
+    autoRunSetting: String @goField(forceResolver: true)
+}
+
 type LayeredWorkspace @goModel(model:"observe/meta/metatypes.LayeredWorkspace") {
     dataRetention: LayeredWorkspaceDataRetention!
     dataset: LayeredWorkspaceDataset!
     linkify: LayeredWorkspaceLinkify!
     monitor: LayeredWorkspaceMonitor!
     scanner: LayeredWorkspaceScanner!
+    workspace: LayeredWorkspaceWorkspace!
 }
 
 input LayeredWorkspaceInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceInput") {
@@ -160,6 +169,7 @@ input LayeredWorkspaceInput @goModel(model:"observe/meta/metatypes.LayeredWorksp
     linkify: LayeredWorkspaceLinkifyInput
     monitor: LayeredWorkspaceMonitorInput
     scanner: LayeredWorkspaceScannerInput
+    workspace: LayeredWorkspaceWorkspaceInput
 }
 
 extend type Project {

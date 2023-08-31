@@ -26,20 +26,31 @@ extend type Query {
     """
     Get sample notification data for a monitor.
     """
-    getMonitorSampleData(monitorId: ObjectId!): MonitorSampleData
-    monitorPreviewSampleDataQuery(monitorInput: MonitorInput!, queryParams: QueryParams!): MonitorSampleData
+    monitorPreviewSampleDataQuery(workspaceId: ObjectId, monitorId: ObjectId, monitorInput: MonitorInput!, queryParams: QueryParams!): MonitorSampleData
+    
+    """
+    Get monitorSampleData using monitorInput and the results from a previous run of a monitorPreviewQuery generated with the same monitorInput. 
+    Results from the previous run are identified by cursorId.
+    """
+    monitorPreviewSampleDataFromCursor(workspaceId: ObjectId!, monitorId: ObjectId!, monitorInput: MonitorInput!, cursorId: String!): MonitorSampleData
+
+    """
+    Receive an actionInput and sample data payload to render all the fields in the mustache template.
+    SampleData is the json payload that contains all the fields to render the mustache template.
+    """
+    renderMustache(actionInput: ActionInput!, sampleData: JsonObject!): MustacheRender!
 }
 
 extend type Mutation {
     createMonitorAction(input: MonitorActionInput!): MonitorAction!
     updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction!
     deleteMonitorAction(id: ObjectId!): ResultStatus!
-    testMonitorAction(input: MonitorActionInput!, payload: String!): ResultStatus!
+    testMonitorAction(id: ObjectId, input: MonitorActionInput!, payload: String!): ResultStatus!
 
     createChannelAction(workspaceId: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use createMonitorAction instead")
     updateChannelAction(id: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use updateMonitorAction instead")
     deleteChannelAction(id: ObjectId!): ResultStatus! @deprecated(reason:"use deleteMonitorAction instead")
-    testChannelAction(action: ActionInput!, payload: String!): ResultStatus! @deprecated(reason:"use testMonitorAction instead")
+    testChannelAction(id: ObjectId, action: ActionInput!, payload: String!): ResultStatus! @deprecated(reason:"use testMonitorAction instead")
 
     createChannel(workspaceId: ObjectId!, channel: ChannelInput!, actions: [ObjectId!]): Channel!
     updateChannel(id: ObjectId!, channel: ChannelInput, actions: [ObjectId!]): Channel!
@@ -98,6 +109,13 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     useDefaultFreshness: Boolean!
     disabled: Boolean! @deprecated(reason:"use accelerationDisabled instead")
     lastUpdateSource: String! @deprecated(reason:"never used, no longer supported will be ignored")
+    """
+    If the input is a resource, the backend creates a link or finds an existing link from the
+    monitor back to the resource if that resource comes from a dataset (rather than being created inline). 
+    This field contains the name of the link. This can be used to identify the link to use when grouping
+    a monitor by input resource. 
+    """
+    resourceInputLinkName: String! @goField(name:LinkName)
     """
     Static comment for extra information about a monitor available in notification template.
     """
@@ -344,7 +362,7 @@ type MonitorRuleLog implements MonitorRule @goModel(model: "observe/meta/metatyp
     compareFunction: CompareFunction!
     compareValues: [Number!]!
     lookbackTime: Duration!
-    thresholdAggFunction: ThresholdAggFunction!
+    thresholdAggFunction: ThresholdAggFunction! @deprecated(reason:"log monitors no longer have an aggregation function")
     expressionSummary: String!
     logStageId: String!
 }
@@ -353,7 +371,7 @@ input MonitorRuleLogInput @goModel(model: "observe/meta/metatypes.MonitorRuleLog
     compareFunction: CompareFunction
     compareValues: [Number!]
     lookbackTime: Duration
-    thresholdAggFunction: ThresholdAggFunction
+    thresholdAggFunction: ThresholdAggFunction @deprecated(reason:"log monitors no longer have an aggregation function")
     expressionSummary: String
     logStageId: String
 }
@@ -584,14 +602,6 @@ enum CompareFunction @goModel(model: "observe/meta/metatypes.CompareFunction") {
     GreaterOrEqual
     Less
     LessOrEqual
-    """
-    lower value inclusive, upper value exclusive
-    """
-    InInterval
-    """
-    lower value exclusive, upper value inclusive
-    """
-    NotInInterval
     IsNull
     IsNotNull
 }
@@ -709,6 +719,7 @@ type EmailAction implements MonitorAction & ChannelAction @goModel(model: "obser
     subjectTemplate: String!
     bodyTemplate: String!
     isHtml: Boolean!
+    fragments: JsonObject!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
     isPrivate: Boolean!
@@ -802,6 +813,13 @@ input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput"
     subjectTemplate: String
     bodyTemplate: String
     isHtml: Boolean
+    """
+    Fragments are fields that users can edit on simple mode.
+    For example,
+    fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
+    is available in all other templates as {{fragments.title}}
+    """
+    fragments: JsonObject
 }
 
 type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
@@ -819,10 +837,12 @@ type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "obs
     rateLimit: Duration!
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
+    templateName: String!
     urlTemplate: String!
     method: String!
     headers: [WebhookHeader!]!
     bodyTemplate: String!
+    fragments: JsonObject!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
     isPrivate: Boolean!
@@ -830,10 +850,21 @@ type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "obs
 }
 
 input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionInput") {
+    """
+    If the templateName is not set, it will be set as an empty string.
+    """
+    templateName: String
     urlTemplate: String
     method: String
     headers: [WebhookHeaderInput!]
     bodyTemplate: String
+    """
+    Fragments are fields that users can edit on simple mode.
+    For example,
+    fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
+    is available in all other templates as {{fragments.title}}
+    """
+    fragments: JsonObject
 }
 
 type WebhookHeader @goModel(model: "observe/meta/metatypes.WebhookHeader") {
@@ -905,6 +936,20 @@ type ActiveNotificationInfo @goModel(model: "observe/meta/metatypes.ActiveNotifi
 type MonitorRender @goModel(model: "observe/meta/metatypes.MonitorRender") {
     opalText: String!
     error: String!
+}
+
+type MustacheRender @goModel(model: "observe/meta/metatypes.MustacheRender") {
+    emailSubject: String
+    emailBody: String
+    
+    webhookURL: String
+    """
+    WebhookHeaders is a json representation of map[string][]string.
+    An example would be:
+    {"contentType": ["TestMonitor"], "uuid": ["f779e582-0daf-5a21-853d-489862b3e4b5"]}
+    """
+    webhookHeaders: JsonObject
+    webhookBody: String
 }
 
 type MonitorSampleData @goModel(model: "observe/meta/metatypes.MonitorSampleData") {

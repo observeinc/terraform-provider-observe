@@ -37,6 +37,10 @@ type DatasetOutboundShare implements WorkspaceObject & AuditedObject & FolderObj
     schemaName: String!
     viewName: String!
     status: DatasetOutboundShareStatus! @goField(forceResolver: true)
+    """
+    The freshness goal for the outbound share, in nanoseconds. This determines the maximum staleness for the shared dataset. Newer data may not yet be accelerated (materialized) and will not be returned in Snowflake queries for the share. To avoid additional acceleration and minimize cost, set this to 1 hour (3600000000000), the maximum staleness of datasets when freshness decay is active.
+    """
+    freshnessGoal: Int64!
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -65,6 +69,7 @@ input DatasetOutboundShareInput @goModel(model: "observe/meta/metatypes.DatasetO
     schemaName: String!
     viewName: String!
     # resolver: status: DatasetOutboundShareStatusInput!
+    freshnessGoal: Int64!
     # WorkspaceObject
     name: String!
     iconUrl: String
