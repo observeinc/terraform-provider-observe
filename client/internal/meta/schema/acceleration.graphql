@@ -140,7 +140,8 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
 
     """
     The actual target staleness target of the dataset. Note that this can be
-    higher than the configured staleness target, due to decaying. Also if
+    higher than the configured staleness target, due to decaying or credit
+    manager overrides. Also if
     this value is different from the field above, it means the dataset is
     hibernated.
     Empty if alwaysAccelerated is true.

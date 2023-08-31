@@ -24,9 +24,9 @@ scalar Any @goModel(model: "observe/meta/metascalar.Any")
 scalar CustomerId @goModel(model: "observe/authorization/id.CustomerId")
 scalar Duration @goModel(model: "observe/compiler/comptypes.Duration")
 scalar Int64 @goModel(model: "observe/meta/metascalar.Int64")
-scalar JsonObject @goModel(model: "observe/meta/metatypes.ObjectScalar")
+scalar JsonObject @goModel(model: "observe/meta/metascalar.ObjectScalar")
 scalar Number @goModel(model: "observe/meta/metascalar.Number")
-scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectIdScalar")
+scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectId")
 scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
 scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
 scalar StringOrID @goModel(model: "observe/meta/metatypes.StringOrID")
@@ -145,7 +145,7 @@ type SourceSpan @goModel(model: "observe/compiler/comptypes.SourceSpan") {
     end: SourceLoc!
 }
 
-type ResultStatus @goModel(model: "observe/meta/metatypes.ResultStatus") {
+type ResultStatus @goModel(model: "observe/meta/metascalar.ResultStatus") {
     success: Boolean!
     errorMessage: String!
     detailedInfo: JsonObject

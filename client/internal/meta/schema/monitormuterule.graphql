@@ -6,7 +6,7 @@ interface MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.Mo
 
 extend type Query {
     """
-    Get mute rule filters which include only resources.
+    Get mute rule per-resource filters.
     Empty monitorIds fetches filter objects for all existing monitors.
     """
     monitorMuteRuleFiltersForMonitors(monitorIds: [ObjectId!]!): [MonitorMuteRuleFilterPerResource!]!
@@ -14,6 +14,10 @@ extend type Query {
     Get mute rule filters which include columns and resources.
     """
     monitorMuteRuleFiltersForMonitor(monitorId: ObjectId!): [MonitorMuteRuleFilterObject!]!
+    """
+    Get mute rule per-resource filter with all possible primary key values for a ResourceId.
+    """
+    monitorMuteRuleFilterWithResourceIds(resourceId: ResourceIdInput!, presentation: StagePresentationInput!): MonitorMuteRuleFilterPerResource
 }
 
 extend type Mutation {

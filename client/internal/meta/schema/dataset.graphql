@@ -62,7 +62,12 @@ type DatasetError @goModel(model: "observe/meta/metatypes.DatasetError") {
     datasetName: String!
     time: Time!
     location: String!
-    text: [String!]!
+    text: String!
+    """
+    Indicates the dataset has a pre-existing error. The existing error may not
+    be the same as this error.
+    """
+    hasExistingError: Boolean!
 }
 
 """
@@ -221,10 +226,11 @@ input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.Dependency
 type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     targetDataset: Int64
     targetStageLabel: String
-    label: String
+    label: String @deprecated(reason: "use id instead")
     targetLabelFieldName: String
     srcFields: [String!]!
     dstFields: [String!]!
+    id: String
 }
 
 """
@@ -236,6 +242,38 @@ type RelatedKey @goModel(model: "observe/meta/metatypes.RelatedKey") {
     label: String!
     srcFields: [String!]
     dstFields: [String!]
+}
+
+enum GroupingElementType @goModel(model: "observe/compiler/comptypes.GroupingElementType") {
+    Column
+    Link
+}
+
+"""
+If type is Column, value is the column name.
+If type is Link, value is the link ID.
+"""
+type GroupingElement @goModel(model: "observe/compiler/comptypes.GroupingElement") {
+    type: GroupingElementType!
+    value: String!
+}
+
+"""
+The GroupingKey represents how the output data is grouped. It usually originates
+from when the group_by clause is used in an OPAL aggregate verb.
+The elements consist of a mix of links and columns.
+Note: When elements is an empty list, it literally represents "group_by()" with no
+arguments, meaning that all rows are grouped together in a single group. This is
+different from the lack of a grouping, which is represented by Dataset.groupingKey
+or TaskResultSchema.groupingKey being null.
+"""
+type GroupingKey @goModel(model: "observe/compiler/comptypes.GroupingKey") {
+    elements: [GroupingElement!]!
+}
+
+type DatasetInputDataset @goModel(model: "observe/meta/metatypes.DatasetInputDataset") {
+	datasetId: ObjectId!,
+	inputRole: InputRole!,
 }
 
 type Dataset implements WorkspaceObject & FolderObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Dataset") {
@@ -262,11 +300,13 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     keys: [[String!]!]
     foreignKeys: [ForeignKey!]
     relatedKeys: [RelatedKey!]
+    groupingKey: GroupingKey
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time! @deprecated(reason: "use updatedDate instead")
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
+    inputs: [DatasetInputDataset!] @goField(forceResolver:true)
     sourceTable: SourceTableDefinition @goField(forceResolver:true)
     pathCost: Int64
     interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
@@ -305,8 +345,9 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 
 enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
     CumulativeCounter
-    Counter
-    RatePerSec
+    Counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    RatePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    Delta
     Gauge
     Sample
 }
@@ -528,6 +569,16 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
 input DatasetTypedefInput @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
     anykey: Boolean
     fields: [DatasetFieldDefInput!]
+    linkDesc: DatasetLinkSchemaInput
+}
+
+input DatasetLinkSchemaInput @goModel(model: "observe/compiler/comptypes.LinkSchema") {
+    targetDataset: Int64
+    targetStageLabel: String
+    targetLabelField: String
+    label: String!
+    srcFields: [String!]!
+    dstFields: [String!]!
 }
 
 input DatasetFieldTypeInput @goModel(model: "observe/compiler/comptypes.ObjectFieldType") {
@@ -591,6 +642,7 @@ type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefini
 type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
     interfaceField: String!
     rep: String!
+    typeclasses: [String!]
     optional: Boolean!
 }
 

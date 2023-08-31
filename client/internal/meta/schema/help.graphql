@@ -5,8 +5,7 @@ extend type Query {
     """
     getHelp(question: String!, previousIds: [String!]): HelpResponse!
     """
-    If you have an ID token from a previous question, you can retrieve the entire
-    history of that conversation, assuming it's yours and not some other users.
+    If you have an ID token from a previous question, you can retrieve the entire history of that conversation, assuming it's yours and not some other users.
     """
     getHelpHistory(qid: String!): [HelpRecord!]!
     """
@@ -30,6 +29,24 @@ extend type Query {
     Score the result of the extraction using scoreCodeCompletion().
     """
     getDataExtraction(data: String!, avoidColumnNames: [String!]): DataExtractionResponse!
+
+    """
+    When binding a particular context (or a new context) to a particular
+    object, call this function to allocate the appropriate context ID.
+    Modes let you specify specific modes (Auto is the default.)
+    Note that you can use this to re-start an existing conversation with
+    a new context, too, to "switch context".
+    """
+    setInferHelpContext(previousId:String, author:String, object:ORN!, mode:InferMode): InferResponse!
+    """
+    This is the o11y-as-command-line interface, to continue a session started with setInferHelpContext().
+    You can also use this to start an un-bound session (that won't have context.)
+    """
+    inferHelp(previousId:String, author:String, text:String!, mode:InferMode): InferResponse!
+    """
+    Summarize a conversation
+    """
+    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!): InferResponse!
 }
 
 extend type Mutation {
@@ -42,7 +59,46 @@ extend type Mutation {
     Score a code completion. Positive is "good" and negative is "bad."
     """
     scoreCodeCompletion(id:String!, score:Int64!): ResultStatus!
+    """
+    Score a particular response in the inference API.
+    """
+    scoreInference(id: String!, score: Int64!): ResultStatus!
+
+    """
+    You can allocate/look up o11y sessions based on the customer ID (implicit)
+    and some other ID (user ID or channel ID, for example.) If no thread exists
+    within the given lookback, return a new session. Default lookback is 13
+    hours. The returned ID can be provided as `previousId` to other functions.
+    If any of the other functions allocate a session, they will use the UserId
+    as key; however, you can start a brand new unique session by passing some
+    other value as key.
+    """
+    getOrMakeO11ySession(userKey: String!, lookback: Duration): O11ySessionInfo!
 }
+
+type O11ySessionInfo @goModel(model:"observe/meta/metatypes.O11ySessionInfo") {
+    sessionId: String!
+    latestTime: Time!
+}
+
+"""
+InferMode determines what path the AI assistant prefers to resolve a user question.
+If no mode is specified, the "Auto" mode is used, which uses previous context
+and the question text to figure out the mode. If the question starts with "browse,"
+the mode will be assumed to be "Browse," if the question starts with "query," the
+mode will be assumed to be "Query," if the question starts with "list" or "show,"
+the rest of the question is examined to choose "Browse" or "Query," else the mode
+is assumed to be "Documentation."
+"""
+enum InferMode @goModel(model:"observe/meta/metatypes.InferMode") {
+    Auto          # figure out what to do from context
+    Summarize     # summarize all the data that is in this thread (including provided in the request)
+    Documentation # search Observe documentation, return matching help
+    Browse        # search dashboards/datasets in the customer instance
+    Query         # search actual payload data
+}
+
+scalar JSONInt64 @goModel(model:"observe/meta/metascalar.JSONInt64")
 
 type HelpResponse @goModel(model:"observe/meta/metatypes.HelpResponse") {
     items: [HelpResponseItem!]!
@@ -89,5 +145,68 @@ type DataExtraction @goModel(model:"observe/meta/metatypes.DataExtraction") {
     statement: String!
     explanation: String!
     id: String!
+}
+
+type InferResponse @goModel(model:"observe/meta/metatypes.InferResponse") {
+    error: String
+    id: String! @goField(name:"Idtok")
+    answer: [InferStatement!]! # display these in order if there's more than one
+}
+
+interface InferStatement @goModel(model:"observe/meta/metatypes.InferStatement") {
+    author: String
+    text: String! # display this if you don't know better from the specific type
+}
+
+type ChatStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ChatStatement") {
+    author: String
+    text: String!
+    timestamp: Time
+}
+
+input ChatStatementInput @goModel(model:"observe/meta/metatypes.ChatStatement") {
+    author: String
+    text: String!
+    timestamp: Time
+}
+
+type TableStatement implements InferStatement @goModel(model:"observe/meta/metatypes.TableStatement") {
+    author: String
+    text: String!
+    query: MultiStageQuery!
+    endTime: Time!
+    minutes: JSONInt64!
+}
+
+enum O11yChartKind @goModel(model:"observe/meta/metatypes.O11yChartKind") {
+    Line
+    Pie
+}
+
+type GraphStatement implements InferStatement @goModel(model:"observe/meta/metatypes.GraphStatement") {
+    author: String
+    text: String!
+    query: MultiStageQuery!
+    endTime: Time!
+    minutes: JSONInt64!
+    chartKind: O11yChartKind!
+}
+
+type ObjectListStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ObjectListStatement") {
+    author: String
+    text: String!
+    objectType: String!
+    objectIds: [ORN!]!
+    objectNames: [String!]!
+    objectUrls: [String!]
+}
+
+type ContextStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ContextStatement") {
+    author: String
+    text: String!
+    objectType: String!
+    objectId: ORN!
+    timeWindowStart: Time
+    timeWindowDuration: Duration
 }
 
