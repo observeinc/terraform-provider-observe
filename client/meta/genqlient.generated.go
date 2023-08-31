@@ -2356,6 +2356,7 @@ const (
 )
 
 type FiledropInput struct {
+	Disabled    *bool               `json:"disabled,omitempty"`
 	Config      FiledropConfigInput `json:"config"`
 	Name        *string             `json:"name"`
 	IconUrl     *string             `json:"iconUrl"`
@@ -2363,6 +2364,9 @@ type FiledropInput struct {
 	ManagedById *string             `json:"managedById"`
 	FolderId    *string             `json:"folderId"`
 }
+
+// GetDisabled returns FiledropInput.Disabled, and is useful for accessing the field via an interface.
+func (v *FiledropInput) GetDisabled() *bool { return v.Disabled }
 
 // GetConfig returns FiledropInput.Config, and is useful for accessing the field via an interface.
 func (v *FiledropInput) GetConfig() FiledropConfigInput { return v.Config }
