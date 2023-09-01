@@ -26,8 +26,8 @@ func resourceDatasetOutboundShare() *schema.Resource {
 		UpdateContext: resourceDatasetOutboundShareUpdate,
 		DeleteContext: resourceDatasetOutboundShareDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(2 * time.Minute),
-			Update: schema.DefaultTimeout(2 * time.Minute),
+			Create: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
