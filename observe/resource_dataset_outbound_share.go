@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -134,7 +135,7 @@ func resourceDatasetOutboundShareCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	shareId, err := oid.NewOID(d.Get("share").(string))
+	shareId, err := oid.NewOID(d.Get("outbound_share").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -277,7 +278,12 @@ func waitDatasetOutboundShareLive(ctx context.Context, ds *gql.DatasetOutboundSh
 
 			switch resp.Status.State {
 			case gql.DatasetOutboundShareStateError, gql.DatasetOutboundShareStateUnavailable:
-				return nil, string(resp.Status.State), fmt.Errorf("dataset outbound share is in %q state (%s)", resp.Status.State, resp.Status.Error)
+				msg := fmt.Sprintf("dataset outbound share is in %q state", resp.Status.State)
+				if resp.Status.Error != nil {
+					msg += fmt.Sprintf(": %s", *resp.Status.Error)
+				}
+
+				return nil, string(resp.Status.State), errors.New(msg)
 			}
 
 			return resp, string(resp.Status.State), nil

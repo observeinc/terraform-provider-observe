@@ -163,6 +163,7 @@ func Provider() *schema.Provider {
 			"observe_rbac_statement":            resourceRbacStatement(),
 			"observe_filedrop":                  resourceFiledrop(),
 			"observe_snowflake_share_outbound":  resourceSnowflakeShareOutbound(),
+			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}
