@@ -75,7 +75,7 @@ func resourceFiledrop() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"format": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -84,6 +84,7 @@ func resourceFiledrop() *schema.Resource {
 										Required:         true,
 										Description:      describeEnums(gql.AllFiledropFormatTypes, descriptions.Get("filedrop", "schema", "config", "format", "type")),
 										ValidateDiagFunc: validateEnums(gql.AllFiledropFormatTypes),
+										Deprecated:       "Filedrop now accepts all formats. Setting this field will have no effect",
 									},
 								},
 							},
@@ -175,14 +176,10 @@ func newFiledropConfig(data *schema.ResourceData) (input *gql.FiledropInput, dia
 }
 
 func expandFiledropConfig(data map[string]interface{}) gql.FiledropConfigInput {
-	format := data["format"].([]interface{})[0].(map[string]interface{})
 	provider := data["provider"].([]interface{})[0].(map[string]interface{})
 	aws := provider["aws"].([]interface{})[0].(map[string]interface{})
 
 	config := gql.FiledropConfigInput{
-		Format: gql.FiledropFormatConfigInput{
-			Type: gql.FiledropFormatType(toCamel(format["type"].(string))),
-		},
 		ProviderAws: &gql.FiledropProviderAwsConfigInput{
 			Region:  aws["region"].(string),
 			RoleArn: aws["role_arn"].(string),
@@ -321,13 +318,7 @@ func resourceFiledropRead(ctx context.Context, data *schema.ResourceData, meta i
 }
 
 func flattenFiledropConfig(config gql.FiledropConfig) interface{} {
-	format := map[string]interface{}{
-		"type": toSnake(string(config.Format.Type)),
-	}
-	data := map[string]interface{}{
-		"format": []interface{}{format},
-	}
-
+	data := map[string]interface{}{}
 	if awsConfig, ok := config.Provider.(*gql.FiledropConfigProviderFiledropProviderAwsConfig); ok {
 		aws := map[string]interface{}{
 			"role_arn": awsConfig.RoleArn,
