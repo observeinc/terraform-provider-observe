@@ -2156,12 +2156,12 @@ func (v *Filedrop) __premarshalJSON() (*__premarshalFiledrop, error) {
 
 // FiledropConfig includes the requested fields of the GraphQL type FiledropConfig.
 type FiledropConfig struct {
-	Format   FiledropConfigFormatFiledropFormatConfig     `json:"format"`
+	Format   *FiledropConfigFormatFiledropFormatConfig    `json:"format"`
 	Provider FiledropConfigProviderFiledropProviderConfig `json:"-"`
 }
 
 // GetFormat returns FiledropConfig.Format, and is useful for accessing the field via an interface.
-func (v *FiledropConfig) GetFormat() FiledropConfigFormatFiledropFormatConfig { return v.Format }
+func (v *FiledropConfig) GetFormat() *FiledropConfigFormatFiledropFormatConfig { return v.Format }
 
 // GetProvider returns FiledropConfig.Provider, and is useful for accessing the field via an interface.
 func (v *FiledropConfig) GetProvider() FiledropConfigProviderFiledropProviderConfig {
@@ -2202,7 +2202,7 @@ func (v *FiledropConfig) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalFiledropConfig struct {
-	Format FiledropConfigFormatFiledropFormatConfig `json:"format"`
+	Format *FiledropConfigFormatFiledropFormatConfig `json:"format"`
 
 	Provider json.RawMessage `json:"provider"`
 }
@@ -2243,12 +2243,12 @@ type FiledropConfigFormatFiledropFormatConfig struct {
 func (v *FiledropConfigFormatFiledropFormatConfig) GetType() FiledropFormatType { return v.Type }
 
 type FiledropConfigInput struct {
-	Format      FiledropFormatConfigInput       `json:"format"`
+	Format      *FiledropFormatConfigInput      `json:"format,omitempty"`
 	ProviderAws *FiledropProviderAwsConfigInput `json:"providerAws"`
 }
 
 // GetFormat returns FiledropConfigInput.Format, and is useful for accessing the field via an interface.
-func (v *FiledropConfigInput) GetFormat() FiledropFormatConfigInput { return v.Format }
+func (v *FiledropConfigInput) GetFormat() *FiledropFormatConfigInput { return v.Format }
 
 // GetProviderAws returns FiledropConfigInput.ProviderAws, and is useful for accessing the field via an interface.
 func (v *FiledropConfigInput) GetProviderAws() *FiledropProviderAwsConfigInput { return v.ProviderAws }
