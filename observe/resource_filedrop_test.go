@@ -13,11 +13,11 @@ var filedropConfigPreamble = configPreamble + datastreamConfigPreamble
 func TestAccObserveFiledrop(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	filedropRoleArn := os.Getenv("OBSERVE_FILEDROP_ROLE_ARN")
-	//if os.Getenv("CI") != "true" {
-	//	// The role_arn `OBSERVE_FILEDROP_ROLE_ARN` was manually created for the provider CI Observe account.
-	//	// This test fails if the role_arn does not exist
-	//	t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's AWS account.")
-	//}
+	if os.Getenv("CI") != "true" {
+		// The role_arn `OBSERVE_FILEDROP_ROLE_ARN` was manually created for the provider CI Observe account.
+		// This test fails if the role_arn does not exist
+		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's AWS account.")
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
