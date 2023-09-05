@@ -38,17 +38,7 @@ should be used when referring to this object in terraform manifests.
 
 Required:
 
-- `format` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--config--format))
 - `provider` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--config--provider))
-
-<a id="nestedblock--config--format"></a>
-### Nested Schema for `config.format`
-
-Required:
-
-- `type` (String) The file format of the file that you will be dropping.
- Accepted values: parquet, csv, json
-
 
 <a id="nestedblock--config--provider"></a>
 ### Nested Schema for `config.provider`

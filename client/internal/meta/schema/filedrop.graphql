@@ -119,14 +119,14 @@ type FiledropSearchResult @goModel(model: "observe/meta/metatypes.FiledropSearch
 # User provided configuration that defines a filedrop
 type FiledropConfig @goModel(model: "observe/meta/metatypes.FiledropConfig") {
     # payload
-    format: FiledropFormatConfig!
+    format: FiledropFormatConfig
     provider: FiledropProviderConfig!
     # not in output: providerAws: FiledropProviderAwsConfig
 }
 
 input FiledropConfigInput @goModel(model: "observe/meta/metatypes.FiledropConfigInput") {
     # payload
-    format: FiledropFormatConfigInput!
+    format: FiledropFormatConfigInput
     # not in input: provider: FiledropProviderConfig!
     providerAws: FiledropProviderAwsConfigInput
 }
