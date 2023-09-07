@@ -73,22 +73,6 @@ func resourceFiledrop() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"format": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"type": {
-										Type:             schema.TypeString,
-										Required:         true,
-										Description:      describeEnums(gql.AllFiledropFormatTypes, descriptions.Get("filedrop", "schema", "config", "format", "type")),
-										ValidateDiagFunc: validateEnums(gql.AllFiledropFormatTypes),
-										Deprecated:       "Filedrop now accepts all formats. Setting this field will have no effect",
-									},
-								},
-							},
-						},
 						"provider": {
 							Type:     schema.TypeList,
 							Required: true,

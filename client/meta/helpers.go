@@ -83,12 +83,6 @@ var AllPollerHTTPRequestAuthSchemes = []PollerHTTPRequestAuthScheme{
 	PollerHTTPRequestAuthSchemeDigest,
 }
 
-var AllFiledropFormatTypes = []FiledropFormatType{
-	FiledropFormatTypeParquet,
-	FiledropFormatTypeCsv,
-	FiledropFormatTypeJson,
-}
-
 // AllBookmarkKindTypes This list is incomplete and will be filled in
 // as we support more types of bookmarks in the terraform provider
 var AllBookmarkKindTypes = []BookmarkKind{

@@ -36,12 +36,6 @@ enum FiledropEndpointType @goModel(model: "observe/meta/metatypes.FiledropEndpoi
     S3
 }
 
-enum FiledropFormatType @goModel(model: "observe/meta/metatypes.FiledropFormatType") {
-    Csv
-    Json
-    Parquet
-}
-
 enum FiledropProviderType @goModel(model: "observe/meta/metatypes.FiledropProviderType") {
     Aws
 }
@@ -119,26 +113,14 @@ type FiledropSearchResult @goModel(model: "observe/meta/metatypes.FiledropSearch
 # User provided configuration that defines a filedrop
 type FiledropConfig @goModel(model: "observe/meta/metatypes.FiledropConfig") {
     # payload
-    format: FiledropFormatConfig
     provider: FiledropProviderConfig!
     # not in output: providerAws: FiledropProviderAwsConfig
 }
 
 input FiledropConfigInput @goModel(model: "observe/meta/metatypes.FiledropConfigInput") {
     # payload
-    format: FiledropFormatConfigInput
     # not in input: provider: FiledropProviderConfig!
     providerAws: FiledropProviderAwsConfigInput
-}
-
-type FiledropFormatConfig @goModel(model: "observe/meta/metatypes.FiledropFormatConfig") {
-    # payload
-    type: FiledropFormatType!
-}
-
-input FiledropFormatConfigInput @goModel(model: "observe/meta/metatypes.FiledropFormatConfigInput") {
-    # payload
-    type: FiledropFormatType!
 }
 
 type FiledropProviderAwsConfig implements FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderAwsConfig") {

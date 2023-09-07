@@ -40,10 +40,6 @@ Required:
 
 - `provider` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--config--provider))
 
-Optional:
-
-- `format` (Block List, Max: 1) (see [below for nested schema](#nestedblock--config--format))
-
 <a id="nestedblock--config--provider"></a>
 ### Nested Schema for `config.provider`
 
@@ -59,15 +55,6 @@ Required:
 - `region` (String) The region where the role ARN exists that you will be dropping files to.
 - `role_arn` (String) Your IAM role that Observe allows to drop data into the particular filedrop.
 
-
-
-<a id="nestedblock--config--format"></a>
-### Nested Schema for `config.format`
-
-Required:
-
-- `type` (String, Deprecated) The file format of the file that you will be dropping.
- Accepted values: parquet, csv, json
 
 
 
