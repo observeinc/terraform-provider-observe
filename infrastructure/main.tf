@@ -12,6 +12,14 @@ resource "github_actions_secret" "secrets" {
   encrypted_value = file("${path.module}/secrets/${each.key}")
 }
 
+resource "github_dependabot_secret" "secrets" {
+  for_each = github_actions_secret.secrets
+
+  repository      = each.value.repository
+  secret_name     = each.key
+  encrypted_value = each.value.encrypted_value
+}
+
 moved {
   from = github_actions_secret.observe_provider_password
   to   = github_actions_secret.secrets["OBSERVE_PROVIDER_PASSWORD"]
