@@ -7,9 +7,6 @@ fragment Filedrop on Filedrop {
     status
     datastreamID
     config {
-        format {
-            type
-        }
         provider {
             ... on FiledropProviderAwsConfig {
                 region
@@ -34,7 +31,6 @@ query getFiledrop($id: ObjectId!) {
 }
 
 # @genqlient(for: "FiledropInput.disabled", omitempty: true)
-# @genqlient(for: "FiledropConfigInput.format", omitempty: true)
 mutation createFiledrop(
     $workspaceID: ObjectId!,
     $datastreamID: ObjectId!,
@@ -47,7 +43,6 @@ mutation createFiledrop(
 }
 
 # @genqlient(for: "FiledropInput.disabled", omitempty: true)
-# @genqlient(for: "FiledropConfigInput.format", omitempty: true)
 mutation updateFiledrop(
     $id: ObjectId!,
     $input: FiledropInput!
