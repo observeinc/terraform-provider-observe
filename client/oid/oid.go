@@ -21,7 +21,6 @@ type Type string
 const (
 	TypeApp                     Type = "app"
 	TypeAppDataSource           Type = "appdatasource"
-	TypeBoard                   Type = "board"
 	TypeBookmark                Type = "bookmark"
 	TypeBookmarkGroup           Type = "bookmarkgroup"
 	TypeChannel                 Type = "channel"
@@ -52,7 +51,6 @@ func (t Type) IsValid() bool {
 	switch t {
 	case TypeApp:
 	case TypeAppDataSource:
-	case TypeBoard:
 	case TypeBookmark:
 	case TypeBookmarkGroup:
 	case TypeChannel:
@@ -158,10 +156,6 @@ func AppOid(id string) OID {
 
 func AppDataSourceOid(id string) OID {
 	return OID{Id: id, Type: TypeAppDataSource}
-}
-
-func BoardOid(id string) OID {
-	return OID{Id: id, Type: TypeBoard}
 }
 
 func BookmarkOid(id string) OID {
