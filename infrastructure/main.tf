@@ -13,7 +13,10 @@ resource "github_actions_secret" "secrets" {
 }
 
 resource "github_dependabot_secret" "secrets" {
-  for_each = github_actions_secret.secrets
+  for_each = {
+    # Automatically expose any OBSERVE_* credentials as Dependabot secrets to allow aceptance testing PRs
+    k, v in github_actions_secret.secrets : k => v if startswith(k, "OBSERVE")
+  }
 
   repository      = each.value.repository
   secret_name     = each.key
