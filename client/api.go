@@ -531,46 +531,6 @@ func (c *Client) LookupMonitor(ctx context.Context, workspaceId string, id strin
 	return c.Meta.LookupMonitor(ctx, workspaceId, id)
 }
 
-// CreateBoard creates a board
-func (c *Client) CreateBoard(ctx context.Context, dsid string, boardType meta.BoardType, input *meta.BoardInput) (*meta.Board, error) {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	if c.Config.Source != nil {
-		input.Source = c.Config.Source
-	}
-
-	return c.Meta.CreateBoard(ctx, dsid, boardType, input)
-}
-
-// UpdateBoard updates a board
-func (c *Client) UpdateBoard(ctx context.Context, id string, input *meta.BoardInput) (*meta.Board, error) {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	if c.Config.Source != nil {
-		input.Source = c.Config.Source
-	}
-
-	return c.Meta.UpdateBoard(ctx, id, input)
-}
-
-// DeleteBoard
-func (c *Client) DeleteBoard(ctx context.Context, id string) error {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	return c.Meta.DeleteBoard(ctx, id)
-}
-
-// GetBoard returns board by ID
-func (c *Client) GetBoard(ctx context.Context, id string) (*meta.Board, error) {
-	return c.Meta.GetBoard(ctx, id)
-}
-
 // CreatePoller creates a poller
 func (c *Client) CreatePoller(ctx context.Context, workspaceId string, input *meta.PollerInput) (*meta.Poller, error) {
 	if !c.Flags[flagObs2110] {

@@ -5,11 +5,6 @@ import (
 	"fmt"
 )
 
-var AllBoardType = []BoardType{
-	BoardTypeSet,
-	BoardTypeSingleton,
-}
-
 var AllCompareFunctions = []CompareFunction{
 	CompareFunctionEqual,
 	CompareFunctionNotequal,

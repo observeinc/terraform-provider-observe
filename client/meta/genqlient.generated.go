@@ -234,60 +234,6 @@ func (v *AppVariableInput) GetName() string { return v.Name }
 // GetValue returns AppVariableInput.Value, and is useful for accessing the field via an interface.
 func (v *AppVariableInput) GetValue() string { return v.Value }
 
-// Board includes the GraphQL fields of Board requested by the fragment Board.
-type Board struct {
-	Id        string           `json:"id"`
-	DatasetId string           `json:"datasetId"`
-	Name      *string          `json:"name"`
-	Type      BoardType        `json:"type"`
-	BoardJson types.JsonObject `json:"boardJson"`
-	Source    *string          `json:"source"`
-}
-
-// GetId returns Board.Id, and is useful for accessing the field via an interface.
-func (v *Board) GetId() string { return v.Id }
-
-// GetDatasetId returns Board.DatasetId, and is useful for accessing the field via an interface.
-func (v *Board) GetDatasetId() string { return v.DatasetId }
-
-// GetName returns Board.Name, and is useful for accessing the field via an interface.
-func (v *Board) GetName() *string { return v.Name }
-
-// GetType returns Board.Type, and is useful for accessing the field via an interface.
-func (v *Board) GetType() BoardType { return v.Type }
-
-// GetBoardJson returns Board.BoardJson, and is useful for accessing the field via an interface.
-func (v *Board) GetBoardJson() types.JsonObject { return v.BoardJson }
-
-// GetSource returns Board.Source, and is useful for accessing the field via an interface.
-func (v *Board) GetSource() *string { return v.Source }
-
-type BoardInput struct {
-	Name      *string           `json:"name"`
-	IsDefault *bool             `json:"isDefault"`
-	Board     *types.JsonObject `json:"board"`
-	Source    *string           `json:"source"`
-}
-
-// GetName returns BoardInput.Name, and is useful for accessing the field via an interface.
-func (v *BoardInput) GetName() *string { return v.Name }
-
-// GetIsDefault returns BoardInput.IsDefault, and is useful for accessing the field via an interface.
-func (v *BoardInput) GetIsDefault() *bool { return v.IsDefault }
-
-// GetBoard returns BoardInput.Board, and is useful for accessing the field via an interface.
-func (v *BoardInput) GetBoard() *types.JsonObject { return v.Board }
-
-// GetSource returns BoardInput.Source, and is useful for accessing the field via an interface.
-func (v *BoardInput) GetSource() *string { return v.Source }
-
-type BoardType string
-
-const (
-	BoardTypeSet       BoardType = "Set"
-	BoardTypeSingleton BoardType = "Singleton"
-)
-
 // Bookmark includes the GraphQL fields of Bookmark requested by the fragment Bookmark.
 type Bookmark struct {
 	Id           string       `json:"id"`
@@ -6488,22 +6434,6 @@ func (v *__createAppInput) GetWorkspaceId() string { return v.WorkspaceId }
 // GetConfig returns __createAppInput.Config, and is useful for accessing the field via an interface.
 func (v *__createAppInput) GetConfig() AppInput { return v.Config }
 
-// __createBoardInput is used internally by genqlient
-type __createBoardInput struct {
-	DatasetId string     `json:"datasetId"`
-	BoardType BoardType  `json:"boardType"`
-	Board     BoardInput `json:"board"`
-}
-
-// GetDatasetId returns __createBoardInput.DatasetId, and is useful for accessing the field via an interface.
-func (v *__createBoardInput) GetDatasetId() string { return v.DatasetId }
-
-// GetBoardType returns __createBoardInput.BoardType, and is useful for accessing the field via an interface.
-func (v *__createBoardInput) GetBoardType() BoardType { return v.BoardType }
-
-// GetBoard returns __createBoardInput.Board, and is useful for accessing the field via an interface.
-func (v *__createBoardInput) GetBoard() BoardInput { return v.Board }
-
 // __createChannelActionInput is used internally by genqlient
 type __createChannelActionInput struct {
 	WorkspaceId string      `json:"workspaceId"`
@@ -6736,14 +6666,6 @@ type __deleteAppInput struct {
 // GetId returns __deleteAppInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteAppInput) GetId() string { return v.Id }
 
-// __deleteBoardInput is used internally by genqlient
-type __deleteBoardInput struct {
-	Id string `json:"id"`
-}
-
-// GetId returns __deleteBoardInput.Id, and is useful for accessing the field via an interface.
-func (v *__deleteBoardInput) GetId() string { return v.Id }
-
 // __deleteBookmarkGroupInput is used internally by genqlient
 type __deleteBookmarkGroupInput struct {
 	Id string `json:"id"`
@@ -6947,14 +6869,6 @@ type __getAppInput struct {
 
 // GetId returns __getAppInput.Id, and is useful for accessing the field via an interface.
 func (v *__getAppInput) GetId() string { return v.Id }
-
-// __getBoardInput is used internally by genqlient
-type __getBoardInput struct {
-	Id string `json:"id"`
-}
-
-// GetId returns __getBoardInput.Id, and is useful for accessing the field via an interface.
-func (v *__getBoardInput) GetId() string { return v.Id }
 
 // __getBookmarkGroupInput is used internally by genqlient
 type __getBookmarkGroupInput struct {
@@ -7382,18 +7296,6 @@ func (v *__updateAppInput) GetId() string { return v.Id }
 // GetConfig returns __updateAppInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateAppInput) GetConfig() AppInput { return v.Config }
 
-// __updateBoardInput is used internally by genqlient
-type __updateBoardInput struct {
-	Id    string     `json:"id"`
-	Board BoardInput `json:"board"`
-}
-
-// GetId returns __updateBoardInput.Id, and is useful for accessing the field via an interface.
-func (v *__updateBoardInput) GetId() string { return v.Id }
-
-// GetBoard returns __updateBoardInput.Board, and is useful for accessing the field via an interface.
-func (v *__updateBoardInput) GetBoard() BoardInput { return v.Board }
-
 // __updateChannelActionInput is used internally by genqlient
 type __updateChannelActionInput struct {
 	Id     string      `json:"id"`
@@ -7633,14 +7535,6 @@ type createAppResponse struct {
 
 // GetApp returns createAppResponse.App, and is useful for accessing the field via an interface.
 func (v *createAppResponse) GetApp() App { return v.App }
-
-// createBoardResponse is returned by createBoard on success.
-type createBoardResponse struct {
-	Board Board `json:"board"`
-}
-
-// GetBoard returns createBoardResponse.Board, and is useful for accessing the field via an interface.
-func (v *createBoardResponse) GetBoard() Board { return v.Board }
 
 // createChannelActionResponse is returned by createChannelAction on success.
 type createChannelActionResponse struct {
@@ -7983,14 +7877,6 @@ type deleteAppResponse struct {
 // GetResultStatus returns deleteAppResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteAppResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
-// deleteBoardResponse is returned by deleteBoard on success.
-type deleteBoardResponse struct {
-	ResultStatus ResultStatus `json:"resultStatus"`
-}
-
-// GetResultStatus returns deleteBoardResponse.ResultStatus, and is useful for accessing the field via an interface.
-func (v *deleteBoardResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
-
 // deleteBookmarkGroupResponse is returned by deleteBookmarkGroup on success.
 type deleteBookmarkGroupResponse struct {
 	// Deleting a bookmark group will also delete the bookmarks. This is not undo-able;
@@ -8205,14 +8091,6 @@ type getAppResponse struct {
 
 // GetApp returns getAppResponse.App, and is useful for accessing the field via an interface.
 func (v *getAppResponse) GetApp() App { return v.App }
-
-// getBoardResponse is returned by getBoard on success.
-type getBoardResponse struct {
-	Board Board `json:"board"`
-}
-
-// GetBoard returns getBoardResponse.Board, and is useful for accessing the field via an interface.
-func (v *getBoardResponse) GetBoard() Board { return v.Board }
 
 // getBookmarkGroupResponse is returned by getBookmarkGroup on success.
 type getBookmarkGroupResponse struct {
@@ -8868,14 +8746,6 @@ type updateAppResponse struct {
 // GetApp returns updateAppResponse.App, and is useful for accessing the field via an interface.
 func (v *updateAppResponse) GetApp() App { return v.App }
 
-// updateBoardResponse is returned by updateBoard on success.
-type updateBoardResponse struct {
-	Board Board `json:"board"`
-}
-
-// GetBoard returns updateBoardResponse.Board, and is useful for accessing the field via an interface.
-func (v *updateBoardResponse) GetBoard() Board { return v.Board }
-
 // updateChannelActionResponse is returned by updateChannelAction on success.
 type updateChannelActionResponse struct {
 	ChannelAction *ChannelAction `json:"-"`
@@ -9296,50 +9166,6 @@ fragment AppDataSource on AppDataSource {
 	var err error
 
 	var data createAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-func createBoard(
-	ctx context.Context,
-	client graphql.Client,
-	datasetId string,
-	boardType BoardType,
-	board BoardInput,
-) (*createBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "createBoard",
-		Query: `
-mutation createBoard ($datasetId: ObjectId!, $boardType: BoardType!, $board: BoardInput!) {
-	board: createBoard(datasetId: $datasetId, type: $boardType, board: $board) {
-		... Board
-	}
-}
-fragment Board on Board {
-	id
-	datasetId
-	name
-	type
-	boardJson: board
-	source
-}
-`,
-		Variables: &__createBoardInput{
-			DatasetId: datasetId,
-			BoardType: boardType,
-			Board:     board,
-		},
-	}
-	var err error
-
-	var data createBoardResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -10513,43 +10339,6 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteBoard",
-		Query: `
-mutation deleteBoard ($id: ObjectId!) {
-	resultStatus: deleteBoard(id: $id) {
-		... ResultStatus
-	}
-}
-fragment ResultStatus on ResultStatus {
-	success
-	errorMessage
-	detailedInfo
-}
-`,
-		Variables: &__deleteBoardInput{
-			Id: id,
-		},
-	}
-	var err error
-
-	var data deleteBoardResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 func deleteBookmark(
 	ctx context.Context,
 	client graphql.Client,
@@ -11485,46 +11274,6 @@ fragment AppDataSource on AppDataSource {
 	var err error
 
 	var data getAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-func getBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "getBoard",
-		Query: `
-query getBoard ($id: ObjectId!) {
-	board: getBoard(id: $id) {
-		... Board
-	}
-}
-fragment Board on Board {
-	id
-	datasetId
-	name
-	type
-	boardJson: board
-	source
-}
-`,
-		Variables: &__getBoardInput{
-			Id: id,
-		},
-	}
-	var err error
-
-	var data getBoardResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -14357,48 +14106,6 @@ fragment AppDataSource on AppDataSource {
 	var err error
 
 	var data updateAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-func updateBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	board BoardInput,
-) (*updateBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateBoard",
-		Query: `
-mutation updateBoard ($id: ObjectId!, $board: BoardInput!) {
-	board: updateBoard(id: $id, board: $board) {
-		... Board
-	}
-}
-fragment Board on Board {
-	id
-	datasetId
-	name
-	type
-	boardJson: board
-	source
-}
-`,
-		Variables: &__updateBoardInput{
-			Id:    id,
-			Board: board,
-		},
-	}
-	var err error
-
-	var data updateBoardResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
