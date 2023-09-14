@@ -33,6 +33,7 @@ func TestAccObserveSnowflakeShareOutbound(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_snowflake_share_outbound.test", "oid"),
 					resource.TestCheckResourceAttr("observe_snowflake_share_outbound.test", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_snowflake_share_outbound.test", "description", "test description"),
+					resource.TestCheckResourceAttrSet("observe_snowflake_share_outbound.test", "share_name"),
 				),
 			},
 		},
