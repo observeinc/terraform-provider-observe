@@ -12,6 +12,17 @@ resource "github_actions_secret" "secrets" {
   encrypted_value = file("${path.module}/secrets/${each.key}")
 }
 
+resource "github_dependabot_secret" "secrets" {
+  for_each = {
+    # Automatically expose any OBSERVE_* credentials as Dependabot secrets to allow aceptance testing PRs
+    for k, v in github_actions_secret.secrets : k => v if startswith(k, "OBSERVE")
+  }
+
+  repository      = each.value.repository
+  secret_name     = each.key
+  encrypted_value = each.value.encrypted_value
+}
+
 moved {
   from = github_actions_secret.observe_provider_password
   to   = github_actions_secret.secrets["OBSERVE_PROVIDER_PASSWORD"]
