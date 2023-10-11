@@ -11,9 +11,6 @@ schema:
   datastream: |
     The OID of the datastream that the filedrop loads data into.
   config:
-    format:
-      type: |
-        The file format of the file that you will be dropping.
     provider:
       aws:
         region: |

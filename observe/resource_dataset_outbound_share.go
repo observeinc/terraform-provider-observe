@@ -43,6 +43,7 @@ func resourceDatasetOutboundShare() *schema.Resource {
 			"folder": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true, // Default folder when unset
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
 			},
 			"oid": {
@@ -64,6 +65,7 @@ func resourceDatasetOutboundShare() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
+				DiffSuppressFunc: diffSuppressOIDVersion,
 				Description:      "The OID of the dataset to be shared",
 			},
 			"outbound_share": {
