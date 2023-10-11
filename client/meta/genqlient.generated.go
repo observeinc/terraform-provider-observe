@@ -2156,12 +2156,8 @@ func (v *Filedrop) __premarshalJSON() (*__premarshalFiledrop, error) {
 
 // FiledropConfig includes the requested fields of the GraphQL type FiledropConfig.
 type FiledropConfig struct {
-	Format   FiledropConfigFormatFiledropFormatConfig     `json:"format"`
 	Provider FiledropConfigProviderFiledropProviderConfig `json:"-"`
 }
-
-// GetFormat returns FiledropConfig.Format, and is useful for accessing the field via an interface.
-func (v *FiledropConfig) GetFormat() FiledropConfigFormatFiledropFormatConfig { return v.Format }
 
 // GetProvider returns FiledropConfig.Provider, and is useful for accessing the field via an interface.
 func (v *FiledropConfig) GetProvider() FiledropConfigProviderFiledropProviderConfig {
@@ -2202,8 +2198,6 @@ func (v *FiledropConfig) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalFiledropConfig struct {
-	Format FiledropConfigFormatFiledropFormatConfig `json:"format"`
-
 	Provider json.RawMessage `json:"provider"`
 }
 
@@ -2218,7 +2212,6 @@ func (v *FiledropConfig) MarshalJSON() ([]byte, error) {
 func (v *FiledropConfig) __premarshalJSON() (*__premarshalFiledropConfig, error) {
 	var retval __premarshalFiledropConfig
 
-	retval.Format = v.Format
 	{
 
 		dst := &retval.Provider
@@ -2234,21 +2227,9 @@ func (v *FiledropConfig) __premarshalJSON() (*__premarshalFiledropConfig, error)
 	return &retval, nil
 }
 
-// FiledropConfigFormatFiledropFormatConfig includes the requested fields of the GraphQL type FiledropFormatConfig.
-type FiledropConfigFormatFiledropFormatConfig struct {
-	Type FiledropFormatType `json:"type"`
-}
-
-// GetType returns FiledropConfigFormatFiledropFormatConfig.Type, and is useful for accessing the field via an interface.
-func (v *FiledropConfigFormatFiledropFormatConfig) GetType() FiledropFormatType { return v.Type }
-
 type FiledropConfigInput struct {
-	Format      FiledropFormatConfigInput       `json:"format"`
 	ProviderAws *FiledropProviderAwsConfigInput `json:"providerAws"`
 }
-
-// GetFormat returns FiledropConfigInput.Format, and is useful for accessing the field via an interface.
-func (v *FiledropConfigInput) GetFormat() FiledropFormatConfigInput { return v.Format }
 
 // GetProviderAws returns FiledropConfigInput.ProviderAws, and is useful for accessing the field via an interface.
 func (v *FiledropConfigInput) GetProviderAws() *FiledropProviderAwsConfigInput { return v.ProviderAws }
@@ -2416,21 +2397,6 @@ func (v *FiledropEndpointFiledropS3Endpoint) GetBucket() string { return v.Bucke
 
 // GetPrefix returns FiledropEndpointFiledropS3Endpoint.Prefix, and is useful for accessing the field via an interface.
 func (v *FiledropEndpointFiledropS3Endpoint) GetPrefix() string { return v.Prefix }
-
-type FiledropFormatConfigInput struct {
-	Type FiledropFormatType `json:"type"`
-}
-
-// GetType returns FiledropFormatConfigInput.Type, and is useful for accessing the field via an interface.
-func (v *FiledropFormatConfigInput) GetType() FiledropFormatType { return v.Type }
-
-type FiledropFormatType string
-
-const (
-	FiledropFormatTypeCsv     FiledropFormatType = "Csv"
-	FiledropFormatTypeJson    FiledropFormatType = "Json"
-	FiledropFormatTypeParquet FiledropFormatType = "Parquet"
-)
 
 type FiledropInput struct {
 	Disabled    *bool               `json:"disabled,omitempty"`
@@ -9884,9 +9850,6 @@ fragment Filedrop on Filedrop {
 	status
 	datastreamID
 	config {
-		format {
-			type
-		}
 		provider {
 			__typename
 			... on FiledropProviderAwsConfig {
@@ -12549,9 +12512,6 @@ fragment Filedrop on Filedrop {
 	status
 	datastreamID
 	config {
-		format {
-			type
-		}
 		provider {
 			__typename
 			... on FiledropProviderAwsConfig {
@@ -15131,9 +15091,6 @@ fragment Filedrop on Filedrop {
 	status
 	datastreamID
 	config {
-		format {
-			type
-		}
 		provider {
 			__typename
 			... on FiledropProviderAwsConfig {
