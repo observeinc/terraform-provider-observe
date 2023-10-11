@@ -64,6 +64,7 @@ func resourceDatasetOutboundShare() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
+				DiffSuppressFunc: diffSuppressOIDVersion,
 				Description:      "The OID of the dataset to be shared",
 			},
 			"outbound_share": {
