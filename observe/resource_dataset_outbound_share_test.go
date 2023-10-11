@@ -61,7 +61,7 @@ func TestAccObserveDatasetOutboundShare(t *testing.T) {
 					resource.TestCheckResourceAttrPair("observe_dataset_outbound_share.test", "outbound_share", "observe_snowflake_share_outbound.test", "oid"),
 					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "schema_name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "view_name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "freshness_goal", "15m"),
+					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "freshness_goal", "15m0s"),
 				),
 			},
 		},
