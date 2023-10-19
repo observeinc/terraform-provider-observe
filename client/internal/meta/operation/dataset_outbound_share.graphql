@@ -1,0 +1,63 @@
+fragment DatasetOutboundShare on DatasetOutboundShare {
+  id
+  name
+  description
+  workspaceId
+  folderId
+
+  datasetID
+  outboundShareID
+
+  schemaName
+  viewName
+  freshnessGoal
+
+  status {
+    state
+    error
+  }
+}
+
+query getDatasetOutboundShare($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	datasetOutboundShare(id: $id) {
+		...DatasetOutboundShare
+	}
+}
+
+mutation createDatasetOutboundShare(
+  $workspaceId: ObjectId!,
+  $datasetID: ObjectId!,
+  $outboundShareID: ObjectId!,
+  $input: DatasetOutboundShareInput!
+) {
+  # @genqlient(flatten: true)
+  datasetOutboundShare: createDatasetOutboundShare(
+    workspaceId: $workspaceId,
+    datasetID: $datasetID,
+    outboundShareID: $outboundShareID,
+    input: $input
+  ) {
+    ...DatasetOutboundShare
+  }
+}
+
+mutation updateDatasetOutboundShare(
+  $id: ObjectId!,
+  $input: DatasetOutboundShareInput!
+) {
+  # @genqlient(flatten: true)
+  datasetOutboundShare: updateDatasetOutboundShare(
+    id: $id,
+    input: $input
+  ) {
+    ...DatasetOutboundShare
+  }
+}
+
+mutation deleteDatasetOutboundShare($id: ObjectId!) {
+  # @genqlient(flatten: true)
+  resultStatus: deleteDatasetOutboundShare(id: $id) {
+    ...ResultStatus
+  }
+}

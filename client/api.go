@@ -1263,3 +1263,34 @@ func (c *Client) DeleteSnowflakeShareOutbound(ctx context.Context, id string) er
 
 	return c.Meta.DeleteSnowflakeShareOutbound(ctx, id)
 }
+
+func (c *Client) GetDatasetOutboundShare(ctx context.Context, id string) (*meta.DatasetOutboundShare, error) {
+	return c.Meta.GetDatasetOutboundShare(ctx, id)
+}
+
+func (c *Client) CreateDatasetOutboundShare(ctx context.Context, workspaceId string, datasetId string, shareId string, input *meta.DatasetOutboundShareInput) (*meta.DatasetOutboundShare, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.CreateDatasetOutboundShare(ctx, workspaceId, datasetId, shareId, input)
+}
+
+func (c *Client) UpdateDatasetOutboundShare(ctx context.Context, id string, input *meta.DatasetOutboundShareInput) (*meta.DatasetOutboundShare, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.UpdateDatasetOutboundShare(ctx, id, input)
+}
+
+func (c *Client) DeleteDatasetOutboundShare(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	return c.Meta.DeleteDatasetOutboundShare(ctx, id)
+}
