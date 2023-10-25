@@ -162,7 +162,7 @@ func Provider() *schema.Provider {
 			"observe_rbac_group_member":         resourceRbacGroupmember(),
 			"observe_rbac_statement":            resourceRbacStatement(),
 			"observe_filedrop":                  resourceFiledrop(),
-			"observe_snowflake_share_outbound":  resourceSnowflakeShareOutbound(),
+			"observe_snowflake_outbound_share":  resourceSnowflakeOutboundShare(),
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
 		},
 		TerraformVersion: version.ProviderVersion,

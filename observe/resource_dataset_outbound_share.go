@@ -72,7 +72,7 @@ func resourceDatasetOutboundShare() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateOID(oid.TypeSnowflakeShareOutbound),
+				ValidateDiagFunc: validateOID(oid.TypeSnowflakeOutboundShare),
 				Description:      "The OID of the Observe Snowflake outbound share where the dataset will be shared",
 			},
 			"schema_name": {
@@ -227,7 +227,7 @@ func resourceDatasetOutboundShareRead(ctx context.Context, d *schema.ResourceDat
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := d.Set("outbound_share", oid.SnowflakeShareOutboundOid(datasetShare.OutboundShareID).String()); err != nil {
+	if err := d.Set("outbound_share", oid.SnowflakeOutboundShareOid(datasetShare.OutboundShareID).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

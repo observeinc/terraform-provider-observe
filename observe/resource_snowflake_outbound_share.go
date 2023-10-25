@@ -12,13 +12,13 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
-func resourceSnowflakeShareOutbound() *schema.Resource {
+func resourceSnowflakeOutboundShare() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Manages an outbound Snowflake share, which allows you to share datasets with an existing Snowflake account.",
-		CreateContext: resourceSnowflakeShareOutboundCreate,
-		ReadContext:   resourceSnowflakeShareOutboundRead,
-		UpdateContext: resourceSnowflakeShareOutboundUpdate,
-		DeleteContext: resourceSnowflakeShareOutboundDelete,
+		CreateContext: resourceSnowflakeOutboundShareCreate,
+		ReadContext:   resourceSnowflakeOutboundShareRead,
+		UpdateContext: resourceSnowflakeOutboundShareUpdate,
+		DeleteContext: resourceSnowflakeOutboundShareDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -72,10 +72,10 @@ func resourceSnowflakeShareOutbound() *schema.Resource {
 	}
 }
 
-func newSnowflakeShareOutbound(d *schema.ResourceData) (*gql.SnowflakeShareOutboundInput, diag.Diagnostics) {
-	input := &gql.SnowflakeShareOutboundInput{
+func newSnowflakeOutboundShare(d *schema.ResourceData) (*gql.SnowflakeOutboundShareInput, diag.Diagnostics) {
+	input := &gql.SnowflakeOutboundShareInput{
 		Name:     d.Get("name").(string),
-		Accounts: expandSnowflakeShareOutboundAccounts(d.Get("account").(*schema.Set).List()),
+		Accounts: expandSnowflakeOutboundShareAccounts(d.Get("account").(*schema.Set).List()),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -85,7 +85,7 @@ func newSnowflakeShareOutbound(d *schema.ResourceData) (*gql.SnowflakeShareOutbo
 	return input, nil
 }
 
-func expandSnowflakeShareOutboundAccounts(in []interface{}) []gql.SnowflakeAccountInput {
+func expandSnowflakeOutboundShareAccounts(in []interface{}) []gql.SnowflakeAccountInput {
 	out := make([]gql.SnowflakeAccountInput, 0)
 
 	for _, v := range in {
@@ -100,7 +100,7 @@ func expandSnowflakeShareOutboundAccounts(in []interface{}) []gql.SnowflakeAccou
 
 }
 
-func resourceSnowflakeShareOutboundCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeOutboundShareCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
 	id, err := oid.NewOID(d.Get("workspace").(string))
@@ -108,25 +108,25 @@ func resourceSnowflakeShareOutboundCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	input, diags := newSnowflakeShareOutbound(d)
+	input, diags := newSnowflakeOutboundShare(d)
 	if diags.HasError() {
 		return diags
 	}
 
-	share, err := client.CreateSnowflakeShareOutbound(ctx, id.Id, input)
+	share, err := client.CreateSnowflakeOutboundShare(ctx, id.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create snowflake outbound share: %s", err)
 	}
 
 	d.SetId(share.Id)
 
-	return append(diags, resourceSnowflakeShareOutboundRead(ctx, d, m)...)
+	return append(diags, resourceSnowflakeOutboundShareRead(ctx, d, m)...)
 }
 
-func resourceSnowflakeShareOutboundRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeOutboundShareRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
-	share, err := client.GetSnowflakeShareOutbound(ctx, d.Id())
+	share, err := client.GetSnowflakeOutboundShare(ctx, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -151,7 +151,7 @@ func resourceSnowflakeShareOutboundRead(ctx context.Context, d *schema.ResourceD
 		}
 	}
 
-	if err := d.Set("account", flattenSnowflakeShareOutboundAccounts(share.Accounts)); err != nil {
+	if err := d.Set("account", flattenSnowflakeOutboundShareAccounts(share.Accounts)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -162,7 +162,7 @@ func resourceSnowflakeShareOutboundRead(ctx context.Context, d *schema.ResourceD
 	return diags
 }
 
-func flattenSnowflakeShareOutboundAccounts(accounts []gql.SnowflakeAccount) []map[string]interface{} {
+func flattenSnowflakeOutboundShareAccounts(accounts []gql.SnowflakeAccount) []map[string]interface{} {
 	var out []map[string]interface{}
 
 	for _, account := range accounts {
@@ -175,26 +175,26 @@ func flattenSnowflakeShareOutboundAccounts(accounts []gql.SnowflakeAccount) []ma
 	return out
 }
 
-func resourceSnowflakeShareOutboundUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeOutboundShareUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
-	input, diags := newSnowflakeShareOutbound(d)
+	input, diags := newSnowflakeOutboundShare(d)
 	if diags.HasError() {
 		return diags
 	}
 
-	_, err := client.UpdateSnowflakeShareOutbound(ctx, d.Id(), input)
+	_, err := client.UpdateSnowflakeOutboundShare(ctx, d.Id(), input)
 	if err != nil {
 		return diag.Errorf("failed to update snowflake outbound share: %s", err)
 	}
 
-	return append(diags, resourceSnowflakeShareOutboundRead(ctx, d, m)...)
+	return append(diags, resourceSnowflakeOutboundShareRead(ctx, d, m)...)
 }
 
-func resourceSnowflakeShareOutboundDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeOutboundShareDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
-	err := client.DeleteSnowflakeShareOutbound(ctx, d.Id())
+	err := client.DeleteSnowflakeOutboundShare(ctx, d.Id())
 	if err != nil {
 		return diag.Errorf("failed to delete snowflake outbound share: %s", err)
 	}

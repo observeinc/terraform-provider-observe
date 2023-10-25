@@ -17,7 +17,7 @@ func TestAccObserveDatasetOutboundShare(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
-					resource "observe_snowflake_share_outbound" "test" {
+					resource "observe_snowflake_outbound_share" "test" {
 						workspace   = data.observe_workspace.default.oid
 						name        = "%[1]s"
 						description = "test description"
@@ -44,7 +44,7 @@ func TestAccObserveDatasetOutboundShare(t *testing.T) {
 						description    = "test description"
 						name 				   = "%[1]s"
 						dataset        = observe_dataset.test.oid
-						outbound_share = observe_snowflake_share_outbound.test.oid
+						outbound_share = observe_snowflake_outbound_share.test.oid
 						schema_name    = "%[1]s"
 						view_name			 = "%[1]s"
 						freshness_goal = "15m"
@@ -58,7 +58,7 @@ func TestAccObserveDatasetOutboundShare(t *testing.T) {
 					// TODO: implement custom TestCheckFunc that can compare OID without version
 					// This OID has no version, while observe_dataset does, preventing direct comparison with TestCheckResourceAttrPair
 					resource.TestCheckResourceAttrSet("observe_dataset_outbound_share.test", "dataset"),
-					resource.TestCheckResourceAttrPair("observe_dataset_outbound_share.test", "outbound_share", "observe_snowflake_share_outbound.test", "oid"),
+					resource.TestCheckResourceAttrPair("observe_dataset_outbound_share.test", "outbound_share", "observe_snowflake_outbound_share.test", "oid"),
 					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "schema_name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "view_name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_dataset_outbound_share.test", "freshness_goal", "15m0s"),

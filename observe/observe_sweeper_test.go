@@ -101,8 +101,8 @@ func init() {
 		Name: "observe_filedrop",
 		F:    filedropSweeperFunc,
 	})
-	resource.AddTestSweepers("observe_snowflake_share_outbound", &resource.Sweeper{
-		Name: "observe_snowflake_share_outbound",
+	resource.AddTestSweepers("observe_snowflake_outbound_share", &resource.Sweeper{
+		Name: "observe_snowflake_outbound_share",
 		F:    snowflakeShareOutboundSweeper,
 		Dependencies: []string{
 			"observe_dataset_outbound_share",
