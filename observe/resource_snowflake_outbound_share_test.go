@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccObserveSnowflakeShareOutbound(t *testing.T) {
+func TestAccObserveSnowflakeOutboundShare(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -17,7 +17,7 @@ func TestAccObserveSnowflakeShareOutbound(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
-					resource "observe_snowflake_share_outbound" "test" {
+					resource "observe_snowflake_outbound_share" "test" {
 						workspace   = data.observe_workspace.default.oid
 						name        = "%[1]s"
 						description = "test description"
@@ -29,11 +29,11 @@ func TestAccObserveSnowflakeShareOutbound(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_snowflake_share_outbound.test", "workspace"),
-					resource.TestCheckResourceAttrSet("observe_snowflake_share_outbound.test", "oid"),
-					resource.TestCheckResourceAttr("observe_snowflake_share_outbound.test", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_snowflake_share_outbound.test", "description", "test description"),
-					resource.TestCheckResourceAttrSet("observe_snowflake_share_outbound.test", "share_name"),
+					resource.TestCheckResourceAttrSet("observe_snowflake_outbound_share.test", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_snowflake_outbound_share.test", "oid"),
+					resource.TestCheckResourceAttr("observe_snowflake_outbound_share.test", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_snowflake_outbound_share.test", "description", "test description"),
+					resource.TestCheckResourceAttrSet("observe_snowflake_outbound_share.test", "share_name"),
 				),
 			},
 		},

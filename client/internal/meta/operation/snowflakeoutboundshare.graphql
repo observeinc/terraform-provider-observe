@@ -1,0 +1,55 @@
+fragment SnowflakeOutboundShare on SnowflakeOutboundShare {
+	id
+	name
+	description
+	workspaceId
+
+	shareName
+	
+	# @genqlient(flatten: true)
+	accounts {
+		...SnowflakeAccount
+	}
+}
+
+fragment SnowflakeAccount on SnowflakeAccount {
+	organization
+	account
+}
+
+query getSnowflakeOutboundShare($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	share: snowflakeOutboundShare(id: $id) {
+		...SnowflakeOutboundShare
+	}
+}
+
+query lookupSnowflakeOutboundShare($name: String!, $workspaceId: ObjectId!) {
+	shares: searchSnowflakeOutboundShare(nameExact: $name, workspaceId: $workspaceId) {
+		# @genqlient(flatten: true)
+		results {
+      ...SnowflakeOutboundShare
+    }
+	}
+}
+
+mutation createSnowflakeOutboundShare($workspaceId: ObjectId!, $input: SnowflakeOutboundShareInput!) {
+	# @genqlient(flatten: true)
+	share: createSnowflakeOutboundShare(workspaceId: $workspaceId, input: $input) {
+		...SnowflakeOutboundShare
+	}
+}
+
+mutation updateSnowflakeOutboundShare($id: ObjectId!, $input: SnowflakeOutboundShareInput!) {
+	# @genqlient(flatten: true)
+	share: updateSnowflakeOutboundShare(id: $id, input: $input) {
+		...SnowflakeOutboundShare
+	}
+}
+
+mutation deleteSnowflakeOutboundShare($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	resultStatus: deleteSnowflakeOutboundShare(id: $id) {
+		...ResultStatus
+	}
+}

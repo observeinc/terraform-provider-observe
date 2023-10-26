@@ -1,16 +1,17 @@
 # this file is auto-generated, do not edit
 extend type Query {
-    snowflakeShareOutbound(id: ObjectId!): SnowflakeShareOutbound!
-    searchSnowflakeShareOutbound(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): SnowflakeShareOutboundSearchResult!
+    snowflakeOutboundShare(id: ObjectId!): SnowflakeOutboundShare!
+    searchSnowflakeOutboundShare(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): SnowflakeOutboundShareSearchResult!
 }
 
 extend type Mutation {
-    createSnowflakeShareOutbound(workspaceId: ObjectId!, input: SnowflakeShareOutboundInput!): SnowflakeShareOutbound!
-    updateSnowflakeShareOutbound(id: ObjectId!, input: SnowflakeShareOutboundInput!): SnowflakeShareOutbound!
-    deleteSnowflakeShareOutbound(id: ObjectId!): ResultStatus!
+    createSnowflakeOutboundShare(workspaceId: ObjectId!, input: SnowflakeOutboundShareInput!): SnowflakeOutboundShare!
+    updateSnowflakeOutboundShare(id: ObjectId!, input: SnowflakeOutboundShareInput!): SnowflakeOutboundShare!
+    deleteSnowflakeOutboundShare(id: ObjectId!): ResultStatus!
 }
 
-type SnowflakeShareOutbound implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeShareOutbound") {
+# Represents a Snowflake share from Observe to a customer-managed Snowflake account. All share mutations require the Manager role rather than the typical Editor role. By default, only administrators have this access for all workspace objects. However, administrators can grant other users access to sharing mutations via RBAC.
+type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShare") {
     # payload
     """
     The fully qualified name of the Snowflake share, for use in a consumer account.
@@ -48,7 +49,7 @@ type SnowflakeShareOutbound implements WorkspaceObject & AuditedObject & FolderO
     updatedByInfo: UserInfo! @goField(forceResolver: true)
 }
 
-input SnowflakeShareOutboundInput @goModel(model: "observe/meta/metatypes.SnowflakeShareOutboundInput") {
+input SnowflakeOutboundShareInput @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShareInput") {
     # payload
     # not in input: shareName: String!
     accounts: [SnowflakeAccountInput!]!
@@ -69,8 +70,8 @@ input SnowflakeShareOutboundInput @goModel(model: "observe/meta/metatypes.Snowfl
     folderId: ObjectId
 }
 
-type SnowflakeShareOutboundSearchResult @goModel(model: "observe/meta/metatypes.SnowflakeShareOutboundSearchResult") {
-    results: [SnowflakeShareOutbound!]!
+type SnowflakeOutboundShareSearchResult @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShareSearchResult") {
+    results: [SnowflakeOutboundShare!]!
 }
 type SnowflakeAccount @goModel(model: "observe/meta/metatypes.SnowflakeAccount") {
     # payload

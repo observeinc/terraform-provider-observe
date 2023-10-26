@@ -46,7 +46,7 @@ const (
 	TypeRbacGroup               Type = "rbacgroup"
 	TypeRbacGroupmember         Type = "rbacgroupmember"
 	TypeRbacStatement           Type = "rbacstatement"
-	TypeSnowflakeShareOutbound  Type = "snowflakeshareoutbound"
+	TypeSnowflakeOutboundShare  Type = "snowflakeoutboundshare"
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
 )
 
@@ -78,7 +78,7 @@ func (t Type) IsValid() bool {
 	case TypeRbacGroup:
 	case TypeRbacGroupmember:
 	case TypeRbacStatement:
-	case TypeSnowflakeShareOutbound:
+	case TypeSnowflakeOutboundShare:
 	case TypeDatasetOutboundShare:
 	default:
 		return false
@@ -274,6 +274,6 @@ func RbacStatementOid(id string) OID {
 	return OID{Id: id, Type: TypeRbacStatement}
 }
 
-func SnowflakeShareOutboundOid(id string) OID {
-	return OID{Id: id, Type: TypeSnowflakeShareOutbound}
+func SnowflakeOutboundShareOid(id string) OID {
+	return OID{Id: id, Type: TypeSnowflakeOutboundShare}
 }

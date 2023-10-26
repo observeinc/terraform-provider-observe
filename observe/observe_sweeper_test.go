@@ -101,9 +101,9 @@ func init() {
 		Name: "observe_filedrop",
 		F:    filedropSweeperFunc,
 	})
-	resource.AddTestSweepers("observe_snowflake_share_outbound", &resource.Sweeper{
-		Name: "observe_snowflake_share_outbound",
-		F:    snowflakeShareOutboundSweeper,
+	resource.AddTestSweepers("observe_snowflake_outbound_share", &resource.Sweeper{
+		Name: "observe_snowflake_outbound_share",
+		F:    snowflakeOutboundShareSweeper,
 		Dependencies: []string{
 			"observe_dataset_outbound_share",
 		},
@@ -730,7 +730,7 @@ func filedropSweeperFunc(pattern string) error {
 	return nil
 }
 
-func snowflakeShareOutboundSweeper(pattern string) error {
+func snowflakeOutboundShareSweeper(pattern string) error {
 	client, err := sharedClient(pattern)
 	if err != nil {
 		return err
@@ -745,8 +745,8 @@ func snowflakeShareOutboundSweeper(pattern string) error {
 
 	for _, workspace := range workspaces {
 		result, err := client.Meta.Run(ctx, `
-	query snowflakeSharesOutbound($workspaceId: ObjectId!) {
-		searchSnowflakeShareOutbound(workspaceId: $workspaceId) {
+	query snowflakeOutboundShares($workspaceId: ObjectId!) {
+		searchSnowflakeOutboundShare(workspaceId: $workspaceId) {
 			results {
 				id
 				name
@@ -760,7 +760,7 @@ func snowflakeShareOutboundSweeper(pattern string) error {
 			return fmt.Errorf("failed to lookup snowflake outbound shares: %w", err)
 		}
 
-		result = result["searchSnowflakeShareOutbound"].(map[string]interface{})
+		result = result["searchSnowflakeOutboundShare"].(map[string]interface{})
 
 		for _, i := range result["results"].([]interface{}) {
 			var (
@@ -771,7 +771,7 @@ func snowflakeShareOutboundSweeper(pattern string) error {
 
 			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting snowflake outbound share %s [id=%s]\n", name, id)
-				if err := client.DeleteSnowflakeShareOutbound(ctx, id); err != nil {
+				if err := client.DeleteSnowflakeOutboundShare(ctx, id); err != nil {
 					return err
 				}
 			}

@@ -1233,35 +1233,35 @@ func (c *Client) GetFiledrop(ctx context.Context, id string) (*meta.Filedrop, er
 	return c.Meta.GetFiledrop(ctx, id)
 }
 
-func (c *Client) GetSnowflakeShareOutbound(ctx context.Context, id string) (*meta.SnowflakeShareOutbound, error) {
-	return c.Meta.GetSnowflakeShareOutbound(ctx, id)
+func (c *Client) GetSnowflakeOutboundShare(ctx context.Context, id string) (*meta.SnowflakeOutboundShare, error) {
+	return c.Meta.GetSnowflakeOutboundShare(ctx, id)
 }
 
-func (c *Client) CreateSnowflakeShareOutbound(ctx context.Context, workspaceId string, input *meta.SnowflakeShareOutboundInput) (*meta.SnowflakeShareOutbound, error) {
+func (c *Client) CreateSnowflakeOutboundShare(ctx context.Context, workspaceId string, input *meta.SnowflakeOutboundShareInput) (*meta.SnowflakeOutboundShare, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
 
-	return c.Meta.CreateSnowflakeShareOutbound(ctx, workspaceId, input)
+	return c.Meta.CreateSnowflakeOutboundShare(ctx, workspaceId, input)
 }
 
-func (c *Client) UpdateSnowflakeShareOutbound(ctx context.Context, id string, input *meta.SnowflakeShareOutboundInput) (*meta.SnowflakeShareOutbound, error) {
+func (c *Client) UpdateSnowflakeOutboundShare(ctx context.Context, id string, input *meta.SnowflakeOutboundShareInput) (*meta.SnowflakeOutboundShare, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
 
-	return c.Meta.UpdateSnowflakeShareOutbound(ctx, id, input)
+	return c.Meta.UpdateSnowflakeOutboundShare(ctx, id, input)
 }
 
-func (c *Client) DeleteSnowflakeShareOutbound(ctx context.Context, id string) error {
+func (c *Client) DeleteSnowflakeOutboundShare(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
 
-	return c.Meta.DeleteSnowflakeShareOutbound(ctx, id)
+	return c.Meta.DeleteSnowflakeOutboundShare(ctx, id)
 }
 
 func (c *Client) GetDatasetOutboundShare(ctx context.Context, id string) (*meta.DatasetOutboundShare, error) {
