@@ -1,26 +1,28 @@
 locals {
   organization = "observeinc"
   repository   = "terraform-provider-observe"
+
+  secrets = {
+    for type in ["actions", "dependabot"] : type => {
+      for path in fileset(path.module, "secrets/${type}/*") : basename(path) => trimspace(file(path))
+    }
+  }
 }
 
 resource "github_actions_secret" "secrets" {
-  for_each = setsubtract(fileset("${path.module}/secrets", "*"), ["README.md"])
+  for_each = local.secrets.actions
 
-  repository  = local.repository
-  secret_name = each.key
-
-  encrypted_value = file("${path.module}/secrets/${each.key}")
+  repository      = local.repository
+  secret_name     = each.key
+  encrypted_value = each.value
 }
 
 resource "github_dependabot_secret" "secrets" {
-  for_each = {
-    # Automatically expose any OBSERVE_* credentials as Dependabot secrets to allow aceptance testing PRs
-    for k, v in github_actions_secret.secrets : k => v if startswith(k, "OBSERVE")
-  }
+  for_each = local.secrets.dependabot
 
-  repository      = each.value.repository
+  repository      = local.repository
   secret_name     = each.key
-  encrypted_value = each.value.encrypted_value
+  encrypted_value = each.value
 }
 
 moved {
