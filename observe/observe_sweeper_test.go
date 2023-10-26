@@ -771,7 +771,7 @@ func snowflakeShareOutboundSweeper(pattern string) error {
 
 			if client.MatchName(name) {
 				log.Printf("[WARN] Deleting snowflake outbound share %s [id=%s]\n", name, id)
-				if err := client.DeleteSnowflakeShareOutbound(ctx, id); err != nil {
+				if err := client.DeleteSnowflakeOutboundShare(ctx, id); err != nil {
 					return err
 				}
 			}
