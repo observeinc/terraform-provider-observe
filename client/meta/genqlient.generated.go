@@ -2198,7 +2198,7 @@ func (v *Filedrop) UnmarshalJSON(b []byte) error {
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal Filedrop.Endpoint: %w", err)
+					"unable to unmarshal Filedrop.Endpoint: %w", err)
 			}
 		}
 	}
@@ -2253,7 +2253,7 @@ func (v *Filedrop) __premarshalJSON() (*__premarshalFiledrop, error) {
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"Unable to marshal Filedrop.Endpoint: %w", err)
+				"unable to marshal Filedrop.Endpoint: %w", err)
 		}
 	}
 	return &retval, nil
@@ -2295,7 +2295,7 @@ func (v *FiledropConfig) UnmarshalJSON(b []byte) error {
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal FiledropConfig.Provider: %w", err)
+					"unable to unmarshal FiledropConfig.Provider: %w", err)
 			}
 		}
 	}
@@ -2326,7 +2326,7 @@ func (v *FiledropConfig) __premarshalJSON() (*__premarshalFiledropConfig, error)
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"Unable to marshal FiledropConfig.Provider: %w", err)
+				"unable to marshal FiledropConfig.Provider: %w", err)
 		}
 	}
 	return &retval, nil
@@ -3006,7 +3006,7 @@ func (v *Monitor) UnmarshalJSON(b []byte) error {
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal Monitor.Rule: %w", err)
+					"unable to unmarshal Monitor.Rule: %w", err)
 			}
 		}
 	}
@@ -3078,7 +3078,7 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"Unable to marshal Monitor.Rule: %w", err)
+				"unable to marshal Monitor.Rule: %w", err)
 		}
 	}
 	retval.NotificationSpec = v.NotificationSpec
@@ -3661,12 +3661,12 @@ func (v *MonitorQueryMultiStageQuery) GetStages() []*StageQuery { return v.Stage
 // MonitorRule includes the requested fields of the GraphQL interface MonitorRule.
 //
 // MonitorRule is implemented by the following types:
-// MonitorRuleMonitorRuleThreshold
-// MonitorRuleMonitorRuleLog
 // MonitorRuleMonitorRuleChange
-// MonitorRuleMonitorRuleFacet
 // MonitorRuleMonitorRuleCount
+// MonitorRuleMonitorRuleFacet
+// MonitorRuleMonitorRuleLog
 // MonitorRuleMonitorRulePromote
+// MonitorRuleMonitorRuleThreshold
 type MonitorRule interface {
 	implementsGraphQLInterfaceMonitorRule()
 	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
@@ -3677,12 +3677,12 @@ type MonitorRule interface {
 	GetGroupByGroups() []MonitorRuleGroupByGroupsMonitorGroupInfo
 }
 
-func (v *MonitorRuleMonitorRuleThreshold) implementsGraphQLInterfaceMonitorRule() {}
-func (v *MonitorRuleMonitorRuleLog) implementsGraphQLInterfaceMonitorRule()       {}
 func (v *MonitorRuleMonitorRuleChange) implementsGraphQLInterfaceMonitorRule()    {}
-func (v *MonitorRuleMonitorRuleFacet) implementsGraphQLInterfaceMonitorRule()     {}
 func (v *MonitorRuleMonitorRuleCount) implementsGraphQLInterfaceMonitorRule()     {}
+func (v *MonitorRuleMonitorRuleFacet) implementsGraphQLInterfaceMonitorRule()     {}
+func (v *MonitorRuleMonitorRuleLog) implementsGraphQLInterfaceMonitorRule()       {}
 func (v *MonitorRuleMonitorRulePromote) implementsGraphQLInterfaceMonitorRule()   {}
+func (v *MonitorRuleMonitorRuleThreshold) implementsGraphQLInterfaceMonitorRule() {}
 
 func __unmarshalMonitorRule(b []byte, v *MonitorRule) error {
 	if string(b) == "null" {
@@ -3698,23 +3698,23 @@ func __unmarshalMonitorRule(b []byte, v *MonitorRule) error {
 	}
 
 	switch tn.TypeName {
-	case "MonitorRuleThreshold":
-		*v = new(MonitorRuleMonitorRuleThreshold)
-		return json.Unmarshal(b, *v)
-	case "MonitorRuleLog":
-		*v = new(MonitorRuleMonitorRuleLog)
-		return json.Unmarshal(b, *v)
 	case "MonitorRuleChange":
 		*v = new(MonitorRuleMonitorRuleChange)
-		return json.Unmarshal(b, *v)
-	case "MonitorRuleFacet":
-		*v = new(MonitorRuleMonitorRuleFacet)
 		return json.Unmarshal(b, *v)
 	case "MonitorRuleCount":
 		*v = new(MonitorRuleMonitorRuleCount)
 		return json.Unmarshal(b, *v)
+	case "MonitorRuleFacet":
+		*v = new(MonitorRuleMonitorRuleFacet)
+		return json.Unmarshal(b, *v)
+	case "MonitorRuleLog":
+		*v = new(MonitorRuleMonitorRuleLog)
+		return json.Unmarshal(b, *v)
 	case "MonitorRulePromote":
 		*v = new(MonitorRuleMonitorRulePromote)
+		return json.Unmarshal(b, *v)
+	case "MonitorRuleThreshold":
+		*v = new(MonitorRuleMonitorRuleThreshold)
 		return json.Unmarshal(b, *v)
 	case "":
 		return fmt.Errorf(
@@ -3729,36 +3729,12 @@ func __marshalMonitorRule(v *MonitorRule) ([]byte, error) {
 
 	var typename string
 	switch v := (*v).(type) {
-	case *MonitorRuleMonitorRuleThreshold:
-		typename = "MonitorRuleThreshold"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*MonitorRuleMonitorRuleThreshold
-		}{typename, v}
-		return json.Marshal(result)
-	case *MonitorRuleMonitorRuleLog:
-		typename = "MonitorRuleLog"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*MonitorRuleMonitorRuleLog
-		}{typename, v}
-		return json.Marshal(result)
 	case *MonitorRuleMonitorRuleChange:
 		typename = "MonitorRuleChange"
 
 		result := struct {
 			TypeName string `json:"__typename"`
 			*MonitorRuleMonitorRuleChange
-		}{typename, v}
-		return json.Marshal(result)
-	case *MonitorRuleMonitorRuleFacet:
-		typename = "MonitorRuleFacet"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*MonitorRuleMonitorRuleFacet
 		}{typename, v}
 		return json.Marshal(result)
 	case *MonitorRuleMonitorRuleCount:
@@ -3769,12 +3745,36 @@ func __marshalMonitorRule(v *MonitorRule) ([]byte, error) {
 			*MonitorRuleMonitorRuleCount
 		}{typename, v}
 		return json.Marshal(result)
+	case *MonitorRuleMonitorRuleFacet:
+		typename = "MonitorRuleFacet"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorRuleMonitorRuleFacet
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorRuleMonitorRuleLog:
+		typename = "MonitorRuleLog"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorRuleMonitorRuleLog
+		}{typename, v}
+		return json.Marshal(result)
 	case *MonitorRuleMonitorRulePromote:
 		typename = "MonitorRulePromote"
 
 		result := struct {
 			TypeName string `json:"__typename"`
 			*MonitorRuleMonitorRulePromote
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorRuleMonitorRuleThreshold:
+		typename = "MonitorRuleThreshold"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorRuleMonitorRuleThreshold
 		}{typename, v}
 		return json.Marshal(result)
 	case nil:
@@ -4456,7 +4456,7 @@ func (v *Poller) UnmarshalJSON(b []byte) error {
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal Poller.Config: %w", err)
+					"unable to unmarshal Poller.Config: %w", err)
 			}
 		}
 	}
@@ -4505,7 +4505,7 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"Unable to marshal Poller.Config: %w", err)
+				"unable to marshal Poller.Config: %w", err)
 		}
 	}
 	return &retval, nil
@@ -4525,11 +4525,11 @@ func (v *PollerChunkInput) GetSize() *types.Int64Scalar { return v.Size }
 // PollerConfig includes the requested fields of the GraphQL interface PollerConfig.
 //
 // PollerConfig is implemented by the following types:
-// PollerConfigPollerPubSubConfig
-// PollerConfigPollerHTTPConfig
-// PollerConfigPollerGCPMonitoringConfig
-// PollerConfigPollerMongoDBAtlasConfig
 // PollerConfigPollerConfluentCloudConfig
+// PollerConfigPollerGCPMonitoringConfig
+// PollerConfigPollerHTTPConfig
+// PollerConfigPollerMongoDBAtlasConfig
+// PollerConfigPollerPubSubConfig
 type PollerConfig interface {
 	implementsGraphQLInterfacePollerConfig()
 	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
@@ -4546,11 +4546,11 @@ type PollerConfig interface {
 	GetChunk() *PollerConfigChunkPollerChunkConfig
 }
 
-func (v *PollerConfigPollerPubSubConfig) implementsGraphQLInterfacePollerConfig()         {}
-func (v *PollerConfigPollerHTTPConfig) implementsGraphQLInterfacePollerConfig()           {}
-func (v *PollerConfigPollerGCPMonitoringConfig) implementsGraphQLInterfacePollerConfig()  {}
-func (v *PollerConfigPollerMongoDBAtlasConfig) implementsGraphQLInterfacePollerConfig()   {}
 func (v *PollerConfigPollerConfluentCloudConfig) implementsGraphQLInterfacePollerConfig() {}
+func (v *PollerConfigPollerGCPMonitoringConfig) implementsGraphQLInterfacePollerConfig()  {}
+func (v *PollerConfigPollerHTTPConfig) implementsGraphQLInterfacePollerConfig()           {}
+func (v *PollerConfigPollerMongoDBAtlasConfig) implementsGraphQLInterfacePollerConfig()   {}
+func (v *PollerConfigPollerPubSubConfig) implementsGraphQLInterfacePollerConfig()         {}
 
 func __unmarshalPollerConfig(b []byte, v *PollerConfig) error {
 	if string(b) == "null" {
@@ -4566,20 +4566,20 @@ func __unmarshalPollerConfig(b []byte, v *PollerConfig) error {
 	}
 
 	switch tn.TypeName {
-	case "PollerPubSubConfig":
-		*v = new(PollerConfigPollerPubSubConfig)
-		return json.Unmarshal(b, *v)
-	case "PollerHTTPConfig":
-		*v = new(PollerConfigPollerHTTPConfig)
+	case "PollerConfluentCloudConfig":
+		*v = new(PollerConfigPollerConfluentCloudConfig)
 		return json.Unmarshal(b, *v)
 	case "PollerGCPMonitoringConfig":
 		*v = new(PollerConfigPollerGCPMonitoringConfig)
 		return json.Unmarshal(b, *v)
+	case "PollerHTTPConfig":
+		*v = new(PollerConfigPollerHTTPConfig)
+		return json.Unmarshal(b, *v)
 	case "PollerMongoDBAtlasConfig":
 		*v = new(PollerConfigPollerMongoDBAtlasConfig)
 		return json.Unmarshal(b, *v)
-	case "PollerConfluentCloudConfig":
-		*v = new(PollerConfigPollerConfluentCloudConfig)
+	case "PollerPubSubConfig":
+		*v = new(PollerConfigPollerPubSubConfig)
 		return json.Unmarshal(b, *v)
 	case "":
 		return fmt.Errorf(
@@ -4594,20 +4594,12 @@ func __marshalPollerConfig(v *PollerConfig) ([]byte, error) {
 
 	var typename string
 	switch v := (*v).(type) {
-	case *PollerConfigPollerPubSubConfig:
-		typename = "PollerPubSubConfig"
+	case *PollerConfigPollerConfluentCloudConfig:
+		typename = "PollerConfluentCloudConfig"
 
 		result := struct {
 			TypeName string `json:"__typename"`
-			*PollerConfigPollerPubSubConfig
-		}{typename, v}
-		return json.Marshal(result)
-	case *PollerConfigPollerHTTPConfig:
-		typename = "PollerHTTPConfig"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*PollerConfigPollerHTTPConfig
+			*PollerConfigPollerConfluentCloudConfig
 		}{typename, v}
 		return json.Marshal(result)
 	case *PollerConfigPollerGCPMonitoringConfig:
@@ -4618,6 +4610,14 @@ func __marshalPollerConfig(v *PollerConfig) ([]byte, error) {
 			*PollerConfigPollerGCPMonitoringConfig
 		}{typename, v}
 		return json.Marshal(result)
+	case *PollerConfigPollerHTTPConfig:
+		typename = "PollerHTTPConfig"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*PollerConfigPollerHTTPConfig
+		}{typename, v}
+		return json.Marshal(result)
 	case *PollerConfigPollerMongoDBAtlasConfig:
 		typename = "PollerMongoDBAtlasConfig"
 
@@ -4626,12 +4626,12 @@ func __marshalPollerConfig(v *PollerConfig) ([]byte, error) {
 			*PollerConfigPollerMongoDBAtlasConfig
 		}{typename, v}
 		return json.Marshal(result)
-	case *PollerConfigPollerConfluentCloudConfig:
-		typename = "PollerConfluentCloudConfig"
+	case *PollerConfigPollerPubSubConfig:
+		typename = "PollerPubSubConfig"
 
 		result := struct {
 			TypeName string `json:"__typename"`
-			*PollerConfigPollerConfluentCloudConfig
+			*PollerConfigPollerPubSubConfig
 		}{typename, v}
 		return json.Marshal(result)
 	case nil:
@@ -7964,7 +7964,7 @@ func (v *createChannelActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal createChannelActionResponse.ChannelAction: %w", err)
+					"unable to unmarshal createChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -7996,7 +7996,7 @@ func (v *createChannelActionResponse) __premarshalJSON() (*__premarshalcreateCha
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal createChannelActionResponse.ChannelAction: %w", err)
+					"unable to marshal createChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -8130,7 +8130,7 @@ func (v *createMonitorActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal createMonitorActionResponse.MonitorAction: %w", err)
+					"unable to unmarshal createMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -8162,7 +8162,7 @@ func (v *createMonitorActionResponse) __premarshalJSON() (*__premarshalcreateMon
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal createMonitorActionResponse.MonitorAction: %w", err)
+					"unable to marshal createMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -8586,7 +8586,7 @@ func (v *getChannelActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal getChannelActionResponse.ChannelAction: %w", err)
+					"unable to unmarshal getChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -8618,7 +8618,7 @@ func (v *getChannelActionResponse) __premarshalJSON() (*__premarshalgetChannelAc
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal getChannelActionResponse.ChannelAction: %w", err)
+					"unable to marshal getChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -8803,7 +8803,7 @@ func (v *getMonitorActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal getMonitorActionResponse.MonitorAction: %w", err)
+					"unable to unmarshal getMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -8835,7 +8835,7 @@ func (v *getMonitorActionResponse) __premarshalJSON() (*__premarshalgetMonitorAc
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal getMonitorActionResponse.MonitorAction: %w", err)
+					"unable to marshal getMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -9270,7 +9270,7 @@ func (v *updateChannelActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal updateChannelActionResponse.ChannelAction: %w", err)
+					"unable to unmarshal updateChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -9302,7 +9302,7 @@ func (v *updateChannelActionResponse) __premarshalJSON() (*__premarshalupdateCha
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal updateChannelActionResponse.ChannelAction: %w", err)
+					"unable to marshal updateChannelActionResponse.ChannelAction: %w", err)
 			}
 		}
 	}
@@ -9434,7 +9434,7 @@ func (v *updateMonitorActionResponse) UnmarshalJSON(b []byte) error {
 				src, *dst)
 			if err != nil {
 				return fmt.Errorf(
-					"Unable to unmarshal updateMonitorActionResponse.MonitorAction: %w", err)
+					"unable to unmarshal updateMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -9466,7 +9466,7 @@ func (v *updateMonitorActionResponse) __premarshalJSON() (*__premarshalupdateMon
 				src)
 			if err != nil {
 				return nil, fmt.Errorf(
-					"Unable to marshal updateMonitorActionResponse.MonitorAction: %w", err)
+					"unable to marshal updateMonitorActionResponse.MonitorAction: %w", err)
 			}
 		}
 	}
@@ -9554,14 +9554,8 @@ type updateWorkspaceResponse struct {
 // GetWorkspace returns updateWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *updateWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 
-func clearDefaultDashboard(
-	ctx context.Context,
-	client graphql.Client,
-	dsid string,
-) (*clearDefaultDashboardResponse, error) {
-	req := &graphql.Request{
-		OpName: "clearDefaultDashboard",
-		Query: `
+// The query or mutation executed by clearDefaultDashboard.
+const clearDefaultDashboard_Operation = `
 mutation clearDefaultDashboard ($dsid: ObjectId!) {
 	resultStatus: clearDefaultDashboard(dsid: $dsid) {
 		... ResultStatus
@@ -9572,7 +9566,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func clearDefaultDashboard(
+	ctx context.Context,
+	client graphql.Client,
+	dsid string,
+) (*clearDefaultDashboardResponse, error) {
+	req := &graphql.Request{
+		OpName: "clearDefaultDashboard",
+		Query:  clearDefaultDashboard_Operation,
 		Variables: &__clearDefaultDashboardInput{
 			Dsid: dsid,
 		},
@@ -9591,15 +9594,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func createApp(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	config AppInput,
-) (*createAppResponse, error) {
-	req := &graphql.Request{
-		OpName: "createApp",
-		Query: `
+// The query or mutation executed by createApp.
+const createApp_Operation = `
 mutation createApp ($workspaceId: ObjectId!, $config: AppInput!) {
 	app: createApp(workspaceId: $workspaceId, app: $config) {
 		... App
@@ -9622,7 +9618,17 @@ fragment App on App {
 	}
 	outputs
 }
-`,
+`
+
+func createApp(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	config AppInput,
+) (*createAppResponse, error) {
+	req := &graphql.Request{
+		OpName: "createApp",
+		Query:  createApp_Operation,
 		Variables: &__createAppInput{
 			WorkspaceId: workspaceId,
 			Config:      config,
@@ -9642,14 +9648,8 @@ fragment App on App {
 	return &data, err
 }
 
-func createAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
-	config AppDataSourceInput,
-) (*createAppDataSourceResponse, error) {
-	req := &graphql.Request{
-		OpName: "createAppDataSource",
-		Query: `
+// The query or mutation executed by createAppDataSource.
+const createAppDataSource_Operation = `
 mutation createAppDataSource ($config: AppDataSourceInput!) {
 	appdatasource: createAppDataSource(source: $config) {
 		... AppDataSource
@@ -9665,7 +9665,16 @@ fragment AppDataSource on AppDataSource {
 	sourceUrl
 	instructions
 }
-`,
+`
+
+func createAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	config AppDataSourceInput,
+) (*createAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "createAppDataSource",
+		Query:  createAppDataSource_Operation,
 		Variables: &__createAppDataSourceInput{
 			Config: config,
 		},
@@ -9684,16 +9693,8 @@ fragment AppDataSource on AppDataSource {
 	return &data, err
 }
 
-func createBoard(
-	ctx context.Context,
-	client graphql.Client,
-	datasetId string,
-	boardType BoardType,
-	board BoardInput,
-) (*createBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "createBoard",
-		Query: `
+// The query or mutation executed by createBoard.
+const createBoard_Operation = `
 mutation createBoard ($datasetId: ObjectId!, $boardType: BoardType!, $board: BoardInput!) {
 	board: createBoard(datasetId: $datasetId, type: $boardType, board: $board) {
 		... Board
@@ -9707,7 +9708,18 @@ fragment Board on Board {
 	boardJson: board
 	source
 }
-`,
+`
+
+func createBoard(
+	ctx context.Context,
+	client graphql.Client,
+	datasetId string,
+	boardType BoardType,
+	board BoardInput,
+) (*createBoardResponse, error) {
+	req := &graphql.Request{
+		OpName: "createBoard",
+		Query:  createBoard_Operation,
 		Variables: &__createBoardInput{
 			DatasetId: datasetId,
 			BoardType: boardType,
@@ -9728,15 +9740,8 @@ fragment Board on Board {
 	return &data, err
 }
 
-func createChannel(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	channel ChannelInput,
-) (*createChannelResponse, error) {
-	req := &graphql.Request{
-		OpName: "createChannel",
-		Query: `
+// The query or mutation executed by createChannel.
+const createChannel_Operation = `
 mutation createChannel ($workspaceId: ObjectId!, $channel: ChannelInput!) {
 	channel: createChannel(workspaceId: $workspaceId, channel: $channel) {
 		... Channel
@@ -9752,7 +9757,17 @@ fragment Channel on Channel {
 		id
 	}
 }
-`,
+`
+
+func createChannel(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	channel ChannelInput,
+) (*createChannelResponse, error) {
+	req := &graphql.Request{
+		OpName: "createChannel",
+		Query:  createChannel_Operation,
 		Variables: &__createChannelInput{
 			WorkspaceId: workspaceId,
 			Channel:     channel,
@@ -9772,15 +9787,8 @@ fragment Channel on Channel {
 	return &data, err
 }
 
-func createChannelAction(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	action ActionInput,
-) (*createChannelActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "createChannelAction",
-		Query: `
+// The query or mutation executed by createChannelAction.
+const createChannelAction_Operation = `
 mutation createChannelAction ($workspaceId: ObjectId!, $action: ActionInput!) {
 	channelAction: createChannelAction(workspaceId: $workspaceId, action: $action) {
 		__typename
@@ -9815,7 +9823,17 @@ fragment ChannelAction on ChannelAction {
 		isHtml
 	}
 }
-`,
+`
+
+func createChannelAction(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	action ActionInput,
+) (*createChannelActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "createChannelAction",
+		Query:  createChannelAction_Operation,
 		Variables: &__createChannelActionInput{
 			WorkspaceId: workspaceId,
 			Action:      action,
@@ -9835,14 +9853,8 @@ fragment ChannelAction on ChannelAction {
 	return &data, err
 }
 
-func createDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
-	input DashboardLinkInput,
-) (*createDashboardLinkResponse, error) {
-	req := &graphql.Request{
-		OpName: "createDashboardLink",
-		Query: `
+// The query or mutation executed by createDashboardLink.
+const createDashboardLink_Operation = `
 mutation createDashboardLink ($input: DashboardLinkInput!) {
 	dashboardLink: createDashboardLink(link: $input) {
 		... DashboardLink
@@ -9860,7 +9872,16 @@ fragment DashboardLink on DashboardLink {
 	fromCard
 	linkLabel
 }
-`,
+`
+
+func createDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	input DashboardLinkInput,
+) (*createDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDashboardLink",
+		Query:  createDashboardLink_Operation,
 		Variables: &__createDashboardLinkInput{
 			Input: input,
 		},
@@ -9879,17 +9900,8 @@ fragment DashboardLink on DashboardLink {
 	return &data, err
 }
 
-func createDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	datasetID string,
-	outboundShareID string,
-	input DatasetOutboundShareInput,
-) (*createDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "createDatasetOutboundShare",
-		Query: `
+// The query or mutation executed by createDatasetOutboundShare.
+const createDatasetOutboundShare_Operation = `
 mutation createDatasetOutboundShare ($workspaceId: ObjectId!, $datasetID: ObjectId!, $outboundShareID: ObjectId!, $input: DatasetOutboundShareInput!) {
 	datasetOutboundShare: createDatasetOutboundShare(workspaceId: $workspaceId, datasetID: $datasetID, outboundShareID: $outboundShareID, input: $input) {
 		... DatasetOutboundShare
@@ -9911,7 +9923,19 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 		error
 	}
 }
-`,
+`
+
+func createDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	datasetID string,
+	outboundShareID string,
+	input DatasetOutboundShareInput,
+) (*createDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDatasetOutboundShare",
+		Query:  createDatasetOutboundShare_Operation,
 		Variables: &__createDatasetOutboundShareInput{
 			WorkspaceId:     workspaceId,
 			DatasetID:       datasetID,
@@ -9933,15 +9957,8 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	return &data, err
 }
 
-func createDatastream(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	datastream DatastreamInput,
-) (*createDatastreamResponse, error) {
-	req := &graphql.Request{
-		OpName: "createDatastream",
-		Query: `
+// The query or mutation executed by createDatastream.
+const createDatastream_Operation = `
 mutation createDatastream ($workspaceId: ObjectId!, $datastream: DatastreamInput!) {
 	datastream: createDatastream(workspaceId: $workspaceId, datastream: $datastream) {
 		... Datastream
@@ -9955,7 +9972,17 @@ fragment Datastream on Datastream {
 	workspaceId
 	datasetId
 }
-`,
+`
+
+func createDatastream(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	datastream DatastreamInput,
+) (*createDatastreamResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDatastream",
+		Query:  createDatastream_Operation,
 		Variables: &__createDatastreamInput{
 			WorkspaceId: workspaceId,
 			Datastream:  datastream,
@@ -9975,15 +10002,8 @@ fragment Datastream on Datastream {
 	return &data, err
 }
 
-func createDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
-	datastreamId string,
-	token DatastreamTokenInput,
-) (*createDatastreamTokenResponse, error) {
-	req := &graphql.Request{
-		OpName: "createDatastreamToken",
-		Query: `
+// The query or mutation executed by createDatastreamToken.
+const createDatastreamToken_Operation = `
 mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!) {
 	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token) {
 		... DatastreamToken
@@ -9997,7 +10017,17 @@ fragment DatastreamToken on DatastreamToken {
 	datastreamId
 	secret
 }
-`,
+`
+
+func createDatastreamToken(
+	ctx context.Context,
+	client graphql.Client,
+	datastreamId string,
+	token DatastreamTokenInput,
+) (*createDatastreamTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDatastreamToken",
+		Query:  createDatastreamToken_Operation,
 		Variables: &__createDatastreamTokenInput{
 			DatastreamId: datastreamId,
 			Token:        token,
@@ -10017,15 +10047,8 @@ fragment DatastreamToken on DatastreamToken {
 	return &data, err
 }
 
-func createDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	keyInput DeferredForeignKeyInput,
-) (*createDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
-		OpName: "createDeferredForeignKey",
-		Query: `
+// The query or mutation executed by createDeferredForeignKey.
+const createDeferredForeignKey_Operation = `
 mutation createDeferredForeignKey ($workspaceId: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
 	deferredForeignKey: createDeferredForeignKey(workspaceId: $workspaceId, data: $keyInput) {
 		... DeferredForeignKey
@@ -10051,7 +10074,17 @@ fragment DeferredForeignKey on DeferredForeignKey {
 		errorText
 	}
 }
-`,
+`
+
+func createDeferredForeignKey(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	keyInput DeferredForeignKeyInput,
+) (*createDeferredForeignKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "createDeferredForeignKey",
+		Query:  createDeferredForeignKey_Operation,
 		Variables: &__createDeferredForeignKeyInput{
 			WorkspaceId: workspaceId,
 			KeyInput:    keyInput,
@@ -10071,16 +10104,8 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	return &data, err
 }
 
-func createFiledrop(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceID string,
-	datastreamID string,
-	input FiledropInput,
-) (*createFiledropResponse, error) {
-	req := &graphql.Request{
-		OpName: "createFiledrop",
-		Query: `
+// The query or mutation executed by createFiledrop.
+const createFiledrop_Operation = `
 mutation createFiledrop ($workspaceID: ObjectId!, $datastreamID: ObjectId!, $input: FiledropInput!) {
 	filedrop: createFiledrop(workspaceId: $workspaceID, datastreamID: $datastreamID, input: $input) {
 		... Filedrop
@@ -10112,7 +10137,18 @@ fragment Filedrop on Filedrop {
 		}
 	}
 }
-`,
+`
+
+func createFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceID string,
+	datastreamID string,
+	input FiledropInput,
+) (*createFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "createFiledrop",
+		Query:  createFiledrop_Operation,
 		Variables: &__createFiledropInput{
 			WorkspaceID:  workspaceID,
 			DatastreamID: datastreamID,
@@ -10133,15 +10169,8 @@ fragment Filedrop on Filedrop {
 	return &data, err
 }
 
-func createFolder(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	config FolderInput,
-) (*createFolderResponse, error) {
-	req := &graphql.Request{
-		OpName: "createFolder",
-		Query: `
+// The query or mutation executed by createFolder.
+const createFolder_Operation = `
 mutation createFolder ($workspaceId: ObjectId!, $config: FolderInput!) {
 	folder: createFolder(workspaceId: $workspaceId, folder: $config) {
 		... Folder
@@ -10154,7 +10183,17 @@ fragment Folder on Folder {
 	description
 	workspaceId
 }
-`,
+`
+
+func createFolder(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	config FolderInput,
+) (*createFolderResponse, error) {
+	req := &graphql.Request{
+		OpName: "createFolder",
+		Query:  createFolder_Operation,
 		Variables: &__createFolderInput{
 			WorkspaceId: workspaceId,
 			Config:      config,
@@ -10174,14 +10213,8 @@ fragment Folder on Folder {
 	return &data, err
 }
 
-func createLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
-	settingRecord LayeredSettingRecordInput,
-) (*createLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
-		OpName: "createLayeredSettingRecord",
-		Query: `
+// The query or mutation executed by createLayeredSettingRecord.
+const createLayeredSettingRecord_Operation = `
 mutation createLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
 	layeredSettingRecord: createLayeredSettingRecord(settingRecord: $settingRecord) {
 		... LayeredSettingRecord
@@ -10228,7 +10261,16 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	datastreamId
 	userId
 }
-`,
+`
+
+func createLayeredSettingRecord(
+	ctx context.Context,
+	client graphql.Client,
+	settingRecord LayeredSettingRecordInput,
+) (*createLayeredSettingRecordResponse, error) {
+	req := &graphql.Request{
+		OpName: "createLayeredSettingRecord",
+		Query:  createLayeredSettingRecord_Operation,
 		Variables: &__createLayeredSettingRecordInput{
 			SettingRecord: settingRecord,
 		},
@@ -10247,16 +10289,8 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	return &data, err
 }
 
-// More workarounds for server-side struggles
-func createMonitor(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	monitor MonitorInput,
-) (*createMonitorResponse, error) {
-	req := &graphql.Request{
-		OpName: "createMonitor",
-		Query: `
+// The query or mutation executed by createMonitor.
+const createMonitor_Operation = `
 mutation createMonitor ($workspaceId: ObjectId!, $monitor: MonitorInput!) {
 	monitor: createMonitor(workspaceId: $workspaceId, monitor: $monitor) {
 		monitor {
@@ -10343,7 +10377,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+// More workarounds for server-side struggles
+func createMonitor(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	monitor MonitorInput,
+) (*createMonitorResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitor",
+		Query:  createMonitor_Operation,
 		Variables: &__createMonitorInput{
 			WorkspaceId: workspaceId,
 			Monitor:     monitor,
@@ -10363,14 +10408,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func createMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
-	monitorAction MonitorActionInput,
-) (*createMonitorActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "createMonitorAction",
-		Query: `
+// The query or mutation executed by createMonitorAction.
+const createMonitorAction_Operation = `
 mutation createMonitorAction ($monitorAction: MonitorActionInput!) {
 	monitorAction: createMonitorAction(input: $monitorAction) {
 		__typename
@@ -10403,7 +10442,16 @@ fragment MonitorAction on MonitorAction {
 		bodyTemplate
 	}
 }
-`,
+`
+
+func createMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	monitorAction MonitorActionInput,
+) (*createMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorAction",
+		Query:  createMonitorAction_Operation,
 		Variables: &__createMonitorActionInput{
 			MonitorAction: monitorAction,
 		},
@@ -10422,14 +10470,8 @@ fragment MonitorAction on MonitorAction {
 	return &data, err
 }
 
-func createMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
-	monitorActionAttachment MonitorActionAttachmentInput,
-) (*createMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
-		OpName: "createMonitorActionAttachment",
-		Query: `
+// The query or mutation executed by createMonitorActionAttachment.
+const createMonitorActionAttachment_Operation = `
 mutation createMonitorActionAttachment ($monitorActionAttachment: MonitorActionAttachmentInput!) {
 	monitorActionAttachment: createMonitorActionAttachment(input: $monitorActionAttachment) {
 		... MonitorActionAttachment
@@ -10444,7 +10486,16 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	iconUrl
 	description
 }
-`,
+`
+
+func createMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	monitorActionAttachment MonitorActionAttachmentInput,
+) (*createMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorActionAttachment",
+		Query:  createMonitorActionAttachment_Operation,
 		Variables: &__createMonitorActionAttachmentInput{
 			MonitorActionAttachment: monitorActionAttachment,
 		},
@@ -10463,15 +10514,8 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	return &data, err
 }
 
-func createOrUpdateBookmark(
-	ctx context.Context,
-	client graphql.Client,
-	id *string,
-	bookmark BookmarkInput,
-) (*createOrUpdateBookmarkResponse, error) {
-	req := &graphql.Request{
-		OpName: "createOrUpdateBookmark",
-		Query: `
+// The query or mutation executed by createOrUpdateBookmark.
+const createOrUpdateBookmark_Operation = `
 mutation createOrUpdateBookmark ($id: ObjectId, $bookmark: BookmarkInput!) {
 	bookmark: createOrUpdateBookmark(id: $id, bookmark: $bookmark) {
 		... Bookmark
@@ -10486,7 +10530,17 @@ fragment Bookmark on Bookmark {
 	groupId
 	bookmarkKind
 }
-`,
+`
+
+func createOrUpdateBookmark(
+	ctx context.Context,
+	client graphql.Client,
+	id *string,
+	bookmark BookmarkInput,
+) (*createOrUpdateBookmarkResponse, error) {
+	req := &graphql.Request{
+		OpName: "createOrUpdateBookmark",
+		Query:  createOrUpdateBookmark_Operation,
 		Variables: &__createOrUpdateBookmarkInput{
 			Id:       id,
 			Bookmark: bookmark,
@@ -10506,15 +10560,8 @@ fragment Bookmark on Bookmark {
 	return &data, err
 }
 
-func createOrUpdateBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id *string,
-	group BookmarkGroupInput,
-) (*createOrUpdateBookmarkGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "createOrUpdateBookmarkGroup",
-		Query: `
+// The query or mutation executed by createOrUpdateBookmarkGroup.
+const createOrUpdateBookmarkGroup_Operation = `
 mutation createOrUpdateBookmarkGroup ($id: ObjectId, $group: BookmarkGroupInput!) {
 	bookmarkGroup: createOrUpdateBookmarkGroup(id: $id, group: $group) {
 		... BookmarkGroup
@@ -10527,7 +10574,17 @@ fragment BookmarkGroup on BookmarkGroup {
 	iconUrl
 	workspaceId
 }
-`,
+`
+
+func createOrUpdateBookmarkGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id *string,
+	group BookmarkGroupInput,
+) (*createOrUpdateBookmarkGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "createOrUpdateBookmarkGroup",
+		Query:  createOrUpdateBookmarkGroup_Operation,
 		Variables: &__createOrUpdateBookmarkGroupInput{
 			Id:    id,
 			Group: group,
@@ -10547,15 +10604,8 @@ fragment BookmarkGroup on BookmarkGroup {
 	return &data, err
 }
 
-func createPoller(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	poller PollerInput,
-) (*createPollerResponse, error) {
-	req := &graphql.Request{
-		OpName: "createPoller",
-		Query: `
+// The query or mutation executed by createPoller.
+const createPoller_Operation = `
 mutation createPoller ($workspaceId: ObjectId!, $poller: PollerInput!) {
 	poller: createPoller(workspaceId: $workspaceId, poller: $poller) {
 		... Poller
@@ -10631,7 +10681,17 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	headers
 	params
 }
-`,
+`
+
+func createPoller(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	poller PollerInput,
+) (*createPollerResponse, error) {
+	req := &graphql.Request{
+		OpName: "createPoller",
+		Query:  createPoller_Operation,
 		Variables: &__createPollerInput{
 			WorkspaceId: workspaceId,
 			Poller:      poller,
@@ -10651,16 +10711,8 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	return &data, err
 }
 
-// More workarounds for server-side struggles
-func createPreferredPath(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	config PreferredPathInput,
-) (*createPreferredPathResponse, error) {
-	req := &graphql.Request{
-		OpName: "createPreferredPath",
-		Query: `
+// The query or mutation executed by createPreferredPath.
+const createPreferredPath_Operation = `
 mutation createPreferredPath ($workspaceId: ObjectId!, $config: PreferredPathInput!) {
 	preferredPathWithStatus: createPreferredPath(workspaceId: $workspaceId, path: $config) {
 		... PreferredPathWithStatus
@@ -10687,7 +10739,18 @@ fragment PreferredPath on PreferredPath {
 		reverseFromDataset
 	}
 }
-`,
+`
+
+// More workarounds for server-side struggles
+func createPreferredPath(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	config PreferredPathInput,
+) (*createPreferredPathResponse, error) {
+	req := &graphql.Request{
+		OpName: "createPreferredPath",
+		Query:  createPreferredPath_Operation,
 		Variables: &__createPreferredPathInput{
 			WorkspaceId: workspaceId,
 			Config:      config,
@@ -10707,14 +10770,8 @@ fragment PreferredPath on PreferredPath {
 	return &data, err
 }
 
-func createRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
-	config RbacGroupInput,
-) (*createRbacGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "createRbacGroup",
-		Query: `
+// The query or mutation executed by createRbacGroup.
+const createRbacGroup_Operation = `
 mutation createRbacGroup ($config: RbacGroupInput!) {
 	rbacGroup: createRbacGroup(input: $config) {
 		... RbacGroup
@@ -10725,7 +10782,16 @@ fragment RbacGroup on RbacGroup {
 	name
 	description
 }
-`,
+`
+
+func createRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	config RbacGroupInput,
+) (*createRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "createRbacGroup",
+		Query:  createRbacGroup_Operation,
 		Variables: &__createRbacGroupInput{
 			Config: config,
 		},
@@ -10744,14 +10810,8 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
-func createRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
-	config RbacGroupmemberInput,
-) (*createRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
-		OpName: "createRbacGroupmember",
-		Query: `
+// The query or mutation executed by createRbacGroupmember.
+const createRbacGroupmember_Operation = `
 mutation createRbacGroupmember ($config: RbacGroupmemberInput!) {
 	rbacGroupmember: createRbacGroupmember(input: $config) {
 		... RbacGroupmember
@@ -10764,7 +10824,16 @@ fragment RbacGroupmember on RbacGroupmember {
 	memberUserId
 	memberGroupId
 }
-`,
+`
+
+func createRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	config RbacGroupmemberInput,
+) (*createRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "createRbacGroupmember",
+		Query:  createRbacGroupmember_Operation,
 		Variables: &__createRbacGroupmemberInput{
 			Config: config,
 		},
@@ -10783,14 +10852,8 @@ fragment RbacGroupmember on RbacGroupmember {
 	return &data, err
 }
 
-func createRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
-	config RbacStatementInput,
-) (*createRbacStatementResponse, error) {
-	req := &graphql.Request{
-		OpName: "createRbacStatement",
-		Query: `
+// The query or mutation executed by createRbacStatement.
+const createRbacStatement_Operation = `
 mutation createRbacStatement ($config: RbacStatementInput!) {
 	rbacStatement: createRbacStatement(input: $config) {
 		... RbacStatement
@@ -10815,7 +10878,16 @@ fragment RbacStatement on RbacStatement {
 	}
 	role
 }
-`,
+`
+
+func createRbacStatement(
+	ctx context.Context,
+	client graphql.Client,
+	config RbacStatementInput,
+) (*createRbacStatementResponse, error) {
+	req := &graphql.Request{
+		OpName: "createRbacStatement",
+		Query:  createRbacStatement_Operation,
 		Variables: &__createRbacStatementInput{
 			Config: config,
 		},
@@ -10834,15 +10906,8 @@ fragment RbacStatement on RbacStatement {
 	return &data, err
 }
 
-func createSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	input SnowflakeOutboundShareInput,
-) (*createSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "createSnowflakeOutboundShare",
-		Query: `
+// The query or mutation executed by createSnowflakeOutboundShare.
+const createSnowflakeOutboundShare_Operation = `
 mutation createSnowflakeOutboundShare ($workspaceId: ObjectId!, $input: SnowflakeOutboundShareInput!) {
 	share: createSnowflakeOutboundShare(workspaceId: $workspaceId, input: $input) {
 		... SnowflakeOutboundShare
@@ -10862,7 +10927,17 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	organization
 	account
 }
-`,
+`
+
+func createSnowflakeOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	input SnowflakeOutboundShareInput,
+) (*createSnowflakeOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "createSnowflakeOutboundShare",
+		Query:  createSnowflakeOutboundShare_Operation,
 		Variables: &__createSnowflakeOutboundShareInput{
 			WorkspaceId: workspaceId,
 			Input:       input,
@@ -10882,14 +10957,8 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	return &data, err
 }
 
-func createWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	config WorkspaceInput,
-) (*createWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "createWorkspace",
-		Query: `
+// The query or mutation executed by createWorkspace.
+const createWorkspace_Operation = `
 mutation createWorkspace ($config: WorkspaceInput!) {
 	workspace: createWorkspace(definition: $config) {
 		... Workspace
@@ -10899,7 +10968,16 @@ fragment Workspace on Project {
 	id
 	label
 }
-`,
+`
+
+func createWorkspace(
+	ctx context.Context,
+	client graphql.Client,
+	config WorkspaceInput,
+) (*createWorkspaceResponse, error) {
+	req := &graphql.Request{
+		OpName: "createWorkspace",
+		Query:  createWorkspace_Operation,
 		Variables: &__createWorkspaceInput{
 			Config: config,
 		},
@@ -10918,14 +10996,8 @@ fragment Workspace on Project {
 	return &data, err
 }
 
-func deleteApp(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteAppResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteApp",
-		Query: `
+// The query or mutation executed by deleteApp.
+const deleteApp_Operation = `
 mutation deleteApp ($id: ObjectId!) {
 	resultStatus: deleteApp(id: $id) {
 		... ResultStatus
@@ -10936,7 +11008,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteApp(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteAppResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteApp",
+		Query:  deleteApp_Operation,
 		Variables: &__deleteAppInput{
 			Id: id,
 		},
@@ -10955,14 +11036,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteAppDataSourceResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteAppDataSource",
-		Query: `
+// The query or mutation executed by deleteAppDataSource.
+const deleteAppDataSource_Operation = `
 mutation deleteAppDataSource ($id: ObjectId!) {
 	resultStatus: deleteAppDataSource(id: $id) {
 		... ResultStatus
@@ -10973,7 +11048,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteAppDataSource",
+		Query:  deleteAppDataSource_Operation,
 		Variables: &__deleteAppDataSourceInput{
 			Id: id,
 		},
@@ -10992,14 +11076,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteBoard",
-		Query: `
+// The query or mutation executed by deleteBoard.
+const deleteBoard_Operation = `
 mutation deleteBoard ($id: ObjectId!) {
 	resultStatus: deleteBoard(id: $id) {
 		... ResultStatus
@@ -11010,7 +11088,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteBoard(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteBoardResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteBoard",
+		Query:  deleteBoard_Operation,
 		Variables: &__deleteBoardInput{
 			Id: id,
 		},
@@ -11029,14 +11116,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteBookmark(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteBookmarkResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteBookmark",
-		Query: `
+// The query or mutation executed by deleteBookmark.
+const deleteBookmark_Operation = `
 mutation deleteBookmark ($id: ObjectId!) {
 	resultStatus: deleteBookmark(id: $id) {
 		... ResultStatus
@@ -11047,7 +11128,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteBookmark(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteBookmarkResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteBookmark",
+		Query:  deleteBookmark_Operation,
 		Variables: &__deleteBookmarkInput{
 			Id: id,
 		},
@@ -11066,14 +11156,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteBookmarkGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteBookmarkGroup",
-		Query: `
+// The query or mutation executed by deleteBookmarkGroup.
+const deleteBookmarkGroup_Operation = `
 mutation deleteBookmarkGroup ($id: ObjectId!) {
 	resultStatus: deleteBookmarkGroup(id: $id) {
 		... ResultStatus
@@ -11084,7 +11168,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteBookmarkGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteBookmarkGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteBookmarkGroup",
+		Query:  deleteBookmarkGroup_Operation,
 		Variables: &__deleteBookmarkGroupInput{
 			Id: id,
 		},
@@ -11103,14 +11196,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteChannel(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteChannelResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteChannel",
-		Query: `
+// The query or mutation executed by deleteChannel.
+const deleteChannel_Operation = `
 mutation deleteChannel ($id: ObjectId!) {
 	resultStatus: deleteChannel(id: $id) {
 		... ResultStatus
@@ -11121,7 +11208,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteChannel(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteChannelResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteChannel",
+		Query:  deleteChannel_Operation,
 		Variables: &__deleteChannelInput{
 			Id: id,
 		},
@@ -11140,14 +11236,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteChannelAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteChannelActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteChannelAction",
-		Query: `
+// The query or mutation executed by deleteChannelAction.
+const deleteChannelAction_Operation = `
 mutation deleteChannelAction ($id: ObjectId!) {
 	resultStatus: deleteChannelAction(id: $id) {
 		... ResultStatus
@@ -11158,7 +11248,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteChannelAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteChannelActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteChannelAction",
+		Query:  deleteChannelAction_Operation,
 		Variables: &__deleteChannelActionInput{
 			Id: id,
 		},
@@ -11177,14 +11276,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDashboard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDashboardResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDashboard",
-		Query: `
+// The query or mutation executed by deleteDashboard.
+const deleteDashboard_Operation = `
 mutation deleteDashboard ($id: ObjectId!) {
 	resultStatus: deleteDashboard(id: $id) {
 		... ResultStatus
@@ -11195,7 +11288,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDashboard(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDashboardResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDashboard",
+		Query:  deleteDashboard_Operation,
 		Variables: &__deleteDashboardInput{
 			Id: id,
 		},
@@ -11214,14 +11316,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDashboardLinkResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDashboardLink",
-		Query: `
+// The query or mutation executed by deleteDashboardLink.
+const deleteDashboardLink_Operation = `
 mutation deleteDashboardLink ($id: ObjectId!) {
 	resultStatus: deleteDashboardLink(id: $id) {
 		... ResultStatus
@@ -11232,7 +11328,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDashboardLink",
+		Query:  deleteDashboardLink_Operation,
 		Variables: &__deleteDashboardLinkInput{
 			Id: id,
 		},
@@ -11251,15 +11356,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDataset(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	dep *DependencyHandlingInput,
-) (*deleteDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDataset",
-		Query: `
+// The query or mutation executed by deleteDataset.
+const deleteDataset_Operation = `
 mutation deleteDataset ($id: ObjectId!, $dep: DependencyHandlingInput) {
 	resultStatus: deleteDataset(dsid: $id, dependencyHandling: $dep) {
 		... ResultStatus
@@ -11270,7 +11368,17 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDataset(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	dep *DependencyHandlingInput,
+) (*deleteDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDataset",
+		Query:  deleteDataset_Operation,
 		Variables: &__deleteDatasetInput{
 			Id:  id,
 			Dep: dep,
@@ -11290,14 +11398,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDatasetOutboundShare",
-		Query: `
+// The query or mutation executed by deleteDatasetOutboundShare.
+const deleteDatasetOutboundShare_Operation = `
 mutation deleteDatasetOutboundShare ($id: ObjectId!) {
 	resultStatus: deleteDatasetOutboundShare(id: $id) {
 		... ResultStatus
@@ -11308,7 +11410,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDatasetOutboundShare",
+		Query:  deleteDatasetOutboundShare_Operation,
 		Variables: &__deleteDatasetOutboundShareInput{
 			Id: id,
 		},
@@ -11327,14 +11438,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDatastream(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDatastreamResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDatastream",
-		Query: `
+// The query or mutation executed by deleteDatastream.
+const deleteDatastream_Operation = `
 mutation deleteDatastream ($id: ObjectId!) {
 	resultStatus: deleteDatastream(id: $id) {
 		... ResultStatus
@@ -11345,7 +11450,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDatastream(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDatastreamResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDatastream",
+		Query:  deleteDatastream_Operation,
 		Variables: &__deleteDatastreamInput{
 			Id: id,
 		},
@@ -11364,14 +11478,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDatastreamTokenResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDatastreamToken",
-		Query: `
+// The query or mutation executed by deleteDatastreamToken.
+const deleteDatastreamToken_Operation = `
 mutation deleteDatastreamToken ($id: String!) {
 	resultStatus: deleteDatastreamToken(id: $id) {
 		... ResultStatus
@@ -11382,7 +11490,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDatastreamToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDatastreamTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDatastreamToken",
+		Query:  deleteDatastreamToken_Operation,
 		Variables: &__deleteDatastreamTokenInput{
 			Id: id,
 		},
@@ -11401,14 +11518,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteDeferredForeignKey",
-		Query: `
+// The query or mutation executed by deleteDeferredForeignKey.
+const deleteDeferredForeignKey_Operation = `
 mutation deleteDeferredForeignKey ($id: ObjectId!) {
 	resultStatus: deleteDeferredForeignKey(id: $id) {
 		... ResultStatus
@@ -11419,7 +11530,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteDeferredForeignKey(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteDeferredForeignKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteDeferredForeignKey",
+		Query:  deleteDeferredForeignKey_Operation,
 		Variables: &__deleteDeferredForeignKeyInput{
 			Id: id,
 		},
@@ -11438,14 +11558,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteFiledrop(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteFiledropResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteFiledrop",
-		Query: `
+// The query or mutation executed by deleteFiledrop.
+const deleteFiledrop_Operation = `
 mutation deleteFiledrop ($id: ObjectId!) {
 	resultStatus: deleteFiledrop(id: $id) {
 		... ResultStatus
@@ -11456,7 +11570,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteFiledrop",
+		Query:  deleteFiledrop_Operation,
 		Variables: &__deleteFiledropInput{
 			Id: id,
 		},
@@ -11475,14 +11598,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteFolder(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteFolderResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteFolder",
-		Query: `
+// The query or mutation executed by deleteFolder.
+const deleteFolder_Operation = `
 mutation deleteFolder ($id: ObjectId!) {
 	resultStatus: deleteFolder(id: $id) {
 		... ResultStatus
@@ -11493,7 +11610,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteFolder(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteFolderResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteFolder",
+		Query:  deleteFolder_Operation,
 		Variables: &__deleteFolderInput{
 			Id: id,
 		},
@@ -11512,14 +11638,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteLayeredSettingRecord",
-		Query: `
+// The query or mutation executed by deleteLayeredSettingRecord.
+const deleteLayeredSettingRecord_Operation = `
 mutation deleteLayeredSettingRecord ($id: ObjectId!) {
 	deleteLayeredSettingRecord(id: $id) {
 		resultStatus: result {
@@ -11532,7 +11652,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteLayeredSettingRecord(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteLayeredSettingRecordResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteLayeredSettingRecord",
+		Query:  deleteLayeredSettingRecord_Operation,
 		Variables: &__deleteLayeredSettingRecordInput{
 			Id: id,
 		},
@@ -11551,14 +11680,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteMonitor(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteMonitorResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteMonitor",
-		Query: `
+// The query or mutation executed by deleteMonitor.
+const deleteMonitor_Operation = `
 mutation deleteMonitor ($id: ObjectId!) {
 	resultStatus: deleteMonitor(id: $id) {
 		... ResultStatus
@@ -11569,7 +11692,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteMonitor(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitor",
+		Query:  deleteMonitor_Operation,
 		Variables: &__deleteMonitorInput{
 			Id: id,
 		},
@@ -11588,14 +11720,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteMonitorActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteMonitorAction",
-		Query: `
+// The query or mutation executed by deleteMonitorAction.
+const deleteMonitorAction_Operation = `
 mutation deleteMonitorAction ($id: ObjectId!) {
 	resultStatus: deleteMonitorAction(id: $id) {
 		... ResultStatus
@@ -11606,7 +11732,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorAction",
+		Query:  deleteMonitorAction_Operation,
 		Variables: &__deleteMonitorActionInput{
 			Id: id,
 		},
@@ -11625,14 +11760,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteMonitorActionAttachment",
-		Query: `
+// The query or mutation executed by deleteMonitorActionAttachment.
+const deleteMonitorActionAttachment_Operation = `
 mutation deleteMonitorActionAttachment ($id: ObjectId!) {
 	resultStatus: deleteMonitorActionAttachment(id: $id) {
 		... ResultStatus
@@ -11643,7 +11772,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorActionAttachment",
+		Query:  deleteMonitorActionAttachment_Operation,
 		Variables: &__deleteMonitorActionAttachmentInput{
 			Id: id,
 		},
@@ -11662,14 +11800,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deletePoller(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deletePollerResponse, error) {
-	req := &graphql.Request{
-		OpName: "deletePoller",
-		Query: `
+// The query or mutation executed by deletePoller.
+const deletePoller_Operation = `
 mutation deletePoller ($id: ObjectId!) {
 	resultStatus: deletePoller(id: $id) {
 		... ResultStatus
@@ -11680,7 +11812,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deletePoller(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deletePollerResponse, error) {
+	req := &graphql.Request{
+		OpName: "deletePoller",
+		Query:  deletePoller_Operation,
 		Variables: &__deletePollerInput{
 			Id: id,
 		},
@@ -11699,14 +11840,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deletePreferredPath(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deletePreferredPathResponse, error) {
-	req := &graphql.Request{
-		OpName: "deletePreferredPath",
-		Query: `
+// The query or mutation executed by deletePreferredPath.
+const deletePreferredPath_Operation = `
 mutation deletePreferredPath ($id: ObjectId!) {
 	resultStatus: deletePreferredPath(id: $id) {
 		... ResultStatus
@@ -11717,7 +11852,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deletePreferredPath(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deletePreferredPathResponse, error) {
+	req := &graphql.Request{
+		OpName: "deletePreferredPath",
+		Query:  deletePreferredPath_Operation,
 		Variables: &__deletePreferredPathInput{
 			Id: id,
 		},
@@ -11736,14 +11880,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteRbacGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteRbacGroup",
-		Query: `
+// The query or mutation executed by deleteRbacGroup.
+const deleteRbacGroup_Operation = `
 mutation deleteRbacGroup ($id: ORN!) {
 	resultStatus: deleteRbacGroup(id: $id) {
 		... ResultStatus
@@ -11754,7 +11892,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteRbacGroup",
+		Query:  deleteRbacGroup_Operation,
 		Variables: &__deleteRbacGroupInput{
 			Id: id,
 		},
@@ -11773,14 +11920,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteRbacGroupmember",
-		Query: `
+// The query or mutation executed by deleteRbacGroupmember.
+const deleteRbacGroupmember_Operation = `
 mutation deleteRbacGroupmember ($id: ORN!) {
 	resultStatus: deleteRbacGroupmember(id: $id) {
 		... ResultStatus
@@ -11791,7 +11932,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteRbacGroupmember",
+		Query:  deleteRbacGroupmember_Operation,
 		Variables: &__deleteRbacGroupmemberInput{
 			Id: id,
 		},
@@ -11810,14 +11960,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteRbacStatementResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteRbacStatement",
-		Query: `
+// The query or mutation executed by deleteRbacStatement.
+const deleteRbacStatement_Operation = `
 mutation deleteRbacStatement ($id: ORN!) {
 	resultStatus: deleteRbacStatement(id: $id) {
 		... ResultStatus
@@ -11828,7 +11972,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteRbacStatement(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteRbacStatementResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteRbacStatement",
+		Query:  deleteRbacStatement_Operation,
 		Variables: &__deleteRbacStatementInput{
 			Id: id,
 		},
@@ -11847,14 +12000,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteSnowflakeOutboundShare",
-		Query: `
+// The query or mutation executed by deleteSnowflakeOutboundShare.
+const deleteSnowflakeOutboundShare_Operation = `
 mutation deleteSnowflakeOutboundShare ($id: ObjectId!) {
 	resultStatus: deleteSnowflakeOutboundShare(id: $id) {
 		... ResultStatus
@@ -11865,7 +12012,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteSnowflakeOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteSnowflakeOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteSnowflakeOutboundShare",
+		Query:  deleteSnowflakeOutboundShare_Operation,
 		Variables: &__deleteSnowflakeOutboundShareInput{
 			Id: id,
 		},
@@ -11884,14 +12040,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteWorksheet(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteWorksheetResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteWorksheet",
-		Query: `
+// The query or mutation executed by deleteWorksheet.
+const deleteWorksheet_Operation = `
 mutation deleteWorksheet ($id: ObjectId!) {
 	resultStatus: deleteWorksheet(wks: $id) {
 		... ResultStatus
@@ -11902,7 +12052,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteWorksheet(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteWorksheetResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteWorksheet",
+		Query:  deleteWorksheet_Operation,
 		Variables: &__deleteWorksheetInput{
 			Id: id,
 		},
@@ -11921,14 +12080,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func deleteWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteWorkspace",
-		Query: `
+// The query or mutation executed by deleteWorkspace.
+const deleteWorkspace_Operation = `
 mutation deleteWorkspace ($id: ObjectId!) {
 	resultStatus: deleteWorkspace(id: $id) {
 		... ResultStatus
@@ -11939,7 +12092,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func deleteWorkspace(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteWorkspaceResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteWorkspace",
+		Query:  deleteWorkspace_Operation,
 		Variables: &__deleteWorkspaceInput{
 			Id: id,
 		},
@@ -11958,14 +12120,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func getApp(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getAppResponse, error) {
-	req := &graphql.Request{
-		OpName: "getApp",
-		Query: `
+// The query or mutation executed by getApp.
+const getApp_Operation = `
 query getApp ($id: ObjectId!) {
 	app(id: $id) {
 		... App
@@ -11988,7 +12144,16 @@ fragment App on App {
 	}
 	outputs
 }
-`,
+`
+
+func getApp(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getAppResponse, error) {
+	req := &graphql.Request{
+		OpName: "getApp",
+		Query:  getApp_Operation,
 		Variables: &__getAppInput{
 			Id: id,
 		},
@@ -12007,14 +12172,8 @@ fragment App on App {
 	return &data, err
 }
 
-func getAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getAppDataSourceResponse, error) {
-	req := &graphql.Request{
-		OpName: "getAppDataSource",
-		Query: `
+// The query or mutation executed by getAppDataSource.
+const getAppDataSource_Operation = `
 query getAppDataSource ($id: ObjectId!) {
 	appdatasource: appDataSource(id: $id) {
 		... AppDataSource
@@ -12030,7 +12189,16 @@ fragment AppDataSource on AppDataSource {
 	sourceUrl
 	instructions
 }
-`,
+`
+
+func getAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "getAppDataSource",
+		Query:  getAppDataSource_Operation,
 		Variables: &__getAppDataSourceInput{
 			Id: id,
 		},
@@ -12049,14 +12217,8 @@ fragment AppDataSource on AppDataSource {
 	return &data, err
 }
 
-func getBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "getBoard",
-		Query: `
+// The query or mutation executed by getBoard.
+const getBoard_Operation = `
 query getBoard ($id: ObjectId!) {
 	board: getBoard(id: $id) {
 		... Board
@@ -12070,7 +12232,16 @@ fragment Board on Board {
 	boardJson: board
 	source
 }
-`,
+`
+
+func getBoard(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getBoardResponse, error) {
+	req := &graphql.Request{
+		OpName: "getBoard",
+		Query:  getBoard_Operation,
 		Variables: &__getBoardInput{
 			Id: id,
 		},
@@ -12089,14 +12260,8 @@ fragment Board on Board {
 	return &data, err
 }
 
-func getBookmark(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getBookmarkResponse, error) {
-	req := &graphql.Request{
-		OpName: "getBookmark",
-		Query: `
+// The query or mutation executed by getBookmark.
+const getBookmark_Operation = `
 query getBookmark ($id: ObjectId!) {
 	bookmark(id: $id) {
 		... Bookmark
@@ -12111,7 +12276,16 @@ fragment Bookmark on Bookmark {
 	groupId
 	bookmarkKind
 }
-`,
+`
+
+func getBookmark(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getBookmarkResponse, error) {
+	req := &graphql.Request{
+		OpName: "getBookmark",
+		Query:  getBookmark_Operation,
 		Variables: &__getBookmarkInput{
 			Id: id,
 		},
@@ -12130,14 +12304,8 @@ fragment Bookmark on Bookmark {
 	return &data, err
 }
 
-func getBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getBookmarkGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "getBookmarkGroup",
-		Query: `
+// The query or mutation executed by getBookmarkGroup.
+const getBookmarkGroup_Operation = `
 query getBookmarkGroup ($id: ObjectId!) {
 	bookmarkGroup(id: $id) {
 		... BookmarkGroup
@@ -12150,7 +12318,16 @@ fragment BookmarkGroup on BookmarkGroup {
 	iconUrl
 	workspaceId
 }
-`,
+`
+
+func getBookmarkGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getBookmarkGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "getBookmarkGroup",
+		Query:  getBookmarkGroup_Operation,
 		Variables: &__getBookmarkGroupInput{
 			Id: id,
 		},
@@ -12169,14 +12346,8 @@ fragment BookmarkGroup on BookmarkGroup {
 	return &data, err
 }
 
-func getChannel(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getChannelResponse, error) {
-	req := &graphql.Request{
-		OpName: "getChannel",
-		Query: `
+// The query or mutation executed by getChannel.
+const getChannel_Operation = `
 query getChannel ($id: ObjectId!) {
 	channel: getChannel(id: $id) {
 		... Channel
@@ -12192,7 +12363,16 @@ fragment Channel on Channel {
 		id
 	}
 }
-`,
+`
+
+func getChannel(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getChannelResponse, error) {
+	req := &graphql.Request{
+		OpName: "getChannel",
+		Query:  getChannel_Operation,
 		Variables: &__getChannelInput{
 			Id: id,
 		},
@@ -12211,14 +12391,8 @@ fragment Channel on Channel {
 	return &data, err
 }
 
-func getChannelAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getChannelActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "getChannelAction",
-		Query: `
+// The query or mutation executed by getChannelAction.
+const getChannelAction_Operation = `
 query getChannelAction ($id: ObjectId!) {
 	channelAction: getChannelAction(id: $id) {
 		__typename
@@ -12253,7 +12427,16 @@ fragment ChannelAction on ChannelAction {
 		isHtml
 	}
 }
-`,
+`
+
+func getChannelAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getChannelActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "getChannelAction",
+		Query:  getChannelAction_Operation,
 		Variables: &__getChannelActionInput{
 			Id: id,
 		},
@@ -12272,13 +12455,8 @@ fragment ChannelAction on ChannelAction {
 	return &data, err
 }
 
-func getCurrentCustomer(
-	ctx context.Context,
-	client graphql.Client,
-) (*getCurrentCustomerResponse, error) {
-	req := &graphql.Request{
-		OpName: "getCurrentCustomer",
-		Query: `
+// The query or mutation executed by getCurrentCustomer.
+const getCurrentCustomer_Operation = `
 query getCurrentCustomer {
 	customer: currentCustomer {
 		users {
@@ -12291,7 +12469,15 @@ fragment User on User {
 	email
 	comment
 }
-`,
+`
+
+func getCurrentCustomer(
+	ctx context.Context,
+	client graphql.Client,
+) (*getCurrentCustomerResponse, error) {
+	req := &graphql.Request{
+		OpName: "getCurrentCustomer",
+		Query:  getCurrentCustomer_Operation,
 	}
 	var err error
 
@@ -12307,14 +12493,8 @@ fragment User on User {
 	return &data, err
 }
 
-func getDashboard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDashboardResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDashboard",
-		Query: `
+// The query or mutation executed by getDashboard.
+const getDashboard_Operation = `
 query getDashboard ($id: ObjectId!) {
 	dashboard(id: $id) {
 		... Dashboard
@@ -12395,7 +12575,16 @@ fragment primitiveValueFields on PrimitiveValue {
 	int64
 	string
 }
-`,
+`
+
+func getDashboard(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDashboardResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDashboard",
+		Query:  getDashboard_Operation,
 		Variables: &__getDashboardInput{
 			Id: id,
 		},
@@ -12414,14 +12603,8 @@ fragment primitiveValueFields on PrimitiveValue {
 	return &data, err
 }
 
-func getDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDashboardLinkResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDashboardLink",
-		Query: `
+// The query or mutation executed by getDashboardLink.
+const getDashboardLink_Operation = `
 query getDashboardLink ($id: ObjectId!) {
 	dashboardLink(id: $id) {
 		... DashboardLink
@@ -12439,7 +12622,16 @@ fragment DashboardLink on DashboardLink {
 	fromCard
 	linkLabel
 }
-`,
+`
+
+func getDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDashboardLink",
+		Query:  getDashboardLink_Operation,
 		Variables: &__getDashboardLinkInput{
 			Id: id,
 		},
@@ -12458,14 +12650,8 @@ fragment DashboardLink on DashboardLink {
 	return &data, err
 }
 
-func getDataset(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDataset",
-		Query: `
+// The query or mutation executed by getDataset.
+const getDataset_Operation = `
 query getDataset ($id: ObjectId!) {
 	dataset(id: $id) {
 		... Dataset
@@ -12547,7 +12733,16 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func getDataset(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDataset",
+		Query:  getDataset_Operation,
 		Variables: &__getDatasetInput{
 			Id: id,
 		},
@@ -12566,14 +12761,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func getDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDatasetOutboundShare",
-		Query: `
+// The query or mutation executed by getDatasetOutboundShare.
+const getDatasetOutboundShare_Operation = `
 query getDatasetOutboundShare ($id: ObjectId!) {
 	datasetOutboundShare(id: $id) {
 		... DatasetOutboundShare
@@ -12595,7 +12784,16 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 		error
 	}
 }
-`,
+`
+
+func getDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatasetOutboundShare",
+		Query:  getDatasetOutboundShare_Operation,
 		Variables: &__getDatasetOutboundShareInput{
 			Id: id,
 		},
@@ -12614,15 +12812,8 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	return &data, err
 }
 
-func getDatasetQueryOutput(
-	ctx context.Context,
-	client graphql.Client,
-	query []*StageInput,
-	params QueryParams,
-) (*getDatasetQueryOutputResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDatasetQueryOutput",
-		Query: `
+// The query or mutation executed by getDatasetQueryOutput.
+const getDatasetQueryOutput_Operation = `
 query getDatasetQueryOutput ($query: [StageInput!]!, $params: QueryParams!) {
 	taskResult: datasetQueryOutput(query: $query, params: $params) {
 		... TaskResult
@@ -12638,7 +12829,17 @@ fragment TaskResult on TaskResult {
 		typedefDefinition
 	}
 }
-`,
+`
+
+func getDatasetQueryOutput(
+	ctx context.Context,
+	client graphql.Client,
+	query []*StageInput,
+	params QueryParams,
+) (*getDatasetQueryOutputResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatasetQueryOutput",
+		Query:  getDatasetQueryOutput_Operation,
 		Variables: &__getDatasetQueryOutputInput{
 			Query:  query,
 			Params: params,
@@ -12658,14 +12859,8 @@ fragment TaskResult on TaskResult {
 	return &data, err
 }
 
-func getDatastream(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDatastreamResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDatastream",
-		Query: `
+// The query or mutation executed by getDatastream.
+const getDatastream_Operation = `
 query getDatastream ($id: ObjectId!) {
 	datastream(id: $id) {
 		... Datastream
@@ -12679,7 +12874,16 @@ fragment Datastream on Datastream {
 	workspaceId
 	datasetId
 }
-`,
+`
+
+func getDatastream(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDatastreamResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatastream",
+		Query:  getDatastream_Operation,
 		Variables: &__getDatastreamInput{
 			Id: id,
 		},
@@ -12698,14 +12902,8 @@ fragment Datastream on Datastream {
 	return &data, err
 }
 
-func getDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDatastreamTokenResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDatastreamToken",
-		Query: `
+// The query or mutation executed by getDatastreamToken.
+const getDatastreamToken_Operation = `
 query getDatastreamToken ($id: String!) {
 	datastreamToken(id: $id) {
 		... DatastreamToken
@@ -12719,7 +12917,16 @@ fragment DatastreamToken on DatastreamToken {
 	datastreamId
 	secret
 }
-`,
+`
+
+func getDatastreamToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDatastreamTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatastreamToken",
+		Query:  getDatastreamToken_Operation,
 		Variables: &__getDatastreamTokenInput{
 			Id: id,
 		},
@@ -12738,6 +12945,13 @@ fragment DatastreamToken on DatastreamToken {
 	return &data, err
 }
 
+// The query or mutation executed by getDefaultDashboard.
+const getDefaultDashboard_Operation = `
+query getDefaultDashboard ($dsid: ObjectId!) {
+	defaultDashboard(dsid: $dsid)
+}
+`
+
 func getDefaultDashboard(
 	ctx context.Context,
 	client graphql.Client,
@@ -12745,11 +12959,7 @@ func getDefaultDashboard(
 ) (*getDefaultDashboardResponse, error) {
 	req := &graphql.Request{
 		OpName: "getDefaultDashboard",
-		Query: `
-query getDefaultDashboard ($dsid: ObjectId!) {
-	defaultDashboard(dsid: $dsid)
-}
-`,
+		Query:  getDefaultDashboard_Operation,
 		Variables: &__getDefaultDashboardInput{
 			Dsid: dsid,
 		},
@@ -12768,14 +12978,8 @@ query getDefaultDashboard ($dsid: ObjectId!) {
 	return &data, err
 }
 
-func getDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
-		OpName: "getDeferredForeignKey",
-		Query: `
+// The query or mutation executed by getDeferredForeignKey.
+const getDeferredForeignKey_Operation = `
 query getDeferredForeignKey ($id: ObjectId!) {
 	deferredForeignKey(id: $id) {
 		... DeferredForeignKey
@@ -12801,7 +13005,16 @@ fragment DeferredForeignKey on DeferredForeignKey {
 		errorText
 	}
 }
-`,
+`
+
+func getDeferredForeignKey(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getDeferredForeignKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDeferredForeignKey",
+		Query:  getDeferredForeignKey_Operation,
 		Variables: &__getDeferredForeignKeyInput{
 			Id: id,
 		},
@@ -12820,14 +13033,8 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	return &data, err
 }
 
-func getFiledrop(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getFiledropResponse, error) {
-	req := &graphql.Request{
-		OpName: "getFiledrop",
-		Query: `
+// The query or mutation executed by getFiledrop.
+const getFiledrop_Operation = `
 query getFiledrop ($id: ObjectId!) {
 	filedrop(id: $id) {
 		... Filedrop
@@ -12859,7 +13066,16 @@ fragment Filedrop on Filedrop {
 		}
 	}
 }
-`,
+`
+
+func getFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "getFiledrop",
+		Query:  getFiledrop_Operation,
 		Variables: &__getFiledropInput{
 			Id: id,
 		},
@@ -12878,14 +13094,8 @@ fragment Filedrop on Filedrop {
 	return &data, err
 }
 
-func getFolder(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getFolderResponse, error) {
-	req := &graphql.Request{
-		OpName: "getFolder",
-		Query: `
+// The query or mutation executed by getFolder.
+const getFolder_Operation = `
 query getFolder ($id: ObjectId!) {
 	folder(id: $id) {
 		... Folder
@@ -12898,7 +13108,16 @@ fragment Folder on Folder {
 	description
 	workspaceId
 }
-`,
+`
+
+func getFolder(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getFolderResponse, error) {
+	req := &graphql.Request{
+		OpName: "getFolder",
+		Query:  getFolder_Operation,
 		Variables: &__getFolderInput{
 			Id: id,
 		},
@@ -12917,14 +13136,8 @@ fragment Folder on Folder {
 	return &data, err
 }
 
-func getLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
-		OpName: "getLayeredSettingRecord",
-		Query: `
+// The query or mutation executed by getLayeredSettingRecord.
+const getLayeredSettingRecord_Operation = `
 query getLayeredSettingRecord ($id: ObjectId!) {
 	layeredSettingRecord(id: $id) {
 		... LayeredSettingRecord
@@ -12971,7 +13184,16 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	datastreamId
 	userId
 }
-`,
+`
+
+func getLayeredSettingRecord(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getLayeredSettingRecordResponse, error) {
+	req := &graphql.Request{
+		OpName: "getLayeredSettingRecord",
+		Query:  getLayeredSettingRecord_Operation,
 		Variables: &__getLayeredSettingRecordInput{
 			Id: id,
 		},
@@ -12990,14 +13212,8 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	return &data, err
 }
 
-func getMonitor(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getMonitorResponse, error) {
-	req := &graphql.Request{
-		OpName: "getMonitor",
-		Query: `
+// The query or mutation executed by getMonitor.
+const getMonitor_Operation = `
 query getMonitor ($id: ObjectId!) {
 	monitor(id: $id) {
 		... Monitor
@@ -13082,7 +13298,16 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func getMonitor(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitor",
+		Query:  getMonitor_Operation,
 		Variables: &__getMonitorInput{
 			Id: id,
 		},
@@ -13101,14 +13326,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func getMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getMonitorActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "getMonitorAction",
-		Query: `
+// The query or mutation executed by getMonitorAction.
+const getMonitorAction_Operation = `
 query getMonitorAction ($id: ObjectId!) {
 	monitorAction(id: $id) {
 		__typename
@@ -13141,7 +13360,16 @@ fragment MonitorAction on MonitorAction {
 		bodyTemplate
 	}
 }
-`,
+`
+
+func getMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorAction",
+		Query:  getMonitorAction_Operation,
 		Variables: &__getMonitorActionInput{
 			Id: id,
 		},
@@ -13160,14 +13388,8 @@ fragment MonitorAction on MonitorAction {
 	return &data, err
 }
 
-func getMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
-		OpName: "getMonitorActionAttachment",
-		Query: `
+// The query or mutation executed by getMonitorActionAttachment.
+const getMonitorActionAttachment_Operation = `
 query getMonitorActionAttachment ($id: ObjectId!) {
 	monitorActionAttachment(id: $id) {
 		... MonitorActionAttachment
@@ -13182,7 +13404,16 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	iconUrl
 	description
 }
-`,
+`
+
+func getMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorActionAttachment",
+		Query:  getMonitorActionAttachment_Operation,
 		Variables: &__getMonitorActionAttachmentInput{
 			Id: id,
 		},
@@ -13201,14 +13432,8 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	return &data, err
 }
 
-func getPoller(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getPollerResponse, error) {
-	req := &graphql.Request{
-		OpName: "getPoller",
-		Query: `
+// The query or mutation executed by getPoller.
+const getPoller_Operation = `
 query getPoller ($id: ObjectId!) {
 	poller(id: $id) {
 		... Poller
@@ -13284,7 +13509,16 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	headers
 	params
 }
-`,
+`
+
+func getPoller(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getPollerResponse, error) {
+	req := &graphql.Request{
+		OpName: "getPoller",
+		Query:  getPoller_Operation,
 		Variables: &__getPollerInput{
 			Id: id,
 		},
@@ -13303,14 +13537,8 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	return &data, err
 }
 
-func getPreferredPath(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getPreferredPathResponse, error) {
-	req := &graphql.Request{
-		OpName: "getPreferredPath",
-		Query: `
+// The query or mutation executed by getPreferredPath.
+const getPreferredPath_Operation = `
 query getPreferredPath ($id: ObjectId!) {
 	preferredPathWithStatus: preferredPath(id: $id) {
 		... PreferredPathWithStatus
@@ -13337,7 +13565,16 @@ fragment PreferredPath on PreferredPath {
 		reverseFromDataset
 	}
 }
-`,
+`
+
+func getPreferredPath(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getPreferredPathResponse, error) {
+	req := &graphql.Request{
+		OpName: "getPreferredPath",
+		Query:  getPreferredPath_Operation,
 		Variables: &__getPreferredPathInput{
 			Id: id,
 		},
@@ -13356,13 +13593,8 @@ fragment PreferredPath on PreferredPath {
 	return &data, err
 }
 
-func getRbacDefaultGroup(
-	ctx context.Context,
-	client graphql.Client,
-) (*getRbacDefaultGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "getRbacDefaultGroup",
-		Query: `
+// The query or mutation executed by getRbacDefaultGroup.
+const getRbacDefaultGroup_Operation = `
 query getRbacDefaultGroup {
 	rbacDefaultGroup {
 		... RbacGroup
@@ -13373,7 +13605,15 @@ fragment RbacGroup on RbacGroup {
 	name
 	description
 }
-`,
+`
+
+func getRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacDefaultGroup",
+		Query:  getRbacDefaultGroup_Operation,
 	}
 	var err error
 
@@ -13389,14 +13629,8 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
-func getRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getRbacGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "getRbacGroup",
-		Query: `
+// The query or mutation executed by getRbacGroup.
+const getRbacGroup_Operation = `
 query getRbacGroup ($id: ORN!) {
 	rbacGroup(id: $id) {
 		... RbacGroup
@@ -13407,7 +13641,16 @@ fragment RbacGroup on RbacGroup {
 	name
 	description
 }
-`,
+`
+
+func getRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroup",
+		Query:  getRbacGroup_Operation,
 		Variables: &__getRbacGroupInput{
 			Id: id,
 		},
@@ -13426,14 +13669,8 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
-func getRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
-		OpName: "getRbacGroupmember",
-		Query: `
+// The query or mutation executed by getRbacGroupmember.
+const getRbacGroupmember_Operation = `
 query getRbacGroupmember ($id: ORN!) {
 	rbacGroupmember(id: $id) {
 		... RbacGroupmember
@@ -13446,7 +13683,16 @@ fragment RbacGroupmember on RbacGroupmember {
 	memberUserId
 	memberGroupId
 }
-`,
+`
+
+func getRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroupmember",
+		Query:  getRbacGroupmember_Operation,
 		Variables: &__getRbacGroupmemberInput{
 			Id: id,
 		},
@@ -13465,13 +13711,8 @@ fragment RbacGroupmember on RbacGroupmember {
 	return &data, err
 }
 
-func getRbacGroups(
-	ctx context.Context,
-	client graphql.Client,
-) (*getRbacGroupsResponse, error) {
-	req := &graphql.Request{
-		OpName: "getRbacGroups",
-		Query: `
+// The query or mutation executed by getRbacGroups.
+const getRbacGroups_Operation = `
 query getRbacGroups {
 	rbacGroups {
 		... RbacGroup
@@ -13482,7 +13723,15 @@ fragment RbacGroup on RbacGroup {
 	name
 	description
 }
-`,
+`
+
+func getRbacGroups(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacGroups",
+		Query:  getRbacGroups_Operation,
 	}
 	var err error
 
@@ -13498,14 +13747,8 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
-func getRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getRbacStatementResponse, error) {
-	req := &graphql.Request{
-		OpName: "getRbacStatement",
-		Query: `
+// The query or mutation executed by getRbacStatement.
+const getRbacStatement_Operation = `
 query getRbacStatement ($id: ORN!) {
 	rbacStatement(id: $id) {
 		... RbacStatement
@@ -13530,7 +13773,16 @@ fragment RbacStatement on RbacStatement {
 	}
 	role
 }
-`,
+`
+
+func getRbacStatement(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getRbacStatementResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacStatement",
+		Query:  getRbacStatement_Operation,
 		Variables: &__getRbacStatementInput{
 			Id: id,
 		},
@@ -13549,14 +13801,8 @@ fragment RbacStatement on RbacStatement {
 	return &data, err
 }
 
-func getSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "getSnowflakeOutboundShare",
-		Query: `
+// The query or mutation executed by getSnowflakeOutboundShare.
+const getSnowflakeOutboundShare_Operation = `
 query getSnowflakeOutboundShare ($id: ObjectId!) {
 	share: snowflakeOutboundShare(id: $id) {
 		... SnowflakeOutboundShare
@@ -13576,7 +13822,16 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	organization
 	account
 }
-`,
+`
+
+func getSnowflakeOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getSnowflakeOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "getSnowflakeOutboundShare",
+		Query:  getSnowflakeOutboundShare_Operation,
 		Variables: &__getSnowflakeOutboundShareInput{
 			Id: id,
 		},
@@ -13595,15 +13850,8 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	return &data, err
 }
 
-func getTerraform(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	ty TerraformObjectType,
-) (*getTerraformResponse, error) {
-	req := &graphql.Request{
-		OpName: "getTerraform",
-		Query: `
+// The query or mutation executed by getTerraform.
+const getTerraform_Operation = `
 query getTerraform ($id: ObjectId!, $ty: TerraformObjectType!) {
 	terraform: getTerraform(id: $id, type: $ty) {
 		... TerraformDefinition
@@ -13615,7 +13863,17 @@ fragment TerraformDefinition on TerraformDefinition {
 	importId
 	importName
 }
-`,
+`
+
+func getTerraform(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	ty TerraformObjectType,
+) (*getTerraformResponse, error) {
+	req := &graphql.Request{
+		OpName: "getTerraform",
+		Query:  getTerraform_Operation,
 		Variables: &__getTerraformInput{
 			Id: id,
 			Ty: ty,
@@ -13635,14 +13893,8 @@ fragment TerraformDefinition on TerraformDefinition {
 	return &data, err
 }
 
-func getUser(
-	ctx context.Context,
-	client graphql.Client,
-	id types.UserIdScalar,
-) (*getUserResponse, error) {
-	req := &graphql.Request{
-		OpName: "getUser",
-		Query: `
+// The query or mutation executed by getUser.
+const getUser_Operation = `
 query getUser ($id: UserId!) {
 	user(id: $id) {
 		... User
@@ -13653,7 +13905,16 @@ fragment User on User {
 	email
 	comment
 }
-`,
+`
+
+func getUser(
+	ctx context.Context,
+	client graphql.Client,
+	id types.UserIdScalar,
+) (*getUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "getUser",
+		Query:  getUser_Operation,
 		Variables: &__getUserInput{
 			Id: id,
 		},
@@ -13672,14 +13933,8 @@ fragment User on User {
 	return &data, err
 }
 
-func getWorksheet(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getWorksheetResponse, error) {
-	req := &graphql.Request{
-		OpName: "getWorksheet",
-		Query: `
+// The query or mutation executed by getWorksheet.
+const getWorksheet_Operation = `
 query getWorksheet ($id: ObjectId!) {
 	worksheet(id: $id) {
 		... Worksheet
@@ -13708,7 +13963,16 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func getWorksheet(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getWorksheetResponse, error) {
+	req := &graphql.Request{
+		OpName: "getWorksheet",
+		Query:  getWorksheet_Operation,
 		Variables: &__getWorksheetInput{
 			Id: id,
 		},
@@ -13727,14 +13991,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func getWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*getWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "getWorkspace",
-		Query: `
+// The query or mutation executed by getWorkspace.
+const getWorkspace_Operation = `
 query getWorkspace ($id: ObjectId!) {
 	workspace(id: $id) {
 		... Workspace
@@ -13744,7 +14002,16 @@ fragment Workspace on Project {
 	id
 	label
 }
-`,
+`
+
+func getWorkspace(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getWorkspaceResponse, error) {
+	req := &graphql.Request{
+		OpName: "getWorkspace",
+		Query:  getWorkspace_Operation,
 		Variables: &__getWorkspaceInput{
 			Id: id,
 		},
@@ -13763,13 +14030,8 @@ fragment Workspace on Project {
 	return &data, err
 }
 
-func listDatasets(
-	ctx context.Context,
-	client graphql.Client,
-) (*listDatasetsResponse, error) {
-	req := &graphql.Request{
-		OpName: "listDatasets",
-		Query: `
+// The query or mutation executed by listDatasets.
+const listDatasets_Operation = `
 query listDatasets {
 	datasets: projects {
 		datasets {
@@ -13853,7 +14115,15 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func listDatasets(
+	ctx context.Context,
+	client graphql.Client,
+) (*listDatasetsResponse, error) {
+	req := &graphql.Request{
+		OpName: "listDatasets",
+		Query:  listDatasets_Operation,
 	}
 	var err error
 
@@ -13869,13 +14139,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func listWorkspaces(
-	ctx context.Context,
-	client graphql.Client,
-) (*listWorkspacesResponse, error) {
-	req := &graphql.Request{
-		OpName: "listWorkspaces",
-		Query: `
+// The query or mutation executed by listWorkspaces.
+const listWorkspaces_Operation = `
 query listWorkspaces {
 	workspaces: projects {
 		... Workspace
@@ -13885,7 +14150,15 @@ fragment Workspace on Project {
 	id
 	label
 }
-`,
+`
+
+func listWorkspaces(
+	ctx context.Context,
+	client graphql.Client,
+) (*listWorkspacesResponse, error) {
+	req := &graphql.Request{
+		OpName: "listWorkspaces",
+		Query:  listWorkspaces_Operation,
 	}
 	var err error
 
@@ -13901,17 +14174,8 @@ fragment Workspace on Project {
 	return &data, err
 }
 
-// LookupApp retrieves app by name.
-// TODO: this should be bound to a folderId, not a workspace.
-func lookupApp(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	name string,
-) (*lookupAppResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupApp",
-		Query: `
+// The query or mutation executed by lookupApp.
+const lookupApp_Operation = `
 query lookupApp ($workspaceId: ObjectId!, $name: String!) {
 	apps(workspaceId: $workspaceId, name: $name) {
 		... App
@@ -13934,7 +14198,19 @@ fragment App on App {
 	}
 	outputs
 }
-`,
+`
+
+// LookupApp retrieves app by name.
+// TODO: this should be bound to a folderId, not a workspace.
+func lookupApp(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	name string,
+) (*lookupAppResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupApp",
+		Query:  lookupApp_Operation,
 		Variables: &__lookupAppInput{
 			WorkspaceId: workspaceId,
 			Name:        name,
@@ -13954,15 +14230,8 @@ fragment App on App {
 	return &data, err
 }
 
-func lookupDataset(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	name string,
-) (*lookupDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupDataset",
-		Query: `
+// The query or mutation executed by lookupDataset.
+const lookupDataset_Operation = `
 query lookupDataset ($workspaceId: ObjectId!, $name: String!) {
 	dataset: workspace(id: $workspaceId) {
 		dataset(label: $name) {
@@ -14046,7 +14315,17 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func lookupDataset(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	name string,
+) (*lookupDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupDataset",
+		Query:  lookupDataset_Operation,
 		Variables: &__lookupDatasetInput{
 			WorkspaceId: workspaceId,
 			Name:        name,
@@ -14066,15 +14345,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func lookupDatastream(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	name string,
-) (*lookupDatastreamResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupDatastream",
-		Query: `
+// The query or mutation executed by lookupDatastream.
+const lookupDatastream_Operation = `
 query lookupDatastream ($workspaceId: ObjectId!, $name: String!) {
 	datastream: workspace(id: $workspaceId) {
 		datastream(name: $name) {
@@ -14090,7 +14362,17 @@ fragment Datastream on Datastream {
 	workspaceId
 	datasetId
 }
-`,
+`
+
+func lookupDatastream(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	name string,
+) (*lookupDatastreamResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupDatastream",
+		Query:  lookupDatastream_Operation,
 		Variables: &__lookupDatastreamInput{
 			WorkspaceId: workspaceId,
 			Name:        name,
@@ -14110,15 +14392,8 @@ fragment Datastream on Datastream {
 	return &data, err
 }
 
-func lookupFolder(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	name string,
-) (*lookupFolderResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupFolder",
-		Query: `
+// The query or mutation executed by lookupFolder.
+const lookupFolder_Operation = `
 query lookupFolder ($workspaceId: ObjectId!, $name: String!) {
 	folder: workspace(id: $workspaceId) {
 		folder(name: $name) {
@@ -14133,7 +14408,17 @@ fragment Folder on Folder {
 	description
 	workspaceId
 }
-`,
+`
+
+func lookupFolder(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	name string,
+) (*lookupFolderResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupFolder",
+		Query:  lookupFolder_Operation,
 		Variables: &__lookupFolderInput{
 			WorkspaceId: workspaceId,
 			Name:        name,
@@ -14153,14 +14438,8 @@ fragment Folder on Folder {
 	return &data, err
 }
 
-func lookupModuleVersions(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*lookupModuleVersionsResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupModuleVersions",
-		Query: `
+// The query or mutation executed by lookupModuleVersions.
+const lookupModuleVersions_Operation = `
 query lookupModuleVersions ($id: String!) {
 	moduleVersions(id: $id) {
 		... ModuleVersion
@@ -14169,7 +14448,16 @@ query lookupModuleVersions ($id: String!) {
 fragment ModuleVersion on ModuleVersion {
 	version
 }
-`,
+`
+
+func lookupModuleVersions(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*lookupModuleVersionsResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupModuleVersions",
+		Query:  lookupModuleVersions_Operation,
 		Variables: &__lookupModuleVersionsInput{
 			Id: id,
 		},
@@ -14188,15 +14476,8 @@ fragment ModuleVersion on ModuleVersion {
 	return &data, err
 }
 
-func lookupMonitor(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	name string,
-) (*lookupMonitorResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupMonitor",
-		Query: `
+// The query or mutation executed by lookupMonitor.
+const lookupMonitor_Operation = `
 query lookupMonitor ($workspaceId: ObjectId!, $name: String!) {
 	monitor: workspace(id: $workspaceId) {
 		monitor(name: $name) {
@@ -14283,7 +14564,17 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func lookupMonitor(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	name string,
+) (*lookupMonitorResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupMonitor",
+		Query:  lookupMonitor_Operation,
 		Variables: &__lookupMonitorInput{
 			WorkspaceId: workspaceId,
 			Name:        name,
@@ -14303,15 +14594,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func lookupSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	name string,
-	workspaceId string,
-) (*lookupSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupSnowflakeOutboundShare",
-		Query: `
+// The query or mutation executed by lookupSnowflakeOutboundShare.
+const lookupSnowflakeOutboundShare_Operation = `
 query lookupSnowflakeOutboundShare ($name: String!, $workspaceId: ObjectId!) {
 	shares: searchSnowflakeOutboundShare(nameExact: $name, workspaceId: $workspaceId) {
 		results {
@@ -14333,7 +14617,17 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	organization
 	account
 }
-`,
+`
+
+func lookupSnowflakeOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	name string,
+	workspaceId string,
+) (*lookupSnowflakeOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupSnowflakeOutboundShare",
+		Query:  lookupSnowflakeOutboundShare_Operation,
 		Variables: &__lookupSnowflakeOutboundShareInput{
 			Name:        name,
 			WorkspaceId: workspaceId,
@@ -14353,14 +14647,8 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	return &data, err
 }
 
-func lookupWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	name string,
-) (*lookupWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "lookupWorkspace",
-		Query: `
+// The query or mutation executed by lookupWorkspace.
+const lookupWorkspace_Operation = `
 query lookupWorkspace ($name: String!) {
 	workspace(label: $name) {
 		... Workspace
@@ -14370,7 +14658,16 @@ fragment Workspace on Project {
 	id
 	label
 }
-`,
+`
+
+func lookupWorkspace(
+	ctx context.Context,
+	client graphql.Client,
+	name string,
+) (*lookupWorkspaceResponse, error) {
+	req := &graphql.Request{
+		OpName: "lookupWorkspace",
+		Query:  lookupWorkspace_Operation,
 		Variables: &__lookupWorkspaceInput{
 			Name: name,
 		},
@@ -14389,14 +14686,8 @@ fragment Workspace on Project {
 	return &data, err
 }
 
-func saveDashboard(
-	ctx context.Context,
-	client graphql.Client,
-	dashboardInput DashboardInput,
-) (*saveDashboardResponse, error) {
-	req := &graphql.Request{
-		OpName: "saveDashboard",
-		Query: `
+// The query or mutation executed by saveDashboard.
+const saveDashboard_Operation = `
 mutation saveDashboard ($dashboardInput: DashboardInput!) {
 	dashboard: saveDashboard(dash: $dashboardInput) {
 		... Dashboard
@@ -14477,7 +14768,16 @@ fragment primitiveValueFields on PrimitiveValue {
 	int64
 	string
 }
-`,
+`
+
+func saveDashboard(
+	ctx context.Context,
+	client graphql.Client,
+	dashboardInput DashboardInput,
+) (*saveDashboardResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveDashboard",
+		Query:  saveDashboard_Operation,
 		Variables: &__saveDashboardInput{
 			DashboardInput: dashboardInput,
 		},
@@ -14496,17 +14796,8 @@ fragment primitiveValueFields on PrimitiveValue {
 	return &data, err
 }
 
-func saveDataset(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	dataset DatasetInput,
-	query MultiStageQueryInput,
-	dep *DependencyHandlingInput,
-) (*saveDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "saveDataset",
-		Query: `
+// The query or mutation executed by saveDataset.
+const saveDataset_Operation = `
 mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
 	dataset: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
 		dataset {
@@ -14590,7 +14881,19 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func saveDataset(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	dataset DatasetInput,
+	query MultiStageQueryInput,
+	dep *DependencyHandlingInput,
+) (*saveDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveDataset",
+		Query:  saveDataset_Operation,
 		Variables: &__saveDatasetInput{
 			WorkspaceId: workspaceId,
 			Dataset:     dataset,
@@ -14612,17 +14915,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func saveSourceDataset(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	datasetDefinition DatasetDefinitionInput,
-	sourceTable SourceTableDefinitionInput,
-	dep *DependencyHandlingInput,
-) (*saveSourceDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "saveSourceDataset",
-		Query: `
+// The query or mutation executed by saveSourceDataset.
+const saveSourceDataset_Operation = `
 mutation saveSourceDataset ($workspaceId: ObjectId!, $datasetDefinition: DatasetDefinitionInput!, $sourceTable: SourceTableDefinitionInput!, $dep: DependencyHandlingInput) {
 	dataset: saveSourceDataset(workspaceId: $workspaceId, datasetDefinition: $datasetDefinition, sourceTable: $sourceTable, dependencyHandling: $dep) {
 		dataset {
@@ -14706,7 +15000,19 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func saveSourceDataset(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	datasetDefinition DatasetDefinitionInput,
+	sourceTable SourceTableDefinitionInput,
+	dep *DependencyHandlingInput,
+) (*saveSourceDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveSourceDataset",
+		Query:  saveSourceDataset_Operation,
 		Variables: &__saveSourceDatasetInput{
 			WorkspaceId:       workspaceId,
 			DatasetDefinition: datasetDefinition,
@@ -14728,14 +15034,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func saveWorksheet(
-	ctx context.Context,
-	client graphql.Client,
-	worksheetInput WorksheetInput,
-) (*saveWorksheetResponse, error) {
-	req := &graphql.Request{
-		OpName: "saveWorksheet",
-		Query: `
+// The query or mutation executed by saveWorksheet.
+const saveWorksheet_Operation = `
 mutation saveWorksheet ($worksheetInput: WorksheetInput!) {
 	worksheet: saveWorksheet(wks: $worksheetInput) {
 		... Worksheet
@@ -14764,7 +15064,16 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+func saveWorksheet(
+	ctx context.Context,
+	client graphql.Client,
+	worksheetInput WorksheetInput,
+) (*saveWorksheetResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveWorksheet",
+		Query:  saveWorksheet_Operation,
 		Variables: &__saveWorksheetInput{
 			WorksheetInput: worksheetInput,
 		},
@@ -14783,15 +15092,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func setChannelsForChannelAction(
-	ctx context.Context,
-	client graphql.Client,
-	actionId string,
-	channelIds []string,
-) (*setChannelsForChannelActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "setChannelsForChannelAction",
-		Query: `
+// The query or mutation executed by setChannelsForChannelAction.
+const setChannelsForChannelAction_Operation = `
 mutation setChannelsForChannelAction ($actionId: ObjectId!, $channelIds: [ObjectId!]!) {
 	resultStatus: setChannelsForChannelAction(actionId: $actionId, channelIds: $channelIds) {
 		... ResultStatus
@@ -14802,7 +15104,17 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func setChannelsForChannelAction(
+	ctx context.Context,
+	client graphql.Client,
+	actionId string,
+	channelIds []string,
+) (*setChannelsForChannelActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "setChannelsForChannelAction",
+		Query:  setChannelsForChannelAction_Operation,
 		Variables: &__setChannelsForChannelActionInput{
 			ActionId:   actionId,
 			ChannelIds: channelIds,
@@ -14822,15 +15134,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func setDefaultDashboard(
-	ctx context.Context,
-	client graphql.Client,
-	dsid string,
-	dashid string,
-) (*setDefaultDashboardResponse, error) {
-	req := &graphql.Request{
-		OpName: "setDefaultDashboard",
-		Query: `
+// The query or mutation executed by setDefaultDashboard.
+const setDefaultDashboard_Operation = `
 mutation setDefaultDashboard ($dsid: ObjectId!, $dashid: ObjectId!) {
 	resultStatus: setDefaultDashboard(dsid: $dsid, dashid: $dashid) {
 		... ResultStatus
@@ -14841,7 +15146,17 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func setDefaultDashboard(
+	ctx context.Context,
+	client graphql.Client,
+	dsid string,
+	dashid string,
+) (*setDefaultDashboardResponse, error) {
+	req := &graphql.Request{
+		OpName: "setDefaultDashboard",
+		Query:  setDefaultDashboard_Operation,
 		Variables: &__setDefaultDashboardInput{
 			Dsid:   dsid,
 			Dashid: dashid,
@@ -14861,15 +15176,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func setMonitorsForChannel(
-	ctx context.Context,
-	client graphql.Client,
-	channelId string,
-	monitorIds []string,
-) (*setMonitorsForChannelResponse, error) {
-	req := &graphql.Request{
-		OpName: "setMonitorsForChannel",
-		Query: `
+// The query or mutation executed by setMonitorsForChannel.
+const setMonitorsForChannel_Operation = `
 mutation setMonitorsForChannel ($channelId: ObjectId!, $monitorIds: [ObjectId!]!) {
 	resultStatus: setMonitorsForChannel(channelId: $channelId, monitorIds: $monitorIds) {
 		... ResultStatus
@@ -14880,7 +15188,17 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func setMonitorsForChannel(
+	ctx context.Context,
+	client graphql.Client,
+	channelId string,
+	monitorIds []string,
+) (*setMonitorsForChannelResponse, error) {
+	req := &graphql.Request{
+		OpName: "setMonitorsForChannel",
+		Query:  setMonitorsForChannel_Operation,
 		Variables: &__setMonitorsForChannelInput{
 			ChannelId:  channelId,
 			MonitorIds: monitorIds,
@@ -14900,14 +15218,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func setRbacDefaultGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*setRbacDefaultGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "setRbacDefaultGroup",
-		Query: `
+// The query or mutation executed by setRbacDefaultGroup.
+const setRbacDefaultGroup_Operation = `
 mutation setRbacDefaultGroup ($id: ORN!) {
 	resultStatus: setRbacDefaultGroup(id: $id) {
 		... ResultStatus
@@ -14918,7 +15230,16 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func setRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*setRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "setRbacDefaultGroup",
+		Query:  setRbacDefaultGroup_Operation,
 		Variables: &__setRbacDefaultGroupInput{
 			Id: id,
 		},
@@ -14937,13 +15258,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func unsetRbacDefaultGroup(
-	ctx context.Context,
-	client graphql.Client,
-) (*unsetRbacDefaultGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "unsetRbacDefaultGroup",
-		Query: `
+// The query or mutation executed by unsetRbacDefaultGroup.
+const unsetRbacDefaultGroup_Operation = `
 mutation unsetRbacDefaultGroup {
 	resultStatus: unsetRbacDefaultGroup {
 		... ResultStatus
@@ -14954,7 +15270,15 @@ fragment ResultStatus on ResultStatus {
 	errorMessage
 	detailedInfo
 }
-`,
+`
+
+func unsetRbacDefaultGroup(
+	ctx context.Context,
+	client graphql.Client,
+) (*unsetRbacDefaultGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "unsetRbacDefaultGroup",
+		Query:  unsetRbacDefaultGroup_Operation,
 	}
 	var err error
 
@@ -14970,15 +15294,8 @@ fragment ResultStatus on ResultStatus {
 	return &data, err
 }
 
-func updateApp(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config AppInput,
-) (*updateAppResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateApp",
-		Query: `
+// The query or mutation executed by updateApp.
+const updateApp_Operation = `
 mutation updateApp ($id: ObjectId!, $config: AppInput!) {
 	app: updateApp(id: $id, app: $config) {
 		... App
@@ -15001,7 +15318,17 @@ fragment App on App {
 	}
 	outputs
 }
-`,
+`
+
+func updateApp(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config AppInput,
+) (*updateAppResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateApp",
+		Query:  updateApp_Operation,
 		Variables: &__updateAppInput{
 			Id:     id,
 			Config: config,
@@ -15021,15 +15348,8 @@ fragment App on App {
 	return &data, err
 }
 
-func updateAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config AppDataSourceInput,
-) (*updateAppDataSourceResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateAppDataSource",
-		Query: `
+// The query or mutation executed by updateAppDataSource.
+const updateAppDataSource_Operation = `
 mutation updateAppDataSource ($id: ObjectId!, $config: AppDataSourceInput!) {
 	appdatasource: updateAppDataSource(id: $id, source: $config) {
 		... AppDataSource
@@ -15045,7 +15365,17 @@ fragment AppDataSource on AppDataSource {
 	sourceUrl
 	instructions
 }
-`,
+`
+
+func updateAppDataSource(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config AppDataSourceInput,
+) (*updateAppDataSourceResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateAppDataSource",
+		Query:  updateAppDataSource_Operation,
 		Variables: &__updateAppDataSourceInput{
 			Id:     id,
 			Config: config,
@@ -15065,15 +15395,8 @@ fragment AppDataSource on AppDataSource {
 	return &data, err
 }
 
-func updateBoard(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	board BoardInput,
-) (*updateBoardResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateBoard",
-		Query: `
+// The query or mutation executed by updateBoard.
+const updateBoard_Operation = `
 mutation updateBoard ($id: ObjectId!, $board: BoardInput!) {
 	board: updateBoard(id: $id, board: $board) {
 		... Board
@@ -15087,7 +15410,17 @@ fragment Board on Board {
 	boardJson: board
 	source
 }
-`,
+`
+
+func updateBoard(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	board BoardInput,
+) (*updateBoardResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateBoard",
+		Query:  updateBoard_Operation,
 		Variables: &__updateBoardInput{
 			Id:    id,
 			Board: board,
@@ -15107,15 +15440,8 @@ fragment Board on Board {
 	return &data, err
 }
 
-func updateChannel(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	channel ChannelInput,
-) (*updateChannelResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateChannel",
-		Query: `
+// The query or mutation executed by updateChannel.
+const updateChannel_Operation = `
 mutation updateChannel ($id: ObjectId!, $channel: ChannelInput!) {
 	channel: updateChannel(id: $id, channel: $channel) {
 		... Channel
@@ -15131,7 +15457,17 @@ fragment Channel on Channel {
 		id
 	}
 }
-`,
+`
+
+func updateChannel(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	channel ChannelInput,
+) (*updateChannelResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateChannel",
+		Query:  updateChannel_Operation,
 		Variables: &__updateChannelInput{
 			Id:      id,
 			Channel: channel,
@@ -15151,15 +15487,8 @@ fragment Channel on Channel {
 	return &data, err
 }
 
-func updateChannelAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	action ActionInput,
-) (*updateChannelActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateChannelAction",
-		Query: `
+// The query or mutation executed by updateChannelAction.
+const updateChannelAction_Operation = `
 mutation updateChannelAction ($id: ObjectId!, $action: ActionInput!) {
 	channelAction: updateChannelAction(id: $id, action: $action) {
 		__typename
@@ -15194,7 +15523,17 @@ fragment ChannelAction on ChannelAction {
 		isHtml
 	}
 }
-`,
+`
+
+func updateChannelAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	action ActionInput,
+) (*updateChannelActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateChannelAction",
+		Query:  updateChannelAction_Operation,
 		Variables: &__updateChannelActionInput{
 			Id:     id,
 			Action: action,
@@ -15214,15 +15553,8 @@ fragment ChannelAction on ChannelAction {
 	return &data, err
 }
 
-func updateDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	input DashboardLinkInput,
-) (*updateDashboardLinkResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateDashboardLink",
-		Query: `
+// The query or mutation executed by updateDashboardLink.
+const updateDashboardLink_Operation = `
 mutation updateDashboardLink ($id: ObjectId!, $input: DashboardLinkInput!) {
 	dashboardLink: updateDashboardLink(id: $id, link: $input) {
 		... DashboardLink
@@ -15240,7 +15572,17 @@ fragment DashboardLink on DashboardLink {
 	fromCard
 	linkLabel
 }
-`,
+`
+
+func updateDashboardLink(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input DashboardLinkInput,
+) (*updateDashboardLinkResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDashboardLink",
+		Query:  updateDashboardLink_Operation,
 		Variables: &__updateDashboardLinkInput{
 			Id:    id,
 			Input: input,
@@ -15260,15 +15602,8 @@ fragment DashboardLink on DashboardLink {
 	return &data, err
 }
 
-func updateDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	input DatasetOutboundShareInput,
-) (*updateDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateDatasetOutboundShare",
-		Query: `
+// The query or mutation executed by updateDatasetOutboundShare.
+const updateDatasetOutboundShare_Operation = `
 mutation updateDatasetOutboundShare ($id: ObjectId!, $input: DatasetOutboundShareInput!) {
 	datasetOutboundShare: updateDatasetOutboundShare(id: $id, input: $input) {
 		... DatasetOutboundShare
@@ -15290,7 +15625,17 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 		error
 	}
 }
-`,
+`
+
+func updateDatasetOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input DatasetOutboundShareInput,
+) (*updateDatasetOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDatasetOutboundShare",
+		Query:  updateDatasetOutboundShare_Operation,
 		Variables: &__updateDatasetOutboundShareInput{
 			Id:    id,
 			Input: input,
@@ -15310,15 +15655,8 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	return &data, err
 }
 
-func updateDatastream(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	datastream DatastreamInput,
-) (*updateDatastreamResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateDatastream",
-		Query: `
+// The query or mutation executed by updateDatastream.
+const updateDatastream_Operation = `
 mutation updateDatastream ($id: ObjectId!, $datastream: DatastreamInput!) {
 	datastream: updateDatastream(id: $id, datastream: $datastream) {
 		... Datastream
@@ -15332,7 +15670,17 @@ fragment Datastream on Datastream {
 	workspaceId
 	datasetId
 }
-`,
+`
+
+func updateDatastream(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	datastream DatastreamInput,
+) (*updateDatastreamResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDatastream",
+		Query:  updateDatastream_Operation,
 		Variables: &__updateDatastreamInput{
 			Id:         id,
 			Datastream: datastream,
@@ -15352,15 +15700,8 @@ fragment Datastream on Datastream {
 	return &data, err
 }
 
-func updateDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	token DatastreamTokenInput,
-) (*updateDatastreamTokenResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateDatastreamToken",
-		Query: `
+// The query or mutation executed by updateDatastreamToken.
+const updateDatastreamToken_Operation = `
 mutation updateDatastreamToken ($id: String!, $token: DatastreamTokenInput!) {
 	datastreamToken: updateDatastreamToken(id: $id, token: $token) {
 		... DatastreamToken
@@ -15374,7 +15715,17 @@ fragment DatastreamToken on DatastreamToken {
 	datastreamId
 	secret
 }
-`,
+`
+
+func updateDatastreamToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	token DatastreamTokenInput,
+) (*updateDatastreamTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDatastreamToken",
+		Query:  updateDatastreamToken_Operation,
 		Variables: &__updateDatastreamTokenInput{
 			Id:    id,
 			Token: token,
@@ -15394,15 +15745,8 @@ fragment DatastreamToken on DatastreamToken {
 	return &data, err
 }
 
-func updateDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	keyInput DeferredForeignKeyInput,
-) (*updateDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateDeferredForeignKey",
-		Query: `
+// The query or mutation executed by updateDeferredForeignKey.
+const updateDeferredForeignKey_Operation = `
 mutation updateDeferredForeignKey ($id: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
 	deferredForeignKey: updateDeferredForeignKey(id: $id, data: $keyInput) {
 		... DeferredForeignKey
@@ -15428,7 +15772,17 @@ fragment DeferredForeignKey on DeferredForeignKey {
 		errorText
 	}
 }
-`,
+`
+
+func updateDeferredForeignKey(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	keyInput DeferredForeignKeyInput,
+) (*updateDeferredForeignKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateDeferredForeignKey",
+		Query:  updateDeferredForeignKey_Operation,
 		Variables: &__updateDeferredForeignKeyInput{
 			Id:       id,
 			KeyInput: keyInput,
@@ -15448,15 +15802,8 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	return &data, err
 }
 
-func updateFiledrop(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	input FiledropInput,
-) (*updateFiledropResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateFiledrop",
-		Query: `
+// The query or mutation executed by updateFiledrop.
+const updateFiledrop_Operation = `
 mutation updateFiledrop ($id: ObjectId!, $input: FiledropInput!) {
 	filedrop: updateFiledrop(id: $id, input: $input) {
 		... Filedrop
@@ -15488,7 +15835,17 @@ fragment Filedrop on Filedrop {
 		}
 	}
 }
-`,
+`
+
+func updateFiledrop(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input FiledropInput,
+) (*updateFiledropResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateFiledrop",
+		Query:  updateFiledrop_Operation,
 		Variables: &__updateFiledropInput{
 			Id:    id,
 			Input: input,
@@ -15508,15 +15865,8 @@ fragment Filedrop on Filedrop {
 	return &data, err
 }
 
-func updateFolder(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config FolderInput,
-) (*updateFolderResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateFolder",
-		Query: `
+// The query or mutation executed by updateFolder.
+const updateFolder_Operation = `
 mutation updateFolder ($id: ObjectId!, $config: FolderInput!) {
 	folder: updateFolder(id: $id, folder: $config) {
 		... Folder
@@ -15529,7 +15879,17 @@ fragment Folder on Folder {
 	description
 	workspaceId
 }
-`,
+`
+
+func updateFolder(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config FolderInput,
+) (*updateFolderResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateFolder",
+		Query:  updateFolder_Operation,
 		Variables: &__updateFolderInput{
 			Id:     id,
 			Config: config,
@@ -15549,14 +15909,8 @@ fragment Folder on Folder {
 	return &data, err
 }
 
-func updateLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
-	settingRecord LayeredSettingRecordInput,
-) (*updateLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateLayeredSettingRecord",
-		Query: `
+// The query or mutation executed by updateLayeredSettingRecord.
+const updateLayeredSettingRecord_Operation = `
 mutation updateLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
 	layeredSettingRecord: updateLayeredSettingRecord(settingRecord: $settingRecord) {
 		... LayeredSettingRecord
@@ -15603,7 +15957,16 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	datastreamId
 	userId
 }
-`,
+`
+
+func updateLayeredSettingRecord(
+	ctx context.Context,
+	client graphql.Client,
+	settingRecord LayeredSettingRecordInput,
+) (*updateLayeredSettingRecordResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateLayeredSettingRecord",
+		Query:  updateLayeredSettingRecord_Operation,
 		Variables: &__updateLayeredSettingRecordInput{
 			SettingRecord: settingRecord,
 		},
@@ -15622,16 +15985,8 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	return &data, err
 }
 
-// More workarounds for server-side struggles
-func updateMonitor(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	monitor MonitorInput,
-) (*updateMonitorResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateMonitor",
-		Query: `
+// The query or mutation executed by updateMonitor.
+const updateMonitor_Operation = `
 mutation updateMonitor ($id: ObjectId!, $monitor: MonitorInput!) {
 	monitor: updateMonitor(id: $id, monitor: $monitor) {
 		monitor {
@@ -15718,7 +16073,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-`,
+`
+
+// More workarounds for server-side struggles
+func updateMonitor(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	monitor MonitorInput,
+) (*updateMonitorResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitor",
+		Query:  updateMonitor_Operation,
 		Variables: &__updateMonitorInput{
 			Id:      id,
 			Monitor: monitor,
@@ -15738,15 +16104,8 @@ fragment StageQuery on StageQuery {
 	return &data, err
 }
 
-func updateMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	monitorAction MonitorActionInput,
-) (*updateMonitorActionResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateMonitorAction",
-		Query: `
+// The query or mutation executed by updateMonitorAction.
+const updateMonitorAction_Operation = `
 mutation updateMonitorAction ($id: ObjectId!, $monitorAction: MonitorActionInput!) {
 	monitorAction: updateMonitorAction(id: $id, input: $monitorAction) {
 		__typename
@@ -15779,7 +16138,17 @@ fragment MonitorAction on MonitorAction {
 		bodyTemplate
 	}
 }
-`,
+`
+
+func updateMonitorAction(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	monitorAction MonitorActionInput,
+) (*updateMonitorActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorAction",
+		Query:  updateMonitorAction_Operation,
 		Variables: &__updateMonitorActionInput{
 			Id:            id,
 			MonitorAction: monitorAction,
@@ -15799,15 +16168,8 @@ fragment MonitorAction on MonitorAction {
 	return &data, err
 }
 
-func updateMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	monitorActionAttachment MonitorActionAttachmentInput,
-) (*updateMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateMonitorActionAttachment",
-		Query: `
+// The query or mutation executed by updateMonitorActionAttachment.
+const updateMonitorActionAttachment_Operation = `
 mutation updateMonitorActionAttachment ($id: ObjectId!, $monitorActionAttachment: MonitorActionAttachmentInput!) {
 	monitorActionAttachment: updateMonitorActionAttachment(id: $id, input: $monitorActionAttachment) {
 		... MonitorActionAttachment
@@ -15822,7 +16184,17 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	iconUrl
 	description
 }
-`,
+`
+
+func updateMonitorActionAttachment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	monitorActionAttachment MonitorActionAttachmentInput,
+) (*updateMonitorActionAttachmentResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorActionAttachment",
+		Query:  updateMonitorActionAttachment_Operation,
 		Variables: &__updateMonitorActionAttachmentInput{
 			Id:                      id,
 			MonitorActionAttachment: monitorActionAttachment,
@@ -15842,15 +16214,8 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 	return &data, err
 }
 
-func updatePoller(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	poller PollerInput,
-) (*updatePollerResponse, error) {
-	req := &graphql.Request{
-		OpName: "updatePoller",
-		Query: `
+// The query or mutation executed by updatePoller.
+const updatePoller_Operation = `
 mutation updatePoller ($id: ObjectId!, $poller: PollerInput!) {
 	poller: updatePoller(id: $id, poller: $poller) {
 		... Poller
@@ -15926,7 +16291,17 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	headers
 	params
 }
-`,
+`
+
+func updatePoller(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	poller PollerInput,
+) (*updatePollerResponse, error) {
+	req := &graphql.Request{
+		OpName: "updatePoller",
+		Query:  updatePoller_Operation,
 		Variables: &__updatePollerInput{
 			Id:     id,
 			Poller: poller,
@@ -15946,16 +16321,8 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 	return &data, err
 }
 
-// More workarounds for server-side struggles
-func updatePreferredPath(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config PreferredPathInput,
-) (*updatePreferredPathResponse, error) {
-	req := &graphql.Request{
-		OpName: "updatePreferredPath",
-		Query: `
+// The query or mutation executed by updatePreferredPath.
+const updatePreferredPath_Operation = `
 mutation updatePreferredPath ($id: ObjectId!, $config: PreferredPathInput!) {
 	preferredPathWithStatus: updatePreferredPath(id: $id, path: $config) {
 		... PreferredPathWithStatus
@@ -15982,7 +16349,18 @@ fragment PreferredPath on PreferredPath {
 		reverseFromDataset
 	}
 }
-`,
+`
+
+// More workarounds for server-side struggles
+func updatePreferredPath(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config PreferredPathInput,
+) (*updatePreferredPathResponse, error) {
+	req := &graphql.Request{
+		OpName: "updatePreferredPath",
+		Query:  updatePreferredPath_Operation,
 		Variables: &__updatePreferredPathInput{
 			Id:     id,
 			Config: config,
@@ -16002,15 +16380,8 @@ fragment PreferredPath on PreferredPath {
 	return &data, err
 }
 
-func updateRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config RbacGroupInput,
-) (*updateRbacGroupResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateRbacGroup",
-		Query: `
+// The query or mutation executed by updateRbacGroup.
+const updateRbacGroup_Operation = `
 mutation updateRbacGroup ($id: ORN!, $config: RbacGroupInput!) {
 	rbacGroup: updateRbacGroup(id: $id, input: $config) {
 		... RbacGroup
@@ -16021,7 +16392,17 @@ fragment RbacGroup on RbacGroup {
 	name
 	description
 }
-`,
+`
+
+func updateRbacGroup(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config RbacGroupInput,
+) (*updateRbacGroupResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateRbacGroup",
+		Query:  updateRbacGroup_Operation,
 		Variables: &__updateRbacGroupInput{
 			Id:     id,
 			Config: config,
@@ -16041,15 +16422,8 @@ fragment RbacGroup on RbacGroup {
 	return &data, err
 }
 
-func updateRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config RbacGroupmemberInput,
-) (*updateRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateRbacGroupmember",
-		Query: `
+// The query or mutation executed by updateRbacGroupmember.
+const updateRbacGroupmember_Operation = `
 mutation updateRbacGroupmember ($id: ORN!, $config: RbacGroupmemberInput!) {
 	rbacGroupmember: updateRbacGroupmember(id: $id, input: $config) {
 		... RbacGroupmember
@@ -16062,7 +16436,17 @@ fragment RbacGroupmember on RbacGroupmember {
 	memberUserId
 	memberGroupId
 }
-`,
+`
+
+func updateRbacGroupmember(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config RbacGroupmemberInput,
+) (*updateRbacGroupmemberResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateRbacGroupmember",
+		Query:  updateRbacGroupmember_Operation,
 		Variables: &__updateRbacGroupmemberInput{
 			Id:     id,
 			Config: config,
@@ -16082,15 +16466,8 @@ fragment RbacGroupmember on RbacGroupmember {
 	return &data, err
 }
 
-func updateRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config RbacStatementInput,
-) (*updateRbacStatementResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateRbacStatement",
-		Query: `
+// The query or mutation executed by updateRbacStatement.
+const updateRbacStatement_Operation = `
 mutation updateRbacStatement ($id: ORN!, $config: RbacStatementInput!) {
 	rbacStatement: updateRbacStatement(id: $id, input: $config) {
 		... RbacStatement
@@ -16115,7 +16492,17 @@ fragment RbacStatement on RbacStatement {
 	}
 	role
 }
-`,
+`
+
+func updateRbacStatement(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config RbacStatementInput,
+) (*updateRbacStatementResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateRbacStatement",
+		Query:  updateRbacStatement_Operation,
 		Variables: &__updateRbacStatementInput{
 			Id:     id,
 			Config: config,
@@ -16135,15 +16522,8 @@ fragment RbacStatement on RbacStatement {
 	return &data, err
 }
 
-func updateSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	input SnowflakeOutboundShareInput,
-) (*updateSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateSnowflakeOutboundShare",
-		Query: `
+// The query or mutation executed by updateSnowflakeOutboundShare.
+const updateSnowflakeOutboundShare_Operation = `
 mutation updateSnowflakeOutboundShare ($id: ObjectId!, $input: SnowflakeOutboundShareInput!) {
 	share: updateSnowflakeOutboundShare(id: $id, input: $input) {
 		... SnowflakeOutboundShare
@@ -16163,7 +16543,17 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	organization
 	account
 }
-`,
+`
+
+func updateSnowflakeOutboundShare(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input SnowflakeOutboundShareInput,
+) (*updateSnowflakeOutboundShareResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateSnowflakeOutboundShare",
+		Query:  updateSnowflakeOutboundShare_Operation,
 		Variables: &__updateSnowflakeOutboundShareInput{
 			Id:    id,
 			Input: input,
@@ -16183,15 +16573,8 @@ fragment SnowflakeAccount on SnowflakeAccount {
 	return &data, err
 }
 
-func updateWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config WorkspaceInput,
-) (*updateWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateWorkspace",
-		Query: `
+// The query or mutation executed by updateWorkspace.
+const updateWorkspace_Operation = `
 mutation updateWorkspace ($id: ObjectId!, $config: WorkspaceInput!) {
 	workspace: updateWorkspace(id: $id, definition: $config) {
 		... Workspace
@@ -16201,7 +16584,17 @@ fragment Workspace on Project {
 	id
 	label
 }
-`,
+`
+
+func updateWorkspace(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	config WorkspaceInput,
+) (*updateWorkspaceResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateWorkspace",
+		Query:  updateWorkspace_Operation,
 		Variables: &__updateWorkspaceInput{
 			Id:     id,
 			Config: config,
