@@ -16,6 +16,8 @@ schema:
     This resource is template for creating new monitors
   disabled: |
     Set to `true` to disable monitor.
+  definition: |
+    Monitor definition in JSON format.
   notification_spec:
     reminder_frequency: |
       How often to send reminders when a monitor notification is triggered.

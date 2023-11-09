@@ -30,6 +30,8 @@ func TestAccObserveMonitor(t *testing.T) {
 						"test" = observe_datastream.test.dataset
 					}
 
+					definition = jsonencode({ "hello" = "world" })
+
 					stage {}
 
 					rule {
@@ -45,6 +47,7 @@ func TestAccObserveMonitor(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor.first", "freshness", "4m0s"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "comment", "a descriptive comment"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "definition", `{"hello":"world"}`),
 					resource.TestCheckResourceAttrSet("observe_monitor.first", "inputs.test"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.count.0.compare_function", "less_or_equal"),

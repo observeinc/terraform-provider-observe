@@ -93,6 +93,14 @@ func resourceMonitor() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("monitor", "schema", "disabled"),
 			},
+			"definition": {
+				Type:             schema.TypeString,
+				Default:          "{}",
+				Optional:         true,
+				ValidateDiagFunc: validateStringIsJSON,
+				DiffSuppressFunc: diffSuppressJSON,
+				Description:      descriptions.Get("monitor", "schema", "definition"),
+			},
 			"stage": {
 				Type:        schema.TypeList,
 				MinItems:    1,
@@ -636,6 +644,10 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 		input.Comment = stringPtr(v.(string))
 	}
 
+	if v, ok := data.GetOk("definition"); ok {
+		input.Definition = types.JsonObject(v.(string)).Ptr()
+	}
+
 	return
 }
 
@@ -727,6 +739,12 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 
 	if err := flattenAndSetQuery(data, monitor.Query.Stages); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if monitor.Definition != nil {
+		if err := data.Set("definition", monitor.Definition); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if err := data.Set("oid", monitor.Oid().String()); err != nil {
