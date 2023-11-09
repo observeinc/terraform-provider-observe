@@ -26,6 +26,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 ### Optional
 
 - `comment` (String) A long-form comment describing the content of the monitor.
+- `definition` (String) Monitor definition in JSON format.
 - `description` (String) A brief description of the monitor.
 - `disabled` (Boolean) Set to `true` to disable monitor.
 - `freshness` (String) Target freshness for results. Reducing the freshness will increase the
