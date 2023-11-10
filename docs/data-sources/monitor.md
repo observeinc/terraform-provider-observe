@@ -27,6 +27,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 ### Read-Only
 
 - `comment` (String) A long-form comment describing the content of the monitor.
+- `definition` (String) Monitor definition in JSON format.
 - `description` (String) A brief description of the monitor.
 - `disabled` (Boolean) Set to `true` to disable monitor.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.

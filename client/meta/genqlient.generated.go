@@ -2925,6 +2925,7 @@ type Monitor struct {
 	FreshnessGoal       types.Int64Scalar `json:"freshnessGoal"`
 	UseDefaultFreshness bool              `json:"useDefaultFreshness"`
 	Source              string            `json:"source"`
+	Definition          *types.JsonObject `json:"definition"`
 	ManagedById         *string           `json:"managedById"`
 	// The source stage may be empty, just specifying an input dataset,
 	// or it may include actual transform work
@@ -2965,6 +2966,9 @@ func (v *Monitor) GetUseDefaultFreshness() bool { return v.UseDefaultFreshness }
 
 // GetSource returns Monitor.Source, and is useful for accessing the field via an interface.
 func (v *Monitor) GetSource() string { return v.Source }
+
+// GetDefinition returns Monitor.Definition, and is useful for accessing the field via an interface.
+func (v *Monitor) GetDefinition() *types.JsonObject { return v.Definition }
 
 // GetManagedById returns Monitor.ManagedById, and is useful for accessing the field via an interface.
 func (v *Monitor) GetManagedById() *string { return v.ManagedById }
@@ -3036,6 +3040,8 @@ type __premarshalMonitor struct {
 
 	Source string `json:"source"`
 
+	Definition *types.JsonObject `json:"definition"`
+
 	ManagedById *string `json:"managedById"`
 
 	Query MonitorQueryMultiStageQuery `json:"query"`
@@ -3067,6 +3073,7 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 	retval.FreshnessGoal = v.FreshnessGoal
 	retval.UseDefaultFreshness = v.UseDefaultFreshness
 	retval.Source = v.Source
+	retval.Definition = v.Definition
 	retval.ManagedById = v.ManagedById
 	retval.Query = v.Query
 	{
@@ -3556,6 +3563,7 @@ type MonitorInput struct {
 	// Defaults to true on creation if not specified
 	UseDefaultFreshness *bool                           `json:"useDefaultFreshness"`
 	Query               *MultiStageQueryInput           `json:"query"`
+	Definition          *types.JsonObject               `json:"definition"`
 	Rule                *MonitorRuleInput               `json:"rule"`
 	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec"`
 	Channels            []string                        `json:"channels"`
@@ -3599,6 +3607,9 @@ func (v *MonitorInput) GetUseDefaultFreshness() *bool { return v.UseDefaultFresh
 
 // GetQuery returns MonitorInput.Query, and is useful for accessing the field via an interface.
 func (v *MonitorInput) GetQuery() *MultiStageQueryInput { return v.Query }
+
+// GetDefinition returns MonitorInput.Definition, and is useful for accessing the field via an interface.
+func (v *MonitorInput) GetDefinition() *types.JsonObject { return v.Definition }
 
 // GetRule returns MonitorInput.Rule, and is useful for accessing the field via an interface.
 func (v *MonitorInput) GetRule() *MonitorRuleInput { return v.Rule }
@@ -3937,12 +3948,12 @@ func (v *MonitorRuleInput) GetLogRule() *MonitorRuleLogInput { return v.LogRule 
 func (v *MonitorRuleInput) GetPromoteRule() *MonitorRulePromoteInput { return v.PromoteRule }
 
 type MonitorRuleLogInput struct {
-	CompareFunction      *CompareFunction      `json:"compareFunction"`
-	CompareValues        []types.NumberScalar  `json:"compareValues"`
-	LookbackTime         *types.DurationScalar `json:"lookbackTime"`
-	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
-	ExpressionSummary    *string               `json:"expressionSummary"`
-	LogStageId           *string               `json:"logStageId"`
+	CompareFunction    *CompareFunction      `json:"compareFunction"`
+	CompareValues      []types.NumberScalar  `json:"compareValues"`
+	LookbackTime       *types.DurationScalar `json:"lookbackTime"`
+	ExpressionSummary  *string               `json:"expressionSummary"`
+	LogStageId         *string               `json:"logStageId"`
+	SourceLogDatasetId *string               `json:"sourceLogDatasetId"`
 }
 
 // GetCompareFunction returns MonitorRuleLogInput.CompareFunction, and is useful for accessing the field via an interface.
@@ -3954,16 +3965,14 @@ func (v *MonitorRuleLogInput) GetCompareValues() []types.NumberScalar { return v
 // GetLookbackTime returns MonitorRuleLogInput.LookbackTime, and is useful for accessing the field via an interface.
 func (v *MonitorRuleLogInput) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
 
-// GetThresholdAggFunction returns MonitorRuleLogInput.ThresholdAggFunction, and is useful for accessing the field via an interface.
-func (v *MonitorRuleLogInput) GetThresholdAggFunction() *ThresholdAggFunction {
-	return v.ThresholdAggFunction
-}
-
 // GetExpressionSummary returns MonitorRuleLogInput.ExpressionSummary, and is useful for accessing the field via an interface.
 func (v *MonitorRuleLogInput) GetExpressionSummary() *string { return v.ExpressionSummary }
 
 // GetLogStageId returns MonitorRuleLogInput.LogStageId, and is useful for accessing the field via an interface.
 func (v *MonitorRuleLogInput) GetLogStageId() *string { return v.LogStageId }
+
+// GetSourceLogDatasetId returns MonitorRuleLogInput.SourceLogDatasetId, and is useful for accessing the field via an interface.
+func (v *MonitorRuleLogInput) GetSourceLogDatasetId() *string { return v.SourceLogDatasetId }
 
 // MonitorRuleMonitorRuleChange includes the requested fields of the GraphQL type MonitorRuleChange.
 type MonitorRuleMonitorRuleChange struct {
@@ -10310,6 +10319,7 @@ fragment Monitor on Monitor {
 	freshnessGoal
 	useDefaultFreshness
 	source
+	definition
 	managedById
 	query {
 		outputStage
@@ -13231,6 +13241,7 @@ fragment Monitor on Monitor {
 	freshnessGoal
 	useDefaultFreshness
 	source
+	definition
 	managedById
 	query {
 		outputStage
@@ -14497,6 +14508,7 @@ fragment Monitor on Monitor {
 	freshnessGoal
 	useDefaultFreshness
 	source
+	definition
 	managedById
 	query {
 		outputStage
@@ -16006,6 +16018,7 @@ fragment Monitor on Monitor {
 	freshnessGoal
 	useDefaultFreshness
 	source
+	definition
 	managedById
 	query {
 		outputStage

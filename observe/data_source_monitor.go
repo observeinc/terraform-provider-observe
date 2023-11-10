@@ -73,6 +73,11 @@ func dataSourceMonitor() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
+			"definition": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor", "schema", "definition"),
+			},
 			"stage": {
 				Type:     schema.TypeList,
 				Computed: true,

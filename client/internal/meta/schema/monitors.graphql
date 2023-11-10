@@ -1,8 +1,8 @@
 extend type Query {
     monitorAction(id: ObjectId!): MonitorAction
     getChannelAction(id: ObjectId!): ChannelAction @deprecated(reason:"use monitorAction instead")
-    searchMonitorActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [MonitorAction!]!
-    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!]): [ChannelAction!]! @deprecated(reason:"use searchMonitorActions instead")
+    searchMonitorActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean): [MonitorAction!]!
+    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean): [ChannelAction!]! @deprecated(reason:"use searchMonitorActions instead")
     getChannel(id: ObjectId!): Channel
     searchChannels(workspaceId: ObjectId, name: String, boundToMonitors: [ObjectId!]): [Channel!]!
 
@@ -22,9 +22,20 @@ extend type Query {
     Version is a timestamp in nanoseconds.
     """
     notificationQuery(monitorId: ObjectId!, version: String!): MultiStageQuery
+    """
+    See OBS-23646. This is a helper to retreive the query information needed to get notifications for a monitor that
+    may or may not be historical against previous definitions of the monitor. This is added to handle the
+    acquisition of not just the preview query, but the start/end times and any other query params the UI
+    needs to make a preview query.
+    """
+    notificationQueryPreview(monitorId: ObjectId!, version: String!, start: Time!, groupings: JsonObject!): NotificationPreviewQuery
+    """
+    Build the template payload data for an existing monitor by retrieving the latest notification.
+    """
+    notificationSampleDataQuery(monitorId: ObjectId!): MonitorSampleData
 
     """
-    Get sample notification data for a monitor.
+    Get sample notification data for a monitor with the provided monitor input.
     """
     monitorPreviewSampleDataQuery(workspaceId: ObjectId, monitorId: ObjectId, monitorInput: MonitorInput!, queryParams: QueryParams!): MonitorSampleData
     
@@ -57,7 +68,7 @@ extend type Mutation {
     deleteChannel(id: ObjectId!): ResultStatus!
 
     createMonitor(workspaceId: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
-    createMonitorWithActions(workspaceId: ObjectId!, monitor: MonitorInput!, newActions:[ActionInput!]!, addActionsToMonitorIds:[ObjectId!]!): MonitorUpdateResult!
+    createMonitorWithActions(workspaceId: ObjectId!, monitor: MonitorInput!, newActions:[ActionInput!], addActionsToMonitorIds:[ObjectId!]): MonitorUpdateResult!
     updateMonitor(id: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
     """
     Update the monitor.
@@ -125,6 +136,7 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     or it may include actual transform work
     """
     query: MultiStageQuery!
+    definition: JsonObject
     rule: MonitorRule!
     notificationSpec: NotificationSpecification!
     channels: [Channel!] @deprecated(reason:"field will be removed in favor of actionIds")
@@ -153,6 +165,11 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     statusInfo: MonitorStatusInfo! @goField(forceResolver:true) @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
 }
 
+type NotificationInfo @goModel(model: "observe/meta/metatypes.NotificationInfo") {
+    lookbackTime: Duration!
+    count: Int64!
+}
+
 type ActiveMonitorInfo implements AccelerableObject @goModel(model: "observe/meta/metatypes.ActiveMonitorInfo")  {
     # AccelerableObject
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
@@ -168,6 +185,10 @@ type ActiveMonitorInfo implements AccelerableObject @goModel(model: "observe/met
     Currently active global and per-monitor mute rules, sorted by the startDate.
     """
     muteRules: [MonitorMuteRule!]! @goField(forceResolver:true)
+    """
+    Gives back the default lookbackTime of 24 hours and the exact notification count for the current version of monitor,
+    """
+    notificationInfo: NotificationInfo! @goField(forceResolver:true)
 }
 
 type MonitorStatusInfoError implements ErrorInstance @goModel(model: "observe/meta/metatypes.MonitorStatusInfoError") {
@@ -229,6 +250,7 @@ input MonitorInput @goModel(model: "observe/meta/metatypes.MonitorInput") {
     """
     useDefaultFreshness: Boolean
     query: MultiStageQueryInput
+    definition: JsonObject
     rule: MonitorRuleInput
     notificationSpec: NotificationSpecificationInput
     channels: [ObjectId!]
@@ -362,18 +384,18 @@ type MonitorRuleLog implements MonitorRule @goModel(model: "observe/meta/metatyp
     compareFunction: CompareFunction!
     compareValues: [Number!]!
     lookbackTime: Duration!
-    thresholdAggFunction: ThresholdAggFunction! @deprecated(reason:"log monitors no longer have an aggregation function")
     expressionSummary: String!
     logStageId: String!
+    sourceLogDatasetId: ObjectId
 }
 
 input MonitorRuleLogInput @goModel(model: "observe/meta/metatypes.MonitorRuleLogInput") {
     compareFunction: CompareFunction
     compareValues: [Number!]
     lookbackTime: Duration
-    thresholdAggFunction: ThresholdAggFunction @deprecated(reason:"log monitors no longer have an aggregation function")
     expressionSummary: String
     logStageId: String
+    sourceLogDatasetId: ObjectId
 }
 
 type MonitorRuleChange implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleChange") {
@@ -953,5 +975,15 @@ type MustacheRender @goModel(model: "observe/meta/metatypes.MustacheRender") {
 }
 
 type MonitorSampleData @goModel(model: "observe/meta/metatypes.MonitorSampleData") {
-    payload: String!
+    payload: JsonObject!
+}
+
+type NotificationPreviewQueryParams @goModel(model: "observe/meta/metatypes.NotificationPreviewQueryParams") {
+    startTime: Time!
+    endTime: Time!
+}
+
+type NotificationPreviewQuery @goModel(model: "observe/meta/metatypes.NotificationPreviewQuery") {
+    params: NotificationPreviewQueryParams!
+    query: MultiStageQuery!
 }
