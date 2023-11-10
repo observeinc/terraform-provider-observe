@@ -10,7 +10,7 @@ fragment Monitor on Monitor {
 	freshnessGoal
 	useDefaultFreshness
 	source
-    definition
+	definition
 	managedById
 	query {
 		outputStage
