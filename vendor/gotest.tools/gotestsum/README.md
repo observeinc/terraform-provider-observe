@@ -48,6 +48,7 @@ Commonly used formats (see `--help` for a full list):
  * `dots` - print a character for each test.
  * `pkgname` (default) - print a line for each package.
  * `testname` - print a line for each test and package.
+ * `testdox` - print a sentence for each test using [gotestdox](https://github.com/bitfield/gotestdox).
  * `standard-quiet` - the standard `go test` format.
  * `standard-verbose` - the standard `go test -v` format.
 
@@ -139,7 +140,8 @@ test run has completed. The binary will be run with the following environment
 variables set:
 
 ```
-GOTESTSUM_FORMAT        # gotestsum format (ex: short)
+GOTESTSUM_ELAPSED       # test run time in seconds (ex: 2.45s)
+GOTESTSUM_FORMAT        # gotestsum format (ex: pkgname)
 GOTESTSUM_JSONFILE      # path to the jsonfile, empty if no file path was given
 GOTESTSUM_JUNITFILE     # path to the junit.xml file, empty if no file path was given
 TESTS_ERRORS            # number of errors
@@ -158,8 +160,14 @@ package may be used to parse the JSON file output.
 
 First install the example notification command with `go get gotest.tools/gotestsum/contrib/notify`.
 The command will be downloaded to `$GOPATH/bin` as `notify`. Note that this
-example `notify` command only works on macOS with
+example `notify` command only works on Linux with `notify-send` and on macOS with
 [terminal-notifer](https://github.com/julienXX/terminal-notifier) installed.
+
+On Linux, you need to have some "test-pass" and "test-fail" icons installed in your icon theme.
+Some sample icons can be found in `contrib/notify`, and can be installed with `make install`.
+
+On Windows, you can install [notify-send.exe](https://github.com/vaskovsky/notify-send)
+but it does not support custom icons so will have to use the basic "info" and "error".
 
 ```
 gotestsum --post-run-command notify
