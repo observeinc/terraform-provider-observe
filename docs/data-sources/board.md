@@ -23,5 +23,3 @@ Fetches data for an existing Observe board.
 - `name` (String) Board name.
 - `oid` (String) Observe ID of Board.
 - `type` (String) Type of board.
-
-

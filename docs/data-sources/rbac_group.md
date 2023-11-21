@@ -30,5 +30,3 @@ data "observe_rbac_group" "example" {
 
 - `description` (String) RbacGroup description.
 - `oid` (String) The Observe ID for rbacGroup.
-
-

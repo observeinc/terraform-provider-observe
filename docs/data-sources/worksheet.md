@@ -26,5 +26,3 @@ Fetches metadata for an existing Observe worksheet.
 - `name` (String) Worksheet name. Must be unique within workspace.
 - `oid` (String) The Observe ID for worksheet.
 - `queries` (String) Worksheet definition in JSON format.
-
-

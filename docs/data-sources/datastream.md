@@ -41,5 +41,3 @@ data "observe_datastream" "example" {
 - `description` (String) Datastream description.
 - `icon_url` (String) Icon image.
 - `oid` (String) The Observe ID for datastream.
-
-

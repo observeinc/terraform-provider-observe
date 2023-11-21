@@ -41,5 +41,3 @@ One of `id` or `name` must be provided
 
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
-
-

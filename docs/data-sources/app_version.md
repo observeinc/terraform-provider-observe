@@ -28,5 +28,3 @@ Fetches metching versions for an Observe app based on the passed in version cons
 
 - `id` (String) The ID of this resource.
 - `version` (String) The newest acceptable version based on the version constraints specified.
-
-

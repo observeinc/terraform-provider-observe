@@ -150,5 +150,3 @@ the stage pipeline. It must refer to a label contained in `inputs`, or a
 previous stage `alias`. The stage input can be omitted if `inputs`
 contains a single element.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
-
-

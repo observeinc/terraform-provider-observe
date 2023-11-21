@@ -26,5 +26,3 @@ Generates Terraform configuration for a given resource in Observe. Datasets, mon
 - `import_id` (String)
 - `import_name` (String)
 - `resource` (String)
-
-
