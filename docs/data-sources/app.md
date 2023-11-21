@@ -40,5 +40,3 @@ data "observe_app" "example" {
 - `outputs` (String)
 - `variables` (Map of String)
 - `version` (String)
-
-

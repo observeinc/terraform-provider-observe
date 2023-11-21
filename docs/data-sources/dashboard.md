@@ -30,5 +30,3 @@ Fetches data for an existing Observe dashboard.
 - `parameters` (String) Dashboard parameters in JSON format.
 - `stages` (String) Dashboard stages in JSON format.
 - `workspace` (String) OID of workspace dashboard is contained in.
-
-

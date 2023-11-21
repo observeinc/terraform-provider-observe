@@ -22,5 +22,3 @@ Parses or formats an Observe OID. To parse an OID, only set the `oid` attribute.
 should be used when referring to this object in terraform manifests.
 - `type` (String) Resource type for this object.
 - `version` (String) Resource version for this object.
-
-

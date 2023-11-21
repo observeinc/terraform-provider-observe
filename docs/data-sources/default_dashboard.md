@@ -23,5 +23,3 @@ Fetches the default dashboard OID for the specified dataset.
 
 - `dashboard` (String)
 - `id` (String) The ID of this resource.
-
-

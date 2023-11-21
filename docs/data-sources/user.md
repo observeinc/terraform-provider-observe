@@ -30,5 +30,3 @@ data "observe_user" "example" {
 
 - `comment` (String) User comment.
 - `oid` (String) The Observe ID for user.
-
-

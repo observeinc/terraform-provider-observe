@@ -29,5 +29,3 @@ Fetches data for an existing Observe folder.
 - `description` (String) Dataset description.
 - `icon_url` (String) Icon image.
 - `oid` (String) The Observe ID for dataset.
-
-

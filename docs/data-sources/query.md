@@ -62,5 +62,3 @@ Optional:
 
 - `interval` (String)
 - `timeout` (String)
-
-
