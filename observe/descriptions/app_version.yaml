@@ -1,13 +1,13 @@
-description:
-  Fetches metching versions for an Observe app based on the passed in version constraints.
+description: >
+  Fetches matching versions for an Observe app based on the passed in version constraints.
 
 schema:
-  module_id: |
+  module_id: >
     The app module name.
   version_constraint: >
     The version constraint rules which are used to find the newest acceptable version. 
     Multiple constraints should be comma separated.
-  include_prerelease: |
+  include_prerelease: >
     Whether to include prerelease versions in the version search. Defaults to false (don't include).
-  version: |
+  version: >
     The newest acceptable version based on the version constraints specified.
