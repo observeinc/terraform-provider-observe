@@ -22,10 +22,11 @@ func dataSourceRbacGroup() *schema.Resource {
 		ReadContext: dataSourceRbacGroupRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
-				Description:  schemaRbacGroupIdDescription,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validateID,
+				Description:      schemaRbacGroupIdDescription,
 			},
 			"name": {
 				Type:         schema.TypeString,

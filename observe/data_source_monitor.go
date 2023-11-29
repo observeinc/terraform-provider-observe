@@ -31,9 +31,10 @@ func dataSourceMonitor() *schema.Resource {
 					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validateID,
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `id` or `name` must be provided",
 			},

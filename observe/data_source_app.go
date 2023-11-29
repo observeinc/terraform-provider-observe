@@ -28,9 +28,10 @@ func dataSourceApp() *schema.Resource {
 				RequiredWith: []string{"folder"},
 			},
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				ValidateDiagFunc: validateID,
+				Optional:         true,
 			},
 			// computed values
 			"oid": {

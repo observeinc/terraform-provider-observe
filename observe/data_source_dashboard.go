@@ -14,9 +14,10 @@ func dataSourceDashboard() *schema.Resource {
 		ReadContext: dataSourceDashboardRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Dashboard ID.",
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateID,
+				Description:      "Dashboard ID.",
 			},
 			// computed values
 			"oid": {

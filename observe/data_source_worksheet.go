@@ -21,9 +21,10 @@ func dataSourceWorksheet() *schema.Resource {
 				Description:      schemaWorksheetWorkspaceDescription,
 			},
 			"id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Worksheet ID.",
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateID,
+				Description:      "Worksheet ID.",
 			},
 			// computed values
 			"oid": {

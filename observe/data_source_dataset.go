@@ -41,7 +41,7 @@ func dataSourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				ValidateDiagFunc: validateID,
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `name` or `id` must be set.",
 			},

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-cty/cty"
 )
 
 func TestFlags(t *testing.T) {
@@ -155,6 +156,45 @@ func TestToCamel(t *testing.T) {
 		if result := toSnake(tt.Expect); result != tt.Input {
 			t.Fatalf("toSnake failed: expected %s, got %s", tt.Input, result)
 		}
+	}
+}
+
+func TestValidateID(t *testing.T) {
+	testcases := []struct {
+		input  any
+		valid  bool
+		expect string
+	}{
+		{
+			input: "123",
+			valid: true,
+		},
+		{
+			input: "-123",
+			valid: false,
+		},
+		{
+			input: "123x",
+			valid: false,
+		},
+		{
+			input: 123,
+			valid: false,
+		},
+	}
+
+	for _, tt := range testcases {
+		diags := validateID(tt.input, make(cty.Path, 0))
+		if tt.valid {
+			if len(diags) != 0 {
+				t.Fatalf("should have no validation errors: %v", diags)
+			}
+		} else {
+			if len(diags) != 1 {
+				t.Fatalf("should have one validation error: %v", diags)
+			}
+		}
+
 	}
 }
 

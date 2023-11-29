@@ -76,6 +76,26 @@ func validateIsString() schema.SchemaValidateDiagFunc {
 	}
 }
 
+func validateID(i interface{}, path cty.Path) (diags diag.Diagnostics) {
+	v, ok := i.(string)
+	if !ok {
+		return append(diags, diag.Diagnostic{
+			Severity:      diag.Error,
+			Summary:       fmt.Sprintf("should be string type: %v", v),
+			AttributePath: path,
+		})
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n < 0 {
+		return append(diags, diag.Diagnostic{
+			Severity:      diag.Error,
+			Summary:       fmt.Sprintf("should contain only digits: %v", v),
+			AttributePath: path,
+		})
+	}
+	return diags
+}
+
 // Verify OID matches type
 func validateOID(types ...oid.Type) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) (diags diag.Diagnostics) {

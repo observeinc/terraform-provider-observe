@@ -142,3 +142,20 @@ func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble + `
+				data "observe_dataset" "missing" {
+				  workspace = data.observe_workspace.default.oid
+				  id        = "xyz"
+				}`),
+				ExpectError: regexp.MustCompile("should contain only digits"),
+			},
+		},
+	})
+}
