@@ -154,7 +154,7 @@ func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
 				  workspace = data.observe_workspace.default.oid
 				  id        = "xyz"
 				}`),
-				ExpectError: regexp.MustCompile("should contain only digits"),
+				ExpectError: regexp.MustCompile("expected ID to be valid integer"),
 			},
 		},
 	})

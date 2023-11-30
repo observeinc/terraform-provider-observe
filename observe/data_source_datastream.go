@@ -32,7 +32,7 @@ func dataSourceDatastream() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
-				ValidateDiagFunc: validateID,
+				ValidateDiagFunc: validateID(),
 				Description:      "Datastream ID. Either `name` or `id` must be provided.",
 			},
 			// computed values

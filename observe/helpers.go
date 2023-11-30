@@ -76,26 +76,6 @@ func validateIsString() schema.SchemaValidateDiagFunc {
 	}
 }
 
-func validateID(i interface{}, path cty.Path) (diags diag.Diagnostics) {
-	v, ok := i.(string)
-	if !ok {
-		return append(diags, diag.Diagnostic{
-			Severity:      diag.Error,
-			Summary:       fmt.Sprintf("should be string type: %v", v),
-			AttributePath: path,
-		})
-	}
-	n, err := strconv.Atoi(v)
-	if err != nil || n < 0 {
-		return append(diags, diag.Diagnostic{
-			Severity:      diag.Error,
-			Summary:       fmt.Sprintf("should contain only digits: %v", v),
-			AttributePath: path,
-		})
-	}
-	return diags
-}
-
 // Verify OID matches type
 func validateOID(types ...oid.Type) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) (diags diag.Diagnostics) {
@@ -180,12 +160,26 @@ func validateUID() schema.SchemaValidateDiagFunc {
 		if !ok {
 			return diag.Errorf("expected type of user id to be string, got %v", i)
 		}
-		uid, err := strconv.ParseInt(v, 10, 64)
+		uid, err := strconv.ParseInt(strings.Trim(v, "\""), 10, 64)
 		if err != nil {
 			return diag.Errorf("expected user id to be valid integer, got %s", v)
 		}
 		if uid < MinUserId || uid > MaxUserId {
 			return diag.Errorf("user id %s is not valid", v)
+		}
+		return nil
+	}
+}
+
+func validateID() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		v, ok := i.(string)
+		if !ok {
+			return diag.Errorf("expected type of ID to be string, got %v", i)
+		}
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil || id < 0 {
+			return diag.Errorf("expected ID to be valid integer, got %s", v)
 		}
 		return nil
 	}

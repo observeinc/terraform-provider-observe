@@ -16,7 +16,7 @@ func dataSourceDashboard() *schema.Resource {
 			"id": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateID,
+				ValidateDiagFunc: validateID(),
 				Description:      "Dashboard ID.",
 			},
 			// computed values

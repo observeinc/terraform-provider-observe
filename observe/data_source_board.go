@@ -20,7 +20,7 @@ func dataSourceBoard() *schema.Resource {
 			"id": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateID,
+				ValidateDiagFunc: validateID(),
 			},
 			// computed
 			"oid": {

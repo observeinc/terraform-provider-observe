@@ -170,6 +170,10 @@ func TestValidateID(t *testing.T) {
 			valid: true,
 		},
 		{
+			input: `"123"`,
+			valid: false,
+		},
+		{
 			input: "-123",
 			valid: false,
 		},
@@ -184,7 +188,57 @@ func TestValidateID(t *testing.T) {
 	}
 
 	for _, tt := range testcases {
-		diags := validateID(tt.input, make(cty.Path, 0))
+		diags := validateID()(tt.input, make(cty.Path, 0))
+		if tt.valid {
+			if len(diags) != 0 {
+				t.Fatalf("should have no validation errors: %v", diags)
+			}
+		} else {
+			if len(diags) != 1 {
+				t.Fatalf("should have one validation error: %v", diags)
+			}
+		}
+
+	}
+}
+func TestValidateUID(t *testing.T) {
+	testcases := []struct {
+		input  any
+		valid  bool
+		expect string
+	}{
+		{
+			input: "1123",
+			valid: true,
+		},
+		{
+			input: "123",
+			valid: false, // too small
+		},
+		{
+			input: "10000000",
+			valid: false, // too big
+		},
+		{
+			input: `"1123"`,
+			valid: true,
+		},
+		{
+			input: "-123",
+			valid: false,
+		},
+		{
+			input: "123x",
+			valid: false,
+		},
+		{
+			input: 123,
+			valid: false,
+		},
+	}
+
+	for _, tt := range testcases {
+		diags := validateUID()(tt.input, make(cty.Path, 0))
 		if tt.valid {
 			if len(diags) != 0 {
 				t.Fatalf("should have no validation errors: %v", diags)

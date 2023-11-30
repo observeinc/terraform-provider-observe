@@ -30,7 +30,7 @@ func dataSourceApp() *schema.Resource {
 			"id": {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
-				ValidateDiagFunc: validateID,
+				ValidateDiagFunc: validateID(),
 				Optional:         true,
 			},
 			// computed values

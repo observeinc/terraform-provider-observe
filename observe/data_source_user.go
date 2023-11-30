@@ -25,7 +25,7 @@ func dataSourceUser() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"email", "id"},
 				Optional:         true,
-				ValidateDiagFunc: validateID,
+				ValidateDiagFunc: validateCID(),
 				Description:      schemaUserIdDescription,
 			},
 			"email": {
