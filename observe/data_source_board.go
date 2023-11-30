@@ -18,8 +18,9 @@ func dataSourceBoard() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateID(),
 			},
 			// computed
 			"oid": {

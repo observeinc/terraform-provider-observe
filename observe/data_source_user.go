@@ -22,10 +22,11 @@ func dataSourceUser() *schema.Resource {
 		ReadContext: dataSourceUserRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"email", "id"},
-				Optional:     true,
-				Description:  schemaUserIdDescription,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"email", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validateUID(),
+				Description:      schemaUserIdDescription,
 			},
 			"email": {
 				Type:         schema.TypeString,

@@ -29,10 +29,11 @@ func dataSourceFolder() *schema.Resource {
 				Optional:     true,
 			},
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
-				Description:  "Folder ID. Either `name` or `id` must be provided.",
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validateID(),
+				Description:      "Folder ID. Either `name` or `id` must be provided.",
 			},
 			// computed values
 			"oid": {

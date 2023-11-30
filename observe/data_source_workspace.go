@@ -25,9 +25,10 @@ func dataSourceWorkspace() *schema.Resource {
 					"One of `id` or `name` must be provided",
 			},
 			"id": {
-				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
-				Optional:     true,
+				Type:             schema.TypeString,
+				ExactlyOneOf:     []string{"name", "id"},
+				Optional:         true,
+				ValidateDiagFunc: validateID(),
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `id` or `name` must be provided",
 			},
