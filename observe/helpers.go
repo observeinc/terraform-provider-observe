@@ -35,6 +35,8 @@ var (
 	errStageInputMissing    = errors.New("input missing")
 
 	stringType = reflect.TypeOf("")
+
+	idRegex = regexp.MustCompile(`^\d+$`)
 )
 
 // apply ValidateDiagFunc to every value in map
@@ -160,6 +162,7 @@ func validateUID() schema.SchemaValidateDiagFunc {
 		if !ok {
 			return diag.Errorf("expected type of user id to be string, got %v", i)
 		}
+		// Trimming quotes, as in types.StringToUserIdScalar
 		uid, err := strconv.ParseInt(strings.Trim(v, "\""), 10, 64)
 		if err != nil {
 			return diag.Errorf("expected user id to be valid integer, got %s", v)
@@ -172,17 +175,7 @@ func validateUID() schema.SchemaValidateDiagFunc {
 }
 
 func validateID() schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		v, ok := i.(string)
-		if !ok {
-			return diag.Errorf("expected type of ID to be string, got %v", i)
-		}
-		id, err := strconv.ParseInt(v, 10, 64)
-		if err != nil || id < 0 {
-			return diag.Errorf("expected ID to be valid integer, got %s", v)
-		}
-		return nil
-	}
+	return validation.ToDiagFunc(validation.StringMatch(idRegex, "expected ID to be valid integer"))
 }
 
 func validateStringInSlice(valid []string, ignoreCase bool) schema.SchemaValidateDiagFunc {

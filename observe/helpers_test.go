@@ -191,11 +191,11 @@ func TestValidateID(t *testing.T) {
 		diags := validateID()(tt.input, make(cty.Path, 0))
 		if tt.valid {
 			if len(diags) != 0 {
-				t.Fatalf("should have no validation errors: %v", diags)
+				t.Fatalf("should have no validation errors: %v. test: %v", diags, tt)
 			}
 		} else {
 			if len(diags) != 1 {
-				t.Fatalf("should have one validation error: %v", diags)
+				t.Fatalf("should have one validation error: %v. test: %v", diags, tt)
 			}
 		}
 
@@ -221,7 +221,7 @@ func TestValidateUID(t *testing.T) {
 		},
 		{
 			input: `"1123"`,
-			valid: true,
+			valid: true, // allow qouted IDs, see types.StringToUserIdScalar
 		},
 		{
 			input: "-123",
