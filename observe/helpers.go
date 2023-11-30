@@ -163,7 +163,7 @@ func validateUID() schema.SchemaValidateDiagFunc {
 			return diag.Errorf("expected type of user id to be string, got %v", i)
 		}
 		// Trimming quotes, as in types.StringToUserIdScalar
-		uid, err := strconv.ParseInt(strings.Trim(v, "\""), 10, 64)
+		uid, err := strconv.ParseInt(strings.Trim(v, `"`), 10, 64)
 		if err != nil {
 			return diag.Errorf("expected user id to be valid integer, got %s", v)
 		}
