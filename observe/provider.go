@@ -110,6 +110,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).",
 			},
+			"traceparent": {
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("W3C_TRACEPARENT", nil),
+				Optional:    true,
+				Description: "Optional traceparent identifie.",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -245,6 +251,11 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("managing_object_id"); ok {
 			managingId := v.(string)
 			config.ManagingObjectID = &managingId
+		}
+
+		if v, ok := data.GetOk("traceparent"); ok {
+			traceparent := v.(string)
+			config.TraceParent = &traceparent
 		}
 
 		// by omission, cache client

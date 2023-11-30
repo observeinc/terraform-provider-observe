@@ -107,6 +107,9 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 		if c.UserAgent != nil {
 			req.Header.Set("User-Agent", *c.UserAgent)
 		}
+		if c.TraceParent != nil {
+			req.Header.Set("Traceparent", *c.TraceParent)
+		}
 
 		// log request and response
 		c.logRequest(ctx, req)
