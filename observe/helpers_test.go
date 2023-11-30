@@ -221,7 +221,7 @@ func TestValidateUID(t *testing.T) {
 		},
 		{
 			input: `"1123"`,
-			valid: true, // allow qouted IDs, see types.StringToUserIdScalar
+			valid: true, // allow quoted IDs, see types.StringToUserIdScalar
 		},
 		{
 			input: "-123",
