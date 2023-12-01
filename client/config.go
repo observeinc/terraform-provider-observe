@@ -49,6 +49,9 @@ type Config struct {
 
 	// optional managing id to tag Observe resources with
 	ManagingObjectID *string `json:"managing_object_id"`
+
+	// optional traceparent identifier to pass via header
+	TraceParent *string `json:"traceparent"`
 }
 
 func (c *Config) Hash() uint64 {

@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -245,6 +246,12 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("managing_object_id"); ok {
 			managingId := v.(string)
 			config.ManagingObjectID = &managingId
+		}
+
+		// trace identifier to attach to all HTTP requests in the traceparent header
+		// refer https://www.w3.org/TR/trace-context/#traceparent-header
+		if traceparent := os.Getenv("TRACEPARENT"); traceparent != "" {
+			config.TraceParent = &traceparent
 		}
 
 		// by omission, cache client
