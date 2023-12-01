@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -109,12 +110,6 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_MANAGING_OBJECT_ID", nil),
 				Optional:    true,
 				Description: "ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).",
-			},
-			"traceparent": {
-				Type:        schema.TypeString,
-				DefaultFunc: schema.EnvDefaultFunc("W3C_TRACEPARENT", nil),
-				Optional:    true,
-				Description: "Optional traceparent identifie.",
 			},
 		},
 
@@ -253,8 +248,9 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 			config.ManagingObjectID = &managingId
 		}
 
-		if v, ok := data.GetOk("traceparent"); ok {
-			traceparent := v.(string)
+		// trace identifier to attach to all HTTP requests in the traceparent header
+		// refer https://www.w3.org/TR/trace-context/#traceparent-header
+		if traceparent := os.Getenv("TRACEPARENT"); traceparent != "" {
 			config.TraceParent = &traceparent
 		}
 
