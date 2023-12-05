@@ -532,6 +532,71 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 		},
 	})
 }
+func TestAccObserveMonitorLog(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-first"
+
+					inputs = {
+					  "test" = observe_datastream.test.dataset
+					}
+
+					stage {
+					  pipeline = <<-EOF
+						make_col vt:BUNDLE_TIMESTAMP
+						make_interval vt
+					  EOF
+					}
+				}
+
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+
+					inputs = {
+						// "test" = observe_datastream.test.dataset
+						"test" = observe_dataset.first.oid
+					}
+
+					stage {
+						pipeline = <<-EOF
+							colmake kind:"test", description:"test"
+						EOF
+					}
+
+					rule {
+						source_column = "OBSERVATION_INDEX"
+
+						log {
+							compare_function   = "greater"
+							compare_values     = [1]
+							lookback_time      = "1m"
+							expression_summary = "Some text"
+							log_stage_id = "stage-k128n35u"
+							source_log_dataset_id = observe_dataset.first.oid
+						}
+					}
+
+					notification_spec {
+						merge      = "separate"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
+					//TODO
+				),
+			},
+		},
+	})
+}
 
 func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")

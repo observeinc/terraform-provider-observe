@@ -50,6 +50,7 @@ Optional:
 - `count` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--count))
 - `facet` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
 - `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
+- `log` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--log))
 - `promote` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
 - `source_column` (String)
 - `threshold` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--threshold))
@@ -107,6 +108,22 @@ Optional:
 
 - `columns` (List of String)
 - `group_name` (String)
+
+
+<a id="nestedblock--rule--log"></a>
+### Nested Schema for `rule.log`
+
+Required:
+
+- `compare_function` (String)
+- `lookback_time` (String)
+
+Optional:
+
+- `compare_values` (List of Number)
+- `expression_summary` (String)
+- `log_stage_id` (String)
+- `source_log_dataset_id` (String)
 
 
 <a id="nestedblock--rule--promote"></a>

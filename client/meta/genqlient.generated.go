@@ -4099,9 +4099,15 @@ func (v *MonitorRuleMonitorRuleFacet) GetLookbackTime() types.DurationScalar { r
 
 // MonitorRuleMonitorRuleLog includes the requested fields of the GraphQL type MonitorRuleLog.
 type MonitorRuleMonitorRuleLog struct {
-	Typename      *string                                    `json:"__typename"`
-	SourceColumn  string                                     `json:"sourceColumn"`
-	GroupByGroups []MonitorRuleGroupByGroupsMonitorGroupInfo `json:"groupByGroups"`
+	Typename           *string                                    `json:"__typename"`
+	SourceColumn       string                                     `json:"sourceColumn"`
+	GroupByGroups      []MonitorRuleGroupByGroupsMonitorGroupInfo `json:"groupByGroups"`
+	CompareFunction    CompareFunction                            `json:"compareFunction"`
+	CompareValues      []types.NumberScalar                       `json:"compareValues"`
+	LookbackTime       types.DurationScalar                       `json:"lookbackTime"`
+	ExpressionSummary  string                                     `json:"expressionSummary"`
+	LogStageId         string                                     `json:"logStageId"`
+	SourceLogDatasetId *string                                    `json:"sourceLogDatasetId"`
 }
 
 // GetTypename returns MonitorRuleMonitorRuleLog.Typename, and is useful for accessing the field via an interface.
@@ -4114,6 +4120,24 @@ func (v *MonitorRuleMonitorRuleLog) GetSourceColumn() string { return v.SourceCo
 func (v *MonitorRuleMonitorRuleLog) GetGroupByGroups() []MonitorRuleGroupByGroupsMonitorGroupInfo {
 	return v.GroupByGroups
 }
+
+// GetCompareFunction returns MonitorRuleMonitorRuleLog.CompareFunction, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetCompareFunction() CompareFunction { return v.CompareFunction }
+
+// GetCompareValues returns MonitorRuleMonitorRuleLog.CompareValues, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetCompareValues() []types.NumberScalar { return v.CompareValues }
+
+// GetLookbackTime returns MonitorRuleMonitorRuleLog.LookbackTime, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetLookbackTime() types.DurationScalar { return v.LookbackTime }
+
+// GetExpressionSummary returns MonitorRuleMonitorRuleLog.ExpressionSummary, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetExpressionSummary() string { return v.ExpressionSummary }
+
+// GetLogStageId returns MonitorRuleMonitorRuleLog.LogStageId, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetLogStageId() string { return v.LogStageId }
+
+// GetSourceLogDatasetId returns MonitorRuleMonitorRuleLog.SourceLogDatasetId, and is useful for accessing the field via an interface.
+func (v *MonitorRuleMonitorRuleLog) GetSourceLogDatasetId() *string { return v.SourceLogDatasetId }
 
 // MonitorRuleMonitorRulePromote includes the requested fields of the GraphQL type MonitorRulePromote.
 type MonitorRuleMonitorRulePromote struct {
@@ -10365,6 +10389,14 @@ fragment Monitor on Monitor {
 			descriptionField
 			primaryKey
 		}
+		... on MonitorRuleLog {
+			compareFunction
+			compareValues
+			lookbackTime
+			expressionSummary
+			logStageId
+			sourceLogDatasetId
+		}
 	}
 	notificationSpec {
 		merge
@@ -13287,6 +13319,14 @@ fragment Monitor on Monitor {
 			descriptionField
 			primaryKey
 		}
+		... on MonitorRuleLog {
+			compareFunction
+			compareValues
+			lookbackTime
+			expressionSummary
+			logStageId
+			sourceLogDatasetId
+		}
 	}
 	notificationSpec {
 		merge
@@ -14553,6 +14593,14 @@ fragment Monitor on Monitor {
 			kindField
 			descriptionField
 			primaryKey
+		}
+		... on MonitorRuleLog {
+			compareFunction
+			compareValues
+			lookbackTime
+			expressionSummary
+			logStageId
+			sourceLogDatasetId
 		}
 	}
 	notificationSpec {
@@ -16063,6 +16111,14 @@ fragment Monitor on Monitor {
 			kindField
 			descriptionField
 			primaryKey
+		}
+		... on MonitorRuleLog {
+			compareFunction
+			compareValues
+			lookbackTime
+			expressionSummary
+			logStageId
+			sourceLogDatasetId
 		}
 	}
 	notificationSpec {
