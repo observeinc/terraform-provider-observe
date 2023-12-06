@@ -39,6 +39,8 @@ You must set the `tag` input when calling this workflow and select the appropria
 
 If the `publish` input is not set, release artifacts will be created for the job and planned S3 uploads will be logged but not copied. When `publish` is enabled, a GitHub Release will be created and the release artifacts will be uploaded to the Observe Terraform Registry via S3.
 
+**Releases are created as drafts. After reviewing the generated changelog, click _Publish_ to make the release available.**
+
 ### Prerelease
 
 **⚠️ Caution:** Triggering the release job on a reference other than a tag applied to a commit on the default branch will release a version of the provider using code that has not yet been tested and merged. Take caution to include a [prerelease suffix](https://semver.org/#spec-item-9) to ensure that users do not download these versions by default.
