@@ -86,7 +86,7 @@ jobs:
       version: ${{ needs.goreleaser.outputs.version }}
       upload_dir: ${{ github.workspace }}/upload
     steps:
-      - uses: aws-actions/configure-aws-credentials@v2
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-2
