@@ -130,6 +130,12 @@ func resourceMonitor() *schema.Resource {
 							DiffSuppressFunc: diffSuppressPipeline,
 							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
+						"output_stage": {
+							Type:        schema.TypeBool,
+							Default:     false,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
+						},
 					},
 				},
 			},
@@ -812,7 +818,7 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := flattenAndSetQuery(data, monitor.Query.Stages); err != nil {
+	if err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

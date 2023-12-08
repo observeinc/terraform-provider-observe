@@ -132,14 +132,25 @@ type Query struct {
 // Internally, the alias does not map to the stageID - it is the input name we
 // use when refering to this stage
 type Stage struct {
-	Alias    *string `json:"alias,omitempty"`
-	Input    *string `json:"input,omitempty"`
-	Pipeline string  `json:"pipeline"`
+	Alias       *string `json:"alias,omitempty"`
+	Input       *string `json:"input,omitempty"`
+	Pipeline    string  `json:"pipeline"`
+	OutputStage bool    `json:"outputStage"`
 }
 
 // Input references an existing data source
 type Input struct {
 	Dataset *string ` json:"dataset,omitempty"`
+}
+
+func getOutputStagesCount(stages []Stage) int {
+	c := 0
+	for _, s := range stages {
+		if s.OutputStage {
+			c += 1
+		}
+	}
+	return c
 }
 
 func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagnostics) {
@@ -166,7 +177,16 @@ func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagno
 		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.pipeline", i)); ok {
 			stage.Pipeline = v.(string)
 		}
+
+		if v, ok := data.GetOk(fmt.Sprintf("stage.%d.output_stage", i)); ok {
+			stage.OutputStage = v.(bool)
+		}
 		stages = append(stages, stage)
+	}
+
+	outputStagesCount := getOutputStagesCount(stages)
+	if outputStagesCount > 1 {
+		return nil, diag.FromErr(errMoreThanOneOutputStages)
 	}
 
 	var sortedNames []string
@@ -243,7 +263,10 @@ func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagno
 
 		// stage is done, append to transform
 		query.Stages = append(query.Stages, stageInput)
-		query.OutputStage = stageInputId
+
+		if outputStagesCount == 0 || stage.OutputStage {
+			query.OutputStage = stageInputId
+		}
 
 		// prepare for next iteration of loop
 		// this stage will become defaultInput for the next
@@ -432,7 +455,7 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 // 	return diags
 // }
 
-func flattenQuery(gqlStages []*gql.StageQuery) (*Query, error) {
+func flattenQuery(gqlStages []*gql.StageQuery, outputStage string) (*Query, error) {
 	query := &Query{Inputs: make(map[string]*Input)}
 
 	// first reconstruct all inputs
@@ -473,6 +496,10 @@ func flattenQuery(gqlStages []*gql.StageQuery) (*Query, error) {
 			// follow on from anonymous stage
 		default:
 			stage.Input = &inputName
+		}
+
+		if outputStage != "" && outputStage == stageId && i < len(gqlStages)-1 {
+			stage.OutputStage = true
 		}
 
 		query.Stages = append(query.Stages, stage)

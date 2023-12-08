@@ -127,6 +127,12 @@ func resourceDataset() *schema.Resource {
 							DiffSuppressFunc: diffSuppressPipeline,
 							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
+						"output_stage": {
+							Type:        schema.TypeBool,
+							Default:     false,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
+						},
 					},
 				},
 			},
@@ -242,7 +248,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil {
-		if err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages); err != nil {
+		if err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -254,12 +260,12 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery) error {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery, outputStage string) error {
 	if len(gqlstages) == 0 {
 		return nil
 	}
 
-	queryData, err := flattenQuery(gqlstages)
+	queryData, err := flattenQuery(gqlstages, outputStage)
 	if err != nil {
 		return err
 	}
@@ -288,7 +294,8 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery) 
 	stages := make([]interface{}, len(queryData.Stages))
 	for i, stage := range queryData.Stages {
 		s := map[string]interface{}{
-			"pipeline": stage.Pipeline,
+			"pipeline":     stage.Pipeline,
+			"output_stage": stage.OutputStage,
 		}
 		if stage.Alias != nil {
 			s["alias"] = stage.Alias
