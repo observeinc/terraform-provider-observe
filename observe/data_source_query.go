@@ -13,6 +13,7 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceQuery() *schema.Resource {
@@ -69,6 +70,12 @@ func dataSourceQuery() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"output_stage": {
+							Type:        schema.TypeBool,
+							Default:     false,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
+						},
 					},
 				},
 			},
@@ -122,8 +129,9 @@ func dataSourceQuery() *schema.Resource {
 }
 
 type Query struct {
-	Inputs map[string]*Input `json:"inputs"`
-	Stages []*Stage          `json:"stages"`
+	Inputs   map[string]*Input `json:"inputs"`
+	Stages   []*Stage          `json:"stages"`
+	StageIds []string          `json:"stage_ids"`
 }
 
 // Stage applies a pipeline to an input
@@ -503,6 +511,7 @@ func flattenQuery(gqlStages []*gql.StageQuery, outputStage string) (*Query, erro
 		}
 
 		query.Stages = append(query.Stages, stage)
+		query.StageIds = append(query.StageIds, stageId)
 	}
 
 	return query, nil

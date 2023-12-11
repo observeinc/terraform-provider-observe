@@ -377,9 +377,10 @@ func resourceMonitor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"log_stage_id": {
-										Type:     schema.TypeString,
+									"log_stage_index": {
+										Type:     schema.TypeInt,
 										Optional: true,
+										Default:  0,
 									},
 									"source_log_dataset_id": {
 										Type:     schema.TypeString,
@@ -625,9 +626,10 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleInput *gql.MonitorRule
 			ruleInput.LogRule.ExpressionSummary = &s
 		}
 
-		if v, ok := data.GetOk("rule.0.log.0.log_stage_id"); ok {
-			s := v.(string)
-			ruleInput.LogRule.LogStageId = &s
+		if v, ok := data.GetOk("rule.0.log.0.log_stage_index"); ok {
+			idx := v.(int)
+			stageId := fmt.Sprintf("stage-%d", idx)
+			ruleInput.LogRule.LogStageId = &stageId
 		}
 		if v, ok := data.GetOk("rule.0.log.0.source_log_dataset_id"); ok {
 			is, _ := oid.NewOID(v.(string))
@@ -810,15 +812,16 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("rule", flattenRule(data, monitor.Rule)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	if err := data.Set("notification_spec", flattenNotificationSpec(monitor.NotificationSpec)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage); err != nil {
+	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("rule", flattenRule(data, monitor.Rule, stageIds)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -835,7 +838,7 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 	return diags
 }
 
-func flattenRule(data *schema.ResourceData, input gql.MonitorRule) interface{} {
+func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []string) interface{} {
 	rule := map[string]interface{}{
 		"source_column": input.GetSourceColumn(),
 	}
@@ -918,13 +921,20 @@ func flattenRule(data *schema.ResourceData, input gql.MonitorRule) interface{} {
 				id.Version = prv.Version
 			}
 		}
+		stageIndex := 0
+		for i, sId := range stageIds {
+			if sId == logRule.LogStageId {
+				stageIndex = i
+				break
+			}
+		}
 
 		log := map[string]interface{}{
 			"compare_function":      toSnake(string(logRule.CompareFunction)),
 			"compare_values":        logRule.CompareValues,
 			"lookback_time":         logRule.LookbackTime.String(),
 			"expression_summary":    logRule.ExpressionSummary,
-			"log_stage_id":          logRule.LogStageId,
+			"log_stage_index":       stageIndex,
 			"source_log_dataset_id": id.String(),
 		}
 

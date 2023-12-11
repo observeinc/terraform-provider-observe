@@ -122,7 +122,7 @@ Optional:
 
 - `compare_values` (List of Number)
 - `expression_summary` (String)
-- `log_stage_id` (String)
+- `log_stage_index` (Number)
 - `source_log_dataset_id` (String)
 
 
@@ -165,6 +165,8 @@ results of this stage.
 the stage pipeline. It must refer to a label contained in `inputs`, or a
 previous stage `alias`. The stage input can be omitted if `inputs`
 contains a single element.
+- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
+a stage preceding the last stage. The last stage is an output stage by default.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
 
 

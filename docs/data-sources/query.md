@@ -40,6 +40,8 @@ Optional:
 
 - `alias` (String)
 - `input` (String)
+- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
+a stage preceding the last stage. The last stage is an output stage by default.
 - `pipeline` (String)
 
 

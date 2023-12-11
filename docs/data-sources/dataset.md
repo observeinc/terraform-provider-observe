@@ -22,6 +22,9 @@ Fetches metadata for an existing Observe dataset.
 One of `name` or `id` must be set.
 - `name` (String) Dataset name. Must be unique within workspace.
 One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
+- `stage` (Block List) A stage processes an input according to the provided pipeline. If no
+input is provided, a stage will implicitly follow on from the result of
+its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
@@ -38,12 +41,14 @@ should be used when referring to this object in terraform manifests.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.
-- `stage` (Block List) A stage processes an input according to the provided pipeline. If no
-input is provided, a stage will implicitly follow on from the result of
-its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
+
+Optional:
+
+- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
+a stage preceding the last stage. The last stage is an output stage by default.
 
 Read-Only:
 

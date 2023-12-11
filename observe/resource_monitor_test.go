@@ -580,7 +580,7 @@ func TestAccObserveMonitorLog(t *testing.T) {
 							compare_values     = [1]
 							lookback_time      = "1m"
 							expression_summary = "Some text"
-							log_stage_id = "stage-k128n35u"
+							log_stage_index = 0
 							source_log_dataset_id = observe_dataset.first.oid
 						}
 					}
