@@ -105,8 +105,7 @@ func dataSourceMonitor() *schema.Resource {
 						},
 						"output_stage": {
 							Type:        schema.TypeBool,
-							Default:     false,
-							Optional:    true,
+							Computed:    true,
 							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
 						},
 					},

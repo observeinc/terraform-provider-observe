@@ -22,9 +22,6 @@ One of `id` or `name` must be provided
 - `name` (String) Monitor name. Must be unique within workspace.
 One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
 - `rule` (Block List) (see [below for nested schema](#nestedblock--rule))
-- `stage` (Block List) A stage processes an input according to the provided pipeline. If no
-input is provided, a stage will implicitly follow on from the result of
-its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
@@ -40,6 +37,9 @@ stage pipelines.
 - `notification_spec` (Block List) (see [below for nested schema](#nestedblock--notification_spec))
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
+- `stage` (Block List) A stage processes an input according to the provided pipeline. If no
+input is provided, a stage will implicitly follow on from the result of
+its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 <a id="nestedblock--rule"></a>
 ### Nested Schema for `rule`
@@ -126,25 +126,6 @@ Read-Only:
 
 
 
-<a id="nestedblock--stage"></a>
-### Nested Schema for `stage`
-
-Optional:
-
-- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
-a stage preceding the last stage. The last stage is an output stage by default.
-
-Read-Only:
-
-- `alias` (String) The stage alias is the label by which subsequent stages can refer to the
-results of this stage.
-- `input` (String) The stage input defines what input should be used as a starting point for
-the stage pipeline. It must refer to a label contained in `inputs`, or a
-previous stage `alias`. The stage input can be omitted if `inputs`
-contains a single element.
-- `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
-
-
 <a id="nestedblock--notification_spec"></a>
 ### Nested Schema for `notification_spec`
 
@@ -155,3 +136,19 @@ Read-Only:
 - `notify_on_close` (Boolean)
 - `notify_on_reminder` (Boolean)
 - `reminder_frequency` (String)
+
+
+<a id="nestedblock--stage"></a>
+### Nested Schema for `stage`
+
+Read-Only:
+
+- `alias` (String) The stage alias is the label by which subsequent stages can refer to the
+results of this stage.
+- `input` (String) The stage input defines what input should be used as a starting point for
+the stage pipeline. It must refer to a label contained in `inputs`, or a
+previous stage `alias`. The stage input can be omitted if `inputs`
+contains a single element.
+- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
+a stage preceding the last stage. The last stage is an output stage by default.
+- `pipeline` (String) An OPAL snippet defining a transformation on the selected input.

@@ -121,9 +121,9 @@ Required:
 Optional:
 
 - `compare_values` (List of Number)
-- `expression_summary` (String)
-- `log_stage_index` (Number)
-- `source_log_dataset_id` (String)
+- `expression_summary` (String) Short summary or comment of how the data for monitor is queried.
+- `log_stage_index` (Number) An index of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
+- `source_log_dataset_id` (String) ID of the dataset that contains logs for preview.
 
 
 <a id="nestedblock--rule--promote"></a>
