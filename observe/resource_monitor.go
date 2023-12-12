@@ -21,6 +21,7 @@ var validRules = []string{
 	"rule.0.facet",
 	"rule.0.threshold",
 	"rule.0.promote",
+	"rule.0.log",
 }
 
 func resourceMonitor() *schema.Resource {
@@ -128,6 +129,12 @@ func resourceMonitor() *schema.Resource {
 							Optional:         true,
 							DiffSuppressFunc: diffSuppressPipeline,
 							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
+						},
+						"output_stage": {
+							Type:        schema.TypeBool,
+							Default:     false,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
 						},
 					},
 				},
@@ -337,6 +344,50 @@ func resourceMonitor() *schema.Resource {
 									"description_field": {
 										Type:     schema.TypeString,
 										Optional: true,
+									},
+								},
+							},
+						},
+						"log": {
+							Type:         schema.TypeList,
+							MaxItems:     1,
+							Optional:     true,
+							ExactlyOneOf: validRules,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_function": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+									},
+									"compare_values": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 2,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
+									},
+									"lookback_time": {
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: diffSuppressTimeDuration,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+									"expression_summary": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "expression_summary"),
+									},
+									"log_stage_id": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "log_stage_id"),
+									},
+									"source_log_dataset": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										Description:      descriptions.Get("monitor", "schema", "rule", "log", "source_log_dataset"),
+										ValidateDiagFunc: validateOID(oid.TypeDataset),
 									},
 								},
 							},
@@ -554,6 +605,41 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleInput *gql.MonitorRule
 		}
 	}
 
+	if data.Get("rule.0.log.#") == 1 {
+		ruleInput.LogRule = &gql.MonitorRuleLogInput{}
+
+		v := data.Get("rule.0.log.0.compare_function")
+		fn := gql.CompareFunction(toCamel(v.(string)))
+		ruleInput.LogRule.CompareFunction = &fn
+
+		if v, ok := data.GetOk("rule.0.log.0.compare_values"); ok {
+			for _, i := range v.([]interface{}) {
+				n := types.NumberScalar(i.(float64))
+				ruleInput.LogRule.CompareValues = append(ruleInput.LogRule.CompareValues, n)
+			}
+		}
+
+		if v, ok := data.GetOk("rule.0.log.0.lookback_time"); ok {
+			parsedLookbackTime, _ := types.ParseDurationScalar(v.(string))
+			ruleInput.LogRule.LookbackTime = parsedLookbackTime
+		}
+
+		if v, ok := data.GetOk("rule.0.log.0.expression_summary"); ok {
+			s := v.(string)
+			ruleInput.LogRule.ExpressionSummary = &s
+		}
+
+		if v, ok := data.GetOk("rule.0.log.0.log_stage_id"); ok {
+			s := v.(string)
+			ruleInput.LogRule.LogStageId = &s
+		}
+
+		if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
+			is, _ := oid.NewOID(v.(string))
+			ruleInput.LogRule.SourceLogDatasetId = &is.Id
+		}
+	}
+
 	return ruleInput, nil
 }
 
@@ -729,15 +815,16 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("rule", flattenRule(monitor.Rule)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	if err := data.Set("notification_spec", flattenNotificationSpec(monitor.NotificationSpec)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := flattenAndSetQuery(data, monitor.Query.Stages); err != nil {
+	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("rule", flattenRule(data, monitor.Rule, stageIds)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -754,7 +841,7 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 	return diags
 }
 
-func flattenRule(input gql.MonitorRule) interface{} {
+func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []string) interface{} {
 	rule := map[string]interface{}{
 		"source_column": input.GetSourceColumn(),
 	}
@@ -822,6 +909,37 @@ func flattenRule(input gql.MonitorRule) interface{} {
 		}
 
 		rule["promote"] = []interface{}{promote}
+	}
+
+	if logRule, ok := input.(*gql.MonitorRuleMonitorRuleLog); ok {
+		log := map[string]interface{}{
+			"compare_function":   toSnake(string(logRule.CompareFunction)),
+			"compare_values":     logRule.CompareValues,
+			"lookback_time":      logRule.LookbackTime.String(),
+			"expression_summary": logRule.ExpressionSummary,
+		}
+
+		for i, sId := range stageIds {
+			if sId == logRule.LogStageId {
+				// We can update the previous logStageId value to the new format one but pointing to the same stage
+				log["log_stage_id"] = fmt.Sprintf("stage-%d", i)
+				break
+			}
+		}
+
+		if logRule.SourceLogDatasetId != nil {
+			id := oid.DatasetOid(*logRule.SourceLogDatasetId)
+			// check for existing version timestamp we can maintain
+			// same approach as in flattenAndSetQuery() for input datasets
+			if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
+				prv, err := oid.NewOID(v.(string))
+				if err == nil && id.Id == prv.Id {
+					id.Version = prv.Version
+				}
+			}
+			log["source_log_dataset"] = id.String()
+		}
+		rule["log"] = []interface{}{log}
 	}
 
 	return []interface{}{

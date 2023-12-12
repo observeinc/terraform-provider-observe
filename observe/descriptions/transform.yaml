@@ -20,3 +20,6 @@ schema:
       contains a single element.
     pipeline: |
       An OPAL snippet defining a transformation on the selected input.
+    output_stage: |
+      A boolean flag used to specify the output stage. Should be used only for
+      a stage preceding the last stage. The last stage is an output stage by default.

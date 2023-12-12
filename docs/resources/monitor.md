@@ -50,6 +50,7 @@ Optional:
 - `count` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--count))
 - `facet` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
 - `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
+- `log` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--log))
 - `promote` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
 - `source_column` (String)
 - `threshold` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--threshold))
@@ -109,6 +110,22 @@ Optional:
 - `group_name` (String)
 
 
+<a id="nestedblock--rule--log"></a>
+### Nested Schema for `rule.log`
+
+Required:
+
+- `compare_function` (String)
+- `lookback_time` (String)
+
+Optional:
+
+- `compare_values` (List of Number)
+- `expression_summary` (String) Short summary or comment of how the data for monitor is queried.
+- `log_stage_id` (String) An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
+- `source_log_dataset` (String) ID of the dataset that contains logs for preview.
+
+
 <a id="nestedblock--rule--promote"></a>
 ### Nested Schema for `rule.promote`
 
@@ -148,6 +165,8 @@ results of this stage.
 the stage pipeline. It must refer to a label contained in `inputs`, or a
 previous stage `alias`. The stage input can be omitted if `inputs`
 contains a single element.
+- `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
+a stage preceding the last stage. The last stage is an output stage by default.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
 
 

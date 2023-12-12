@@ -26,3 +26,11 @@ schema:
       Whether notification reminders are enabled for this monitor. To enable them, set `reminder_frequency`.
     notify_on_close: |
       Enables a final update when a monitor notification is closed (no longer triggered).
+  rule:
+    log:
+      expression_summary: |
+        Short summary or comment of how the data for monitor is queried.
+      log_stage_id: |
+        An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
+      source_log_dataset: |
+        ID of the dataset that contains logs for preview.

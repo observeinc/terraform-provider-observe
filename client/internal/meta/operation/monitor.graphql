@@ -58,6 +58,14 @@ fragment Monitor on Monitor {
 			descriptionField
 			primaryKey
 		}
+		... on MonitorRuleLog {
+			compareFunction
+			compareValues
+			lookbackTime
+			expressionSummary
+			logStageId
+			sourceLogDatasetId
+		}
 	}
 
 	notificationSpec {

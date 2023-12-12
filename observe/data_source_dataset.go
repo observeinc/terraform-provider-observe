@@ -105,6 +105,11 @@ func dataSourceDataset() *schema.Resource {
 							Computed:    true,
 							Description: descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
+						"output_stage": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
+						},
 					},
 				},
 			},

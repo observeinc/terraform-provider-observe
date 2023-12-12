@@ -24,15 +24,16 @@ import (
 )
 
 var (
-	errObjectIDInvalid      = errors.New("object id is invalid")
-	errNameMissing          = errors.New("name not set")
-	errInputsMissing        = errors.New("no inputs defined")
-	errStagesMissing        = errors.New("no stages defined")
-	errInputNameMissing     = errors.New("name not set")
-	errInputEmpty           = errors.New("dataset not set")
-	errNameConflict         = errors.New("name already declared")
-	errStageInputUnresolved = errors.New("input could not be resolved")
-	errStageInputMissing    = errors.New("input missing")
+	errObjectIDInvalid         = errors.New("object id is invalid")
+	errNameMissing             = errors.New("name not set")
+	errInputsMissing           = errors.New("no inputs defined")
+	errStagesMissing           = errors.New("no stages defined")
+	errInputNameMissing        = errors.New("name not set")
+	errInputEmpty              = errors.New("dataset not set")
+	errNameConflict            = errors.New("name already declared")
+	errStageInputUnresolved    = errors.New("input could not be resolved")
+	errStageInputMissing       = errors.New("input missing")
+	errMoreThanOneOutputStages = errors.New("too many output stages")
 
 	stringType = reflect.TypeOf("")
 
