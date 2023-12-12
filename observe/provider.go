@@ -24,9 +24,14 @@ func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"customer": {
-				Type:        schema.TypeString,
+				Type: schema.TypeString,
+
+				// Since this field is required but uses an EnvDefaultFunc,
+				// documentation should be generated with `env -u OBSERVE_CUSTOMER`
+				// to ensure the default is unset.
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_CUSTOMER", nil),
+
 				Description: "Your Observe Customer ID.",
 			},
 			"api_token": {
