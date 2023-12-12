@@ -378,15 +378,15 @@ func resourceMonitor() *schema.Resource {
 										Optional:    true,
 										Description: descriptions.Get("monitor", "schema", "rule", "log", "expression_summary"),
 									},
-									"log_stage_index": {
-										Type:        schema.TypeInt,
+									"log_stage_id": {
+										Type:        schema.TypeString,
 										Optional:    true,
-										Description: descriptions.Get("monitor", "schema", "rule", "log", "log_stage_index"),
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "log_stage_id"),
 									},
-									"source_log_dataset_id": {
+									"source_log_dataset": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										Description:      descriptions.Get("monitor", "schema", "rule", "log", "source_log_dataset_id"),
+										Description:      descriptions.Get("monitor", "schema", "rule", "log", "source_log_dataset"),
 										ValidateDiagFunc: validateOID(oid.TypeDataset),
 									},
 								},
@@ -629,16 +629,12 @@ func newMonitorRuleConfig(data *schema.ResourceData) (ruleInput *gql.MonitorRule
 			ruleInput.LogRule.ExpressionSummary = &s
 		}
 
-		if v, ok := data.GetOk("rule.0.log.0.log_stage_index"); ok {
-			idx := v.(int)
-			stageId := fmt.Sprintf("stage-%d", idx)
-			ruleInput.LogRule.LogStageId = &stageId
-		} else {
-			stageId := "stage-0"
-			ruleInput.LogRule.LogStageId = &stageId
+		if v, ok := data.GetOk("rule.0.log.0.log_stage_id"); ok {
+			s := v.(string)
+			ruleInput.LogRule.LogStageId = &s
 		}
 
-		if v, ok := data.GetOk("rule.0.log.0.source_log_dataset_id"); ok {
+		if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
 			is, _ := oid.NewOID(v.(string))
 			ruleInput.LogRule.SourceLogDatasetId = &is.Id
 		}
@@ -916,38 +912,33 @@ func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []st
 	}
 
 	if logRule, ok := input.(*gql.MonitorRuleMonitorRuleLog); ok {
-		stageIndex := 0
-		for i, sId := range stageIds {
-			if sId == logRule.LogStageId {
-				stageIndex = i
-				break
-			}
-		}
-
 		log := map[string]interface{}{
 			"compare_function":   toSnake(string(logRule.CompareFunction)),
 			"compare_values":     logRule.CompareValues,
 			"lookback_time":      logRule.LookbackTime.String(),
 			"expression_summary": logRule.ExpressionSummary,
-			"log_stage_index":    stageIndex,
 		}
-		if logRule.SourceLogDatasetId != nil {
-			id := oid.OID{
-				Type: oid.TypeDataset,
-				Id:   *logRule.SourceLogDatasetId,
+
+		for i, sId := range stageIds {
+			if sId == logRule.LogStageId {
+				// We can update the previous logStageId value to the new format one but pointing to the same stage
+				log["log_stage_id"] = fmt.Sprintf("stage-%d", i)
+				break
 			}
+		}
+
+		if logRule.SourceLogDatasetId != nil {
+			id := oid.DatasetOid(*logRule.SourceLogDatasetId)
 			// check for existing version timestamp we can maintain
 			// same approach as in flattenAndSetQuery() for input datasets
-			if v, ok := data.GetOk("rule.0.log.0.source_log_dataset_id"); ok {
+			if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
 				prv, err := oid.NewOID(v.(string))
 				if err == nil && id.Id == prv.Id {
 					id.Version = prv.Version
 				}
 			}
-
-			log["source_log_dataset_id"] = id.String()
+			log["source_log_dataset"] = id.String()
 		}
-
 		rule["log"] = []interface{}{log}
 	}
 
