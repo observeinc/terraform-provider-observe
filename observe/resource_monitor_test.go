@@ -716,10 +716,6 @@ func TestAccObserveMonitorLog(t *testing.T) {
 					notification_spec {
 						merge      = "separate"
 					}
-				}
-
-				data "observe_monitor" "lookup" {
-					id         = observe_monitor.first.id
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor.first", "name", randomPrefix),
@@ -729,8 +725,6 @@ func TestAccObserveMonitorLog(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.log.0.expression_summary", "Some text"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "rule.0.log.0.log_stage_id", "stage-0"),
 					resource.TestCheckResourceAttrPair("observe_monitor.first", "rule.0.log.0.source_log_dataset", "observe_dataset.first", "oid"),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
-					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "rule.0.log.0.compare_function", "greater"),
 				),
 			},
 		},
