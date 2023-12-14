@@ -54,6 +54,7 @@ Read-Only:
 - `count` (Block List) (see [below for nested schema](#nestedblock--rule--count))
 - `facet` (Block List) (see [below for nested schema](#nestedblock--rule--facet))
 - `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
+- `log` (List of Object) (see [below for nested schema](#nestedatt--rule--log))
 - `promote` (Block List) (see [below for nested schema](#nestedblock--rule--promote))
 - `source_column` (String)
 
@@ -113,6 +114,19 @@ Read-Only:
 
 - `columns` (List of String)
 - `group_name` (String)
+
+
+<a id="nestedatt--rule--log"></a>
+### Nested Schema for `rule.log`
+
+Read-Only:
+
+- `compare_function` (String)
+- `compare_values` (List of Number)
+- `expression_summary` (String)
+- `log_stage_id` (String)
+- `lookback_time` (String)
+- `source_log_dataset` (String)
 
 
 <a id="nestedblock--rule--promote"></a>

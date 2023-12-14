@@ -281,6 +281,46 @@ func dataSourceMonitor() *schema.Resource {
 								},
 							},
 						},
+						"log": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_function": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"compare_values": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeFloat},
+									},
+									"lookback_time": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expression_summary": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Computed:    true,
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "expression_summary"),
+									},
+									"log_stage_id": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Computed:    true,
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "log_stage_id"),
+									},
+									"source_log_dataset": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Computed:    true,
+										Description: descriptions.Get("monitor", "schema", "rule", "log", "source_log_dataset"),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
