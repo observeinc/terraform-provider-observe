@@ -284,6 +284,7 @@ func dataSourceMonitor() *schema.Resource {
 						"log": {
 							Type:     schema.TypeList,
 							Computed: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_function": {
