@@ -47,6 +47,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 Optional:
 
 - `change` (Block List) (see [below for nested schema](#nestedblock--rule--change))
+- `log` (Block List) (see [below for nested schema](#nestedblock--rule--log))
 - `threshold` (Block List) (see [below for nested schema](#nestedblock--rule--threshold))
 
 Read-Only:
@@ -54,7 +55,6 @@ Read-Only:
 - `count` (Block List) (see [below for nested schema](#nestedblock--rule--count))
 - `facet` (Block List) (see [below for nested schema](#nestedblock--rule--facet))
 - `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
-- `log` (List of Object) (see [below for nested schema](#nestedatt--rule--log))
 - `promote` (Block List) (see [below for nested schema](#nestedblock--rule--promote))
 - `source_column` (String)
 
@@ -71,6 +71,22 @@ Read-Only:
 - `baseline_time` (String)
 - `change_type` (String)
 - `compare_values` (List of Number)
+- `lookback_time` (String)
+
+
+<a id="nestedblock--rule--log"></a>
+### Nested Schema for `rule.log`
+
+Optional:
+
+- `compare_values` (List of Number)
+- `expression_summary` (String) Short summary or comment of how the data for monitor is queried.
+- `log_stage_id` (String) An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
+- `source_log_dataset` (String) ID of the dataset that contains logs for preview.
+
+Read-Only:
+
+- `compare_function` (String)
 - `lookback_time` (String)
 
 
@@ -114,19 +130,6 @@ Read-Only:
 
 - `columns` (List of String)
 - `group_name` (String)
-
-
-<a id="nestedatt--rule--log"></a>
-### Nested Schema for `rule.log`
-
-Read-Only:
-
-- `compare_function` (String)
-- `compare_values` (List of Number)
-- `expression_summary` (String)
-- `log_stage_id` (String)
-- `lookback_time` (String)
-- `source_log_dataset` (String)
 
 
 <a id="nestedblock--rule--promote"></a>
