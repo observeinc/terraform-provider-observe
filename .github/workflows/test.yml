@@ -37,7 +37,7 @@ jobs:
           OBSERVE_FILEDROP_ROLE_ARN: ${{ vars.OBSERVE_FILEDROP_ROLE_ARN }}
 
           TF_LOG: ${{ runner.debug == '1' && 'DEBUG' || 'ERROR' }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: reports
