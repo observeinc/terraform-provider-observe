@@ -64,7 +64,7 @@ jobs:
           GORELEASER_PREVIOUS_TAG: ${{ inputs.previous-tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: archives
           path: |
