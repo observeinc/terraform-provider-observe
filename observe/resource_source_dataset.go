@@ -192,7 +192,13 @@ func newSourceDatasetConfig(data *schema.ResourceData) (*gql.DatasetDefinitionIn
 		})
 	}
 
-	return &input, &sourceInput, nil
+	// Check that the `valid_from_field` refers to an actual field
+	for _, field := range sourceInput.Fields {
+		if validFromField == field.Name {
+			return &input, &sourceInput, nil
+		}
+	}
+	return nil, nil, fmt.Errorf("valid_from_field %q does not refer to a valid field", validFromField)
 }
 
 func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
