@@ -248,7 +248,11 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil {
-		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage)
+		stages := make([]*gql.StageQuery, 0)
+		for _, stage := range d.Transform.Current.Query.Stages {
+			stages = append(stages, &stage)
+		}
+		_, err := flattenAndSetQuery(data, stages, d.Transform.Current.Query.OutputStage)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

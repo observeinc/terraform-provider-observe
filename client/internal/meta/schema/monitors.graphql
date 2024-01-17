@@ -751,6 +751,15 @@ type EmailAction implements MonitorAction & ChannelAction @goModel(model: "obser
     targetAddresses: [String!]!
     targetUserStates: [EmailActionUserState!]! @goField(forceResolver:true)
     targetEmailStates: [EmailActionEmailState!]! @goField(forceResolver:true)
+
+    # Status of the Action based on all listed email address states
+    status: ActionStatus! @goField(forceResolver:true)
+}
+
+enum ActionStatus @goModel(model: "observe/meta/metatypes.ActionStatus") {
+    Ok
+    Pending
+    Error
 }
 
 enum EmailActionTargetState @goModel(model: "observe/meta/metatypes.AddressState") {

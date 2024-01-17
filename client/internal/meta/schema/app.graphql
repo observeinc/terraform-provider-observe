@@ -26,6 +26,7 @@ extend type Mutation {
     createApp(workspaceId: ObjectId!, app: AppInput!): App!
     updateApp(id: ObjectId!, app: AppInput!): App!
     deleteApp(id: ObjectId!): ResultStatus!
+    installApp(workspaceId: ObjectId!, moduleId: String!, variables: [AppVariableInput!]): App!
 
     createFolder(workspaceId: ObjectId!, folder: FolderInput!): Folder!
     updateFolder(id: ObjectId!, folder: FolderInput!): Folder!
@@ -143,7 +144,7 @@ type AppChangeCount @goModel(model: "observe/meta/metatypes.AppChangeCount") {
 }
 
 type AppResourceChange @goModel(model: "observe/meta/metatypes.AppResourceChange") {
-    resourceType: ObjectKind!
+    resourceType: ORNType!
     counts: [AppChangeCount!]!
 }
 
@@ -194,6 +195,7 @@ enum AppDataSourceKind @goModel(model: "observe/meta/metatypes.AppDataSourceKind
     Documentation
     Token
     Poller
+    Filedrop
 }
 
 """
@@ -243,7 +245,10 @@ type AppDataSource implements WorkspaceObject & AuditedObject @goModel(model: "o
     # data source specific fields
     sourceUrl: String!
     variables: [AppVariable!]
-    instructions: String!
+    instructions: String! @goField(forceResolver:true)
+    preInstallInstructions: String! @goField(forceResolver:true)
+    postInstallInstructions: String @goField(forceResolver:true)
+    outputs: JsonObject! @goField(forceResolver:true)
 }
 
 type AppDataConnection @goModel(model: "observe/meta/metatypes.AppDataConnection") {

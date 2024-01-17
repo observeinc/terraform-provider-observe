@@ -61,8 +61,10 @@ func (client *Client) ListDatasets(ctx context.Context) (ds []*Dataset, err erro
 		return nil, err
 	}
 	result := make([]*Dataset, 0)
-	for _, d := range resp.Datasets {
-		result = append(result, d.Datasets...)
+	for _, ds := range resp.Datasets {
+		for _, d := range ds.Datasets {
+			result = append(result, &d)
+		}
 	}
 	return result, nil
 }

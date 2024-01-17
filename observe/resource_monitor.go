@@ -819,7 +819,11 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage)
+	stages := make([]*gql.StageQuery, 0)
+	for _, stage := range monitor.Query.Stages {
+		stages = append(stages, &stage)
+	}
+	stageIds, err := flattenAndSetQuery(data, stages, monitor.Query.OutputStage)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

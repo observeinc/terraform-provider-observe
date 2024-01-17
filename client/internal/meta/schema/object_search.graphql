@@ -226,7 +226,7 @@ type DatasetWatchUpdate @goModel(model: "observe/meta/metatypes.DatasetWatchUpda
     updated: [Dataset!]
     deleted: [ObjectId!]
     """
-    when only keys change, thos datasets are put in `related` not `updated`
+    when only keys change, those datasets are put in `related` not `updated`
     """
     related: [Dataset!]
     error: String
@@ -259,6 +259,12 @@ input MetricHeuristicsOptions @goModel(model: "observe/meta/metatypes.MetricHeur
 type MetricSearchResult @goModel(model: "observe/meta/metatypes.MetricSearchResult") {
     matches: [MetricMatch!]!
     datasets: [Dataset!]!
+    """
+    Shows how many metrics were matched in this search term. Note that it's not necessary
+    for all of them to be returned in the `matches` field, as the returned matches is limited
+    by the globalLimit and perDatasetLimit specified in the metricSearch request.
+    """
+    numSearched: Int64!
 }
 
 type MetricMatch @goModel(model: "observe/meta/metatypes.MetricMatch") {

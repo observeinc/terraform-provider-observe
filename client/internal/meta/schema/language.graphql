@@ -3,7 +3,7 @@ extend type Query {
     """
     the QueryParams are optional -- some defaults will be used if you don't put them in
     """
-    checkQueries(queries: MultiStageQueryInput!, params: QueryParams): [CompilationResult]
+    checkQueries(queries: MultiStageQueryInput!, params: QueryParams): [CompilationResult!]!
 
     verbsAndFunctions: VerbsAndFunctions!
     platformInterfaces: [InterfaceDefinition!]!

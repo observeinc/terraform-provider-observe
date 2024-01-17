@@ -2,6 +2,24 @@
 
 # ---- Customer properties ----
 
+type LayeredCustomerContractLimit @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimit") {
+    ingestLogGbPerDay: Int64
+    ingestMetricDpm: Int64
+    ingestSpanGbPerDay: Int64
+    ingestTotalGbPerDay: Int64
+    queryCreditsPerDay: Float
+    transformCreditsPerDay: Float
+}
+
+input LayeredCustomerContractLimitInput @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimitInput") {
+    ingestLogGbPerDay: Int64 @goField(forceResolver: true)
+    ingestMetricDpm: Int64 @goField(forceResolver: true)
+    ingestSpanGbPerDay: Int64 @goField(forceResolver: true)
+    ingestTotalGbPerDay: Int64 @goField(forceResolver: true)
+    queryCreditsPerDay: Float @goField(forceResolver: true)
+    transformCreditsPerDay: Float @goField(forceResolver: true)
+}
+
 type LayeredCustomerCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomerCustomer") {
     snowflakeShareName: String
 }
@@ -48,10 +66,12 @@ input LayeredCustomerMonitorInput @goModel(model:"observe/meta/metatypes.Layered
 
 type LayeredCustomerQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernor") {
     creditsPerDay: Float
+    throttledLimitCreditsPerDay: Float
 }
 
 input LayeredCustomerQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernorInput") {
     creditsPerDay: Float @goField(forceResolver: true)
+    throttledLimitCreditsPerDay: Float @goField(forceResolver: true)
 }
 
 type LayeredCustomerScanner @goModel(model:"observe/meta/metatypes.LayeredCustomerScanner") {
@@ -73,6 +93,7 @@ input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatyp
 }
 
 type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
+    contractLimit: LayeredCustomerContractLimit!
     customer: LayeredCustomerCustomer!
     dataRetention: LayeredCustomerDataRetention!
     dataset: LayeredCustomerDataset!
@@ -84,6 +105,7 @@ type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
 }
 
 input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
+    contractLimit: LayeredCustomerContractLimitInput
     customer: LayeredCustomerCustomerInput
     dataRetention: LayeredCustomerDataRetentionInput
     dataset: LayeredCustomerDatasetInput

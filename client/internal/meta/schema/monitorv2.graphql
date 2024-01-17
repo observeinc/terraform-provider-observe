@@ -1,0 +1,291 @@
+# Monitors allow users to detect changes or conditions in their datasets and trigger alerts (v2)
+# this file is auto-generated, do not edit
+extend type Query {
+    monitorV2(id: ObjectId!): MonitorV2!
+    searchMonitorV2(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorV2SearchResult!
+}
+
+extend type Mutation {
+    createMonitorV2(workspaceId: ObjectId!, input: MonitorV2Input!): MonitorV2!
+    updateMonitorV2(id: ObjectId!, input: MonitorV2Input!): MonitorV2!
+    deleteMonitorV2(id: ObjectId!): ResultStatus!
+}
+
+enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmLevel") {
+  Critical
+  Error
+  Informational
+  None
+  Warning
+}
+
+enum MonitorV2ComparisonFunction @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonFunction") {
+  Equal
+  Greater
+  GreaterOrEqual
+  Less
+  LessOrEqual
+  NotEqual
+}
+
+enum MonitorV2RuleKind @goModel(model: "observe/meta/metatypes.MonitorV2RuleKind") {
+  Count
+  Threshold
+}
+
+type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2") {
+    # payload
+    """
+    Disables evaluation of the monitor, but preserves its configuration and history
+    """
+    disabled: Boolean!
+    """
+    A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
+
+    """
+    comment: String
+    """
+    The last run statistics. This type is also what gets emitted into the datastream for historical purposes.
+
+    """
+    lastRunStats: MonitorV2Stats
+    """
+    The timestamp of the last error or warning message emited to the monitoring datastream. This value can be filtered or used to inform whether the user should be directed to investigate the monitor's log messages for problems to remediate.
+
+    """
+    lastErrorTime: Time
+    """
+    The timestamp of the last alarm this monitor generated. This value can be filtered or used to inform if the user should look into the historical log of detection events. note: This value may be quite recent but for a non-active alarm in the case the event detected was a one-shot event.
+
+    """
+    lastAlarmTime: Time
+    definition: MonitorV2Definition!
+    """
+    Describes the type of each of the rules in the definition (they must all be the same type).
+
+    """
+    ruleKind: MonitorV2RuleKind!
+    """
+    The output dataset identifier of this monitor. This can be used to query information about the dataset and all upstream dependencies using dataset APIs.
+
+    """
+    outputDatasetID: ObjectId
+    """
+    ActiveAlarms enumerates the active alarm instances for this monitor.
+
+    """
+    activeAlarms: [MonitorV2Alarm!]! @goField(forceResolver: true)
+    """
+    ActiveAlarmCount returns the number of active alarms. A non-zero count here is the same as saying "this monitor is triggering". This value, in conjunction with lastAlarmTime can inform which monitors in a list view may be most interesting to bring to attention.
+
+    """
+    activeAlarmCount: Int64! @goField(forceResolver: true)
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
+    # payload
+    disabled: Boolean!
+    comment: String
+    # not in input: lastRunStats: MonitorV2StatsInput
+    # not in input: lastErrorTime: Time
+    # not in input: lastAlarmTime: Time
+    definition: MonitorV2DefinitionInput!
+    ruleKind: MonitorV2RuleKind!
+    # not in input: outputDatasetID: ObjectId
+    # resolver: activeAlarms: [MonitorV2AlarmInput!]!
+    # resolver: activeAlarmCount: Int64!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorV2SearchResult @goModel(model: "observe/meta/metatypes.MonitorV2SearchResult") {
+    results: [MonitorV2!]!
+}
+# MonitorV2Definition describes the configuration logic that defines what a monitor to evaluate to detect what the user wants.
+
+type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Definition") {
+    # payload
+    """
+    InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the original dataset(s) and other transform information that the user selected to create "Create Monitor".
+
+    """
+    inputQuery: MultiStageQuery!
+    """
+    Rules are one or more instances of a MonitorV2Rule, which all must be of the same MonitorRuleKind as specified in `ruleKind`. Rules should be constructed logically such that a state transition from null->Warning implies a transition from null->Informational as well.
+
+    """
+    rules: [MonitorV2Rule!]!
+    """
+    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+
+    """
+    lookbackTime: Duration
+    """
+    GroupByGroups describes the groups that logically separate events/rows/etc from each other.
+
+    """
+    groupByGroups: [MonitorGroupInfo!]
+}
+
+input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
+    # payload
+    inputQuery: MultiStageQueryInput!
+    rules: [MonitorV2RuleInput!]!
+    lookbackTime: Duration
+    groupByGroups: [MonitorGroupInfoInput!]
+}
+
+type MonitorV2Rule @goModel(model: "observe/meta/metatypes.MonitorV2Rule") {
+    # payload
+    """
+    Level is the severity level to assign to a rule's conditions being matched.
+
+    """
+    level: MonitorV2AlarmLevel!
+    count: MonitorV2CountRule
+}
+
+input MonitorV2RuleInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleInput") {
+    # payload
+    level: MonitorV2AlarmLevel!
+    count: MonitorV2CountRuleInput
+}
+
+type MonitorV2CountRule @goModel(model: "observe/meta/metatypes.MonitorV2CountRule") {
+    # payload
+    compareFn: MonitorV2ComparisonFunction!
+    """
+    compareValue is the right-side value for comparisons that use it (like x > 10, this is 10).
+
+    """
+    compareValue: Number!
+}
+
+input MonitorV2CountRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2CountRuleInput") {
+    # payload
+    compareFn: MonitorV2ComparisonFunction!
+    compareValue: Number!
+}
+
+type MonitorV2Stats @goModel(model: "observe/meta/metatypes.MonitorV2Stats") {
+    # payload
+    monitorID: ObjectId!
+    """
+    OutputDatasetId is the monitor's output dataset id, which is the dataset that feeds monitor evaluation.
+
+    """
+    outputDatasetID: ObjectId!
+    """
+    WindowStart is the minimum window start time seen in the dataset updates for this run. In most cases, this will be the start of the single update event.
+
+    """
+    windowStart: Time!
+    """
+    WindowEnd is the maximum window end time seen in the dataset updates for this run.
+    """
+    windowEnd: Time!
+    """
+    EnqueueTime is the time when the work item for this run was created and enqueued. This will be the time we saw the update from the transformer, or the time we replayed the updates table.
+
+    """
+    enqueueTime: Time!
+    """
+    StartTime is the time at which the work was actually started. StartTime - EnqueueTime describes how long the work sat in the work queue waiting to run.
+
+    """
+    startTime: Time!
+    """
+    EndTime is the time at which the work completed. EndTime - StartTime is how long result query and evaluation took. This time will pretty much be entirely the dataset query in most cases.
+
+    """
+    endTime: Time!
+    """
+    NumDatasetRows is the number of dataset rows that were queried and iterated to generate results.
+    """
+    numDatasetRows: Int64!
+    """
+    NumReadyAlarmStates is the number of MonitorAlarmState's that were generated that have a ValidAfter time that is satisfied. What that means for you is that this is the number of alarm states sent to the state-transition logic (detection logic) for comparison.
+
+    """
+    numReadyAlarmStates: Int64!
+    """
+    NumFutureAlarmStates is the number of MonitorAlarmState's that were generated that have a ValidAfter time that is not satisfied. What that means for you is that this is the number of alarm states that are predictions, which is to say "these results are going to be true if we don't see any updates to invalidate them".
+
+    """
+    numFutureAlarmStates: Int64!
+}
+
+input MonitorV2StatsInput @goModel(model: "observe/meta/metatypes.MonitorV2StatsInput") {
+    # payload
+    monitorID: ObjectId!
+    outputDatasetID: ObjectId!
+    windowStart: Time!
+    windowEnd: Time!
+    enqueueTime: Time!
+    startTime: Time!
+    endTime: Time!
+    numDatasetRows: Int64!
+    numReadyAlarmStates: Int64!
+    numFutureAlarmStates: Int64!
+}
+
+# MonitorV2Alarm is a peek into the internal detection state tracking (which has finite retention). The purpose of object is not for an historical record, that is serviced by the Monitoring datastream. Instead, this object should be used to inform the user of active alarms on monitors so that they can decide if they want to dive into the datastream and look at the real Alarms (which are synthesized resources from DetectionEvents by the monitor).
+
+type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
+    # payload
+    id: String!
+    """
+    Start is the earliest timestamp for which the monitor has generated detection events. It is not the authoritative start time of the monitor's criteria, rather represents the current conclusion about when the criteria began matching.
+
+    """
+    start: Time!
+    """
+    End is the latest timestamp for which the monitor is projecting the criteria are met. If the active flag is false, this value can still be extended due to late-arriving data but it currently represents the monitor's current conclusion about when the criteria were no longer satisfied. If the active flag is true, then this is just the latest time for which the criteria are met.
+
+    """
+    end: Time!
+    """
+    IsActive indicates if the monitor is tracking this Alarm as not having yet satisified the crtieria to conclude the alarm is done. This can be for recent alarms but also can be for old alarms that have been extended due to late arriving data and have not been ended again. note: For now, this should always be true as the only feature supported is listing active alarms. Historical analysis should be done via the Monitoring datastream.
+
+    """
+    isActive: Boolean!
+    """
+    Level is the threshold the user configured in the monitor to
+    """
+    level: MonitorV2AlarmLevel!
+}
+
+input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2AlarmInput") {
+    # payload
+    id: String!
+    start: Time!
+    end: Time!
+    isActive: Boolean!
+    level: MonitorV2AlarmLevel!
+}
+

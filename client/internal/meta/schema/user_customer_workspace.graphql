@@ -5,7 +5,7 @@ extend type Query {
     customer(id: CustomerId!): Customer
     workspace(id: ObjectId, label: String): Project
 
-    projects: [Project]!
+    projects: [Project!]!
     project(projectId: ObjectId!): Project
 
     """
@@ -147,13 +147,18 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
     """
     visible: Boolean!
 
-    channels: [Channel]! @goField(forceResolver:true)
-    datasets: [Dataset]! @goField(forceResolver:true)
-    datastreams: [Datastream]! @goField(forceResolver:true)
-    folders: [Folder]! @goField(forceResolver:true)
-    monitors: [Monitor]! @goField(forceResolver:true)
-    pollers(kind: PollerKind): [Poller]! @goField(forceResolver:true)
-    worksheets(search: String): [Worksheet]! @goField(forceResolver:true)
+    """
+    True if there's recent data in any non-system datastream within the workspace
+    """
+    hasData: Boolean! @goField(forceResolver:true)
+
+    channels: [Channel!]! @goField(forceResolver:true)
+    datasets: [Dataset!]! @goField(forceResolver:true)
+    datastreams: [Datastream!]! @goField(forceResolver:true)
+    folders: [Folder!]! @goField(forceResolver:true)
+    monitors: [Monitor!]! @goField(forceResolver:true)
+    pollers(kind: PollerKind): [Poller!]! @goField(forceResolver:true)
+    worksheets(search: String): [Worksheet!]! @goField(forceResolver:true)
     bookmarkGroups: [BookmarkGroup!] @goField(forceResolver:true)
     dashboards: [DashboardRef!]! @goField(forceResolver:true)
 
@@ -174,18 +179,47 @@ input WorkspaceInput @goModel(model: "observe/meta/metatypes.WorkspaceInput") {
 
 input CustomerInput @goModel(model: "observe/meta/metatypes.CustomerInput") {
     timezone: String
-    emailDomains: [String]
+    emailDomains: [String!]
+}
+
+enum CustomerType @goModel(model: "observe/meta/metatypes.CustomerType") {
+    SelfTrial
+    Trial
+    Paid
+    Internal
+    Invalid
+    Disabled
+}
+
+enum CustomerBillingType @goModel(model: "observe/meta/metatypes.CustomerBillingType") {
+    Invalid
+    Unset
+    Ingest
+    Usage
+    IngestV2
+}
+
+type CustomerTrialInfo @goModel(model: "observe/meta/metatypes.CustomerTrialInfo") {
+    adminName: String!
+    adminEmail: String!
+    apps: [String!]!
+    primaryApp: String!
+    demoApp: String!
+    disableTime: Time!
 }
 
 type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     id: CustomerId!
     label: String!
     timezone: String!
-    emailDomains: [String]!
+    type: CustomerType!
+    billingType: CustomerBillingType!
+    emailDomains: [String!]!
     sso: CustomerSso! @goField(forceResolver:true)
-    users: [User]! @goField(forceResolver:true)
-    workspaces(search: String): [Project]! @goField(forceResolver:true)
+    users: [User!]! @goField(forceResolver:true)
+    workspaces(search: String): [Project!]! @goField(forceResolver:true)
     ingestInfo: IngestInfo! @goField(forceResolver:true)
+    trialInfo: CustomerTrialInfo @goField(forceResolver:true)
 }
 
 
@@ -265,8 +299,8 @@ type User @goModel(model: "observe/meta/metatypes.User") {
     comment: String
     expirationTime: Time
     customer: Customer @goField(forceResolver:true)
-    workspaces(search: String): [Project]! @goField(forceResolver:true)
-    worksheets(search: String): [Worksheet]! @goField(forceResolver:true)
+    workspaces(search: String): [Project!]! @goField(forceResolver:true)
+    worksheets(search: String): [Worksheet!]! @goField(forceResolver:true)
     blobs(kind: String): [Blob!] @goField(forceResolver:true)
     bookmarkGroups(includeWorkspace: ObjectId): [BookmarkGroup!] @goField(forceResolver:true)
 
@@ -355,6 +389,8 @@ enum BookmarkKind @goModel(model: "observe/meta/metatypes.BookmarkKind") {
   Dashboard
   LogExplorer
   MetricExplorer
+  ResourceExplorer
+  TraceExplorer
 }
 
 
