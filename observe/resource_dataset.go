@@ -265,11 +265,8 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
-	inputstages := make([]*gql.StageQuery, 0)
-	for _, stage := range gqlstages {
-		inputstages = append(inputstages, &stage)
-	}
-	queryData, err := flattenQuery(inputstages, outputStage)
+
+	queryData, err := flattenQuery(gqlstages, outputStage)
 	if err != nil {
 		return nil, err
 	}

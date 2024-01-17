@@ -463,7 +463,7 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 // 	return diags
 // }
 
-func flattenQuery(gqlStages []*gql.StageQuery, outputStage string) (*Query, error) {
+func flattenQuery(gqlStages []gql.StageQuery, outputStage string) (*Query, error) {
 	query := &Query{Inputs: make(map[string]*Input)}
 
 	// first reconstruct all inputs
