@@ -265,12 +265,15 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery, outputStage string) ([]string, error) {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, error) {
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
-
-	queryData, err := flattenQuery(gqlstages, outputStage)
+	inputstages := make([]*gql.StageQuery, 0)
+	for _, stage := range gqlstages {
+		inputstages = append(inputstages, &stage)
+	}
+	queryData, err := flattenQuery(inputstages, outputStage)
 	if err != nil {
 		return nil, err
 	}
