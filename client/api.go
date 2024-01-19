@@ -1198,6 +1198,9 @@ func (c *Client) CreateFiledrop(ctx context.Context, workspaceId string, datastr
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	result, err := c.Meta.CreateFiledrop(ctx, workspaceId, datastreamId, input)
 	if err != nil {
 		return nil, err
@@ -1210,6 +1213,9 @@ func (c *Client) UpdateFiledrop(ctx context.Context, id string, input *meta.File
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
 	}
 	result, err := c.Meta.UpdateFiledrop(ctx, id, input)
 	if err != nil {
