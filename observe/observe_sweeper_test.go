@@ -20,12 +20,12 @@ func init() {
 			"observe_dataset",
 			"observe_monitor",
 			"observe_poller",
-			"observe_datastream",
-			"observe_folder",
 			"observe_preferred_path",
 			"observe_bookmark_group",
 			"observe_worksheet",
 			"observe_app",
+			"observe_datastream",
+			"observe_folder",
 			"observe_rbac_statement",
 		},
 	})
@@ -34,8 +34,8 @@ func init() {
 		F:    datasetSweeperFunc,
 		Dependencies: []string{
 			"observe_preferred_path",
-			"observe_datastream",
 			"observe_app",
+			"observe_datastream",
 			"observe_dataset_outbound_share",
 		},
 	})
