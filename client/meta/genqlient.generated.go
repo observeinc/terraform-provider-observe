@@ -5189,6 +5189,7 @@ type PollerHTTPRuleInput struct {
 	Decoder *PollerHTTPDecoderInput `json:"decoder"`
 	Follow  *string                 `json:"follow"`
 }
+
 // GetMatch returns PollerHTTPRuleInput.Match, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRuleInput) GetMatch() *PollerHTTPRequestInput { return v.Match }
 
