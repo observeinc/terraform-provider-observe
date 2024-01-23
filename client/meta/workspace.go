@@ -47,7 +47,11 @@ func (client *Client) ListWorkspaces(ctx context.Context) ([]*Workspace, error) 
 	if err != nil {
 		return nil, err
 	}
-	return resp.Workspaces, nil
+	res := make([]*Workspace, 0)
+	for _, workspace := range resp.Workspaces {
+		res = append(res, &workspace)
+	}
+	return res, nil
 }
 
 func (w *Workspace) Oid() *oid.OID {

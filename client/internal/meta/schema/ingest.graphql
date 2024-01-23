@@ -68,6 +68,12 @@ type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
     totalVolumeBytes: Int64!
 }
 
+enum DatastreamState @goModel(model: "observe/meta/metatypes.DatastreamState") {
+    Disabled
+    Enabled
+    LiveMode
+}
+
 type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datastream") {
     id: ObjectId!
     name: String!
@@ -85,11 +91,13 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
     updatedDate: Time!
-    disabled: Boolean!
+    disabled: Boolean! @deprecated(reason: "use state instead")
+    state: DatastreamState!
     tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
     filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
+    externalSourceId: ObjectId
 }
 
 input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
@@ -97,6 +105,7 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     description: String
     iconUrl: String
     disabled: Boolean
+    externalSourceId: ObjectId
 }
 
 interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {
@@ -265,6 +274,7 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
 
     requests: [PollerHTTPRequestConfig!]
     rules: [PollerHTTPRuleConfig!]
+    timestamps: [PollerHTTPTimestampConfig!]
 }
 
 
@@ -282,6 +292,32 @@ type PollerHTTPRequestConfig @goModel(model: "observe/meta/metatypes.PollerHTTPR
    body: String
    headers: JsonObject
    params: JsonObject
+}
+
+enum PollerHTTPTimestampFormatScheme @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampFormatScheme") {
+    ANSIC
+    UnixDate
+    RubyDate
+    RFC822
+    RFC822Z
+    RFC850
+    RFC1123
+    RFC1123Z
+    RFC3339
+    RFC3339Nano
+    Kitchen
+    Unix
+    UnixMilli
+    UnixMicro
+    UnixMano
+}
+
+type PollerHTTPTimestampConfig @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampInput") {
+    name: String
+    source: String
+    format: PollerHTTPTimestampFormatScheme
+    offset: String
+    truncate: String
 }
 
 type PollerHTTPRuleConfig @goModel(model: "observe/meta/metatypes.PollerHTTPRuleInput") {
@@ -359,6 +395,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     gcpConfig: PollerGCPMonitoringInput
     mongoDBAtlasConfig: PollerMongoDBAtlasInput
     confluentCloudConfig: PollerConfluentCloudInput
+    cloudwatchMetricsConfig: PollerCloudwatchMetricsInput
     skipExternalValidation: Boolean
 
     """
@@ -383,6 +420,15 @@ input PollerHTTPInput @goModel(model: "observe/meta/metatypes.PollerHTTPInput") 
     template: PollerHTTPRequestInput
     requests: [PollerHTTPRequestInput!]
     rules: [PollerHTTPRuleInput!]
+    timestamps: [PollerHTTPTimestampInput!]
+}
+
+input PollerHTTPTimestampInput @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampInput") {
+    name: String
+    source: String
+    format: PollerHTTPTimestampFormatScheme
+    offset: String
+    truncate: String
 }
 
 input PollerHTTPRequestInput @goModel(model: "observe/meta/metatypes.PollerHTTPRequestInput") {
@@ -425,4 +471,25 @@ input PollerMongoDBAtlasInput @goModel(model: "observe/meta/metatypes.PollerMong
 input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerConfluentCloudInput") {
     key: String!
     secret: String!
+}
+
+input PollerCloudwatchMetricsInput @goModel(model: "observe/meta/metatypes.PollerCloudwatchMetricsInput") {
+    filters: [PollerCloudwatchMetricsFilterInput!]!
+
+    delay:    Int64
+    period:   Int64
+
+    region:  [String!]
+    roleArn: String!
+}
+
+input PollerCloudwatchMetricsFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudwatchMetricsFilterInput") {
+    namespace:    String!
+    metricNames: [String!]
+    dimensions:   [PollerCloudwatchMetricsFilterDimensionInput!]
+}
+
+input PollerCloudwatchMetricsFilterDimensionInput @goModel(model: "observe/meta/metatypes.PollerCloudwatchMetricsFilterDimensionInput") {
+    name:  String!
+    value: String
 }

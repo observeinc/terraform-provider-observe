@@ -5,7 +5,7 @@ extend type Subscription {
     Does not time out, unless the websocket connection is closed or snowflake
     times out the underlying queries.
     """
-    datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!]): [TaskResult]!
+    datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [TaskResult]!
 
     """
     Similar endpoint as datasetProgressive, but runs this query in Live streaming mode. All stages are currently grouped by
@@ -37,7 +37,7 @@ extend type Subscription {
     * The query window is moved, not extended.
     * Until we have real incremental execution we always send "complete" (non-incremental) results to the client.
     """
-    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, parameterValues:[ParameterBindingInput!]): [LiveQueryResult]!
+    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [LiveQueryResult]!
 }
 
 extend type Query {
@@ -55,7 +55,7 @@ extend type Query {
     run the query, and export the results to a cursor, then prepare the export URL for
     that cursor with the same parameters as exportCursor(), and return that URL.
     """
-    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
+    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat, metadata: QueryMetadata): ExportCursorResult!
 
     """
     Pull more results from a cursor. rollupFilter provides more granular
@@ -72,7 +72,7 @@ extend type Query {
 
     Times out after 2 minutes.
     """
-    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!]): [TaskResult]!
+    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!], metadata: QueryMetadata): [TaskResult!]!
 
     stats(startTime: Time!, endTime: Time!, wkCols: [StatsWKCol!], dsQueries: [StatsDatasetQueryInput!]!): StatsQueryResult
 
@@ -81,6 +81,13 @@ extend type Query {
     complete stats than this limited API.
     """
     queryRateLimitingStats(workspaceId: ObjectId!): QueryRateLimitingStats
+
+    """
+    This is equivalent to queryRateLimitingStats{dailyAvgCreditUsagePast7Days}.
+    This is a separate query so that it can be called very frequently and as a
+    result, will do the minimal amount of work needed to get the result
+    """
+    queryWeeklyCreditUtilization: QueryWeeklyCreditUtilization
 
     """
     Returns some daily stats on the transform usage based on the data stored in the customer's
@@ -415,7 +422,9 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     errors: [TaskResultError!]
 
     """
-    True if this is a TaskResult for stats query whose data is sampled.
+    True if this is a TaskResult for
+    - stats query whose data is sampled.
+    - the sampled aggregation presentation option is enabled and sampling was applied.
     """
     isSampled: Boolean!
 
@@ -476,6 +485,10 @@ type ColumnStatTopKValue @goModel(model: "observe/meta/metatypes.ColumnStatTopKV
     The value
     """
     value: String!
+    """
+    The number of times this value may appear in the column.
+    """
+    count: Int64!
     """
     A value between 0 and 1 to show how frequent this value may appear in the
     column.  1 means the value appears 100% of the time, while ~0 means the
@@ -701,6 +714,7 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     metrics: [Metric!]! @goField(forceResolver:true)
     accelerable: Boolean!
     streamable: Boolean! @deprecated(reason:"renamed to accelerable") @goField(name:accelerable)
+    indexMetadata: IndexMetadata
     """
     alignment and alignedTimeRange are set when the produced result is on an
     aligned time grid. Both event table and interval/resource table can be aligned.
@@ -806,10 +820,14 @@ type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "ob
     message: String!
 
     """
-    Credits left in the credit budget that can be used right now, or null if no
-    rate limit is configured
+    Credits left in the credit budget and credits fraction that can be used right now
     """
     creditsRemainingInBudget: Float!
+    creditsFractionRemainingInBudget: Float!
+    """
+    Info of whether the customer was throttled by the QCM
+    """
+    throttled: Boolean!
 }
 
 """
@@ -850,6 +868,23 @@ type TaskResultWarningStaleResults implements TaskResultWarning @goModel(model: 
     text: String!
     message: String!
     staleness: [DatasetStalenessInfo!]!
+}
+
+"""
+Warning that a live mode session involves a source table type where we cannot speed up ingest.
+One example is external table, where we cannot influence from the customer's POV how often new
+data is ingested. For instance, the external Snowflake tables in O2 are updated by Snowflake
+and we have no handle, except polling for new data more often.
+"""
+type TaskResultWarningLiveModeSource implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningLiveModeSource") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
 }
 
 type DatasetStalenessInfo @goModel(model: "observe/meta/metatypes.DatasetStalenessInfo") {
@@ -961,6 +996,11 @@ Errors found in a given stage
 type StageErrors @goModel(model: "observe/meta/metatypes.StageErrors") {
     stageId: String!
     errors: [TaskResultError!]!
+    """
+    Tells if this stage is an "error root", meaning it has errors but no other
+    upstream stages have errors
+    """
+    isErrorRoot: Boolean!
 }
 
 """
@@ -1010,6 +1050,19 @@ type ResultMetadata @goModel(model: "observe/meta/metatypes.ResultMetadata") {
     hasMoreResults: Boolean!
 
     """
+    If true, the query is running incrementally. This means that there will be
+    more frequent updates to the result set. Each update replaces the results
+    that have been already delivered so far.
+    """
+    isIncremental: Boolean!
+
+    """
+    Queries that are executed in multiple parts will report how many time slices
+    have been executed so far.
+    """
+    incrementalSliceNumber: Int
+
+    """
     The actual windows of returned data.
     """
     effectiveWindows: [TimeRange!]!
@@ -1057,7 +1110,7 @@ What pieces of result to include in the response to an OPAL query.
 enum ResultKind @goModel(model: "observe/meta/metaparser.ResultKind") {
     ResultKindSchema      # Return the schema of the OPAL query
     ResultKindData        # Return the data of the OPAL query
-    ResultKindStats       # Return the stats on the data of the OPAL query
+    ResultKindStats       @deprecated(reason:"use ResultKindColumnStats and/or ResultKindVolumeStats")
     ResultKindColumnStats # Return column stats on the data of the OPAL query
     ResultKindVolumeStats # Return volume stats on the data of the OPAL query
     ResultKindSuppress    # Don't execute/return results
@@ -1070,6 +1123,14 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     unique ID that other stages can reference in their InputDefinitionInput
     """
     stageId: String! @goField(name:StageID)
+    """
+    What is the description of this stage (stage name)
+    """
+    description: String @deprecated(reason:"use metadata.description")
+    """
+    What component feature is this stage driving? i.e. filter bar, visualization etc.
+    """
+    component: String @deprecated(reason:"use metadata.component")
     """
     Which inputs are defined for this stage?
     """
@@ -1112,6 +1173,11 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     Parameter values for parameters scoped to this stage
     """
     parameterValues: [ParameterBindingInput!]
+    """
+    Additional metadata about the stage. Should not change the behavior of the query, and should
+    merely provide more context about how and where the stage is being used.
+    """
+    metadata: StageMetadata
 }
 
 """
@@ -1415,11 +1481,6 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     """
     limit: Int64
     """
-    defaultStats, if specified, calculates stats for any column that matches a
-    predetermined set of rules, and returns those stats.
-    """
-    defaultStats: DefaultStatsInput
-    """
     columnStats configuration
     """
     columnStats: ColumnStatsInput
@@ -1471,6 +1532,63 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     the pipeline
     """
     searchMatchKind: SearchMatchKind
+    """
+    Specifies the aggregation mode. Default is `Precise`.
+    """
+    aggregationMode: AggregationMode
+
+    """
+    This field is deprecated and will be ignored, but cannot be removed because
+    Terraform provider depends on it.
+    """
+    defaultStats: DefaultStatsInput @deprecated(reason:"Use columnStats and/or volumeStats")
+}
+
+"""
+Deprecated, and will return entirely empty result. Use ColumnStatsInput and/or VolumeStatsInput instead.
+We cannot remove it because the Terraform provider depends on it.
+"""
+input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInput") {
+    """
+    This field is deprecated and will be ignored
+    """
+    topKCount: Int64 @deprecated(reason:"use ColumnStatsInput.topKCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    maxNbHistograms: Int64 @deprecated(reason:"use ColumnStatsInput.maxNbHistograms")
+    """
+    This field is deprecated and will be ignored
+    """
+    histogramCount: Int64 @deprecated(reason:"use ColumnStatsInput.histogramBucketCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    sparklineBucketCount: Int64 @deprecated(reason:"use VolumeStatsInput.bucketCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    sparklineFunction: String @deprecated(reason:"DefaultStatsInput is deprecated")
+    """
+    This field is deprecated and will be ignored
+    """
+    includeTimestampColumns: Boolean @deprecated(reason:"DefaultStatsInput is deprecated")
+    """
+    This field is deprecated and will be ignored
+    """
+    useCompoundTopKForLinks: Boolean @deprecated(reason:"use ColumnStatsInput.useCompoundTopKForLinks")
+}
+
+enum AggregationMode @goModel(model: "observe/compiler/comptypes.AggregationMode") {
+    """
+    Run the query without sampling.
+    """
+    Precise,
+    """
+    Run the query with sampled aggregation enabled. The result is not
+    guaranteed to be sampled.
+    """
+    Sampled
 }
 
 enum RollupMode @goModel(model: "observe/compiler/comptypes.RollupMode") {
@@ -1486,7 +1604,13 @@ enum RollupMode @goModel(model: "observe/compiler/comptypes.RollupMode") {
     """
     Roll up the result if it is a Resource, otherwise don't roll up the result.
     """
-    Auto
+    Auto,
+    """
+    Roll up the result (by returning the last value + a bit describing whether
+    the value changed during the query window) if it is a Resource, otherwise
+    don’t roll up the result
+    """
+    LastValueAndChanged,
 }
 
 enum SearchMatchKind @goModel(model: "observe/meta/metatypes.SearchMatchKind") {
@@ -1514,56 +1638,6 @@ input RollupOptionInput @goModel(model: "observe/meta/metaparser.RollupOptionInp
     If set to true, explicitly disables rollup, even for a Resource
     """
     forceNoRollup: Boolean
-}
-
-input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInput") {
-    """
-    Something which is a string, or which is inferred to be an ID, will
-    return a list of the top K values + counts
-    """
-    topKCount: Int64
-    """
-    Maximum number of histograms to return.
-
-    Ingeger, float, duration columns return histograms.
-
-    Set to 0 to disable histograms.
-    Set to <0 for an unlimited number of histograms.
-    Set to null to let the backend decide a suitable limit.
-    """
-    maxNbHistograms: Int64
-    """
-    Number of buckets per histogram.
-
-    Set to 0 to disable histograms.
-    Set to null to let the backend decide.
-    """
-    histogramCount: Int64
-    """
-    Number of buckets per sparkline.
-
-    Integer, float, timestamp, duration columns return a sparkline.
-    The aggregate function is chosen by the backend based on the type of
-    column.
-
-    Set to 0 to disable sparklines.
-    Set to null to let the backend decide.
-    """
-    sparklineBucketCount: Int64
-    """
-    The function used to summarize buckets can be chosen; default is count()
-    """
-    sparklineFunction: String
-    """
-    If timestamp columns are included, they will be returned as
-    sparkline(count) (notwithstanding any sparklineFunction for float values)
-    """
-    includeTimestampColumns: Boolean
-    """
-    Whether to generate compound TopK for link columns. Note that this will
-    disable the normal TopK results for link columns.
-    """
-    useCompoundTopKForLinks: Boolean
 }
 
 input ColumnStatsInput @goModel(model: "observe/meta/metatypes.ColumnStatsInput") {
@@ -1744,9 +1818,36 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     creditsUsedPast24Hours: Float!
 
     """
+    Daily average credits used over the past 7 days
+    """
+    dailyAvgCreditUsagePast7Days: Float!
+
+    """
     Daily average credits used over the past 30 days
     """
     dailyAvgCreditUsagePast30Days: Float!
+}
+
+type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryWeeklyCreditUtilization") {
+    """
+    Total credits used over the past 7 days
+    """
+    creditUsagePast7Days: Float!
+
+    """
+    Total credits available for each week
+    """
+    weeklyCreditLimit: Float!
+
+    """
+    Total contract credits available for each week
+    """
+    weeklyContractCreditLimit: Float!
+
+    """
+    Total throttled credits available for each week
+    """
+    weeklyThrottledCreditLimit: Float!
 }
 
 type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.TransformRateLimitingStats") {
@@ -1763,4 +1864,66 @@ type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.Transfor
     actual timeframe in which the customer was active.
     """
     dailyOngoingTransformCreditsUsedPast30Days: Float!
+}
+
+"""
+Metadata a client can send together with an observe query. Should not change the
+behavior of the query, and should only provide some context around what this
+query is used for.
+"""
+input QueryMetadata @goModel(model: "observe/meta/metatypes.QueryMetadata") {
+    """
+    Observe site URL where the query is triggered
+    """
+    url: String
+    
+    """
+    Observe page type (dashboard, log explorer, etc.)
+    """
+    pageType: String
+
+    """
+    Associated observe entity of the page. For dashboard, it would be the
+    dashboard ID. For log explorer, it would be the dataset ID of the log
+    dataset, etc.
+    """
+    pageEntityId: ObjectId
+
+    """
+    For some page, there may be an inner tab structure and this logs which
+    tab the user is on.
+    """
+    pageTab: String
+
+    """
+    Extra stuff
+    """
+    extra: JsonObject
+}
+
+"""
+Metadata a client can send for a particular stage in a query. Should not change
+the behavior of the query, and should only provide some context around what this
+stage is used for.
+"""
+input StageMetadata @goModel(model: "observe/meta/metatypes.StageMetadata") {
+    """
+    Display name of the stage in the UI
+    """
+    displayName: String
+
+    """
+    Description of the stage
+    """
+    description: String
+
+    """
+    What component feature is this stage driving? i.e. filter bar, visualization etc.
+    """
+    component: String
+
+    """
+    Extra stuff
+    """
+    extra: JsonObject
 }

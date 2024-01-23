@@ -1,7 +1,7 @@
 extend type Query {
     dataset(id: ObjectId!): Dataset
     datasets(ids: [ObjectId!]!): [DatasetEnumerationResult!]!
-    pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath]!
+    pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath!]!
     pathsBetweenDatasets2(from: [ObjectId!]!, to: ObjectId!, limit: Int64, costModel: RelationshipCostAttributes): RelationshipPathResult!
 
     """
@@ -121,7 +121,7 @@ input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQue
 
 type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     outputStage: String!
-    stages: [StageQuery]!
+    stages: [StageQuery!]!
     parameters: [ParameterSpec!]!
     parameterValues: [ParameterBinding!]
     layout: JsonObject
@@ -144,7 +144,7 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
     stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
-    input: [InputDefinition]!
+    input: [InputDefinition!]!
     params: JsonObject
     pipeline: String!
     layout: JsonObject
@@ -271,6 +271,14 @@ type GroupingKey @goModel(model: "observe/compiler/comptypes.GroupingKey") {
     elements: [GroupingElement!]!
 }
 
+"""
+IndexMetadata represents the metadata information of a dataset of the result schema of a query.
+Currently only used for token index.
+"""
+type IndexMetadata @goModel(model: "observe/compiler/comptypes.IndexMetadata") {
+    columns: [String!]
+}
+
 type DatasetInputDataset @goModel(model: "observe/meta/metatypes.DatasetInputDataset") {
 	datasetId: ObjectId!,
 	inputRole: InputRole!,
@@ -317,6 +325,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
+    indexMetadata: IndexMetadata
 
     """
     Optional custom configured override value of the on demand materialization
@@ -475,7 +484,7 @@ type RelationshipPathElement @goModel(model: "observe/meta/metapath.Relationship
 }
 
 type RelationshipPathResult @goModel(model: "observe/meta/metapath.RelationshipPathResult") {
-    paths:    [RelationshipPath]!
+    paths:    [RelationshipPath!]!
     comments: [String!]!
     errors:   [String!]!
 }

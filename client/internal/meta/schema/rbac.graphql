@@ -96,6 +96,7 @@ extend type Mutation {
 }
 
 scalar ORN @goModel(model: "observe/authorization/id.ORN")
+scalar ORNType @goModel(model: "observe/authorization/id.ORNType")
 
 enum RbacRole @goModel(model: "observe/rbac/policy.Role") {
     Manager

@@ -27,26 +27,25 @@ extend type Query {
     Given some data, generate possible extraction actions on it.
     The 'columnName' is the name of the column, and the 'data' is an example of the data.
     Score the result of the extraction using scoreCodeCompletion().
+    The optional prompt lets you tune the extraction (could come from the user).
     """
-    getDataExtraction(data: String!, avoidColumnNames: [String!]): DataExtractionResponse!
+    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
 
-    """
-    When binding a particular context (or a new context) to a particular
-    object, call this function to allocate the appropriate context ID.
-    Modes let you specify specific modes (Auto is the default.)
-    Note that you can use this to re-start an existing conversation with
-    a new context, too, to "switch context".
-    """
-    setInferHelpContext(previousId:String, author:String, object:ORN!, mode:InferMode): InferResponse!
     """
     This is the o11y-as-command-line interface, to continue a session started with setInferHelpContext().
     You can also use this to start an un-bound session (that won't have context.)
     """
-    inferHelp(previousId:String, author:String, text:String!, mode:InferMode): InferResponse!
+    inferHelp(previousId:String, author:String, text:String!, mode:InferMode, options:InferOptionsInput): InferResponse!
     """
     Summarize a conversation
     """
-    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!): InferResponse!
+    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!, kind:SummaryKind, options:InferOptionsInput): InferResponse!
+}
+
+enum SummaryKind @goModel(model:"observe/meta/metascalar.SummaryKind") {
+    Summary
+    Timeline
+    Incident
 }
 
 extend type Mutation {
@@ -74,6 +73,15 @@ extend type Mutation {
     other value as key.
     """
     getOrMakeO11ySession(userKey: String!, lookback: Duration): O11ySessionInfo!
+
+    """
+    When binding a particular context (or a new context) to a particular
+    object, call this function to allocate the appropriate context ID.
+    Modes let you specify specific modes (Auto is the default.)
+    Note that you can use this to re-start an existing conversation with
+    a new context, too, to "switch context".
+    """
+    setInferHelpContext(previousId:String, author:String, object:ORN!, mode:InferMode): InferResponse!
 }
 
 type O11ySessionInfo @goModel(model:"observe/meta/metatypes.O11ySessionInfo") {
@@ -123,6 +131,8 @@ type HelpRecord @goModel(model:"observe/meta/metakind.HelpRecord") {
     query: String
     answer: String
     score: Int64
+    statements: [InferStatement!]
+    mode: InferMode
 }
 
 type CodeCompletionResponse @goModel(model:"observe/meta/metatypes.CodeCompletionResponse") {
@@ -134,6 +144,17 @@ type CodeCompletion @goModel(model:"observe/meta/metatypes.CodeCompletion") {
     insert: String
     line: Int64
     id: String!
+}
+
+type CodeCompletionColumn @goModel(model:"observe/meta/metatypes.CodeCompletionColumn") {
+    name: String!
+    type: String!
+}
+
+type CodeCompletionDataset @goModel(model:"observe/meta/metatypes.CodeCompletionDataset") {
+    refName: String!
+    datasetName: String!
+    schema: [CodeCompletionColumn!]!
 }
 
 type DataExtractionResponse @goModel(model:"observe/meta/metatypes.DataExtractionResponse") {
@@ -151,6 +172,12 @@ type InferResponse @goModel(model:"observe/meta/metatypes.InferResponse") {
     error: String
     id: String! @goField(name:"Idtok")
     answer: [InferStatement!]! # display these in order if there's more than one
+    mode: InferMode!
+}
+
+input InferOptionsInput @goModel(model:"observe/meta/metatypes.InferOptions") {
+    flags: [String!]
+    params: [ValueKeyValueInput!]
 }
 
 interface InferStatement @goModel(model:"observe/meta/metatypes.InferStatement") {
@@ -162,6 +189,7 @@ type ChatStatement implements InferStatement @goModel(model:"observe/meta/metaty
     author: String
     text: String!
     timestamp: Time
+    url: String # some clickable URL you might like
 }
 
 input ChatStatementInput @goModel(model:"observe/meta/metatypes.ChatStatement") {
@@ -175,7 +203,8 @@ type TableStatement implements InferStatement @goModel(model:"observe/meta/metat
     text: String!
     query: MultiStageQuery!
     endTime: Time!
-    minutes: JSONInt64!
+    seconds: JSONInt64!
+    startTime: Time!
 }
 
 enum O11yChartKind @goModel(model:"observe/meta/metatypes.O11yChartKind") {
@@ -188,7 +217,8 @@ type GraphStatement implements InferStatement @goModel(model:"observe/meta/metat
     text: String!
     query: MultiStageQuery!
     endTime: Time!
-    minutes: JSONInt64!
+    seconds: JSONInt64!
+    startTime: Time!
     chartKind: O11yChartKind!
 }
 
@@ -204,9 +234,21 @@ type ObjectListStatement implements InferStatement @goModel(model:"observe/meta/
 type ContextStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ContextStatement") {
     author: String
     text: String!
-    objectType: String!
-    objectId: ORN!
-    timeWindowStart: Time
-    timeWindowDuration: Duration
+    context: InferContext!
 }
 
+type ResetContextStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ResetContextStatement") {
+    author: String
+    text: String!
+}
+
+type InferContext @goModel(model:"observe/meta/metatypes.InferContext") {
+    contextType: String! @goField(name:"getObjectType")
+    contextObject: ObjectId
+    contextObjectName: String
+    contextSchema: [CodeCompletionColumn!]
+    contextDatasets: [CodeCompletionDataset!]
+    contextList: ObjectListStatement
+    contextStartTime: Time
+    contextDuration: Duration
+}

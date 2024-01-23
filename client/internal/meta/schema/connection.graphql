@@ -1,0 +1,37 @@
+extend type Query {
+    """
+    Return all connections for this customer, or all connections of a given kind.
+    If you have connection manager role, the credentials in the connection will
+    be included, else they will be redacted in the returned payload.
+    """
+    connections(kind: String): [Connection!]!
+}
+
+type Connection @goModel(model:"observe/restapiservices/connection.Connection") {
+    meta: ConnectionMeta!
+    config: ConnectionConfig!
+    state: ConnectionState!
+}
+
+type ConnectionMeta @goModel(model:"observe/restapiservices/connection.ConnectionMeta") {
+    id: ORN!
+    customerId: CustomerId!
+}
+
+type ConnectionConfig @goModel(model:"observe/restapiservices/connection.ConnectionConfig") {
+    kind: String!
+    xid: String!
+    comment: String!
+    remoteKey: String!
+    observeKey: String!
+    configData: ConfigData!
+}
+
+type ConnectionState @goModel(model:"observe/restapiservices/connection.ConnectionState") {
+    createdDate: Time!
+    createdBy: UserId!
+    updatedDate: Time!
+    updatedBy: UserId!
+}
+
+scalar ConfigData @goModel(model: "observe/restapiservices/connection.ConfigData")

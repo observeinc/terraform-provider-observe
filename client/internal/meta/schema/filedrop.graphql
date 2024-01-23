@@ -33,18 +33,18 @@ extend type Mutation {
 }
 
 enum FiledropEndpointType @goModel(model: "observe/meta/metatypes.FiledropEndpointType") {
-    S3
+  S3
 }
 
 enum FiledropProviderType @goModel(model: "observe/meta/metatypes.FiledropProviderType") {
-    Aws
+  Aws
 }
 
 enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
-    Disabled
-    Initializing
-    Running
-    Updating
+  Disabled
+  Initializing
+  Running
+  Updating
 }
 
 type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Filedrop") {

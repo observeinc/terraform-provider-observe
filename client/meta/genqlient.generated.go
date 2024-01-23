@@ -63,6 +63,16 @@ const (
 	AggregateFunctionMax AggregateFunction = "Max"
 )
 
+type AggregationMode string
+
+const (
+	// Run the query without sampling.
+	AggregationModePrecise AggregationMode = "Precise"
+	// Run the query with sampled aggregation enabled. The result is not
+	// guaranteed to be sampled.
+	AggregationModeSampled AggregationMode = "Sampled"
+)
+
 // App includes the GraphQL fields of App requested by the fragment App.
 // The GraphQL type's documentation follows.
 //
@@ -432,14 +442,16 @@ func (v *BookmarkInput) GetBookmarkKind() *BookmarkKind { return v.BookmarkKind 
 type BookmarkKind string
 
 const (
-	BookmarkKindDataset        BookmarkKind = "Dataset"
-	BookmarkKindWorksheet      BookmarkKind = "Worksheet"
-	BookmarkKindBookmarkgroup  BookmarkKind = "BookmarkGroup"
-	BookmarkKindMonitor        BookmarkKind = "Monitor"
-	BookmarkKindResource       BookmarkKind = "Resource"
-	BookmarkKindDashboard      BookmarkKind = "Dashboard"
-	BookmarkKindLogexplorer    BookmarkKind = "LogExplorer"
-	BookmarkKindMetricexplorer BookmarkKind = "MetricExplorer"
+	BookmarkKindDataset          BookmarkKind = "Dataset"
+	BookmarkKindWorksheet        BookmarkKind = "Worksheet"
+	BookmarkKindBookmarkgroup    BookmarkKind = "BookmarkGroup"
+	BookmarkKindMonitor          BookmarkKind = "Monitor"
+	BookmarkKindResource         BookmarkKind = "Resource"
+	BookmarkKindDashboard        BookmarkKind = "Dashboard"
+	BookmarkKindLogexplorer      BookmarkKind = "LogExplorer"
+	BookmarkKindMetricexplorer   BookmarkKind = "MetricExplorer"
+	BookmarkKindResourceexplorer BookmarkKind = "ResourceExplorer"
+	BookmarkKindTraceexplorer    BookmarkKind = "TraceExplorer"
 )
 
 type ChangeType string
@@ -1139,18 +1151,18 @@ func (v *DashboardParametersParameterSpecValueKindValueTypeSpecArrayItemTypeValu
 
 // DashboardStagesStageQuery includes the requested fields of the GraphQL type StageQuery.
 type DashboardStagesStageQuery struct {
-	Id       *string                                          `json:"id"`
-	Input    []*DashboardStagesStageQueryInputInputDefinition `json:"input"`
-	Params   *types.JsonObject                                `json:"params"`
-	Layout   *types.JsonObject                                `json:"layout"`
-	Pipeline string                                           `json:"pipeline"`
+	Id       *string                                         `json:"id"`
+	Input    []DashboardStagesStageQueryInputInputDefinition `json:"input"`
+	Params   *types.JsonObject                               `json:"params"`
+	Layout   *types.JsonObject                               `json:"layout"`
+	Pipeline string                                          `json:"pipeline"`
 }
 
 // GetId returns DashboardStagesStageQuery.Id, and is useful for accessing the field via an interface.
 func (v *DashboardStagesStageQuery) GetId() *string { return v.Id }
 
 // GetInput returns DashboardStagesStageQuery.Input, and is useful for accessing the field via an interface.
-func (v *DashboardStagesStageQuery) GetInput() []*DashboardStagesStageQueryInputInputDefinition {
+func (v *DashboardStagesStageQuery) GetInput() []DashboardStagesStageQueryInputInputDefinition {
 	return v.Input
 }
 
@@ -1662,8 +1674,8 @@ func (v *DatasetTransformCurrentTransformVersion) GetQuery() DatasetTransformCur
 
 // DatasetTransformCurrentTransformVersionQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type DatasetTransformCurrentTransformVersionQueryMultiStageQuery struct {
-	OutputStage string        `json:"outputStage"`
-	Stages      []*StageQuery `json:"stages"`
+	OutputStage string       `json:"outputStage"`
+	Stages      []StageQuery `json:"stages"`
 }
 
 // GetOutputStage returns DatasetTransformCurrentTransformVersionQueryMultiStageQuery.OutputStage, and is useful for accessing the field via an interface.
@@ -1672,7 +1684,7 @@ func (v *DatasetTransformCurrentTransformVersionQueryMultiStageQuery) GetOutputS
 }
 
 // GetStages returns DatasetTransformCurrentTransformVersionQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
-func (v *DatasetTransformCurrentTransformVersionQueryMultiStageQuery) GetStages() []*StageQuery {
+func (v *DatasetTransformCurrentTransformVersionQueryMultiStageQuery) GetStages() []StageQuery {
 	return v.Stages
 }
 
@@ -1798,10 +1810,11 @@ func (v *Datastream) GetWorkspaceId() string { return v.WorkspaceId }
 func (v *Datastream) GetDatasetId() string { return v.DatasetId }
 
 type DatastreamInput struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	IconUrl     *string `json:"iconUrl"`
-	Disabled    *bool   `json:"disabled"`
+	Name             string  `json:"name"`
+	Description      *string `json:"description"`
+	IconUrl          *string `json:"iconUrl"`
+	Disabled         *bool   `json:"disabled"`
+	ExternalSourceId *string `json:"externalSourceId"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -1815,6 +1828,9 @@ func (v *DatastreamInput) GetIconUrl() *string { return v.IconUrl }
 
 // GetDisabled returns DatastreamInput.Disabled, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
+
+// GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
 
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
@@ -1885,39 +1901,22 @@ func (v *DatastreamTokenInput) GetAppMetadata() *DatastreamTokenAppMetadataInput
 	return v.AppMetadata
 }
 
+// Deprecated, and will return entirely empty result. Use ColumnStatsInput and/or VolumeStatsInput instead.
+// We cannot remove it because the Terraform provider depends on it.
 type DefaultStatsInput struct {
-	// Something which is a string, or which is inferred to be an ID, will
-	// return a list of the top K values + counts
+	// This field is deprecated and will be ignored
 	TopKCount *types.Int64Scalar `json:"topKCount"`
-	// Maximum number of histograms to return.
-	//
-	// Ingeger, float, duration columns return histograms.
-	//
-	// Set to 0 to disable histograms.
-	// Set to <0 for an unlimited number of histograms.
-	// Set to null to let the backend decide a suitable limit.
+	// This field is deprecated and will be ignored
 	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms"`
-	// Number of buckets per histogram.
-	//
-	// Set to 0 to disable histograms.
-	// Set to null to let the backend decide.
+	// This field is deprecated and will be ignored
 	HistogramCount *types.Int64Scalar `json:"histogramCount"`
-	// Number of buckets per sparkline.
-	//
-	// Integer, float, timestamp, duration columns return a sparkline.
-	// The aggregate function is chosen by the backend based on the type of
-	// column.
-	//
-	// Set to 0 to disable sparklines.
-	// Set to null to let the backend decide.
+	// This field is deprecated and will be ignored
 	SparklineBucketCount *types.Int64Scalar `json:"sparklineBucketCount"`
-	// The function used to summarize buckets can be chosen; default is count()
+	// This field is deprecated and will be ignored
 	SparklineFunction *string `json:"sparklineFunction"`
-	// If timestamp columns are included, they will be returned as
-	// sparkline(count) (notwithstanding any sparklineFunction for float values)
+	// This field is deprecated and will be ignored
 	IncludeTimestampColumns *bool `json:"includeTimestampColumns"`
-	// Whether to generate compound TopK for link columns. Note that this will
-	// disable the normal TopK results for link columns.
+	// This field is deprecated and will be ignored
 	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks"`
 }
 
@@ -3659,15 +3658,15 @@ func (v *MonitorNotificationSpecNotificationSpecification) GetNotifyOnClose() *b
 
 // MonitorQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorQueryMultiStageQuery struct {
-	OutputStage string        `json:"outputStage"`
-	Stages      []*StageQuery `json:"stages"`
+	OutputStage string       `json:"outputStage"`
+	Stages      []StageQuery `json:"stages"`
 }
 
 // GetOutputStage returns MonitorQueryMultiStageQuery.OutputStage, and is useful for accessing the field via an interface.
 func (v *MonitorQueryMultiStageQuery) GetOutputStage() string { return v.OutputStage }
 
 // GetStages returns MonitorQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
-func (v *MonitorQueryMultiStageQuery) GetStages() []*StageQuery { return v.Stages }
+func (v *MonitorQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
 
 // MonitorRule includes the requested fields of the GraphQL interface MonitorRule.
 //
@@ -4555,6 +4554,59 @@ func (v *PollerChunkInput) GetEnabled() bool { return v.Enabled }
 // GetSize returns PollerChunkInput.Size, and is useful for accessing the field via an interface.
 func (v *PollerChunkInput) GetSize() *types.Int64Scalar { return v.Size }
 
+type PollerCloudwatchMetricsFilterDimensionInput struct {
+	Name  string  `json:"name"`
+	Value *string `json:"value"`
+}
+
+// GetName returns PollerCloudwatchMetricsFilterDimensionInput.Name, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsFilterDimensionInput) GetName() string { return v.Name }
+
+// GetValue returns PollerCloudwatchMetricsFilterDimensionInput.Value, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsFilterDimensionInput) GetValue() *string { return v.Value }
+
+type PollerCloudwatchMetricsFilterInput struct {
+	Namespace   string                                        `json:"namespace"`
+	MetricNames []string                                      `json:"metricNames"`
+	Dimensions  []PollerCloudwatchMetricsFilterDimensionInput `json:"dimensions"`
+}
+
+// GetNamespace returns PollerCloudwatchMetricsFilterInput.Namespace, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsFilterInput) GetNamespace() string { return v.Namespace }
+
+// GetMetricNames returns PollerCloudwatchMetricsFilterInput.MetricNames, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsFilterInput) GetMetricNames() []string { return v.MetricNames }
+
+// GetDimensions returns PollerCloudwatchMetricsFilterInput.Dimensions, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsFilterInput) GetDimensions() []PollerCloudwatchMetricsFilterDimensionInput {
+	return v.Dimensions
+}
+
+type PollerCloudwatchMetricsInput struct {
+	Filters []PollerCloudwatchMetricsFilterInput `json:"filters"`
+	Delay   *types.Int64Scalar                   `json:"delay"`
+	Period  *types.Int64Scalar                   `json:"period"`
+	Region  []string                             `json:"region"`
+	RoleArn string                               `json:"roleArn"`
+}
+
+// GetFilters returns PollerCloudwatchMetricsInput.Filters, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsInput) GetFilters() []PollerCloudwatchMetricsFilterInput {
+	return v.Filters
+}
+
+// GetDelay returns PollerCloudwatchMetricsInput.Delay, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsInput) GetDelay() *types.Int64Scalar { return v.Delay }
+
+// GetPeriod returns PollerCloudwatchMetricsInput.Period, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsInput) GetPeriod() *types.Int64Scalar { return v.Period }
+
+// GetRegion returns PollerCloudwatchMetricsInput.Region, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsInput) GetRegion() []string { return v.Region }
+
+// GetRoleArn returns PollerCloudwatchMetricsInput.RoleArn, and is useful for accessing the field via an interface.
+func (v *PollerCloudwatchMetricsInput) GetRoleArn() string { return v.RoleArn }
+
 // PollerConfig includes the requested fields of the GraphQL interface PollerConfig.
 //
 // PollerConfig is implemented by the following types:
@@ -5012,14 +5064,15 @@ type PollerHTTPDecoderInput struct {
 func (v *PollerHTTPDecoderInput) GetType() string { return v.Type }
 
 type PollerHTTPInput struct {
-	Method      *string                  `json:"method"`
-	Body        *string                  `json:"body"`
-	Endpoint    *string                  `json:"endpoint"`
-	ContentType *string                  `json:"contentType"`
-	Headers     *types.JsonObject        `json:"headers"`
-	Template    *PollerHTTPRequestInput  `json:"template"`
-	Requests    []PollerHTTPRequestInput `json:"requests"`
-	Rules       []PollerHTTPRuleInput    `json:"rules"`
+	Method      *string                    `json:"method"`
+	Body        *string                    `json:"body"`
+	Endpoint    *string                    `json:"endpoint"`
+	ContentType *string                    `json:"contentType"`
+	Headers     *types.JsonObject          `json:"headers"`
+	Template    *PollerHTTPRequestInput    `json:"template"`
+	Requests    []PollerHTTPRequestInput   `json:"requests"`
+	Rules       []PollerHTTPRuleInput      `json:"rules"`
+	Timestamps  []PollerHTTPTimestampInput `json:"timestamps"`
 }
 
 // GetMethod returns PollerHTTPInput.Method, and is useful for accessing the field via an interface.
@@ -5045,6 +5098,9 @@ func (v *PollerHTTPInput) GetRequests() []PollerHTTPRequestInput { return v.Requ
 
 // GetRules returns PollerHTTPInput.Rules, and is useful for accessing the field via an interface.
 func (v *PollerHTTPInput) GetRules() []PollerHTTPRuleInput { return v.Rules }
+
+// GetTimestamps returns PollerHTTPInput.Timestamps, and is useful for accessing the field via an interface.
+func (v *PollerHTTPInput) GetTimestamps() []PollerHTTPTimestampInput { return v.Timestamps }
 
 type PollerHTTPRequestAuthScheme string
 
@@ -5103,23 +5159,67 @@ func (v *PollerHTTPRuleInput) GetDecoder() *PollerHTTPDecoderInput { return v.De
 // GetFollow returns PollerHTTPRuleInput.Follow, and is useful for accessing the field via an interface.
 func (v *PollerHTTPRuleInput) GetFollow() *string { return v.Follow }
 
+type PollerHTTPTimestampFormatScheme string
+
+const (
+	PollerHTTPTimestampFormatSchemeAnsic       PollerHTTPTimestampFormatScheme = "ANSIC"
+	PollerHTTPTimestampFormatSchemeUnixdate    PollerHTTPTimestampFormatScheme = "UnixDate"
+	PollerHTTPTimestampFormatSchemeRubydate    PollerHTTPTimestampFormatScheme = "RubyDate"
+	PollerHTTPTimestampFormatSchemeRfc822      PollerHTTPTimestampFormatScheme = "RFC822"
+	PollerHTTPTimestampFormatSchemeRfc822z     PollerHTTPTimestampFormatScheme = "RFC822Z"
+	PollerHTTPTimestampFormatSchemeRfc850      PollerHTTPTimestampFormatScheme = "RFC850"
+	PollerHTTPTimestampFormatSchemeRfc1123     PollerHTTPTimestampFormatScheme = "RFC1123"
+	PollerHTTPTimestampFormatSchemeRfc1123z    PollerHTTPTimestampFormatScheme = "RFC1123Z"
+	PollerHTTPTimestampFormatSchemeRfc3339     PollerHTTPTimestampFormatScheme = "RFC3339"
+	PollerHTTPTimestampFormatSchemeRfc3339nano PollerHTTPTimestampFormatScheme = "RFC3339Nano"
+	PollerHTTPTimestampFormatSchemeKitchen     PollerHTTPTimestampFormatScheme = "Kitchen"
+	PollerHTTPTimestampFormatSchemeUnix        PollerHTTPTimestampFormatScheme = "Unix"
+	PollerHTTPTimestampFormatSchemeUnixmilli   PollerHTTPTimestampFormatScheme = "UnixMilli"
+	PollerHTTPTimestampFormatSchemeUnixmicro   PollerHTTPTimestampFormatScheme = "UnixMicro"
+	PollerHTTPTimestampFormatSchemeUnixmano    PollerHTTPTimestampFormatScheme = "UnixMano"
+)
+
+type PollerHTTPTimestampInput struct {
+	Name     *string                          `json:"name"`
+	Source   *string                          `json:"source"`
+	Format   *PollerHTTPTimestampFormatScheme `json:"format"`
+	Offset   *string                          `json:"offset"`
+	Truncate *string                          `json:"truncate"`
+}
+
+// GetName returns PollerHTTPTimestampInput.Name, and is useful for accessing the field via an interface.
+func (v *PollerHTTPTimestampInput) GetName() *string { return v.Name }
+
+// GetSource returns PollerHTTPTimestampInput.Source, and is useful for accessing the field via an interface.
+func (v *PollerHTTPTimestampInput) GetSource() *string { return v.Source }
+
+// GetFormat returns PollerHTTPTimestampInput.Format, and is useful for accessing the field via an interface.
+func (v *PollerHTTPTimestampInput) GetFormat() *PollerHTTPTimestampFormatScheme { return v.Format }
+
+// GetOffset returns PollerHTTPTimestampInput.Offset, and is useful for accessing the field via an interface.
+func (v *PollerHTTPTimestampInput) GetOffset() *string { return v.Offset }
+
+// GetTruncate returns PollerHTTPTimestampInput.Truncate, and is useful for accessing the field via an interface.
+func (v *PollerHTTPTimestampInput) GetTruncate() *string { return v.Truncate }
+
 // Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
-	Name                   *string                    `json:"name"`
-	Description            *string                    `json:"description"`
-	Disabled               *bool                      `json:"disabled"`
-	Retries                *types.Int64Scalar         `json:"retries"`
-	Interval               *types.DurationScalar      `json:"interval"`
-	Chunk                  *PollerChunkInput          `json:"chunk"`
-	Tags                   *types.JsonObject          `json:"tags"`
-	ApiReqLimit            *RateLimitInput            `json:"apiReqLimit"`
-	DatastreamId           *string                    `json:"datastreamId"`
-	PubsubConfig           *PollerPubSubInput         `json:"pubsubConfig"`
-	HttpConfig             *PollerHTTPInput           `json:"httpConfig"`
-	GcpConfig              *PollerGCPMonitoringInput  `json:"gcpConfig"`
-	MongoDBAtlasConfig     *PollerMongoDBAtlasInput   `json:"mongoDBAtlasConfig"`
-	ConfluentCloudConfig   *PollerConfluentCloudInput `json:"confluentCloudConfig"`
-	SkipExternalValidation *bool                      `json:"skipExternalValidation"`
+	Name                    *string                       `json:"name"`
+	Description             *string                       `json:"description"`
+	Disabled                *bool                         `json:"disabled"`
+	Retries                 *types.Int64Scalar            `json:"retries"`
+	Interval                *types.DurationScalar         `json:"interval"`
+	Chunk                   *PollerChunkInput             `json:"chunk"`
+	Tags                    *types.JsonObject             `json:"tags"`
+	ApiReqLimit             *RateLimitInput               `json:"apiReqLimit"`
+	DatastreamId            *string                       `json:"datastreamId"`
+	PubsubConfig            *PollerPubSubInput            `json:"pubsubConfig"`
+	HttpConfig              *PollerHTTPInput              `json:"httpConfig"`
+	GcpConfig               *PollerGCPMonitoringInput     `json:"gcpConfig"`
+	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
+	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
+	CloudwatchMetricsConfig *PollerCloudwatchMetricsInput `json:"cloudwatchMetricsConfig"`
+	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
 	ManagedById *string `json:"managedById"`
 }
@@ -5166,6 +5266,11 @@ func (v *PollerInput) GetMongoDBAtlasConfig() *PollerMongoDBAtlasInput { return 
 // GetConfluentCloudConfig returns PollerInput.ConfluentCloudConfig, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 	return v.ConfluentCloudConfig
+}
+
+// GetCloudwatchMetricsConfig returns PollerInput.CloudwatchMetricsConfig, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetCloudwatchMetricsConfig() *PollerCloudwatchMetricsInput {
+	return v.CloudwatchMetricsConfig
 }
 
 // GetSkipExternalValidation returns PollerInput.SkipExternalValidation, and is useful for accessing the field via an interface.
@@ -5895,6 +6000,10 @@ const (
 	RollupModeNever RollupMode = "Never"
 	// Roll up the result if it is a Resource, otherwise don't roll up the result.
 	RollupModeAuto RollupMode = "Auto"
+	// Roll up the result (by returning the last value + a bit describing whether
+	// the value changed during the query window) if it is a Resource, otherwise
+	// don’t roll up the result
+	RollupModeLastvalueandchanged RollupMode = "LastValueAndChanged"
 )
 
 type RollupOptionInput struct {
@@ -6102,6 +6211,10 @@ func (v *SourceTableFieldDefinitionInput) GetSqlType() string { return v.SqlType
 type StageInput struct {
 	// unique ID that other stages can reference in their InputDefinitionInput
 	StageId string `json:"stageId"`
+	// What is the description of this stage (stage name)
+	Description *string `json:"description"`
+	// What component feature is this stage driving? i.e. filter bar, visualization etc.
+	Component *string `json:"component"`
 	// Which inputs are defined for this stage?
 	Inputs []InputDefinitionInput `json:"inputs"`
 	// What is the processing?
@@ -6124,10 +6237,19 @@ type StageInput struct {
 	RunUntilLocation *SourceLocInput `json:"runUntilLocation"`
 	// Parameter values for parameters scoped to this stage
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
+	// Additional metadata about the stage. Should not change the behavior of the query, and should
+	// merely provide more context about how and where the stage is being used.
+	Metadata *StageMetadata `json:"metadata"`
 }
 
 // GetStageId returns StageInput.StageId, and is useful for accessing the field via an interface.
 func (v *StageInput) GetStageId() string { return v.StageId }
+
+// GetDescription returns StageInput.Description, and is useful for accessing the field via an interface.
+func (v *StageInput) GetDescription() *string { return v.Description }
+
+// GetComponent returns StageInput.Component, and is useful for accessing the field via an interface.
+func (v *StageInput) GetComponent() *string { return v.Component }
 
 // GetInputs returns StageInput.Inputs, and is useful for accessing the field via an interface.
 func (v *StageInput) GetInputs() []InputDefinitionInput { return v.Inputs }
@@ -6159,6 +6281,35 @@ func (v *StageInput) GetRunUntilLocation() *SourceLocInput { return v.RunUntilLo
 // GetParameterValues returns StageInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *StageInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
 
+// GetMetadata returns StageInput.Metadata, and is useful for accessing the field via an interface.
+func (v *StageInput) GetMetadata() *StageMetadata { return v.Metadata }
+
+// Metadata a client can send for a particular stage in a query. Should not change
+// the behavior of the query, and should only provide some context around what this
+// stage is used for.
+type StageMetadata struct {
+	// Display name of the stage in the UI
+	DisplayName *string `json:"displayName"`
+	// Description of the stage
+	Description *string `json:"description"`
+	// What component feature is this stage driving? i.e. filter bar, visualization etc.
+	Component *string `json:"component"`
+	// Extra stuff
+	Extra *types.JsonObject `json:"extra"`
+}
+
+// GetDisplayName returns StageMetadata.DisplayName, and is useful for accessing the field via an interface.
+func (v *StageMetadata) GetDisplayName() *string { return v.DisplayName }
+
+// GetDescription returns StageMetadata.Description, and is useful for accessing the field via an interface.
+func (v *StageMetadata) GetDescription() *string { return v.Description }
+
+// GetComponent returns StageMetadata.Component, and is useful for accessing the field via an interface.
+func (v *StageMetadata) GetComponent() *string { return v.Component }
+
+// GetExtra returns StageMetadata.Extra, and is useful for accessing the field via an interface.
+func (v *StageMetadata) GetExtra() *types.JsonObject { return v.Extra }
+
 // StagePresentationInput is about how to format the results of the query. Here is
 // where you can ask for things like linkified results, rolled up results, stats
 // from the results, schema-only results, and so forth. These requests are
@@ -6167,9 +6318,6 @@ func (v *StageInput) GetParameterValues() []ParameterBindingInput { return v.Par
 type StagePresentationInput struct {
 	// limit can be per-query in addition to per-request; the min() is applied
 	Limit *types.Int64Scalar `json:"limit"`
-	// defaultStats, if specified, calculates stats for any column that matches a
-	// predetermined set of rules, and returns those stats.
-	DefaultStats *DefaultStatsInput `json:"defaultStats"`
 	// columnStats configuration
 	ColumnStats *ColumnStatsInput `json:"columnStats"`
 	// volumeStats configuration
@@ -6204,13 +6352,15 @@ type StagePresentationInput struct {
 	// will contain a list of column names that produced matches for some of the filters in
 	// the pipeline
 	SearchMatchKind *SearchMatchKind `json:"searchMatchKind"`
+	// Specifies the aggregation mode. Default is `Precise`.
+	AggregationMode *AggregationMode `json:"aggregationMode"`
+	// This field is deprecated and will be ignored, but cannot be removed because
+	// Terraform provider depends on it.
+	DefaultStats *DefaultStatsInput `json:"defaultStats"`
 }
 
 // GetLimit returns StagePresentationInput.Limit, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetLimit() *types.Int64Scalar { return v.Limit }
-
-// GetDefaultStats returns StagePresentationInput.DefaultStats, and is useful for accessing the field via an interface.
-func (v *StagePresentationInput) GetDefaultStats() *DefaultStatsInput { return v.DefaultStats }
 
 // GetColumnStats returns StagePresentationInput.ColumnStats, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetColumnStats() *ColumnStatsInput { return v.ColumnStats }
@@ -6239,13 +6389,19 @@ func (v *StagePresentationInput) GetWantBuckets() *types.Int64Scalar { return v.
 // GetSearchMatchKind returns StagePresentationInput.SearchMatchKind, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetSearchMatchKind() *SearchMatchKind { return v.SearchMatchKind }
 
+// GetAggregationMode returns StagePresentationInput.AggregationMode, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetAggregationMode() *AggregationMode { return v.AggregationMode }
+
+// GetDefaultStats returns StagePresentationInput.DefaultStats, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetDefaultStats() *DefaultStatsInput { return v.DefaultStats }
+
 // StageQuery includes the GraphQL fields of StageQuery requested by the fragment StageQuery.
 type StageQuery struct {
-	Id       *string                           `json:"id"`
-	Pipeline string                            `json:"pipeline"`
-	Params   *types.JsonObject                 `json:"params"`
-	Layout   *types.JsonObject                 `json:"layout"`
-	Input    []*StageQueryInputInputDefinition `json:"input"`
+	Id       *string                          `json:"id"`
+	Pipeline string                           `json:"pipeline"`
+	Params   *types.JsonObject                `json:"params"`
+	Layout   *types.JsonObject                `json:"layout"`
+	Input    []StageQueryInputInputDefinition `json:"input"`
 }
 
 // GetId returns StageQuery.Id, and is useful for accessing the field via an interface.
@@ -6261,7 +6417,7 @@ func (v *StageQuery) GetParams() *types.JsonObject { return v.Params }
 func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 
 // GetInput returns StageQuery.Input, and is useful for accessing the field via an interface.
-func (v *StageQuery) GetInput() []*StageQueryInputInputDefinition { return v.Input }
+func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
 	StageID *string `json:"stageID,omitempty"`
@@ -8668,11 +8824,11 @@ func (v *getChannelResponse) GetChannel() *Channel { return v.Channel }
 
 // getCurrentCustomerCustomer includes the requested fields of the GraphQL type Customer.
 type getCurrentCustomerCustomer struct {
-	Users []*User `json:"users"`
+	Users []User `json:"users"`
 }
 
 // GetUsers returns getCurrentCustomerCustomer.Users, and is useful for accessing the field via an interface.
-func (v *getCurrentCustomerCustomer) GetUsers() []*User { return v.Users }
+func (v *getCurrentCustomerCustomer) GetUsers() []User { return v.Users }
 
 // getCurrentCustomerResponse is returned by getCurrentCustomer on success.
 type getCurrentCustomerResponse struct {
@@ -8993,27 +9149,27 @@ func (v *getWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 // design now, so at some point, maybe update the API to match the updated
 // design?
 type listDatasetsDatasetsProject struct {
-	Datasets []*Dataset `json:"datasets"`
+	Datasets []Dataset `json:"datasets"`
 }
 
 // GetDatasets returns listDatasetsDatasetsProject.Datasets, and is useful for accessing the field via an interface.
-func (v *listDatasetsDatasetsProject) GetDatasets() []*Dataset { return v.Datasets }
+func (v *listDatasetsDatasetsProject) GetDatasets() []Dataset { return v.Datasets }
 
 // listDatasetsResponse is returned by listDatasets on success.
 type listDatasetsResponse struct {
-	Datasets []*listDatasetsDatasetsProject `json:"datasets"`
+	Datasets []listDatasetsDatasetsProject `json:"datasets"`
 }
 
 // GetDatasets returns listDatasetsResponse.Datasets, and is useful for accessing the field via an interface.
-func (v *listDatasetsResponse) GetDatasets() []*listDatasetsDatasetsProject { return v.Datasets }
+func (v *listDatasetsResponse) GetDatasets() []listDatasetsDatasetsProject { return v.Datasets }
 
 // listWorkspacesResponse is returned by listWorkspaces on success.
 type listWorkspacesResponse struct {
-	Workspaces []*Workspace `json:"workspaces"`
+	Workspaces []Workspace `json:"workspaces"`
 }
 
 // GetWorkspaces returns listWorkspacesResponse.Workspaces, and is useful for accessing the field via an interface.
-func (v *listWorkspacesResponse) GetWorkspaces() []*Workspace { return v.Workspaces }
+func (v *listWorkspacesResponse) GetWorkspaces() []Workspace { return v.Workspaces }
 
 // lookupAppResponse is returned by lookupApp on success.
 type lookupAppResponse struct {

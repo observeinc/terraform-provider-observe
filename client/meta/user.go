@@ -36,7 +36,7 @@ func (client *Client) LookupUser(ctx context.Context, email string) (*User, erro
 	if resp.Customer != nil {
 		for i, u := range resp.Customer.Users {
 			if u.Email == email {
-				return resp.Customer.Users[i], nil
+				return &resp.Customer.Users[i], nil
 			}
 		}
 	}
