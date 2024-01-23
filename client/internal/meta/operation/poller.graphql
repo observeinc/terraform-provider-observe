@@ -54,6 +54,13 @@ fragment Poller on Poller {
 					type
 				}
 			}
+			timestamps {
+				name
+				source
+				format
+				offset
+				truncate
+			}
 		}
 		... on PollerGCPMonitoringConfig {
 			projectId
