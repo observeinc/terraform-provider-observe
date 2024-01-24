@@ -79,7 +79,7 @@ func requestResource() *schema.Resource {
 				Type:             schema.TypeMap,
 				Optional:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
-			}
+			},
 		},
 	}
 }
@@ -88,7 +88,7 @@ func resourcePoller() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePollerCreate,
 		ReadContext:   resourcePollerRead,
-		UpdateContext: resourcePollerUdate,
+		UpdateContext: resourcePollerUpdate,
 		DeleteContext: resourcePollerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -292,13 +292,13 @@ func resourcePoller() *schema.Resource {
 										ValidateDiagFunc: validateEnums(gql.AllPollerHTTPTimestampFormats),
 									},
 									"offset": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:             schema.TypeString,
+										Optional:         true,
 										ValidateDiagFunc: validateTimeDuration,
 									},
 									"truncate": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:             schema.TypeString,
+										Optional:         true,
 										ValidateDiagFunc: validateTimeDuration,
 									},
 								},
