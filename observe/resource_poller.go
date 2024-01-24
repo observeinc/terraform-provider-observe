@@ -79,7 +79,7 @@ func requestResource() *schema.Resource {
 				Type:             schema.TypeMap,
 				Optional:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
-			},
+			}
 		},
 	}
 }
@@ -88,7 +88,7 @@ func resourcePoller() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePollerCreate,
 		ReadContext:   resourcePollerRead,
-		UpdateContext: resourcePollerUpdate,
+		UpdateContext: resourcePollerUdate,
 		DeleteContext: resourcePollerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -294,10 +294,12 @@ func resourcePoller() *schema.Resource {
 									"offset": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: validateTimeDuration,
 									},
 									"truncate": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ValidateDiagFunc: validateTimeDuration,
 									},
 								},
 							},
