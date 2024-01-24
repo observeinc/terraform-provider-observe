@@ -465,6 +465,63 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+					skip_external_validation = true
+
+					http {
+						request {
+							username    = "user"
+							password    = "pass"
+							auth_scheme = "Digest"
+							url    = "https://example.com/path"
+						}
+
+						rule 
+							match {
+								url = "https://example.com/path2"
+							}
+							follow = "accounts[]"
+						}
+
+						timestamp {
+							name = "now"
+							format = "RFC822"
+							truncate = "1s"
+						}
+
+						timestamp {
+							name = "start"
+							source = "now"
+							format = "RFC822"
+							offset = "1h"
+							truncate = "1s"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "HTTP"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.template.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.0.auth_scheme", "Digest"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.request.1.url", "https://example.com/path2"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.timestamp.0.name", "a"),
+					resource.TestCheckResourceAttr("observe_poller.first", "http.0.timestamp.1.name", "b"),
+				),
+			},
 		},
 	})
 }

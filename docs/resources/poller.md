@@ -118,6 +118,7 @@ Optional:
 - `request` (Block List) (see [below for nested schema](#nestedblock--http--request))
 - `rule` (Block List) (see [below for nested schema](#nestedblock--http--rule))
 - `template` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http--template))
+- `timestamp` (Block List) (see [below for nested schema](#nestedblock--http--timestamp))
 
 <a id="nestedblock--http--request"></a>
 ### Nested Schema for `http.request`
@@ -183,6 +184,21 @@ Optional:
 - `password` (String)
 - `url` (String)
 - `username` (String)
+
+
+<a id="nestedblock--http--timestamp"></a>
+### Nested Schema for `http.timestamp`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `format` (String)
+- `offset` (String)
+- `source` (String)
+- `truncate` (String)
 
 
 
