@@ -472,7 +472,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					name      = "%s-%s"
 					icon_url  = "test"
 				}
-				resource "observe_poller" "first" {
+				resource "observe_poller" "timestamp" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
 					interval  = "1m"
@@ -486,13 +486,6 @@ func TestAccObservePollerHTTP(t *testing.T) {
 							password    = "pass"
 							auth_scheme = "Digest"
 							url    = "https://example.com/path"
-						}
-
-						rule 
-							match {
-								url = "https://example.com/path2"
-							}
-							follow = "accounts[]"
 						}
 
 						timestamp {
