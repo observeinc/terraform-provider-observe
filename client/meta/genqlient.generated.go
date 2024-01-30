@@ -4847,9 +4847,10 @@ type PollerConfigPollerHTTPConfig struct {
 	ContentType *string                             `json:"contentType"`
 	Headers     *types.JsonObject                   `json:"headers"`
 	// Default HTTP request configuration that will be used for all requests. Keys declared in requests will override these values.
-	Template *HttpRequestConfig                                      `json:"template"`
-	Requests []HttpRequestConfig                                     `json:"requests"`
-	Rules    []PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig `json:"rules"`
+	Template   *HttpRequestConfig                                                `json:"template"`
+	Requests   []HttpRequestConfig                                               `json:"requests"`
+	Rules      []PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig           `json:"rules"`
+	Timestamps []PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig `json:"timestamps"`
 }
 
 // GetTypename returns PollerConfigPollerHTTPConfig.Typename, and is useful for accessing the field via an interface.
@@ -4896,6 +4897,11 @@ func (v *PollerConfigPollerHTTPConfig) GetRules() []PollerConfigPollerHTTPConfig
 	return v.Rules
 }
 
+// GetTimestamps returns PollerConfigPollerHTTPConfig.Timestamps, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfig) GetTimestamps() []PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig {
+	return v.Timestamps
+}
+
 // PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig includes the requested fields of the GraphQL type PollerHTTPRuleConfig.
 type PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfig struct {
 	Match   *HttpRequestConfig                                                                   `json:"match"`
@@ -4924,6 +4930,40 @@ type PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfigDecoderPollerHTTPDecod
 // GetType returns PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfigDecoderPollerHTTPDecoderConfig.Type, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerHTTPConfigRulesPollerHTTPRuleConfigDecoderPollerHTTPDecoderConfig) GetType() string {
 	return v.Type
+}
+
+// PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig includes the requested fields of the GraphQL type PollerHTTPTimestampConfig.
+type PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig struct {
+	Name     *string                          `json:"name"`
+	Source   *string                          `json:"source"`
+	Format   *PollerHTTPTimestampFormatScheme `json:"format"`
+	Offset   *string                          `json:"offset"`
+	Truncate *string                          `json:"truncate"`
+}
+
+// GetName returns PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig.Name, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetName() *string {
+	return v.Name
+}
+
+// GetSource returns PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig.Source, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetSource() *string {
+	return v.Source
+}
+
+// GetFormat returns PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig.Format, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetFormat() *PollerHTTPTimestampFormatScheme {
+	return v.Format
+}
+
+// GetOffset returns PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig.Offset, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetOffset() *string {
+	return v.Offset
+}
+
+// GetTruncate returns PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig.Truncate, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetTruncate() *string {
+	return v.Truncate
 }
 
 // PollerConfigPollerMongoDBAtlasConfig includes the requested fields of the GraphQL type PollerMongoDBAtlasConfig.
@@ -10852,6 +10892,13 @@ fragment Poller on Poller {
 					type
 				}
 			}
+			timestamps {
+				name
+				source
+				format
+				offset
+				truncate
+			}
 		}
 		... on PollerGCPMonitoringConfig {
 			projectId
@@ -13689,6 +13736,13 @@ fragment Poller on Poller {
 					type
 				}
 			}
+			timestamps {
+				name
+				source
+				format
+				offset
+				truncate
+			}
 		}
 		... on PollerGCPMonitoringConfig {
 			projectId
@@ -16488,6 +16542,13 @@ fragment Poller on Poller {
 				decoder {
 					type
 				}
+			}
+			timestamps {
+				name
+				source
+				format
+				offset
+				truncate
 			}
 		}
 		... on PollerGCPMonitoringConfig {

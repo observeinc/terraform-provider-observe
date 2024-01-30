@@ -273,6 +273,37 @@ func resourcePoller() *schema.Resource {
 								},
 							},
 						},
+						"timestamp": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"source": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"format": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateEnums(gql.AllPollerHTTPTimestampFormats),
+									},
+									"offset": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+									"truncate": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateTimeDuration,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -414,6 +445,7 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 			Headers:     &parsedHeaders,
 			Requests:    expandPollerHTTPRequests(data, "http.0.request"),
 			Rules:       expandPollerHTTPRules(data, "http.0.rule"),
+			Timestamps:  expandPollerHTTPTimestamps(data, "http.0.timestamp"),
 		}
 
 		if v, ok := data.GetOk("http.0.endpoint"); ok {
@@ -621,6 +653,12 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 		diags = append(diags, ruleDiags...)
 		if !ruleDiags.HasError() {
 			ht["rule"] = rule
+		}
+
+		timestamp, timestampDiags := flattenPollerHTTPTimestamps(httpConfig.Timestamps)
+		diags = append(diags, timestampDiags...)
+		if !requestDiags.HasError() {
+			ht["timestamp"] = timestamp
 		}
 
 		if err := data.Set("http", []interface{}{ht}); err != nil {
@@ -888,4 +926,81 @@ func expandPollerHTTPDecoder(data *schema.ResourceData, key string) *gql.PollerH
 		Type: data.Get(key + ".type").(string),
 	}
 	return decoder
+}
+
+func flattenPollerHTTPTimestamps(timestamps []gql.PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) (flats []map[string]interface{}, diags diag.Diagnostics) {
+	if len(timestamps) == 0 {
+		return
+	}
+
+	for _, t := range timestamps {
+		timestamp, diag := flattenPollerHTTPTimestamp(&t)
+		diags = append(diags, diag...)
+		if !diag.HasError() {
+			flats = append(flats, timestamp)
+		}
+	}
+
+	return
+}
+
+func flattenPollerHTTPTimestamp(timestamp *gql.PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) (flat map[string]interface{}, diags diag.Diagnostics) {
+	if timestamp == nil {
+		return
+	}
+
+	flat = map[string]interface{}{
+		"name":     timestamp.Name,
+		"source":   timestamp.Source,
+		"format":   timestamp.Format,
+		"offset":   timestamp.Offset,
+		"truncate": timestamp.Truncate,
+	}
+
+	return
+}
+
+func expandPollerHTTPTimestamps(data *schema.ResourceData, key string) (timestamps []gql.PollerHTTPTimestampInput) {
+	l := data.Get(key).([]interface{})
+	if len(l) == 0 {
+		return nil
+	}
+
+	for i := range l {
+		if req := expandPollerHTTPTimestamp(data, fmt.Sprintf("%s.%d", key, i)); req != nil {
+			timestamps = append(timestamps, *req)
+		}
+	}
+	return
+}
+
+func expandPollerHTTPTimestamp(data *schema.ResourceData, key string) *gql.PollerHTTPTimestampInput {
+	if _, ok := data.GetOk(key); !ok {
+		return nil
+	}
+
+	timestamp := &gql.PollerHTTPTimestampInput{}
+
+	if v, ok := data.GetOk(key + ".name"); ok {
+		s := v.(string)
+		timestamp.Name = &s
+	}
+	if v, ok := data.GetOk(key + ".source"); ok {
+		s := v.(string)
+		timestamp.Source = &s
+	}
+	if v, ok := data.GetOk(key + ".format"); ok {
+		s := gql.PollerHTTPTimestampFormatScheme(v.(string))
+		timestamp.Format = &s
+	}
+	if v, ok := data.GetOk(key + ".offset"); ok {
+		s := v.(string)
+		timestamp.Offset = &s
+	}
+	if v, ok := data.GetOk(key + ".truncate"); ok {
+		s := v.(string)
+		timestamp.Truncate = &s
+	}
+
+	return timestamp
 }

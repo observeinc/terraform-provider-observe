@@ -83,6 +83,24 @@ var AllPollerHTTPRequestAuthSchemes = []PollerHTTPRequestAuthScheme{
 	PollerHTTPRequestAuthSchemeDigest,
 }
 
+var AllPollerHTTPTimestampFormats = []PollerHTTPTimestampFormatScheme{
+	PollerHTTPTimestampFormatSchemeAnsic,
+	PollerHTTPTimestampFormatSchemeUnixdate,
+	PollerHTTPTimestampFormatSchemeRubydate,
+	PollerHTTPTimestampFormatSchemeRfc822,
+	PollerHTTPTimestampFormatSchemeRfc822z,
+	PollerHTTPTimestampFormatSchemeRfc850,
+	PollerHTTPTimestampFormatSchemeRfc1123,
+	PollerHTTPTimestampFormatSchemeRfc1123z,
+	PollerHTTPTimestampFormatSchemeRfc3339,
+	PollerHTTPTimestampFormatSchemeRfc3339nano,
+	PollerHTTPTimestampFormatSchemeKitchen,
+	PollerHTTPTimestampFormatSchemeUnix,
+	PollerHTTPTimestampFormatSchemeUnixmilli,
+	PollerHTTPTimestampFormatSchemeUnixmicro,
+	PollerHTTPTimestampFormatSchemeUnixmano,
+}
+
 // AllBookmarkKindTypes This list is incomplete and will be filled in
 // as we support more types of bookmarks in the terraform provider
 var AllBookmarkKindTypes = []BookmarkKind{
