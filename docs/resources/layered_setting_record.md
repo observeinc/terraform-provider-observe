@@ -11,7 +11,7 @@ Managed a layered setting record. Layered settings can be used to set configurab
 
 ## Example Usage
 
-```{code}
+```terraform
 # create a layered setting for your tenant
 # that create a per user daily credit limit of 50.0
 # this setting applies to all users in your tenant
@@ -24,7 +24,7 @@ resource "observe_layered_setting_record" "base_credit_limit" {
 }
 ```
 
-```{code}
+```terraform
 # create a layered setting for a specific user
 # that create a per user daily credit limit of 50.0
 # this setting applies exclusively to the user bob
