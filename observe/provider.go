@@ -125,6 +125,7 @@ func Provider() *schema.Provider {
 			"observe_query":             dataSourceQuery(),
 			"observe_board":             dataSourceBoard(),
 			"observe_monitor":           dataSourceMonitor(),
+			"observe_monitor_action":    dataSourceMonitorAction(),
 			"observe_datastream":        dataSourceDatastream(),
 			"observe_worksheet":         dataSourceWorksheet(),
 			"observe_dashboard":         dataSourceDashboard(),

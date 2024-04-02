@@ -40,6 +40,13 @@ query getMonitorAction($id: ObjectId!) {
     }
 }
 
+query searchMonitorActions($workspaceId: ObjectId, $name: String) {
+    # @genqlient(flatten: true)
+    monitorActions: searchMonitorActions(workspaceId: $workspaceId, name: $name) {
+        ...MonitorAction
+    }
+}
+
 mutation updateMonitorAction($id: ObjectId!, $monitorAction: MonitorActionInput!) {
     # @genqlient(flatten: true, pointer: true)
     monitorAction: updateMonitorAction(id:$id, input: $monitorAction) {

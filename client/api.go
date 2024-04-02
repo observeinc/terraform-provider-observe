@@ -434,6 +434,10 @@ func (c *Client) GetMonitorAction(ctx context.Context, id string) (*meta.Monitor
 	return c.Meta.GetMonitorAction(ctx, id)
 }
 
+func (c *Client) LookupMonitorAction(ctx context.Context, workspaceID string, name string) (*meta.MonitorAction, error) {
+	return c.Meta.LookupMonitorAction(ctx, workspaceID, name)
+}
+
 // CreateMonitor creates a monitor
 func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, input *meta.MonitorInput) (*meta.Monitor, error) {
 	if !c.Flags[flagObs2110] {
