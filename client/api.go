@@ -25,6 +25,11 @@ var (
 
 // GetDataset returns dataset by ID
 func (c *Client) GetDataset(ctx context.Context, id string) (*meta.Dataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
 	return c.Meta.GetDataset(ctx, id)
 }
 
