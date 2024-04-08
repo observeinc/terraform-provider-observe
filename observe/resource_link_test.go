@@ -319,7 +319,7 @@ func TestAccOB5629(t *testing.T) {
 					label     = "%[1]s"
 				}
 				`, randomPrefix),
-				ExpectError: regexp.MustCompile(`.*failed to update foreign key: The field "notexist" is not present in the dataset.*`),
+				ExpectError: regexp.MustCompile(`.*failed to update foreign key: The field "notexist" is not present in the target dataset.*`),
 			},
 			// Reapply the link. Expect no diff and for the fields to have been updated.
 			// Expect no error when this happens, otherwise a user can't update a erroring link.
