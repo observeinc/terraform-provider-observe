@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -953,12 +952,12 @@ func flattenNotificationSpec(spec gql.MonitorNotificationSpecNotificationSpecifi
 		"importance": toSnake(string(spec.Importance)),
 	}
 
-	if spec.ReminderFrequency != 0 {
-		result["reminder_frequency"] = spec.ReminderFrequency.String()
-	}
-
 	if spec.NotifyOnReminder != nil {
 		result["notify_on_reminder"] = *spec.NotifyOnReminder
+
+		if *spec.NotifyOnReminder && spec.ReminderFrequency != 0 {
+			result["reminder_frequency"] = spec.ReminderFrequency.String()
+		}
 	}
 
 	if spec.NotifyOnClose != nil {
