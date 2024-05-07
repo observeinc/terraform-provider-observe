@@ -1,0 +1,21 @@
+description: |
+  A correlation tag can be attached to columns of a dataset. These tags are later used to correlate multiple datasets.
+schema:
+  dataset: |
+    OID of the dataset to which the correlation tag should be attached.
+  tag: |
+    The tag to attach.
+  column: |
+    The column to which the correlation tag should be attached.
+  path: |
+    If the column is of type "object", a correlation tag can be attached to a
+    key nested within the object. Standard Javascript notation can be used to specify the path to the key.
+    For example, say the object has the following structure -
+    {
+      "a": {
+        "b": {
+          "c": "value"
+        }
+      }
+    }
+    Then the path to the key "c" would be "a.b.c" or "a['b']['c']"

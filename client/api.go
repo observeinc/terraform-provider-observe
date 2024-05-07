@@ -1305,3 +1305,31 @@ func (c *Client) DeleteDatasetOutboundShare(ctx context.Context, id string) erro
 
 	return c.Meta.DeleteDatasetOutboundShare(ctx, id)
 }
+
+func (c *Client) CreateCorrelationTag(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	err := c.Meta.CreateCorrelationTag(ctx, dataset, tag, path)
+	if err != nil {
+		return fmt.Errorf("Failed to create correlation tag: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) IsCorrelationTagPresent(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) (bool, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.IsCorrelationTagPresent(ctx, dataset, tag, path)
+}
+
+func (c *Client) DeleteCorrelationTag(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteCorrelationTag(ctx, dataset, tag, path)
+}

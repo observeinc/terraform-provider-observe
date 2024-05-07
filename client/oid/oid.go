@@ -48,6 +48,7 @@ const (
 	TypeRbacStatement           Type = "rbacstatement"
 	TypeSnowflakeOutboundShare  Type = "snowflakeoutboundshare"
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
+	TypeCorrelationTag          Type = "correlationtag"
 )
 
 func (t Type) IsValid() bool {
@@ -80,6 +81,7 @@ func (t Type) IsValid() bool {
 	case TypeRbacStatement:
 	case TypeSnowflakeOutboundShare:
 	case TypeDatasetOutboundShare:
+	case TypeCorrelationTag:
 	default:
 		return false
 	}

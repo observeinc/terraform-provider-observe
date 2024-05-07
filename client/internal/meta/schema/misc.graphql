@@ -12,16 +12,23 @@ extend type Query {
 
     deferredForeignKeys(selector: DeferredForeignKeySelectorInput): [DeferredForeignKey!]
     deferredForeignKey(id: ObjectId!): DeferredForeignKey
+    """
+    Get all the correlation tags defined.
+    """
+    searchCorrelationTags(workspaceId: ObjectId!, nameExact: String, nameSubstring: String): [String!]
 }
 
 extend type Mutation {
     createDeferredForeignKey(workspaceId: ObjectId!, data: DeferredForeignKeyInput!): DeferredForeignKey
     updateDeferredForeignKey(id: ObjectId!, data: DeferredForeignKeyInput!): DeferredForeignKey
     deleteDeferredForeignKey(id: ObjectId!): ResultStatus
+
+    addCorrelationTag(datasetId: ObjectId!, path: LinkFieldInput!, tag: String!): ResultStatus!
+    removeCorrelationTag(datasetId: ObjectId!, path: LinkFieldInput!, tag: String!): ResultStatus!
 }
 
 extend type Subscription {
-	testEmptySubscribe: String!
+    testEmptySubscribe: String!
 }
 
 
@@ -101,6 +108,14 @@ type DeferredForeignKey @goModel(model: "observe/meta/metatypes.DeferredForeignK
     workspaceId: ObjectId!
     sourceDataset: DeferredDatasetReference
     targetDataset: DeferredDatasetReference
+    # Syntax of srcFields - source-column.path-within-column
+    # A DFK could have two kinds of sources
+    # 1. A column
+    # 2. A key within the column
+    # In case of (1), use column name as the source. Example `column1`, `my attributes`
+    # In case of (2), use Javascript syntax for the path 
+    # Example - with `obj` as an object column, to create a link from a key from within this object, srcFields could be
+    # `obj.key` or `obj."spaced key"` or `obj.parent["key"]`
     srcFields: [String!]
     dstFields: [String!]
     label: String
