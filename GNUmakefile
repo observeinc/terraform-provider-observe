@@ -137,5 +137,7 @@ docs-sync: generate
 		--exclude="*" \
 		docs/ \
 		$(OBSERVE_DOCS_ROOT)/docs/content/terraform/generated
+	
+	./scripts/docsindex.sh $(OBSERVE_DOCS_ROOT)/docs/content/terraform/generated/index.md
 
 .PHONY: build generate test sweep testacc vet fmt fmtcheck errcheck test-compile docs
