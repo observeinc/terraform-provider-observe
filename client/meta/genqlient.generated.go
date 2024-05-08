@@ -7806,6 +7806,18 @@ type __saveWorksheetInput struct {
 // GetWorksheetInput returns __saveWorksheetInput.WorksheetInput, and is useful for accessing the field via an interface.
 func (v *__saveWorksheetInput) GetWorksheetInput() WorksheetInput { return v.WorksheetInput }
 
+// __searchMonitorActionsInput is used internally by genqlient
+type __searchMonitorActionsInput struct {
+	WorkspaceId *string `json:"workspaceId"`
+	Name        *string `json:"name"`
+}
+
+// GetWorkspaceId returns __searchMonitorActionsInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__searchMonitorActionsInput) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetName returns __searchMonitorActionsInput.Name, and is useful for accessing the field via an interface.
+func (v *__searchMonitorActionsInput) GetName() *string { return v.Name }
+
 // __setChannelsForChannelActionInput is used internally by genqlient
 type __setChannelsForChannelActionInput struct {
 	ActionId   string   `json:"actionId"`
@@ -9397,6 +9409,89 @@ type saveWorksheetResponse struct {
 
 // GetWorksheet returns saveWorksheetResponse.Worksheet, and is useful for accessing the field via an interface.
 func (v *saveWorksheetResponse) GetWorksheet() *Worksheet { return v.Worksheet }
+
+// searchMonitorActionsResponse is returned by searchMonitorActions on success.
+type searchMonitorActionsResponse struct {
+	MonitorActions []MonitorAction `json:"-"`
+}
+
+// GetMonitorActions returns searchMonitorActionsResponse.MonitorActions, and is useful for accessing the field via an interface.
+func (v *searchMonitorActionsResponse) GetMonitorActions() []MonitorAction { return v.MonitorActions }
+
+func (v *searchMonitorActionsResponse) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*searchMonitorActionsResponse
+		MonitorActions []json.RawMessage `json:"monitorActions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.searchMonitorActionsResponse = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.MonitorActions
+		src := firstPass.MonitorActions
+		*dst = make(
+			[]MonitorAction,
+			len(src))
+		for i, src := range src {
+			dst := &(*dst)[i]
+			if len(src) != 0 && string(src) != "null" {
+				err = __unmarshalMonitorAction(
+					src, dst)
+				if err != nil {
+					return fmt.Errorf(
+						"unable to unmarshal searchMonitorActionsResponse.MonitorActions: %w", err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalsearchMonitorActionsResponse struct {
+	MonitorActions []json.RawMessage `json:"monitorActions"`
+}
+
+func (v *searchMonitorActionsResponse) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *searchMonitorActionsResponse) __premarshalJSON() (*__premarshalsearchMonitorActionsResponse, error) {
+	var retval __premarshalsearchMonitorActionsResponse
+
+	{
+
+		dst := &retval.MonitorActions
+		src := v.MonitorActions
+		*dst = make(
+			[]json.RawMessage,
+			len(src))
+		for i, src := range src {
+			dst := &(*dst)[i]
+			var err error
+			*dst, err = __marshalMonitorAction(
+				&src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal searchMonitorActionsResponse.MonitorActions: %w", err)
+			}
+		}
+	}
+	return &retval, nil
+}
 
 // setChannelsForChannelActionResponse is returned by setChannelsForChannelAction on success.
 type setChannelsForChannelActionResponse struct {
@@ -15351,6 +15446,70 @@ func saveWorksheet(
 	var err error
 
 	var data saveWorksheetResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by searchMonitorActions.
+const searchMonitorActions_Operation = `
+query searchMonitorActions ($workspaceId: ObjectId, $name: String) {
+	monitorActions: searchMonitorActions(workspaceId: $workspaceId, name: $name) {
+		__typename
+		... MonitorAction
+	}
+}
+fragment MonitorAction on MonitorAction {
+	id
+	name
+	iconUrl
+	description
+	workspaceId
+	rateLimit
+	notifyOnClose
+	isPrivate
+	__typename
+	... on EmailAction {
+		targetAddresses
+		subjectTemplate
+		bodyTemplate
+		isHtml
+	}
+	... on WebhookAction {
+		urlTemplate
+		method
+		headers {
+			header
+			valueTemplate
+		}
+		bodyTemplate
+	}
+}
+`
+
+func searchMonitorActions(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId *string,
+	name *string,
+) (*searchMonitorActionsResponse, error) {
+	req := &graphql.Request{
+		OpName: "searchMonitorActions",
+		Query:  searchMonitorActions_Operation,
+		Variables: &__searchMonitorActionsInput{
+			WorkspaceId: workspaceId,
+			Name:        name,
+		},
+	}
+	var err error
+
+	var data searchMonitorActionsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
