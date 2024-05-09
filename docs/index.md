@@ -34,6 +34,8 @@ data "observe_workspace" "default" {
 
 You must provide a customer ID and valid credentials in order to interact with the Observe API.
 
+Furthermore, you must configure the proper domain value based on where your observe tenant is deployed. See [Observe Regions](../../common-topics/ObserveRegions.md) to determine the proper value for your Observe domain.
+
 The provider can either be configured explicitly through parameters or through environment variables.
 Explicit configuration always takes precedence over environment variables:
 
@@ -42,6 +44,7 @@ provider "observe" {
   customer      = "123456789012"
   user_email    = "user@example.com"
   user_password = "secret"
+  domain        = "observeinc.com"
 }
 ```
 
@@ -49,6 +52,7 @@ provider "observe" {
 provider "observe" {
   customer  = "123456789012"
   api_token = "2xxXXx7Xxxxx9Xxxx7xX_xXxX3Xx3XX_"
+  domain    = "observeinc.com"
 }
 ```
 
@@ -58,6 +62,7 @@ Every parameter in the provider schema has a corresponding environment variable 
 export OBSERVE_CUSTOMER=123456789012
 export OBSERVE_USER_EMAIL=user@example.com
 export OBSERVE_USER_PASSWORD=secret
+export OBSERVE_DOMAIN=observeinc.com
 terraform plan
 ...
 ```
@@ -65,6 +70,7 @@ terraform plan
 ```bash
 export OBSERVE_CUSTOMER=123456789012
 export OBSERVE_API_TOKEN=2xxXXx7Xxxxx9Xxxx7xX_xXxX3Xx3XX_
+export OBSERVE_DOMAIN=observeinc.com
 terraform plan
 ...
 ```
