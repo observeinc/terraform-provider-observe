@@ -16,7 +16,7 @@ A correlation tag can be attached to columns of a dataset. These tags are later 
 
 - `column` (String) The column to which the correlation tag should be attached.
 - `dataset` (String) OID of the dataset to which the correlation tag should be attached.
-- `tag` (String) The tag to attach.
+- `name` (String) The name to attach.
 
 ### Optional
 
