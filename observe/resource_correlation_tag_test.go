@@ -14,7 +14,7 @@ func TestCorrelationTagCreation(t *testing.T) {
 			{
 				Config: linkConfigPreamble + `
 					resource "observe_correlation_tag" "example" {
-					    tag = "key.name"
+					name = "key.name"
 					dataset = observe_dataset.a.oid
 					column = "key"
 				}`,
@@ -28,7 +28,7 @@ func TestCorrelationTagCreation(t *testing.T) {
 			{
 				Config: linkConfigPreamble + `
 					resource "observe_correlation_tag" "example" {
-					tag = "key.name"
+					name = "key.name"
 					dataset = observe_dataset.a.oid
 					column = "key"
 				}`,
@@ -39,7 +39,7 @@ func TestCorrelationTagCreation(t *testing.T) {
 				// Making any change to the config should delete and recreate the tag (in-place update is not supported)
 				Config: linkConfigPreamble + `
 					resource "observe_correlation_tag" "example" {
-					tag = "key.name-2"
+					name = "key.name-2"
 					dataset = observe_dataset.a.oid
 					column = "key"
 				}`,
