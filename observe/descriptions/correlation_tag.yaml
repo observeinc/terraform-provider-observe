@@ -3,8 +3,8 @@ description: |
 schema:
   dataset: |
     OID of the dataset to which the correlation tag should be attached.
-  tag: |
-    The tag to attach.
+  name: |
+    The name to attach.
   column: |
     The column to which the correlation tag should be attached.
   path: |

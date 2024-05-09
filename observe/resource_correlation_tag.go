@@ -12,6 +12,13 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
+const (
+	correlationTagNameKey    = "name"
+	correlationTagDatasetKey = "dataset"
+	correlationTagColumnKey  = "column"
+	correlationTagPathKey    = "path"
+)
+
 func resourceCorrelationTag() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("correlation_tag", "description"),
@@ -19,29 +26,29 @@ func resourceCorrelationTag() *schema.Resource {
 		ReadContext:   resourceCorrelationTagRead,
 		DeleteContext: resourceCorrelationTagDelete,
 		Schema: map[string]*schema.Schema{
-			"dataset": {
+			correlationTagDatasetKey: {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
-				Description:      descriptions.Get("correlation_tag", "schema", "dataset"),
+				Description:      descriptions.Get("correlation_tag", "schema", correlationTagDatasetKey),
 				ForceNew:         true,
 			},
-			"tag": {
+			correlationTagNameKey: {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: descriptions.Get("correlation_tag", "schema", "tag"),
+				Description: descriptions.Get("correlation_tag", "schema", correlationTagNameKey),
 				ForceNew:    true,
 			},
-			"column": {
+			correlationTagColumnKey: {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: descriptions.Get("correlation_tag", "schema", "column"),
+				Description: descriptions.Get("correlation_tag", "schema", correlationTagColumnKey),
 				ForceNew:    true,
 			},
-			"path": {
+			correlationTagPathKey: {
 				Type:        schema.TypeString,
 				Required:    false,
-				Description: descriptions.Get("correlation_tag", "schema", "path"),
+				Description: descriptions.Get("correlation_tag", "schema", correlationTagPathKey),
 				ForceNew:    true,
 				Optional:    true,
 			},
@@ -49,18 +56,23 @@ func resourceCorrelationTag() *schema.Resource {
 	}
 }
 
-func newCorrelationTagConfig(data *schema.ResourceData) (dataset, tag string, path gql.LinkFieldInput, diags diag.Diagnostics) {
-	datasetOid, _ := oid.NewOID(data.Get("dataset").(string))
-	dataset = datasetOid.Id
+func newCorrelationTagConfig(data *schema.ResourceData) (params correlationTagParameters, diags diag.Diagnostics) {
+	datasetOid, _ := oid.NewOID(data.Get(correlationTagDatasetKey).(string))
+	dataset := datasetOid.Id
 
-	tag, _ = data.Get("tag").(string)
-	column, _ := data.Get("column").(string)
-	objectPath, _ := data.Get("path").(string)
-	path = gql.LinkFieldInput{
+	tag, _ := data.Get(correlationTagNameKey).(string)
+	column, _ := data.Get(correlationTagColumnKey).(string)
+	objectPath, _ := data.Get(correlationTagPathKey).(string)
+	path := gql.LinkFieldInput{
 		Path:   &objectPath,
 		Column: column,
 	}
-	return dataset, tag, path, diag.Diagnostics{}
+	params = correlationTagParameters{
+		Dataset: dataset,
+		Tag:     tag,
+		Path:    path,
+	}
+	return
 }
 
 func constructCorrelationTagId(dataset, tag string, path gql.LinkFieldInput) string {
@@ -74,23 +86,22 @@ func constructCorrelationTagId(dataset, tag string, path gql.LinkFieldInput) str
 	return string(id)
 }
 
-func deconstructCorrelationTagId(id string) (dataset, tag string, path gql.LinkFieldInput, err error) {
-	var params correlationTagParameters
+func deconstructCorrelationTagId(id string) (params correlationTagParameters, err error) {
 	err = json.Unmarshal([]byte(id), &params)
 	if err != nil {
 		return
 	}
-	return params.Dataset, params.Tag, params.Path, nil
+	return params, nil
 }
 
 func resourceCorrelationTagCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	dataset, tag, path, diags := newCorrelationTagConfig(data)
+	params, diags := newCorrelationTagConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	err := client.CreateCorrelationTag(ctx, dataset, tag, path)
+	err := client.CreateCorrelationTag(ctx, params.Dataset, params.Tag, params.Path)
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -99,17 +110,17 @@ func resourceCorrelationTagCreate(ctx context.Context, data *schema.ResourceData
 		})
 	}
 
-	data.SetId(constructCorrelationTagId(dataset, tag, path))
+	data.SetId(constructCorrelationTagId(params.Dataset, params.Tag, params.Path))
 	return append(diags, resourceCorrelationTagRead(ctx, data, meta)...)
 }
 
 func resourceCorrelationTagRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	dataset, tag, path, err := deconstructCorrelationTagId(data.Id())
+	cTagParams, err := deconstructCorrelationTagId(data.Id())
 	if err != nil {
 		return diag.Errorf("failed to deconstruct correlation tag id: %s", err.Error())
 	}
-	isPresent, err := client.IsCorrelationTagPresent(ctx, dataset, tag, path)
+	isPresent, err := client.IsCorrelationTagPresent(ctx, cTagParams.Dataset, cTagParams.Tag, cTagParams.Path)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if !isPresent {
@@ -121,11 +132,11 @@ func resourceCorrelationTagRead(ctx context.Context, data *schema.ResourceData, 
 
 func resourceCorrelationTagDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	dataset, tag, path, err := deconstructCorrelationTagId(data.Id())
+	cTagParams, err := deconstructCorrelationTagId(data.Id())
 	if err != nil {
 		return diag.Errorf("failed to deconstruct correlation tag id: %s", err.Error())
 	}
-	err = client.DeleteCorrelationTag(ctx, dataset, tag, path)
+	err = client.DeleteCorrelationTag(ctx, cTagParams.Dataset, cTagParams.Tag, cTagParams.Path)
 	if err != nil {
 		return diag.Errorf("failed to delete correlation tag: %s", err.Error())
 	}

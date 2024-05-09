@@ -8186,79 +8186,11 @@ func (v *__updateWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
 
 // addCorrelationTagResponse is returned by addCorrelationTag on success.
 type addCorrelationTagResponse struct {
-	ResultStatus addCorrelationTagResultStatus `json:"resultStatus"`
+	ResultStatus ResultStatus `json:"resultStatus"`
 }
 
 // GetResultStatus returns addCorrelationTagResponse.ResultStatus, and is useful for accessing the field via an interface.
-func (v *addCorrelationTagResponse) GetResultStatus() addCorrelationTagResultStatus {
-	return v.ResultStatus
-}
-
-// addCorrelationTagResultStatus includes the requested fields of the GraphQL type ResultStatus.
-type addCorrelationTagResultStatus struct {
-	ResultStatus `json:"-"`
-}
-
-// GetSuccess returns addCorrelationTagResultStatus.Success, and is useful for accessing the field via an interface.
-func (v *addCorrelationTagResultStatus) GetSuccess() bool { return v.ResultStatus.Success }
-
-// GetErrorMessage returns addCorrelationTagResultStatus.ErrorMessage, and is useful for accessing the field via an interface.
-func (v *addCorrelationTagResultStatus) GetErrorMessage() string { return v.ResultStatus.ErrorMessage }
-
-// GetDetailedInfo returns addCorrelationTagResultStatus.DetailedInfo, and is useful for accessing the field via an interface.
-func (v *addCorrelationTagResultStatus) GetDetailedInfo() *types.JsonObject {
-	return v.ResultStatus.DetailedInfo
-}
-
-func (v *addCorrelationTagResultStatus) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*addCorrelationTagResultStatus
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.addCorrelationTagResultStatus = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.ResultStatus)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshaladdCorrelationTagResultStatus struct {
-	Success bool `json:"success"`
-
-	ErrorMessage string `json:"errorMessage"`
-
-	DetailedInfo *types.JsonObject `json:"detailedInfo"`
-}
-
-func (v *addCorrelationTagResultStatus) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *addCorrelationTagResultStatus) __premarshalJSON() (*__premarshaladdCorrelationTagResultStatus, error) {
-	var retval __premarshaladdCorrelationTagResultStatus
-
-	retval.Success = v.ResultStatus.Success
-	retval.ErrorMessage = v.ResultStatus.ErrorMessage
-	retval.DetailedInfo = v.ResultStatus.DetailedInfo
-	return &retval, nil
-}
+func (v *addCorrelationTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // clearDefaultDashboardResponse is returned by clearDefaultDashboard on success.
 type clearDefaultDashboardResponse struct {
@@ -9529,81 +9461,11 @@ func (v *lookupWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace
 
 // removeCorrelationTagResponse is returned by removeCorrelationTag on success.
 type removeCorrelationTagResponse struct {
-	ResultStatus removeCorrelationTagResultStatus `json:"resultStatus"`
+	ResultStatus ResultStatus `json:"resultStatus"`
 }
 
 // GetResultStatus returns removeCorrelationTagResponse.ResultStatus, and is useful for accessing the field via an interface.
-func (v *removeCorrelationTagResponse) GetResultStatus() removeCorrelationTagResultStatus {
-	return v.ResultStatus
-}
-
-// removeCorrelationTagResultStatus includes the requested fields of the GraphQL type ResultStatus.
-type removeCorrelationTagResultStatus struct {
-	ResultStatus `json:"-"`
-}
-
-// GetSuccess returns removeCorrelationTagResultStatus.Success, and is useful for accessing the field via an interface.
-func (v *removeCorrelationTagResultStatus) GetSuccess() bool { return v.ResultStatus.Success }
-
-// GetErrorMessage returns removeCorrelationTagResultStatus.ErrorMessage, and is useful for accessing the field via an interface.
-func (v *removeCorrelationTagResultStatus) GetErrorMessage() string {
-	return v.ResultStatus.ErrorMessage
-}
-
-// GetDetailedInfo returns removeCorrelationTagResultStatus.DetailedInfo, and is useful for accessing the field via an interface.
-func (v *removeCorrelationTagResultStatus) GetDetailedInfo() *types.JsonObject {
-	return v.ResultStatus.DetailedInfo
-}
-
-func (v *removeCorrelationTagResultStatus) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*removeCorrelationTagResultStatus
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.removeCorrelationTagResultStatus = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.ResultStatus)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalremoveCorrelationTagResultStatus struct {
-	Success bool `json:"success"`
-
-	ErrorMessage string `json:"errorMessage"`
-
-	DetailedInfo *types.JsonObject `json:"detailedInfo"`
-}
-
-func (v *removeCorrelationTagResultStatus) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *removeCorrelationTagResultStatus) __premarshalJSON() (*__premarshalremoveCorrelationTagResultStatus, error) {
-	var retval __premarshalremoveCorrelationTagResultStatus
-
-	retval.Success = v.ResultStatus.Success
-	retval.ErrorMessage = v.ResultStatus.ErrorMessage
-	retval.DetailedInfo = v.ResultStatus.DetailedInfo
-	return &retval, nil
-}
+func (v *removeCorrelationTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // saveDashboardResponse is returned by saveDashboard on success.
 type saveDashboardResponse struct {

@@ -1,6 +1,7 @@
 mutation addCorrelationTag($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
-    resultStatus: 
+    
     # @genqlient(flatten: true)
+    resultStatus: 
     # @genqlient(for: "LinkFieldInput.path", omitempty: true)
     addCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
         ...ResultStatus
@@ -8,8 +9,9 @@ mutation addCorrelationTag($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: 
 }
 
 mutation removeCorrelationTag($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
-    resultStatus: 
+    
     # @genqlient(flatten: true)
+    resultStatus: 
     # @genqlient(for: "LinkFieldInput.path", omitempty: true)
     removeCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
         ...ResultStatus

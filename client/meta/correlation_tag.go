@@ -2,31 +2,16 @@ package meta
 
 import (
 	"context"
-	"errors"
 )
 
 func (client *Client) CreateCorrelationTag(ctx context.Context, dataset, tag string, path LinkFieldInput) error {
 	resp, err := addCorrelationTag(ctx, client.Gql, dataset, path, tag)
-	if err != nil {
-		return err
-	}
-	rs := resp.GetResultStatus().ResultStatus
-	if !rs.Success {
-		return errors.New(rs.ErrorMessage)
-	}
-	return nil
+	return resultStatusError(resp, err)
 }
 
 func (client *Client) DeleteCorrelationTag(ctx context.Context, dataset, tag string, path LinkFieldInput) error {
 	resp, err := removeCorrelationTag(ctx, client.Gql, dataset, path, tag)
-	if err != nil {
-		return err
-	}
-	rs := resp.GetResultStatus().ResultStatus
-	if !rs.Success {
-		return errors.New(rs.ErrorMessage)
-	}
-	return nil
+	return resultStatusError(resp, err)
 }
 
 func (client *Client) IsCorrelationTagPresent(ctx context.Context, dataset, tag string, path LinkFieldInput) (bool, error) {
