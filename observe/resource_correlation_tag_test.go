@@ -23,7 +23,7 @@ func TestCorrelationTagCreation(t *testing.T) {
 					column = "key"
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_correlation_tag.example", "name", "key.name"),
+					resource.TestCheckResourceAttr("observe_correlation_tag.example", "name", fmt.Sprintf("%s-key.name", randomPrefix)),
 					resource.TestCheckResourceAttr("observe_correlation_tag.example", "column", "key"),
 					resource.TestCheckResourceAttrSet("observe_correlation_tag.example", "dataset"),
 				),
@@ -47,7 +47,7 @@ func TestCorrelationTagCreation(t *testing.T) {
 					dataset = observe_dataset.a.oid
 					column = "key"
 				}`, randomPrefix),
-				Check: resource.TestCheckResourceAttr("observe_correlation_tag.example", "name", "key.name-2"),
+				Check: resource.TestCheckResourceAttr("observe_correlation_tag.example", "name", fmt.Sprintf("%s-key.name-2", randomPrefix)),
 			},
 			{
 				// Removing the config should delete the tag
