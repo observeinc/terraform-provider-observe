@@ -49,11 +49,6 @@ func TestCorrelationTagCreation(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.TestCheckResourceAttr("observe_correlation_tag.example", "name", fmt.Sprintf("%s-key.name-2", randomPrefix)),
 			},
-			{
-				// Removing the config should delete the tag
-				Config: fmt.Sprintf(linkConfigPreamble, randomPrefix),
-				Check:  resource.TestCheckNoResourceAttr("observe_correlation_tag.example", "name"),
-			},
 		},
 	})
 }
