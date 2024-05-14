@@ -1,0 +1,32 @@
+mutation addCorrelationTag($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
+    
+    # @genqlient(flatten: true)
+    resultStatus: 
+    # @genqlient(for: "LinkFieldInput.path", omitempty: true)
+    addCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
+        ...ResultStatus
+    }
+}
+
+mutation removeCorrelationTag($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
+    
+    # @genqlient(flatten: true)
+    resultStatus: 
+    # @genqlient(for: "LinkFieldInput.path", omitempty: true)
+    removeCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
+        ...ResultStatus
+    }
+}
+
+query getDatasetCorrelationTags($datasetId: ObjectId!) {
+    
+    correlationTags: dataset(id: $datasetId) {
+        correlationTagMappings {
+            tag
+            path {
+                column
+                path
+            }
+        }
+    }
+}

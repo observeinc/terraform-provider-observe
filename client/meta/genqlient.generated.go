@@ -2899,6 +2899,17 @@ func (v *LayeredSettingRecordTargetInput) GetDatasetId() *string { return v.Data
 // GetUserId returns LayeredSettingRecordTargetInput.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { return v.UserId }
 
+type LinkFieldInput struct {
+	Column string  `json:"column"`
+	Path   *string `json:"path"`
+}
+
+// GetColumn returns LinkFieldInput.Column, and is useful for accessing the field via an interface.
+func (v *LinkFieldInput) GetColumn() string { return v.Column }
+
+// GetPath returns LinkFieldInput.Path, and is useful for accessing the field via an interface.
+func (v *LinkFieldInput) GetPath() *string { return v.Path }
+
 // ModuleVersion includes the GraphQL fields of ModuleVersion requested by the fragment ModuleVersion.
 // The GraphQL type's documentation follows.
 //
@@ -6047,6 +6058,11 @@ const (
 )
 
 type RollupOptionInput struct {
+	// If maxRowsPerGroup is set, rollup presentation will respect it as the limit for maximum number
+	// of points allowed for each group; otherwise, rollup presentation will use heuristics to propose
+	// a limit (typically 400 or 2000).
+	// Either way, rollup presentation limits each group to this size, and apply sampling preemptively.
+	MaxRowsPerGroup *types.Int64Scalar `json:"maxRowsPerGroup"`
 	// If unrollColumns is set, the columns specified will be unrolled after being
 	// grouped by primary key and ordered by time. Empty unrollColumns will produce
 	// 1 row for each primary key (because all non-primary key columns are rolled
@@ -6057,6 +6073,9 @@ type RollupOptionInput struct {
 	// If set to true, explicitly disables rollup, even for a Resource
 	ForceNoRollup *bool `json:"forceNoRollup"`
 }
+
+// GetMaxRowsPerGroup returns RollupOptionInput.MaxRowsPerGroup, and is useful for accessing the field via an interface.
+func (v *RollupOptionInput) GetMaxRowsPerGroup() *types.Int64Scalar { return v.MaxRowsPerGroup }
 
 // GetUnrollColumns returns RollupOptionInput.UnrollColumns, and is useful for accessing the field via an interface.
 func (v *RollupOptionInput) GetUnrollColumns() []string { return v.UnrollColumns }
@@ -6368,8 +6387,7 @@ type StagePresentationInput struct {
 	// and create one new field for each containing that user-readable name of the
 	// target of the key (see design doc in Notion)
 	Linkify *bool `json:"linkify"`
-	// When rollup is set, resources will be rolled up into the query time window
-	// Columns will be aggregated into arrays.
+	// Specifies the options for rollup presentation.
 	Rollup *RollupOptionInput `json:"rollup"`
 	// rollupMode, if specified, overrides rollup.
 	// Always: Roll up the result, grouping by primary key if possible,
@@ -6875,6 +6893,22 @@ func (v *WorkspaceInput) GetTimezone() *string { return v.Timezone }
 
 // GetLayout returns WorkspaceInput.Layout, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetLayout() *types.JsonObject { return v.Layout }
+
+// __addCorrelationTagInput is used internally by genqlient
+type __addCorrelationTagInput struct {
+	DatasetId string         `json:"datasetId"`
+	Path      LinkFieldInput `json:"path"`
+	Tag       string         `json:"tag"`
+}
+
+// GetDatasetId returns __addCorrelationTagInput.DatasetId, and is useful for accessing the field via an interface.
+func (v *__addCorrelationTagInput) GetDatasetId() string { return v.DatasetId }
+
+// GetPath returns __addCorrelationTagInput.Path, and is useful for accessing the field via an interface.
+func (v *__addCorrelationTagInput) GetPath() LinkFieldInput { return v.Path }
+
+// GetTag returns __addCorrelationTagInput.Tag, and is useful for accessing the field via an interface.
+func (v *__addCorrelationTagInput) GetTag() string { return v.Tag }
 
 // __clearDefaultDashboardInput is used internally by genqlient
 type __clearDefaultDashboardInput struct {
@@ -7468,6 +7502,14 @@ type __getDashboardLinkInput struct {
 // GetId returns __getDashboardLinkInput.Id, and is useful for accessing the field via an interface.
 func (v *__getDashboardLinkInput) GetId() string { return v.Id }
 
+// __getDatasetCorrelationTagsInput is used internally by genqlient
+type __getDatasetCorrelationTagsInput struct {
+	DatasetId string `json:"datasetId"`
+}
+
+// GetDatasetId returns __getDatasetCorrelationTagsInput.DatasetId, and is useful for accessing the field via an interface.
+func (v *__getDatasetCorrelationTagsInput) GetDatasetId() string { return v.DatasetId }
+
 // __getDatasetInput is used internally by genqlient
 type __getDatasetInput struct {
 	Id string `json:"id"`
@@ -7747,6 +7789,22 @@ type __lookupWorkspaceInput struct {
 
 // GetName returns __lookupWorkspaceInput.Name, and is useful for accessing the field via an interface.
 func (v *__lookupWorkspaceInput) GetName() string { return v.Name }
+
+// __removeCorrelationTagInput is used internally by genqlient
+type __removeCorrelationTagInput struct {
+	DatasetId string         `json:"datasetId"`
+	Path      LinkFieldInput `json:"path"`
+	Tag       string         `json:"tag"`
+}
+
+// GetDatasetId returns __removeCorrelationTagInput.DatasetId, and is useful for accessing the field via an interface.
+func (v *__removeCorrelationTagInput) GetDatasetId() string { return v.DatasetId }
+
+// GetPath returns __removeCorrelationTagInput.Path, and is useful for accessing the field via an interface.
+func (v *__removeCorrelationTagInput) GetPath() LinkFieldInput { return v.Path }
+
+// GetTag returns __removeCorrelationTagInput.Tag, and is useful for accessing the field via an interface.
+func (v *__removeCorrelationTagInput) GetTag() string { return v.Tag }
 
 // __saveDashboardInput is used internally by genqlient
 type __saveDashboardInput struct {
@@ -8137,6 +8195,14 @@ func (v *__updateWorkspaceInput) GetId() string { return v.Id }
 
 // GetConfig returns __updateWorkspaceInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
+
+// addCorrelationTagResponse is returned by addCorrelationTag on success.
+type addCorrelationTagResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns addCorrelationTagResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *addCorrelationTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // clearDefaultDashboardResponse is returned by clearDefaultDashboard on success.
 type clearDefaultDashboardResponse struct {
@@ -8906,6 +8972,58 @@ type getDashboardResponse struct {
 // GetDashboard returns getDashboardResponse.Dashboard, and is useful for accessing the field via an interface.
 func (v *getDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
 
+// getDatasetCorrelationTagsCorrelationTagsDataset includes the requested fields of the GraphQL type Dataset.
+type getDatasetCorrelationTagsCorrelationTagsDataset struct {
+	CorrelationTagMappings []getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
+}
+
+// GetCorrelationTagMappings returns getDatasetCorrelationTagsCorrelationTagsDataset.CorrelationTagMappings, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsCorrelationTagsDataset) GetCorrelationTagMappings() []getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping {
+	return v.CorrelationTagMappings
+}
+
+// getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping includes the requested fields of the GraphQL type CorrelationTagMapping.
+type getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping struct {
+	Tag  string                                                                                                  `json:"tag"`
+	Path getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField `json:"path"`
+}
+
+// GetTag returns getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping.Tag, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping) GetTag() string {
+	return v.Tag
+}
+
+// GetPath returns getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping.Path, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMapping) GetPath() getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField {
+	return v.Path
+}
+
+// getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField includes the requested fields of the GraphQL type LinkField.
+type getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField struct {
+	Column string  `json:"column"`
+	Path   *string `json:"path"`
+}
+
+// GetColumn returns getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField.Column, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetColumn() string {
+	return v.Column
+}
+
+// GetPath returns getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField.Path, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsCorrelationTagsDatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetPath() *string {
+	return v.Path
+}
+
+// getDatasetCorrelationTagsResponse is returned by getDatasetCorrelationTags on success.
+type getDatasetCorrelationTagsResponse struct {
+	CorrelationTags *getDatasetCorrelationTagsCorrelationTagsDataset `json:"correlationTags"`
+}
+
+// GetCorrelationTags returns getDatasetCorrelationTagsResponse.CorrelationTags, and is useful for accessing the field via an interface.
+func (v *getDatasetCorrelationTagsResponse) GetCorrelationTags() *getDatasetCorrelationTagsCorrelationTagsDataset {
+	return v.CorrelationTags
+}
+
 // getDatasetOutboundShareResponse is returned by getDatasetOutboundShare on success.
 type getDatasetOutboundShareResponse struct {
 	DatasetOutboundShare DatasetOutboundShare `json:"datasetOutboundShare"`
@@ -9352,6 +9470,14 @@ type lookupWorkspaceResponse struct {
 
 // GetWorkspace returns lookupWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *lookupWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
+
+// removeCorrelationTagResponse is returned by removeCorrelationTag on success.
+type removeCorrelationTagResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns removeCorrelationTagResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *removeCorrelationTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // saveDashboardResponse is returned by saveDashboard on success.
 type saveDashboardResponse struct {
@@ -9877,6 +10003,50 @@ type updateWorkspaceResponse struct {
 
 // GetWorkspace returns updateWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *updateWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
+
+// The query or mutation executed by addCorrelationTag.
+const addCorrelationTag_Operation = `
+mutation addCorrelationTag ($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
+	resultStatus: addCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func addCorrelationTag(
+	ctx context.Context,
+	client graphql.Client,
+	datasetId string,
+	path LinkFieldInput,
+	tag string,
+) (*addCorrelationTagResponse, error) {
+	req := &graphql.Request{
+		OpName: "addCorrelationTag",
+		Query:  addCorrelationTag_Operation,
+		Variables: &__addCorrelationTagInput{
+			DatasetId: datasetId,
+			Path:      path,
+			Tag:       tag,
+		},
+	}
+	var err error
+
+	var data addCorrelationTagResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
 
 // The query or mutation executed by clearDefaultDashboard.
 const clearDefaultDashboard_Operation = `
@@ -13101,6 +13271,47 @@ func getDataset(
 	return &data, err
 }
 
+// The query or mutation executed by getDatasetCorrelationTags.
+const getDatasetCorrelationTags_Operation = `
+query getDatasetCorrelationTags ($datasetId: ObjectId!) {
+	correlationTags: dataset(id: $datasetId) {
+		correlationTagMappings {
+			tag
+			path {
+				column
+				path
+			}
+		}
+	}
+}
+`
+
+func getDatasetCorrelationTags(
+	ctx context.Context,
+	client graphql.Client,
+	datasetId string,
+) (*getDatasetCorrelationTagsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDatasetCorrelationTags",
+		Query:  getDatasetCorrelationTags_Operation,
+		Variables: &__getDatasetCorrelationTagsInput{
+			DatasetId: datasetId,
+		},
+	}
+	var err error
+
+	var data getDatasetCorrelationTagsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getDatasetOutboundShare.
 const getDatasetOutboundShare_Operation = `
 query getDatasetOutboundShare ($id: ObjectId!) {
@@ -15040,6 +15251,50 @@ func lookupWorkspace(
 	var err error
 
 	var data lookupWorkspaceResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by removeCorrelationTag.
+const removeCorrelationTag_Operation = `
+mutation removeCorrelationTag ($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
+	resultStatus: removeCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func removeCorrelationTag(
+	ctx context.Context,
+	client graphql.Client,
+	datasetId string,
+	path LinkFieldInput,
+	tag string,
+) (*removeCorrelationTagResponse, error) {
+	req := &graphql.Request{
+		OpName: "removeCorrelationTag",
+		Query:  removeCorrelationTag_Operation,
+		Variables: &__removeCorrelationTagInput{
+			DatasetId: datasetId,
+			Path:      path,
+			Tag:       tag,
+		},
+	}
+	var err error
+
+	var data removeCorrelationTagResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

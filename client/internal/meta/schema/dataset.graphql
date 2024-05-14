@@ -228,7 +228,11 @@ type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     targetStageLabel: String
     label: String @deprecated(reason: "use id instead")
     targetLabelFieldName: String
-    srcFields: [String!]!
+    srcFields: [String!]! @deprecated(reason: "use src instead")
+    # Since link sources are no longer plain column references, to cleanly model them,
+    # I'm creating a new type that contains both column name and path (if any). Plan is to
+    # deprecate srcFields in future. 
+    src: [LinkField!]!
     dstFields: [String!]!
     id: String
 }
@@ -280,8 +284,8 @@ type IndexMetadata @goModel(model: "observe/compiler/comptypes.IndexMetadata") {
 }
 
 type DatasetInputDataset @goModel(model: "observe/meta/metatypes.DatasetInputDataset") {
-	datasetId: ObjectId!,
-	inputRole: InputRole!,
+    datasetId: ObjectId!,
+    inputRole: InputRole!,
 }
 
 type Dataset implements WorkspaceObject & FolderObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Dataset") {
@@ -299,7 +303,8 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     latencyDesired: Int64
     freshnessDesired: Int64
     typedefId: ObjectId!
-    typedef: Typedef!
+    typedef: Typedef! @deprecated(reason: "use fieldList instead")
+    fieldList: [FieldDesc!]
     validFromField: String
     validToField: String
     labelField: String
@@ -309,6 +314,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     foreignKeys: [ForeignKey!]
     relatedKeys: [RelatedKey!]
     groupingKey: GroupingKey
+    correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time! @deprecated(reason: "use updatedDate instead")
@@ -325,7 +331,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
-    indexMetadata: IndexMetadata
+    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
 
     """
     Optional custom configured override value of the on demand materialization
@@ -378,6 +384,16 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
     cardinality: Int64
     interval: Duration
     intervalStddev: Duration
+    """
+    The last time this metric was reported. This time could be underreported by at most an hour.
+
+    When a metric has a lastReported of T, here is the information you can extract from it:
+    1. the metric was actually reported at the timestamp T
+    2. the metric was NEVER reported between [T+1h, now-5m), for fresh metric datasets (most are)
+    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either hibernated, or has a high freshness goal)
+    In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
+    """
+    lastReported: Time
     tags: [MetricTag!]
 }
 
@@ -765,4 +781,10 @@ type ObjectBillingInfo @goModel(model: "observe/meta/metatypes.ObjectBillingInfo
     periodFrom: Time!
     periodTo: Time!
     credits: Float!
+}
+
+# A correlationTagMapping is a mapping from a tag to a path in a dataset.
+type CorrelationTagMapping @goModel(model: "observe/compiler/comptypes.CorrelationTagMapping") {
+    tag: String!
+    path: LinkField!
 }
