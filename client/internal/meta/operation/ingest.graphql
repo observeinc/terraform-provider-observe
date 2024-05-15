@@ -1,0 +1,15 @@
+fragment IngestInfo on IngestInfo {
+    collectUrl
+    domain
+    scheme
+    port
+}
+
+query getIngestInfo() {
+	ingest: currentCustomer {
+            # @genqlient(flatten: true)
+            ingestInfo {
+                ...IngestInfo
+            }
+    }
+}
