@@ -137,6 +137,7 @@ func Provider() *schema.Provider {
 			"observe_oid":               dataSourceOID(),
 			"observe_rbac_group":        dataSourceRbacGroup(),
 			"observe_user":              dataSourceUser(),
+			"observe_ingest_info":       dataSourceIngestInfo(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),

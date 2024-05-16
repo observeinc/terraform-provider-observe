@@ -2632,6 +2632,30 @@ func (v *HttpRequestConfig) GetHeaders() *types.JsonObject { return v.Headers }
 // GetParams returns HttpRequestConfig.Params, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetParams() *types.JsonObject { return v.Params }
 
+// IngestInfo includes the GraphQL fields of IngestInfo requested by the fragment IngestInfo.
+// The GraphQL type's documentation follows.
+//
+// Information on the data ingestion endpoint, full URL format is:
+// <scheme>://<customerId>.collect.<domain>:<port>/
+type IngestInfo struct {
+	CollectUrl string `json:"collectUrl"`
+	Domain     string `json:"domain"`
+	Scheme     string `json:"scheme"`
+	Port       string `json:"port"`
+}
+
+// GetCollectUrl returns IngestInfo.CollectUrl, and is useful for accessing the field via an interface.
+func (v *IngestInfo) GetCollectUrl() string { return v.CollectUrl }
+
+// GetDomain returns IngestInfo.Domain, and is useful for accessing the field via an interface.
+func (v *IngestInfo) GetDomain() string { return v.Domain }
+
+// GetScheme returns IngestInfo.Scheme, and is useful for accessing the field via an interface.
+func (v *IngestInfo) GetScheme() string { return v.Scheme }
+
+// GetPort returns IngestInfo.Port, and is useful for accessing the field via an interface.
+func (v *IngestInfo) GetPort() string { return v.Port }
+
 type InputDefinitionInput struct {
 	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
 	InputName string `json:"inputName"`
@@ -9107,6 +9131,22 @@ type getFolderResponse struct {
 // GetFolder returns getFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *getFolderResponse) GetFolder() Folder { return v.Folder }
 
+// getIngestInfoIngestCustomer includes the requested fields of the GraphQL type Customer.
+type getIngestInfoIngestCustomer struct {
+	IngestInfo IngestInfo `json:"ingestInfo"`
+}
+
+// GetIngestInfo returns getIngestInfoIngestCustomer.IngestInfo, and is useful for accessing the field via an interface.
+func (v *getIngestInfoIngestCustomer) GetIngestInfo() IngestInfo { return v.IngestInfo }
+
+// getIngestInfoResponse is returned by getIngestInfo on success.
+type getIngestInfoResponse struct {
+	Ingest *getIngestInfoIngestCustomer `json:"ingest"`
+}
+
+// GetIngest returns getIngestInfoResponse.Ingest, and is useful for accessing the field via an interface.
+func (v *getIngestInfoResponse) GetIngest() *getIngestInfoIngestCustomer { return v.Ingest }
+
 // getLayeredSettingRecordResponse is returned by getLayeredSettingRecord on success.
 type getLayeredSettingRecordResponse struct {
 	LayeredSettingRecord LayeredSettingRecord `json:"layeredSettingRecord"`
@@ -13676,6 +13716,45 @@ func getFolder(
 	var err error
 
 	var data getFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getIngestInfo.
+const getIngestInfo_Operation = `
+query getIngestInfo {
+	ingest: currentCustomer {
+		ingestInfo {
+			... IngestInfo
+		}
+	}
+}
+fragment IngestInfo on IngestInfo {
+	collectUrl
+	domain
+	scheme
+	port
+}
+`
+
+func getIngestInfo(
+	ctx context.Context,
+	client graphql.Client,
+) (*getIngestInfoResponse, error) {
+	req := &graphql.Request{
+		OpName: "getIngestInfo",
+		Query:  getIngestInfo_Operation,
+	}
+	var err error
+
+	var data getIngestInfoResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
