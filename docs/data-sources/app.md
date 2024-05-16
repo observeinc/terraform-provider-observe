@@ -14,7 +14,8 @@ Fetches data for an installed Observe app.
 
 ```terraform
 data "observe_folder" "example" {
-  name = "OpenWeather"
+  name      = "OpenWeather"
+  workspace = data.observe_workspace.default
 }
 
 data "observe_app" "example" {
