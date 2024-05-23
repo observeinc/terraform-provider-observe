@@ -5,7 +5,7 @@ fragment IngestInfo on IngestInfo {
     port
 }
 
-query getIngestInfo() {
+query getIngestInfo {
 	ingest: currentCustomer {
             # @genqlient(flatten: true)
             ingestInfo {
