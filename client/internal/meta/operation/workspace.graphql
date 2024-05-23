@@ -38,7 +38,7 @@ query lookupWorkspace($name: String!) {
 	}
 }
 
-query listWorkspaces() {
+query listWorkspaces {
 	# @genqlient(flatten: true)
 	workspaces: projects {
 		...Workspace
