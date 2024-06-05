@@ -1,5 +1,6 @@
 data "observe_folder" "example" {
-  name = "OpenWeather"
+  workspace = data.observe_workspace.default
+  name      = "OpenWeather"
 }
 
 data "observe_app" "example" {
