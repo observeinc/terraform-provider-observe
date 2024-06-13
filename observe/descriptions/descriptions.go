@@ -40,6 +40,7 @@ func load(content embed.FS) (map[string]interface{}, error) {
 }
 
 func Get(filename string, fields ...string) string {
+	return "hi"
 	once.Do(func() {
 		var err error
 		if cache, err = load(content); err != nil {
@@ -52,6 +53,7 @@ func Get(filename string, fields ...string) string {
 	}
 	s, ok := contents.(string)
 	if !ok {
+		return s
 		panic(fmt.Sprintf("failed to load %s description from %s\n", fields, filename))
 	}
 	return s

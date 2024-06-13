@@ -1,0 +1,36 @@
+# description:
+#   Monitors provide a flexible way to alert for patterns in your
+#   incoming data. A monitor executes a query periodically and applies rules to
+#   determine whether to trigger notifications. Notifications are forwarded to
+#   subscribed channels, which in turn route notifications to configured channel
+#   actions.
+
+schema:
+  name: |
+    Monitor name. Must be unique within workspace.
+  description: |
+    A brief description of the monitor.
+  comment: |
+    A long-form comment describing the content of the monitor.
+  is_template: |
+    This resource is template for creating new monitors
+  disabled: |
+    Set to `true` to disable monitor.
+  definition: |
+    Monitor definition in JSON format.
+  notification_spec:
+    reminder_frequency: |
+      How often to send reminders when a monitor notification is triggered.
+      To disable reminder notifications, omit this attribute.
+    notify_on_reminder:
+      Whether notification reminders are enabled for this monitor. To enable them, set `reminder_frequency`.
+    notify_on_close: |
+      Enables a final update when a monitor notification is closed (no longer triggered).
+  rule:
+    log:
+      expression_summary: |
+        Short summary or comment of how the data for monitor is queried.
+      log_stage_id: |
+        An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
+      source_log_dataset: |
+        ID of the dataset that contains logs for preview.

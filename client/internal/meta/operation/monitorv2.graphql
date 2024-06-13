@@ -1,0 +1,53 @@
+fragment MonitorV2 on MonitorV2 {
+    id
+    workspaceId
+    createdBy
+    createdDate
+    name
+    iconUrl
+    description
+    managedById
+    folderId
+}
+
+mutation createMonitorV2(
+	$workspaceId: ObjectId!,
+	$input: MonitorV2Input!
+) {
+    # @genqlient(flatten: true)
+	monitorV2: createMonitorV2(workspaceId:$workspaceId, input:$input) {
+        ...MonitorV2
+	}
+}
+
+mutation updateMonitorV2(
+	$id: ObjectId!,
+	$input: MonitorV2Input!
+) {
+	# @genqlient(flatten: true)
+	monitorV2: updateMonitorV2(id:$id, input:$input) {
+        ...MonitorV2
+	}
+}
+
+query getMonitorV2($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	monitorV2: monitorV2(id: $id) {
+		...MonitorV2
+	}
+}
+
+mutation deleteMonitorV2($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	resultStatus: deleteMonitorV2(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+    monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+        results {
+            ...MonitorV2
+        }
+    }
+}
