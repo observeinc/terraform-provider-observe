@@ -1,26 +1,26 @@
 extend type Query {
-	"""
-	for a given customer collect all invoices. This will return all invoices for any customers sharing the same OrdwayId
-	"""
+    """
+    for a given customer collect all invoices. This will return all invoices for any customers sharing the same OrdwayId
+    """
     getBillingInvoices: [BillingInvoicesDefinition!]!
 }
 
 type BillingInvoicesDefinition @goModel(model: "observe/meta/metatypes.BillingInvoicesDefinition") {
-	"""
-	InvoiceUrl is a url provided by Ordway to a specific invoice
-	"""
+    """
+    InvoiceUrl is a url provided by Ordway to a specific invoice
+    """
     invoiceUrl: String!
-	"""
-	StartDate is the date at which this invoice period starts
-	"""
+    """
+    StartDate is the date at which this invoice period starts
+    """
     startDate: String!
-	"""
-	EndDate is the date at which this invoice period ends
-	"""
+    """
+    EndDate is the date at which this invoice period ends
+    """
     endDate: String!
-	"""
-	Status is the status of the invoice according to Ordway. Statuses are: Draft, Posted, Paid, or Partially Paid.
-	"""
+    """
+    Status is the status of the invoice according to Ordway. Statuses are: Draft, Posted, Paid, or Partially Paid.
+    """
     status: String!
 }
 

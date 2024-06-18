@@ -22,14 +22,31 @@ extend type Query {
     This is helpful if all responses you got were bad and the user wants to
     see something else. Useful values are 0 .. 10
     """
-    getCodeCompletion(query: MultiStageQueryInput!, contextLine: Int64, numCompletions: Int64, previousIds: [String!], randomness: Int64): CodeCompletionResponse!
+    getCodeCompletion(query: MultiStageQueryInput!, contextLine: Int64, numCompletions: Int64, previousIds: [String!], randomness: Int64, model: CodeCompletionModel, objectKind: ObjectKind): CodeCompletionResponse!
     """
-    Given some data, generate possible extraction actions on it.
+    Given some data, generate a regex to extract all possible columns from the data.
     The 'columnName' is the name of the column, and the 'data' is an example of the data.
     Score the result of the extraction using scoreCodeCompletion().
     The optional prompt lets you tune the extraction (could come from the user).
+    This is the old interface, which is now deprecated, and replaced by the two-step process of getDataExtractionCandidates() and getDataExtractionFromCandidates()
     """
-    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
+    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse! @deprecated
+
+    """
+    Given some data, generate possible extraction actions on it.
+    The 'extractionCandidates' hold the name of the column, and the 'data' is a list of examples of the data.
+    Score the result of the extraction using scoreCodeCompletion().
+    The optional prompt lets you tune the extraction (could come from the user).
+    """
+    getDataExtractionFromCandidates(data: [String!]!, extractionCandidates: [DataExtractionCandidateInput!]!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
+
+    """
+    Given some data, generate possible extraction actions on it.
+    The 'columnName' is the name of the column, and the 'data' is a list of examples of the data.
+    Score the result of the extraction using scoreCodeCompletion().
+    The optional prompt lets you tune the extraction (could come from the user).
+    """
+    getDataExtractionCandidates(data: [String!]!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
 
     """
     This is the o11y-as-command-line interface, to continue a session started with setInferHelpContext().
@@ -37,15 +54,18 @@ extend type Query {
     """
     inferHelp(previousId:String, author:String, text:String!, mode:InferMode, options:InferOptionsInput): InferResponse!
     """
-    Summarize a conversation
+    Summarize a conversation. previousId is the ID of the previous session, if any. text is whatever extra instructions
+    the user attached. statements is the chat history. You can also provide options to control the summary.
+    kind is the kind of summary you want. slackChannelInput contains the connection ID and channel ID that this summary is associated with.
     """
-    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!, kind:SummaryKind, options:InferOptionsInput): InferResponse!
+    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!, kind:SummaryKind, options:InferOptionsInput, slackChannelInput: IncidentSlackchannelInput): InferResponse!
 }
 
 enum SummaryKind @goModel(model:"observe/meta/metascalar.SummaryKind") {
     Summary
     Timeline
     Incident
+    Retrospective
 }
 
 extend type Mutation {
@@ -81,7 +101,7 @@ extend type Mutation {
     Note that you can use this to re-start an existing conversation with
     a new context, too, to "switch context".
     """
-    setInferHelpContext(previousId:String, author:String, object:ORN!, mode:InferMode): InferResponse!
+    setInferHelpContext(previousId: String, author: String, object: ORN!, mode: InferMode, params: InferHelpContextParams): InferResponse!
 }
 
 type O11ySessionInfo @goModel(model:"observe/meta/metatypes.O11ySessionInfo") {
@@ -135,6 +155,11 @@ type HelpRecord @goModel(model:"observe/meta/metakind.HelpRecord") {
     mode: InferMode
 }
 
+enum CodeCompletionModel @goModel(model:"observe/meta/metatypes.CodeCompletionModel") {
+    Prod
+    Dev
+}
+
 type CodeCompletionResponse @goModel(model:"observe/meta/metatypes.CodeCompletionResponse") {
     errorMessage: String
     suggestions: [CodeCompletion!]
@@ -162,10 +187,26 @@ type DataExtractionResponse @goModel(model:"observe/meta/metatypes.DataExtractio
     extractions: [DataExtraction!]
 }
 
+"""
+A candidate for data extraction.
+"""
+input DataExtractionCandidateInput @goModel(model:"observe/meta/metatypes.DataExtractionCandidateInput") {
+    statement: String! # the candidate name
+    explanation: String! # the sample from the first log, or some other explanation of what you want to extract
+    id: String
+}
+
 type DataExtraction @goModel(model:"observe/meta/metatypes.DataExtraction") {
     statement: String!
     explanation: String!
     id: String!
+}
+
+"""Extra parameters that may be passed into setInferHelpContext()"""
+input InferHelpContextParams @goModel(model:"observe/meta/metatypes.InferHelpContextParams") {
+    startTime: Time
+    duration: Duration
+    query: MultiStageQueryInput
 }
 
 type InferResponse @goModel(model:"observe/meta/metatypes.InferResponse") {
@@ -190,6 +231,7 @@ type ChatStatement implements InferStatement @goModel(model:"observe/meta/metaty
     text: String!
     timestamp: Time
     url: String # some clickable URL you might like
+    embedding: [Float!] # a vector of floats if we computed an embedding for this piece of text.
 }
 
 input ChatStatementInput @goModel(model:"observe/meta/metatypes.ChatStatement") {

@@ -2,11 +2,6 @@ extend type Query {
     poller(id: ObjectId!): Poller!
     pollers(workspaceId: ObjectId!, kind: PollerKind, name: String, datastreamId: ObjectId): [Poller!]!
     getPollers(workspaceId: ObjectId!, kind: PollerKind, name: String): [Poller!]!
-
-    datastream(id: ObjectId!): Datastream!
-    datastreams(workspaceId: ObjectId!, name: String): [Datastream!]!
-
-    datastreamToken(id: String!): DatastreamToken!
 }
 
 extend type Mutation {
@@ -14,164 +9,6 @@ extend type Mutation {
     createPoller(workspaceId: ObjectId!, poller: PollerInput!): Poller!
     deletePoller(id: ObjectId!): ResultStatus!
     setPollerDisabled(id: ObjectId!, disabled: Boolean!): ResultStatus!
-
-    createDatastream(workspaceId: ObjectId!, datastream: DatastreamInput!): Datastream!
-    updateDatastream(id: ObjectId!, datastream: DatastreamInput!): Datastream!
-    deleteDatastream(id: ObjectId!): ResultStatus!
-
-    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
-    updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
-    deleteDatastreamToken(id: String!): ResultStatus!
-}
-
-"""
-stats common to datastream sources such as tokens, pollers etc
-"""
-interface DatastreamSourceStats @goModel(model: "observe/meta/metatypes.DatastreamSourceStats") {
-    firstIngest: Time!
-    lastIngest: Time!
-    lastError: Time
-    errors: [DatastreamError!]
-    observations: [TimeSeriesValue!]
-    volumeBytes: [TimeSeriesValue!]
-}
-
-type DatastreamError @goModel(model: "observe/meta/metatypes.DatastreamError") {
-    time: Time!
-    message: String!
-    code: Int64
-}
-
-"""
-summarized per datastream stats
-"""
-type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
-    firstIngest: Time
-    lastIngest: Time
-    lastError: Time
-    numTokens: Int64!
-    """
-    per minute observation counts for the past hour
-    """
-    observations: [TimeSeriesValue!]
-    """
-    per minute ingest volume bytes for the past hour
-    """
-    volumeBytes: [TimeSeriesValue!]
-    """
-    total observations for the past hour derived from the above per minute counts
-    """
-    totalObservations: Int64!
-    """
-    total volume bytes for the past hour derived from the above per minute counts
-    """
-    totalVolumeBytes: Int64!
-}
-
-enum DatastreamState @goModel(model: "observe/meta/metatypes.DatastreamState") {
-    Disabled
-    Enabled
-    LiveMode
-}
-
-type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datastream") {
-    id: ObjectId!
-    name: String!
-    description: String
-    iconUrl: String
-    customerId: CustomerId!
-    workspaceId: ObjectId!
-    managedBy: WorkspaceObject @goField(forceResolver:true)
-    managedById: ObjectId
-    folderId: ObjectId!
-    datasetId: ObjectId!
-    createdBy: UserId!
-    createdByInfo: UserInfo! @goField(forceResolver:true)
-    updatedBy: UserId!
-    updatedByInfo: UserInfo! @goField(forceResolver:true)
-    createdDate: Time!
-    updatedDate: Time!
-    disabled: Boolean! @deprecated(reason: "use state instead")
-    state: DatastreamState!
-    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
-    pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
-    filedrops: [Filedrop!] @goField(forceResolver:true)
-    stats: DatastreamStats @goField(forceResolver:true)
-    externalSourceId: ObjectId
-}
-
-input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
-    name: String!
-    description: String
-    iconUrl: String
-    disabled: Boolean
-    externalSourceId: ObjectId
-}
-
-interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.DatastreamToken") {
-    id: String!
-    name: String!
-    description: String
-    createdBy: UserId!
-    createdByInfo: UserInfo! @goField(forceResolver:true)
-    updatedBy: UserId!
-    updatedByInfo: UserInfo! @goField(forceResolver:true)
-    createdDate: Time!
-    updatedDate: Time!
-    disabled: Boolean!
-
-    datastreamId: ObjectId!
-    managedById: ObjectId
-    stats: DatastreamTokenStats @goField(forceResolver:true)
-    """
-    only populated for creates
-    """
-    secret: String
-    appMetadata: DatastreamTokenAppMetadata
-}
-
-type DatastreamTokenAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadata") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-type DatastreamTokenStats implements TokenStats & DatastreamSourceStats @goModel(model: "observe/meta/metatypes.DatastreamTokenStats") {
-    firstUsed: Time!
-    lastUsed: Time!
-    lastError: Time
-    firstIngest: Time!
-    lastIngest: Time!
-    errors: [DatastreamError!]
-    observations: [TimeSeriesValue!]
-    volumeBytes: [TimeSeriesValue!]
-}
-
-type TimeSeriesValue @goModel(model: "observe/meta/metatypes.TimeSeriesValue") {
-    time: Time!
-    value: Int64!
-}
-
-input DatastreamTokenAppMetadataInput @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadataInput") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-input DatastreamTokenInput @goModel(model: "observe/meta/metatypes.DatastreamTokenInput") {
-    name: String!
-    description: String
-    disabled: Boolean
-    appMetadata: DatastreamTokenAppMetadataInput
 }
 
 enum PollerKind @goModel(model: "observe/meta/metatypes.PollerKind") {
@@ -201,6 +38,7 @@ type Poller implements WorkspaceObject & AuditedObject @goModel(model: "observe/
     managedById: ObjectId
     customerId: CustomerId!
     datastreamId: ObjectId
+    datastreamTokenId: String
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     updatedBy: UserId!

@@ -1,0 +1,64 @@
+extend type Query {
+    datastreamToken(id: String!): DatastreamToken!
+}
+
+extend type Mutation {
+    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
+    updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
+    deleteDatastreamToken(id: String!): ResultStatus!
+}
+
+type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.DatastreamToken") {
+    id: String!
+    name: String!
+    description: String
+    createdBy: UserId!
+    createdByInfo: UserInfo! @goField(forceResolver:true)
+    updatedBy: UserId!
+    updatedByInfo: UserInfo! @goField(forceResolver:true)
+    createdDate: Time!
+    updatedDate: Time!
+    disabled: Boolean!
+
+    datastreamId: ObjectId!
+    managedById: ObjectId
+    stats: DatastreamTokenStats @goField(forceResolver:true)
+    """
+    only populated for creates
+    """
+    secret: String
+    appMetadata: DatastreamTokenAppMetadata
+}
+
+type DatastreamTokenAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadata") {
+    appId: ObjectId!
+    moduleId: String
+    instructions: String!
+    datasourceName: String!
+}
+
+type DatastreamTokenStats implements TokenStats & DatastreamSourceStats @goModel(model: "observe/meta/metatypes.DatastreamTokenStats") {
+    firstUsed: Time!
+    lastUsed: Time!
+    lastError: Time
+    firstIngest: Time!
+    lastIngest: Time!
+    errors: [DatastreamError!]
+    observations: [TimeSeriesValue!]
+    volumeBytes: [TimeSeriesValue!]
+}
+
+
+input DatastreamTokenAppMetadataInput @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadataInput") {
+    appId: ObjectId!
+    moduleId: String
+    instructions: String!
+    datasourceName: String!
+}
+
+input DatastreamTokenInput @goModel(model: "observe/meta/metatypes.DatastreamTokenInput") {
+    name: String!
+    description: String
+    disabled: Boolean
+    appMetadata: DatastreamTokenAppMetadataInput
+}

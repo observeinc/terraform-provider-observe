@@ -3,12 +3,38 @@
 extend type Query {
     monitorV2(id: ObjectId!): MonitorV2!
     searchMonitorV2(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorV2SearchResult!
+    monitorV2Action(id: ObjectId!): MonitorV2Action!
+    searchMonitorV2Action(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorV2ActionSearchResult!
+    monitorV2Destination(id: ObjectId!): MonitorV2Destination!
+    searchMonitorV2Destination(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorV2DestinationSearchResult!
+    monitorV2MuteRule(id: ObjectId!): MonitorV2MuteRule!
+    searchMonitorV2MuteRule(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): MonitorV2MuteRuleSearchResult!
 }
 
 extend type Mutation {
     createMonitorV2(workspaceId: ObjectId!, input: MonitorV2Input!): MonitorV2!
     updateMonitorV2(id: ObjectId!, input: MonitorV2Input!): MonitorV2!
     deleteMonitorV2(id: ObjectId!): ResultStatus!
+    createMonitorV2Action(workspaceId: ObjectId!, input: MonitorV2ActionInput!): MonitorV2Action!
+    updateMonitorV2Action(id: ObjectId!, input: MonitorV2ActionInput!): MonitorV2Action!
+    deleteMonitorV2Action(id: ObjectId!): ResultStatus!
+    createMonitorV2Destination(workspaceId: ObjectId!, input: MonitorV2DestinationInput!): MonitorV2Destination!
+    updateMonitorV2Destination(id: ObjectId!, input: MonitorV2DestinationInput!): MonitorV2Destination!
+    deleteMonitorV2Destination(id: ObjectId!): ResultStatus!
+    createMonitorV2MuteRule(workspaceId: ObjectId!, input: MonitorV2MuteRuleInput!): MonitorV2MuteRule!
+    updateMonitorV2MuteRule(id: ObjectId!, input: MonitorV2MuteRuleInput!): MonitorV2MuteRule!
+    deleteMonitorV2MuteRule(id: ObjectId!): ResultStatus!
+}
+
+"""
+MonitorV2ActionType defines the type of monitor returned when querying all
+actions for a monitor.
+"""
+enum MonitorV2ActionType @goModel(model: "observe/meta/metatypes.MonitorV2ActionType") {
+  Email
+  PagerDuty
+  Slack
+  Webhook
 }
 
 enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmLevel") {
@@ -17,6 +43,26 @@ enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmL
   Informational
   None
   Warning
+}
+
+enum MonitorV2BooleanOperator @goModel(model: "observe/meta/metatypes.MonitorV2BooleanOperator") {
+  And
+  Or
+}
+
+"""
+MonitorV2CapturedType describes the type of column that's captured in the dataset which the monitor observes over.
+There are 3 types:
+  1. GroupBy:         If a monitor is grouped by this particular column, this will be one of the types that's tagged.
+  2. LinkSourceField: If this column is one of the source columns used to produce the link column that's grouped,
+                      this type will be the one that's tagged.
+  3. Aggregation:     If this column is the aggregation column used for count or threshold strategy type, this will
+                      be the type that's tagged.
+"""
+enum MonitorV2CapturedValueType @goModel(model: "observe/meta/metatypes.MonitorV2CapturedValueType") {
+  Aggregation
+  GroupBy
+  LinkSourceField
 }
 
 enum MonitorV2ComparisonFunction @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonFunction") {
@@ -28,58 +74,118 @@ enum MonitorV2ComparisonFunction @goModel(model: "observe/meta/metatypes.Monitor
   NotEqual
 }
 
+"""
+MonitorV2HttpType describes the two HTTP request methods that users can choose to alert to
+their desired webhook destinations: POST and PUT.
+"""
+enum MonitorV2HttpType @goModel(model: "observe/meta/metatypes.MonitorV2HttpType") {
+  Post
+  Put
+}
+
+enum MonitorV2MuteScheduleType @goModel(model: "observe/meta/metatypes.MonitorV2MuteScheduleType") {
+  OneTime
+}
+
+"""
+MonitorV2RollupStatus is a convenience indicator of how to perceive the state of the monitor.
+This value is derived entirely using existing data in other fields, but
+encapsultes those inspections into a single priority-based status.
+Some status indicators are not exclusive with others so, for example, a monitor that is "Triggering"
+may also be "Degraded" because of underlying warnings.
+This priority-sorted rollup is just to let the user prioritize and sort things in the UI in an order
+we define as most sensible. This ordering can be changed as needed.
+In descending order of priority, the values are:
+ - Inactive: The monitor is not running because it is disabled or because the system has deactivated it due to chronic failures.
+ - Failed: The last attempt to run the monitor had fatal errors (it cannot trigger).
+ - Triggering: The last evaluation had still-active alarms, or new one-shot alarms.
+ - Degraded: The last evaluation had warnings, but evaluation completed and no alarms were detected.
+ - Running: The default state. If no other status is indicated, the monitor is running.
+"""
+enum MonitorV2RollupStatus @goModel(model: "observe/meta/metatypes.MonitorV2RollupStatus") {
+  Degraded
+  Failed
+  Inactive
+  Running
+  Triggering
+}
+
+"""
+MonitorV2RuleKind describes the strategy used to inspect the input query.
+ - Count is used when what you care to inspect is the number of rows/instances 
+   in the query result.
+ - Threshold is when you want to inspect a numerical value within the query 
+   results, not the presence of the rows themselves.
+"""
 enum MonitorV2RuleKind @goModel(model: "observe/meta/metatypes.MonitorV2RuleKind") {
   Count
+  Promote
   Threshold
+}
+
+"""
+MonitorV2ValueAggregation describes the numerical/value aggregations for the Value
+monitor type. These types map to your typical query aggregators except count, which is its own
+monitor type since it acts on rows, not on values.
+ - AllOf: This is like "all values > 80" (which is like saying min(value) > 80)
+ - AnyOf: This is like "any value > 80" (which is like saying max(value) > 80)
+ - SumOf: This sums all values over the lookback and makes that the value to compare
+ - AvgOf: This averages all values over the lookback and makes that the value to compare
+"""
+enum MonitorV2ValueAggregation @goModel(model: "observe/meta/metatypes.MonitorV2ValueAggregation") {
+  AllOf
+  AnyOf
+  AvgOf
+  SumOf
 }
 
 type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2") {
     # payload
     """
-    Disables evaluation of the monitor, but preserves its configuration and history
+    Indicates if the monitor is enabled or disabled. Use setMonitorV2Enabled to flip this flag.
     """
     disabled: Boolean!
     """
-    A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
-
+    A longer description of the monitor.
+    This can include details like how to resolve the issue, links to runbooks, etc.
     """
     comment: String
-    """
-    The last run statistics. This type is also what gets emitted into the datastream for historical purposes.
-
-    """
-    lastRunStats: MonitorV2Stats
-    """
-    The timestamp of the last error or warning message emited to the monitoring datastream. This value can be filtered or used to inform whether the user should be directed to investigate the monitor's log messages for problems to remediate.
-
-    """
-    lastErrorTime: Time
-    """
-    The timestamp of the last alarm this monitor generated. This value can be filtered or used to inform if the user should look into the historical log of detection events. note: This value may be quite recent but for a non-active alarm in the case the event detected was a one-shot event.
-
-    """
-    lastAlarmTime: Time
+    meta: MonitorV2Meta @goField(forceResolver: true)
+    rollupStatus: MonitorV2RollupStatus! @goField(forceResolver: true)
     definition: MonitorV2Definition!
     """
     Describes the type of each of the rules in the definition (they must all be the same type).
-
     """
     ruleKind: MonitorV2RuleKind!
     """
-    The output dataset identifier of this monitor. This can be used to query information about the dataset and all upstream dependencies using dataset APIs.
-
-    """
-    outputDatasetID: ObjectId
-    """
     ActiveAlarms enumerates the active alarm instances for this monitor.
-
     """
     activeAlarms: [MonitorV2Alarm!]! @goField(forceResolver: true)
     """
-    ActiveAlarmCount returns the number of active alarms. A non-zero count here is the same as saying "this monitor is triggering". This value, in conjunction with lastAlarmTime can inform which monitors in a list view may be most interesting to bring to attention.
-
+    ActiveAlarmCount returns the number of active alarms. A non-zero count here is
+    the same as saying "this monitor is triggering". This value, in conjunction with
+    lastAlarmTime can inform which monitors in a list view may be most interesting to
+    bring to attention.
     """
     activeAlarmCount: Int64! @goField(forceResolver: true)
+    # not in output: xPreviousDefinition: MonitorV2Definition
+    """
+    List of actions and conditions for dispatching. Each entry will
+    contain the action definition regardless of whether the definition is
+    shared or provided inline.
+    """
+    actionRules: [MonitorV2ActionRule!]! @goField(forceResolver: true)
+    """
+    MonitorVersion matches what will be emitted with datastream events to bind the monitor
+    definition to those events. This value is what you would use with monitorV2DefinitionByVersion.
+    It just happens to be derived from the UpdatedDate but that detail should be considered opaque
+    to API users.
+    """
+    monitorVersion: Int64!
+    """
+    Mutes is a list of mute rules currently linked to this monitor.
+    """
+    mutes: [MonitorV2MuteRule!]! @goField(forceResolver: true)
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -103,16 +209,18 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
 
 input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
     # payload
-    disabled: Boolean!
+    # not in input: disabled: Boolean!
     comment: String
-    # not in input: lastRunStats: MonitorV2StatsInput
-    # not in input: lastErrorTime: Time
-    # not in input: lastAlarmTime: Time
+    # resolver: meta: MonitorV2MetaInput
+    # resolver: rollupStatus: MonitorV2RollupStatus!
     definition: MonitorV2DefinitionInput!
     ruleKind: MonitorV2RuleKind!
-    # not in input: outputDatasetID: ObjectId
     # resolver: activeAlarms: [MonitorV2AlarmInput!]!
     # resolver: activeAlarmCount: Int64!
+    # not in input: xPreviousDefinition: MonitorV2DefinitionInput
+    # resolver: actionRules: [MonitorV2ActionRuleInput!]!
+    # not in input: monitorVersion: Int64!
+    # resolver: mutes: [MonitorV2MuteRuleInput!]!
     # WorkspaceObject
     name: String!
     iconUrl: String
@@ -126,30 +234,108 @@ input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
 type MonitorV2SearchResult @goModel(model: "observe/meta/metatypes.MonitorV2SearchResult") {
     results: [MonitorV2!]!
 }
-# MonitorV2Definition describes the configuration logic that defines what a monitor to evaluate to detect what the user wants.
 
+# MonitorV2Meta contains information about a MonitorV2 that is read-only in a query output. It contains
+# data written by the backend during the course of monitor execution.
+type MonitorV2Meta @goModel(model: "observe/meta/metatypes.MonitorV2Meta") {
+    # payload
+    """
+    The last run statistics. This type is also what gets emitted into the datastream for
+    historical purposes.
+    """
+    lastRunStats: MonitorV2Stats
+    isInactive: Boolean!
+    """
+    The timestamp of the last error message emited to the monitoring datastream.
+    This value can be filtered or used to inform whether the user should be directed to
+    investigate the monitor's log messages for problems to remediate. These messages
+    indicate fatal errors that prevent the monitor from working.
+    """
+    lastErrorTime: Time
+    """
+    The timestamp of the last warning message emited to the monitoring datastream.
+    This value can also be filtered to inform a user if deeper investigation should
+    be done.
+    Warning messages indicate a degraded monitor, which is one that can emit results but
+    cannot perform all functions or perform them optimally for some reason.
+    """
+    lastWarningTime: Time
+    """
+    The timestamp of the last alarm this monitor generated.
+    This value can be filtered or used to inform if the user should look into the historical
+    log of detection events.
+    note: This value may be quite recent but for a non-active alarm in the case the event detected
+    was a one-shot event.
+    """
+    lastAlarmTime: Time
+    """
+    The output dataset identifier of this monitor. This can be used to query information about the
+    dataset and all upstream dependencies using dataset APIs for transform-based monitors.
+    """
+    outputDatasetID: ObjectId
+    # not in output: outputDatasetStrategyVersion: String
+    """
+    The expected next time this monitor will run if it's a schedule-based monitor.
+    """
+    nextScheduledTime: Time
+    """
+    The expected next time this monitor will run if it's a schedule-based monitor.
+    """
+    lastScheduleBookmark: Time
+}
+
+input MonitorV2MetaInput @goModel(model: "observe/meta/metatypes.MonitorV2MetaInput") {
+    # payload
+    lastRunStats: MonitorV2StatsInput
+    isInactive: Boolean!
+    lastErrorTime: Time
+    lastWarningTime: Time
+    lastAlarmTime: Time
+    outputDatasetID: ObjectId
+    outputDatasetStrategyVersion: String
+    nextScheduledTime: Time
+    lastScheduleBookmark: Time
+}
+
+
+# MonitorV2Definition describes the configuration logic that defines what a monitor to evaluate to detect
+# what the user wants.
 type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Definition") {
     # payload
     """
-    InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the original dataset(s) and other transform information that the user selected to create "Create Monitor".
-
+    InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the
+    original dataset(s) and other transform information that the user selected to create "Create Monitor".
     """
     inputQuery: MultiStageQuery!
     """
-    Rules are one or more instances of a MonitorV2Rule, which all must be of the same MonitorRuleKind as specified in `ruleKind`. Rules should be constructed logically such that a state transition from null->Warning implies a transition from null->Informational as well.
-
+    Rules are one or more instances of a MonitorV2Rule, which all must be of the same MonitorRuleKind
+    as specified in `ruleKind`.
+    Rules should be constructed logically such that a state transition from null->Warning implies a
+    transition from null->Informational as well.
     """
     rules: [MonitorV2Rule!]!
     """
-    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
-
+    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules,
+    but is only applicable to rule kinds that utilize it.
     """
     lookbackTime: Duration
     """
-    GroupByGroups describes the groups that logically separate events/rows/etc from each other.
-
+    DataStabilizationDelay expresses the minimum time that should elapse before data is considered "good enough"
+    to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected
+    to arrive later than other data and thus would change previously evaluated results. Another way to think of this
+    value is defining where the "Ragged Right Edge" starts relative to the clock.
     """
-    groupByGroups: [MonitorGroupInfo!]
+    dataStabilizationDelay: Duration
+    """
+    Groupings describes the groups that logically separate events/rows/etc from each other.
+    """
+    groupings: [MonitorV2Column!]
+    """
+    Scheduling controls how often the monitor is evaluated. The default behavior when you do
+    not specify this field is a real-time transform monitor with a default freshness goal that
+    you cannot control.
+    """
+    scheduling: MonitorV2Scheduling
 }
 
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
@@ -157,52 +343,337 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     inputQuery: MultiStageQueryInput!
     rules: [MonitorV2RuleInput!]!
     lookbackTime: Duration
-    groupByGroups: [MonitorGroupInfoInput!]
+    dataStabilizationDelay: Duration
+    groupings: [MonitorV2ColumnInput!]
+    scheduling: MonitorV2SchedulingInput
 }
+
+
+type MonitorV2IntervalSchedule @goModel(model: "observe/meta/metatypes.MonitorV2IntervalSchedule") {
+    # payload
+    """
+    Interval is how often the monitor should attempt to run. This interval describes when the
+    monitor enters the queue, but is not a guarantee of execution. Monitors are best-effort
+    and also may be subject to QoS or rate limiting in the future.
+    """
+    interval: Duration!
+    """
+    Randomize is a maximum +/- to apply to the interval to avoid things like harmonics and
+    work stacking up in parallel. If interval is "10m" and randomize is "30s", then a random
+    interval between 9m30s and 10m30s will be selected each run.
+    """
+    randomize: Duration!
+}
+
+input MonitorV2IntervalScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2IntervalScheduleInput") {
+    # payload
+    interval: Duration!
+    randomize: Duration!
+}
+
+
+type MonitorV2TransformSchedule @goModel(model: "observe/meta/metatypes.MonitorV2TransformSchedule") {
+    # payload
+    freshnessGoal: Duration!
+}
+
+input MonitorV2TransformScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2TransformScheduleInput") {
+    # payload
+    freshnessGoal: Duration!
+}
+
+
+# MonitorV2Scheduling holds information about when monitors should evaluate. The
+# types of scheduling are exclusive, but at least one is required.
+# Specifying the transform field gives you more explicit control over the transform
+# freshness.
+type MonitorV2Scheduling @goModel(model: "observe/meta/metatypes.MonitorV2Scheduling") {
+    # payload
+    """
+    Interval should be used to run explicit ad-hoc queries.
+    """
+    interval: MonitorV2IntervalSchedule
+    """
+    Transform should be used to defer scheduling to the transformer and evaluate when data becomes
+    available.
+    """
+    transform: MonitorV2TransformSchedule
+}
+
+input MonitorV2SchedulingInput @goModel(model: "observe/meta/metatypes.MonitorV2SchedulingInput") {
+    # payload
+    interval: MonitorV2IntervalScheduleInput
+    transform: MonitorV2TransformScheduleInput
+}
+
+
+# MonitorV2CapturedValue provides value captured at the time of the detection by the monitor on the data it observes over.
+type MonitorV2CapturedValue @goModel(model: "observe/meta/metatypes.MonitorV2CapturedValue") {
+    # payload
+    """
+    Types capture the type of this column for the alarm. If the captured value has a groupby type,
+    it will be a column that was part of the groupings in the monitor. If the captured value has an aggregation
+    type, it will be the column that's used to capture the aggregated value for the count or threshold monitor.
+    """
+    types: [MonitorV2CapturedValueType!]!
+    """
+    Includes all the metadata surrounding the column for either the link or the normal colum path.
+    """
+    column: MonitorV2Column!
+    """
+    Value is the value of the captured column in the dataset.
+    """
+    value: String
+}
+
+input MonitorV2CapturedValueInput @goModel(model: "observe/meta/metatypes.MonitorV2CapturedValueInput") {
+    # payload
+    types: [MonitorV2CapturedValueType!]!
+    column: MonitorV2ColumnInput!
+    value: String
+}
+
+
+# MonitorV2Column represents two possible column types of an Observe dataset. One is the link column type
+# and the other one is the columnPath.
+type MonitorV2Column @goModel(model: "observe/meta/metatypes.MonitorV2Column") {
+    # payload
+    """
+    Link Column is for link typed column which the user wants to group by.
+    """
+    linkColumn: MonitorV2LinkColumn
+    """
+    Column path is any non-link typed column along with an optional path which the user wants to group by.
+    """
+    columnPath: MonitorV2ColumnPath
+}
+
+input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnInput") {
+    # payload
+    linkColumn: MonitorV2LinkColumnInput
+    columnPath: MonitorV2ColumnPathInput
+}
+
+
+# Link column is for link typed column in the dataset that's created from connecting two
+# different datasets' columns (primary dataset's sources and destination dataset's sources).
+type MonitorV2LinkColumn @goModel(model: "observe/meta/metatypes.MonitorV2LinkColumn") {
+    # payload
+    name: String!
+    # not in output: xRef: String!
+    """
+    Any context surrounding the link column as part of the MonitorV2Alarm will be described here. This column
+    will include the source dataset's and the target dataset's columns linked together to create the current
+    link column.
+    """
+    meta: MonitorV2LinkColumnMeta
+}
+
+input MonitorV2LinkColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2LinkColumnInput") {
+    # payload
+    name: String!
+    # not in input: xRef: String!
+    meta: MonitorV2LinkColumnMetaInput
+}
+
+
+# Link column meta contains the context surrounding the link column. When a link column is created within the source
+# dataset, it uses the `set_link` verb which uses equal number of source columns/paths from the source dataset to link
+# against the all the primary keys (a.k.a. destination columns) of the target dataset. This makes the source columns,
+# primary keys, and the target dataset useful context to know around the link column.
+type MonitorV2LinkColumnMeta @goModel(model: "observe/meta/metatypes.MonitorV2LinkColumnMeta") {
+    # payload
+    """
+    List of source fields used to link against the primary keys of the target dataset.
+    Frontend only needs to provide the input for this field when it wants a preview of the template fields.
+    """
+    srcFields: [MonitorV2ColumnPath!]
+    """
+    List of destination fields (a.k.a. primary keys) of the target dataset being linked against.
+    Frontend only needs to provide the input for this field when it wants a preview of the template fields.
+    """
+    dstFields: [String!]
+    """
+    The target dataset is the resource dataset id which the link came from. If the link was created from a stage in
+    the shape of a resource from the worksheet, this field will be empty as there's no resource dataset to point to.
+    Frontend only needs to provide the input for this field when it wants a preview of the template fields.
+    """
+    targetDataset: Int64
+}
+
+input MonitorV2LinkColumnMetaInput @goModel(model: "observe/meta/metatypes.MonitorV2LinkColumnMetaInput") {
+    # payload
+    srcFields: [MonitorV2ColumnPathInput!]
+    dstFields: [String!]
+    targetDataset: Int64
+}
+
+
+# Column path specifies how the user wants to group by a specific column name or a JSON
+# object column that has a path. If the user decides wants to group by a int64 typed column
+# named userid, this struct would look something like
+# MonitorV2ColumnPath{column: "userid", path: ""}.
+# If the user decides to group by a JSON object typed column FIELDS, this struct would look
+# something like MonitorV2ColumnPath{column: "FIELDS", path: "to.o2.id"}.
+type MonitorV2ColumnPath @goModel(model: "observe/meta/metatypes.MonitorV2ColumnPath") {
+    # payload
+    name: String!
+    path: String
+    # not in output: xRef: String!
+    # not in output: xIsLinkSourceField: Boolean!
+    # not in output: xIsNotInGroupings: Boolean!
+}
+
+input MonitorV2ColumnPathInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnPathInput") {
+    # payload
+    name: String!
+    path: String
+    # not in input: xRef: String!
+    # not in input: xIsLinkSourceField: Boolean!
+    # not in input: xIsNotInGroupings: Boolean!
+}
+
 
 type MonitorV2Rule @goModel(model: "observe/meta/metatypes.MonitorV2Rule") {
     # payload
     """
     Level is the severity level to assign to a rule's conditions being matched.
-
     """
     level: MonitorV2AlarmLevel!
     count: MonitorV2CountRule
+    threshold: MonitorV2ThresholdRule
+    promote: MonitorV2PromoteRule
 }
 
 input MonitorV2RuleInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleInput") {
     # payload
     level: MonitorV2AlarmLevel!
     count: MonitorV2CountRuleInput
+    threshold: MonitorV2ThresholdRuleInput
+    promote: MonitorV2PromoteRuleInput
 }
+
 
 type MonitorV2CountRule @goModel(model: "observe/meta/metatypes.MonitorV2CountRule") {
     # payload
-    compareFn: MonitorV2ComparisonFunction!
     """
-    compareValue is the right-side value for comparisons that use it (like x > 10, this is 10).
-
+    CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
+    This gives the option to specify
+    one value for a threshold behavior (trigger if > 80) but also allows for ranges of validity. If you want
+    to trigger inside a range, give two compares here (like > 80 and < 90). If you want to trigger
+    outside a valid range, use two rules with a single compare to get the implied OR
+    (one rule for < 80 and one rule for > 90).
     """
-    compareValue: Number!
+    compareValues: [MonitorV2Comparison!]!
 }
 
 input MonitorV2CountRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2CountRuleInput") {
     # payload
-    compareFn: MonitorV2ComparisonFunction!
-    compareValue: Number!
+    compareValues: [MonitorV2ComparisonInput!]!
 }
+
+
+# MonitorV2ThresholdRule gives flexability for threshold as well as range based monitors to trigger on
+# values. When a lookbackTime is specified, this is a monitor looking for sustained behavior (CPU > 80 for 5 minutes).
+type MonitorV2ThresholdRule @goModel(model: "observe/meta/metatypes.MonitorV2ThresholdRule") {
+    # payload
+    """
+    CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
+    This gives the option to specify one value for a threshold behavior (trigger if > 80) but also allows
+    for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
+    If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
+    (one rule for < 80 and one rule for > 90).
+    """
+    compareValues: [MonitorV2Comparison!]!
+    """
+    ValueColumnName indicates which of the columns in the input query has the value to apply to the aggregation.
+    """
+    valueColumnName: String!
+    aggregation: MonitorV2ValueAggregation!
+}
+
+input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2ThresholdRuleInput") {
+    # payload
+    compareValues: [MonitorV2ComparisonInput!]!
+    valueColumnName: String!
+    aggregation: MonitorV2ValueAggregation!
+}
+
+
+# The monitor will promote each event in the raw input dataset into an alert. In order to uniquely identify
+# and deduplicate these alerts, the primary key(s) plus the groupings will help deduplicate rows in the dataset:
+#   - Event Dataset: Rows with the same "Valid From" will be deduplicated based on their primary keys + groups.
+#   - Interval Dataset: Rows with the same "Valid From" and "Valid To" will be deduplicated based on their primary keys + groups.
+#   - Resource Dataset: Rows are already deduplicated for a resource dataset, so it will set additional primary keys using the groups
+#     to further deduplicate the resource.
+# For now, even though MonitorV2Column supports link columns, the promote rule will ignore those link columns and only care
+# about columnWithPath. The link columns are to future proof potential changes that may come from the compiler side.
+type MonitorV2PromoteRule @goModel(model: "observe/meta/metatypes.MonitorV2PromoteRule") {
+    # payload
+    """
+    If this field has been specified, it means there are values in the columns that we want to assign severity by.
+    When multiple column comparisons are specified within one promote rule, it will act as an AND condition. When defined
+    through separate promote rules, it will be treated as an OR condition.
+    """
+    compareColumns: [MonitorV2ColumnComparison!]
+}
+
+input MonitorV2PromoteRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2PromoteRuleInput") {
+    # payload
+    compareColumns: [MonitorV2ColumnComparisonInput!]
+}
+
+
+# Specify the one or multiple values you'd like to compare against either the link or the columnPath
+type MonitorV2ColumnComparison @goModel(model: "observe/meta/metatypes.MonitorV2ColumnComparison") {
+    # payload
+    """
+    CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
+    This gives the option to specify one value for a threshold behavior (trigger if > 80) but also allows
+    for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
+    If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
+    (one rule for < 80 and one rule for > 90).
+    """
+    compareValues: [MonitorV2Comparison!]!
+    """
+    The column user wants to compare against using the values inside compareValues.
+    """
+    column: MonitorV2Column!
+}
+
+input MonitorV2ColumnComparisonInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnComparisonInput") {
+    # payload
+    compareValues: [MonitorV2ComparisonInput!]!
+    column: MonitorV2ColumnInput!
+}
+
 
 type MonitorV2Stats @goModel(model: "observe/meta/metatypes.MonitorV2Stats") {
     # payload
     monitorID: ObjectId!
     """
-    OutputDatasetId is the monitor's output dataset id, which is the dataset that feeds monitor evaluation.
-
+    OutputDatasetId is the monitor's output dataset id, which is the dataset that feeds monitor evaluation
+    if the monitor is a real-time monitor. This field is not used when the monitor is scheduled.
     """
-    outputDatasetID: ObjectId!
+    outputDatasetID: ObjectId
     """
-    WindowStart is the minimum window start time seen in the dataset updates for this run. In most cases, this will be the start of the single update event.
-
+    DataFreshnessTime is the effective upstream data freshness as seen by the monitor at the time
+    of evaluation. For transform monitor's, this is the monitoring dataset freshness time. Otherwise, it
+    is computed from the upstream datasets from the input query as the oldest value of all of those.
+    This can be used to infer latency of data into monitor evaluation (when compared to StartTime).
+    """
+    dataFreshnessTime: Time!
+    """
+    StabilityBookmarkTime is the value that monitoring used at the time of evaluation to
+    decide what predicted results are valid, and how long to wait on results that are not yet valid.
+    This is based
+    on the perceived freshness time of the data and the stability delay. This value can be informative
+    to answering why expected monitoring results may not yet be seen.
+    """
+    stabilityBookmarkTime: Time!
+    """
+    WindowStart is the minimum window start time seen in the dataset updates for this run.
+    In most cases, this will be the start of the single update event.
     """
     windowStart: Time!
     """
@@ -210,18 +681,20 @@ type MonitorV2Stats @goModel(model: "observe/meta/metatypes.MonitorV2Stats") {
     """
     windowEnd: Time!
     """
-    EnqueueTime is the time when the work item for this run was created and enqueued. This will be the time we saw the update from the transformer, or the time we replayed the updates table.
-
+    EnqueueTime is the time when the work item for this run was created and enqueued.
+    This will be the time we saw the update from the transformer, or the time we replayed the
+    updates table.
     """
     enqueueTime: Time!
     """
-    StartTime is the time at which the work was actually started. StartTime - EnqueueTime describes how long the work sat in the work queue waiting to run.
-
+    StartTime is the time at which the work was actually started.
+    StartTime - EnqueueTime describes how long the work sat in the work queue waiting to run.
     """
     startTime: Time!
     """
-    EndTime is the time at which the work completed. EndTime - StartTime is how long result query and evaluation took. This time will pretty much be entirely the dataset query in most cases.
-
+    EndTime is the time at which the work completed.
+    EndTime - StartTime is how long result query and evaluation took. This time will pretty much be entirely
+    the dataset query in most cases.
     """
     endTime: Time!
     """
@@ -229,21 +702,31 @@ type MonitorV2Stats @goModel(model: "observe/meta/metatypes.MonitorV2Stats") {
     """
     numDatasetRows: Int64!
     """
-    NumReadyAlarmStates is the number of MonitorAlarmState's that were generated that have a ValidAfter time that is satisfied. What that means for you is that this is the number of alarm states sent to the state-transition logic (detection logic) for comparison.
-
+    NumReadyAlarmStates is the number of MonitorAlarmState's generated by this evaluation
+    that are considered "ready" because
+    they satisify the StabilityBookmarkTime. These may or may not generate state change events.
     """
     numReadyAlarmStates: Int64!
     """
-    NumFutureAlarmStates is the number of MonitorAlarmState's that were generated that have a ValidAfter time that is not satisfied. What that means for you is that this is the number of alarm states that are predictions, which is to say "these results are going to be true if we don't see any updates to invalidate them".
-
+    NumFutureAlarmStates is the number of MonitorAlarmState's generated by this evaluation
+    that are considered predictions
+    because they do not satisfy the StabilityBookmarkTime. These results may get used to generate
+    events at some evaluation point after the bookmark time.
     """
     numFutureAlarmStates: Int64!
+    """
+    NumEvaluatedGroupings is the distinct number of groupings that generated results (ready or future).
+    This is a count of logically different entities are generating results.
+    """
+    numEvaluatedGroupings: Int64!
 }
 
 input MonitorV2StatsInput @goModel(model: "observe/meta/metatypes.MonitorV2StatsInput") {
     # payload
     monitorID: ObjectId!
-    outputDatasetID: ObjectId!
+    outputDatasetID: ObjectId
+    dataFreshnessTime: Time!
+    stabilityBookmarkTime: Time!
     windowStart: Time!
     windowEnd: Time!
     enqueueTime: Time!
@@ -252,30 +735,47 @@ input MonitorV2StatsInput @goModel(model: "observe/meta/metatypes.MonitorV2Stats
     numDatasetRows: Int64!
     numReadyAlarmStates: Int64!
     numFutureAlarmStates: Int64!
+    numEvaluatedGroupings: Int64!
 }
 
-# MonitorV2Alarm is a peek into the internal detection state tracking (which has finite retention). The purpose of object is not for an historical record, that is serviced by the Monitoring datastream. Instead, this object should be used to inform the user of active alarms on monitors so that they can decide if they want to dive into the datastream and look at the real Alarms (which are synthesized resources from DetectionEvents by the monitor).
 
+# MonitorV2Alarm is a peek into the internal detection state tracking (which has finite retention).
+# The purpose of object is not for an historical record, that is serviced by the Monitoring datastream.
+# Instead, this object should be used to inform the user of active alarms on monitors so that they
+# can decide if they want to dive into the datastream and look at the real Alarms (which are
+# synthesized resources from DetectionEvents by the monitor).
 type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     # payload
     id: String!
     """
-    Start is the earliest timestamp for which the monitor has generated detection events. It is not the authoritative start time of the monitor's criteria, rather represents the current conclusion about when the criteria began matching.
-
+    Start is the earliest timestamp for which the monitor has generated detection events.
+    It is not the authoritative start time of the monitor's criteria, rather represents
+    the current conclusion about when the criteria began matching.
     """
     start: Time!
     """
-    End is the latest timestamp for which the monitor is projecting the criteria are met. If the active flag is false, this value can still be extended due to late-arriving data but it currently represents the monitor's current conclusion about when the criteria were no longer satisfied. If the active flag is true, then this is just the latest time for which the criteria are met.
-
+    End is the latest timestamp for which the monitor is projecting the criteria are
+    met. If the active flag is false, this value can still be extended due to late-arriving data
+    but it currently represents the monitor's current conclusion about when the criteria were
+    no longer satisfied. If the active flag is true, then this is just the latest time for
+    which the criteria are met.
     """
     end: Time!
     """
-    IsActive indicates if the monitor is tracking this Alarm as not having yet satisified the crtieria to conclude the alarm is done. This can be for recent alarms but also can be for old alarms that have been extended due to late arriving data and have not been ended again. note: For now, this should always be true as the only feature supported is listing active alarms. Historical analysis should be done via the Monitoring datastream.
-
+    Captured values describe the value captured from the monitor output dataset. It can contain
+    the groupBy columns, linkPrimaryKey coluns, aggregation columns, or the regular columns.
+    """
+    capturedValues: [MonitorV2CapturedValue!]!
+    """
+    IsActive indicates if the monitor is tracking this Alarm as not having yet satisified the
+    crtieria to conclude the alarm is done. This can be for recent alarms but also can be
+    for old alarms that have been extended due to late arriving data and have not been ended again.
+    note: For now, this should always be true as the only feature supported is listing
+    active alarms. Historical analysis should be done via the Monitoring datastream.
     """
     isActive: Boolean!
     """
-    Level is the threshold the user configured in the monitor to
+    Level is the severity the user configured in the monitor to be alerted on.
     """
     level: MonitorV2AlarmLevel!
 }
@@ -285,7 +785,513 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     id: String!
     start: Time!
     end: Time!
+    capturedValues: [MonitorV2CapturedValueInput!]!
     isActive: Boolean!
     level: MonitorV2AlarmLevel!
 }
+
+
+type MonitorV2Preview @goModel(model: "observe/meta/metatypes.MonitorV2Preview") {
+    # payload
+    alarms: [MonitorV2Alarm!]!
+}
+
+
+
+
+type MonitorV2Comparison @goModel(model: "observe/meta/metatypes.MonitorV2Comparison") {
+    # payload
+    compareFn: MonitorV2ComparisonFunction!
+    """
+    compareValue is the right-side value for comparisons that use it (like x > 10, this is 10).
+    """
+    compareValue: PrimitiveValue!
+}
+
+input MonitorV2ComparisonInput @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonInput") {
+    # payload
+    compareFn: MonitorV2ComparisonFunction!
+    compareValue: PrimitiveValueInput!
+}
+
+
+type MonitorV2ActionRule @goModel(model: "observe/meta/metatypes.MonitorV2ActionRule") {
+    # payload
+    # not in output: monitorID: ObjectId!
+    """
+    Takes in a private or public action id created from an earlier createAction API call.
+    """
+    actionID: ObjectId!
+    """
+    Dispatch this action when the alarm matches any of the provided levels.
+    """
+    levels: [MonitorV2AlarmLevel!]
+    """
+    Included to be shown as part of the MonitorV2 output.
+    """
+    definition: MonitorV2ActionDefinition!
+}
+
+input MonitorV2ActionRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2ActionRuleInput") {
+    # payload
+    # not in input: monitorID: ObjectId!
+    actionID: ObjectId!
+    levels: [MonitorV2AlarmLevel!]
+    # not in input: definition: MonitorV2ActionDefinitionInput!
+}
+
+
+type MonitorV2ActionDefinition @goModel(model: "observe/meta/metatypes.MonitorV2ActionDefinition") {
+    # payload
+    """
+    The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+    """
+    inline: Boolean
+    type: MonitorV2ActionType!
+    # not in output: actionID: ObjectId!
+    """
+    List of destinations for dispatching. Each entry will contain the
+    destination definition regardless of whether the definition is shared or 
+    provided inline.
+    """
+    destinationLinks: [ActionDestinationLink!]! @goField(forceResolver: true)
+    email: MonitorV2EmailAction
+    webhook: MonitorV2WebhookAction
+}
+
+input MonitorV2ActionDefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2ActionDefinitionInput") {
+    # payload
+    inline: Boolean
+    type: MonitorV2ActionType!
+    # not in input: actionID: ObjectId!
+    # resolver: destinationLinks: [ActionDestinationLinkInput!]!
+    email: MonitorV2EmailActionInput
+    webhook: MonitorV2WebhookActionInput
+}
+
+
+# MonitorV2Action contains the configuration for each supported action type.
+# The type is required and the associated payload data must be provided.
+# Actions created via the top-level createMonitorV2Action are public within
+# the workspace and can be used by any monitor.
+type MonitorV2Action implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2Action") {
+    # payload
+    # not in output: definition: JsonObject!
+    """
+    The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+    """
+    inline: Boolean
+    type: MonitorV2ActionType!
+    # not in output: actionID: ObjectId!
+    """
+    List of destinations for dispatching. Each entry will contain the
+    destination definition regardless of whether the definition is shared or 
+    provided inline.
+    """
+    destinationLinks: [ActionDestinationLink!]! @goField(forceResolver: true)
+    email: MonitorV2EmailAction
+    webhook: MonitorV2WebhookAction
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorV2ActionInput @goModel(model: "observe/meta/metatypes.MonitorV2ActionInput") {
+    # payload
+    # not in input: definition: JsonObject!
+    inline: Boolean
+    type: MonitorV2ActionType!
+    # not in input: actionID: ObjectId!
+    # resolver: destinationLinks: [ActionDestinationLinkInput!]!
+    email: MonitorV2EmailActionInput
+    webhook: MonitorV2WebhookActionInput
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorV2ActionSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2ActionSearchResult") {
+    results: [MonitorV2Action!]!
+}
+
+type MonitorV2EmailAction @goModel(model: "observe/meta/metatypes.MonitorV2EmailAction") {
+    # payload
+    """
+    The email subject template.
+    """
+    subject: String
+    """
+    The email body template.
+    """
+    body: String
+    """
+    Fragments allow users to bring in additional monitor or alarm metadata.
+    """
+    fragments: JsonObject
+}
+
+input MonitorV2EmailActionInput @goModel(model: "observe/meta/metatypes.MonitorV2EmailActionInput") {
+    # payload
+    subject: String
+    body: String
+    fragments: JsonObject
+}
+
+
+type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2WebhookAction") {
+    # payload
+    """
+    The webhook headers -- a header and a value template.
+    """
+    headers: [MonitorV2WebhookHeader!]
+    """
+    The webhook body template.
+    """
+    body: String
+    """
+    Fragments allow users to bring in additional monitor or alarm metadata.
+    """
+    fragments: JsonObject
+}
+
+input MonitorV2WebhookActionInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookActionInput") {
+    # payload
+    headers: [MonitorV2WebhookHeaderInput!]
+    body: String
+    fragments: JsonObject
+}
+
+
+type ActionDestinationLink @goModel(model: "observe/meta/metatypes.ActionDestinationLink") {
+    # payload
+    # not in output: actionID: ObjectId!
+    """
+    Takes in a private or public destination id created from an earlier createDestination API call.
+    """
+    destinationID: ObjectId!
+    sendEndNotifications: Boolean
+    sendRemindersInterval: Duration
+    """
+    Included to be shown as part of the MonitorV2Action (and MonitorV2) output.
+    """
+    definition: MonitorV2DestinationDefinition!
+}
+
+input ActionDestinationLinkInput @goModel(model: "observe/meta/metatypes.ActionDestinationLinkInput") {
+    # payload
+    # not in input: actionID: ObjectId!
+    destinationID: ObjectId!
+    sendEndNotifications: Boolean
+    sendRemindersInterval: Duration
+    # not in input: definition: MonitorV2DestinationDefinitionInput!
+}
+
+
+# MonitorV2Destination contains the destination configuration for each action type.
+# For each destination, only one type can exist out of the webhook and email types.
+# Destinations created via the top-level createMonitorV2Destination are public within
+# the workspace and can be used by any monitor.
+type MonitorV2Destination implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2Destination") {
+    # payload
+    # not in output: definition: JsonObject!
+    """
+    The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+    """
+    inline: Boolean
+    type: MonitorV2ActionType!
+    email: MonitorV2EmailDestination
+    webhook: MonitorV2WebhookDestination
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorV2DestinationInput @goModel(model: "observe/meta/metatypes.MonitorV2DestinationInput") {
+    # payload
+    # not in input: definition: JsonObject!
+    inline: Boolean
+    type: MonitorV2ActionType!
+    email: MonitorV2EmailDestinationInput
+    webhook: MonitorV2WebhookDestinationInput
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorV2DestinationSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2DestinationSearchResult") {
+    results: [MonitorV2Destination!]!
+}
+
+type MonitorV2DestinationDefinition @goModel(model: "observe/meta/metatypes.MonitorV2DestinationDefinition") {
+    # payload
+    """
+    The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+    """
+    inline: Boolean
+    type: MonitorV2ActionType!
+    email: MonitorV2EmailDestination
+    webhook: MonitorV2WebhookDestination
+}
+
+input MonitorV2DestinationDefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DestinationDefinitionInput") {
+    # payload
+    inline: Boolean
+    type: MonitorV2ActionType!
+    email: MonitorV2EmailDestinationInput
+    webhook: MonitorV2WebhookDestinationInput
+}
+
+
+type MonitorV2EmailDestination @goModel(model: "observe/meta/metatypes.MonitorV2EmailDestination") {
+    # payload
+    """
+    A list of Observe users to email.
+    """
+    users: [UserId!]
+    """
+    A list of email addresses to email.
+    """
+    addresses: [String!]
+}
+
+input MonitorV2EmailDestinationInput @goModel(model: "observe/meta/metatypes.MonitorV2EmailDestinationInput") {
+    # payload
+    users: [UserId!]
+    addresses: [String!]
+}
+
+
+type MonitorV2WebhookDestination @goModel(model: "observe/meta/metatypes.MonitorV2WebhookDestination") {
+    # payload
+    """
+    A webhook URL template to a destination that can be rendered.
+    """
+    url: String!
+    """
+    HTTP POST or PUT request into the webhook URL.
+    """
+    method: MonitorV2HttpType!
+}
+
+input MonitorV2WebhookDestinationInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookDestinationInput") {
+    # payload
+    url: String!
+    method: MonitorV2HttpType!
+}
+
+
+type MonitorV2WebhookHeader @goModel(model: "observe/meta/metatypes.MonitorV2WebhookHeader") {
+    # payload
+    """
+    A webhook header.
+    """
+    header: String!
+    """
+    A value template that can be rendered.
+    """
+    value: String!
+}
+
+input MonitorV2WebhookHeaderInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookHeaderInput") {
+    # payload
+    header: String!
+    value: String!
+}
+
+
+# MonitorV2MuteRule is a top-level object created by a user to be used (or reused) to mute monitors.
+# A mute rule is created with a schedule, which dictates when the system will apply the mute. A mute
+# rule is made active by tying it to one or more monitors using setMonitorV2MuteRules after the rule
+# has been created.
+type MonitorV2MuteRule implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2MuteRule") {
+    # payload
+    schedule: MonitorV2MuteRuleSchedule!
+    criteria: MonitorV2ComparisonExpression
+    """
+    ValidFrom is calculated dynamically from the schedule based on the type and the clock.
+    For a recurring schedule, this may be in the future but it could also be in the past
+    if the current mute interval is not yet expired.
+    """
+    validFrom: Time!
+    """
+    ValidTo is the countpart to ValidFrom and is optional. When this is null, the mute never expires.
+    """
+    validTo: Time
+    """
+    Monitors are the monitors that are currently linked to this rule.
+    """
+    monitors: [MonitorV2!]! @goField(forceResolver: true)
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input MonitorV2MuteRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleInput") {
+    # payload
+    schedule: MonitorV2MuteRuleScheduleInput!
+    criteria: MonitorV2ComparisonExpressionInput
+    # not in input: validFrom: Time!
+    # not in input: validTo: Time
+    # resolver: monitors: [MonitorV2Input!]!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type MonitorV2MuteRuleSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleSearchResult") {
+    results: [MonitorV2MuteRule!]!
+}
+
+# MonitorV2MuteRuleSchedule controls when a mute's time is valid. Only one of the types is allowed
+# (currently only one-time mutes).
+type MonitorV2MuteRuleSchedule @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleSchedule") {
+    # payload
+    type: MonitorV2MuteScheduleType!
+    oneTime: MonitorV2OneTimeMuteSchedule
+}
+
+input MonitorV2MuteRuleScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleScheduleInput") {
+    # payload
+    type: MonitorV2MuteScheduleType!
+    oneTime: MonitorV2OneTimeMuteScheduleInput
+}
+
+
+# MonitorV2OneTimeMuteSchedule describes a mute that is manually created with a specific time span.
+# If the endTime is not given, the mute is valid forever, which means a user must delete this mute rule
+# for it to be made inactive.
+type MonitorV2OneTimeMuteSchedule @goModel(model: "observe/meta/metatypes.MonitorV2OneTimeMuteSchedule") {
+    # payload
+    startTime: Time!
+    endTime: Time
+}
+
+input MonitorV2OneTimeMuteScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2OneTimeMuteScheduleInput") {
+    # payload
+    startTime: Time!
+    endTime: Time
+}
+
+
+# MonitorV2MuteLink binds a mute rule to a monitor.
+type MonitorV2MuteLink @goModel(model: "observe/meta/metatypes.MonitorV2MuteLink") {
+    # payload
+    monitorID: ObjectId!
+    ruleID: ObjectId!
+}
+
+input MonitorV2MuteLinkInput @goModel(model: "observe/meta/metatypes.MonitorV2MuteLinkInput") {
+    # payload
+    monitorID: ObjectId!
+    ruleID: ObjectId!
+}
+
+
+type MonitorV2ComparisonExpression @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonExpression") {
+    # payload
+    compareTerms: [MonitorV2ComparisonTerm!]!
+    subExpressions: [MonitorV2ComparisonExpression!]!
+    operator: MonitorV2BooleanOperator!
+}
+
+input MonitorV2ComparisonExpressionInput @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonExpressionInput") {
+    # payload
+    compareTerms: [MonitorV2ComparisonTermInput!]!
+    subExpressions: [MonitorV2ComparisonExpressionInput!]!
+    operator: MonitorV2BooleanOperator!
+}
+
+
+type MonitorV2ComparisonTerm @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonTerm") {
+    # payload
+    """
+    Comparison describes the binary operator and the right-side value to compare.
+    """
+    comparison: MonitorV2Comparison!
+    """
+    Column indicates the comparison left-side value comes from the column indicated here.
+    """
+    column: MonitorV2Column!
+}
+
+input MonitorV2ComparisonTermInput @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonTermInput") {
+    # payload
+    comparison: MonitorV2ComparisonInput!
+    column: MonitorV2ColumnInput!
+}
+
+
+type MonitorV2SetRulesResult @goModel(model: "observe/meta/metatypes.MonitorV2SetRulesResult") {
+    # payload
+    links: [MonitorV2MuteLink!]!
+}
+
+input MonitorV2SetRulesResultInput @goModel(model: "observe/meta/metatypes.MonitorV2SetRulesResultInput") {
+    # payload
+    links: [MonitorV2MuteLinkInput!]!
+}
+
 

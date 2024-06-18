@@ -6,31 +6,39 @@
 #   actions.
 
 schema:
+  disabled: |
+    Disables evaluation of the monitor, but preserves its configuration and history
+  comment: |
+    A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
+  rule_kind: |
+    Describes the type of each of the rules in the definition (they must all be the same type).
   name: |
-    Monitor name. Must be unique within workspace.
+    Monitor name.
+  icon_url: |
+    URL of the monitor icon.
   description: |
     A brief description of the monitor.
-  comment: |
-    A long-form comment describing the content of the monitor.
-  is_template: |
-    This resource is template for creating new monitors
-  disabled: |
-    Set to `true` to disable monitor.
-  definition: |
-    Monitor definition in JSON format.
-  notification_spec:
-    reminder_frequency: |
-      How often to send reminders when a monitor notification is triggered.
-      To disable reminder notifications, omit this attribute.
-    notify_on_reminder:
-      Whether notification reminders are enabled for this monitor. To enable them, set `reminder_frequency`.
-    notify_on_close: |
-      Enables a final update when a monitor notification is closed (no longer triggered).
-  rule:
-    log:
-      expression_summary: |
-        Short summary or comment of how the data for monitor is queried.
-      log_stage_id: |
-        An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
-      source_log_dataset: |
-        ID of the dataset that contains logs for preview.
+  managed_by_id: |
+    ID of the user who manages the monitor.
+  folder_id: |
+    ID of the folder the monitor is in.
+  rules:
+    level: |
+      The level of the monitor.
+    count:
+      compare_fn: |
+        The comparison function to use for the count rule.
+      compare_value: |
+        compare_value is the right-side value for comparisons that use it (like x > 10, this is 10).
+  lookback_time: |
+    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+  group_by_groups:
+    columns: |
+      The columns to group by.
+    group_name: |
+      The name of the group.
+    column_path:
+      column: |
+        The column to use for the column path.
+      path: |
+        The path to the column.

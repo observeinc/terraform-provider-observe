@@ -38,7 +38,7 @@ func resourceMonitorV2() *schema.Resource {
 			"rule_kind": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: descriptions.Get("monitorv2", "schema", "ruleKind"),
+				Description: descriptions.Get("monitorv2", "schema", "rule_kind"),
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -48,7 +48,7 @@ func resourceMonitorV2() *schema.Resource {
 			"icon_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "iconUrl"),
+				Description: descriptions.Get("monitorv2", "schema", "icon_url"),
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -58,12 +58,12 @@ func resourceMonitorV2() *schema.Resource {
 			"managed_by_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "managedById"),
+				Description: descriptions.Get("monitorv2", "schema", "managed_by_id"),
 			},
 			"folder_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "folderId"),
+				Description: descriptions.Get("monitorv2", "schema", "folder_id"),
 			},
 			"stage": {
 				// for building the queries
@@ -101,7 +101,7 @@ func resourceMonitorV2() *schema.Resource {
 			"rules": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1, // TODO: is it this?
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"level": {
@@ -109,25 +109,22 @@ func resourceMonitorV2() *schema.Resource {
 							Required:    true,
 							Description: descriptions.Get("monitorv2", "schema", "rules", "level"),
 						},
-						// is this a reasonable way to design structs in schema?
-						// just making a list of length 1 with custom schema?
 						"count": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							MinItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "rules", "count"),
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_fn": {
 										Type:        schema.TypeString,
 										Required:    true,
-										Description: descriptions.Get("monitorv2", "schema", "rules", "count", "compareFn"),
+										Description: descriptions.Get("monitorv2", "schema", "rules", "count", "compare_fn"),
 									},
 									"compare_value": {
 										Type:        schema.TypeFloat,
 										Required:    true,
-										Description: descriptions.Get("monitorv2", "schema", "rules", "count", "compareValue"),
+										Description: descriptions.Get("monitorv2", "schema", "rules", "count", "compare_value"),
 									},
 								},
 							},
@@ -142,40 +139,41 @@ func resourceMonitorV2() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
-				Description:      descriptions.Get("monitorv2", "schema", "lookbackTime"),
+				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"group_by_groups": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: descriptions.Get("monitorv2", "schema", "group_by_groups"),
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"columns": {
 							Type:        schema.TypeList,
 							Required:    true,
-							Description: descriptions.Get("monitorv2", "schema", "groupByGroups", "columns"),
+							Description: descriptions.Get("monitorv2", "schema", "group_by_groups", "columns"),
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"group_name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: descriptions.Get("monitorv2", "schema", "groupByGroups", "groupName"),
+							Description: descriptions.Get("monitorv2", "schema", "group_by_groups", "group_name"),
 						},
 						"column_path": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: descriptions.Get("monitorv2", "schema", "groupByGroups", "columnPath"),
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"column": {
 										Type:        schema.TypeString,
 										Required:    true,
-										Description: descriptions.Get("monitorv2", "schema", "groupByGroups", "columnPath", "column"),
+										Description: descriptions.Get("monitorv2", "schema", "group_by_groups", "column_path", "column"),
 									},
 									"path": {
 										Type:        schema.TypeList,
 										Required:    true,
-										Description: descriptions.Get("monitorv2", "schema", "groupByGroups", "columnPath", "path"),
+										Description: descriptions.Get("monitorv2", "schema", "group_by_groups", "column_path", "path"),
 									},
 								},
 							},
@@ -218,16 +216,33 @@ func newMonitorV2Rules(data *schema.ResourceData) (rules []gql.MonitorV2RuleInpu
 	return rules, diags
 }
 
-func newMonitorV2GroupByGroups(_ *schema.ResourceData) (groupByGroups []gql.MonitorGroupInfoInput, diags diag.Diagnostics) {
+func newMonitorV2GroupByGroups(data *schema.ResourceData) (groupByGroups []gql.MonitorGroupInfoInput, diags diag.Diagnostics) {
 	groupByGroups = make([]gql.MonitorGroupInfoInput, 0)
-	// for i := range data.Get("groupByGroups").([]interface{}) {
-	// 	var rule gql.MonitorV2RuleInput
-	// 	if v, ok := data.GetOk(fmt.Sprintf("groupByGroups.%d.level", i)); ok {
-	// 		rule.Level = gql.MonitorV2AlarmLevel(v.(string))
-	// 	}
-	// 	rule.Count = newMonitorV2CountRuleInput(data, i)
-	// 	stages = append(stages, rule)
-	// }
+	for i := range data.Get("group_by_groups").([]interface{}) {
+		var g gql.MonitorGroupInfoInput
+		g.Columns = make([]string, 0)
+		for j := range data.Get(fmt.Sprintf("group_by_groups.%d.columns", i)).([]interface{}) {
+			if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.columns.%d", i, j)); ok {
+				g.Columns = append(g.Columns, v.(string))
+			}
+		}
+		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.group_name", i)); ok {
+			g.GroupName = v.(string)
+		}
+		var col string
+		var path string
+		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.column_path.0.column", i)); ok {
+			col = v.(string)
+		}
+		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.column_path.0.path", i)); ok {
+			path = v.(string)
+		}
+		g.ColumnPath = &gql.MonitorGroupByColumnPathInput{
+			Column: col,
+			Path:   path,
+		}
+		groupByGroups = append(groupByGroups, g)
+	}
 	return groupByGroups, diags
 }
 

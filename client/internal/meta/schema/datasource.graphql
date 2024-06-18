@@ -1,0 +1,254 @@
+# Objects that represent collections of ingestion components that bring data into observe.
+# this file is auto-generated, do not edit
+extend type DataConnection {
+    datasources: [Datasource!]! @goField(forceResolver: true)
+}
+
+extend type Query {
+  """
+  DataConnectionModuleVersion returns the complete list of all versions a DataConnectionModule's definition.
+  """
+  dataConnectionModuleVersions(id: String!, workspaceId: ObjectId!): [DataConnectionModuleVersion!]!
+  """
+  GetDatasourcesByConnection returns the list of all Datasources for a given DataConnection.
+  """
+  GetDatasourcesByConnection(dataConnectionId: ObjectId!): [Datasource]!
+}
+
+extend type Query {
+    datasource(id: ObjectId!): Datasource!
+    searchDatasource(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DatasourceSearchResult!
+    dataConnection(id: ObjectId!): DataConnection!
+    searchDataConnection(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DataConnectionSearchResult!
+}
+
+extend type Mutation {
+    createDatasource(workspaceId: ObjectId!, input: DatasourceInput!): Datasource!
+    updateDatasource(id: ObjectId!, input: DatasourceInput!): Datasource!
+    deleteDatasource(id: ObjectId!): ResultStatus!
+    createDataConnection(workspaceId: ObjectId!, input: DataConnectionInput!): DataConnection!
+    updateDataConnection(id: ObjectId!, input: DataConnectionInput!): DataConnection!
+    deleteDataConnection(id: ObjectId!): ResultStatus!
+}
+
+enum DatasetType @goModel(model: "observe/meta/metatypes.DatasetType") {
+  otellogs
+  otelmetrics
+}
+
+enum DatasourceState @goModel(model: "observe/meta/metatypes.DatasourceState") {
+  Error
+  Pending
+  Running
+}
+
+type DataVariable @goModel(model: "observe/meta/metatypes.DataVariable") {
+    # payload
+    name: String!
+    type: String!
+    description: String
+    required: Boolean!
+    sensitive: Boolean
+    default: String
+    advanced: Boolean
+    validValues: [String!]
+    value: String
+}
+
+input DataVariableInput @goModel(model: "observe/meta/metatypes.DataVariableInput") {
+    # payload
+    name: String!
+    # not in input: type: String!
+    # not in input: description: String
+    # not in input: required: Boolean!
+    # not in input: sensitive: Boolean
+    # not in input: default: String
+    # not in input: advanced: Boolean
+    # not in input: validValues: [String!]
+    value: String
+}
+
+
+type DatasourceInstruction @goModel(model: "observe/meta/metatypes.DatasourceInstruction") {
+    # payload
+    clientStackAttributeValues: JsonObject!
+    template: String!
+}
+
+
+
+
+type DatasourceDefinition @goModel(model: "observe/meta/metatypes.DatasourceDefinition") {
+    # payload
+    name: String!
+    description: String!
+    type: String!
+    inputs: [DataVariable!]!
+    clientStackAttributeSchemas: [DataVariable!]!
+    instructions: [DatasourceInstruction!]!
+}
+
+
+
+
+type DatasourceStatus @goModel(model: "observe/meta/metatypes.DatasourceStatus") {
+    # payload
+    state: DatasourceState!
+    details: JsonObject
+}
+
+
+
+
+type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datasource") {
+    # payload
+    dataConnectionID: ObjectId!
+    datastreamID: ObjectId!
+    datastreamTokenID: String!
+    type: String!
+    status: DatasourceStatus!
+    clientStackAttributes: [DataVariable!]!
+    variables: [DataVariable!]!
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input DatasourceInput @goModel(model: "observe/meta/metatypes.DatasourceInput") {
+    # payload
+    dataConnectionID: ObjectId!
+    datastreamID: ObjectId!
+    datastreamTokenID: String!
+    # not in input: type: String!
+    # not in input: status: DatasourceStatusInput!
+    clientStackAttributes: [DataVariableInput!]!
+    variables: [DataVariableInput!]!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type DatasourceSearchResult @goModel(model: "observe/meta/metatypes.DatasourceSearchResult") {
+    results: [Datasource!]!
+}
+
+type RequiredDatasetDefinition @goModel(model: "observe/meta/metatypes.RequiredDatasetDefinition") {
+    # payload
+    type: DatasetType!
+}
+
+
+
+
+type DatastreamDefinition @goModel(model: "observe/meta/metatypes.DatastreamDefinition") {
+    # payload
+    name: String!
+    supportedTypes: [RequiredDatasetDefinition!]!
+}
+
+
+
+
+type DataConnectionOutputs @goModel(model: "observe/meta/metatypes.DataConnectionOutputs") {
+    # payload
+    name: String!
+    target: String!
+}
+
+
+
+
+type DataConnectionModuleVersion @goModel(model: "observe/meta/metatypes.DataConnectionModuleVersion") {
+    # payload
+    id: String!
+    version: String!
+    changelog: String!
+    readme: String!
+    source: String!
+    variableInputs: [DataVariable!]!
+    datasourceDefinitions: [DatasourceDefinition!]!
+    outputs: [DataConnectionOutputs!]!
+    defaultDatastream: DatastreamDefinition!
+}
+
+
+
+
+type DataConnection implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DataConnection") {
+    # payload
+    moduleID: String!
+    version: String!
+    changelog: String!
+    readme: String!
+    source: String!
+    variables: [DataVariable!]!
+    # not in output: datasources: [Datasource!]! @goField(forceResolver: true)
+    outputs: [DataConnectionOutputs!]!
+    defaultDatastreams: [DatastreamDefinition!]!
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input DataConnectionInput @goModel(model: "observe/meta/metatypes.DataConnectionInput") {
+    # payload
+    moduleID: String!
+    version: String!
+    # not in input: changelog: String!
+    # not in input: readme: String!
+    # not in input: source: String!
+    variables: [DataVariableInput!]!
+    # resolver: datasources: [DatasourceInput!]!
+    # not in input: outputs: [DataConnectionOutputsInput!]!
+    # not in input: defaultDatastreams: [DatastreamDefinitionInput!]!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type DataConnectionSearchResult @goModel(model: "observe/meta/metatypes.DataConnectionSearchResult") {
+    results: [DataConnection!]!
+}
+
