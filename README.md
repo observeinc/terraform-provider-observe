@@ -35,7 +35,7 @@ you've built it.
 ```
 provider_installation {
 dev_overrides {
-  "terraform.observeinc.com/observeinc/observe" = "path/to/terraform-provider-observe/terraform-provider-observe"
+  "observeinc/observe" = "path/to/terraform-provider-observe/terraform-provider-observe"
 }
 # For all other providers, install them directly from their origin provider
 # registries as normal. If you omit this, Terraform will _only_ use
