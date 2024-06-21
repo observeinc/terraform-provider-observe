@@ -2,9 +2,10 @@ package observe
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"testing"
 )
 
 var (
@@ -223,6 +224,151 @@ func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *test
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.one_to_one", "monitor", "observe_monitor.second", "oid"),
 					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.one_to_one", "action", "observe_monitor_action.email_action", "oid"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
+				data "observe_workspace" "default" {
+				name = "Default"
+				}
+
+				data "observe_dataset" "default" {
+				workspace = data.observe_workspace.default.oid
+				name      = "Default"
+				}
+
+				resource "observe_monitor" "battery_level_is_low" {
+					definition  = jsonencode({})
+					disabled    = false
+					inputs      = {
+						"battery" = data.observe_dataset.default.oid
+					}
+					is_template = false
+					name        = "vikram/Battery level is very low"
+					workspace   = data.observe_workspace.default.oid
+
+					notification_spec {
+						importance         = "informational"
+						merge              = "separate"
+						notify_on_close    = false
+					}
+
+					rule {
+						promote {
+							description_field = "BUNDLE_TIMESTAMP"
+							kind_field        = "FIELDS"
+							primary_key       = [
+								"BUNDLE_ID",
+							]
+						}
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter DATASTREAM_ID = "4f7fc854-53ae-4ace-8530-906417001"
+						EOF
+						output_stage = true
+					}
+				}
+
+				resource "observe_monitor_action" "test" {
+					name = "test"
+					workspace = data.observe_workspace.default.oid
+					description = "test"
+					email {
+						body_template = "./slack.tpl"
+						subject_template = "test"
+						target_addresses = ["vikram@observeinc.com"]
+					}
+				}
+
+				resource "observe_monitor_action_attachment" "test" {
+					action = resource.observe_monitor_action.test.oid
+					monitor = resource.observe_monitor.battery_level_is_low.oid
+					workspace = data.observe_workspace.default.oid
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.test", "monitor", "observe_monitor.battery_level_is_low", "oid"),
+					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.test", "action", "observe_monitor_action.test", "oid"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
+				data "observe_workspace" "default" {
+				name = "Default"
+				}
+
+				data "observe_dataset" "default" {
+				workspace = data.observe_workspace.default.oid
+				name      = "Default"
+				}
+
+				resource "observe_monitor" "battery_level_is_very_low" {
+					definition  = jsonencode({})
+					disabled    = false
+					inputs      = {
+						"battery" = data.observe_dataset.default.oid
+					}
+					is_template = false
+					name        = "vikram/Battery level is very low"
+					workspace   = data.observe_workspace.default.oid
+
+					notification_spec {
+						importance         = "informational"
+						merge              = "separate"
+						notify_on_close    = false
+					}
+
+					rule {
+						promote {
+							description_field = "BUNDLE_TIMESTAMP"
+							kind_field        = "FIELDS"
+							primary_key       = [
+								"BUNDLE_ID",
+							]
+						}
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter DATASTREAM_ID = "4f7fc854-53ae-4ace-8530-906417001"
+						EOF
+						output_stage = true
+					}
+				}
+
+				resource "observe_monitor_action" "test" {
+					name = "test"
+					workspace = data.observe_workspace.default.oid
+					description = "test"
+					email {
+						body_template = "./slack.tpl"
+						subject_template = "test"
+						target_addresses = ["vikram@observeinc.com"]
+					}
+				}
+
+				resource "observe_monitor_action_attachment" "test" {
+					action = resource.observe_monitor_action.test.oid
+					monitor = resource.observe_monitor.battery_level_is_very_low.oid
+					workspace = data.observe_workspace.default.oid
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.test", "monitor", "observe_monitor.battery_level_is_very_low", "oid"),
+					resource.TestCheckResourceAttrPair("observe_monitor_action_attachment.test", "action", "observe_monitor_action.test", "oid"),
 				),
 			},
 		},
