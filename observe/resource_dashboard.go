@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/client/meta"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -235,11 +234,11 @@ func resourceDashboardCreate(ctx context.Context, data *schema.ResourceData, met
 	return append(diags, resourceDashboardRead(ctx, data, meta)...)
 }
 
-func resourceDashboardRead(ctx context.Context, data *schema.ResourceData, metaClient interface{}) (diags diag.Diagnostics) {
-	client := metaClient.(*observe.Client)
+func resourceDashboardRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	client := meta.(*observe.Client)
 	result, err := client.GetDashboard(ctx, data.Id())
 	if err != nil {
-		if meta.HasErrorCode(err, "NOT_FOUND") {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
 			data.SetId("")
 			return nil
 		}
