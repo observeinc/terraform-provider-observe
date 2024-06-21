@@ -2,9 +2,11 @@ package observe
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/meta"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
@@ -110,8 +112,8 @@ func resourceMonitorActionAttachmentCreate(ctx context.Context, data *schema.Res
 	return append(diags, resourceMonitorActionAttachmentRead(ctx, data, meta)...)
 }
 
-func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
+func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.ResourceData, metaClient interface{}) (diags diag.Diagnostics) {
+	client := metaClient.(*observe.Client)
 
 	config, diags := newMonitorActionAttachmentConfig(data)
 	if diags.HasError() {
@@ -120,17 +122,28 @@ func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.Res
 
 	_, err := client.UpdateMonitorActionAttachment(ctx, data.Id(), config)
 	if err != nil {
+		if meta.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorActionAttachmentCreate(ctx, data, metaClient)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
 		return diag.Errorf("failed to update monitor action: %s", err.Error())
 	}
 
-	return append(diags, resourceMonitorActionAttachmentRead(ctx, data, meta)...)
+	return append(diags, resourceMonitorActionAttachmentRead(ctx, data, metaClient)...)
 }
 
-func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
+func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.ResourceData, metaClient interface{}) (diags diag.Diagnostics) {
+	client := metaClient.(*observe.Client)
 
 	monitorActionAttachmentPtr, err := client.GetMonitorActionAttachment(ctx, data.Id())
 	if err != nil {
+		if meta.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read monitor action: %s", err.Error())
 	}
 
