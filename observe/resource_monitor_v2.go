@@ -23,11 +23,20 @@ func resourceMonitorV2() *schema.Resource {
 		UpdateContext: resourceMonitorV2Update,
 		DeleteContext: resourceMonitorV2Delete,
 		Schema: map[string]*schema.Schema{
+			"workspace_id": { // ObjectId!
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+			},
 			"comment": { // String
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"rule_kind": { // MonitorV2RuleKind!
+				// Count
+				// Promote
+				// Threshold
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -44,12 +53,9 @@ func resourceMonitorV2() *schema.Resource {
 				Optional: true,
 			},
 			"managed_by_id": { // ObjectId
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"folder_id": { // ObjectId
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateOID(oid.TypeUser),
+				Optional:         true,
 			},
 			"stage": { // for building inputQuery (MultiStageQueryInput!)
 				Type:     schema.TypeList,
@@ -89,55 +95,63 @@ func resourceMonitorV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{ // MonitorV2RuleInput!
 						"level": { // MonitorV2AlarmLevel!
+							//   Critical
+							//   Error
+							//   Informational
+							//   None
+							//   Warning
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"count": { // [MonitorV2ComparisonInput!]
+						"count": { // MonitorV2CountRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput
-									"compare_fn": { // MonitorV2ComparisonFunction!
-										//   Equal
-										//   Greater
-										//   GreaterOrEqual
-										//   Less
-										//   LessOrEqual
-										//   NotEqual
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"compare_value": { // PrimitiveValueInput!
+								Schema: map[string]*schema.Schema{
+									"compare_values": { // [MonitorV2ComparisonInput!]!
 										Type:     schema.TypeList,
 										Required: true,
-										MaxItems: 1,
 										MinItems: 1,
 										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"bool": { // Boolean
-													Type:     schema.TypeBool,
+											Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput
+												"compare_fn": { // MonitorV2ComparisonFunction!
+													//   Equal
+													//   Greater
+													//   GreaterOrEqual
+													//   Less
+													//   LessOrEqual
+													//   NotEqual
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"value_int64": { // Int64
+													Type:     schema.TypeInt,
 													Optional: true,
 												},
-												"float64": { // Float
+												"value_float64": { // Float
 													Type:     schema.TypeFloat,
 													Optional: true,
 												},
-												"int64": { // Int64
-													Type:     schema.TypeInt,
+												"value_bool": { // Boolean
+													Type:     schema.TypeBool,
 													Optional: true,
 												},
-												"string": { // String
+												"value_string": { // String
 													Type:     schema.TypeString,
 													Optional: true,
 												},
-												"timestamp": { // Time
-													Type:     schema.TypeString,
-													Optional: true,
+												"value_duration": { // Int64
+													Type:             schema.TypeInt,
+													Optional:         true,
+													ValidateDiagFunc: validateTimeDuration,
+													DiffSuppressFunc: diffSuppressDuration,
 												},
-												"duration": { // Int64
-													Type:     schema.TypeInt,
-													Optional: true,
+												"value_timestamp": { // Time
+													Type:             schema.TypeString,
+													Optional:         true,
+													ValidateDiagFunc: validateTimestamp,
 												},
 											},
 										},
@@ -148,8 +162,8 @@ func resourceMonitorV2() *schema.Resource {
 						"threshold": { // MonitorV2ThresholdRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 1,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_values": { // [MonitorV2ComparisonInput!]!
@@ -168,40 +182,32 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"compare_value": { // PrimitiveValueInput!
-													// PrimitiveValue
-													Type:     schema.TypeList,
-													Required: true,
-													MaxItems: 1,
-													MinItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"bool": { // Boolean
-																Type:     schema.TypeBool,
-																Optional: true,
-															},
-															"float64": { // Float
-																Type:     schema.TypeFloat,
-																Optional: true,
-															},
-															"int64": { // Int64
-																Type:     schema.TypeInt,
-																Optional: true,
-															},
-															"string": { // String
-																Type:     schema.TypeString,
-																Optional: true,
-															},
-															"timestamp": { // Time
-																Type:     schema.TypeString,
-																Optional: true,
-															},
-															"duration": { // Int64
-																Type:     schema.TypeInt,
-																Optional: true,
-															},
-														},
-													},
+												"value_int64": { // Int64
+													Type:     schema.TypeInt,
+													Optional: true,
+												},
+												"value_float64": { // Float
+													Type:     schema.TypeFloat,
+													Optional: true,
+												},
+												"value_bool": { // Boolean
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+												"value_string": { // String
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"value_duration": { // Int64
+													Type:             schema.TypeInt,
+													Optional:         true,
+													ValidateDiagFunc: validateTimeDuration,
+													DiffSuppressFunc: diffSuppressDuration,
+												},
+												"value_timestamp": { // Time
+													Type:             schema.TypeString,
+													Optional:         true,
+													ValidateDiagFunc: validateTimestamp,
 												},
 											},
 										},
@@ -221,128 +227,140 @@ func resourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
-						"promote": { // [MonitorV2ColumnComparisonInput!] (aka MonitorV2PromoteRuleInput)
+						"promote": { // MonitorV2PromoteRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"compare_values": { // [MonitorV2ComparisonInput!]!
+									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MinItems: 1,
 										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
-												"compare_fn": { // MonitorV2ComparisonFunction!
-													//   Equal
-													//   Greater
-													//   GreaterOrEqual
-													//   Less
-													//   LessOrEqual
-													//   NotEqual
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"compare_value": { // PrimitiveValueInput!
+											Schema: map[string]*schema.Schema{
+												"compare_values": { // [MonitorV2ComparisonInput!]!
 													Type:     schema.TypeList,
 													Required: true,
-													MaxItems: 1,
 													MinItems: 1,
 													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"bool": { // Boolean
-																Type:     schema.TypeBool,
+														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
+															"compare_fn": { // MonitorV2ComparisonFunction!
+																//   Equal
+																//   Greater
+																//   GreaterOrEqual
+																//   Less
+																//   LessOrEqual
+																//   NotEqual
+																Type:     schema.TypeString,
+																Required: true,
+															},
+															"value_int64": { // Int64
+																Type:     schema.TypeInt,
 																Optional: true,
 															},
-															"float64": { // Float
+															"value_float64": { // Float
 																Type:     schema.TypeFloat,
 																Optional: true,
 															},
-															"int64": { // Int64
-																Type:     schema.TypeInt,
+															"value_bool": { // Boolean
+																Type:     schema.TypeBool,
 																Optional: true,
 															},
-															"string": { // String
+															"value_string": { // String
 																Type:     schema.TypeString,
 																Optional: true,
 															},
-															"timestamp": { // Time
-																Type:     schema.TypeString,
-																Optional: true,
+															"value_duration": { // Int64
+																Type:             schema.TypeInt,
+																Optional:         true,
+																ValidateDiagFunc: validateTimeDuration,
+																DiffSuppressFunc: diffSuppressDuration,
 															},
-															"duration": { // Int64
-																Type:     schema.TypeInt,
-																Optional: true,
+															"value_timestamp": { // Time
+																Type:             schema.TypeString,
+																Optional:         true,
+																ValidateDiagFunc: validateTimestamp,
 															},
 														},
 													},
 												},
-											},
-										},
-									},
-									"column": { // MonitorV2ColumnInput!
-										Type:     schema.TypeList,
-										Optional: true,
-										MinItems: 1,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{ // MonitorV2ColumnInput
-												"link_column": { // MonitorV2LinkColumnInput
+												"column": {
 													Type:     schema.TypeList,
-													Optional: true,
+													Required: true,
 													MinItems: 1,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
-															"name": { // String!
-																Type:     schema.TypeString,
-																Required: true,
-															},
-															"meta": { // MonitorV2LinkColumnMetaInput
+															"link_column": { // MonitorV2LinkColumnInput
 																Type:     schema.TypeList,
 																Optional: true,
 																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
-																		"src_fields": { // [MonitorV2ColumnPathInput!]
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"meta": { // MonitorV2LinkColumnMetaInput
 																			Type:     schema.TypeList,
 																			Optional: true,
 																			MinItems: 1,
+																			MaxItems: 1,
 																			Elem: &schema.Resource{
-																				Schema: map[string]*schema.Schema{},
+																				Schema: map[string]*schema.Schema{
+																					"src_fields": { // [MonitorV2ColumnPathInput!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"name": { // String!
+																									Type:     schema.TypeString,
+																									Required: true,
+																								},
+																								"path": { // String
+																									Type:     schema.TypeString,
+																									Optional: true,
+																								},
+																							},
+																						},
+																					},
+																					"dst_fields": { // [String!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem:     &schema.Schema{Type: schema.TypeString},
+																					},
+																					"target_dataset": { // Int64
+																						Type:     schema.TypeInt,
+																						Optional: true,
+																					},
+																				},
 																			},
-																		},
-																		"dst_fields": { // [String!]
-																			Type:     schema.TypeList,
-																			Optional: true,
-																			MinItems: 1,
-																			Elem:     &schema.Schema{Type: schema.TypeString},
-																		},
-																		"target_dataset": { // Int64
-																			Type:     schema.TypeInt,
-																			Optional: true,
 																		},
 																	},
 																},
 															},
-														},
-													},
-												},
-												"column_path": { // MonitorV2ColumnPathInput
-													Type:     schema.TypeList,
-													Optional: true,
-													MinItems: 1,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"name": { // String!
-																Type:     schema.TypeString,
-																Required: true,
-															},
-															"path": { // String
-																Type:     schema.TypeString,
+															"column_path": { // MonitorV2ColumnPathInput
+																Type:     schema.TypeList,
 																Optional: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"path": { // String
+																			Type:     schema.TypeString,
+																			Optional: true,
+																		},
+																	},
+																},
 															},
 														},
 													},
@@ -385,42 +403,32 @@ func resourceMonitorV2() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 									},
-									"meta": { // MonitorV2LinkColumnMetaInput
+									"src_fields": { // MonitorV2LinkColumnMetaInput.[MonitorV2ColumnPathInput!]
 										Type:     schema.TypeList,
 										Optional: true,
 										MinItems: 1,
-										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"src_fields": { // [MonitorV2ColumnPathInput!]
-													Type:     schema.TypeList,
-													Optional: true,
-													MinItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"name": { // String!
-																Type:     schema.TypeString,
-																Required: true,
-															},
-															"path": { // String
-																Type:     schema.TypeString,
-																Optional: true,
-															},
-														},
-													},
+												"name": { // String!
+													Type:     schema.TypeString,
+													Required: true,
 												},
-												"dst_fields": { // [String!]
-													Type:     schema.TypeList,
-													Optional: true,
-													MinItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-												"target_dataset": { // Int64
-													Type:     schema.TypeInt,
+												"path": { // String
+													Type:     schema.TypeString,
 													Optional: true,
 												},
 											},
 										},
+									},
+									"dst_fields": { // MonitorV2LinkColumnMetaInput.[String!]
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"target_dataset": { // MonitorV2LinkColumnMetaInput.Int64
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 								},
 							},
@@ -449,8 +457,8 @@ func resourceMonitorV2() *schema.Resource {
 			"scheduling": { // MonitorV2SchedulingInput
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
 				MaxItems: 1,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": { // MonitorV2IntervalScheduleInput
@@ -475,153 +483,31 @@ func resourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
-						"transform": { // Duration (MonitorV2TransformScheduleInput)
-							Type:             schema.TypeString,
-							Optional:         true,
-							ValidateDiagFunc: validateTimeDuration,
-							DiffSuppressFunc: diffSuppressTimeDuration,
+						"transform": { // MonitorV2TransformScheduleInput
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"freshness_goal": { // Duration!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDuration,
+									},
+								},
+							},
 						},
 					},
 				},
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
-}
-
-func newMonitorV2CountRuleInput(data *schema.ResourceData, i int) *gql.MonitorV2CountRuleInput {
-	var countRule gql.MonitorV2CountRuleInput
-
-	if v, ok := data.GetOk(fmt.Sprintf("rules.%d.count.0.compare_fn", i)); ok {
-		countRule.CompareFn = gql.MonitorV2ComparisonFunction(v.(string))
-	} else {
-		return nil
-	}
-
-	if v, ok := data.GetOk(fmt.Sprintf("rules.%d.count.0.compare_value", i)); ok {
-		countRule.CompareValue = types.NumberScalar(v.(float64))
-	} else {
-		return nil
-	}
-
-	return &countRule
-}
-
-func newMonitorV2Rules(data *schema.ResourceData) (rules []gql.MonitorV2RuleInput, diags diag.Diagnostics) {
-	rules = make([]gql.MonitorV2RuleInput, 0)
-	for i := range data.Get("rules").([]interface{}) {
-		var rule gql.MonitorV2RuleInput
-		if v, ok := data.GetOk(fmt.Sprintf("rules.%d.level", i)); ok {
-			rule.Level = gql.MonitorV2AlarmLevel(v.(string))
-		}
-		rule.Count = newMonitorV2CountRuleInput(data, i)
-		rules = append(rules, rule)
-	}
-	return rules, diags
-}
-
-func newMonitorV2GroupByGroups(data *schema.ResourceData) (groupByGroups []gql.MonitorGroupInfoInput, diags diag.Diagnostics) {
-	groupByGroups = make([]gql.MonitorGroupInfoInput, 0)
-	for i := range data.Get("group_by_groups").([]interface{}) {
-		var g gql.MonitorGroupInfoInput
-		g.Columns = make([]string, 0)
-		for j := range data.Get(fmt.Sprintf("group_by_groups.%d.columns", i)).([]interface{}) {
-			if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.columns.%d", i, j)); ok {
-				g.Columns = append(g.Columns, v.(string))
-			}
-		}
-		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.group_name", i)); ok {
-			g.GroupName = v.(string)
-		}
-		var col string
-		var path string
-		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.column_path.0.column", i)); ok {
-			col = v.(string)
-		}
-		if v, ok := data.GetOk(fmt.Sprintf("group_by_groups.%d.column_path.0.path", i)); ok {
-			path = v.(string)
-		}
-		g.ColumnPath = &gql.MonitorGroupByColumnPathInput{
-			Column: col,
-			Path:   path,
-		}
-		groupByGroups = append(groupByGroups, g)
-	}
-	return groupByGroups, diags
-}
-
-func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
-	query, diags := newQuery(data)
-	if diags.HasError() {
-		return nil, diags
-	}
-	if query == nil {
-		return nil, diag.Errorf("no query provided")
-	}
-
-	rules, diags := newMonitorV2Rules(data)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	groupByGroups, diags := newMonitorV2GroupByGroups(data)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	defnInput = &gql.MonitorV2DefinitionInput{
-		InputQuery:    *query,
-		Rules:         rules,
-		GroupByGroups: groupByGroups,
-	}
-
-	// optionals
-	if v, ok := data.GetOk("lookback_time"); ok {
-		lookbackTime, _ := types.ParseDurationScalar(v.(string))
-		defnInput.LookbackTime = lookbackTime
-	}
-
-	return defnInput, diags
-}
-
-func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
-	// is this how to read non-optionals?
-	disabled := data.Get("disabled").(bool)
-	definitionInput, diags := newMonitorV2DefinitionInput(data)
-	if diags.HasError() {
-		return nil, diags
-	}
-	ruleKind := data.Get("rule_kind").(string)
-	name := data.Get("name").(string)
-
-	input = &gql.MonitorV2Input{
-		Disabled:   disabled,
-		Definition: *definitionInput,
-		RuleKind:   meta.MonitorV2RuleKind(ruleKind),
-		Name:       name,
-	}
-
-	// optionals
-	if v, ok := data.GetOk("comment"); ok {
-		input.Comment = stringPtr(v.(string))
-	}
-
-	if v, ok := data.GetOk("icon_url"); ok {
-		input.IconUrl = stringPtr(v.(string))
-	}
-
-	if v, ok := data.GetOk("description"); ok {
-		input.Description = stringPtr(v.(string))
-	}
-
-	if v, ok := data.GetOk("managed_by_id"); ok {
-		input.ManagedById = stringPtr(v.(string))
-	}
-
-	if v, ok := data.GetOk("folder_id"); ok {
-		input.FolderId = stringPtr(v.(string))
-	}
-
-	return input, diags
 }
 
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -632,7 +518,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
+	id, _ := oid.NewOID(data.Get("workspace_id").(string))
 	result, err := client.CreateMonitorV2(ctx, id.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
@@ -680,4 +566,361 @@ func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to delete monitor: %s", err.Error())
 	}
 	return diags
+}
+
+func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
+	// required
+	definitionInput, diags := newMonitorV2DefinitionInput(data)
+	if diags.HasError() {
+		return nil, diags
+	}
+	ruleKind := data.Get("rule_kind").(string)
+	name := data.Get("name").(string)
+
+	// instantiation
+	input = &gql.MonitorV2Input{
+		Definition: *definitionInput,
+		RuleKind:   meta.MonitorV2RuleKind(ruleKind),
+		Name:       name,
+	}
+
+	// optionals
+	if v, ok := data.GetOk("comment"); ok {
+		input.Comment = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("icon_url"); ok {
+		input.IconUrl = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("description"); ok {
+		input.Description = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("managed_by_id"); ok {
+		input.ManagedById = stringPtr(v.(string))
+	}
+
+	return input, diags
+}
+
+func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
+	// required
+	query, diags := newQuery(data)
+	if diags.HasError() {
+		return nil, diags
+	}
+	if query == nil {
+		return nil, diag.Errorf("no query provided")
+	}
+	rules := make([]gql.MonitorV2RuleInput, 0)
+	for i := range data.Get("rules").([]interface{}) {
+		rule, diags := newMonitorV2RuleInput(fmt.Sprintf("rules.%d", i), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rules = append(rules, *rule)
+	}
+
+	// instantiation
+	defnInput = &gql.MonitorV2DefinitionInput{
+		InputQuery: *query,
+		Rules:      rules,
+	}
+
+	// optionals
+	if v, ok := data.GetOk("lookback_time"); ok {
+		lookbackTime, _ := types.ParseDurationScalar(v.(string))
+		defnInput.LookbackTime = lookbackTime
+	}
+	if v, ok := data.GetOk("data_stabilization_delay"); ok {
+		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
+		defnInput.DataStabilizationDelay = dataStabilizationDelay
+	}
+	if _, ok := data.GetOk("groupings"); ok {
+		groupings := make([]gql.MonitorV2ColumnInput, 0)
+		for _, i := range data.Get("groupings").([]interface{}) {
+			colInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("groupings.%d", i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			groupings = append(groupings, *colInput)
+		}
+		defnInput.Groupings = groupings
+	}
+	if _, ok := data.GetOk("scheduling"); ok {
+		scheduling, diags := newMonitorV2SchedulingInput("scheduling.0", data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		defnInput.Scheduling = scheduling
+	}
+
+	return defnInput, diags
+}
+
+func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (scheduling *gql.MonitorV2SchedulingInput, diags diag.Diagnostics) {
+	// instantiation
+	scheduling = &gql.MonitorV2SchedulingInput{}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%s.interval", path)); ok {
+		interval, diags := newMonitorV2IntervalScheduleInput(fmt.Sprintf("%s.interval.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		scheduling.Interval = interval
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%s.transform", path)); ok {
+		transform, diags := newMonitorV2TransformScheduleInput(fmt.Sprintf("%s.transform.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		scheduling.Transform = transform
+	}
+
+	return scheduling, diags
+}
+
+func newMonitorV2IntervalScheduleInput(path string, data *schema.ResourceData) (interval *gql.MonitorV2IntervalScheduleInput, diags diag.Diagnostics) {
+	// required
+	intervalField := data.Get(fmt.Sprintf("%s.interval", path)).(string)
+	intervalDuration, _ := types.ParseDurationScalar(intervalField)
+	randomizeField := data.Get(fmt.Sprintf("%s.randomize", path)).(string)
+	randomizeDuration, _ := types.ParseDurationScalar(randomizeField)
+
+	// instantiation
+	interval = &gql.MonitorV2IntervalScheduleInput{
+		Interval:  *intervalDuration,
+		Randomize: *randomizeDuration,
+	}
+
+	return interval, diags
+}
+
+func newMonitorV2TransformScheduleInput(path string, data *schema.ResourceData) (transform *gql.MonitorV2TransformScheduleInput, diags diag.Diagnostics) {
+	// required
+	transformField := data.Get(fmt.Sprintf("%s.freshness_goal", path)).(string)
+	transformDuration, _ := types.ParseDurationScalar(transformField)
+
+	// instantiation
+	transform = &gql.MonitorV2TransformScheduleInput{FreshnessGoal: *transformDuration}
+
+	return transform, diags
+}
+
+func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.MonitorV2RuleInput, diags diag.Diagnostics) {
+	// required
+	level := data.Get(fmt.Sprintf("%s.level", path)).(string)
+
+	// instantiation
+	rule = &gql.MonitorV2RuleInput{Level: gql.MonitorV2AlarmLevel(level)}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%s.count", path)); ok {
+		count, diags := newMonitorV2CountRuleInput(fmt.Sprintf("%s.count.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rule.Count = count
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%s.threshold", path)); ok {
+		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%s.threshold.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rule.Threshold = threshold
+	}
+
+	return rule, diags
+}
+
+func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2CountRuleInput, diags diag.Diagnostics) {
+	// required
+	comparisonInputs := make([]gql.MonitorV2ComparisonInput, 0)
+	for i := range data.Get(fmt.Sprintf("%s.count", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		comparisonInputs = append(comparisonInputs, *comparisonInput)
+	}
+
+	// instantiation
+	comparison = &gql.MonitorV2CountRuleInput{
+		CompareValues: comparisonInputs,
+	}
+
+	return comparison, diags
+}
+
+func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ComparisonInput, diags diag.Diagnostics) {
+	// required
+	compareFn := gql.MonitorV2ComparisonFunction(data.Get(fmt.Sprintf("%s.compare_fn", path)).(string))
+	var compareValue gql.PrimitiveValueInput
+	diags = primitiveValueDecode(fmt.Sprintf("%s.", path), data, &compareValue)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// instantiation
+	comparison = &gql.MonitorV2ComparisonInput{
+		CompareFn:    compareFn,
+		CompareValue: compareValue,
+	}
+
+	return comparison, diags
+}
+
+func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (threshold *gql.MonitorV2ThresholdRuleInput, diags diag.Diagnostics) {
+	// required
+	compareValues := []gql.MonitorV2ComparisonInput{}
+	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+		if diags.HasError() {
+			return threshold, diags
+		}
+		compareValues = append(compareValues, *comparisonInput)
+	}
+	valueColumnName := data.Get(fmt.Sprintf("%s.value_column_name", path)).(string)
+	aggregation := gql.MonitorV2ValueAggregation(data.Get(fmt.Sprintf("%s.compare_fn", path)).(string))
+
+	// instantiation
+	threshold = &gql.MonitorV2ThresholdRuleInput{
+		CompareValues:   compareValues,
+		ValueColumnName: valueColumnName,
+		Aggregation:     aggregation,
+	}
+
+	return threshold, diags
+}
+
+func newMonitorV2PromoteRuleInput(prefix string, data *schema.ResourceData) (promoteRule *gql.MonitorV2PromoteRuleInput, diags diag.Diagnostics) {
+	// instantiation
+	promoteRule = &gql.MonitorV2PromoteRuleInput{}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%s.compare_columns", prefix)); ok {
+		compareColumns := make([]gql.MonitorV2ColumnComparisonInput, 0)
+		for i := range data.Get(fmt.Sprintf("%s.compare_columns", prefix)).([]interface{}) {
+			input, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%s.compare_columns.%d", prefix, i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			compareColumns = append(compareColumns, *input)
+		}
+		promoteRule.CompareColumns = compareColumns
+	}
+
+	return promoteRule, diags
+}
+
+func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ColumnComparisonInput, diags diag.Diagnostics) {
+	// required
+	compareValues := make([]gql.MonitorV2ComparisonInput, 0)
+	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		compareValues = append(compareValues, *comparisonInput)
+	}
+	columnInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("%s.column", path), data)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// instantiation
+	comparison = &gql.MonitorV2ColumnComparisonInput{
+		Column:        *columnInput,
+		CompareValues: compareValues,
+	}
+
+	return comparison, diags
+}
+
+func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnInput, diags diag.Diagnostics) {
+	// required
+	linkColumnInput, diags := newMonitorV2LinkColumnInput(fmt.Sprintf("%s.link_column.0", path), data)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	// instantiation
+	column = &gql.MonitorV2ColumnInput{LinkColumn: linkColumnInput}
+
+	// optional
+	if _, ok := data.GetOk(fmt.Sprintf("%s.column_path", path)); ok {
+		columnPath, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%s.column_path.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		column.ColumnPath = columnPath
+	}
+
+	return column, diags
+}
+
+func newMonitorV2LinkColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2LinkColumnInput, diags diag.Diagnostics) {
+	// required
+	name := data.Get(fmt.Sprintf("%s.name", path)).(string)
+
+	// instantiation
+	column = &gql.MonitorV2LinkColumnInput{Name: name}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%s.meta", path)); ok {
+		meta, diags := newMonitorV2LinkColumnMetaInput(fmt.Sprintf("%s.meta.0", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		column.Meta = meta
+	}
+
+	return column, diags
+}
+
+func newMonitorV2LinkColumnMetaInput(path string, data *schema.ResourceData) (meta *gql.MonitorV2LinkColumnMetaInput, diags diag.Diagnostics) {
+	// instantiation
+	meta = &gql.MonitorV2LinkColumnMetaInput{}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%s.src_fields", path)); ok {
+		srcFields := make([]gql.MonitorV2ColumnPathInput, 0)
+		for i := range data.Get(fmt.Sprintf("%s.src_fields", path)).([]interface{}) {
+			srcField, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%s.src_fields.%d", path, i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			srcFields = append(srcFields, *srcField)
+		}
+		meta.SrcFields = srcFields
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%s.dst_fields", path)); ok {
+		dstFields := make([]string, 0)
+		for i := range data.Get(fmt.Sprintf("%s.dst_fields", path)).([]interface{}) {
+			dstField := data.Get(fmt.Sprintf("%s.dst_fields.%d", path, i)).(string)
+			dstFields = append(dstFields, dstField)
+		}
+		meta.DstFields = dstFields
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%s.target_dataset", path)); ok {
+		v := data.Get(fmt.Sprintf("%s.target_dataset", path))
+		meta.TargetDataset = types.Int64Scalar(v.(int64)).Ptr()
+	}
+
+	return meta, diags
+}
+
+func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnPathInput, diags diag.Diagnostics) {
+	// required
+	name := data.Get(fmt.Sprintf("%s.name", path)).(string)
+
+	// instantiation
+	column = &gql.MonitorV2ColumnPathInput{Name: name}
+
+	// optionals
+	if v, ok := data.GetOk(fmt.Sprintf("%s.path", path)); ok {
+		p := v.(string)
+		column.Path = &p
+	}
+
+	return column, diags
 }

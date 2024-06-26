@@ -96,7 +96,7 @@ func newLayeredSettingRecordConfig(data *schema.ResourceData) (input *gql.Layere
 	if diags = targetDecode(data, &ret.SettingAndTargetScope.Target); diags != nil {
 		return nil, diags
 	}
-	if diags = primitiveValueDecode(data, &ret.Value); diags != nil {
+	if diags = primitiveValueDecode("", data, &ret.Value); diags != nil {
 		return nil, diags
 	}
 
@@ -282,20 +282,20 @@ func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingRecordTar
 	return diags
 }
 
-func primitiveValueDecode(data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
+func primitiveValueDecode(prefix string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
 	// value_bool must be read with GetOkExists because it is both optional and has no default
 	// GetOk returns !ok for the zero value of the type
 	// GetOkExists, which is deprecated, is the only way to handle this schema as declared
 	// Fixing this requires refactoring the schema (breaking). A more appropriate way to handle this API would be to have `type` and `value` fields, both strings.
 	// The `value` would be a JSON-encoded string of the appropriate type.
-	valueBool, hasBool := data.GetOkExists("value_bool")
+	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%svalue_bool", prefix))
 
 	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
-	valueInt, hasInt := data.GetOk("value_int64")
-	valueFloat, hasFloat := data.GetOk("value_float64")
-	valueString, hasString := data.GetOk("value_string")
-	valueDuration, hasDuration := data.GetOk("value_duration")
-	valueTimestamp, hasTimestamp := data.GetOk("value_timestamp")
+	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", prefix))
+	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%svalue_float64", prefix))
+	valueString, hasString := data.GetOk(fmt.Sprintf("value_string", prefix))
+	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("value_duration", prefix))
+	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("value_timestamp", prefix))
 	nvalue := 0
 	var kinds []string
 	if hasBool && valueBool != nil {
