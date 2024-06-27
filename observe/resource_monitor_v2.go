@@ -570,9 +570,17 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// if err := data.Set("rule_kind", monitor.RuleKind); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := data.Set("icon_url", monitor.IconUrl); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("description", monitor.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("oid", monitor.Oid().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }

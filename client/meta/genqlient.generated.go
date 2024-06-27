@@ -6047,12 +6047,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool"`
-	Float64   *float64           `json:"float64"`
-	Int64     *types.Int64Scalar `json:"int64"`
-	String    *string            `json:"string"`
-	Timestamp *types.TimeScalar  `json:"timestamp"`
-	Duration  *types.Int64Scalar `json:"duration"`
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
