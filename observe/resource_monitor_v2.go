@@ -506,6 +506,15 @@ func resourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"rollup_status": {
+				//   Degraded
+				//   Failed
+				//   Inactive
+				//   Running
+				//   Triggering
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -549,13 +558,21 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 
 	monitor, err := client.GetMonitorV2(ctx, data.Id())
 	if err != nil {
-		return diag.Errorf("failed to read monitor: %s", err.Error())
+		return diag.Errorf("failed to read monitorv2: %s", err.Error())
 	}
 
 	// perform data.set on all the fields from this monitor
+	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
+	// if err := data.Set("rule_kind", monitor.RuleKind); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	return diags
 }
