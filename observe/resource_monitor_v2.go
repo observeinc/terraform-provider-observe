@@ -88,6 +88,11 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"inputs": {
+				Type:             schema.TypeMap,
+				Required:         true,
+				ValidateDiagFunc: validateMapValues(validateOID()),
+			},
 			"rules": { // [MonitorV2RuleInput!]!
 				Type:     schema.TypeList,
 				Required: true,
@@ -376,7 +381,7 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			"lookback_time": { // Duration
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
@@ -522,18 +527,23 @@ func resourceMonitorV2() *schema.Resource {
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
+	fmt.Printf("\n\n\n\n\nstart of create\n\n\n\n\n")
 	input, diags := newMonitorV2Input(data)
+	fmt.Printf("\n\n\n\n\ngot input\n\n\n\n\n")
 	if diags.HasError() {
 		return diags
 	}
 
 	id, _ := oid.NewOID(data.Get("workspace_id").(string))
+	fmt.Printf("\n\n\n\n\nstart of create API call\n\n\n\n\n")
 	result, err := client.CreateMonitorV2(ctx, id.Id, input)
+	fmt.Printf("\n\n\n\n\ncreate API call returned\n\n\n\n\n")
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
 	data.SetId(result.Id)
+	fmt.Printf("\n\n\n\n\nstart of read call\n\n\n\n\n")
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
 }
 
@@ -643,18 +653,16 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		}
 		rules = append(rules, *rule)
 	}
+	// lookbackTime := types.ParseDurationScalar(data.Get("lookback_time").(string))
 
 	// instantiation
 	defnInput = &gql.MonitorV2DefinitionInput{
 		InputQuery: *query,
 		Rules:      rules,
+		// Lookback:   lookbackTime,
 	}
 
 	// optionals
-	if v, ok := data.GetOk("lookback_time"); ok {
-		lookbackTime, _ := types.ParseDurationScalar(v.(string))
-		defnInput.LookbackTime = lookbackTime
-	}
 	if v, ok := data.GetOk("data_stabilization_delay"); ok {
 		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
