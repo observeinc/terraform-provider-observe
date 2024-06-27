@@ -40,7 +40,6 @@ func load(content embed.FS) (map[string]interface{}, error) {
 }
 
 func Get(filename string, fields ...string) string {
-	return "hi"
 	once.Do(func() {
 		var err error
 		if cache, err = load(content); err != nil {
