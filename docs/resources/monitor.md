@@ -29,7 +29,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `definition` (String) Monitor definition in JSON format.
 - `description` (String) A brief description of the monitor.
 - `disabled` (Boolean) Set to `true` to disable monitor.
-- `freshness` (String) Target freshness for results. Reducing the freshness will increase the
+- `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `is_template` (Boolean) This resource is template for creating new monitors
