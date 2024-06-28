@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -120,6 +121,13 @@ func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.Res
 
 	_, err := client.UpdateMonitorActionAttachment(ctx, data.Id(), config)
 	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorActionAttachmentCreate(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
 		return diag.Errorf("failed to update monitor action: %s", err.Error())
 	}
 
@@ -131,6 +139,10 @@ func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.Resou
 
 	monitorActionAttachmentPtr, err := client.GetMonitorActionAttachment(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read monitor action: %s", err.Error())
 	}
 

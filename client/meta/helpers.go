@@ -3,6 +3,8 @@ package meta
 import (
 	"errors"
 	"fmt"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 var AllBoardType = []BoardType{
@@ -146,4 +148,18 @@ func extractResultStatusError(rs ResultStatus) error {
 		return fmt.Errorf("request failed: %q", msg)
 	}
 	return errors.New("request failed")
+}
+
+func HasErrorCode(err error, code string) bool {
+	if err == nil {
+		return false
+	}
+	if errList, ok := err.(gqlerror.List); ok {
+		for _, err := range errList {
+			if err.Extensions["code"] == code {
+				return true
+			}
+		}
+	}
+	return false
 }
