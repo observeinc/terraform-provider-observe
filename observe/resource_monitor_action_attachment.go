@@ -128,7 +128,7 @@ func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.Res
 			}
 			return nil
 		}
-		return diag.Errorf("failed to update monitor action: %s", err.Error())
+		return diag.Errorf("failed to update monitor action attachment: %s", err.Error())
 	}
 
 	return append(diags, resourceMonitorActionAttachmentRead(ctx, data, meta)...)
@@ -143,7 +143,7 @@ func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.Resou
 			data.SetId("")
 			return nil
 		}
-		return diag.Errorf("failed to read monitor action: %s", err.Error())
+		return diag.Errorf("failed to read monitor action attachment: %s", err.Error())
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(monitorActionAttachmentPtr.GetWorkspaceId()).String()); err != nil {
