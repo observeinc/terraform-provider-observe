@@ -4432,7 +4432,7 @@ func (v *MonitorV2CountRuleInput) GetCompareValues() []MonitorV2ComparisonInput 
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
-	LookbackTime           *types.DurationScalar     `json:"lookbackTime"`
+	LookbackTime           types.DurationScalar      `json:"lookbackTime"`
 	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
@@ -4445,7 +4445,7 @@ func (v *MonitorV2DefinitionInput) GetInputQuery() MultiStageQueryInput { return
 func (v *MonitorV2DefinitionInput) GetRules() []MonitorV2RuleInput { return v.Rules }
 
 // GetLookbackTime returns MonitorV2DefinitionInput.LookbackTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionInput) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
+func (v *MonitorV2DefinitionInput) GetLookbackTime() types.DurationScalar { return v.LookbackTime }
 
 // GetDataStabilizationDelay returns MonitorV2DefinitionInput.DataStabilizationDelay, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetDataStabilizationDelay() *types.DurationScalar {
@@ -6047,12 +6047,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool,omitempty"`
-	Float64   *float64           `json:"float64,omitempty"`
-	Int64     *types.Int64Scalar `json:"int64,omitempty"`
-	String    *string            `json:"string,omitempty"`
-	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
-	Duration  *types.Int64Scalar `json:"duration,omitempty"`
+	Bool      *bool              `json:"bool"`
+	Float64   *float64           `json:"float64"`
+	Int64     *types.Int64Scalar `json:"int64"`
+	String    *string            `json:"string"`
+	Timestamp *types.TimeScalar  `json:"timestamp"`
+	Duration  *types.Int64Scalar `json:"duration"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.

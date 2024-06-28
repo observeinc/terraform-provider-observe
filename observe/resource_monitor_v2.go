@@ -653,13 +653,16 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		}
 		rules = append(rules, *rule)
 	}
-	// lookbackTime := types.ParseDurationScalar(data.Get("lookback_time").(string))
+	lookbackTime, err := types.ParseDurationScalar(data.Get("lookback_time").(string))
+	if err != nil {
+		return nil, diag.Errorf("lookback_time is invalid: %s", err.Error())
+	}
 
 	// instantiation
 	defnInput = &gql.MonitorV2DefinitionInput{
-		InputQuery: *query,
-		Rules:      rules,
-		// Lookback:   lookbackTime,
+		InputQuery:   *query,
+		Rules:        rules,
+		LookbackTime: *lookbackTime,
 	}
 
 	// optionals

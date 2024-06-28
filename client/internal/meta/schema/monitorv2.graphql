@@ -318,7 +318,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules,
     but is only applicable to rule kinds that utilize it.
     """
-    lookbackTime: Duration
+    lookbackTime: Duration!
     """
     DataStabilizationDelay expresses the minimum time that should elapse before data is considered "good enough"
     to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected
@@ -342,7 +342,7 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     # payload
     inputQuery: MultiStageQueryInput!
     rules: [MonitorV2RuleInput!]!
-    lookbackTime: Duration
+    lookbackTime: Duration!
     dataStabilizationDelay: Duration
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput
