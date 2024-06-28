@@ -292,10 +292,13 @@ func primitiveValueDecode(prefix string, data *schema.ResourceData, ret *gql.Pri
 
 	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
 	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", prefix))
+	if !hasInt {
+		return diag.Errorf("uh oh!")
+	}
 	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%svalue_float64", prefix))
-	valueString, hasString := data.GetOk(fmt.Sprintf("value_string", prefix))
-	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("value_duration", prefix))
-	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("value_timestamp", prefix))
+	valueString, hasString := data.GetOk(fmt.Sprintf("%svalue_string", prefix))
+	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("%svalue_duration", prefix))
+	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("%svalue_timestamp", prefix))
 	nvalue := 0
 	var kinds []string
 	if hasBool && valueBool != nil {
@@ -337,7 +340,7 @@ func primitiveValueDecode(prefix string, data *schema.ResourceData, ret *gql.Pri
 		kinds = append(kinds, "value_timestamp")
 	}
 	if nvalue == 0 {
-		return diag.Errorf("A value must be specified (value_string, value_bool, etc)")
+		return diag.Errorf("A value must be specified (value_string, value_bool, etc). Path = %s", prefix)
 	}
 	if nvalue > 1 {
 		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s", len(kinds), strings.Join(kinds, ","))

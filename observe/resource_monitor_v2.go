@@ -771,7 +771,7 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2CountRuleInput, diags diag.Diagnostics) {
 	// required
 	comparisonInputs := make([]gql.MonitorV2ComparisonInput, 0)
-	for i := range data.Get(fmt.Sprintf("%s.count", path)).([]interface{}) {
+	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
 		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
 		if diags.HasError() {
 			return nil, diags

@@ -318,7 +318,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules,
     but is only applicable to rule kinds that utilize it.
     """
-    lookbackTime: Duration!
+    lookbackTime: Duration
     """
     DataStabilizationDelay expresses the minimum time that should elapse before data is considered "good enough"
     to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected
@@ -565,11 +565,19 @@ type MonitorV2CountRule @goModel(model: "observe/meta/metatypes.MonitorV2CountRu
     (one rule for < 80 and one rule for > 90).
     """
     compareValues: [MonitorV2Comparison!]!
+    """
+    CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
+    This gives the option to add extra dimension to the existing rule by specifying which column of
+    the group the user looks forward to being alerted by. For example, this allows for rule expression
+    like (Count > 80 and Group = "Good Group") which would trigger a critical alert.
+    """
+    compareGroups: [MonitorV2ColumnComparison!]
 }
 
 input MonitorV2CountRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2CountRuleInput") {
     # payload
     compareValues: [MonitorV2ComparisonInput!]!
+    compareGroups: [MonitorV2ColumnComparisonInput!]
 }
 
 
@@ -590,6 +598,13 @@ type MonitorV2ThresholdRule @goModel(model: "observe/meta/metatypes.MonitorV2Thr
     """
     valueColumnName: String!
     aggregation: MonitorV2ValueAggregation!
+    """
+    CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
+    This gives the option to add extra dimension to the existing rule by specifying which column of
+    the group the user looks forward to being alerted by. For example, this allows for rule expression
+    like (Threshold > 80 and Group = "Good Group") which would trigger a critical alert.
+    """
+    compareGroups: [MonitorV2ColumnComparison!]
 }
 
 input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2ThresholdRuleInput") {
@@ -597,6 +612,7 @@ input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.Monito
     compareValues: [MonitorV2ComparisonInput!]!
     valueColumnName: String!
     aggregation: MonitorV2ValueAggregation!
+    compareGroups: [MonitorV2ColumnComparisonInput!]
 }
 
 
@@ -614,6 +630,9 @@ type MonitorV2PromoteRule @goModel(model: "observe/meta/metatypes.MonitorV2Promo
     If this field has been specified, it means there are values in the columns that we want to assign severity by.
     When multiple column comparisons are specified within one promote rule, it will act as an AND condition. When defined
     through separate promote rules, it will be treated as an OR condition.
+    If the field is left as an empty array by the frontend, all the rows of the dataset will be considered as an alert.
+    For example, if the field is left empty and the level of the MonitorV2Rule is set at critical, all the rows of the dataset
+    will be treated as a critical alert.
     """
     compareColumns: [MonitorV2ColumnComparison!]
 }

@@ -4421,12 +4421,18 @@ func (v *MonitorV2ComparisonInput) GetCompareFn() MonitorV2ComparisonFunction { 
 func (v *MonitorV2ComparisonInput) GetCompareValue() PrimitiveValueInput { return v.CompareValue }
 
 type MonitorV2CountRuleInput struct {
-	CompareValues []MonitorV2ComparisonInput `json:"compareValues"`
+	CompareValues []MonitorV2ComparisonInput       `json:"compareValues"`
+	CompareGroups []MonitorV2ColumnComparisonInput `json:"compareGroups"`
 }
 
 // GetCompareValues returns MonitorV2CountRuleInput.CompareValues, and is useful for accessing the field via an interface.
 func (v *MonitorV2CountRuleInput) GetCompareValues() []MonitorV2ComparisonInput {
 	return v.CompareValues
+}
+
+// GetCompareGroups returns MonitorV2CountRuleInput.CompareGroups, and is useful for accessing the field via an interface.
+func (v *MonitorV2CountRuleInput) GetCompareGroups() []MonitorV2ColumnComparisonInput {
+	return v.CompareGroups
 }
 
 type MonitorV2DefinitionInput struct {
@@ -4585,9 +4591,10 @@ func (v *MonitorV2SchedulingInput) GetTransform() *MonitorV2TransformScheduleInp
 }
 
 type MonitorV2ThresholdRuleInput struct {
-	CompareValues   []MonitorV2ComparisonInput `json:"compareValues"`
-	ValueColumnName string                     `json:"valueColumnName"`
-	Aggregation     MonitorV2ValueAggregation  `json:"aggregation"`
+	CompareValues   []MonitorV2ComparisonInput       `json:"compareValues"`
+	ValueColumnName string                           `json:"valueColumnName"`
+	Aggregation     MonitorV2ValueAggregation        `json:"aggregation"`
+	CompareGroups   []MonitorV2ColumnComparisonInput `json:"compareGroups"`
 }
 
 // GetCompareValues returns MonitorV2ThresholdRuleInput.CompareValues, and is useful for accessing the field via an interface.
@@ -4601,6 +4608,11 @@ func (v *MonitorV2ThresholdRuleInput) GetValueColumnName() string { return v.Val
 // GetAggregation returns MonitorV2ThresholdRuleInput.Aggregation, and is useful for accessing the field via an interface.
 func (v *MonitorV2ThresholdRuleInput) GetAggregation() MonitorV2ValueAggregation {
 	return v.Aggregation
+}
+
+// GetCompareGroups returns MonitorV2ThresholdRuleInput.CompareGroups, and is useful for accessing the field via an interface.
+func (v *MonitorV2ThresholdRuleInput) GetCompareGroups() []MonitorV2ColumnComparisonInput {
+	return v.CompareGroups
 }
 
 type MonitorV2TransformScheduleInput struct {
@@ -6047,12 +6059,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool"`
-	Float64   *float64           `json:"float64"`
-	Int64     *types.Int64Scalar `json:"int64"`
-	String    *string            `json:"string"`
-	Timestamp *types.TimeScalar  `json:"timestamp"`
-	Duration  *types.Int64Scalar `json:"duration"`
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.

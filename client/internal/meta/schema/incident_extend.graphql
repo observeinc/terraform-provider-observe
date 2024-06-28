@@ -1,12 +1,18 @@
 
 # manual extension to the incident graphql schema
 
+input IncidentQueryInput @goModel(model: "observe/meta/metatypes.IncidentQueryInput") {
+    Text: String!
+}
+
 extend type Query {
     getIncidentsForUser(u: UserId!): [Incident!]!
     getIncidentsForSlackchannel(s: IncidentSlackchannelInput!): [Incident!]!
     getIncidentsForWorksheet(w: ObjectId!): [Incident!]!
     getIncidentsForDashboard(d: ObjectId!): [Incident!]!
     getIncidentsForStatus(s: IncidentStatus!, startingAt: Time, endingAt: Time): [Incident!]!
+    # Given a text query, return incidents that have summaries which are semantically similar to the query.
+    getIncidentsForTextQuery(s: IncidentQueryInput!): [Incident!]!
 }
 
 extend type Mutation {
