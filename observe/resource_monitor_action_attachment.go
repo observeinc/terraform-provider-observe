@@ -104,7 +104,7 @@ func resourceMonitorActionAttachmentCreate(ctx context.Context, data *schema.Res
 
 	result, err := client.CreateMonitorActionAttachment(ctx, config)
 	if err != nil {
-		return diag.Errorf("failed to create monitor action: %s", err.Error())
+		return diag.Errorf("failed to create monitor action attachment: %s", err.Error())
 	}
 
 	data.SetId((*result).GetId())
