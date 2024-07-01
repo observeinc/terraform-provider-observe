@@ -34,6 +34,16 @@ extend type Query {
   Get the full acceleration status of a dataset identified by the datasetId.
   """
   datasetAccelerationStatus(datasetId: ObjectId!): DatasetAccelerationStatus!
+
+  """
+  Estimate the costs of an acceleration job.
+  """
+  estimateAccelerationJobCost(job: AccelerationJobInput!): [DatasetCostEstimate!]!
+
+  """
+  Estimate the costs of an existing acceleration job.
+  """
+  estimateExistingAccelerationJobCost(jobId: String!): [DatasetCostEstimate!]!
 }
 
 input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
@@ -200,6 +210,49 @@ type DatasetAccelerationStatus @goModel(model: "observe/meta/metatypes.DatasetAc
   All running acceleration jobs for this dataset.
   """
   runningJobs: [AccelerationJob!]!
+}
+
+"""
+A very low confidence indicates the there was no data to perform the cost estimation. A low confidence
+indicates that the estimate is made using incomplete data. A medium confidence indicates that the
+backfill cost estimation is made using the ongoing data and the prediction is decent but could be
+improved if there was backfill data available. A high confidence indicates that we had all the
+appropriate backfill data to make a good estimation.
+"""
+enum ConfidenceCostEstimate @goModel(model: "observe/meta/metatypes.ConfidenceCostEstimate") {
+  VeryLow
+  Low
+  Medium
+  High
+}
+
+type DatasetCostEstimate @goModel(model: "observe/meta/metatypes.DatasetCostEstimate") {
+  datasetId: ObjectId!
+
+  """
+  Cost estimate OCCs of materializing the dataset for the given input window.
+  """
+  absoluteCostEstimate: Float!
+
+  """
+  Additional cost OCCs of materializing the dataset on top of already existing acceleration requests.
+  To given an example, User 1 issues a request to backfill dataset for last 10 days. User 2 then issues
+  a request to backfill the same dataset for the last 20 days.
+  For User 1, absoluteCostEstimate and additionalCostEstimate are same i.e. of 10 days.
+  For User 2, absoluteCostEstimate corresponds to backfilling 20 days and additionalCostEstimate
+  corresponds to backfilling for 10 days.
+  """
+  additionalCostEstimate: Float!
+
+  """
+  Confidence for the cost estimation of the absolute cost estimate of the dataset.
+  """
+  confidenceAbsoluteCostEstimate: ConfidenceCostEstimate!
+
+  """
+  Confidence for the cost estimation of the additional cost estimate of the dataset.
+  """
+  confidenceAdditionalCostEstimate: ConfidenceCostEstimate!
 }
 
 type SearchAccelerationJobsResult @goModel(model: "observe/meta/metatypes.SearchAccelerationJobsResult") {

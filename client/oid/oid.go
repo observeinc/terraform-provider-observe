@@ -36,6 +36,7 @@ const (
 	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
 	TypeLink                    Type = "link"
 	TypeMonitor                 Type = "monitor"
+	TypeMonitorV2               Type = "monitorV2"
 	TypeMonitorAction           Type = "monitoraction"
 	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypePoller                  Type = "poller"
@@ -70,6 +71,7 @@ func (t Type) IsValid() bool {
 	case TypeMonitor:
 	case TypeMonitorAction:
 	case TypeMonitorActionAttachment:
+	case TypeMonitorV2:
 	case TypePoller:
 	case TypePreferredPath:
 	case TypeUser:
@@ -222,6 +224,10 @@ func MonitorOid(id string) OID {
 
 func MonitorActionOid(id string) OID {
 	return OID{Id: id, Type: TypeMonitorAction}
+}
+
+func MonitorV2Oid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorV2}
 }
 
 func PollerOid(id string) OID {

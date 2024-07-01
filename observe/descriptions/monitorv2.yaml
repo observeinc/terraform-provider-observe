@@ -1,0 +1,44 @@
+# description:
+#   Monitors provide a flexible way to alert for patterns in your
+#   incoming data. A monitor executes a query periodically and applies rules to
+#   determine whether to trigger notifications. Notifications are forwarded to
+#   subscribed channels, which in turn route notifications to configured channel
+#   actions.
+
+schema:
+  disabled: |
+    Disables evaluation of the monitor, but preserves its configuration and history
+  comment: |
+    A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
+  rule_kind: |
+    Describes the type of each of the rules in the definition (they must all be the same type).
+  name: |
+    Monitor name.
+  icon_url: |
+    URL of the monitor icon.
+  description: |
+    A brief description of the monitor.
+  managed_by_id: |
+    ID of the user who manages the monitor.
+  folder_id: |
+    ID of the folder the monitor is in.
+  rules:
+    level: |
+      The level of the monitor.
+    count:
+      compare_fn: |
+        The comparison function to use for the count rule.
+      compare_value: |
+        compare_value is the right-side value for comparisons that use it (like x > 10, this is 10).
+  lookback_time: |
+    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+  group_by_groups:
+    columns: |
+      The columns to group by.
+    group_name: |
+      The name of the group.
+    column_path:
+      column: |
+        The column to use for the column path.
+      path: |
+        The path to the column.

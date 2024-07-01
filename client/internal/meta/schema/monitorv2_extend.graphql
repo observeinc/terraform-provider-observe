@@ -1,0 +1,109 @@
+extend type Query {
+    """
+    previewMonitorV2 accepts the same input as create or update, but for the purpose of showing to the user
+    how the candidate monitor definition will behave against the input data. The return is a preview type that
+    shows how the monitoring strategy will emit results.
+    """
+    previewMonitorV2(workspaceId: ObjectId!, input: MonitorV2Input!, params: QueryParams!): MonitorV2Preview!
+
+    """
+    monitorV2ByVersion allows fetching of the current or previous MonitorV2 by id and version
+    (where version is the same as the monitorVersion of the MonitorV2). The purpose here is to obtain the
+    definition for historical DetectionEvent's emitted. This can be used to understand what the upstream
+    data looked like at the time of the detection event (noting of course that the actual data may have changed
+    due to rematerialization).
+    """
+    monitorV2DefinitionByVersion(id: ObjectId!, version: Int64!): MonitorV2Definition!
+
+    """
+    monitorV2TemplateDictionary takes in the monitor v2 input and the alarm input to produce a template dictionary
+    for the frontend which can be used to render the template.
+    """
+    monitorV2TemplateDictionary(monitorInput: MonitorV2Input!, alarmInput: MonitorV2AlarmInput!): TemplateDictionary!
+
+    """
+    Receive an actionInput and sample data payload to render all the fields in the mustache template.
+    SampleData is the json payload that contains all the fields to render the mustache template.
+    """
+    monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!, destInputs: [MonitorV2DestinationInput!]): RenderedTemplate!
+}
+
+extend type Mutation {
+    """
+    saveMonitorV2Relations replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
+    for the provided monitor with the provided list of actionRules and destinationLinks.
+    Shared Actions can't be mutated through this call other than attaching it to the monitor, so you will need to used
+    saveActionWithDestinationLinks to mutate sharedAction's links to the destinations.
+    It does not allow you to mutate any shared actions' relationships with the destinations. Only the inlined actions'
+    relationships with the destinations are mutateable.Hence, this API will error out if you provide destinationLinks 
+    where the action is shared.
+    """
+    saveMonitorV2Relations(monitorId: ObjectId!, actionRelations: [ActionRelationInput!]!): MonitorV2!
+
+    """
+    saveActionsWithDestinations replaces all action's links to the destinations (MonitorV2) for the provided 
+    shared action. It only allows you to mutate shared actions' relationships with the shared destinations.
+    Private actions' links can't be mutated through this call, so you will need to use saveMonitorV2Relations to do so.
+    The purpose of the API is such that the users can create a shared action and make links to the destinations
+    from the shared actions page or when an action has been shared from within the monitor editing page.
+    """
+    saveActionWithDestinationLinks(actionId: ObjectId!, destinationLinks: [ActionDestinationLinkInput!]!): MonitorV2Action!
+
+    """
+    terminateMonitorV2Alarm allows an explicit termination of an active alarm. The purpose is to
+    give the user the ability to eliminate via termination an active alarm that for some reason
+    did not end normally. This is possibly an escape hatch for early adoption bugs, but could end
+    up being an imperative for edge cases we haven't anticipated and where a snooze or mute is
+    not appropriate.
+    """
+    terminateMonitorV2Alarm(alarmId: String!): MonitorV2Alarm!
+
+    """
+    setMonitorV2MuteRules is used to update the full set of linkages between an existing MonitorV2MuteRule
+    and 1 or more MonitorV2's. If you send an empty or null set of links, that will remove all linkages to
+    the mute. We require explicit linkage so that we don't have to worry about global monitors and checking
+    for mute privs every time a rule might apply to a monitor action.
+    """
+    setMonitorV2MuteRules(ruleId: ObjectId!, monitorIds: [ObjectId!]): MonitorV2SetRulesResult!
+
+    """
+    setMonitorV2Enabled sets the enabled/disabled-ness of a monitor. Disabling a monitor will
+    stop evaluation and detection of the monitor.
+    """
+    setMonitorV2Enabled(id: ObjectId!, enabled: Boolean!): MonitorV2!
+
+    """
+    sendMonitorV2TestAlert takes in the template dictionary generated from monitorV2TemplateDictionary along with
+    the actionInput and destinationInputs object. Afterward, it sends a test alert to see whether the customer can
+    receive an alert at their designated end point.
+    """
+    testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!, destInputs: [MonitorV2DestinationInput!]!): ResultStatus!
+}
+
+# Future placeholder for mutation in one go -- an optional definition can be added along with what type of mutation
+# the frontend desires
+"""
+ActionRelationInput maps the action's relationship to the destinations the user desires to link with.
+"""
+input ActionRelationInput @goModel(model: "observe/meta/metatypes.ActionRelationInput") {
+    actionRule: MonitorV2ActionRuleInput!
+    destLinks: [ActionDestinationLinkInput!]
+}
+
+type TemplateDictionary @goModel(model: "observe/meta/metatypes.TemplateDictionary") {
+    dictionary: JsonObject!
+}
+
+type RenderedTemplate @goModel(model: "observe/meta/metatypes.RenderedTemplate") {
+    email: RenderedEmail
+    webhook: RenderedWebhook
+}
+
+type RenderedEmail @goModel(model: "observe/meta/metatypes.RenderedEmail") {
+    action: MonitorV2EmailAction!
+}
+
+type RenderedWebhook @goModel(model: "observe/meta/metatypes.RenderedWebhook") {
+    destinations: [MonitorV2WebhookDestination!]
+    action: MonitorV2WebhookAction!
+}

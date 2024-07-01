@@ -341,13 +341,6 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     endTime: Time @deprecated(reason: "not used anymore")
 
     """
-    If true, this is a progressive result and more results should come after
-    this for this result kind. This flag does not apply to ResultKindProgress
-    results, though.
-    """
-    isProgressive: Boolean! @deprecated(reason: "use resultMetadata.hasMoreResults")
-
-    """
     if resultKind is resultKindProgress (which will only happen if it is one
     of the requested resultKinds for a stage), contains details on the task's
     progress
@@ -790,6 +783,7 @@ enum DataType @goModel(model: "observe/compiler/comptypes.ValueType") {
     TIMESTAMP
     DURATION
     IPV4
+    TDIGEST
 
     # compound types
 
@@ -1144,11 +1138,19 @@ type ResultMetadata @goModel(model: "observe/meta/metatypes.ResultMetadata") {
     hasMoreResults: Boolean!
 
     """
+    @deprecated(reason:"use executionMode")
     If true, the query is running incrementally. This means that there will be
     more frequent updates to the result set. Each update replaces the results
     that have been already delivered so far.
     """
     isIncremental: Boolean!
+
+    """
+    The execution mode of the query. All execution modes will execute the query
+    and return the same final result. Some execution modes provide less or more
+    frequent partial results.
+    """
+    executionMode: ExecutionMode!
 
     """
     Queries that are executed in multiple parts will report how many time slices
@@ -1208,6 +1210,21 @@ type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
     true.
     """
     unacceleratedWindows: [TimeRange!]
+
+    """
+    True if this dataset is hibernated. In this case, the dataset will not
+    automatically accelerate new data. You can still query the dataset on the
+    accelerated range and issue manual acceleration jobs.
+    """
+    hibernated: Boolean!
+
+    """
+    If the dataset is hibernated, this field will be set to the time when it was
+    hibernated. The dataset will not automatically accelerate new data.
+    You can still query the dataset on the accelerated range and issue manual
+    acceleration jobs.
+    """
+    hibernatedAt: Time
 }
 
 """
@@ -1222,6 +1239,33 @@ enum ResultKind @goModel(model: "observe/meta/metaparser.ResultKind") {
     ResultKindSuppress    # Don't execute/return results
     ResultKindProgress    # Return the progress of the OPAL query
     ResultKindMetricDiscovery # Return a schema of the OPAL query with discovered metric information (MetricHeuristics) attached
+}
+
+"""
+The execution mode for this OPAL query
+"""
+enum ExecutionMode @goModel(model: "observe/meta/metatypes.ExecutionMode") {
+    """
+    Execution runs a single query that returns only one result per ResultKind.
+    """
+    ExecutionModeSingle
+    """
+    Execution runs up to 3 queries with a progressively bigger query window.
+    The third query will always be the full query window.
+    This execution mode will return:
+    - at most 3 ResultKindData results (if the request asks for ResultKindData),
+    - at most 4 ResultKindColumnStats results (if the request asks for ResultKindColumnStats), and
+    - at most 5 ResultKindVolumneStats results (if the request asks for ResultKindVolumeStats)
+    Each new result replaces the results that have been already delivered so far.
+    """
+    ExecutionModeProgressive
+    """
+    Same as ExecutionModeProgressive, but the execution will run multiple (depending on the query window)
+    incrementally bigger queries that do not overlap, in order to cover the entire full query window.
+    This means that there will be more frequent updates to the result set. Each new result replaces 
+    the results that have been already delivered so far.
+    """
+    ExecutionModeIncremental
 }
 
 input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
@@ -1265,7 +1309,7 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     """
     If set and progressive is also set, we will try to run the query incrementally
     """
-    incremental: Boolean @deprecated(reason: "this is work in progress; will be removed")
+    incremental: Boolean @deprecated(reason: "this is work in progress; will be removed") @goField(name:IncrementalDeprecated)
     """
     If set, backend will try to run this stage with best effort binding mode
     """

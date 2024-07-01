@@ -97,10 +97,12 @@ input MonitorMuteRuleInput @goModel(model: "observe/meta/metatypes.MonitorMuteRu
 type MonitorMuteRuleSearchResult @goModel(model: "observe/meta/metatypes.MonitorMuteRuleSearchResult") {
     results: [MonitorMuteRule!]!
 }
+
 type MonitorMuteRuleFilterAll implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterAll") {
     # payload
     filterType: MonitorMuteRuleFilterType!
 }
+
 
 
 
@@ -118,6 +120,7 @@ input MonitorMuteRuleFilterPerColumnInput @goModel(model: "observe/meta/metatype
     values: [String!]!
 }
 
+
 type MonitorMuteRuleFilterPerResource implements MonitorMuteRuleFilterObject @goModel(model: "observe/meta/metatypes.MonitorMuteRuleFilterPerResource") {
     # payload
     filterType: MonitorMuteRuleFilterType!
@@ -133,6 +136,7 @@ input MonitorMuteRuleFilterPerResourceInput @goModel(model: "observe/meta/metaty
     resourceIds: [ResourceIdInput!]!
 }
 
+
 type MonitorMuteRuleAttachment @goModel(model: "observe/meta/metatypes.MonitorMuteRuleAttachment") {
     # payload
     monitorID: ObjectId!
@@ -144,4 +148,5 @@ input MonitorMuteRuleAttachmentInput @goModel(model: "observe/meta/metatypes.Mon
     monitorID: ObjectId!
     monitorMuteRuleID: ObjectId!
 }
+
 

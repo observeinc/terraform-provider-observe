@@ -29,7 +29,6 @@ scalar Number @goModel(model: "observe/meta/metascalar.Number")
 scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectId")
 scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
 scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
-scalar StringOrID @goModel(model: "observe/meta/metatypes.StringOrID")
 
 """
 Time presented in RFC3339 format.
