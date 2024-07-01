@@ -100,7 +100,7 @@ resource "observe_layered_setting_record" "datastream_retention_example" {
 }
 ```
 
-### Configure Query Governor Settings
+### Configure Credit Manager Settings
 
 ```terraform
 data "observe_oid" "customer" {
