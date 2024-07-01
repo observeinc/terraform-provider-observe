@@ -19,7 +19,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer", "Datastream"],
       "setting": "DataRetention.periodDays",
       "type": "int64",
-      "writable_by": ["superadmin", "admin"]
+      "writable_by": ["admin"]
     }
 
     {
@@ -27,7 +27,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer", "App", "Dataset"],
       "setting": "Dataset.freshnessDesired",
       "type": "int64",
-      "writable_by": ["writer", "admin", "superadmin"]
+      "writable_by": ["writer", "admin"]
     }
 
     {
@@ -35,7 +35,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer", "App", "Monitor"],
       "setting": "Monitor.freshnessGoal",
       "type": "int64",
-      "writable_by": ["writer", "admin", "superadmin"]
+      "writable_by": ["writer", "admin"]
     }
 
     {
@@ -43,7 +43,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["User"],
       "setting": "QueryGovernor.bypassUntil",
       "type": "timestamp",
-      "writable_by": ["reader", "writer", "admin", "superadmin"]
+      "writable_by": ["reader", "writer", "admin"]
     }
 
     {
@@ -51,7 +51,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer"],
       "setting": "QueryGovernor.creditsPerDay",
       "type": "float64",
-      "writable_by": ["admin", "superadmin"]
+      "writable_by": ["admin"]
     }
 
     {
@@ -59,7 +59,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer"],
       "setting": "QueryGovernor.throttledLimitCreditsPerDay",
       "type": "float64",
-      "writable_by": ["admin", "superadmin"]
+      "writable_by": ["admin"]
     }
 
     {
@@ -67,7 +67,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer", "User"],
       "setting": "QueryGovernor.userCreditsPerDay",
       "type": "float64",
-      "writable_by": ["admin", "superadmin"]
+      "writable_by": ["admin"]
     }
 
     {
@@ -75,7 +75,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer", "User"],
       "setting": "QueryGovernor.userThrottledLimitCreditsPerDay",
       "type": "float64",
-      "writable_by": ["admin", "superadmin"]
+      "writable_by": ["admin"]
     }
 
     {
@@ -83,7 +83,7 @@ Below are the layered setting definitions, including the required and optional v
       "possible_target_scopes": ["Customer"],
       "setting": "TransformGovernor.creditsPerDay",
       "type": "float64",
-      "writable_by": ["admin", "superadmin"]
+      "writable_by": ["admin"]
     }
 
 ```
