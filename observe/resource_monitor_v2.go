@@ -572,7 +572,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	// perform data.set on all the fields from this monitor
-	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
+	if err := data.Set("workspace_id", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -588,7 +588,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", monitor.Oid().String()); err != nil {
+	if err := data.Set("id", monitor.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
