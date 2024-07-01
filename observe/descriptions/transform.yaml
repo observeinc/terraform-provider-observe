@@ -1,6 +1,6 @@
 schema:
   freshness: |
-    Target freshness for results. Reducing the freshness will increase the
+    Target freshness for results. Tighten the freshness to increase the
     frequency with which queries are run, which incurs higher transform costs.
   inputs: |
     The inputs map binds dataset OIDs to labels which can be referenced within

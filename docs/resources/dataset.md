@@ -51,7 +51,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 - `acceleration_disabled` (Boolean) Disables periodic materialization of the dataset
 - `description` (String) Dataset description.
-- `freshness` (String) Target freshness for results. Reducing the freshness will increase the
+- `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
