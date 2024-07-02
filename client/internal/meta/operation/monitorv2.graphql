@@ -1,3 +1,74 @@
+# definitions of monitor v2 data
+
+fragment MonitorV2Comparison on MonitorV2Comparison {
+    compareFn
+    compareValue {
+        ...PrimitiveValue
+    }
+}
+
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+    name
+    path
+}
+
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+    name
+    meta {
+        srcFields {
+            name
+            path
+        }
+        dstFields
+        targetDataset
+    }
+}
+
+fragment MonitorV2Column on MonitorV2Column {
+    linkColumn {
+        ...MonitorV2LinkColumn
+    }
+    columnPath {
+        ...MonitorV2ColumnPath
+    }
+}
+
+fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
+    column {
+        ...MonitorV2Column
+    }
+    compareValues {
+        ...MonitorV2Comparison
+    }
+}
+
+fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
+    compareValues {
+        ...MonitorV2Comparison
+    }
+    valueColumnName
+    aggregation
+    compareGroups {
+        ...MonitorV2ColumnComparison
+    }
+}
+
+fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
+    compareColumns {
+        ...MonitorV2ColumnComparison
+    }
+}
+
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+    interval { # MonitorV2IntervalSchedule
+        interval
+        randomize
+    }
+    transform { # MontiorV2TransformSchedule
+        freshnessGoal
+    }
+}
+
 fragment MonitorV2 on MonitorV2 {
     id
     workspaceId
@@ -8,7 +79,64 @@ fragment MonitorV2 on MonitorV2 {
     description
     managedById
     folderId
+    comment
+    meta {
+        lastErrorTime
+        lastWarningTime
+        lastAlarmTime
+        outputDatasetID
+        nextScheduledTime
+        lastScheduleBookmark
+    }
+    rollupStatus
+    ruleKind
+    definition {
+        inputQuery {
+            outputStage
+            # @genqlient(flatten: true)
+            stages {
+                ...StageQuery
+            }
+        }
+        rules {
+            level
+            count {
+                compareValues {
+                    ...MonitorV2Comparison
+                }
+                compareGroups {
+                    compareValues {
+                        ...MonitorV2Comparison
+                    }
+                    column {
+                        linkColumn {
+                            ...MonitorV2LinkColumn
+                        }
+                        columnPath {
+                            ...MonitorV2ColumnPath
+                        }
+                    }
+                }
+            }
+            threshold {
+                ...MonitorV2ThresholdRule
+            }
+            promote {
+                ...MonitorV2PromoteRule
+            }
+        }
+        lookbackTime
+        dataStabilizationDelay
+        groupings {
+            ...MonitorV2Column
+        }
+        scheduling {
+            ...MonitorV2Scheduling
+        }
+    }
 }
+
+# definitions of monitorv2 CRUD ops
 
 mutation createMonitorV2(
 	$workspaceId: ObjectId!,

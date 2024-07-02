@@ -63,6 +63,7 @@ Required:
 Required:
 
 - `compare_fn` (String)
+- `type` (String)
 
 Optional:
 
@@ -151,6 +152,7 @@ Optional:
 Required:
 
 - `compare_fn` (String)
+- `type` (String)
 
 Optional:
 
@@ -179,6 +181,7 @@ Required:
 Required:
 
 - `compare_fn` (String)
+- `type` (String)
 
 Optional:
 

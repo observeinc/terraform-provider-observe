@@ -3,6 +3,8 @@ package observe
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -131,6 +133,10 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 												},
+												"type": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
 												"value_int64": { // Int64
 													Type:     schema.TypeInt,
 													Optional: true,
@@ -184,6 +190,10 @@ func resourceMonitorV2() *schema.Resource {
 													//   Less
 													//   LessOrEqual
 													//   NotEqual
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"type": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
@@ -258,6 +268,10 @@ func resourceMonitorV2() *schema.Resource {
 																//   Less
 																//   LessOrEqual
 																//   NotEqual
+																Type:     schema.TypeString,
+																Required: true,
+															},
+															"type": {
 																Type:     schema.TypeString,
 																Required: true,
 															},
@@ -791,7 +805,7 @@ func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (compar
 	// required
 	compareFn := gql.MonitorV2ComparisonFunction(data.Get(fmt.Sprintf("%s.compare_fn", path)).(string))
 	var compareValue gql.PrimitiveValueInput
-	diags = primitiveValueDecode(fmt.Sprintf("%s.", path), data, &compareValue)
+	diags = monitorV2GetPrimitiveValue(path, data, &compareValue)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -959,4 +973,64 @@ func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column
 	}
 
 	return column, diags
+}
+
+func monitorV2GetPrimitiveValue(prefix string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
+	typeName := data.Get(fmt.Sprintf("%s.type", prefix)).(string)
+
+	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%s.value_bool", prefix))
+	valueInt, hasInt := data.GetOk(fmt.Sprintf("%s.value_int64", prefix))
+	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%s.value_float64", prefix))
+	valueString, hasString := data.GetOk(fmt.Sprintf("%s.value_string", prefix))
+	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("%s.value_duration", prefix))
+	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("%s.value_timestamp", prefix))
+
+	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
+	nvalue := 0
+	var kinds []string
+	if typeName == "value_bool" && hasBool && valueBool != nil {
+		b := valueBool.(bool)
+		ret.Bool = &b
+		nvalue++
+		kinds = append(kinds, "value_bool")
+	}
+	if typeName == "value_int64" && hasInt && valueInt != nil {
+		i64 := types.Int64Scalar(valueInt.(int))
+		ret.Int64 = &i64
+		nvalue++
+		kinds = append(kinds, "value_int64")
+	}
+	if typeName == "value_float64" && hasFloat && valueFloat != nil {
+		vlt := valueFloat.(float64)
+		ret.Float64 = &vlt
+		nvalue++
+		kinds = append(kinds, "value_float64")
+	}
+	if typeName == "value_string" && hasString && valueString != nil {
+		vstr := valueString.(string)
+		ret.String = &vstr
+		nvalue++
+		kinds = append(kinds, "value_string")
+	}
+	if typeName == "value_duration" && hasDuration && valueDuration != nil {
+		dur, _ := time.ParseDuration(valueDuration.(string))
+		i64 := types.Int64Scalar(dur.Nanoseconds())
+		ret.Duration = &i64
+		nvalue++
+		kinds = append(kinds, "value_duration")
+	}
+	if typeName == "value_timestamp" && hasTimestamp && valueTimestamp != nil {
+		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.(string))
+		tss := types.TimeScalar(tsp)
+		ret.Timestamp = &tss
+		nvalue++
+		kinds = append(kinds, "value_timestamp")
+	}
+	if nvalue == 0 {
+		return diag.Errorf("A value must be specified (value_string, value_bool, etc). Path = %s", prefix)
+	}
+	if nvalue > 1 { // with how nvalue is computed, it should not currently be possible to hit this.
+		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), prefix)
+	}
+	return nil
 }
