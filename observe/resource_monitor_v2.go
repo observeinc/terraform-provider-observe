@@ -561,9 +561,9 @@ func resourceMonitorV2() *schema.Resource {
 				Computed: true,
 			},
 			"meta": {
-				Type:     schema.TypeList,
-				MinItems: 1,
-				MaxItems: 1,
+				Type: schema.TypeList,
+				// MinItems: 1,
+				// MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -595,9 +595,9 @@ func resourceMonitorV2() *schema.Resource {
 				},
 			},
 			"rollup_status": { // MonitorV2RollupStatus
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RollupStatuses),
-				Computed:         true,
+				Type: schema.TypeString,
+				// ValidateDiagFunc: validateEnums(gql.AllMonitorV2RollupStatuses),
+				Computed: true,
 			},
 		},
 	}
@@ -1053,7 +1053,7 @@ func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column
 
 func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
 
-	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%svalue_bool", path))
+	valueBool, hasBool := data.GetOk(fmt.Sprintf("%svalue_bool", path))
 	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", path))
 	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%svalue_float64", path))
 	valueString, hasString := data.GetOk(fmt.Sprintf("%svalue_string", path))
@@ -1064,38 +1064,38 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 	nvalue := 0
 	var kinds []string
 	if hasBool && valueBool != nil {
-		b := valueBool.([]bool)[0]
+		b := valueBool.([]interface{})[0].(bool)
 		ret.Bool = &b
 		nvalue++
 		kinds = append(kinds, "value_bool")
 	}
 	if hasInt && valueInt != nil {
-		i64 := types.Int64Scalar(valueInt.(int))
+		i64 := types.Int64Scalar(valueInt.([]interface{})[0].(int))
 		ret.Int64 = &i64
 		nvalue++
 		kinds = append(kinds, "value_int64")
 	}
 	if hasFloat && valueFloat != nil {
-		vlt := valueFloat.([]float64)[0]
+		vlt := valueFloat.([]interface{})[0].(float64)
 		ret.Float64 = &vlt
 		nvalue++
 		kinds = append(kinds, "value_float64")
 	}
 	if hasString && valueString != nil {
-		vstr := valueString.([]string)[0]
+		vstr := valueString.([]interface{})[0].(string)
 		ret.String = &vstr
 		nvalue++
 		kinds = append(kinds, "value_string")
 	}
 	if hasDuration && valueDuration != nil {
-		dur, _ := time.ParseDuration(valueDuration.([]string)[0])
+		dur, _ := time.ParseDuration(valueDuration.([]interface{})[0].(string))
 		i64 := types.Int64Scalar(dur.Nanoseconds())
 		ret.Duration = &i64
 		nvalue++
 		kinds = append(kinds, "value_duration")
 	}
 	if hasTimestamp && valueTimestamp != nil {
-		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.([]string)[0])
+		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.([]interface{})[0].(string))
 		tss := types.TimeScalar(tsp)
 		ret.Timestamp = &tss
 		nvalue++
@@ -1104,7 +1104,7 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 	if nvalue == 0 {
 		return diag.Errorf("A value must be specified (value_string, value_bool, etc). Path = %s", path)
 	}
-	if nvalue > 1 { // with how nvalue is computed, it should not currently be possible to hit this.
+	if nvalue > 1 {
 		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), path)
 	}
 	return nil
