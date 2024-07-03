@@ -127,36 +127,54 @@ func resourceMonitorV2() *schema.Resource {
 													Required:         true,
 													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 												},
-												"type": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
 												"value_int64": { // Int64
-													Type:     schema.TypeInt,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeInt},
 												},
 												"value_float64": { // Float
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeFloat},
 												},
 												"value_bool": { // Boolean
-													Type:     schema.TypeBool,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeBool},
 												},
 												"value_string": { // String
-													Type:     schema.TypeString,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 												"value_duration": { // Int64
-													Type:             schema.TypeInt,
-													Optional:         true,
-													ValidateDiagFunc: validateTimeDuration,
-													DiffSuppressFunc: diffSuppressDuration,
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem: &schema.Schema{
+														Type:             schema.TypeBool,
+														ValidateDiagFunc: validateTimeDuration,
+														DiffSuppressFunc: diffSuppressDuration,
+													},
 												},
 												"value_timestamp": { // Time
-													Type:             schema.TypeString,
-													Optional:         true,
-													ValidateDiagFunc: validateTimestamp,
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem: &schema.Schema{
+														Type:             schema.TypeString,
+														ValidateDiagFunc: validateTimestamp,
+													},
 												},
 											},
 										},
@@ -182,36 +200,54 @@ func resourceMonitorV2() *schema.Resource {
 													Required:         true,
 													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 												},
-												"type": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
 												"value_int64": { // Int64
-													Type:     schema.TypeInt,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeInt},
 												},
 												"value_float64": { // Float
-													Type:     schema.TypeFloat,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeFloat},
 												},
 												"value_bool": { // Boolean
-													Type:     schema.TypeBool,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeBool},
 												},
 												"value_string": { // String
-													Type:     schema.TypeString,
+													Type:     schema.TypeList,
 													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 												"value_duration": { // Int64
-													Type:             schema.TypeInt,
-													Optional:         true,
-													ValidateDiagFunc: validateTimeDuration,
-													DiffSuppressFunc: diffSuppressDuration,
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem: &schema.Schema{
+														Type:             schema.TypeBool,
+														ValidateDiagFunc: validateTimeDuration,
+														DiffSuppressFunc: diffSuppressDuration,
+													},
 												},
 												"value_timestamp": { // Time
-													Type:             schema.TypeString,
-													Optional:         true,
-													ValidateDiagFunc: validateTimestamp,
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													MinItems: 1,
+													Elem: &schema.Schema{
+														Type:             schema.TypeString,
+														ValidateDiagFunc: validateTimestamp,
+													},
 												},
 											},
 										},
@@ -252,36 +288,54 @@ func resourceMonitorV2() *schema.Resource {
 																Required:         true,
 																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 															},
-															"type": {
-																Type:     schema.TypeString,
-																Required: true,
-															},
 															"value_int64": { // Int64
-																Type:     schema.TypeInt,
+																Type:     schema.TypeList,
 																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeInt},
 															},
 															"value_float64": { // Float
-																Type:     schema.TypeFloat,
+																Type:     schema.TypeList,
 																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeFloat},
 															},
 															"value_bool": { // Boolean
-																Type:     schema.TypeBool,
+																Type:     schema.TypeList,
 																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeBool},
 															},
 															"value_string": { // String
-																Type:     schema.TypeString,
+																Type:     schema.TypeList,
 																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeString},
 															},
 															"value_duration": { // Int64
-																Type:             schema.TypeInt,
-																Optional:         true,
-																ValidateDiagFunc: validateTimeDuration,
-																DiffSuppressFunc: diffSuppressDuration,
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeBool,
+																	ValidateDiagFunc: validateTimeDuration,
+																	DiffSuppressFunc: diffSuppressDuration,
+																},
 															},
 															"value_timestamp": { // Time
-																Type:             schema.TypeString,
-																Optional:         true,
-																ValidateDiagFunc: validateTimestamp,
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeString,
+																	ValidateDiagFunc: validateTimestamp,
+																},
 															},
 														},
 													},
@@ -577,6 +631,13 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 
 	_, err := client.UpdateMonitorV2(ctx, data.Id(), input)
 	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorV2Create(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
@@ -588,6 +649,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 
 	monitor, err := client.GetMonitorV2(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read monitorv2: %s", err.Error())
 	}
 
@@ -987,7 +1052,6 @@ func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column
 }
 
 func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
-	typeName := data.Get(fmt.Sprintf("%stype", path)).(string)
 
 	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%svalue_bool", path))
 	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", path))
@@ -999,39 +1063,39 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
 	nvalue := 0
 	var kinds []string
-	if typeName == "value_bool" && hasBool && valueBool != nil {
-		b := valueBool.(bool)
+	if hasBool && valueBool != nil {
+		b := valueBool.([]bool)[0]
 		ret.Bool = &b
 		nvalue++
 		kinds = append(kinds, "value_bool")
 	}
-	if typeName == "value_int64" && hasInt && valueInt != nil {
+	if hasInt && valueInt != nil {
 		i64 := types.Int64Scalar(valueInt.(int))
 		ret.Int64 = &i64
 		nvalue++
 		kinds = append(kinds, "value_int64")
 	}
-	if typeName == "value_float64" && hasFloat && valueFloat != nil {
-		vlt := valueFloat.(float64)
+	if hasFloat && valueFloat != nil {
+		vlt := valueFloat.([]float64)[0]
 		ret.Float64 = &vlt
 		nvalue++
 		kinds = append(kinds, "value_float64")
 	}
-	if typeName == "value_string" && hasString && valueString != nil {
-		vstr := valueString.(string)
+	if hasString && valueString != nil {
+		vstr := valueString.([]string)[0]
 		ret.String = &vstr
 		nvalue++
 		kinds = append(kinds, "value_string")
 	}
-	if typeName == "value_duration" && hasDuration && valueDuration != nil {
-		dur, _ := time.ParseDuration(valueDuration.(string))
+	if hasDuration && valueDuration != nil {
+		dur, _ := time.ParseDuration(valueDuration.([]string)[0])
 		i64 := types.Int64Scalar(dur.Nanoseconds())
 		ret.Duration = &i64
 		nvalue++
 		kinds = append(kinds, "value_duration")
 	}
-	if typeName == "value_timestamp" && hasTimestamp && valueTimestamp != nil {
-		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.(string))
+	if hasTimestamp && valueTimestamp != nil {
+		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.([]string)[0])
 		tss := types.TimeScalar(tsp)
 		ret.Timestamp = &tss
 		nvalue++
