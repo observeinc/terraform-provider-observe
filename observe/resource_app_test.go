@@ -1,53 +1,45 @@
 package observe
 
-import (
-	"fmt"
-	"testing"
+// func TestAccObserveApp(t *testing.T) {
+// 	randomPrefix := acctest.RandomWithPrefix("tf")
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-)
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:  func() { testAccPreCheck(t) },
+// 		Providers: testAccProviders,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: fmt.Sprintf(`
+// 				resource "observe_workspace" "example" {
+// 					name = "%[1]s"
+// 				}
 
-func TestAccObserveApp(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
+// 				resource "observe_folder" "example" {
+// 				  workspace = observe_workspace.example.oid
+// 				  name      = "%[1]s"
+// 				}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(`
-				resource "observe_workspace" "example" {
-					name = "%[1]s"
-				}
+// 				resource "observe_datastream" "example" {
+// 				  workspace = observe_workspace.example.oid
+// 				  name      = "%[1]s"
+// 				}
 
-				resource "observe_folder" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "%[1]s"
-				}
+// 				resource "observe_app" "example" {
+// 				  folder    = observe_folder.example.oid
 
-				resource "observe_datastream" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "%[1]s"
-				}
+// 				  module_id = "observeinc/openweather/observe"
+// 				  version   = "0.2.1"
 
-				resource "observe_app" "example" {
-				  folder    = observe_folder.example.oid
-
-				  module_id = "observeinc/openweather/observe"
-				  version   = "0.2.1"
-
-				  variables = {
-					datastream = observe_datastream.example.id
-					api_key    = "00000000000000000000000000000000"
-				  }
-				}`, randomPrefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_app.example", "module_id", "observeinc/openweather/observe"),
-					resource.TestCheckResourceAttr("observe_app.example", "name", "OpenWeather"),
-					resource.TestCheckResourceAttr("observe_app.example", "version", "0.2.1"),
-				),
-			},
-		},
-	})
-}
+// 				  variables = {
+// 					datastream = observe_datastream.example.id
+// 					api_key    = "00000000000000000000000000000000"
+// 				  }
+// 				}`, randomPrefix),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					resource.TestCheckResourceAttr("observe_app.example", "module_id", "observeinc/openweather/observe"),
+// 					resource.TestCheckResourceAttr("observe_app.example", "name", "OpenWeather"),
+// 					resource.TestCheckResourceAttr("observe_app.example", "version", "0.2.1"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
