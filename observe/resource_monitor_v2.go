@@ -36,11 +36,9 @@ func resourceMonitorV2() *schema.Resource {
 				Optional: true,
 			},
 			"rule_kind": { // MonitorV2RuleKind!
-				// Count
-				// Promote
-				// Threshold
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RuleKinds),
 			},
 			"name": { // String!
 				Type:     schema.TypeString,
@@ -57,6 +55,11 @@ func resourceMonitorV2() *schema.Resource {
 			"managed_by_id": { // ObjectId
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateOID(oid.TypeUser),
+				Optional:         true,
+			},
+			"folder_id": { // ObjectId
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateOID(oid.TypeFolder),
 				Optional:         true,
 			},
 			"stage": { // for building inputQuery (MultiStageQueryInput!)
@@ -90,7 +93,7 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
-			"inputs": {
+			"inputs": { // for building inputQuery (MultiStageQueryInput!)
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
@@ -102,13 +105,9 @@ func resourceMonitorV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{ // MonitorV2RuleInput!
 						"level": { // MonitorV2AlarmLevel!
-							//   Critical
-							//   Error
-							//   Informational
-							//   None
-							//   Warning
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
 						},
 						"count": { // MonitorV2CountRuleInput
 							Type:     schema.TypeList,
@@ -124,14 +123,9 @@ func resourceMonitorV2() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput
 												"compare_fn": { // MonitorV2ComparisonFunction!
-													//   Equal
-													//   Greater
-													//   GreaterOrEqual
-													//   Less
-													//   LessOrEqual
-													//   NotEqual
-													Type:     schema.TypeString,
-													Required: true,
+													Type:             schema.TypeString,
+													Required:         true,
+													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -184,14 +178,9 @@ func resourceMonitorV2() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"compare_fn": { // MonitorV2ComparisonFunction!
-													//   Equal
-													//   Greater
-													//   GreaterOrEqual
-													//   Less
-													//   LessOrEqual
-													//   NotEqual
-													Type:     schema.TypeString,
-													Required: true,
+													Type:             schema.TypeString,
+													Required:         true,
+													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -232,12 +221,9 @@ func resourceMonitorV2() *schema.Resource {
 										Required: true,
 									},
 									"aggregation": { // MonitorV2ValueAggregation!
-										//   AllOf
-										//   AnyOf
-										//   AvgOf
-										//   SumOf
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
 									},
 								},
 							},
@@ -262,14 +248,9 @@ func resourceMonitorV2() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
 															"compare_fn": { // MonitorV2ComparisonFunction!
-																//   Equal
-																//   Greater
-																//   GreaterOrEqual
-																//   Less
-																//   LessOrEqual
-																//   NotEqual
-																Type:     schema.TypeString,
-																Required: true,
+																Type:             schema.TypeString,
+																Required:         true,
+																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
 															},
 															"type": {
 																Type:     schema.TypeString,
@@ -525,14 +506,44 @@ func resourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"rollup_status": {
-				//   Degraded
-				//   Failed
-				//   Inactive
-				//   Running
-				//   Triggering
-				Type:     schema.TypeString,
+			"meta": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
 				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"last_error_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"last_warning_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"last_alarm_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"output_dataset_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"next_scheduled_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"last_schedule_bookmark": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"rollup_status": { // MonitorV2RollupStatus
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RollupStatuses),
+				Computed:         true,
 			},
 		},
 	}
@@ -541,23 +552,18 @@ func resourceMonitorV2() *schema.Resource {
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	fmt.Printf("\n\n\n\n\nstart of create\n\n\n\n\n")
 	input, diags := newMonitorV2Input(data)
-	fmt.Printf("\n\n\n\n\ngot input\n\n\n\n\n")
 	if diags.HasError() {
 		return diags
 	}
 
 	id, _ := oid.NewOID(data.Get("workspace_id").(string))
-	fmt.Printf("\n\n\n\n\nstart of create API call\n\n\n\n\n")
 	result, err := client.CreateMonitorV2(ctx, id.Id, input)
-	fmt.Printf("\n\n\n\n\ncreate API call returned\n\n\n\n\n")
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
 	data.SetId(result.Id)
-	fmt.Printf("\n\n\n\n\nstart of read call\n\n\n\n\n")
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
 }
 
@@ -603,6 +609,11 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	if err := data.Set("id", monitor.Oid().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	_, err = flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
+	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -661,7 +672,7 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	}
 	rules := make([]gql.MonitorV2RuleInput, 0)
 	for i := range data.Get("rules").([]interface{}) {
-		rule, diags := newMonitorV2RuleInput(fmt.Sprintf("rules.%d", i), data)
+		rule, diags := newMonitorV2RuleInput(fmt.Sprintf("rules.%d.", i), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -687,7 +698,7 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	if _, ok := data.GetOk("groupings"); ok {
 		groupings := make([]gql.MonitorV2ColumnInput, 0)
 		for _, i := range data.Get("groupings").([]interface{}) {
-			colInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("groupings.%d", i), data)
+			colInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("groupings.%d.", i), data)
 			if diags.HasError() {
 				return nil, diags
 			}
@@ -696,7 +707,7 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		defnInput.Groupings = groupings
 	}
 	if _, ok := data.GetOk("scheduling"); ok {
-		scheduling, diags := newMonitorV2SchedulingInput("scheduling.0", data)
+		scheduling, diags := newMonitorV2SchedulingInput("scheduling.0.", data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -711,15 +722,15 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 	scheduling = &gql.MonitorV2SchedulingInput{}
 
 	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%s.interval", path)); ok {
-		interval, diags := newMonitorV2IntervalScheduleInput(fmt.Sprintf("%s.interval.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%sinterval", path)); ok {
+		interval, diags := newMonitorV2IntervalScheduleInput(fmt.Sprintf("%sinterval.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
 		scheduling.Interval = interval
 	}
-	if _, ok := data.GetOk(fmt.Sprintf("%s.transform", path)); ok {
-		transform, diags := newMonitorV2TransformScheduleInput(fmt.Sprintf("%s.transform.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%stransform", path)); ok {
+		transform, diags := newMonitorV2TransformScheduleInput(fmt.Sprintf("%stransform.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -731,9 +742,9 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 
 func newMonitorV2IntervalScheduleInput(path string, data *schema.ResourceData) (interval *gql.MonitorV2IntervalScheduleInput, diags diag.Diagnostics) {
 	// required
-	intervalField := data.Get(fmt.Sprintf("%s.interval", path)).(string)
+	intervalField := data.Get(fmt.Sprintf("%sinterval", path)).(string)
 	intervalDuration, _ := types.ParseDurationScalar(intervalField)
-	randomizeField := data.Get(fmt.Sprintf("%s.randomize", path)).(string)
+	randomizeField := data.Get(fmt.Sprintf("%srandomize", path)).(string)
 	randomizeDuration, _ := types.ParseDurationScalar(randomizeField)
 
 	// instantiation
@@ -747,7 +758,7 @@ func newMonitorV2IntervalScheduleInput(path string, data *schema.ResourceData) (
 
 func newMonitorV2TransformScheduleInput(path string, data *schema.ResourceData) (transform *gql.MonitorV2TransformScheduleInput, diags diag.Diagnostics) {
 	// required
-	transformField := data.Get(fmt.Sprintf("%s.freshness_goal", path)).(string)
+	transformField := data.Get(fmt.Sprintf("%sfreshness_goal", path)).(string)
 	transformDuration, _ := types.ParseDurationScalar(transformField)
 
 	// instantiation
@@ -758,21 +769,21 @@ func newMonitorV2TransformScheduleInput(path string, data *schema.ResourceData) 
 
 func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.MonitorV2RuleInput, diags diag.Diagnostics) {
 	// required
-	level := data.Get(fmt.Sprintf("%s.level", path)).(string)
+	level := data.Get(fmt.Sprintf("%slevel", path)).(string)
 
 	// instantiation
 	rule = &gql.MonitorV2RuleInput{Level: gql.MonitorV2AlarmLevel(level)}
 
 	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%s.count", path)); ok {
-		count, diags := newMonitorV2CountRuleInput(fmt.Sprintf("%s.count.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%scount", path)); ok {
+		count, diags := newMonitorV2CountRuleInput(fmt.Sprintf("%scount.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
 		rule.Count = count
 	}
-	if _, ok := data.GetOk(fmt.Sprintf("%s.threshold", path)); ok {
-		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%s.threshold.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%sthreshold", path)); ok {
+		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%s.threshold.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -785,8 +796,8 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2CountRuleInput, diags diag.Diagnostics) {
 	// required
 	comparisonInputs := make([]gql.MonitorV2ComparisonInput, 0)
-	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
-		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+	for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%scompare_values.%d.", path, i), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -803,9 +814,9 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 
 func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ComparisonInput, diags diag.Diagnostics) {
 	// required
-	compareFn := gql.MonitorV2ComparisonFunction(data.Get(fmt.Sprintf("%s.compare_fn", path)).(string))
+	compareFn := gql.MonitorV2ComparisonFunction(data.Get(fmt.Sprintf("%scompare_fn", path)).(string))
 	var compareValue gql.PrimitiveValueInput
-	diags = monitorV2GetPrimitiveValue(path, data, &compareValue)
+	diags = newMonitorV2PrimitiveValue(path, data, &compareValue)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -822,15 +833,15 @@ func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (compar
 func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (threshold *gql.MonitorV2ThresholdRuleInput, diags diag.Diagnostics) {
 	// required
 	compareValues := []gql.MonitorV2ComparisonInput{}
-	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
-		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+	for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%scompare_values.%d.", path, i), data)
 		if diags.HasError() {
 			return threshold, diags
 		}
 		compareValues = append(compareValues, *comparisonInput)
 	}
-	valueColumnName := data.Get(fmt.Sprintf("%s.value_column_name", path)).(string)
-	aggregation := gql.MonitorV2ValueAggregation(data.Get(fmt.Sprintf("%s.compare_fn", path)).(string))
+	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
+	aggregation := gql.MonitorV2ValueAggregation(data.Get(fmt.Sprintf("%scompare_fn", path)).(string))
 
 	// instantiation
 	threshold = &gql.MonitorV2ThresholdRuleInput{
@@ -847,10 +858,10 @@ func newMonitorV2PromoteRuleInput(prefix string, data *schema.ResourceData) (pro
 	promoteRule = &gql.MonitorV2PromoteRuleInput{}
 
 	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%s.compare_columns", prefix)); ok {
+	if _, ok := data.GetOk(fmt.Sprintf("%scompare_columns", prefix)); ok {
 		compareColumns := make([]gql.MonitorV2ColumnComparisonInput, 0)
-		for i := range data.Get(fmt.Sprintf("%s.compare_columns", prefix)).([]interface{}) {
-			input, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%s.compare_columns.%d", prefix, i), data)
+		for i := range data.Get(fmt.Sprintf("%scompare_columns", prefix)).([]interface{}) {
+			input, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%s.compare_columns.%d.", prefix, i), data)
 			if diags.HasError() {
 				return nil, diags
 			}
@@ -865,14 +876,14 @@ func newMonitorV2PromoteRuleInput(prefix string, data *schema.ResourceData) (pro
 func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ColumnComparisonInput, diags diag.Diagnostics) {
 	// required
 	compareValues := make([]gql.MonitorV2ComparisonInput, 0)
-	for i := range data.Get(fmt.Sprintf("%s.compare_values", path)).([]interface{}) {
-		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%s.compare_values.%d", path, i), data)
+	for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
+		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%scompare_values.%d.", path, i), data)
 		if diags.HasError() {
 			return nil, diags
 		}
 		compareValues = append(compareValues, *comparisonInput)
 	}
-	columnInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("%s.column", path), data)
+	columnInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.", path), data)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -888,7 +899,7 @@ func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (
 
 func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnInput, diags diag.Diagnostics) {
 	// required
-	linkColumnInput, diags := newMonitorV2LinkColumnInput(fmt.Sprintf("%s.link_column.0", path), data)
+	linkColumnInput, diags := newMonitorV2LinkColumnInput(fmt.Sprintf("%slink_column.0.", path), data)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -897,8 +908,8 @@ func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gq
 	column = &gql.MonitorV2ColumnInput{LinkColumn: linkColumnInput}
 
 	// optional
-	if _, ok := data.GetOk(fmt.Sprintf("%s.column_path", path)); ok {
-		columnPath, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%s.column_path.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%scolumn_path", path)); ok {
+		columnPath, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%scolumn_path.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -910,14 +921,14 @@ func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gq
 
 func newMonitorV2LinkColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2LinkColumnInput, diags diag.Diagnostics) {
 	// required
-	name := data.Get(fmt.Sprintf("%s.name", path)).(string)
+	name := data.Get(fmt.Sprintf("%sname", path)).(string)
 
 	// instantiation
 	column = &gql.MonitorV2LinkColumnInput{Name: name}
 
 	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%s.meta", path)); ok {
-		meta, diags := newMonitorV2LinkColumnMetaInput(fmt.Sprintf("%s.meta.0", path), data)
+	if _, ok := data.GetOk(fmt.Sprintf("%smeta", path)); ok {
+		meta, diags := newMonitorV2LinkColumnMetaInput(fmt.Sprintf("%smeta.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -932,10 +943,10 @@ func newMonitorV2LinkColumnMetaInput(path string, data *schema.ResourceData) (me
 	meta = &gql.MonitorV2LinkColumnMetaInput{}
 
 	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%s.src_fields", path)); ok {
+	if _, ok := data.GetOk(fmt.Sprintf("%ssrc_fields", path)); ok {
 		srcFields := make([]gql.MonitorV2ColumnPathInput, 0)
-		for i := range data.Get(fmt.Sprintf("%s.src_fields", path)).([]interface{}) {
-			srcField, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%s.src_fields.%d", path, i), data)
+		for i := range data.Get(fmt.Sprintf("%ssrc_fields", path)).([]interface{}) {
+			srcField, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%ssrc_fields.%d.", path, i), data)
 			if diags.HasError() {
 				return nil, diags
 			}
@@ -943,16 +954,16 @@ func newMonitorV2LinkColumnMetaInput(path string, data *schema.ResourceData) (me
 		}
 		meta.SrcFields = srcFields
 	}
-	if _, ok := data.GetOk(fmt.Sprintf("%s.dst_fields", path)); ok {
+	if _, ok := data.GetOk(fmt.Sprintf("%sdst_fields", path)); ok {
 		dstFields := make([]string, 0)
-		for i := range data.Get(fmt.Sprintf("%s.dst_fields", path)).([]interface{}) {
-			dstField := data.Get(fmt.Sprintf("%s.dst_fields.%d", path, i)).(string)
+		for i := range data.Get(fmt.Sprintf("%sdst_fields", path)).([]interface{}) {
+			dstField := data.Get(fmt.Sprintf("%sdst_fields.%d", path, i)).(string)
 			dstFields = append(dstFields, dstField)
 		}
 		meta.DstFields = dstFields
 	}
-	if _, ok := data.GetOk(fmt.Sprintf("%s.target_dataset", path)); ok {
-		v := data.Get(fmt.Sprintf("%s.target_dataset", path))
+	if _, ok := data.GetOk(fmt.Sprintf("%starget_dataset", path)); ok {
+		v := data.Get(fmt.Sprintf("%starget_dataset", path))
 		meta.TargetDataset = types.Int64Scalar(v.(int64)).Ptr()
 	}
 
@@ -961,13 +972,13 @@ func newMonitorV2LinkColumnMetaInput(path string, data *schema.ResourceData) (me
 
 func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnPathInput, diags diag.Diagnostics) {
 	// required
-	name := data.Get(fmt.Sprintf("%s.name", path)).(string)
+	name := data.Get(fmt.Sprintf("%sname", path)).(string)
 
 	// instantiation
 	column = &gql.MonitorV2ColumnPathInput{Name: name}
 
 	// optionals
-	if v, ok := data.GetOk(fmt.Sprintf("%s.path", path)); ok {
+	if v, ok := data.GetOk(fmt.Sprintf("%spath", path)); ok {
 		p := v.(string)
 		column.Path = &p
 	}
@@ -975,15 +986,15 @@ func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column
 	return column, diags
 }
 
-func monitorV2GetPrimitiveValue(prefix string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
-	typeName := data.Get(fmt.Sprintf("%s.type", prefix)).(string)
+func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
+	typeName := data.Get(fmt.Sprintf("%stype", path)).(string)
 
-	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%s.value_bool", prefix))
-	valueInt, hasInt := data.GetOk(fmt.Sprintf("%s.value_int64", prefix))
-	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%s.value_float64", prefix))
-	valueString, hasString := data.GetOk(fmt.Sprintf("%s.value_string", prefix))
-	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("%s.value_duration", prefix))
-	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("%s.value_timestamp", prefix))
+	valueBool, hasBool := data.GetOkExists(fmt.Sprintf("%svalue_bool", path))
+	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", path))
+	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%svalue_float64", path))
+	valueString, hasString := data.GetOk(fmt.Sprintf("%svalue_string", path))
+	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("%svalue_duration", path))
+	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("%svalue_timestamp", path))
 
 	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
 	nvalue := 0
@@ -1027,10 +1038,10 @@ func monitorV2GetPrimitiveValue(prefix string, data *schema.ResourceData, ret *g
 		kinds = append(kinds, "value_timestamp")
 	}
 	if nvalue == 0 {
-		return diag.Errorf("A value must be specified (value_string, value_bool, etc). Path = %s", prefix)
+		return diag.Errorf("A value must be specified (value_string, value_bool, etc). Path = %s", path)
 	}
 	if nvalue > 1 { // with how nvalue is computed, it should not currently be possible to hit this.
-		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), prefix)
+		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), path)
 	}
 	return nil
 }

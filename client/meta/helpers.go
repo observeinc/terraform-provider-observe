@@ -110,6 +110,35 @@ var AllBookmarkKindTypes = []BookmarkKind{
 	BookmarkKindMetricexplorer,
 }
 
+var AllMonitorV2RuleKinds = []MonitorV2RuleKind{
+	MonitorV2RuleKindCount,
+	MonitorV2RuleKindPromote,
+	MonitorV2RuleKindThreshold,
+}
+
+var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
+	MonitorV2AlarmLevelCritical,
+	MonitorV2AlarmLevelError,
+	MonitorV2AlarmLevelInformational,
+	MonitorV2AlarmLevelNone,
+	MonitorV2AlarmLevelWarning,
+}
+
+var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
+	MonitorV2ValueAggregationAllof,
+	MonitorV2ValueAggregationAnyof,
+	MonitorV2ValueAggregationAvgof,
+	MonitorV2ValueAggregationSumof,
+}
+
+var AllMonitorV2RollupStatuses = []MonitorV2RollupStatus{
+	MonitorV2RollupStatusDegraded,
+	MonitorV2RollupStatusFailed,
+	MonitorV2RollupStatusInactive,
+	MonitorV2RollupStatusRunning,
+	MonitorV2RollupStatusTriggering,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }
