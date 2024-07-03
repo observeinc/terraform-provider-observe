@@ -238,6 +238,10 @@ func resourceDashboardRead(ctx context.Context, data *schema.ResourceData, meta 
 	client := meta.(*observe.Client)
 	result, err := client.GetDashboard(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to retrieve dashboard [id=%s]", data.Id()),

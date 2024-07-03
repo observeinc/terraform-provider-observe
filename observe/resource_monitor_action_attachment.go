@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -103,7 +104,7 @@ func resourceMonitorActionAttachmentCreate(ctx context.Context, data *schema.Res
 
 	result, err := client.CreateMonitorActionAttachment(ctx, config)
 	if err != nil {
-		return diag.Errorf("failed to create monitor action: %s", err.Error())
+		return diag.Errorf("failed to create monitor action attachment: %s", err.Error())
 	}
 
 	data.SetId((*result).GetId())
@@ -120,7 +121,14 @@ func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.Res
 
 	_, err := client.UpdateMonitorActionAttachment(ctx, data.Id(), config)
 	if err != nil {
-		return diag.Errorf("failed to update monitor action: %s", err.Error())
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorActionAttachmentCreate(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
+		return diag.Errorf("failed to update monitor action attachment: %s", err.Error())
 	}
 
 	return append(diags, resourceMonitorActionAttachmentRead(ctx, data, meta)...)
@@ -131,7 +139,11 @@ func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.Resou
 
 	monitorActionAttachmentPtr, err := client.GetMonitorActionAttachment(ctx, data.Id())
 	if err != nil {
-		return diag.Errorf("failed to read monitor action: %s", err.Error())
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
+		return diag.Errorf("failed to read monitor action attachment: %s", err.Error())
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(monitorActionAttachmentPtr.GetWorkspaceId()).String()); err != nil {
