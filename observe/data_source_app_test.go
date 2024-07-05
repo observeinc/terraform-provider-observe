@@ -1,85 +1,94 @@
 package observe
 
-// func TestAccObserveDataApp(t *testing.T) {
-// 	randomPrefix := acctest.RandomWithPrefix("tf")
+import (
+	"fmt"
+	"testing"
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:  func() { testAccPreCheck(t) },
-// 		Providers: testAccProviders,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: fmt.Sprintf(`
-// 				resource "observe_workspace" "example" {
-// 					name = "%[1]s"
-// 				}
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+)
 
-// 				resource "observe_folder" "example" {
-// 				  workspace = observe_workspace.example.oid
-// 				  name      = "%[1]s"
-// 				}
+func TestAccObserveDataApp(t *testing.T) {
+	t.Skipf("Skipping until we sort out the cause of flakiness in deleting apps")
+	randomPrefix := acctest.RandomWithPrefix("tf")
 
-// 				resource "observe_datastream" "example" {
-// 				  workspace = observe_workspace.example.oid
-// 				  name      = "%[1]s"
-// 				}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_workspace" "example" {
+					name = "%[1]s"
+				}
 
-// 				resource "observe_app" "example" {
-// 				  folder    = observe_folder.example.oid
+				resource "observe_folder" "example" {
+				  workspace = observe_workspace.example.oid
+				  name      = "%[1]s"
+				}
 
-// 				  module_id = "observeinc/openweather/observe"
-// 				  version   = "0.2.1"
+				resource "observe_datastream" "example" {
+				  workspace = observe_workspace.example.oid
+				  name      = "%[1]s"
+				}
 
-// 				  variables = {
-// 					datastream = observe_datastream.example.id
-// 					api_key    = "00000000000000000000000000000000"
-// 				  }
-// 				}
+				resource "observe_app" "example" {
+				  folder    = observe_folder.example.oid
 
-// 				data "observe_app" "example" {
-// 				  folder = observe_folder.example.oid
-// 				  name   = observe_app.example.name
-// 				}`, randomPrefix),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),
-// 					resource.TestCheckResourceAttr("data.observe_app.example", "version", "0.2.1"),
-// 				),
-// 			},
-// 			{
-// 				Config: fmt.Sprintf(`
-// 				resource "observe_workspace" "example" {
-// 					name = "%[1]s"
-// 				}
+				  module_id = "observeinc/openweather/observe"
+				  version   = "0.2.1"
 
-// 				resource "observe_folder" "example" {
-// 				  workspace = observe_workspace.example.oid
-// 				  name      = "%[1]s"
-// 				}
+				  variables = {
+					datastream = observe_datastream.example.id
+					api_key    = "00000000000000000000000000000000"
+				  }
+				}
 
-// 				resource "observe_datastream" "example" {
-// 				  workspace = observe_workspace.example.oid
-// 				  name      = "%[1]s"
-// 				}
+				data "observe_app" "example" {
+				  folder = observe_folder.example.oid
+				  name   = observe_app.example.name
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),
+					resource.TestCheckResourceAttr("data.observe_app.example", "version", "0.2.1"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_workspace" "example" {
+					name = "%[1]s"
+				}
 
-// 				resource "observe_app" "example" {
-// 				  folder    = observe_folder.example.oid
+				resource "observe_folder" "example" {
+				  workspace = observe_workspace.example.oid
+				  name      = "%[1]s"
+				}
 
-// 				  module_id = "observeinc/openweather/observe"
-// 				  version   = "0.2.1"
+				resource "observe_datastream" "example" {
+				  workspace = observe_workspace.example.oid
+				  name      = "%[1]s"
+				}
 
-// 				  variables = {
-// 					datastream = observe_datastream.example.id
-// 					api_key    = "00000000000000000000000000000000"
-// 				  }
-// 				}
+				resource "observe_app" "example" {
+				  folder    = observe_folder.example.oid
 
-// 				data "observe_app" "example" {
-// 				  id = observe_app.example.id
-// 				}`, randomPrefix),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),
-// 					resource.TestCheckResourceAttr("data.observe_app.example", "version", "0.2.1"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+				  module_id = "observeinc/openweather/observe"
+				  version   = "0.2.1"
+
+				  variables = {
+					datastream = observe_datastream.example.id
+					api_key    = "00000000000000000000000000000000"
+				  }
+				}
+
+				data "observe_app" "example" {
+				  id = observe_app.example.id
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_app.example", "module_id", "observeinc/openweather/observe"),
+					resource.TestCheckResourceAttr("data.observe_app.example", "version", "0.2.1"),
+				),
+			},
+		},
+	})
+}
