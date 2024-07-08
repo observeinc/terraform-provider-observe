@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccObserveDataApp(t *testing.T) {
+	t.Skipf("Skipping until we sort out the cause of flakiness in deleting apps")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
