@@ -25,6 +25,7 @@ func resourceMonitorV2() *schema.Resource {
 		UpdateContext: resourceMonitorV2Update,
 		DeleteContext: resourceMonitorV2Delete,
 		Schema: map[string]*schema.Schema{
+			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
 			"workspace_id": { // ObjectId!
 				Type:             schema.TypeString,
 				ForceNew:         true,
@@ -62,7 +63,8 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
 				Optional:         true,
 			},
-			"stage": { // for building inputQuery (MultiStageQueryInput!)
+			// until specified otherwise, the following are for building MonitorV2DefinitionInput
+			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Required: true,
@@ -556,47 +558,10 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
-			"id": {
+			// end of fields of MonitorV2DefinitionInput
+			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
+			"id": { // ObjectId!
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"meta": {
-				Type: schema.TypeList,
-				// MinItems: 1,
-				// MaxItems: 1,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"last_error_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"last_warning_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"last_alarm_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"output_dataset_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"next_scheduled_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"last_schedule_bookmark": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"rollup_status": { // MonitorV2RollupStatus
-				Type: schema.TypeString,
-				// ValidateDiagFunc: validateEnums(gql.AllMonitorV2RollupStatuses),
 				Computed: true,
 			},
 		},
