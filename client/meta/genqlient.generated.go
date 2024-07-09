@@ -2666,8 +2666,8 @@ type InputDefinitionInput struct {
 	// Format of datasetPath is projectlabel.datasetlabel
 	DatasetPath *string `json:"datasetPath"`
 	// Reference a previous query in the worksheet by label
-	StageID *string `json:"stageID"`
-	StageId *string `json:"stageId"`
+	StageID *string `json:"stageID,omitempty"`
+	StageId *string `json:"stageId,omitempty"`
 	// If this input is parameterized, this will contain the ID of the parameter to substitute for this input. Parameters
 	// are bound in the QueryParams for the query being issued with this input.
 	ParameterId *string `json:"parameterId"`
@@ -7530,12 +7530,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool"`
-	Float64   *float64           `json:"float64"`
-	Int64     *types.Int64Scalar `json:"int64"`
-	String    *string            `json:"string"`
-	Timestamp *types.TimeScalar  `json:"timestamp"`
-	Duration  *types.Int64Scalar `json:"duration"`
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
@@ -8328,10 +8328,10 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
-	StageID *string `json:"stageID"`
-	StageId *string `json:"stageId"`
+	StageID *string `json:"stageID,omitempty"`
+	StageId *string `json:"stageId,omitempty"`
 	// make id required when we've removed all deprecated use of stageId
-	Id              *string                 `json:"id"`
+	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`
 	Pipeline        string                  `json:"pipeline"`
 	Layout          *types.JsonObject       `json:"layout"`
