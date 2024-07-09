@@ -1810,13 +1810,11 @@ func (v *Datastream) GetWorkspaceId() string { return v.WorkspaceId }
 func (v *Datastream) GetDatasetId() string { return v.DatasetId }
 
 type DatastreamInput struct {
-	Name             string                     `json:"name"`
-	Description      *string                    `json:"description"`
-	IconUrl          *string                    `json:"iconUrl"`
-	Disabled         *bool                      `json:"disabled"`
-	ExternalSourceId *string                    `json:"externalSourceId"`
-	PrometheusInput  *DatastreamPrometheusInput `json:"prometheusInput"`
-	OtelLogsInput    *DatastreamOtelLogsInput   `json:"otelLogsInput"`
+	Name             string  `json:"name"`
+	Description      *string `json:"description"`
+	IconUrl          *string `json:"iconUrl"`
+	Disabled         *bool   `json:"disabled"`
+	ExternalSourceId *string `json:"externalSourceId"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -1833,30 +1831,6 @@ func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
 
 // GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
-
-// GetPrometheusInput returns DatastreamInput.PrometheusInput, and is useful for accessing the field via an interface.
-func (v *DatastreamInput) GetPrometheusInput() *DatastreamPrometheusInput { return v.PrometheusInput }
-
-// GetOtelLogsInput returns DatastreamInput.OtelLogsInput, and is useful for accessing the field via an interface.
-func (v *DatastreamInput) GetOtelLogsInput() *DatastreamOtelLogsInput { return v.OtelLogsInput }
-
-type DatastreamOtelLogsInput struct {
-	Enabled bool `json:"enabled"`
-}
-
-// GetEnabled returns DatastreamOtelLogsInput.Enabled, and is useful for accessing the field via an interface.
-func (v *DatastreamOtelLogsInput) GetEnabled() bool { return v.Enabled }
-
-type DatastreamPrometheusInput struct {
-	Enabled      bool  `json:"enabled"`
-	UseTransform *bool `json:"useTransform"`
-}
-
-// GetEnabled returns DatastreamPrometheusInput.Enabled, and is useful for accessing the field via an interface.
-func (v *DatastreamPrometheusInput) GetEnabled() bool { return v.Enabled }
-
-// GetUseTransform returns DatastreamPrometheusInput.UseTransform, and is useful for accessing the field via an interface.
-func (v *DatastreamPrometheusInput) GetUseTransform() *bool { return v.UseTransform }
 
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
@@ -7556,12 +7530,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool"`
-	Float64   *float64           `json:"float64"`
-	Int64     *types.Int64Scalar `json:"int64"`
-	String    *string            `json:"string"`
-	Timestamp *types.TimeScalar  `json:"timestamp"`
-	Duration  *types.Int64Scalar `json:"duration"`
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
