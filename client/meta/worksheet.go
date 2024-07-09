@@ -19,12 +19,7 @@ func worksheetOrError(w worksheetResponse, err error) (*Worksheet, error) {
 
 func (client *Client) SaveWorksheet(ctx context.Context, input *WorksheetInput) (*Worksheet, error) {
 	resp, err := saveWorksheet(ctx, client.Gql, *input)
-	// the schema appears to have changed so that saveworksheet returns a required worksheet now instead of an optional one
-	if err != nil {
-		return nil, err
-	}
-	worksheet := resp.GetWorksheet()
-	return &worksheet, nil
+	return worksheetOrError(resp, err)
 }
 
 func (client *Client) GetWorksheet(ctx context.Context, id string) (*Worksheet, error) {

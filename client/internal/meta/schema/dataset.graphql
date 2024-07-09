@@ -96,7 +96,7 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     deleted: Boolean!
     current: TransformVersion
     currentVersion: Time!
-    version(version: Time!): TransformVersion
+    version(version: Time!): TransformVersion @goField(forceResolver:true)
 }
 
 input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
@@ -128,7 +128,7 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
 }
 
 type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion") {
-    transform: Transform
+    transform: Transform @goField(forceResolver:true)
     savedDate: Time!
     savedBy: User @goField(forceResolver:true)
     savedByInfo: UserInfo! @goField(forceResolver:true)
@@ -346,22 +346,8 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     accelerable: Boolean!
     streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
+    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
-
-    """
-    True if this dataset is hibernated. In this case, the dataset will not
-    automatically accelerate new data. You can still query the dataset on the
-    accelerated range and issue manual acceleration jobs.
-    """
-    hibernated: Boolean!
-
-    """
-    If the dataset is hibernated, this field will be set to the time when it was
-    hibernated. The dataset will not automatically accelerate new data.
-    You can still query the dataset on the accelerated range and issue manual
-    acceleration jobs.
-    """
-    hibernatedAt: Time
 
     # AuditedObject
     createdBy: UserId!
@@ -378,7 +364,6 @@ enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
     RatePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
     Delta
     Gauge
-    Tdigest
     Sample
 }
 
@@ -405,7 +390,7 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
     When a metric has a lastReported of T, here is the information you can extract from it:
     1. the metric was actually reported at the timestamp T
     2. the metric was NEVER reported between [T+1h, now-5m), for fresh metric datasets (most are)
-    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either freshness decayed, or has a high freshness goal)
+    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either hibernated, or has a high freshness goal)
     In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
     """
     lastReported: Time
@@ -682,6 +667,7 @@ type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefini
 type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
     interfaceField: String!
     rep: String!
+    typeclasses: [String!]
     optional: Boolean!
 }
 

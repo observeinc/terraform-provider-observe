@@ -452,8 +452,6 @@ const (
 	BookmarkKindMetricexplorer   BookmarkKind = "MetricExplorer"
 	BookmarkKindResourceexplorer BookmarkKind = "ResourceExplorer"
 	BookmarkKindTraceexplorer    BookmarkKind = "TraceExplorer"
-	BookmarkKindAlertexplorer    BookmarkKind = "AlertExplorer"
-	BookmarkKindServiceexplorer  BookmarkKind = "ServiceExplorer"
 )
 
 type ChangeType string
@@ -8760,7 +8758,6 @@ func (v *Workspace) GetLabel() string { return v.Label }
 type WorkspaceInput struct {
 	Label    *string           `json:"label"`
 	Timezone *string           `json:"timezone"`
-	Locale   *string           `json:"locale"`
 	Layout   *types.JsonObject `json:"layout"`
 }
 
@@ -8769,9 +8766,6 @@ func (v *WorkspaceInput) GetLabel() *string { return v.Label }
 
 // GetTimezone returns WorkspaceInput.Timezone, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetTimezone() *string { return v.Timezone }
-
-// GetLocale returns WorkspaceInput.Locale, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetLocale() *string { return v.Locale }
 
 // GetLayout returns WorkspaceInput.Layout, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetLayout() *types.JsonObject { return v.Layout }
@@ -11690,11 +11684,11 @@ func (v *saveSourceDatasetResponse) GetDataset() *saveSourceDatasetDatasetDatase
 
 // saveWorksheetResponse is returned by saveWorksheet on success.
 type saveWorksheetResponse struct {
-	Worksheet Worksheet `json:"worksheet"`
+	Worksheet *Worksheet `json:"worksheet"`
 }
 
 // GetWorksheet returns saveWorksheetResponse.Worksheet, and is useful for accessing the field via an interface.
-func (v *saveWorksheetResponse) GetWorksheet() Worksheet { return v.Worksheet }
+func (v *saveWorksheetResponse) GetWorksheet() *Worksheet { return v.Worksheet }
 
 // searchMonitorActionsResponse is returned by searchMonitorActions on success.
 type searchMonitorActionsResponse struct {

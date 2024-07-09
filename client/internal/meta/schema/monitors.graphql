@@ -763,11 +763,11 @@ enum ActionStatus @goModel(model: "observe/meta/metatypes.ActionStatus") {
 }
 
 enum EmailActionTargetState @goModel(model: "observe/meta/metatypes.AddressState") {
-    Verified
-    NotVerified
-    Pending
-    Unsubscribed
-    Bounced
+	Verified
+	NotVerified
+	Pending
+	Unsubscribed
+	Bounced
 }
 
 type EmailActionUserState @goModel(model: "observe/meta/metatypes.EmailActionUserState") {

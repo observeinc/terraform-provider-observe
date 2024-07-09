@@ -31,20 +31,8 @@ extend type Query {
 
     """
     Given a particular user, and a particular object/role request, return what would happen.
-    Note that we assume that the customer owning the object is the current
-    customer, if the actual owning customer of the object is someone else, the
-    actual operation will fail.
     """
     rbacTestRequest(u: UserId!, r: RbacRequestInput!): RbacTestRequestResult!
-
-    """
-    Given a particular user, and many possible objects/requests, return what
-    would happen to each of them individually.
-    Note that we assume that the customer owning the object is the current
-    customer, if the actual owning customer of the object is someone else, the
-    actual operation will fail.
-    """
-    rbacTestRequests(u: UserId!, rs: [RbacRequestInput!]!): [RbacTestRequestResult!]!
 
     """
     Given a particular object, return all statements that would affect that object, independent of context.
@@ -98,17 +86,6 @@ extend type Mutation {
     createRbacStatement(input: RbacStatementInput!): RbacStatement!
     updateRbacStatement(id: ORN!, input: RbacStatementInput!): RbacStatement!
     deleteRbacStatement(id: ORN!): ResultStatus!
-    """
-    mutateRbacStatements is delicious dessert topping, and also works great as a floor wax!
-    It will perform all the mutations requested and commit them as one operation, or it will
-    return an error and have performed none of the mutations; there are no half-way changes.
-    """
-    mutateRbacStatements(toCreate: [RbacStatementInput!], toUpdate:[UpdateRbacStatementInput!], toDelete: [ORN!]): MutateRbacStatementsResponse!
-    """
-    Set all group members of a given group. This will remove any member that is not currently
-    in the group, as well -- the goal is to make this a complete replacement.
-    """
-    setRbacGroupmembers(groupId: ORN!, memberUsers: [UserId!], memberGroups: [ORN!]): [RbacGroupmember!]!
 
     """
     Set the default group that users will be assigned to. Must currently be one
@@ -227,20 +204,6 @@ input RbacStatementInput @goModel(model: "observe/rbac/policy.Statement") {
     role: RbacRole!
 }
 
-input UpdateRbacStatementInput @goModel(model: "observe/rbac/policy.Statement") {
-    id: ORN!
-    description: String! @goField(name: "Comment")
-    subject: RbacSubjectInput!
-    object: RbacObjectInput!
-    role: RbacRole!
-}
-
-type MutateRbacStatementsResponse @goModel(model: "observe/meta/metatypes.MutateRbacStatementsResponse") {
-    createdStatements: [RbacStatement!]!
-    updatedStatements: [RbacStatement!]!
-    deletedStatements: [ORN!]!
-}
-
 """
 A RequestSubject is different from a Subject, because the RequestSubject
 provides all of the values, such that each Statement can match against
@@ -285,3 +248,48 @@ type RbacTestRequestResult @goModel(model: "observe/meta/metatypes.RbacTestReque
     matching: RbacStatement
 }
 
+#     """
+#     Return information about statements that lock some particular object. This
+#     is inferred from statements installed targeting a particular object, which
+#     may or may not have been created through the "lock" API.
+#     """
+#     rbacObjectLockStatements(id: ObjectId!): RbacLockResult!
+# 
+#     """
+#     The use case of "make this one object impossible to read for non-admins."
+#     This will create an object-specific statement that grants Lister to everyone.
+#     If such a staement already exists, it will just return it.
+#     You, the caller, will need to have Manager permission, and a rule will also
+#     be created that makes you Manager of the specific object.
+#     To undo the lock, remove the lock statement.
+#     To find the lock statements for an object later, use rbacObjectLockStatements(),
+#     which extracts the lock statements from the full set of statements.
+#     """
+#     rbacLockObject(id: ObjectId!): RbacLockResult!
+#     """
+#     Once you have a "locked" object, you can grant a particular user some particular
+#     permission role. The caller must have Manager role for the object.
+#     To undo the grant, remove the statement.
+#     """
+#     rbacGrantObjectUserRole(id: ObjectId!, uid: UserId!, role: RbacRole!): RbacStatement!
+#     """
+#     Once you have a "locked" object, you can grant a particular group some particular
+#     permission role. The caller must have Manager role for the object.
+#     To undo the grant, remove the statement.
+#     """
+#     rbacGrantObjectGroupRole(id: ObjectId!, group: ORN!, role: RbacRole!): RbacStatement!
+# 
+# type RbacLockResult @goModel(model: "observe/meta/metatypes.RbacLockResult") {
+#     """
+#     The "lock" is the statement that forces users to not query the object.
+#     """
+#     lock: RbacStatement!
+#     """
+#     The "lock" is the statement that allows whoever created the lock to manage the object.
+#     """
+#     admin: RbacStatement!
+#     """
+#     The "grants" are various grant statements that affect the particular object.
+#     """
+#     grants: [RbacStatement!]!
+# }

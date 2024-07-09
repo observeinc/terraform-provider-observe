@@ -15,7 +15,7 @@ extend type Query {
     """
     Get all the correlation tags defined.
     """
-    searchCorrelationTag(workspaceId: ObjectId!, nameExact: String, nameSubstring: String): [String!]
+    searchCorrelationTags(workspaceId: ObjectId!, nameExact: String, nameSubstring: String): [String!]
 }
 
 extend type Mutation {

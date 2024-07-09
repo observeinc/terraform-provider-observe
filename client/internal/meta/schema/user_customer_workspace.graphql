@@ -126,8 +126,6 @@ extend type Mutation {
     Tell yea or nay for a given login request.
     """
     resolvePendingDelegatedLogin(serverToken: String!, accept: Boolean!): ResultStatus!
-
-    setWorkspaceObjectOwner(woid: ObjectId!, owner: UserId!): ResultStatus!
 }
 
 """
@@ -143,7 +141,6 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
 
     label: String!
     timezone: String!
-    locale: String!
     layout: JsonObject
     """
     False when there's not an ACL path to the workspace (project)
@@ -177,13 +174,11 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
 input WorkspaceInput @goModel(model: "observe/meta/metatypes.WorkspaceInput") {
     label: String
     timezone: String
-    locale: String
     layout: JsonObject
 }
 
 input CustomerInput @goModel(model: "observe/meta/metatypes.CustomerInput") {
     timezone: String
-    locale: String
     emailDomains: [String!]
 }
 
@@ -217,7 +212,6 @@ type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     id: CustomerId!
     label: String!
     timezone: String!
-    locale: String!
     type: CustomerType!
     billingType: CustomerBillingType!
     emailDomains: [String!]!
@@ -285,7 +279,6 @@ input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
     """
     label: String
     timezone: String
-    locale: String
     """
     admin privilege required to update
     """
@@ -293,8 +286,6 @@ input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
     comment: String
     expirationTime: Time
     status: UserStatus
-
-    rbacGroups: [ORN!]
 }
 
 type User @goModel(model: "observe/meta/metatypes.User") {
@@ -303,7 +294,6 @@ type User @goModel(model: "observe/meta/metatypes.User") {
     email: String!
     label: String!
     timezone: String!
-    locale: String!
     status: UserStatus!
     role: String!
     comment: String
@@ -328,7 +318,6 @@ type UserInfo @goModel(model: "observe/meta/metatypes.UserInfo") {
     userId: UserId!
     userLabel: String!
     userTimezone: String!
-    userLocale: String!
 }
 
 """
@@ -402,8 +391,6 @@ enum BookmarkKind @goModel(model: "observe/meta/metatypes.BookmarkKind") {
   MetricExplorer
   ResourceExplorer
   TraceExplorer
-  AlertExplorer
-  ServiceExplorer
 }
 
 

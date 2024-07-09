@@ -27,6 +27,7 @@ description: |-
 - `comment` (String)
 - `data_stabilization_delay` (String)
 - `description` (String)
+- `folder_id` (String)
 - `groupings` (Block List) (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String)
 - `managed_by_id` (String)
@@ -35,7 +36,6 @@ description: |-
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `rollup_status` (String)
 
 <a id="nestedblock--rules"></a>
 ### Nested Schema for `rules`
@@ -63,16 +63,15 @@ Required:
 Required:
 
 - `compare_fn` (String)
-- `type` (String)
 
 Optional:
 
-- `value_bool` (Boolean)
-- `value_duration` (Number)
-- `value_float64` (Number)
-- `value_int64` (Number)
-- `value_string` (String)
-- `value_timestamp` (String)
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
 
 
 
@@ -152,16 +151,15 @@ Optional:
 Required:
 
 - `compare_fn` (String)
-- `type` (String)
 
 Optional:
 
-- `value_bool` (Boolean)
-- `value_duration` (Number)
-- `value_float64` (Number)
-- `value_int64` (Number)
-- `value_string` (String)
-- `value_timestamp` (String)
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
 
 
 
@@ -181,16 +179,15 @@ Required:
 Required:
 
 - `compare_fn` (String)
-- `type` (String)
 
 Optional:
 
-- `value_bool` (Boolean)
-- `value_duration` (Number)
-- `value_float64` (Number)
-- `value_int64` (Number)
-- `value_string` (String)
-- `value_timestamp` (String)
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
 
 
 

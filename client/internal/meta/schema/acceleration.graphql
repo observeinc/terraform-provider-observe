@@ -71,6 +71,17 @@ type MinimumDownstreamTargetStaleness @goModel(model: "observe/meta/metatypes.Mi
     shareIds: [ObjectId!]
 }
 
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+enum StreamingState @goModel(model: "observe/meta/metatypes.AccelerationState") {
+    Initializing
+    Live
+    LiveMode
+    Unavailable
+    Disabled
+    Error
+}
+
 enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
     """
     Dataset is newly created/updated and acceleration has just started. It can
@@ -111,6 +122,20 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
     Error
 }
 
+# FIXME: to be removed once the frontend has changed to the renamed
+# accelerationInfo field
+type StreamingInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: StreamingState!
+    stalenessSeconds: Float
+    configuredTargetStalenessSeconds: Float
+    targetStalenessSeconds: Float
+    alwaysAccelerated: Boolean
+    acceleratedRangeStart: Time
+    targetAcceleratedRangeStart: Time
+    freshnessTime: Time
+    errors: [AccelerationError!]!
+}
+
 type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
     state: AccelerationState!
 
@@ -138,8 +163,9 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     The actual target staleness target of the dataset. Note that this can be
     higher than the configured staleness target, due to decaying or credit
-    manager overrides. Also if this value is different from the field above,
-    it means the dataset is freshness decayed.
+    manager overrides. Also if
+    this value is different from the field above, it means the dataset is
+    hibernated.
     Empty if alwaysAccelerated is true.
     """
     targetStalenessSeconds: Float
@@ -219,49 +245,6 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     for the dataset or the default value from the transformer config.
     """
     effectiveOnDemandMaterializationLength: Int64!
-
-    """
-    Whether data retention is enabled for this dataset. When disabled, then
-    effectiveDataRetentionPeriodDays and effectiveDataRetentionTimestamp are not set.
-    """
-    dataRetentionEnabled: Boolean!
-
-    """
-    Effective data retention period in number of days.
-    When requested and data retention is disabled, this field is not returned.
-    """
-    effectiveDataRetentionPeriodDays: Int64
-
-    """
-    Effective timestamp of the data retention period used, i.e. data being valid before this timestamp is deleted.
-    Note that the deletion is done at a fixed (randomly-chosen) time during each day, so you may see a few artifacts
-    in your data until the actual deletion was done.
-    When requested and data retention is disabled, this field is not returned.
-    """
-    effectiveDataRetentionTimestamp: Time
-
-    """
-    The minimum timestamp for temporal datasets. For event datasets, this refers to the valid_from column,
-    while for interval and resource datasets, this refers to the valid_to column.
-    For non-temporal datasets this is not set.
-    Due to the update frequency of this field, it is not guaranteed to be up-to-date and it may not yet be populated.
-    """
-    minimumDataTimestamp: Time
-
-    """
-    True if this dataset is hibernated. In this case, the dataset will not
-    automatically accelerate new data. You can still query the dataset on the
-    accelerated range and issue manual acceleration jobs.
-    """
-    hibernated: Boolean!
-
-    """
-    If the dataset is hibernated, this field will be set to the time when it was
-    hibernated. The dataset will not automatically accelerate new data.
-    You can still query the dataset on the accelerated range and issue manual
-    acceleration jobs.
-    """
-    hibernatedAt: Time
 
     """
     Acceleration errors. Only not null if the state is "Error". Note that right

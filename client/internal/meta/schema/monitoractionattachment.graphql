@@ -56,4 +56,3 @@ input MonitorActionAttachmentInput @goModel(model: "observe/meta/metatypes.Monit
 type MonitorActionAttachmentSearchResult @goModel(model: "observe/meta/metatypes.MonitorActionAttachmentSearchResult") {
     results: [MonitorActionAttachment!]!
 }
-

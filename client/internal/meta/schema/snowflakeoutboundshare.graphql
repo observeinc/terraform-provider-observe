@@ -10,10 +10,7 @@ extend type Mutation {
     deleteSnowflakeOutboundShare(id: ObjectId!): ResultStatus!
 }
 
-# Represents a Snowflake share from Observe to a customer-managed Snowflake account.
-# All share mutations require the Manager role rather than the typical Editor role.
-# By default, only administrators have this access for all workspace objects.
-# However, administrators can grant other users access to sharing mutations via RBAC.
+# Represents a Snowflake share from Observe to a customer-managed Snowflake account. All share mutations require the Manager role rather than the typical Editor role. By default, only administrators have this access for all workspace objects. However, administrators can grant other users access to sharing mutations via RBAC.
 type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShare") {
     # payload
     """
@@ -27,6 +24,10 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
     shareNameInternal: String!
     databaseName: String!
     schemaName: String!
+    # tramp data: computedShareName: String!
+    # tramp data: computedShareNameInternal: String!
+    # tramp data: computedDatabaseName: String!
+    # tramp data: computedSchemaName: String!
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -55,6 +56,10 @@ input SnowflakeOutboundShareInput @goModel(model: "observe/meta/metatypes.Snowfl
     # not in input: shareNameInternal: String!
     # not in input: databaseName: String!
     # not in input: schemaName: String!
+    # tramp field: computedShareName: String!
+    # tramp field: computedShareNameInternal: String!
+    # tramp field: computedDatabaseName: String!
+    # tramp field: computedSchemaName: String!
     # WorkspaceObject
     name: String!
     iconUrl: String
@@ -68,7 +73,6 @@ input SnowflakeOutboundShareInput @goModel(model: "observe/meta/metatypes.Snowfl
 type SnowflakeOutboundShareSearchResult @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShareSearchResult") {
     results: [SnowflakeOutboundShare!]!
 }
-
 type SnowflakeAccount @goModel(model: "observe/meta/metatypes.SnowflakeAccount") {
     # payload
     """
@@ -86,5 +90,4 @@ input SnowflakeAccountInput @goModel(model: "observe/meta/metatypes.SnowflakeAcc
     account: String!
     organization: String!
 }
-
 
