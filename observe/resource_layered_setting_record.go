@@ -340,7 +340,7 @@ func primitiveValueDecode(data *schema.ResourceData, ret *gql.PrimitiveValueInpu
 		return diag.Errorf("A value must be specified (value_string, value_bool, etc)")
 	}
 	if nvalue > 1 {
-		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s.", len(kinds), strings.Join(kinds, ","))
+		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s", len(kinds), strings.Join(kinds, ","))
 	}
 	return nil
 }
