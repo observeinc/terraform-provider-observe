@@ -2,6 +2,7 @@
 
 fragment MonitorV2Comparison on MonitorV2Comparison {
     compareFn
+    # @genqlient(flatten: true)
     compareValue {
         ...PrimitiveValue
     }
@@ -12,60 +13,133 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
     path
 }
 
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+    # @genqlient(flatten: true)
+    srcFields {
+        ...MonitorV2ColumnPath
+    }
+    dstFields
+    targetDataset
+}
+
 fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
     name
+    # @genqlient(flatten: true)
     meta {
-        srcFields {
-            name
-            path
-        }
-        dstFields
-        targetDataset
+        ...MonitorV2LinkColumnMeta
     }
 }
 
 fragment MonitorV2Column on MonitorV2Column {
+    # @genqlient(flatten: true)
     linkColumn {
         ...MonitorV2LinkColumn
     }
+    # @genqlient(flatten: true)
     columnPath {
         ...MonitorV2ColumnPath
     }
 }
 
 fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
+    # @genqlient(flatten: true)
     column {
         ...MonitorV2Column
     }
+    # @genqlient(flatten: true)
     compareValues {
         ...MonitorV2Comparison
     }
 }
 
+fragment MonitorV2CountRule on MonitorV2CountRule {
+    # @genqlient(flatten: true)
+    compareValues {
+        ...MonitorV2Comparison
+    }
+    # @genqlient(flatten: true)
+    compareGroups {
+        ...MonitorV2ColumnComparison
+    }
+}
+
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
+    # @genqlient(flatten: true)
     compareValues {
         ...MonitorV2Comparison
     }
     valueColumnName
     aggregation
+    # @genqlient(flatten: true)
     compareGroups {
         ...MonitorV2ColumnComparison
     }
 }
 
 fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
+    # @genqlient(flatten: true)
     compareColumns {
         ...MonitorV2ColumnComparison
     }
 }
 
-fragment MonitorV2Scheduling on MonitorV2Scheduling {
-    interval { # MonitorV2IntervalSchedule
-        interval
-        randomize
+fragment MonitorV2Rule on MonitorV2Rule {
+    level
+    # @genqlient(flatten: true)
+    count {
+        ...MonitorV2CountRule
     }
-    transform { # MontiorV2TransformSchedule
-        freshnessGoal
+    # @genqlient(flatten: true)
+    threshold {
+        ...MonitorV2ThresholdRule
+    }
+    # @genqlient(flatten: true)
+    promote {
+        ...MonitorV2PromoteRule
+    }
+}
+
+fragment MonitorV2Definition on MonitorV2Definition{
+    inputQuery {
+        outputStage
+        # @genqlient(flatten: true)
+        stages {
+            ...StageQuery
+        }
+    }
+    # @genqlient(flatten: true)
+    rules {
+        ...MonitorV2Rule
+    }
+    lookbackTime
+    dataStabilizationDelay
+    # @genqlient(flatten: true)
+    groupings {
+        ...MonitorV2Column
+    }
+    # @genqlient(flatten: true)
+    scheduling {
+        ...MonitorV2Scheduling
+    }
+}
+
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+    interval
+    randomize
+}
+
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+    freshnessGoal
+}
+
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+    # @genqlient(flatten: true)
+    interval {
+        ...MonitorV2IntervalSchedule
+    }
+    # @genqlient(flatten: true)
+    transform { 
+        ...MonitorV2TransformSchedule
     }
 }
 
@@ -90,49 +164,9 @@ fragment MonitorV2 on MonitorV2 {
     }
     rollupStatus
     ruleKind
+    # @genqlient(flatten: true)
     definition {
-        inputQuery {
-            outputStage
-            # @genqlient(flatten: true)
-            stages {
-                ...StageQuery
-            }
-        }
-        rules {
-            level
-            count {
-                compareValues {
-                    ...MonitorV2Comparison
-                }
-                compareGroups {
-                    compareValues {
-                        ...MonitorV2Comparison
-                    }
-                    column {
-                        linkColumn {
-                            ...MonitorV2LinkColumn
-                        }
-                        columnPath {
-                            ...MonitorV2ColumnPath
-                        }
-                    }
-                }
-            }
-            threshold {
-                ...MonitorV2ThresholdRule
-            }
-            promote {
-                ...MonitorV2PromoteRule
-            }
-        }
-        lookbackTime
-        dataStabilizationDelay
-        groupings {
-            ...MonitorV2Column
-        }
-        scheduling {
-            ...MonitorV2Scheduling
-        }
+        ...MonitorV2Definition
     }
 }
 
@@ -174,6 +208,7 @@ mutation deleteMonitorV2($id: ObjectId!) {
 
 query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
     monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+        # @genqlient(flatten: true)
         results {
             ...MonitorV2
         }

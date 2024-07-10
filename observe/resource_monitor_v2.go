@@ -181,6 +181,157 @@ func resourceMonitorV2() *schema.Resource {
 											},
 										},
 									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"compare_values": { // [MonitorV2ComparisonInput!]!
+													Type:     schema.TypeList,
+													Required: true,
+													MinItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
+															"compare_fn": { // MonitorV2ComparisonFunction!
+																Type:             schema.TypeString,
+																Required:         true,
+																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+															},
+															"value_int64": { // Int64
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeInt},
+															},
+															"value_float64": { // Float
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeFloat},
+															},
+															"value_bool": { // Boolean
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeBool},
+															},
+															"value_string": { // String
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeString},
+															},
+															"value_duration": { // Int64
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeBool,
+																	ValidateDiagFunc: validateTimeDuration,
+																	DiffSuppressFunc: diffSuppressDuration,
+																},
+															},
+															"value_timestamp": { // Time
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeString,
+																	ValidateDiagFunc: validateTimestamp,
+																},
+															},
+														},
+													},
+												},
+												"column": {
+													Type:     schema.TypeList,
+													Required: true,
+													MinItems: 1,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"link_column": { // MonitorV2LinkColumnInput
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"meta": { // MonitorV2LinkColumnMetaInput
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 1,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"src_fields": { // [MonitorV2ColumnPathInput!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"name": { // String!
+																									Type:     schema.TypeString,
+																									Required: true,
+																								},
+																								"path": { // String
+																									Type:     schema.TypeString,
+																									Optional: true,
+																								},
+																							},
+																						},
+																					},
+																					"dst_fields": { // [String!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem:     &schema.Schema{Type: schema.TypeString},
+																					},
+																					"target_dataset": { // Int64
+																						Type:     schema.TypeInt,
+																						Optional: true,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+															"column_path": { // MonitorV2ColumnPathInput
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"path": { // String
+																			Type:     schema.TypeString,
+																			Optional: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -262,6 +413,157 @@ func resourceMonitorV2() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"compare_values": { // [MonitorV2ComparisonInput!]!
+													Type:     schema.TypeList,
+													Required: true,
+													MinItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
+															"compare_fn": { // MonitorV2ComparisonFunction!
+																Type:             schema.TypeString,
+																Required:         true,
+																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+															},
+															"value_int64": { // Int64
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeInt},
+															},
+															"value_float64": { // Float
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeFloat},
+															},
+															"value_bool": { // Boolean
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeBool},
+															},
+															"value_string": { // String
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem:     &schema.Schema{Type: schema.TypeString},
+															},
+															"value_duration": { // Int64
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeBool,
+																	ValidateDiagFunc: validateTimeDuration,
+																	DiffSuppressFunc: diffSuppressDuration,
+																},
+															},
+															"value_timestamp": { // Time
+																Type:     schema.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																MinItems: 1,
+																Elem: &schema.Schema{
+																	Type:             schema.TypeString,
+																	ValidateDiagFunc: validateTimestamp,
+																},
+															},
+														},
+													},
+												},
+												"column": {
+													Type:     schema.TypeList,
+													Required: true,
+													MinItems: 1,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"link_column": { // MonitorV2LinkColumnInput
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"meta": { // MonitorV2LinkColumnMetaInput
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 1,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"src_fields": { // [MonitorV2ColumnPathInput!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"name": { // String!
+																									Type:     schema.TypeString,
+																									Required: true,
+																								},
+																								"path": { // String
+																									Type:     schema.TypeString,
+																									Optional: true,
+																								},
+																							},
+																						},
+																					},
+																					"dst_fields": { // [String!]
+																						Type:     schema.TypeList,
+																						Optional: true,
+																						MinItems: 1,
+																						Elem:     &schema.Schema{Type: schema.TypeString},
+																					},
+																					"target_dataset": { // Int64
+																						Type:     schema.TypeInt,
+																						Optional: true,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+															"column_path": { // MonitorV2ColumnPathInput
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 1,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"name": { // String!
+																			Type:     schema.TypeString,
+																			Required: true,
+																		},
+																		"path": { // String
+																			Type:     schema.TypeString,
+																			Optional: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
 									},
 								},
 							},
@@ -647,6 +949,30 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("rules", monitorV2FlattenRules(monitor.Definition.Rules)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("lookback_time", monitor.Definition.LookbackTime.String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("data_stabilization_delay", monitor.Definition.DataStabilizationDelay.String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if monitor.Definition.Groupings != nil {
+		if err := data.Set("groupings", monitorV2FlattenGroupings(monitor.Definition.Groupings)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if monitor.Definition.Scheduling != nil {
+		if err := data.Set("scheduling", monitorV2FlattenScheduling(*monitor.Definition.Scheduling)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 
@@ -656,6 +982,214 @@ func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to delete monitor: %s", err.Error())
 	}
 	return diags
+}
+
+func monitorV2FlattenRules(gqlRules []gql.MonitorV2Rule) []interface{} {
+	var rules []interface{}
+	for _, gqlRule := range gqlRules {
+		rules = append(rules, monitorV2FlattenRule(gqlRule))
+	}
+	return rules
+}
+
+func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) []interface{} {
+	rule := map[string]interface{}{
+		"level": string(gqlRule.Level),
+	}
+	if gqlRule.Count != nil {
+		rule["count"] = monitorV2FlattenCountRule(*gqlRule.Count)
+	}
+	if gqlRule.Threshold != nil {
+		rule["threshold"] = monitorV2FlattenThresholdRule(*gqlRule.Threshold)
+	}
+	if gqlRule.Promote != nil {
+		rule["promote"] = monitorV2FlattenPromoteRule(*gqlRule.Promote)
+	}
+	return []interface{}{rule}
+}
+
+func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
+	countRule := map[string]interface{}{}
+	if gqlCount.CompareValues != nil {
+		countRule["compare_values"] = monitorV2FlattenComparisons(gqlCount.CompareValues)
+	}
+	if gqlCount.CompareGroups != nil {
+		countRule["compare_groups"] = monitorV2FlattenColumnComparisons(gqlCount.CompareGroups)
+	}
+	return []interface{}{countRule}
+}
+
+func monitorV2FlattenThresholdRule(gqlThreshold gql.MonitorV2ThresholdRule) []interface{} {
+	thresholdRule := map[string]interface{}{
+		"value_column_name": gqlThreshold.ValueColumnName,
+		"compare_fn":        string(gqlThreshold.Aggregation),
+	}
+	if gqlThreshold.CompareValues != nil {
+		thresholdRule["compare_values"] = monitorV2FlattenComparisons(gqlThreshold.CompareValues)
+	}
+	if gqlThreshold.CompareGroups != nil {
+		thresholdRule["compare_groups"] = monitorV2FlattenColumnComparisons(gqlThreshold.CompareGroups)
+	}
+	return []interface{}{thresholdRule}
+}
+
+func monitorV2FlattenPromoteRule(gqlPromote gql.MonitorV2PromoteRule) []interface{} {
+	promoteRule := map[string]interface{}{}
+	if gqlPromote.CompareColumns != nil {
+		promoteRule["compare_columns"] = monitorV2FlattenColumnComparisons(gqlPromote.CompareColumns)
+	}
+	return []interface{}{promoteRule}
+}
+
+func monitorV2FlattenColumnComparisons(gqlColumnComparisons []gql.MonitorV2ColumnComparison) []interface{} {
+	columnComparisons := []interface{}{}
+	for _, gqlColumnComparison := range gqlColumnComparisons {
+		columnComparisons = append(columnComparisons, monitorV2FlattenColumnComparison(gqlColumnComparison))
+	}
+	return columnComparisons
+}
+
+func monitorV2FlattenColumnComparison(gqlColumnComparison gql.MonitorV2ColumnComparison) []interface{} {
+	columnComparison := map[string]interface{}{
+		"column": monitorV2FlattenColumn(gqlColumnComparison.Column),
+	}
+	if gqlColumnComparison.CompareValues != nil {
+		columnComparison["compare_values"] = monitorV2FlattenComparisons(gqlColumnComparison.CompareValues)
+	}
+	return []interface{}{columnComparison}
+}
+
+func monitorV2FlattenColumn(gqlColumn gql.MonitorV2Column) []interface{} {
+	column := map[string]interface{}{}
+	if gqlColumn.LinkColumn != nil {
+		column["link_column"] = monitorV2FlattenLinkColumn(*gqlColumn.LinkColumn)
+	}
+	if gqlColumn.ColumnPath != nil {
+		column["column_path"] = monitorV2FlattenColumnPath(*gqlColumn.ColumnPath)
+	}
+	return []interface{}{column}
+}
+
+func monitorV2FlattenComparisons(gqlComparisons []gql.MonitorV2Comparison) []interface{} {
+	comparisons := []interface{}{}
+	for _, gqlComparison := range gqlComparisons {
+		comparisons = append(comparisons, monitorV2FlattenComparison(gqlComparison))
+	}
+	return comparisons
+}
+
+func monitorV2FlattenComparison(gqlComparison gql.MonitorV2Comparison) []interface{} {
+	comparison := map[string]interface{}{
+		"compare_fn":    string(gqlComparison.CompareFn),
+		"compare_value": monitorV2FlattenPrimitiveValue(gqlComparison.CompareValue),
+	}
+	return []interface{}{comparison}
+}
+
+func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue) []interface{} {
+	primitiveValue := map[string]interface{}{}
+	if gqlPrimitiveValue.Bool != nil {
+		primitiveValue["value_bool"] = []interface{}{*gqlPrimitiveValue.Bool}
+	}
+	if gqlPrimitiveValue.Int64 != nil {
+		primitiveValue["value_int64"] = []interface{}{int(*gqlPrimitiveValue.Int64)}
+	}
+	if gqlPrimitiveValue.Float64 != nil {
+		primitiveValue["value_float64"] = []interface{}{*gqlPrimitiveValue.Float64}
+	}
+	if gqlPrimitiveValue.String != nil {
+		primitiveValue["value_string"] = []interface{}{*gqlPrimitiveValue.String}
+	}
+	if gqlPrimitiveValue.Timestamp != nil {
+		primitiveValue["value_timestamp"] = []interface{}{gqlPrimitiveValue.Timestamp.String()}
+	}
+	if gqlPrimitiveValue.Duration != nil {
+		primitiveValue["value_duration"] = []interface{}{gqlPrimitiveValue.Duration.String()}
+	}
+	return []interface{}{primitiveValue}
+}
+
+func monitorV2FlattenGroupings(gqlGroupings []gql.MonitorV2Column) []interface{} {
+	var groupings []interface{}
+	for _, gqlGrouping := range gqlGroupings {
+		grouping := map[string]interface{}{}
+		if gqlGrouping.LinkColumn != nil {
+			grouping["link_column"] = monitorV2FlattenLinkColumn(*gqlGrouping.LinkColumn)
+		}
+		if gqlGrouping.ColumnPath != nil {
+			grouping["column_path"] = monitorV2FlattenColumnPath(*gqlGrouping.ColumnPath)
+		}
+		groupings = append(groupings, grouping)
+	}
+	return groupings
+}
+
+func monitorV2FlattenColumnPaths(gqlColumnPaths []gql.MonitorV2ColumnPath) []interface{} {
+	var columnPaths []interface{}
+	for _, gqlColumnPath := range gqlColumnPaths {
+		columnPaths = append(columnPaths, monitorV2FlattenColumnPath(gqlColumnPath))
+	}
+	return columnPaths
+}
+
+func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) []interface{} {
+	columnPath := map[string]interface{}{
+		"name": gqlColumnPath.Name,
+	}
+	if gqlColumnPath.Path != nil {
+		columnPath["path"] = *gqlColumnPath.Path
+	}
+	return []interface{}{columnPath}
+}
+
+func monitorV2FlattenLinkColumn(gqlLinkColumn gql.MonitorV2LinkColumn) []interface{} {
+	linkColumn := map[string]interface{}{
+		"name": gqlLinkColumn.Name,
+	}
+	if gqlLinkColumn.Meta != nil {
+		linkColumn["meta"] = monitorV2FlattenLinkColumnMeta(*gqlLinkColumn.Meta)
+	}
+	return []interface{}{linkColumn}
+}
+
+func monitorV2FlattenLinkColumnMeta(gqlLinkColumnMeta gql.MonitorV2LinkColumnMeta) []interface{} {
+	linkColumnMeta := map[string]interface{}{}
+	if gqlLinkColumnMeta.SrcFields != nil {
+		linkColumnMeta["src_fields"] = monitorV2FlattenColumnPaths(gqlLinkColumnMeta.SrcFields)
+	}
+	if gqlLinkColumnMeta.DstFields != nil {
+		linkColumnMeta["dst_fields"] = gqlLinkColumnMeta.DstFields
+	}
+	if gqlLinkColumnMeta.TargetDataset != nil {
+		linkColumnMeta["target_dataset"] = *gqlLinkColumnMeta.TargetDataset
+	}
+	return []interface{}{linkColumnMeta}
+}
+
+func monitorV2FlattenScheduling(gqlScheduling gql.MonitorV2Scheduling) []interface{} {
+	scheduling := map[string]interface{}{}
+	if gqlScheduling.Interval != nil {
+		scheduling["interval"] = monitorV2FlattenIntervalSchedule(*gqlScheduling.Interval)
+	}
+	if gqlScheduling.Transform != nil {
+		scheduling["transform"] = monitorV2FlattenTransformSchedule(*gqlScheduling.Transform)
+	}
+	return []interface{}{scheduling}
+}
+
+func monitorV2FlattenIntervalSchedule(gqlIntervalSchedule gql.MonitorV2IntervalSchedule) []interface{} {
+	intervalSchedule := map[string]interface{}{
+		"interval":  gqlIntervalSchedule.Interval,
+		"randomize": gqlIntervalSchedule.Randomize,
+	}
+	return []interface{}{intervalSchedule}
+}
+
+func monitorV2FlattenTransformSchedule(gqlTransformSchedule gql.MonitorV2TransformSchedule) []interface{} {
+	transformSchedule := map[string]interface{}{
+		"freshness_goal": gqlTransformSchedule.FreshnessGoal,
+	}
+	return []interface{}{transformSchedule}
 }
 
 func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
@@ -1017,7 +1551,6 @@ func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column
 }
 
 func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql.PrimitiveValueInput) diag.Diagnostics {
-
 	valueBool, hasBool := data.GetOk(fmt.Sprintf("%svalue_bool", path))
 	valueInt, hasInt := data.GetOk(fmt.Sprintf("%svalue_int64", path))
 	valueFloat, hasFloat := data.GetOk(fmt.Sprintf("%svalue_float64", path))

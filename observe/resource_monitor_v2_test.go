@@ -22,9 +22,9 @@ func TestAccObserveMonitorV2(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(monitorConfigPreamble+`
-					data "observe_dataset" "default" {
+					data "observe_dataset" "test" {
 						workspace = data.observe_workspace.default.oid
-						name      = "%[1]s"
+						name      = observe_datastream.test.name
 					}
 
 					resource "observe_monitor_v2" "first" {

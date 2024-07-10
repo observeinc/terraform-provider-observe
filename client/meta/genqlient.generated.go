@@ -4361,228 +4361,34 @@ const (
 // MonitorV2Column includes the GraphQL fields of MonitorV2Column requested by the fragment MonitorV2Column.
 type MonitorV2Column struct {
 	// Link Column is for link typed column which the user wants to group by.
-	LinkColumn *MonitorV2ColumnLinkColumnMonitorV2LinkColumn `json:"linkColumn"`
+	LinkColumn *MonitorV2LinkColumn `json:"linkColumn"`
 	// Column path is any non-link typed column along with an optional path which the user wants to group by.
-	ColumnPath *MonitorV2ColumnColumnPathMonitorV2ColumnPath `json:"columnPath"`
+	ColumnPath *MonitorV2ColumnPath `json:"columnPath"`
 }
 
 // GetLinkColumn returns MonitorV2Column.LinkColumn, and is useful for accessing the field via an interface.
-func (v *MonitorV2Column) GetLinkColumn() *MonitorV2ColumnLinkColumnMonitorV2LinkColumn {
-	return v.LinkColumn
-}
+func (v *MonitorV2Column) GetLinkColumn() *MonitorV2LinkColumn { return v.LinkColumn }
 
 // GetColumnPath returns MonitorV2Column.ColumnPath, and is useful for accessing the field via an interface.
-func (v *MonitorV2Column) GetColumnPath() *MonitorV2ColumnColumnPathMonitorV2ColumnPath {
-	return v.ColumnPath
-}
-
-// MonitorV2ColumnColumnPathMonitorV2ColumnPath includes the requested fields of the GraphQL type MonitorV2ColumnPath.
-type MonitorV2ColumnColumnPathMonitorV2ColumnPath struct {
-	MonitorV2ColumnPath `json:"-"`
-}
-
-// GetName returns MonitorV2ColumnColumnPathMonitorV2ColumnPath.Name, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnColumnPathMonitorV2ColumnPath) GetName() string {
-	return v.MonitorV2ColumnPath.Name
-}
-
-// GetPath returns MonitorV2ColumnColumnPathMonitorV2ColumnPath.Path, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnColumnPathMonitorV2ColumnPath) GetPath() *string {
-	return v.MonitorV2ColumnPath.Path
-}
-
-func (v *MonitorV2ColumnColumnPathMonitorV2ColumnPath) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ColumnColumnPathMonitorV2ColumnPath
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ColumnColumnPathMonitorV2ColumnPath = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2ColumnPath)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ColumnColumnPathMonitorV2ColumnPath struct {
-	Name string `json:"name"`
-
-	Path *string `json:"path"`
-}
-
-func (v *MonitorV2ColumnColumnPathMonitorV2ColumnPath) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ColumnColumnPathMonitorV2ColumnPath) __premarshalJSON() (*__premarshalMonitorV2ColumnColumnPathMonitorV2ColumnPath, error) {
-	var retval __premarshalMonitorV2ColumnColumnPathMonitorV2ColumnPath
-
-	retval.Name = v.MonitorV2ColumnPath.Name
-	retval.Path = v.MonitorV2ColumnPath.Path
-	return &retval, nil
-}
+func (v *MonitorV2Column) GetColumnPath() *MonitorV2ColumnPath { return v.ColumnPath }
 
 // MonitorV2ColumnComparison includes the GraphQL fields of MonitorV2ColumnComparison requested by the fragment MonitorV2ColumnComparison.
 type MonitorV2ColumnComparison struct {
 	// The column user wants to compare against using the values inside compareValues.
-	Column MonitorV2ColumnComparisonColumnMonitorV2Column `json:"column"`
+	Column MonitorV2Column `json:"column"`
 	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
 	// This gives the option to specify one value for a threshold behavior (trigger if > 80) but also allows
 	// for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
 	// If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
 	// (one rule for < 80 and one rule for > 90).
-	CompareValues []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison `json:"compareValues"`
+	CompareValues []MonitorV2Comparison `json:"compareValues"`
 }
 
 // GetColumn returns MonitorV2ColumnComparison.Column, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparison) GetColumn() MonitorV2ColumnComparisonColumnMonitorV2Column {
-	return v.Column
-}
+func (v *MonitorV2ColumnComparison) GetColumn() MonitorV2Column { return v.Column }
 
 // GetCompareValues returns MonitorV2ColumnComparison.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparison) GetCompareValues() []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison {
-	return v.CompareValues
-}
-
-// MonitorV2ColumnComparisonColumnMonitorV2Column includes the requested fields of the GraphQL type MonitorV2Column.
-type MonitorV2ColumnComparisonColumnMonitorV2Column struct {
-	MonitorV2Column `json:"-"`
-}
-
-// GetLinkColumn returns MonitorV2ColumnComparisonColumnMonitorV2Column.LinkColumn, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparisonColumnMonitorV2Column) GetLinkColumn() *MonitorV2ColumnLinkColumnMonitorV2LinkColumn {
-	return v.MonitorV2Column.LinkColumn
-}
-
-// GetColumnPath returns MonitorV2ColumnComparisonColumnMonitorV2Column.ColumnPath, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparisonColumnMonitorV2Column) GetColumnPath() *MonitorV2ColumnColumnPathMonitorV2ColumnPath {
-	return v.MonitorV2Column.ColumnPath
-}
-
-func (v *MonitorV2ColumnComparisonColumnMonitorV2Column) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ColumnComparisonColumnMonitorV2Column
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ColumnComparisonColumnMonitorV2Column = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Column)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ColumnComparisonColumnMonitorV2Column struct {
-	LinkColumn *MonitorV2ColumnLinkColumnMonitorV2LinkColumn `json:"linkColumn"`
-
-	ColumnPath *MonitorV2ColumnColumnPathMonitorV2ColumnPath `json:"columnPath"`
-}
-
-func (v *MonitorV2ColumnComparisonColumnMonitorV2Column) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ColumnComparisonColumnMonitorV2Column) __premarshalJSON() (*__premarshalMonitorV2ColumnComparisonColumnMonitorV2Column, error) {
-	var retval __premarshalMonitorV2ColumnComparisonColumnMonitorV2Column
-
-	retval.LinkColumn = v.MonitorV2Column.LinkColumn
-	retval.ColumnPath = v.MonitorV2Column.ColumnPath
-	return &retval, nil
-}
-
-// MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison includes the requested fields of the GraphQL type MonitorV2Comparison.
-type MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison struct {
-	MonitorV2Comparison `json:"-"`
-}
-
-// GetCompareFn returns MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison.CompareFn, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction {
-	return v.MonitorV2Comparison.CompareFn
-}
-
-// GetCompareValue returns MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) GetCompareValue() MonitorV2ComparisonCompareValuePrimitiveValue {
-	return v.MonitorV2Comparison.CompareValue
-}
-
-func (v *MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Comparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison struct {
-	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
-
-	CompareValue MonitorV2ComparisonCompareValuePrimitiveValue `json:"compareValue"`
-}
-
-func (v *MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) __premarshalJSON() (*__premarshalMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison, error) {
-	var retval __premarshalMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison
-
-	retval.CompareFn = v.MonitorV2Comparison.CompareFn
-	retval.CompareValue = v.MonitorV2Comparison.CompareValue
-	return &retval, nil
-}
+func (v *MonitorV2ColumnComparison) GetCompareValues() []MonitorV2Comparison { return v.CompareValues }
 
 type MonitorV2ColumnComparisonInput struct {
 	CompareValues []MonitorV2ComparisonInput `json:"compareValues"`
@@ -4607,68 +4413,6 @@ func (v *MonitorV2ColumnInput) GetLinkColumn() *MonitorV2LinkColumnInput { retur
 
 // GetColumnPath returns MonitorV2ColumnInput.ColumnPath, and is useful for accessing the field via an interface.
 func (v *MonitorV2ColumnInput) GetColumnPath() *MonitorV2ColumnPathInput { return v.ColumnPath }
-
-// MonitorV2ColumnLinkColumnMonitorV2LinkColumn includes the requested fields of the GraphQL type MonitorV2LinkColumn.
-type MonitorV2ColumnLinkColumnMonitorV2LinkColumn struct {
-	MonitorV2LinkColumn `json:"-"`
-}
-
-// GetName returns MonitorV2ColumnLinkColumnMonitorV2LinkColumn.Name, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnLinkColumnMonitorV2LinkColumn) GetName() string {
-	return v.MonitorV2LinkColumn.Name
-}
-
-// GetMeta returns MonitorV2ColumnLinkColumnMonitorV2LinkColumn.Meta, and is useful for accessing the field via an interface.
-func (v *MonitorV2ColumnLinkColumnMonitorV2LinkColumn) GetMeta() *MonitorV2LinkColumnMeta {
-	return v.MonitorV2LinkColumn.Meta
-}
-
-func (v *MonitorV2ColumnLinkColumnMonitorV2LinkColumn) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ColumnLinkColumnMonitorV2LinkColumn
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ColumnLinkColumnMonitorV2LinkColumn = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2LinkColumn)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ColumnLinkColumnMonitorV2LinkColumn struct {
-	Name string `json:"name"`
-
-	Meta *MonitorV2LinkColumnMeta `json:"meta"`
-}
-
-func (v *MonitorV2ColumnLinkColumnMonitorV2LinkColumn) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ColumnLinkColumnMonitorV2LinkColumn) __premarshalJSON() (*__premarshalMonitorV2ColumnLinkColumnMonitorV2LinkColumn, error) {
-	var retval __premarshalMonitorV2ColumnLinkColumnMonitorV2LinkColumn
-
-	retval.Name = v.MonitorV2LinkColumn.Name
-	retval.Meta = v.MonitorV2LinkColumn.Meta
-	return &retval, nil
-}
 
 // MonitorV2ColumnPath includes the GraphQL fields of MonitorV2ColumnPath requested by the fragment MonitorV2ColumnPath.
 type MonitorV2ColumnPath struct {
@@ -4697,108 +4441,14 @@ func (v *MonitorV2ColumnPathInput) GetPath() *string { return v.Path }
 type MonitorV2Comparison struct {
 	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
 	// compareValue is the right-side value for comparisons that use it (like x > 10, this is 10).
-	CompareValue MonitorV2ComparisonCompareValuePrimitiveValue `json:"compareValue"`
+	CompareValue PrimitiveValue `json:"compareValue"`
 }
 
 // GetCompareFn returns MonitorV2Comparison.CompareFn, and is useful for accessing the field via an interface.
 func (v *MonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction { return v.CompareFn }
 
 // GetCompareValue returns MonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
-func (v *MonitorV2Comparison) GetCompareValue() MonitorV2ComparisonCompareValuePrimitiveValue {
-	return v.CompareValue
-}
-
-// MonitorV2ComparisonCompareValuePrimitiveValue includes the requested fields of the GraphQL type PrimitiveValue.
-type MonitorV2ComparisonCompareValuePrimitiveValue struct {
-	PrimitiveValue `json:"-"`
-}
-
-// GetBool returns MonitorV2ComparisonCompareValuePrimitiveValue.Bool, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetBool() *bool { return v.PrimitiveValue.Bool }
-
-// GetFloat64 returns MonitorV2ComparisonCompareValuePrimitiveValue.Float64, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetFloat64() *float64 {
-	return v.PrimitiveValue.Float64
-}
-
-// GetInt64 returns MonitorV2ComparisonCompareValuePrimitiveValue.Int64, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetInt64() *types.Int64Scalar {
-	return v.PrimitiveValue.Int64
-}
-
-// GetString returns MonitorV2ComparisonCompareValuePrimitiveValue.String, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetString() *string {
-	return v.PrimitiveValue.String
-}
-
-// GetTimestamp returns MonitorV2ComparisonCompareValuePrimitiveValue.Timestamp, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetTimestamp() *types.TimeScalar {
-	return v.PrimitiveValue.Timestamp
-}
-
-// GetDuration returns MonitorV2ComparisonCompareValuePrimitiveValue.Duration, and is useful for accessing the field via an interface.
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) GetDuration() *types.Int64Scalar {
-	return v.PrimitiveValue.Duration
-}
-
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ComparisonCompareValuePrimitiveValue
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ComparisonCompareValuePrimitiveValue = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.PrimitiveValue)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ComparisonCompareValuePrimitiveValue struct {
-	Bool *bool `json:"bool"`
-
-	Float64 *float64 `json:"float64"`
-
-	Int64 *types.Int64Scalar `json:"int64"`
-
-	String *string `json:"string"`
-
-	Timestamp *types.TimeScalar `json:"timestamp"`
-
-	Duration *types.Int64Scalar `json:"duration"`
-}
-
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ComparisonCompareValuePrimitiveValue) __premarshalJSON() (*__premarshalMonitorV2ComparisonCompareValuePrimitiveValue, error) {
-	var retval __premarshalMonitorV2ComparisonCompareValuePrimitiveValue
-
-	retval.Bool = v.PrimitiveValue.Bool
-	retval.Float64 = v.PrimitiveValue.Float64
-	retval.Int64 = v.PrimitiveValue.Int64
-	retval.String = v.PrimitiveValue.String
-	retval.Timestamp = v.PrimitiveValue.Timestamp
-	retval.Duration = v.PrimitiveValue.Duration
-	return &retval, nil
-}
+func (v *MonitorV2Comparison) GetCompareValue() PrimitiveValue { return v.CompareValue }
 
 type MonitorV2ComparisonFunction string
 
@@ -4822,6 +4472,28 @@ func (v *MonitorV2ComparisonInput) GetCompareFn() MonitorV2ComparisonFunction { 
 // GetCompareValue returns MonitorV2ComparisonInput.CompareValue, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonInput) GetCompareValue() PrimitiveValueInput { return v.CompareValue }
 
+// MonitorV2CountRule includes the GraphQL fields of MonitorV2CountRule requested by the fragment MonitorV2CountRule.
+type MonitorV2CountRule struct {
+	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
+	// This gives the option to specify
+	// one value for a threshold behavior (trigger if > 80) but also allows for ranges of validity. If you want
+	// to trigger inside a range, give two compares here (like > 80 and < 90). If you want to trigger
+	// outside a valid range, use two rules with a single compare to get the implied OR
+	// (one rule for < 80 and one rule for > 90).
+	CompareValues []MonitorV2Comparison `json:"compareValues"`
+	// CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
+	// This gives the option to add extra dimension to the existing rule by specifying which column of
+	// the group the user looks forward to being alerted by. For example, this allows for rule expression
+	// like (Count > 80 and Group = "Good Group") which would trigger a critical alert.
+	CompareGroups []MonitorV2ColumnComparison `json:"compareGroups"`
+}
+
+// GetCompareValues returns MonitorV2CountRule.CompareValues, and is useful for accessing the field via an interface.
+func (v *MonitorV2CountRule) GetCompareValues() []MonitorV2Comparison { return v.CompareValues }
+
+// GetCompareGroups returns MonitorV2CountRule.CompareGroups, and is useful for accessing the field via an interface.
+func (v *MonitorV2CountRule) GetCompareGroups() []MonitorV2ColumnComparison { return v.CompareGroups }
+
 type MonitorV2CountRuleInput struct {
 	CompareValues []MonitorV2ComparisonInput       `json:"compareValues"`
 	CompareGroups []MonitorV2ColumnComparisonInput `json:"compareGroups"`
@@ -4837,7 +4509,7 @@ func (v *MonitorV2CountRuleInput) GetCompareGroups() []MonitorV2ColumnComparison
 	return v.CompareGroups
 }
 
-// MonitorV2Definition includes the requested fields of the GraphQL type MonitorV2Definition.
+// MonitorV2Definition includes the GraphQL fields of MonitorV2Definition requested by the fragment MonitorV2Definition.
 type MonitorV2Definition struct {
 	// InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the
 	// original dataset(s) and other transform information that the user selected to create "Create Monitor".
@@ -4846,7 +4518,7 @@ type MonitorV2Definition struct {
 	// as specified in `ruleKind`.
 	// Rules should be constructed logically such that a state transition from null->Warning implies a
 	// transition from null->Informational as well.
-	Rules []MonitorV2DefinitionRulesMonitorV2Rule `json:"rules"`
+	Rules []MonitorV2Rule `json:"rules"`
 	// LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules,
 	// but is only applicable to rule kinds that utilize it.
 	LookbackTime *types.DurationScalar `json:"lookbackTime"`
@@ -4856,11 +4528,11 @@ type MonitorV2Definition struct {
 	// value is defining where the "Ragged Right Edge" starts relative to the clock.
 	DataStabilizationDelay *types.DurationScalar `json:"dataStabilizationDelay"`
 	// Groupings describes the groups that logically separate events/rows/etc from each other.
-	Groupings []MonitorV2DefinitionGroupingsMonitorV2Column `json:"groupings"`
+	Groupings []MonitorV2Column `json:"groupings"`
 	// Scheduling controls how often the monitor is evaluated. The default behavior when you do
 	// not specify this field is a real-time transform monitor with a default freshness goal that
 	// you cannot control.
-	Scheduling *MonitorV2DefinitionSchedulingMonitorV2Scheduling `json:"scheduling"`
+	Scheduling *MonitorV2Scheduling `json:"scheduling"`
 }
 
 // GetInputQuery returns MonitorV2Definition.InputQuery, and is useful for accessing the field via an interface.
@@ -4869,7 +4541,7 @@ func (v *MonitorV2Definition) GetInputQuery() MonitorV2DefinitionInputQueryMulti
 }
 
 // GetRules returns MonitorV2Definition.Rules, and is useful for accessing the field via an interface.
-func (v *MonitorV2Definition) GetRules() []MonitorV2DefinitionRulesMonitorV2Rule { return v.Rules }
+func (v *MonitorV2Definition) GetRules() []MonitorV2Rule { return v.Rules }
 
 // GetLookbackTime returns MonitorV2Definition.LookbackTime, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
@@ -4880,76 +4552,10 @@ func (v *MonitorV2Definition) GetDataStabilizationDelay() *types.DurationScalar 
 }
 
 // GetGroupings returns MonitorV2Definition.Groupings, and is useful for accessing the field via an interface.
-func (v *MonitorV2Definition) GetGroupings() []MonitorV2DefinitionGroupingsMonitorV2Column {
-	return v.Groupings
-}
+func (v *MonitorV2Definition) GetGroupings() []MonitorV2Column { return v.Groupings }
 
 // GetScheduling returns MonitorV2Definition.Scheduling, and is useful for accessing the field via an interface.
-func (v *MonitorV2Definition) GetScheduling() *MonitorV2DefinitionSchedulingMonitorV2Scheduling {
-	return v.Scheduling
-}
-
-// MonitorV2DefinitionGroupingsMonitorV2Column includes the requested fields of the GraphQL type MonitorV2Column.
-type MonitorV2DefinitionGroupingsMonitorV2Column struct {
-	MonitorV2Column `json:"-"`
-}
-
-// GetLinkColumn returns MonitorV2DefinitionGroupingsMonitorV2Column.LinkColumn, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionGroupingsMonitorV2Column) GetLinkColumn() *MonitorV2ColumnLinkColumnMonitorV2LinkColumn {
-	return v.MonitorV2Column.LinkColumn
-}
-
-// GetColumnPath returns MonitorV2DefinitionGroupingsMonitorV2Column.ColumnPath, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionGroupingsMonitorV2Column) GetColumnPath() *MonitorV2ColumnColumnPathMonitorV2ColumnPath {
-	return v.MonitorV2Column.ColumnPath
-}
-
-func (v *MonitorV2DefinitionGroupingsMonitorV2Column) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionGroupingsMonitorV2Column
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionGroupingsMonitorV2Column = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Column)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionGroupingsMonitorV2Column struct {
-	LinkColumn *MonitorV2ColumnLinkColumnMonitorV2LinkColumn `json:"linkColumn"`
-
-	ColumnPath *MonitorV2ColumnColumnPathMonitorV2ColumnPath `json:"columnPath"`
-}
-
-func (v *MonitorV2DefinitionGroupingsMonitorV2Column) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionGroupingsMonitorV2Column) __premarshalJSON() (*__premarshalMonitorV2DefinitionGroupingsMonitorV2Column, error) {
-	var retval __premarshalMonitorV2DefinitionGroupingsMonitorV2Column
-
-	retval.LinkColumn = v.MonitorV2Column.LinkColumn
-	retval.ColumnPath = v.MonitorV2Column.ColumnPath
-	return &retval, nil
-}
+func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Scheduling }
 
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
@@ -4992,541 +4598,6 @@ func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetOutputStage() string {
 // GetStages returns MonitorV2DefinitionInputQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
 
-// MonitorV2DefinitionRulesMonitorV2Rule includes the requested fields of the GraphQL type MonitorV2Rule.
-type MonitorV2DefinitionRulesMonitorV2Rule struct {
-	// Level is the severity level to assign to a rule's conditions being matched.
-	Level     MonitorV2AlarmLevel                                                   `json:"level"`
-	Count     *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule         `json:"count"`
-	Threshold *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule `json:"threshold"`
-	Promote   *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule     `json:"promote"`
-}
-
-// GetLevel returns MonitorV2DefinitionRulesMonitorV2Rule.Level, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2Rule) GetLevel() MonitorV2AlarmLevel { return v.Level }
-
-// GetCount returns MonitorV2DefinitionRulesMonitorV2Rule.Count, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2Rule) GetCount() *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule {
-	return v.Count
-}
-
-// GetThreshold returns MonitorV2DefinitionRulesMonitorV2Rule.Threshold, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2Rule) GetThreshold() *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule {
-	return v.Threshold
-}
-
-// GetPromote returns MonitorV2DefinitionRulesMonitorV2Rule.Promote, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2Rule) GetPromote() *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule {
-	return v.Promote
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule includes the requested fields of the GraphQL type MonitorV2CountRule.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule struct {
-	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
-	// This gives the option to specify
-	// one value for a threshold behavior (trigger if > 80) but also allows for ranges of validity. If you want
-	// to trigger inside a range, give two compares here (like > 80 and < 90). If you want to trigger
-	// outside a valid range, use two rules with a single compare to get the implied OR
-	// (one rule for < 80 and one rule for > 90).
-	CompareValues []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison `json:"compareValues"`
-	// CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
-	// This gives the option to add extra dimension to the existing rule by specifying which column of
-	// the group the user looks forward to being alerted by. For example, this allows for rule expression
-	// like (Count > 80 and Group = "Good Group") which would trigger a critical alert.
-	CompareGroups []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison `json:"compareGroups"`
-}
-
-// GetCompareValues returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule) GetCompareValues() []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison {
-	return v.CompareValues
-}
-
-// GetCompareGroups returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule.CompareGroups, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRule) GetCompareGroups() []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison {
-	return v.CompareGroups
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison includes the requested fields of the GraphQL type MonitorV2ColumnComparison.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison struct {
-	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
-	// This gives the option to specify one value for a threshold behavior (trigger if > 80) but also allows
-	// for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
-	// If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
-	// (one rule for < 80 and one rule for > 90).
-	CompareValues []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison `json:"compareValues"`
-	// The column user wants to compare against using the values inside compareValues.
-	Column MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column `json:"column"`
-}
-
-// GetCompareValues returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison) GetCompareValues() []MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison {
-	return v.CompareValues
-}
-
-// GetColumn returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison.Column, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparison) GetColumn() MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column {
-	return v.Column
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column includes the requested fields of the GraphQL type MonitorV2Column.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column struct {
-	// Link Column is for link typed column which the user wants to group by.
-	LinkColumn *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn `json:"linkColumn"`
-	// Column path is any non-link typed column along with an optional path which the user wants to group by.
-	ColumnPath *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath `json:"columnPath"`
-}
-
-// GetLinkColumn returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column.LinkColumn, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column) GetLinkColumn() *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn {
-	return v.LinkColumn
-}
-
-// GetColumnPath returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column.ColumnPath, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2Column) GetColumnPath() *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath {
-	return v.ColumnPath
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath includes the requested fields of the GraphQL type MonitorV2ColumnPath.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath struct {
-	MonitorV2ColumnPath `json:"-"`
-}
-
-// GetName returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath.Name, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath) GetName() string {
-	return v.MonitorV2ColumnPath.Name
-}
-
-// GetPath returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath.Path, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath) GetPath() *string {
-	return v.MonitorV2ColumnPath.Path
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2ColumnPath)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath struct {
-	Name string `json:"name"`
-
-	Path *string `json:"path"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnColumnPathMonitorV2ColumnPath
-
-	retval.Name = v.MonitorV2ColumnPath.Name
-	retval.Path = v.MonitorV2ColumnPath.Path
-	return &retval, nil
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn includes the requested fields of the GraphQL type MonitorV2LinkColumn.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn struct {
-	MonitorV2LinkColumn `json:"-"`
-}
-
-// GetName returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn.Name, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn) GetName() string {
-	return v.MonitorV2LinkColumn.Name
-}
-
-// GetMeta returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn.Meta, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn) GetMeta() *MonitorV2LinkColumnMeta {
-	return v.MonitorV2LinkColumn.Meta
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2LinkColumn)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn struct {
-	Name string `json:"name"`
-
-	Meta *MonitorV2LinkColumnMeta `json:"meta"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonColumnMonitorV2ColumnLinkColumnMonitorV2LinkColumn
-
-	retval.Name = v.MonitorV2LinkColumn.Name
-	retval.Meta = v.MonitorV2LinkColumn.Meta
-	return &retval, nil
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison includes the requested fields of the GraphQL type MonitorV2Comparison.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison struct {
-	MonitorV2Comparison `json:"-"`
-}
-
-// GetCompareFn returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison.CompareFn, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction {
-	return v.MonitorV2Comparison.CompareFn
-}
-
-// GetCompareValue returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) GetCompareValue() MonitorV2ComparisonCompareValuePrimitiveValue {
-	return v.MonitorV2Comparison.CompareValue
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Comparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison struct {
-	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
-
-	CompareValue MonitorV2ComparisonCompareValuePrimitiveValue `json:"compareValue"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareGroupsMonitorV2ColumnComparisonCompareValuesMonitorV2Comparison
-
-	retval.CompareFn = v.MonitorV2Comparison.CompareFn
-	retval.CompareValue = v.MonitorV2Comparison.CompareValue
-	return &retval, nil
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison includes the requested fields of the GraphQL type MonitorV2Comparison.
-type MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison struct {
-	MonitorV2Comparison `json:"-"`
-}
-
-// GetCompareFn returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison.CompareFn, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction {
-	return v.MonitorV2Comparison.CompareFn
-}
-
-// GetCompareValue returns MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison) GetCompareValue() MonitorV2ComparisonCompareValuePrimitiveValue {
-	return v.MonitorV2Comparison.CompareValue
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Comparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison struct {
-	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
-
-	CompareValue MonitorV2ComparisonCompareValuePrimitiveValue `json:"compareValue"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RuleCountMonitorV2CountRuleCompareValuesMonitorV2Comparison
-
-	retval.CompareFn = v.MonitorV2Comparison.CompareFn
-	retval.CompareValue = v.MonitorV2Comparison.CompareValue
-	return &retval, nil
-}
-
-// MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule includes the requested fields of the GraphQL type MonitorV2PromoteRule.
-type MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule struct {
-	MonitorV2PromoteRule `json:"-"`
-}
-
-// GetCompareColumns returns MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule.CompareColumns, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule) GetCompareColumns() []MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison {
-	return v.MonitorV2PromoteRule.CompareColumns
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2PromoteRule)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule struct {
-	CompareColumns []MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison `json:"compareColumns"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RulePromoteMonitorV2PromoteRule
-
-	retval.CompareColumns = v.MonitorV2PromoteRule.CompareColumns
-	return &retval, nil
-}
-
-// MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule includes the requested fields of the GraphQL type MonitorV2ThresholdRule.
-type MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule struct {
-	MonitorV2ThresholdRule `json:"-"`
-}
-
-// GetCompareValues returns MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) GetCompareValues() []MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison {
-	return v.MonitorV2ThresholdRule.CompareValues
-}
-
-// GetValueColumnName returns MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule.ValueColumnName, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) GetValueColumnName() string {
-	return v.MonitorV2ThresholdRule.ValueColumnName
-}
-
-// GetAggregation returns MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule.Aggregation, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) GetAggregation() MonitorV2ValueAggregation {
-	return v.MonitorV2ThresholdRule.Aggregation
-}
-
-// GetCompareGroups returns MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule.CompareGroups, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) GetCompareGroups() []MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison {
-	return v.MonitorV2ThresholdRule.CompareGroups
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2ThresholdRule)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule struct {
-	CompareValues []MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison `json:"compareValues"`
-
-	ValueColumnName string `json:"valueColumnName"`
-
-	Aggregation MonitorV2ValueAggregation `json:"aggregation"`
-
-	CompareGroups []MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison `json:"compareGroups"`
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule) __premarshalJSON() (*__premarshalMonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule, error) {
-	var retval __premarshalMonitorV2DefinitionRulesMonitorV2RuleThresholdMonitorV2ThresholdRule
-
-	retval.CompareValues = v.MonitorV2ThresholdRule.CompareValues
-	retval.ValueColumnName = v.MonitorV2ThresholdRule.ValueColumnName
-	retval.Aggregation = v.MonitorV2ThresholdRule.Aggregation
-	retval.CompareGroups = v.MonitorV2ThresholdRule.CompareGroups
-	return &retval, nil
-}
-
-// MonitorV2DefinitionSchedulingMonitorV2Scheduling includes the requested fields of the GraphQL type MonitorV2Scheduling.
-type MonitorV2DefinitionSchedulingMonitorV2Scheduling struct {
-	MonitorV2Scheduling `json:"-"`
-}
-
-// GetInterval returns MonitorV2DefinitionSchedulingMonitorV2Scheduling.Interval, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionSchedulingMonitorV2Scheduling) GetInterval() *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule {
-	return v.MonitorV2Scheduling.Interval
-}
-
-// GetTransform returns MonitorV2DefinitionSchedulingMonitorV2Scheduling.Transform, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionSchedulingMonitorV2Scheduling) GetTransform() *MonitorV2SchedulingTransformMonitorV2TransformSchedule {
-	return v.MonitorV2Scheduling.Transform
-}
-
-func (v *MonitorV2DefinitionSchedulingMonitorV2Scheduling) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2DefinitionSchedulingMonitorV2Scheduling
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2DefinitionSchedulingMonitorV2Scheduling = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Scheduling)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2DefinitionSchedulingMonitorV2Scheduling struct {
-	Interval *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule `json:"interval"`
-
-	Transform *MonitorV2SchedulingTransformMonitorV2TransformSchedule `json:"transform"`
-}
-
-func (v *MonitorV2DefinitionSchedulingMonitorV2Scheduling) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2DefinitionSchedulingMonitorV2Scheduling) __premarshalJSON() (*__premarshalMonitorV2DefinitionSchedulingMonitorV2Scheduling, error) {
-	var retval __premarshalMonitorV2DefinitionSchedulingMonitorV2Scheduling
-
-	retval.Interval = v.MonitorV2Scheduling.Interval
-	retval.Transform = v.MonitorV2Scheduling.Transform
-	return &retval, nil
-}
-
 type MonitorV2Input struct {
 	Comment     *string                  `json:"comment"`
 	Definition  MonitorV2DefinitionInput `json:"definition"`
@@ -5561,6 +4632,24 @@ func (v *MonitorV2Input) GetManagedById() *string { return v.ManagedById }
 
 // GetFolderId returns MonitorV2Input.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetFolderId() *string { return v.FolderId }
+
+// MonitorV2IntervalSchedule includes the GraphQL fields of MonitorV2IntervalSchedule requested by the fragment MonitorV2IntervalSchedule.
+type MonitorV2IntervalSchedule struct {
+	// Interval is how often the monitor should attempt to run. This interval describes when the
+	// monitor enters the queue, but is not a guarantee of execution. Monitors are best-effort
+	// and also may be subject to QoS or rate limiting in the future.
+	Interval types.DurationScalar `json:"interval"`
+	// Randomize is a maximum +/- to apply to the interval to avoid things like harmonics and
+	// work stacking up in parallel. If interval is "10m" and randomize is "30s", then a random
+	// interval between 9m30s and 10m30s will be selected each run.
+	Randomize types.DurationScalar `json:"randomize"`
+}
+
+// GetInterval returns MonitorV2IntervalSchedule.Interval, and is useful for accessing the field via an interface.
+func (v *MonitorV2IntervalSchedule) GetInterval() types.DurationScalar { return v.Interval }
+
+// GetRandomize returns MonitorV2IntervalSchedule.Randomize, and is useful for accessing the field via an interface.
+func (v *MonitorV2IntervalSchedule) GetRandomize() types.DurationScalar { return v.Randomize }
 
 type MonitorV2IntervalScheduleInput struct {
 	Interval  types.DurationScalar `json:"interval"`
@@ -5599,11 +4688,11 @@ func (v *MonitorV2LinkColumnInput) GetName() string { return v.Name }
 // GetMeta returns MonitorV2LinkColumnInput.Meta, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnInput) GetMeta() *MonitorV2LinkColumnMetaInput { return v.Meta }
 
-// MonitorV2LinkColumnMeta includes the requested fields of the GraphQL type MonitorV2LinkColumnMeta.
+// MonitorV2LinkColumnMeta includes the GraphQL fields of MonitorV2LinkColumnMeta requested by the fragment MonitorV2LinkColumnMeta.
 type MonitorV2LinkColumnMeta struct {
 	// List of source fields used to link against the primary keys of the target dataset.
 	// Frontend only needs to provide the input for this field when it wants a preview of the template fields.
-	SrcFields []MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath `json:"srcFields"`
+	SrcFields []MonitorV2ColumnPath `json:"srcFields"`
 	// List of destination fields (a.k.a. primary keys) of the target dataset being linked against.
 	// Frontend only needs to provide the input for this field when it wants a preview of the template fields.
 	DstFields []string `json:"dstFields"`
@@ -5614,9 +4703,7 @@ type MonitorV2LinkColumnMeta struct {
 }
 
 // GetSrcFields returns MonitorV2LinkColumnMeta.SrcFields, and is useful for accessing the field via an interface.
-func (v *MonitorV2LinkColumnMeta) GetSrcFields() []MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath {
-	return v.SrcFields
-}
+func (v *MonitorV2LinkColumnMeta) GetSrcFields() []MonitorV2ColumnPath { return v.SrcFields }
 
 // GetDstFields returns MonitorV2LinkColumnMeta.DstFields, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnMeta) GetDstFields() []string { return v.DstFields }
@@ -5638,18 +4725,6 @@ func (v *MonitorV2LinkColumnMetaInput) GetDstFields() []string { return v.DstFie
 
 // GetTargetDataset returns MonitorV2LinkColumnMetaInput.TargetDataset, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnMetaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
-
-// MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath includes the requested fields of the GraphQL type MonitorV2ColumnPath.
-type MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath struct {
-	Name string  `json:"name"`
-	Path *string `json:"path"`
-}
-
-// GetName returns MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath.Name, and is useful for accessing the field via an interface.
-func (v *MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath) GetName() string { return v.Name }
-
-// GetPath returns MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath.Path, and is useful for accessing the field via an interface.
-func (v *MonitorV2LinkColumnMetaSrcFieldsMonitorV2ColumnPath) GetPath() *string { return v.Path }
 
 // MonitorV2Meta includes the requested fields of the GraphQL type MonitorV2Meta.
 type MonitorV2Meta struct {
@@ -5705,74 +4780,12 @@ type MonitorV2PromoteRule struct {
 	// If the field is left as an empty array by the frontend, all the rows of the dataset will be considered as an alert.
 	// For example, if the field is left empty and the level of the MonitorV2Rule is set at critical, all the rows of the dataset
 	// will be treated as a critical alert.
-	CompareColumns []MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison `json:"compareColumns"`
+	CompareColumns []MonitorV2ColumnComparison `json:"compareColumns"`
 }
 
 // GetCompareColumns returns MonitorV2PromoteRule.CompareColumns, and is useful for accessing the field via an interface.
-func (v *MonitorV2PromoteRule) GetCompareColumns() []MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison {
+func (v *MonitorV2PromoteRule) GetCompareColumns() []MonitorV2ColumnComparison {
 	return v.CompareColumns
-}
-
-// MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison includes the requested fields of the GraphQL type MonitorV2ColumnComparison.
-type MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison struct {
-	MonitorV2ColumnComparison `json:"-"`
-}
-
-// GetColumn returns MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison.Column, and is useful for accessing the field via an interface.
-func (v *MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison) GetColumn() MonitorV2ColumnComparisonColumnMonitorV2Column {
-	return v.MonitorV2ColumnComparison.Column
-}
-
-// GetCompareValues returns MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison) GetCompareValues() []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison {
-	return v.MonitorV2ColumnComparison.CompareValues
-}
-
-func (v *MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2ColumnComparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison struct {
-	Column MonitorV2ColumnComparisonColumnMonitorV2Column `json:"column"`
-
-	CompareValues []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison `json:"compareValues"`
-}
-
-func (v *MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison) __premarshalJSON() (*__premarshalMonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison, error) {
-	var retval __premarshalMonitorV2PromoteRuleCompareColumnsMonitorV2ColumnComparison
-
-	retval.Column = v.MonitorV2ColumnComparison.Column
-	retval.CompareValues = v.MonitorV2ColumnComparison.CompareValues
-	return &retval, nil
 }
 
 type MonitorV2PromoteRuleInput struct {
@@ -5806,6 +4819,27 @@ const (
 	MonitorV2RollupStatusRunning    MonitorV2RollupStatus = "Running"
 	MonitorV2RollupStatusTriggering MonitorV2RollupStatus = "Triggering"
 )
+
+// MonitorV2Rule includes the GraphQL fields of MonitorV2Rule requested by the fragment MonitorV2Rule.
+type MonitorV2Rule struct {
+	// Level is the severity level to assign to a rule's conditions being matched.
+	Level     MonitorV2AlarmLevel     `json:"level"`
+	Count     *MonitorV2CountRule     `json:"count"`
+	Threshold *MonitorV2ThresholdRule `json:"threshold"`
+	Promote   *MonitorV2PromoteRule   `json:"promote"`
+}
+
+// GetLevel returns MonitorV2Rule.Level, and is useful for accessing the field via an interface.
+func (v *MonitorV2Rule) GetLevel() MonitorV2AlarmLevel { return v.Level }
+
+// GetCount returns MonitorV2Rule.Count, and is useful for accessing the field via an interface.
+func (v *MonitorV2Rule) GetCount() *MonitorV2CountRule { return v.Count }
+
+// GetThreshold returns MonitorV2Rule.Threshold, and is useful for accessing the field via an interface.
+func (v *MonitorV2Rule) GetThreshold() *MonitorV2ThresholdRule { return v.Threshold }
+
+// GetPromote returns MonitorV2Rule.Promote, and is useful for accessing the field via an interface.
+func (v *MonitorV2Rule) GetPromote() *MonitorV2PromoteRule { return v.Promote }
 
 type MonitorV2RuleInput struct {
 	Level     MonitorV2AlarmLevel          `json:"level"`
@@ -5842,21 +4876,17 @@ const (
 // MonitorV2Scheduling includes the GraphQL fields of MonitorV2Scheduling requested by the fragment MonitorV2Scheduling.
 type MonitorV2Scheduling struct {
 	// Interval should be used to run explicit ad-hoc queries.
-	Interval *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule `json:"interval"`
+	Interval *MonitorV2IntervalSchedule `json:"interval"`
 	// Transform should be used to defer scheduling to the transformer and evaluate when data becomes
 	// available.
-	Transform *MonitorV2SchedulingTransformMonitorV2TransformSchedule `json:"transform"`
+	Transform *MonitorV2TransformSchedule `json:"transform"`
 }
 
 // GetInterval returns MonitorV2Scheduling.Interval, and is useful for accessing the field via an interface.
-func (v *MonitorV2Scheduling) GetInterval() *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule {
-	return v.Interval
-}
+func (v *MonitorV2Scheduling) GetInterval() *MonitorV2IntervalSchedule { return v.Interval }
 
 // GetTransform returns MonitorV2Scheduling.Transform, and is useful for accessing the field via an interface.
-func (v *MonitorV2Scheduling) GetTransform() *MonitorV2SchedulingTransformMonitorV2TransformSchedule {
-	return v.Transform
-}
+func (v *MonitorV2Scheduling) GetTransform() *MonitorV2TransformSchedule { return v.Transform }
 
 type MonitorV2SchedulingInput struct {
 	Interval  *MonitorV2IntervalScheduleInput  `json:"interval"`
@@ -5871,38 +4901,6 @@ func (v *MonitorV2SchedulingInput) GetTransform() *MonitorV2TransformScheduleInp
 	return v.Transform
 }
 
-// MonitorV2SchedulingIntervalMonitorV2IntervalSchedule includes the requested fields of the GraphQL type MonitorV2IntervalSchedule.
-type MonitorV2SchedulingIntervalMonitorV2IntervalSchedule struct {
-	// Interval is how often the monitor should attempt to run. This interval describes when the
-	// monitor enters the queue, but is not a guarantee of execution. Monitors are best-effort
-	// and also may be subject to QoS or rate limiting in the future.
-	Interval types.DurationScalar `json:"interval"`
-	// Randomize is a maximum +/- to apply to the interval to avoid things like harmonics and
-	// work stacking up in parallel. If interval is "10m" and randomize is "30s", then a random
-	// interval between 9m30s and 10m30s will be selected each run.
-	Randomize types.DurationScalar `json:"randomize"`
-}
-
-// GetInterval returns MonitorV2SchedulingIntervalMonitorV2IntervalSchedule.Interval, and is useful for accessing the field via an interface.
-func (v *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule) GetInterval() types.DurationScalar {
-	return v.Interval
-}
-
-// GetRandomize returns MonitorV2SchedulingIntervalMonitorV2IntervalSchedule.Randomize, and is useful for accessing the field via an interface.
-func (v *MonitorV2SchedulingIntervalMonitorV2IntervalSchedule) GetRandomize() types.DurationScalar {
-	return v.Randomize
-}
-
-// MonitorV2SchedulingTransformMonitorV2TransformSchedule includes the requested fields of the GraphQL type MonitorV2TransformSchedule.
-type MonitorV2SchedulingTransformMonitorV2TransformSchedule struct {
-	FreshnessGoal types.DurationScalar `json:"freshnessGoal"`
-}
-
-// GetFreshnessGoal returns MonitorV2SchedulingTransformMonitorV2TransformSchedule.FreshnessGoal, and is useful for accessing the field via an interface.
-func (v *MonitorV2SchedulingTransformMonitorV2TransformSchedule) GetFreshnessGoal() types.DurationScalar {
-	return v.FreshnessGoal
-}
-
 // MonitorV2ThresholdRule includes the GraphQL fields of MonitorV2ThresholdRule requested by the fragment MonitorV2ThresholdRule.
 type MonitorV2ThresholdRule struct {
 	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
@@ -5910,7 +4908,7 @@ type MonitorV2ThresholdRule struct {
 	// for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
 	// If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
 	// (one rule for < 80 and one rule for > 90).
-	CompareValues []MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison `json:"compareValues"`
+	CompareValues []MonitorV2Comparison `json:"compareValues"`
 	// ValueColumnName indicates which of the columns in the input query has the value to apply to the aggregation.
 	ValueColumnName string                    `json:"valueColumnName"`
 	Aggregation     MonitorV2ValueAggregation `json:"aggregation"`
@@ -5918,13 +4916,11 @@ type MonitorV2ThresholdRule struct {
 	// This gives the option to add extra dimension to the existing rule by specifying which column of
 	// the group the user looks forward to being alerted by. For example, this allows for rule expression
 	// like (Threshold > 80 and Group = "Good Group") which would trigger a critical alert.
-	CompareGroups []MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison `json:"compareGroups"`
+	CompareGroups []MonitorV2ColumnComparison `json:"compareGroups"`
 }
 
 // GetCompareValues returns MonitorV2ThresholdRule.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRule) GetCompareValues() []MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison {
-	return v.CompareValues
-}
+func (v *MonitorV2ThresholdRule) GetCompareValues() []MonitorV2Comparison { return v.CompareValues }
 
 // GetValueColumnName returns MonitorV2ThresholdRule.ValueColumnName, and is useful for accessing the field via an interface.
 func (v *MonitorV2ThresholdRule) GetValueColumnName() string { return v.ValueColumnName }
@@ -5933,132 +4929,8 @@ func (v *MonitorV2ThresholdRule) GetValueColumnName() string { return v.ValueCol
 func (v *MonitorV2ThresholdRule) GetAggregation() MonitorV2ValueAggregation { return v.Aggregation }
 
 // GetCompareGroups returns MonitorV2ThresholdRule.CompareGroups, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRule) GetCompareGroups() []MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison {
+func (v *MonitorV2ThresholdRule) GetCompareGroups() []MonitorV2ColumnComparison {
 	return v.CompareGroups
-}
-
-// MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison includes the requested fields of the GraphQL type MonitorV2ColumnComparison.
-type MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison struct {
-	MonitorV2ColumnComparison `json:"-"`
-}
-
-// GetColumn returns MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison.Column, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison) GetColumn() MonitorV2ColumnComparisonColumnMonitorV2Column {
-	return v.MonitorV2ColumnComparison.Column
-}
-
-// GetCompareValues returns MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison.CompareValues, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison) GetCompareValues() []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison {
-	return v.MonitorV2ColumnComparison.CompareValues
-}
-
-func (v *MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2ColumnComparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison struct {
-	Column MonitorV2ColumnComparisonColumnMonitorV2Column `json:"column"`
-
-	CompareValues []MonitorV2ColumnComparisonCompareValuesMonitorV2Comparison `json:"compareValues"`
-}
-
-func (v *MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison) __premarshalJSON() (*__premarshalMonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison, error) {
-	var retval __premarshalMonitorV2ThresholdRuleCompareGroupsMonitorV2ColumnComparison
-
-	retval.Column = v.MonitorV2ColumnComparison.Column
-	retval.CompareValues = v.MonitorV2ColumnComparison.CompareValues
-	return &retval, nil
-}
-
-// MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison includes the requested fields of the GraphQL type MonitorV2Comparison.
-type MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison struct {
-	MonitorV2Comparison `json:"-"`
-}
-
-// GetCompareFn returns MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison.CompareFn, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction {
-	return v.MonitorV2Comparison.CompareFn
-}
-
-// GetCompareValue returns MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
-func (v *MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison) GetCompareValue() MonitorV2ComparisonCompareValuePrimitiveValue {
-	return v.MonitorV2Comparison.CompareValue
-}
-
-func (v *MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2Comparison)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshalMonitorV2ThresholdRuleCompareValuesMonitorV2Comparison struct {
-	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
-
-	CompareValue MonitorV2ComparisonCompareValuePrimitiveValue `json:"compareValue"`
-}
-
-func (v *MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *MonitorV2ThresholdRuleCompareValuesMonitorV2Comparison) __premarshalJSON() (*__premarshalMonitorV2ThresholdRuleCompareValuesMonitorV2Comparison, error) {
-	var retval __premarshalMonitorV2ThresholdRuleCompareValuesMonitorV2Comparison
-
-	retval.CompareFn = v.MonitorV2Comparison.CompareFn
-	retval.CompareValue = v.MonitorV2Comparison.CompareValue
-	return &retval, nil
 }
 
 type MonitorV2ThresholdRuleInput struct {
@@ -6085,6 +4957,14 @@ func (v *MonitorV2ThresholdRuleInput) GetAggregation() MonitorV2ValueAggregation
 func (v *MonitorV2ThresholdRuleInput) GetCompareGroups() []MonitorV2ColumnComparisonInput {
 	return v.CompareGroups
 }
+
+// MonitorV2TransformSchedule includes the GraphQL fields of MonitorV2TransformSchedule requested by the fragment MonitorV2TransformSchedule.
+type MonitorV2TransformSchedule struct {
+	FreshnessGoal types.DurationScalar `json:"freshnessGoal"`
+}
+
+// GetFreshnessGoal returns MonitorV2TransformSchedule.FreshnessGoal, and is useful for accessing the field via an interface.
+func (v *MonitorV2TransformSchedule) GetFreshnessGoal() types.DurationScalar { return v.FreshnessGoal }
 
 type MonitorV2TransformScheduleInput struct {
 	FreshnessGoal types.DurationScalar `json:"freshnessGoal"`
@@ -7530,12 +6410,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool"`
-	Float64   *float64           `json:"float64"`
-	Int64     *types.Int64Scalar `json:"int64"`
-	String    *string            `json:"string"`
-	Timestamp *types.TimeScalar  `json:"timestamp"`
-	Duration  *types.Int64Scalar `json:"duration"`
+	Bool      *bool              `json:"bool,omitempty"`
+	Float64   *float64           `json:"float64,omitempty"`
+	Int64     *types.Int64Scalar `json:"int64,omitempty"`
+	String    *string            `json:"string,omitempty"`
+	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
+	Duration  *types.Int64Scalar `json:"duration,omitempty"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
@@ -11395,171 +10275,11 @@ func (v *lookupMonitorResponse) GetMonitor() *lookupMonitorMonitorProject { retu
 
 // lookupMonitorV2MonitorV2sMonitorV2SearchResult includes the requested fields of the GraphQL type MonitorV2SearchResult.
 type lookupMonitorV2MonitorV2sMonitorV2SearchResult struct {
-	Results []lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 `json:"results"`
+	Results []MonitorV2 `json:"results"`
 }
 
 // GetResults returns lookupMonitorV2MonitorV2sMonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResult) GetResults() []lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 {
-	return v.Results
-}
-
-// lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 includes the requested fields of the GraphQL type MonitorV2.
-type lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 struct {
-	MonitorV2 `json:"-"`
-}
-
-// GetId returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Id, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetId() string {
-	return v.MonitorV2.Id
-}
-
-// GetWorkspaceId returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.WorkspaceId, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetWorkspaceId() string {
-	return v.MonitorV2.WorkspaceId
-}
-
-// GetCreatedBy returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.CreatedBy, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetCreatedBy() types.UserIdScalar {
-	return v.MonitorV2.CreatedBy
-}
-
-// GetCreatedDate returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.CreatedDate, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetCreatedDate() types.TimeScalar {
-	return v.MonitorV2.CreatedDate
-}
-
-// GetName returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Name, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetName() string {
-	return v.MonitorV2.Name
-}
-
-// GetIconUrl returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.IconUrl, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetIconUrl() *string {
-	return v.MonitorV2.IconUrl
-}
-
-// GetDescription returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Description, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetDescription() *string {
-	return v.MonitorV2.Description
-}
-
-// GetManagedById returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.ManagedById, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetManagedById() *string {
-	return v.MonitorV2.ManagedById
-}
-
-// GetFolderId returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.FolderId, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetFolderId() string {
-	return v.MonitorV2.FolderId
-}
-
-// GetComment returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Comment, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetComment() *string {
-	return v.MonitorV2.Comment
-}
-
-// GetMeta returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Meta, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetMeta() *MonitorV2Meta {
-	return v.MonitorV2.Meta
-}
-
-// GetRollupStatus returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.RollupStatus, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetRollupStatus() MonitorV2RollupStatus {
-	return v.MonitorV2.RollupStatus
-}
-
-// GetRuleKind returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.RuleKind, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetRuleKind() MonitorV2RuleKind {
-	return v.MonitorV2.RuleKind
-}
-
-// GetDefinition returns lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2.Definition, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) GetDefinition() MonitorV2Definition {
-	return v.MonitorV2.Definition
-}
-
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) UnmarshalJSON(b []byte) error {
-
-	if string(b) == "null" {
-		return nil
-	}
-
-	var firstPass struct {
-		*lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2
-		graphql.NoUnmarshalJSON
-	}
-	firstPass.lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 = v
-
-	err := json.Unmarshal(b, &firstPass)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(
-		b, &v.MonitorV2)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type __premarshallookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2 struct {
-	Id string `json:"id"`
-
-	WorkspaceId string `json:"workspaceId"`
-
-	CreatedBy types.UserIdScalar `json:"createdBy"`
-
-	CreatedDate types.TimeScalar `json:"createdDate"`
-
-	Name string `json:"name"`
-
-	IconUrl *string `json:"iconUrl"`
-
-	Description *string `json:"description"`
-
-	ManagedById *string `json:"managedById"`
-
-	FolderId string `json:"folderId"`
-
-	Comment *string `json:"comment"`
-
-	Meta *MonitorV2Meta `json:"meta"`
-
-	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
-
-	RuleKind MonitorV2RuleKind `json:"ruleKind"`
-
-	Definition MonitorV2Definition `json:"definition"`
-}
-
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) MarshalJSON() ([]byte, error) {
-	premarshaled, err := v.__premarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(premarshaled)
-}
-
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2) __premarshalJSON() (*__premarshallookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2, error) {
-	var retval __premarshallookupMonitorV2MonitorV2sMonitorV2SearchResultResultsMonitorV2
-
-	retval.Id = v.MonitorV2.Id
-	retval.WorkspaceId = v.MonitorV2.WorkspaceId
-	retval.CreatedBy = v.MonitorV2.CreatedBy
-	retval.CreatedDate = v.MonitorV2.CreatedDate
-	retval.Name = v.MonitorV2.Name
-	retval.IconUrl = v.MonitorV2.IconUrl
-	retval.Description = v.MonitorV2.Description
-	retval.ManagedById = v.MonitorV2.ManagedById
-	retval.FolderId = v.MonitorV2.FolderId
-	retval.Comment = v.MonitorV2.Comment
-	retval.Meta = v.MonitorV2.Meta
-	retval.RollupStatus = v.MonitorV2.RollupStatus
-	retval.RuleKind = v.MonitorV2.RuleKind
-	retval.Definition = v.MonitorV2.Definition
-	return &retval, nil
-}
+func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
 
 // lookupMonitorV2Response is returned by lookupMonitorV2 on success.
 type lookupMonitorV2Response struct {
@@ -13182,47 +11902,26 @@ fragment MonitorV2 on MonitorV2 {
 	rollupStatus
 	ruleKind
 	definition {
-		inputQuery {
-			outputStage
-			stages {
-				... StageQuery
-			}
+		... MonitorV2Definition
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
 		}
-		rules {
-			level
-			count {
-				compareValues {
-					... MonitorV2Comparison
-				}
-				compareGroups {
-					compareValues {
-						... MonitorV2Comparison
-					}
-					column {
-						linkColumn {
-							... MonitorV2LinkColumn
-						}
-						columnPath {
-							... MonitorV2ColumnPath
-						}
-					}
-				}
-			}
-			threshold {
-				... MonitorV2ThresholdRule
-			}
-			promote {
-				... MonitorV2PromoteRule
-			}
-		}
-		lookbackTime
-		dataStabilizationDelay
-		groupings {
-			... MonitorV2Column
-		}
-		scheduling {
-			... MonitorV2Scheduling
-		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
 	}
 }
 fragment StageQuery on StageQuery {
@@ -13238,26 +11937,41 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-fragment MonitorV2Comparison on MonitorV2Comparison {
-	compareFn
-	compareValue {
-		... PrimitiveValue
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
 	}
 }
-fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
-	name
-	meta {
-		srcFields {
-			name
-			path
-		}
-		dstFields
-		targetDataset
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
 	}
 }
-fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
-	name
-	path
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -13274,30 +11988,28 @@ fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
 		... MonitorV2ColumnComparison
 	}
 }
-fragment MonitorV2Column on MonitorV2Column {
-	linkColumn {
-		... MonitorV2LinkColumn
-	}
-	columnPath {
-		... MonitorV2ColumnPath
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
 	}
 }
-fragment MonitorV2Scheduling on MonitorV2Scheduling {
-	interval {
-		interval
-		randomize
-	}
-	transform {
-		freshnessGoal
-	}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
 }
-fragment PrimitiveValue on PrimitiveValue {
-	bool
-	float64
-	int64
-	string
-	timestamp
-	duration
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
 }
 fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	column {
@@ -13306,6 +12018,21 @@ fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	compareValues {
 		... MonitorV2Comparison
 	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
 }
 `
 
@@ -16420,47 +15147,26 @@ fragment MonitorV2 on MonitorV2 {
 	rollupStatus
 	ruleKind
 	definition {
-		inputQuery {
-			outputStage
-			stages {
-				... StageQuery
-			}
+		... MonitorV2Definition
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
 		}
-		rules {
-			level
-			count {
-				compareValues {
-					... MonitorV2Comparison
-				}
-				compareGroups {
-					compareValues {
-						... MonitorV2Comparison
-					}
-					column {
-						linkColumn {
-							... MonitorV2LinkColumn
-						}
-						columnPath {
-							... MonitorV2ColumnPath
-						}
-					}
-				}
-			}
-			threshold {
-				... MonitorV2ThresholdRule
-			}
-			promote {
-				... MonitorV2PromoteRule
-			}
-		}
-		lookbackTime
-		dataStabilizationDelay
-		groupings {
-			... MonitorV2Column
-		}
-		scheduling {
-			... MonitorV2Scheduling
-		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
 	}
 }
 fragment StageQuery on StageQuery {
@@ -16476,26 +15182,41 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-fragment MonitorV2Comparison on MonitorV2Comparison {
-	compareFn
-	compareValue {
-		... PrimitiveValue
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
 	}
 }
-fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
-	name
-	meta {
-		srcFields {
-			name
-			path
-		}
-		dstFields
-		targetDataset
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
 	}
 }
-fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
-	name
-	path
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -16512,30 +15233,28 @@ fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
 		... MonitorV2ColumnComparison
 	}
 }
-fragment MonitorV2Column on MonitorV2Column {
-	linkColumn {
-		... MonitorV2LinkColumn
-	}
-	columnPath {
-		... MonitorV2ColumnPath
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
 	}
 }
-fragment MonitorV2Scheduling on MonitorV2Scheduling {
-	interval {
-		interval
-		randomize
-	}
-	transform {
-		freshnessGoal
-	}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
 }
-fragment PrimitiveValue on PrimitiveValue {
-	bool
-	float64
-	int64
-	string
-	timestamp
-	duration
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
 }
 fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	column {
@@ -16544,6 +15263,21 @@ fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	compareValues {
 		... MonitorV2Comparison
 	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
 }
 `
 
@@ -17782,47 +16516,26 @@ fragment MonitorV2 on MonitorV2 {
 	rollupStatus
 	ruleKind
 	definition {
-		inputQuery {
-			outputStage
-			stages {
-				... StageQuery
-			}
+		... MonitorV2Definition
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
 		}
-		rules {
-			level
-			count {
-				compareValues {
-					... MonitorV2Comparison
-				}
-				compareGroups {
-					compareValues {
-						... MonitorV2Comparison
-					}
-					column {
-						linkColumn {
-							... MonitorV2LinkColumn
-						}
-						columnPath {
-							... MonitorV2ColumnPath
-						}
-					}
-				}
-			}
-			threshold {
-				... MonitorV2ThresholdRule
-			}
-			promote {
-				... MonitorV2PromoteRule
-			}
-		}
-		lookbackTime
-		dataStabilizationDelay
-		groupings {
-			... MonitorV2Column
-		}
-		scheduling {
-			... MonitorV2Scheduling
-		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
 	}
 }
 fragment StageQuery on StageQuery {
@@ -17838,26 +16551,41 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-fragment MonitorV2Comparison on MonitorV2Comparison {
-	compareFn
-	compareValue {
-		... PrimitiveValue
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
 	}
 }
-fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
-	name
-	meta {
-		srcFields {
-			name
-			path
-		}
-		dstFields
-		targetDataset
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
 	}
 }
-fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
-	name
-	path
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -17874,30 +16602,28 @@ fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
 		... MonitorV2ColumnComparison
 	}
 }
-fragment MonitorV2Column on MonitorV2Column {
-	linkColumn {
-		... MonitorV2LinkColumn
-	}
-	columnPath {
-		... MonitorV2ColumnPath
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
 	}
 }
-fragment MonitorV2Scheduling on MonitorV2Scheduling {
-	interval {
-		interval
-		randomize
-	}
-	transform {
-		freshnessGoal
-	}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
 }
-fragment PrimitiveValue on PrimitiveValue {
-	bool
-	float64
-	int64
-	string
-	timestamp
-	duration
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
 }
 fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	column {
@@ -17906,6 +16632,21 @@ fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	compareValues {
 		... MonitorV2Comparison
 	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
 }
 `
 
@@ -19707,47 +18448,26 @@ fragment MonitorV2 on MonitorV2 {
 	rollupStatus
 	ruleKind
 	definition {
-		inputQuery {
-			outputStage
-			stages {
-				... StageQuery
-			}
+		... MonitorV2Definition
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
 		}
-		rules {
-			level
-			count {
-				compareValues {
-					... MonitorV2Comparison
-				}
-				compareGroups {
-					compareValues {
-						... MonitorV2Comparison
-					}
-					column {
-						linkColumn {
-							... MonitorV2LinkColumn
-						}
-						columnPath {
-							... MonitorV2ColumnPath
-						}
-					}
-				}
-			}
-			threshold {
-				... MonitorV2ThresholdRule
-			}
-			promote {
-				... MonitorV2PromoteRule
-			}
-		}
-		lookbackTime
-		dataStabilizationDelay
-		groupings {
-			... MonitorV2Column
-		}
-		scheduling {
-			... MonitorV2Scheduling
-		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
 	}
 }
 fragment StageQuery on StageQuery {
@@ -19763,26 +18483,41 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
-fragment MonitorV2Comparison on MonitorV2Comparison {
-	compareFn
-	compareValue {
-		... PrimitiveValue
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
 	}
 }
-fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
-	name
-	meta {
-		srcFields {
-			name
-			path
-		}
-		dstFields
-		targetDataset
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
 	}
 }
-fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
-	name
-	path
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -19799,30 +18534,28 @@ fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
 		... MonitorV2ColumnComparison
 	}
 }
-fragment MonitorV2Column on MonitorV2Column {
-	linkColumn {
-		... MonitorV2LinkColumn
-	}
-	columnPath {
-		... MonitorV2ColumnPath
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
 	}
 }
-fragment MonitorV2Scheduling on MonitorV2Scheduling {
-	interval {
-		interval
-		randomize
-	}
-	transform {
-		freshnessGoal
-	}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
 }
-fragment PrimitiveValue on PrimitiveValue {
-	bool
-	float64
-	int64
-	string
-	timestamp
-	duration
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
 }
 fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	column {
@@ -19831,6 +18564,21 @@ fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
 	compareValues {
 		... MonitorV2Comparison
 	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
 }
 `
 
