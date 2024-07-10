@@ -52,7 +52,6 @@ func Get(filename string, fields ...string) string {
 	}
 	s, ok := contents.(string)
 	if !ok {
-		return s
 		panic(fmt.Sprintf("failed to load %s description from %s\n", fields, filename))
 	}
 	return s
