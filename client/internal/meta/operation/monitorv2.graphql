@@ -154,14 +154,6 @@ fragment MonitorV2 on MonitorV2 {
     managedById
     folderId
     comment
-    meta {
-        lastErrorTime
-        lastWarningTime
-        lastAlarmTime
-        outputDatasetID
-        nextScheduledTime
-        lastScheduleBookmark
-    }
     rollupStatus
     ruleKind
     # @genqlient(flatten: true)

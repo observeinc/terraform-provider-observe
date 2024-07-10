@@ -2666,8 +2666,8 @@ type InputDefinitionInput struct {
 	// Format of datasetPath is projectlabel.datasetlabel
 	DatasetPath *string `json:"datasetPath"`
 	// Reference a previous query in the worksheet by label
-	StageID *string `json:"stageID,omitempty"`
-	StageId *string `json:"stageId,omitempty"`
+	StageID *string `json:"stageID"`
+	StageId *string `json:"stageId"`
 	// If this input is parameterized, this will contain the ID of the parameter to substitute for this input. Parameters
 	// are bound in the QueryParams for the query being issued with this input.
 	ParameterId *string `json:"parameterId"`
@@ -4299,7 +4299,6 @@ type MonitorV2 struct {
 	// A longer description of the monitor.
 	// This can include details like how to resolve the issue, links to runbooks, etc.
 	Comment      *string               `json:"comment"`
-	Meta         *MonitorV2Meta        `json:"meta"`
 	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
@@ -4335,9 +4334,6 @@ func (v *MonitorV2) GetFolderId() string { return v.FolderId }
 
 // GetComment returns MonitorV2.Comment, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetComment() *string { return v.Comment }
-
-// GetMeta returns MonitorV2.Meta, and is useful for accessing the field via an interface.
-func (v *MonitorV2) GetMeta() *MonitorV2Meta { return v.Meta }
 
 // GetRollupStatus returns MonitorV2.RollupStatus, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetRollupStatus() MonitorV2RollupStatus { return v.RollupStatus }
@@ -4725,52 +4721,6 @@ func (v *MonitorV2LinkColumnMetaInput) GetDstFields() []string { return v.DstFie
 
 // GetTargetDataset returns MonitorV2LinkColumnMetaInput.TargetDataset, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnMetaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
-
-// MonitorV2Meta includes the requested fields of the GraphQL type MonitorV2Meta.
-type MonitorV2Meta struct {
-	// The timestamp of the last error message emited to the monitoring datastream.
-	// This value can be filtered or used to inform whether the user should be directed to
-	// investigate the monitor's log messages for problems to remediate. These messages
-	// indicate fatal errors that prevent the monitor from working.
-	LastErrorTime *types.TimeScalar `json:"lastErrorTime"`
-	// The timestamp of the last warning message emited to the monitoring datastream.
-	// This value can also be filtered to inform a user if deeper investigation should
-	// be done.
-	// Warning messages indicate a degraded monitor, which is one that can emit results but
-	// cannot perform all functions or perform them optimally for some reason.
-	LastWarningTime *types.TimeScalar `json:"lastWarningTime"`
-	// The timestamp of the last alarm this monitor generated.
-	// This value can be filtered or used to inform if the user should look into the historical
-	// log of detection events.
-	// note: This value may be quite recent but for a non-active alarm in the case the event detected
-	// was a one-shot event.
-	LastAlarmTime *types.TimeScalar `json:"lastAlarmTime"`
-	// The output dataset identifier of this monitor. This can be used to query information about the
-	// dataset and all upstream dependencies using dataset APIs for transform-based monitors.
-	OutputDatasetID *string `json:"outputDatasetID"`
-	// The expected next time this monitor will run if it's a schedule-based monitor.
-	NextScheduledTime *types.TimeScalar `json:"nextScheduledTime"`
-	// The expected next time this monitor will run if it's a schedule-based monitor.
-	LastScheduleBookmark *types.TimeScalar `json:"lastScheduleBookmark"`
-}
-
-// GetLastErrorTime returns MonitorV2Meta.LastErrorTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetLastErrorTime() *types.TimeScalar { return v.LastErrorTime }
-
-// GetLastWarningTime returns MonitorV2Meta.LastWarningTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetLastWarningTime() *types.TimeScalar { return v.LastWarningTime }
-
-// GetLastAlarmTime returns MonitorV2Meta.LastAlarmTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetLastAlarmTime() *types.TimeScalar { return v.LastAlarmTime }
-
-// GetOutputDatasetID returns MonitorV2Meta.OutputDatasetID, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetOutputDatasetID() *string { return v.OutputDatasetID }
-
-// GetNextScheduledTime returns MonitorV2Meta.NextScheduledTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetNextScheduledTime() *types.TimeScalar { return v.NextScheduledTime }
-
-// GetLastScheduleBookmark returns MonitorV2Meta.LastScheduleBookmark, and is useful for accessing the field via an interface.
-func (v *MonitorV2Meta) GetLastScheduleBookmark() *types.TimeScalar { return v.LastScheduleBookmark }
 
 // MonitorV2PromoteRule includes the GraphQL fields of MonitorV2PromoteRule requested by the fragment MonitorV2PromoteRule.
 type MonitorV2PromoteRule struct {
@@ -6410,12 +6360,12 @@ func (v *PrimitiveValue) GetTimestamp() *types.TimeScalar { return v.Timestamp }
 func (v *PrimitiveValue) GetDuration() *types.Int64Scalar { return v.Duration }
 
 type PrimitiveValueInput struct {
-	Bool      *bool              `json:"bool,omitempty"`
-	Float64   *float64           `json:"float64,omitempty"`
-	Int64     *types.Int64Scalar `json:"int64,omitempty"`
-	String    *string            `json:"string,omitempty"`
-	Timestamp *types.TimeScalar  `json:"timestamp,omitempty"`
-	Duration  *types.Int64Scalar `json:"duration,omitempty"`
+	Bool      *bool              `json:"bool"`
+	Float64   *float64           `json:"float64"`
+	Int64     *types.Int64Scalar `json:"int64"`
+	String    *string            `json:"string"`
+	Timestamp *types.TimeScalar  `json:"timestamp"`
+	Duration  *types.Int64Scalar `json:"duration"`
 }
 
 // GetBool returns PrimitiveValueInput.Bool, and is useful for accessing the field via an interface.
@@ -7208,10 +7158,10 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
-	StageID *string `json:"stageID,omitempty"`
-	StageId *string `json:"stageId,omitempty"`
+	StageID *string `json:"stageID"`
+	StageId *string `json:"stageId"`
 	// make id required when we've removed all deprecated use of stageId
-	Id              *string                 `json:"id,omitempty"`
+	Id              *string                 `json:"id"`
 	Input           []InputDefinitionInput  `json:"input"`
 	Pipeline        string                  `json:"pipeline"`
 	Layout          *types.JsonObject       `json:"layout"`
@@ -11891,14 +11841,6 @@ fragment MonitorV2 on MonitorV2 {
 	managedById
 	folderId
 	comment
-	meta {
-		lastErrorTime
-		lastWarningTime
-		lastAlarmTime
-		outputDatasetID
-		nextScheduledTime
-		lastScheduleBookmark
-	}
 	rollupStatus
 	ruleKind
 	definition {
@@ -15136,14 +15078,6 @@ fragment MonitorV2 on MonitorV2 {
 	managedById
 	folderId
 	comment
-	meta {
-		lastErrorTime
-		lastWarningTime
-		lastAlarmTime
-		outputDatasetID
-		nextScheduledTime
-		lastScheduleBookmark
-	}
 	rollupStatus
 	ruleKind
 	definition {
@@ -16505,14 +16439,6 @@ fragment MonitorV2 on MonitorV2 {
 	managedById
 	folderId
 	comment
-	meta {
-		lastErrorTime
-		lastWarningTime
-		lastAlarmTime
-		outputDatasetID
-		nextScheduledTime
-		lastScheduleBookmark
-	}
 	rollupStatus
 	ruleKind
 	definition {
@@ -18437,14 +18363,6 @@ fragment MonitorV2 on MonitorV2 {
 	managedById
 	folderId
 	comment
-	meta {
-		lastErrorTime
-		lastWarningTime
-		lastAlarmTime
-		outputDatasetID
-		nextScheduledTime
-		lastScheduleBookmark
-	}
 	rollupStatus
 	ruleKind
 	definition {

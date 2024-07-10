@@ -57,6 +57,10 @@ Required:
 
 - `compare_values` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules--count--compare_values))
 
+Optional:
+
+- `compare_groups` (Block List) (see [below for nested schema](#nestedblock--rules--count--compare_groups))
+
 <a id="nestedblock--rules--count--compare_values"></a>
 ### Nested Schema for `rules.count.compare_values`
 
@@ -72,6 +76,87 @@ Optional:
 - `value_int64` (List of Number)
 - `value_string` (List of String)
 - `value_timestamp` (List of String)
+
+
+<a id="nestedblock--rules--count--compare_groups"></a>
+### Nested Schema for `rules.count.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--rules--count--compare_groups--column))
+- `compare_values` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules--count--compare_groups--compare_values))
+
+<a id="nestedblock--rules--count--compare_groups--column"></a>
+### Nested Schema for `rules.count.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--column_path))
+- `link_column` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--count--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.count.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `path` (String)
+
+
+<a id="nestedblock--rules--count--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.count.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `meta` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column--meta))
+
+<a id="nestedblock--rules--count--compare_groups--column--link_column--meta"></a>
+### Nested Schema for `rules.count.compare_groups.column.link_column.meta`
+
+Optional:
+
+- `dst_fields` (List of String)
+- `src_fields` (Block List) (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column--meta--src_fields))
+- `target_dataset` (Number)
+
+<a id="nestedblock--rules--count--compare_groups--column--link_column--meta--src_fields"></a>
+### Nested Schema for `rules.count.compare_groups.column.link_column.meta.src_fields`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `path` (String)
+
+
+
+
+
+<a id="nestedblock--rules--count--compare_groups--compare_values"></a>
+### Nested Schema for `rules.count.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String)
+
+Optional:
+
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
+
 
 
 
@@ -173,6 +258,10 @@ Required:
 - `compare_values` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
 - `value_column_name` (String)
 
+Optional:
+
+- `compare_groups` (Block List) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups))
+
 <a id="nestedblock--rules--threshold--compare_values"></a>
 ### Nested Schema for `rules.threshold.compare_values`
 
@@ -188,6 +277,87 @@ Optional:
 - `value_int64` (List of Number)
 - `value_string` (List of String)
 - `value_timestamp` (List of String)
+
+
+<a id="nestedblock--rules--threshold--compare_groups"></a>
+### Nested Schema for `rules.threshold.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column))
+- `compare_values` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--compare_values))
+
+<a id="nestedblock--rules--threshold--compare_groups--column"></a>
+### Nested Schema for `rules.threshold.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--column_path))
+- `link_column` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--threshold--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `path` (String)
+
+
+<a id="nestedblock--rules--threshold--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `meta` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column--meta))
+
+<a id="nestedblock--rules--threshold--compare_groups--column--link_column--meta"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.link_column.meta`
+
+Optional:
+
+- `dst_fields` (List of String)
+- `src_fields` (Block List) (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column--meta--src_fields))
+- `target_dataset` (Number)
+
+<a id="nestedblock--rules--threshold--compare_groups--column--link_column--meta--src_fields"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.link_column.meta.src_fields`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `path` (String)
+
+
+
+
+
+<a id="nestedblock--rules--threshold--compare_groups--compare_values"></a>
+### Nested Schema for `rules.threshold.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String)
+
+Optional:
+
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
+
 
 
 
