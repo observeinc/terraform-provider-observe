@@ -19,6 +19,59 @@ import (
 // annoying to change varnames in 3 non-obvious places
 
 func resourceMonitorV2() *schema.Resource {
+	// monitorV2Comparison := &schema.Resource{
+	// 		Schema: map[string]*schema.Schema{ 
+	// 			"compare_fn": { // MonitorV2ComparisonFunction!
+	// 				Type:             schema.TypeString,
+	// 				Required:         true,
+	// 				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+	// 			},
+	// 			"value_int64": { // Int64
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem:     &schema.Schema{Type: schema.TypeInt},
+	// 			},
+	// 			"value_float64": { // Float
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem:     &schema.Schema{Type: schema.TypeFloat},
+	// 			},
+	// 			"value_bool": { // Boolean
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem:     &schema.Schema{Type: schema.TypeBool},
+	// 			},
+	// 			"value_string": { // String
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem:     &schema.Schema{Type: schema.TypeString},
+	// 			},
+	// 			"value_duration": { // Int64
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem: &schema.Schema{
+	// 					Type:             schema.TypeBool,
+	// 					ValidateDiagFunc: validateTimeDuration,
+	// 					DiffSuppressFunc: diffSuppressDuration,
+	// 				},
+	// 			},
+	// 			"value_timestamp": { // Time
+	// 				Type:     schema.TypeList,
+	// 				Optional: true,
+	// 				MaxItems: 1,
+	// 				Elem: &schema.Schema{
+	// 					Type:             schema.TypeString,
+	// 					ValidateDiagFunc: validateTimestamp,
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2Create,
 		ReadContext:   resourceMonitorV2Read,
@@ -56,11 +109,6 @@ func resourceMonitorV2() *schema.Resource {
 			"managed_by_id": { // ObjectId
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateOID(oid.TypeUser),
-				Optional:         true,
-			},
-			"folder_id": { // ObjectId
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateOID(oid.TypeFolder),
 				Optional:         true,
 			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
@@ -114,7 +162,6 @@ func resourceMonitorV2() *schema.Resource {
 						"count": { // MonitorV2CountRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -123,7 +170,7 @@ func resourceMonitorV2() *schema.Resource {
 										Required: true,
 										MinItems: 1,
 										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput
+											Schema: map[string]*schema.Schema{ 
 												"compare_fn": { // MonitorV2ComparisonFunction!
 													Type:             schema.TypeString,
 													Required:         true,
@@ -133,35 +180,30 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeInt},
 												},
 												"value_float64": { // Float
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeFloat},
 												},
 												"value_bool": { // Boolean
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeBool},
 												},
 												"value_string": { // String
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 												"value_duration": { // Int64
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem: &schema.Schema{
 														Type:             schema.TypeBool,
 														ValidateDiagFunc: validateTimeDuration,
@@ -172,7 +214,6 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem: &schema.Schema{
 														Type:             schema.TypeString,
 														ValidateDiagFunc: validateTimestamp,
@@ -184,7 +225,6 @@ func resourceMonitorV2() *schema.Resource {
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"compare_values": { // [MonitorV2ComparisonInput!]!
@@ -202,35 +242,30 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeInt},
 															},
 															"value_float64": { // Float
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeFloat},
 															},
 															"value_bool": { // Boolean
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeBool},
 															},
 															"value_string": { // String
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeString},
 															},
 															"value_duration": { // Int64
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeBool,
 																	ValidateDiagFunc: validateTimeDuration,
@@ -241,7 +276,6 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeString,
 																	ValidateDiagFunc: validateTimestamp,
@@ -250,7 +284,7 @@ func resourceMonitorV2() *schema.Resource {
 														},
 													},
 												},
-												"column": {
+												"column": { // MonitorV2ColumnInput!
 													Type:     schema.TypeList,
 													Required: true,
 													MinItems: 1,
@@ -260,7 +294,6 @@ func resourceMonitorV2() *schema.Resource {
 															"link_column": { // MonitorV2LinkColumnInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -271,14 +304,12 @@ func resourceMonitorV2() *schema.Resource {
 																		"meta": { // MonitorV2LinkColumnMetaInput
 																			Type:     schema.TypeList,
 																			Optional: true,
-																			MinItems: 1,
 																			MaxItems: 1,
 																			Elem: &schema.Resource{
 																				Schema: map[string]*schema.Schema{
 																					"src_fields": { // [MonitorV2ColumnPathInput!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem: &schema.Resource{
 																							Schema: map[string]*schema.Schema{
 																								"name": { // String!
@@ -295,7 +326,6 @@ func resourceMonitorV2() *schema.Resource {
 																					"dst_fields": { // [String!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem:     &schema.Schema{Type: schema.TypeString},
 																					},
 																					"target_dataset": { // Int64
@@ -311,7 +341,6 @@ func resourceMonitorV2() *schema.Resource {
 															"column_path": { // MonitorV2ColumnPathInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -338,7 +367,6 @@ func resourceMonitorV2() *schema.Resource {
 						"threshold": { // MonitorV2ThresholdRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -357,35 +385,30 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeInt},
 												},
 												"value_float64": { // Float
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeFloat},
 												},
 												"value_bool": { // Boolean
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeBool},
 												},
 												"value_string": { // String
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 												"value_duration": { // Int64
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem: &schema.Schema{
 														Type:             schema.TypeBool,
 														ValidateDiagFunc: validateTimeDuration,
@@ -396,7 +419,6 @@ func resourceMonitorV2() *schema.Resource {
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													MinItems: 1,
 													Elem: &schema.Schema{
 														Type:             schema.TypeString,
 														ValidateDiagFunc: validateTimestamp,
@@ -417,7 +439,6 @@ func resourceMonitorV2() *schema.Resource {
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"compare_values": { // [MonitorV2ComparisonInput!]!
@@ -435,35 +456,30 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeInt},
 															},
 															"value_float64": { // Float
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeFloat},
 															},
 															"value_bool": { // Boolean
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeBool},
 															},
 															"value_string": { // String
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeString},
 															},
 															"value_duration": { // Int64
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeBool,
 																	ValidateDiagFunc: validateTimeDuration,
@@ -474,7 +490,6 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeString,
 																	ValidateDiagFunc: validateTimestamp,
@@ -486,14 +501,12 @@ func resourceMonitorV2() *schema.Resource {
 												"column": {
 													Type:     schema.TypeList,
 													Required: true,
-													MinItems: 1,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"link_column": { // MonitorV2LinkColumnInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -504,14 +517,12 @@ func resourceMonitorV2() *schema.Resource {
 																		"meta": { // MonitorV2LinkColumnMetaInput
 																			Type:     schema.TypeList,
 																			Optional: true,
-																			MinItems: 1,
 																			MaxItems: 1,
 																			Elem: &schema.Resource{
 																				Schema: map[string]*schema.Schema{
 																					"src_fields": { // [MonitorV2ColumnPathInput!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem: &schema.Resource{
 																							Schema: map[string]*schema.Schema{
 																								"name": { // String!
@@ -528,7 +539,6 @@ func resourceMonitorV2() *schema.Resource {
 																					"dst_fields": { // [String!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem:     &schema.Schema{Type: schema.TypeString},
 																					},
 																					"target_dataset": { // Int64
@@ -544,7 +554,6 @@ func resourceMonitorV2() *schema.Resource {
 															"column_path": { // MonitorV2ColumnPathInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -571,14 +580,12 @@ func resourceMonitorV2() *schema.Resource {
 						"promote": { // MonitorV2PromoteRuleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"compare_values": { // [MonitorV2ComparisonInput!]!
@@ -596,35 +603,30 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeInt},
 															},
 															"value_float64": { // Float
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeFloat},
 															},
 															"value_bool": { // Boolean
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeBool},
 															},
 															"value_string": { // String
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem:     &schema.Schema{Type: schema.TypeString},
 															},
 															"value_duration": { // Int64
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeBool,
 																	ValidateDiagFunc: validateTimeDuration,
@@ -635,7 +637,6 @@ func resourceMonitorV2() *schema.Resource {
 																Type:     schema.TypeList,
 																Optional: true,
 																MaxItems: 1,
-																MinItems: 1,
 																Elem: &schema.Schema{
 																	Type:             schema.TypeString,
 																	ValidateDiagFunc: validateTimestamp,
@@ -654,7 +655,6 @@ func resourceMonitorV2() *schema.Resource {
 															"link_column": { // MonitorV2LinkColumnInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -665,14 +665,12 @@ func resourceMonitorV2() *schema.Resource {
 																		"meta": { // MonitorV2LinkColumnMetaInput
 																			Type:     schema.TypeList,
 																			Optional: true,
-																			MinItems: 1,
 																			MaxItems: 1,
 																			Elem: &schema.Resource{
 																				Schema: map[string]*schema.Schema{
 																					"src_fields": { // [MonitorV2ColumnPathInput!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem: &schema.Resource{
 																							Schema: map[string]*schema.Schema{
 																								"name": { // String!
@@ -689,7 +687,6 @@ func resourceMonitorV2() *schema.Resource {
 																					"dst_fields": { // [String!]
 																						Type:     schema.TypeList,
 																						Optional: true,
-																						MinItems: 1,
 																						Elem:     &schema.Schema{Type: schema.TypeString},
 																					},
 																					"target_dataset": { // Int64
@@ -705,7 +702,6 @@ func resourceMonitorV2() *schema.Resource {
 															"column_path": { // MonitorV2ColumnPathInput
 																Type:     schema.TypeList,
 																Optional: true,
-																MinItems: 1,
 																MaxItems: 1,
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -747,13 +743,11 @@ func resourceMonitorV2() *schema.Resource {
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"link_column": { // MonitorV2LinkColumnInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -764,7 +758,6 @@ func resourceMonitorV2() *schema.Resource {
 									"src_fields": { // MonitorV2LinkColumnMetaInput.[MonitorV2ColumnPathInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": { // String!
@@ -781,7 +774,6 @@ func resourceMonitorV2() *schema.Resource {
 									"dst_fields": { // MonitorV2LinkColumnMetaInput.[String!]
 										Type:     schema.TypeList,
 										Optional: true,
-										MinItems: 1,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"target_dataset": { // MonitorV2LinkColumnMetaInput.Int64
@@ -794,7 +786,6 @@ func resourceMonitorV2() *schema.Resource {
 						"column_path": { // MonitorV2ColumnPathInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -816,13 +807,11 @@ func resourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": { // MonitorV2IntervalScheduleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -844,7 +833,6 @@ func resourceMonitorV2() *schema.Resource {
 						"transform": { // MonitorV2TransformScheduleInput
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -871,6 +859,12 @@ func resourceMonitorV2() *schema.Resource {
 }
 
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	if _, ok := data.GetOk("foobar"); ok {
+		panic("foobar detected")
+	} else {
+		panic("foobar not detected")
+	}
+
 	client := meta.(*observe.Client)
 
 	input, diags := newMonitorV2Input(data)
