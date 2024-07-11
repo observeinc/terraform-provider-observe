@@ -452,6 +452,8 @@ const (
 	BookmarkKindMetricexplorer   BookmarkKind = "MetricExplorer"
 	BookmarkKindResourceexplorer BookmarkKind = "ResourceExplorer"
 	BookmarkKindTraceexplorer    BookmarkKind = "TraceExplorer"
+	BookmarkKindAlertexplorer    BookmarkKind = "AlertExplorer"
+	BookmarkKindServiceexplorer  BookmarkKind = "ServiceExplorer"
 )
 
 type ChangeType string
@@ -1810,11 +1812,13 @@ func (v *Datastream) GetWorkspaceId() string { return v.WorkspaceId }
 func (v *Datastream) GetDatasetId() string { return v.DatasetId }
 
 type DatastreamInput struct {
-	Name             string  `json:"name"`
-	Description      *string `json:"description"`
-	IconUrl          *string `json:"iconUrl"`
-	Disabled         *bool   `json:"disabled"`
-	ExternalSourceId *string `json:"externalSourceId"`
+	Name             string                     `json:"name"`
+	Description      *string                    `json:"description"`
+	IconUrl          *string                    `json:"iconUrl"`
+	Disabled         *bool                      `json:"disabled"`
+	ExternalSourceId *string                    `json:"externalSourceId"`
+	PrometheusInput  *DatastreamPrometheusInput `json:"prometheusInput"`
+	OtelLogsInput    *DatastreamOtelLogsInput   `json:"otelLogsInput"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -1831,6 +1835,30 @@ func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
 
 // GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
+
+// GetPrometheusInput returns DatastreamInput.PrometheusInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetPrometheusInput() *DatastreamPrometheusInput { return v.PrometheusInput }
+
+// GetOtelLogsInput returns DatastreamInput.OtelLogsInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetOtelLogsInput() *DatastreamOtelLogsInput { return v.OtelLogsInput }
+
+type DatastreamOtelLogsInput struct {
+	Enabled bool `json:"enabled"`
+}
+
+// GetEnabled returns DatastreamOtelLogsInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamOtelLogsInput) GetEnabled() bool { return v.Enabled }
+
+type DatastreamPrometheusInput struct {
+	Enabled      bool  `json:"enabled"`
+	UseTransform *bool `json:"useTransform"`
+}
+
+// GetEnabled returns DatastreamPrometheusInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamPrometheusInput) GetEnabled() bool { return v.Enabled }
+
+// GetUseTransform returns DatastreamPrometheusInput.UseTransform, and is useful for accessing the field via an interface.
+func (v *DatastreamPrometheusInput) GetUseTransform() *bool { return v.UseTransform }
 
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
@@ -4589,62 +4617,103 @@ func (v *PollerChunkInput) GetEnabled() bool { return v.Enabled }
 // GetSize returns PollerChunkInput.Size, and is useful for accessing the field via an interface.
 func (v *PollerChunkInput) GetSize() *types.Int64Scalar { return v.Size }
 
-type PollerCloudwatchMetricsFilterDimensionInput struct {
+type PollerCloudWatchMetricsDimensionFilterInput struct {
 	Name  string  `json:"name"`
 	Value *string `json:"value"`
 }
 
-// GetName returns PollerCloudwatchMetricsFilterDimensionInput.Name, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsFilterDimensionInput) GetName() string { return v.Name }
+// GetName returns PollerCloudWatchMetricsDimensionFilterInput.Name, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsDimensionFilterInput) GetName() string { return v.Name }
 
-// GetValue returns PollerCloudwatchMetricsFilterDimensionInput.Value, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsFilterDimensionInput) GetValue() *string { return v.Value }
+// GetValue returns PollerCloudWatchMetricsDimensionFilterInput.Value, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsDimensionFilterInput) GetValue() *string { return v.Value }
 
-type PollerCloudwatchMetricsFilterInput struct {
-	Namespace   string                                        `json:"namespace"`
-	MetricNames []string                                      `json:"metricNames"`
-	Dimensions  []PollerCloudwatchMetricsFilterDimensionInput `json:"dimensions"`
+type PollerCloudWatchMetricsInput struct {
+	Period        types.Int64Scalar                   `json:"period"`
+	Delay         types.Int64Scalar                   `json:"delay"`
+	Queries       []PollerCloudWatchMetricsQueryInput `json:"queries"`
+	Region        string                              `json:"region"`
+	AssumeRoleArn string                              `json:"assumeRoleArn"`
 }
 
-// GetNamespace returns PollerCloudwatchMetricsFilterInput.Namespace, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsFilterInput) GetNamespace() string { return v.Namespace }
+// GetPeriod returns PollerCloudWatchMetricsInput.Period, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetPeriod() types.Int64Scalar { return v.Period }
 
-// GetMetricNames returns PollerCloudwatchMetricsFilterInput.MetricNames, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsFilterInput) GetMetricNames() []string { return v.MetricNames }
+// GetDelay returns PollerCloudWatchMetricsInput.Delay, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetDelay() types.Int64Scalar { return v.Delay }
 
-// GetDimensions returns PollerCloudwatchMetricsFilterInput.Dimensions, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsFilterInput) GetDimensions() []PollerCloudwatchMetricsFilterDimensionInput {
+// GetQueries returns PollerCloudWatchMetricsInput.Queries, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetQueries() []PollerCloudWatchMetricsQueryInput {
+	return v.Queries
+}
+
+// GetRegion returns PollerCloudWatchMetricsInput.Region, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetRegion() string { return v.Region }
+
+// GetAssumeRoleArn returns PollerCloudWatchMetricsInput.AssumeRoleArn, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
+type PollerCloudWatchMetricsQueryInput struct {
+	Namespace      string                                        `json:"namespace"`
+	MetricNames    []string                                      `json:"metricNames"`
+	Dimensions     []PollerCloudWatchMetricsDimensionFilterInput `json:"dimensions"`
+	ResourceFilter *PollerCloudWatchMetricsResourceFilterInput   `json:"resourceFilter"`
+}
+
+// GetNamespace returns PollerCloudWatchMetricsQueryInput.Namespace, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsQueryInput) GetNamespace() string { return v.Namespace }
+
+// GetMetricNames returns PollerCloudWatchMetricsQueryInput.MetricNames, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsQueryInput) GetMetricNames() []string { return v.MetricNames }
+
+// GetDimensions returns PollerCloudWatchMetricsQueryInput.Dimensions, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsQueryInput) GetDimensions() []PollerCloudWatchMetricsDimensionFilterInput {
 	return v.Dimensions
 }
 
-type PollerCloudwatchMetricsInput struct {
-	Filters []PollerCloudwatchMetricsFilterInput `json:"filters"`
-	Delay   *types.Int64Scalar                   `json:"delay"`
-	Period  *types.Int64Scalar                   `json:"period"`
-	Region  []string                             `json:"region"`
-	RoleArn string                               `json:"roleArn"`
+// GetResourceFilter returns PollerCloudWatchMetricsQueryInput.ResourceFilter, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsQueryInput) GetResourceFilter() *PollerCloudWatchMetricsResourceFilterInput {
+	return v.ResourceFilter
 }
 
-// GetFilters returns PollerCloudwatchMetricsInput.Filters, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsInput) GetFilters() []PollerCloudwatchMetricsFilterInput {
-	return v.Filters
+type PollerCloudWatchMetricsResourceFilterInput struct {
+	ResourceType  *string                                 `json:"resourceType"`
+	Pattern       *string                                 `json:"pattern"`
+	DimensionName *string                                 `json:"dimensionName"`
+	TagFilters    []PollerCloudWatchMetricsTagFilterInput `json:"tagFilters"`
 }
 
-// GetDelay returns PollerCloudwatchMetricsInput.Delay, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsInput) GetDelay() *types.Int64Scalar { return v.Delay }
+// GetResourceType returns PollerCloudWatchMetricsResourceFilterInput.ResourceType, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsResourceFilterInput) GetResourceType() *string { return v.ResourceType }
 
-// GetPeriod returns PollerCloudwatchMetricsInput.Period, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsInput) GetPeriod() *types.Int64Scalar { return v.Period }
+// GetPattern returns PollerCloudWatchMetricsResourceFilterInput.Pattern, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsResourceFilterInput) GetPattern() *string { return v.Pattern }
 
-// GetRegion returns PollerCloudwatchMetricsInput.Region, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsInput) GetRegion() []string { return v.Region }
+// GetDimensionName returns PollerCloudWatchMetricsResourceFilterInput.DimensionName, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsResourceFilterInput) GetDimensionName() *string {
+	return v.DimensionName
+}
 
-// GetRoleArn returns PollerCloudwatchMetricsInput.RoleArn, and is useful for accessing the field via an interface.
-func (v *PollerCloudwatchMetricsInput) GetRoleArn() string { return v.RoleArn }
+// GetTagFilters returns PollerCloudWatchMetricsResourceFilterInput.TagFilters, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsResourceFilterInput) GetTagFilters() []PollerCloudWatchMetricsTagFilterInput {
+	return v.TagFilters
+}
+
+type PollerCloudWatchMetricsTagFilterInput struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
+// GetKey returns PollerCloudWatchMetricsTagFilterInput.Key, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsTagFilterInput) GetKey() string { return v.Key }
+
+// GetValues returns PollerCloudWatchMetricsTagFilterInput.Values, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsTagFilterInput) GetValues() []string { return v.Values }
 
 // PollerConfig includes the requested fields of the GraphQL interface PollerConfig.
 //
 // PollerConfig is implemented by the following types:
+// PollerConfigPollerCloudWatchMetricsConfig
 // PollerConfigPollerConfluentCloudConfig
 // PollerConfigPollerGCPMonitoringConfig
 // PollerConfigPollerHTTPConfig
@@ -4666,11 +4735,12 @@ type PollerConfig interface {
 	GetChunk() *PollerConfigChunkPollerChunkConfig
 }
 
-func (v *PollerConfigPollerConfluentCloudConfig) implementsGraphQLInterfacePollerConfig() {}
-func (v *PollerConfigPollerGCPMonitoringConfig) implementsGraphQLInterfacePollerConfig()  {}
-func (v *PollerConfigPollerHTTPConfig) implementsGraphQLInterfacePollerConfig()           {}
-func (v *PollerConfigPollerMongoDBAtlasConfig) implementsGraphQLInterfacePollerConfig()   {}
-func (v *PollerConfigPollerPubSubConfig) implementsGraphQLInterfacePollerConfig()         {}
+func (v *PollerConfigPollerCloudWatchMetricsConfig) implementsGraphQLInterfacePollerConfig() {}
+func (v *PollerConfigPollerConfluentCloudConfig) implementsGraphQLInterfacePollerConfig()    {}
+func (v *PollerConfigPollerGCPMonitoringConfig) implementsGraphQLInterfacePollerConfig()     {}
+func (v *PollerConfigPollerHTTPConfig) implementsGraphQLInterfacePollerConfig()              {}
+func (v *PollerConfigPollerMongoDBAtlasConfig) implementsGraphQLInterfacePollerConfig()      {}
+func (v *PollerConfigPollerPubSubConfig) implementsGraphQLInterfacePollerConfig()            {}
 
 func __unmarshalPollerConfig(b []byte, v *PollerConfig) error {
 	if string(b) == "null" {
@@ -4686,6 +4756,9 @@ func __unmarshalPollerConfig(b []byte, v *PollerConfig) error {
 	}
 
 	switch tn.TypeName {
+	case "PollerCloudWatchMetricsConfig":
+		*v = new(PollerConfigPollerCloudWatchMetricsConfig)
+		return json.Unmarshal(b, *v)
 	case "PollerConfluentCloudConfig":
 		*v = new(PollerConfigPollerConfluentCloudConfig)
 		return json.Unmarshal(b, *v)
@@ -4714,6 +4787,14 @@ func __marshalPollerConfig(v *PollerConfig) ([]byte, error) {
 
 	var typename string
 	switch v := (*v).(type) {
+	case *PollerConfigPollerCloudWatchMetricsConfig:
+		typename = "PollerCloudWatchMetricsConfig"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*PollerConfigPollerCloudWatchMetricsConfig
+		}{typename, v}
+		return json.Marshal(result)
 	case *PollerConfigPollerConfluentCloudConfig:
 		typename = "PollerConfluentCloudConfig"
 
@@ -4773,6 +4854,38 @@ func (v *PollerConfigChunkPollerChunkConfig) GetEnabled() bool { return v.Enable
 
 // GetSize returns PollerConfigChunkPollerChunkConfig.Size, and is useful for accessing the field via an interface.
 func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { return v.Size }
+
+// PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
+type PollerConfigPollerCloudWatchMetricsConfig struct {
+	Typename *string                             `json:"__typename"`
+	Name     *string                             `json:"name"`
+	Retries  *types.Int64Scalar                  `json:"retries"`
+	Interval *types.DurationScalar               `json:"interval"`
+	Tags     *types.JsonObject                   `json:"tags"`
+	Chunk    *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+}
+
+// GetTypename returns PollerConfigPollerCloudWatchMetricsConfig.Typename, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetTypename() *string { return v.Typename }
+
+// GetName returns PollerConfigPollerCloudWatchMetricsConfig.Name, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetName() *string { return v.Name }
+
+// GetRetries returns PollerConfigPollerCloudWatchMetricsConfig.Retries, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetRetries() *types.Int64Scalar { return v.Retries }
+
+// GetInterval returns PollerConfigPollerCloudWatchMetricsConfig.Interval, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetInterval() *types.DurationScalar {
+	return v.Interval
+}
+
+// GetTags returns PollerConfigPollerCloudWatchMetricsConfig.Tags, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetTags() *types.JsonObject { return v.Tags }
+
+// GetChunk returns PollerConfigPollerCloudWatchMetricsConfig.Chunk, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetChunk() *PollerConfigChunkPollerChunkConfig {
+	return v.Chunk
+}
 
 // PollerConfigPollerConfluentCloudConfig includes the requested fields of the GraphQL type PollerConfluentCloudConfig.
 type PollerConfigPollerConfluentCloudConfig struct {
@@ -5293,7 +5406,7 @@ type PollerInput struct {
 	GcpConfig               *PollerGCPMonitoringInput     `json:"gcpConfig"`
 	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
-	CloudwatchMetricsConfig *PollerCloudwatchMetricsInput `json:"cloudwatchMetricsConfig"`
+	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
 	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
 	ManagedById *string `json:"managedById"`
@@ -5343,9 +5456,9 @@ func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 	return v.ConfluentCloudConfig
 }
 
-// GetCloudwatchMetricsConfig returns PollerInput.CloudwatchMetricsConfig, and is useful for accessing the field via an interface.
-func (v *PollerInput) GetCloudwatchMetricsConfig() *PollerCloudwatchMetricsInput {
-	return v.CloudwatchMetricsConfig
+// GetCloudWatchMetricsConfig returns PollerInput.CloudWatchMetricsConfig, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetCloudWatchMetricsConfig() *PollerCloudWatchMetricsInput {
+	return v.CloudWatchMetricsConfig
 }
 
 // GetSkipExternalValidation returns PollerInput.SkipExternalValidation, and is useful for accessing the field via an interface.
@@ -6906,6 +7019,7 @@ func (v *Workspace) GetLabel() string { return v.Label }
 type WorkspaceInput struct {
 	Label    *string           `json:"label"`
 	Timezone *string           `json:"timezone"`
+	Locale   *string           `json:"locale"`
 	Layout   *types.JsonObject `json:"layout"`
 }
 
@@ -6914,6 +7028,9 @@ func (v *WorkspaceInput) GetLabel() *string { return v.Label }
 
 // GetTimezone returns WorkspaceInput.Timezone, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetTimezone() *string { return v.Timezone }
+
+// GetLocale returns WorkspaceInput.Locale, and is useful for accessing the field via an interface.
+func (v *WorkspaceInput) GetLocale() *string { return v.Locale }
 
 // GetLayout returns WorkspaceInput.Layout, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetLayout() *types.JsonObject { return v.Layout }
@@ -9570,11 +9687,11 @@ func (v *saveSourceDatasetResponse) GetDataset() *saveSourceDatasetDatasetDatase
 
 // saveWorksheetResponse is returned by saveWorksheet on success.
 type saveWorksheetResponse struct {
-	Worksheet *Worksheet `json:"worksheet"`
+	Worksheet Worksheet `json:"worksheet"`
 }
 
 // GetWorksheet returns saveWorksheetResponse.Worksheet, and is useful for accessing the field via an interface.
-func (v *saveWorksheetResponse) GetWorksheet() *Worksheet { return v.Worksheet }
+func (v *saveWorksheetResponse) GetWorksheet() Worksheet { return v.Worksheet }
 
 // searchMonitorActionsResponse is returned by searchMonitorActions on success.
 type searchMonitorActionsResponse struct {

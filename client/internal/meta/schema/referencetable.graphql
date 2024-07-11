@@ -1,0 +1,63 @@
+# A ReferenceTable is a workspace object used to create and manage non-temporal datasets (i.e., datasets without a timestamp column). Data can be added to these datasets by using the create and update mutations, both of which support uploading CSV files.
+# this file is auto-generated, do not edit
+"""
+See https://gqlgen.com/reference/file-upload/
+"""
+scalar Upload
+
+extend type Query {
+    referenceTable(id: ObjectId!): ReferenceTable!
+    searchReferenceTable(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): ReferenceTableSearchResult!
+}
+
+extend type Mutation {
+    createReferenceTable(workspaceId: ObjectId!, input: ReferenceTableInput!): ReferenceTable!
+    updateReferenceTable(id: ObjectId!, input: ReferenceTableInput!): ReferenceTable!
+    deleteReferenceTable(id: ObjectId!): ResultStatus!
+}
+
+type ReferenceTable implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.ReferenceTable") {
+    # payload
+    # not in output: upload: Upload
+    datasetID: ObjectId!
+    # not in output: schema: [DatasetFieldDefInput!]
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input ReferenceTableInput @goModel(model: "observe/meta/metatypes.ReferenceTableInput") {
+    # payload
+    upload: Upload
+    # not in input: datasetID: ObjectId!
+    schema: [DatasetFieldDefInput!]
+    # WorkspaceObject
+    name: String
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type ReferenceTableSearchResult @goModel(model: "observe/meta/metatypes.ReferenceTableSearchResult") {
+    results: [ReferenceTable!]!
+}
+
