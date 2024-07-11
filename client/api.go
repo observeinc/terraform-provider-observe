@@ -1341,3 +1341,7 @@ func (c *Client) DeleteCorrelationTag(ctx context.Context, dataset, tag string, 
 func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
 	return c.Meta.GetIngestInfo(ctx)
 }
+
+func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
+	return c.Meta.GetCloudInfo(ctx)
+}
