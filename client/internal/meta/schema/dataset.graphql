@@ -96,7 +96,7 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     deleted: Boolean!
     current: TransformVersion
     currentVersion: Time!
-    version(version: Time!): TransformVersion @goField(forceResolver:true)
+    version(version: Time!): TransformVersion
 }
 
 input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
@@ -128,7 +128,7 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
 }
 
 type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion") {
-    transform: Transform @goField(forceResolver:true)
+    transform: Transform
     savedDate: Time!
     savedBy: User @goField(forceResolver:true)
     savedByInfo: UserInfo! @goField(forceResolver:true)
@@ -183,6 +183,25 @@ type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResul
     information about errors that occur in the affected, and/or downstream datasets
     """
     errorDatasets: [DatasetError!]
+    """
+    True when saving the dataset results in throwing away materialized data.
+    Data is dematerialized when the change to the dataset is significant,
+    that is, when it alters transform logic. Minor changes like whitespace and
+    comments do not cause dematerialization.
+    """
+    dematerializedDatasets: [DatasetMaterialization!]
+}
+
+"""Information about a materialized dataset."""
+type DatasetMaterialization @goModel(model: "observe/meta/metatypes.DatasetMaterialization") {
+    """Metadata about the dataset."""
+    dataset: Dataset
+
+    """Size in bytes of the materialized tables."""
+    size: Int64!
+
+    """Amount of time in nanoseconds that is materialized."""
+    duration: Int64!
 }
 
 type StageDisposition @goModel(model: "observe/meta/metatypes.StageDisposition") {
@@ -346,8 +365,22 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     accelerable: Boolean!
     streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
-    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
+
+    """
+    True if this dataset is hibernated. In this case, the dataset will not
+    automatically accelerate new data. You can still query the dataset on the
+    accelerated range and issue manual acceleration jobs.
+    """
+    hibernated: Boolean!
+
+    """
+    If the dataset is hibernated, this field will be set to the time when it was
+    hibernated. The dataset will not automatically accelerate new data.
+    You can still query the dataset on the accelerated range and issue manual
+    acceleration jobs.
+    """
+    hibernatedAt: Time
 
     # AuditedObject
     createdBy: UserId!
@@ -364,6 +397,7 @@ enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
     RatePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
     Delta
     Gauge
+    Tdigest
     Sample
 }
 
@@ -390,7 +424,7 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
     When a metric has a lastReported of T, here is the information you can extract from it:
     1. the metric was actually reported at the timestamp T
     2. the metric was NEVER reported between [T+1h, now-5m), for fresh metric datasets (most are)
-    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either hibernated, or has a high freshness goal)
+    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either freshness decayed, or has a high freshness goal)
     In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
     """
     lastReported: Time
@@ -640,7 +674,7 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
 type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
     path: String!
     mapping: [InterfaceFieldMapping!]!
-    interface: InterfaceDefinition! @goField(forceResolver:true)
+    interface: InterfaceDefinition! @goField(forceResolver:true) @deprecated(reason:"already not used, see OB-32415")
 }
 
 type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {
@@ -648,6 +682,9 @@ type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFiel
     field: String!
 }
 
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
 type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefinition") {
     name: String!
     """
@@ -664,10 +701,12 @@ type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefini
     qualifiers: [String!]!
 }
 
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
 type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
     interfaceField: String!
     rep: String!
-    typeclasses: [String!]
     optional: Boolean!
 }
 

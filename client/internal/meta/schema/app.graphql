@@ -11,7 +11,7 @@ extend type Query {
     module(id: String!, version: String): Module!
     modules(search: String): [Module!]!
 
-    moduleVersions(id: String!): [ModuleVersion!]!
+    moduleVersions(id: String!, workspaceId: ObjectId): [ModuleVersion!]!
 
     app(id: ObjectId!): App!
     apps(workspaceId: ObjectId!, name: String): [App!]!

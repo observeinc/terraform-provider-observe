@@ -6,7 +6,7 @@ extend type Query {
     checkQueries(queries: MultiStageQueryInput!, params: QueryParams): [CompilationResult!]!
 
     verbsAndFunctions: VerbsAndFunctions!
-    platformInterfaces: [InterfaceDefinition!]!
+    platformInterfaces: [InterfaceDefinition!]! @deprecated(reason:"already not used, see OB-32415")
 
 }
 

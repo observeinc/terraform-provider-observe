@@ -22,7 +22,7 @@ input DashboardLinkSearchInput @goModel(model: "observe/meta/metatypes.Dashboard
 }
 
 extend type Mutation {
-    saveWorksheet(wks: WorksheetInput): Worksheet
+    saveWorksheet(wks: WorksheetInput): Worksheet!
     deleteWorksheet(wks: ObjectId!): ResultStatus
 
     saveDashboard(dash: DashboardInput!): Dashboard!

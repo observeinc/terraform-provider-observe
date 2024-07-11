@@ -30,6 +30,7 @@ input DatasetOutboundShareStatusInput @goModel(model: "observe/meta/metatypes.Da
     error: String
 }
 
+
 type DatasetOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DatasetOutboundShare") {
     # payload
     datasetID: ObjectId!
@@ -83,3 +84,4 @@ input DatasetOutboundShareInput @goModel(model: "observe/meta/metatypes.DatasetO
 type DatasetOutboundShareSearchResult @goModel(model: "observe/meta/metatypes.DatasetOutboundShareSearchResult") {
     results: [DatasetOutboundShare!]!
 }
+
