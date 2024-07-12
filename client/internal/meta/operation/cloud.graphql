@@ -1,0 +1,14 @@
+fragment CloudInfo on CloudInfo {
+    accountId
+    region
+    provider
+}
+
+query getCloudInfo {
+	cloud: currentCustomer {
+            # @genqlient(flatten: true)
+            cloudInfo {
+                ...CloudInfo
+            }
+    }
+}

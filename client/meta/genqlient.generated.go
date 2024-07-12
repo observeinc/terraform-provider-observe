@@ -788,6 +788,25 @@ type ChannelMonitorsMonitor struct {
 // GetId returns ChannelMonitorsMonitor.Id, and is useful for accessing the field via an interface.
 func (v *ChannelMonitorsMonitor) GetId() string { return v.Id }
 
+// CloudInfo includes the GraphQL fields of CloudInfo requested by the fragment CloudInfo.
+// The GraphQL type's documentation follows.
+//
+// Information on underlying cloud provider
+type CloudInfo struct {
+	AccountId string `json:"accountId"`
+	Region    string `json:"region"`
+	Provider  string `json:"provider"`
+}
+
+// GetAccountId returns CloudInfo.AccountId, and is useful for accessing the field via an interface.
+func (v *CloudInfo) GetAccountId() string { return v.AccountId }
+
+// GetRegion returns CloudInfo.Region, and is useful for accessing the field via an interface.
+func (v *CloudInfo) GetRegion() string { return v.Region }
+
+// GetProvider returns CloudInfo.Provider, and is useful for accessing the field via an interface.
+func (v *CloudInfo) GetProvider() string { return v.Provider }
+
 type ColumnAndValueInput struct {
 	Name  string  `json:"name"`
 	Value *string `json:"value"`
@@ -9081,6 +9100,22 @@ type getChannelResponse struct {
 // GetChannel returns getChannelResponse.Channel, and is useful for accessing the field via an interface.
 func (v *getChannelResponse) GetChannel() *Channel { return v.Channel }
 
+// getCloudInfoCloudCustomer includes the requested fields of the GraphQL type Customer.
+type getCloudInfoCloudCustomer struct {
+	CloudInfo CloudInfo `json:"cloudInfo"`
+}
+
+// GetCloudInfo returns getCloudInfoCloudCustomer.CloudInfo, and is useful for accessing the field via an interface.
+func (v *getCloudInfoCloudCustomer) GetCloudInfo() CloudInfo { return v.CloudInfo }
+
+// getCloudInfoResponse is returned by getCloudInfo on success.
+type getCloudInfoResponse struct {
+	Cloud *getCloudInfoCloudCustomer `json:"cloud"`
+}
+
+// GetCloud returns getCloudInfoResponse.Cloud, and is useful for accessing the field via an interface.
+func (v *getCloudInfoResponse) GetCloud() *getCloudInfoCloudCustomer { return v.Cloud }
+
 // getCurrentCustomerCustomer includes the requested fields of the GraphQL type Customer.
 type getCurrentCustomerCustomer struct {
 	Users []User `json:"users"`
@@ -13111,6 +13146,44 @@ func getChannelAction(
 	var err error
 
 	var data getChannelActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getCloudInfo.
+const getCloudInfo_Operation = `
+query getCloudInfo {
+	cloud: currentCustomer {
+		cloudInfo {
+			... CloudInfo
+		}
+	}
+}
+fragment CloudInfo on CloudInfo {
+	accountId
+	region
+	provider
+}
+`
+
+func getCloudInfo(
+	ctx context.Context,
+	client graphql.Client,
+) (*getCloudInfoResponse, error) {
+	req := &graphql.Request{
+		OpName: "getCloudInfo",
+		Query:  getCloudInfo_Operation,
+	}
+	var err error
+
+	var data getCloudInfoResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
