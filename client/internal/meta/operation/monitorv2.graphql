@@ -143,6 +143,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
     }
 }
 
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 fragment MonitorV2 on MonitorV2 {
     id
     workspaceId
@@ -164,6 +175,17 @@ fragment MonitorV2 on MonitorV2 {
 
 # definitions of monitorv2 CRUD ops
 
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation createMonitorV2(
 	$workspaceId: ObjectId!,
 	$input: MonitorV2Input!
@@ -174,6 +196,17 @@ mutation createMonitorV2(
 	}
 }
 
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation updateMonitorV2(
 	$id: ObjectId!,
 	$input: MonitorV2Input!
