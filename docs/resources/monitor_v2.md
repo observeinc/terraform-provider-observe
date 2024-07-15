@@ -19,6 +19,7 @@ description: |-
 - `name` (String)
 - `rule_kind` (String)
 - `rules` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules))
+- `scheduling` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--scheduling))
 - `stage` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stage))
 - `workspace_id` (String)
 
@@ -27,11 +28,9 @@ description: |-
 - `comment` (String)
 - `data_stabilization_delay` (String)
 - `description` (String)
-- `folder_id` (String)
 - `groupings` (Block List) (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String)
 - `managed_by_id` (String)
-- `scheduling` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
 
@@ -362,6 +361,32 @@ Optional:
 
 
 
+<a id="nestedblock--scheduling"></a>
+### Nested Schema for `scheduling`
+
+Optional:
+
+- `interval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scheduling--interval))
+- `transform` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scheduling--transform))
+
+<a id="nestedblock--scheduling--interval"></a>
+### Nested Schema for `scheduling.interval`
+
+Required:
+
+- `interval` (String)
+- `randomize` (String)
+
+
+<a id="nestedblock--scheduling--transform"></a>
+### Nested Schema for `scheduling.transform`
+
+Required:
+
+- `freshness_goal` (String)
+
+
+
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
@@ -402,12 +427,19 @@ Required:
 
 Optional:
 
+- `meta` (Block List, Max: 1) (see [below for nested schema](#nestedblock--groupings--link_column--meta))
+
+<a id="nestedblock--groupings--link_column--meta"></a>
+### Nested Schema for `groupings.link_column.meta`
+
+Optional:
+
 - `dst_fields` (List of String)
-- `src_fields` (Block List) (see [below for nested schema](#nestedblock--groupings--link_column--src_fields))
+- `src_fields` (Block List) (see [below for nested schema](#nestedblock--groupings--link_column--meta--src_fields))
 - `target_dataset` (Number)
 
-<a id="nestedblock--groupings--link_column--src_fields"></a>
-### Nested Schema for `groupings.link_column.src_fields`
+<a id="nestedblock--groupings--link_column--meta--src_fields"></a>
+### Nested Schema for `groupings.link_column.meta.src_fields`
 
 Required:
 
@@ -416,31 +448,4 @@ Required:
 Optional:
 
 - `path` (String)
-
-
-
-
-<a id="nestedblock--scheduling"></a>
-### Nested Schema for `scheduling`
-
-Optional:
-
-- `interval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scheduling--interval))
-- `transform` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scheduling--transform))
-
-<a id="nestedblock--scheduling--interval"></a>
-### Nested Schema for `scheduling.interval`
-
-Required:
-
-- `interval` (String)
-- `randomize` (String)
-
-
-<a id="nestedblock--scheduling--transform"></a>
-### Nested Schema for `scheduling.transform`
-
-Required:
-
-- `freshness_goal` (String)
 
