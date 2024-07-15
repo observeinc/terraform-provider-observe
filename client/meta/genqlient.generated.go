@@ -4571,6 +4571,9 @@ type MonitorV2Definition struct {
 	// value is defining where the "Ragged Right Edge" starts relative to the clock.
 	DataStabilizationDelay *types.DurationScalar `json:"dataStabilizationDelay"`
 	// Groupings describes the groups that logically separate events/rows/etc from each other.
+	// When the input monitor dataset is of type resource and the monitor strategy is of type promote, this field should
+	// either be left empty to be mutated with the primary keys of the resource dataset or it should only contain the
+	// primary keys of the dataset.
 	Groupings []MonitorV2Column `json:"groupings"`
 	// Scheduling controls how often the monitor is evaluated. The default behavior when you do
 	// not specify this field is a real-time transform monitor with a default freshness goal that
