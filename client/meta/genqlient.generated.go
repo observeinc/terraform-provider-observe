@@ -4876,12 +4876,17 @@ func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { retu
 
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
-	Typename *string                             `json:"__typename"`
-	Name     *string                             `json:"name"`
-	Retries  *types.Int64Scalar                  `json:"retries"`
-	Interval *types.DurationScalar               `json:"interval"`
-	Tags     *types.JsonObject                   `json:"tags"`
-	Chunk    *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+	Typename      *string                                                                              `json:"__typename"`
+	Name          *string                                                                              `json:"name"`
+	Retries       *types.Int64Scalar                                                                   `json:"retries"`
+	Interval      *types.DurationScalar                                                                `json:"interval"`
+	Tags          *types.JsonObject                                                                    `json:"tags"`
+	Chunk         *PollerConfigChunkPollerChunkConfig                                                  `json:"chunk"`
+	Period        types.Int64Scalar                                                                    `json:"period"`
+	Delay         types.Int64Scalar                                                                    `json:"delay"`
+	Region        string                                                                               `json:"region"`
+	AssumeRoleArn string                                                                               `json:"assumeRoleArn"`
+	Queries       []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig `json:"queries"`
 }
 
 // GetTypename returns PollerConfigPollerCloudWatchMetricsConfig.Typename, and is useful for accessing the field via an interface.
@@ -4904,6 +4909,111 @@ func (v *PollerConfigPollerCloudWatchMetricsConfig) GetTags() *types.JsonObject 
 // GetChunk returns PollerConfigPollerCloudWatchMetricsConfig.Chunk, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetChunk() *PollerConfigChunkPollerChunkConfig {
 	return v.Chunk
+}
+
+// GetPeriod returns PollerConfigPollerCloudWatchMetricsConfig.Period, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetPeriod() types.Int64Scalar { return v.Period }
+
+// GetDelay returns PollerConfigPollerCloudWatchMetricsConfig.Delay, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetDelay() types.Int64Scalar { return v.Delay }
+
+// GetRegion returns PollerConfigPollerCloudWatchMetricsConfig.Region, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetRegion() string { return v.Region }
+
+// GetAssumeRoleArn returns PollerConfigPollerCloudWatchMetricsConfig.AssumeRoleArn, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
+// GetQueries returns PollerConfigPollerCloudWatchMetricsConfig.Queries, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetQueries() []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig {
+	return v.Queries
+}
+
+// PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsQueryConfig.
+type PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig struct {
+	Namespace      string                                                                                                                                       `json:"namespace"`
+	MetricNames    []string                                                                                                                                     `json:"metricNames"`
+	Dimensions     []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig   `json:"dimensions"`
+	ResourceFilter *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig `json:"resourceFilter"`
+}
+
+// GetNamespace returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig.Namespace, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig) GetNamespace() string {
+	return v.Namespace
+}
+
+// GetMetricNames returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig.MetricNames, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig) GetMetricNames() []string {
+	return v.MetricNames
+}
+
+// GetDimensions returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig.Dimensions, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig) GetDimensions() []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig {
+	return v.Dimensions
+}
+
+// GetResourceFilter returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig.ResourceFilter, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig) GetResourceFilter() *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig {
+	return v.ResourceFilter
+}
+
+// PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsDimensionFilterConfig.
+type PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig struct {
+	Name  string  `json:"name"`
+	Value *string `json:"value"`
+}
+
+// GetName returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig.Name, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig) GetName() string {
+	return v.Name
+}
+
+// GetValue returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig.Value, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigDimensionsPollerCloudWatchMetricsDimensionFilterConfig) GetValue() *string {
+	return v.Value
+}
+
+// PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsResourceFilterConfig.
+type PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig struct {
+	ResourceType  *string                                                                                                                                                                                       `json:"resourceType"`
+	Pattern       *string                                                                                                                                                                                       `json:"pattern"`
+	DimensionName *string                                                                                                                                                                                       `json:"dimensionName"`
+	TagFilters    []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig `json:"tagFilters"`
+}
+
+// GetResourceType returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig.ResourceType, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig) GetResourceType() *string {
+	return v.ResourceType
+}
+
+// GetPattern returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig.Pattern, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig) GetPattern() *string {
+	return v.Pattern
+}
+
+// GetDimensionName returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig.DimensionName, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig) GetDimensionName() *string {
+	return v.DimensionName
+}
+
+// GetTagFilters returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig.TagFilters, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfig) GetTagFilters() []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig {
+	return v.TagFilters
+}
+
+// PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsTagFilterConfig.
+type PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
+// GetKey returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig.Key, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig) GetKey() string {
+	return v.Key
+}
+
+// GetValues returns PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig.Values, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfigResourceFilterPollerCloudWatchMetricsResourceFilterConfigTagFiltersPollerCloudWatchMetricsTagFilterConfig) GetValues() []string {
+	return v.Values
 }
 
 // PollerConfigPollerConfluentCloudConfig includes the requested fields of the GraphQL type PollerConfluentCloudConfig.
@@ -11371,6 +11481,29 @@ fragment Poller on Poller {
 			includeGroups
 			excludeGroups
 		}
+		... on PollerCloudWatchMetricsConfig {
+			period
+			delay
+			region
+			assumeRoleArn
+			queries {
+				namespace
+				metricNames
+				dimensions {
+					name
+					value
+				}
+				resourceFilter {
+					resourceType
+					pattern
+					dimensionName
+					tagFilters {
+						key
+						values
+					}
+				}
+			}
+		}
 	}
 }
 fragment HttpRequestConfig on PollerHTTPRequestConfig {
@@ -14333,6 +14466,29 @@ fragment Poller on Poller {
 			includeGroups
 			excludeGroups
 		}
+		... on PollerCloudWatchMetricsConfig {
+			period
+			delay
+			region
+			assumeRoleArn
+			queries {
+				namespace
+				metricNames
+				dimensions {
+					name
+					value
+				}
+				resourceFilter {
+					resourceType
+					pattern
+					dimensionName
+					tagFilters {
+						key
+						values
+					}
+				}
+			}
+		}
 	}
 }
 fragment HttpRequestConfig on PollerHTTPRequestConfig {
@@ -17247,6 +17403,29 @@ fragment Poller on Poller {
 			privateKey
 			includeGroups
 			excludeGroups
+		}
+		... on PollerCloudWatchMetricsConfig {
+			period
+			delay
+			region
+			assumeRoleArn
+			queries {
+				namespace
+				metricNames
+				dimensions {
+					name
+					value
+				}
+				resourceFilter {
+					resourceType
+					pattern
+					dimensionName
+					tagFilters {
+						key
+						values
+					}
+				}
+			}
 		}
 	}
 }

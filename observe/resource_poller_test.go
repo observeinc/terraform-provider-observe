@@ -523,3 +523,85 @@ func TestAccObservePollerHTTP(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "5m"
+					datastream = observe_datastream.example.oid
+
+					cloudwatch_metrics {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+
+						query {
+							namespace    = "AWS/EC2"
+							metric_names = ["CPUUtilization"]
+
+							resource_filter {
+								tag_filter {
+									key = "monitor"
+									values = ["on"]
+								}
+							}
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "CloudWatchMetrics"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.query.0.resource_filter.0.tag_filter.0.key", "monitor"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "5m"
+					datastream = observe_datastream.example.oid
+
+					cloudwatch_metrics {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+
+						query {
+							namespace    = "AWS/EC2"
+							metric_names = ["CPUUtilization"]
+
+							dimension {
+								name = "InstanceType"
+							}
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "CloudWatchMetrics"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.query.0.resource_filter.#", "0"),
+				),
+			},
+		},
+	})
+}

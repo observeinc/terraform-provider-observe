@@ -3,11 +3,11 @@
 page_title: "observe_poller Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Manages a poller, which configures Observe to pull data from a remote source.
 ---
 # observe_poller
 
-
+Manages a poller, which configures Observe to pull data from a remote source.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
@@ -54,17 +54,18 @@ resource "observe_poller" "weather" {
 
 ### Required
 
-- `name` (String)
-- `workspace` (String)
+- `name` (String) Poller name. Must be unique within workspace.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `chunk` (Block List, Max: 1) (see [below for nested schema](#nestedblock--chunk))
-- `datastream` (String)
-- `disabled` (Boolean)
+- `cloudwatch_metrics` (Block List, Max: 1) CloudWatch Metrics poller. (see [below for nested schema](#nestedblock--cloudwatch_metrics))
+- `datastream` (String) Datastream where poller will deliver data.
+- `disabled` (Boolean) Whether to disable poller.
 - `gcp_monitoring` (Block List, Max: 1) (see [below for nested schema](#nestedblock--gcp_monitoring))
 - `http` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http))
-- `interval` (String)
+- `interval` (String) Interval between poller runs. Only applicable to periodic poller kinds.
 - `mongodbatlas` (Block List, Max: 1) (see [below for nested schema](#nestedblock--mongodbatlas))
 - `pubsub` (Block List, Max: 1) (see [below for nested schema](#nestedblock--pubsub))
 - `retries` (Number)
@@ -75,7 +76,8 @@ resource "observe_poller" "weather" {
 
 - `id` (String) The ID of this resource.
 - `kind` (String)
-- `oid` (String)
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 
 <a id="nestedblock--chunk"></a>
 ### Nested Schema for `chunk`
@@ -87,6 +89,73 @@ Required:
 Optional:
 
 - `size` (Number)
+
+
+<a id="nestedblock--cloudwatch_metrics"></a>
+### Nested Schema for `cloudwatch_metrics`
+
+Required:
+
+- `assume_role_arn` (String) AWS role to assume when scraping AWS CloudWatch Metrics. External ID will be set to datastream ID.
+- `query` (Block List, Min: 1) (see [below for nested schema](#nestedblock--cloudwatch_metrics--query))
+- `region` (String) AWS Region to scrape from.
+
+Optional:
+
+- `delay` (String) Collection delay. Must account for metrics availability via CloudWatch API.
+- `period` (String) Metric resolution. Must be a multiple of 60s. When omitted, poller interval will be used.
+
+<a id="nestedblock--cloudwatch_metrics--query"></a>
+### Nested Schema for `cloudwatch_metrics.query`
+
+Required:
+
+- `namespace` (String) AWS Metric Namespace to query.
+
+Optional:
+
+- `dimension` (Block List) Dimension filter to set. A metric must match all provided dimension filters in order to be queried for data points. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--dimension))
+- `metric_names` (List of String) Metric names to filter down to. If more than one metric name is provided, `ListMetrics` will be called with no filter on metric names.
+- `resource_filter` (Block List) Resource filter specification. Allows querying metrics according to tags for associated resources. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--resource_filter))
+
+<a id="nestedblock--cloudwatch_metrics--query--dimension"></a>
+### Nested Schema for `cloudwatch_metrics.query.dimension`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `value` (String)
+
+
+<a id="nestedblock--cloudwatch_metrics--query--resource_filter"></a>
+### Nested Schema for `cloudwatch_metrics.query.resource_filter`
+
+Required:
+
+- `tag_filter` (Block List, Min: 1) Set of tags to match resources on. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--resource_filter--tag_filter))
+
+Optional:
+
+- `dimension_name` (String) Metric dimension name for resource identifier.
+- `pattern` (String) Regular expression for extracting identifier out of resource ARN.
+- `resource_type` (String) Resource type to filter for as supported by `aws resourcegroupstaggingapi get-resources`, e.g. `ec2:instance`.
+
+<a id="nestedblock--cloudwatch_metrics--query--resource_filter--tag_filter"></a>
+### Nested Schema for `cloudwatch_metrics.query.resource_filter.tag_filter`
+
+Required:
+
+- `key` (String) Tag key.
+
+Optional:
+
+- `values` (List of String) Set of acceptable tag values. Exact matches only.
+
+
+
 
 
 <a id="nestedblock--gcp_monitoring"></a>
