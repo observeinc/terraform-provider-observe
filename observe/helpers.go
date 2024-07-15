@@ -290,9 +290,9 @@ func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 }
 
 func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
-	o, _ := time.ParseDuration(prv)
-	n, _ := time.ParseDuration(nxt)
-	return o == n
+	o, e1 := time.ParseDuration(prv)
+	n, e2 := time.ParseDuration(nxt)
+	return o == n && e1 == e2 // the e1 == e2 check avoids squashing "0" to "". (Fixes a bug for me, but does anyone find this "bug" to be a feature?)
 }
 
 func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {

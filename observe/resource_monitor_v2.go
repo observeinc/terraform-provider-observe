@@ -19,72 +19,20 @@ import (
 // annoying to change varnames in 3 non-obvious places
 
 func resourceMonitorV2() *schema.Resource {
-	// monitorV2Comparison := &schema.Resource{
-	// 		Schema: map[string]*schema.Schema{ 
-	// 			"compare_fn": { // MonitorV2ComparisonFunction!
-	// 				Type:             schema.TypeString,
-	// 				Required:         true,
-	// 				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-	// 			},
-	// 			"value_int64": { // Int64
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem:     &schema.Schema{Type: schema.TypeInt},
-	// 			},
-	// 			"value_float64": { // Float
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem:     &schema.Schema{Type: schema.TypeFloat},
-	// 			},
-	// 			"value_bool": { // Boolean
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem:     &schema.Schema{Type: schema.TypeBool},
-	// 			},
-	// 			"value_string": { // String
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem:     &schema.Schema{Type: schema.TypeString},
-	// 			},
-	// 			"value_duration": { // Int64
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem: &schema.Schema{
-	// 					Type:             schema.TypeBool,
-	// 					ValidateDiagFunc: validateTimeDuration,
-	// 					DiffSuppressFunc: diffSuppressDuration,
-	// 				},
-	// 			},
-	// 			"value_timestamp": { // Time
-	// 				Type:     schema.TypeList,
-	// 				Optional: true,
-	// 				MaxItems: 1,
-	// 				Elem: &schema.Schema{
-	// 					Type:             schema.TypeString,
-	// 					ValidateDiagFunc: validateTimestamp,
-	// 				},
-	// 			},
-	// 		},
-	// 	}
-
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2Create,
 		ReadContext:   resourceMonitorV2Read,
 		UpdateContext: resourceMonitorV2Update,
 		DeleteContext: resourceMonitorV2Delete,
 		Schema: map[string]*schema.Schema{
-			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
+			// needed as input to MonitorV2Create, also part of MonitorV2 struct
 			"workspace_id": { // ObjectId!
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
+			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
 			"comment": { // String
 				Type:     schema.TypeString,
 				Optional: true,
@@ -153,7 +101,7 @@ func resourceMonitorV2() *schema.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{ // MonitorV2RuleInput!
+					Schema: map[string]*schema.Schema{
 						"level": { // MonitorV2AlarmLevel!
 							Type:             schema.TypeString,
 							Required:         true,
@@ -169,197 +117,12 @@ func resourceMonitorV2() *schema.Resource {
 										Type:     schema.TypeList,
 										Required: true,
 										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{ 
-												"compare_fn": { // MonitorV2ComparisonFunction!
-													Type:             schema.TypeString,
-													Required:         true,
-													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-												},
-												"value_int64": { // Int64
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeInt},
-												},
-												"value_float64": { // Float
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeFloat},
-												},
-												"value_bool": { // Boolean
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeBool},
-												},
-												"value_string": { // String
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-												"value_duration": { // Int64
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Schema{
-														Type:             schema.TypeBool,
-														ValidateDiagFunc: validateTimeDuration,
-														DiffSuppressFunc: diffSuppressDuration,
-													},
-												},
-												"value_timestamp": { // Time
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Schema{
-														Type:             schema.TypeString,
-														ValidateDiagFunc: validateTimestamp,
-													},
-												},
-											},
-										},
+										Elem:     monitorV2ComparisonResource(),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"compare_values": { // [MonitorV2ComparisonInput!]!
-													Type:     schema.TypeList,
-													Required: true,
-													MinItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
-															"compare_fn": { // MonitorV2ComparisonFunction!
-																Type:             schema.TypeString,
-																Required:         true,
-																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-															},
-															"value_int64": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeInt},
-															},
-															"value_float64": { // Float
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeFloat},
-															},
-															"value_bool": { // Boolean
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeBool},
-															},
-															"value_string": { // String
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeString},
-															},
-															"value_duration": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeBool,
-																	ValidateDiagFunc: validateTimeDuration,
-																	DiffSuppressFunc: diffSuppressDuration,
-																},
-															},
-															"value_timestamp": { // Time
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeString,
-																	ValidateDiagFunc: validateTimestamp,
-																},
-															},
-														},
-													},
-												},
-												"column": { // MonitorV2ColumnInput!
-													Type:     schema.TypeList,
-													Required: true,
-													MinItems: 1,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"link_column": { // MonitorV2LinkColumnInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"meta": { // MonitorV2LinkColumnMetaInput
-																			Type:     schema.TypeList,
-																			Optional: true,
-																			MaxItems: 1,
-																			Elem: &schema.Resource{
-																				Schema: map[string]*schema.Schema{
-																					"src_fields": { // [MonitorV2ColumnPathInput!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem: &schema.Resource{
-																							Schema: map[string]*schema.Schema{
-																								"name": { // String!
-																									Type:     schema.TypeString,
-																									Required: true,
-																								},
-																								"path": { // String
-																									Type:     schema.TypeString,
-																									Optional: true,
-																								},
-																							},
-																						},
-																					},
-																					"dst_fields": { // [String!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem:     &schema.Schema{Type: schema.TypeString},
-																					},
-																					"target_dataset": { // Int64
-																						Type:     schema.TypeInt,
-																						Optional: true,
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-															"column_path": { // MonitorV2ColumnPathInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"path": { // String
-																			Type:     schema.TypeString,
-																			Optional: true,
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
+										Elem:     monitorV2ColumnComparisonResource(),
 									},
 								},
 							},
@@ -374,58 +137,7 @@ func resourceMonitorV2() *schema.Resource {
 										Type:     schema.TypeList,
 										Required: true,
 										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"compare_fn": { // MonitorV2ComparisonFunction!
-													Type:             schema.TypeString,
-													Required:         true,
-													ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-												},
-												"value_int64": { // Int64
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeInt},
-												},
-												"value_float64": { // Float
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeFloat},
-												},
-												"value_bool": { // Boolean
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeBool},
-												},
-												"value_string": { // String
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-												"value_duration": { // Int64
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Schema{
-														Type:             schema.TypeBool,
-														ValidateDiagFunc: validateTimeDuration,
-														DiffSuppressFunc: diffSuppressDuration,
-													},
-												},
-												"value_timestamp": { // Time
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Schema{
-														Type:             schema.TypeString,
-														ValidateDiagFunc: validateTimestamp,
-													},
-												},
-											},
-										},
+										Elem:     monitorV2ComparisonResource(),
 									},
 									"value_column_name": { // String!
 										Type:     schema.TypeString,
@@ -439,140 +151,7 @@ func resourceMonitorV2() *schema.Resource {
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"compare_values": { // [MonitorV2ComparisonInput!]!
-													Type:     schema.TypeList,
-													Required: true,
-													MinItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
-															"compare_fn": { // MonitorV2ComparisonFunction!
-																Type:             schema.TypeString,
-																Required:         true,
-																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-															},
-															"value_int64": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeInt},
-															},
-															"value_float64": { // Float
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeFloat},
-															},
-															"value_bool": { // Boolean
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeBool},
-															},
-															"value_string": { // String
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeString},
-															},
-															"value_duration": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeBool,
-																	ValidateDiagFunc: validateTimeDuration,
-																	DiffSuppressFunc: diffSuppressDuration,
-																},
-															},
-															"value_timestamp": { // Time
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeString,
-																	ValidateDiagFunc: validateTimestamp,
-																},
-															},
-														},
-													},
-												},
-												"column": {
-													Type:     schema.TypeList,
-													Required: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"link_column": { // MonitorV2LinkColumnInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"meta": { // MonitorV2LinkColumnMetaInput
-																			Type:     schema.TypeList,
-																			Optional: true,
-																			MaxItems: 1,
-																			Elem: &schema.Resource{
-																				Schema: map[string]*schema.Schema{
-																					"src_fields": { // [MonitorV2ColumnPathInput!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem: &schema.Resource{
-																							Schema: map[string]*schema.Schema{
-																								"name": { // String!
-																									Type:     schema.TypeString,
-																									Required: true,
-																								},
-																								"path": { // String
-																									Type:     schema.TypeString,
-																									Optional: true,
-																								},
-																							},
-																						},
-																					},
-																					"dst_fields": { // [String!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem:     &schema.Schema{Type: schema.TypeString},
-																					},
-																					"target_dataset": { // Int64
-																						Type:     schema.TypeInt,
-																						Optional: true,
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-															"column_path": { // MonitorV2ColumnPathInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"path": { // String
-																			Type:     schema.TypeString,
-																			Optional: true,
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
+										Elem:     monitorV2ColumnComparisonResource(),
 									},
 								},
 							},
@@ -586,141 +165,7 @@ func resourceMonitorV2() *schema.Resource {
 									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"compare_values": { // [MonitorV2ComparisonInput!]!
-													Type:     schema.TypeList,
-													Required: true,
-													MinItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{ // MonitorV2ComparisonInput!
-															"compare_fn": { // MonitorV2ComparisonFunction!
-																Type:             schema.TypeString,
-																Required:         true,
-																ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-															},
-															"value_int64": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeInt},
-															},
-															"value_float64": { // Float
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeFloat},
-															},
-															"value_bool": { // Boolean
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeBool},
-															},
-															"value_string": { // String
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem:     &schema.Schema{Type: schema.TypeString},
-															},
-															"value_duration": { // Int64
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeBool,
-																	ValidateDiagFunc: validateTimeDuration,
-																	DiffSuppressFunc: diffSuppressDuration,
-																},
-															},
-															"value_timestamp": { // Time
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Schema{
-																	Type:             schema.TypeString,
-																	ValidateDiagFunc: validateTimestamp,
-																},
-															},
-														},
-													},
-												},
-												"column": {
-													Type:     schema.TypeList,
-													Required: true,
-													MinItems: 1,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"link_column": { // MonitorV2LinkColumnInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"meta": { // MonitorV2LinkColumnMetaInput
-																			Type:     schema.TypeList,
-																			Optional: true,
-																			MaxItems: 1,
-																			Elem: &schema.Resource{
-																				Schema: map[string]*schema.Schema{
-																					"src_fields": { // [MonitorV2ColumnPathInput!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem: &schema.Resource{
-																							Schema: map[string]*schema.Schema{
-																								"name": { // String!
-																									Type:     schema.TypeString,
-																									Required: true,
-																								},
-																								"path": { // String
-																									Type:     schema.TypeString,
-																									Optional: true,
-																								},
-																							},
-																						},
-																					},
-																					"dst_fields": { // [String!]
-																						Type:     schema.TypeList,
-																						Optional: true,
-																						Elem:     &schema.Schema{Type: schema.TypeString},
-																					},
-																					"target_dataset": { // Int64
-																						Type:     schema.TypeInt,
-																						Optional: true,
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-															"column_path": { // MonitorV2ColumnPathInput
-																Type:     schema.TypeList,
-																Optional: true,
-																MaxItems: 1,
-																Elem: &schema.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"name": { // String!
-																			Type:     schema.TypeString,
-																			Required: true,
-																		},
-																		"path": { // String
-																			Type:     schema.TypeString,
-																			Optional: true,
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
+										Elem:     monitorV2ColumnComparisonResource(),
 									},
 								},
 							},
@@ -728,7 +173,7 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
-			"lookback_time": { // Duration
+			"lookback_time": { // Duration!
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateTimeDuration,
@@ -743,76 +188,19 @@ func resourceMonitorV2() *schema.Resource {
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"link_column": { // MonitorV2LinkColumnInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": { // String!
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"src_fields": { // MonitorV2LinkColumnMetaInput.[MonitorV2ColumnPathInput!]
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": { // String!
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"path": { // String
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-											},
-										},
-									},
-									"dst_fields": { // MonitorV2LinkColumnMetaInput.[String!]
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"target_dataset": { // MonitorV2LinkColumnMetaInput.Int64
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"column_path": { // MonitorV2ColumnPathInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": { // String!
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"path": { // String
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
-				},
+				Elem:     monitorV2ColumnResource(),
 			},
-			"scheduling": { // MonitorV2SchedulingInput
+			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": { // MonitorV2IntervalScheduleInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:         schema.TypeList,
+							Optional:     true,
+							MaxItems:     1,
+							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interval": { // Duration!
@@ -831,9 +219,10 @@ func resourceMonitorV2() *schema.Resource {
 							},
 						},
 						"transform": { // MonitorV2TransformScheduleInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:         schema.TypeList,
+							Optional:     true,
+							MaxItems:     1,
+							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"freshness_goal": { // Duration!
@@ -858,13 +247,154 @@ func resourceMonitorV2() *schema.Resource {
 	}
 }
 
-func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	if _, ok := data.GetOk("foobar"); ok {
-		panic("foobar detected")
-	} else {
-		panic("foobar not detected")
+func monitorV2ComparisonResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2Comparison
+		Schema: map[string]*schema.Schema{
+			"compare_fn": { // MonitorV2ComparisonFunction!
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+			},
+			"value_int64": { // Int64
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     &schema.Schema{Type: schema.TypeInt},
+			},
+			"value_float64": { // Float
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     &schema.Schema{Type: schema.TypeFloat},
+			},
+			"value_bool": { // Boolean
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     &schema.Schema{Type: schema.TypeBool},
+			},
+			"value_string": { // String
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"value_duration": { // Int64
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Schema{
+					Type:             schema.TypeBool,
+					ValidateDiagFunc: validateTimeDuration,
+					DiffSuppressFunc: diffSuppressDuration,
+				},
+			},
+			"value_timestamp": { // Time
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateTimestamp,
+				},
+			},
+		},
 	}
+}
 
+func monitorV2ColumnPathResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2ColumnPathInput
+		Schema: map[string]*schema.Schema{
+			"name": { // String!
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"path": { // String
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+		},
+	}
+}
+
+func monitorV2LinkColumnMetaResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2LinkColumnMetaInput
+		Schema: map[string]*schema.Schema{
+			"src_fields": { // [MonitorV2ColumnPathInput!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     monitorV2ColumnPathResource(),
+			},
+			"dst_fields": { // [String!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"target_dataset": { // Int64
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+		},
+	}
+}
+
+func monitorV2LinkColumnResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2LinkColumnInput
+		Schema: map[string]*schema.Schema{
+			"name": { // String!
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"meta": { // MonitorV2LinkColumnMetaInput
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     monitorV2LinkColumnMetaResource(),
+			},
+		},
+	}
+}
+
+func monitorV2ColumnResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"link_column": { // MonitorV2LinkColumnInput
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     monitorV2LinkColumnResource(),
+			},
+			"column_path": { // MonitorV2ColumnPathInput
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     monitorV2ColumnPathResource(),
+			},
+		},
+	}
+}
+
+func monitorV2ColumnComparisonResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"compare_values": { // [MonitorV2ComparisonInput!]!
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem:     monitorV2ComparisonResource(),
+			},
+			"column": { // MonitorV2ColumnInput!
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem:     monitorV2ColumnResource(),
+			},
+		},
+	}
+}
+
+func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
 	input, diags := newMonitorV2Input(data)
@@ -951,8 +481,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("data_stabilization_delay", monitor.Definition.DataStabilizationDelay.String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if monitor.Definition.DataStabilizationDelay != nil {
+		if err := data.Set("data_stabilization_delay", monitor.Definition.DataStabilizationDelay.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if monitor.Definition.Groupings != nil {
@@ -986,7 +518,7 @@ func monitorV2FlattenRules(gqlRules []gql.MonitorV2Rule) []interface{} {
 	return rules
 }
 
-func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) []interface{} {
+func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 	rule := map[string]interface{}{
 		"level": string(gqlRule.Level),
 	}
@@ -999,7 +531,7 @@ func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) []interface{} {
 	if gqlRule.Promote != nil {
 		rule["promote"] = monitorV2FlattenPromoteRule(*gqlRule.Promote)
 	}
-	return []interface{}{rule}
+	return rule
 }
 
 func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
@@ -1043,14 +575,14 @@ func monitorV2FlattenColumnComparisons(gqlColumnComparisons []gql.MonitorV2Colum
 	return columnComparisons
 }
 
-func monitorV2FlattenColumnComparison(gqlColumnComparison gql.MonitorV2ColumnComparison) []interface{} {
+func monitorV2FlattenColumnComparison(gqlColumnComparison gql.MonitorV2ColumnComparison) interface{} {
 	columnComparison := map[string]interface{}{
 		"column": monitorV2FlattenColumn(gqlColumnComparison.Column),
 	}
 	if gqlColumnComparison.CompareValues != nil {
 		columnComparison["compare_values"] = monitorV2FlattenComparisons(gqlColumnComparison.CompareValues)
 	}
-	return []interface{}{columnComparison}
+	return columnComparison
 }
 
 func monitorV2FlattenColumn(gqlColumn gql.MonitorV2Column) []interface{} {
@@ -1072,16 +604,15 @@ func monitorV2FlattenComparisons(gqlComparisons []gql.MonitorV2Comparison) []int
 	return comparisons
 }
 
-func monitorV2FlattenComparison(gqlComparison gql.MonitorV2Comparison) []interface{} {
+func monitorV2FlattenComparison(gqlComparison gql.MonitorV2Comparison) interface{} {
 	comparison := map[string]interface{}{
-		"compare_fn":    string(gqlComparison.CompareFn),
-		"compare_value": monitorV2FlattenPrimitiveValue(gqlComparison.CompareValue),
+		"compare_fn": string(gqlComparison.CompareFn),
 	}
-	return []interface{}{comparison}
+	monitorV2FlattenPrimitiveValue(gqlComparison.CompareValue, comparison)
+	return comparison
 }
 
-func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue) []interface{} {
-	primitiveValue := map[string]interface{}{}
+func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue, primitiveValue map[string]interface{}) {
 	if gqlPrimitiveValue.Bool != nil {
 		primitiveValue["value_bool"] = []interface{}{*gqlPrimitiveValue.Bool}
 	}
@@ -1100,7 +631,6 @@ func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue) []inte
 	if gqlPrimitiveValue.Duration != nil {
 		primitiveValue["value_duration"] = []interface{}{gqlPrimitiveValue.Duration.String()}
 	}
-	return []interface{}{primitiveValue}
 }
 
 func monitorV2FlattenGroupings(gqlGroupings []gql.MonitorV2Column) []interface{} {
@@ -1126,14 +656,14 @@ func monitorV2FlattenColumnPaths(gqlColumnPaths []gql.MonitorV2ColumnPath) []int
 	return columnPaths
 }
 
-func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) []interface{} {
+func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) interface{} {
 	columnPath := map[string]interface{}{
 		"name": gqlColumnPath.Name,
 	}
 	if gqlColumnPath.Path != nil {
 		columnPath["path"] = *gqlColumnPath.Path
 	}
-	return []interface{}{columnPath}
+	return columnPath
 }
 
 func monitorV2FlattenLinkColumn(gqlLinkColumn gql.MonitorV2LinkColumn) []interface{} {
@@ -1173,15 +703,15 @@ func monitorV2FlattenScheduling(gqlScheduling gql.MonitorV2Scheduling) []interfa
 
 func monitorV2FlattenIntervalSchedule(gqlIntervalSchedule gql.MonitorV2IntervalSchedule) []interface{} {
 	intervalSchedule := map[string]interface{}{
-		"interval":  gqlIntervalSchedule.Interval,
-		"randomize": gqlIntervalSchedule.Randomize,
+		"interval":  gqlIntervalSchedule.Interval.String(),
+		"randomize": gqlIntervalSchedule.Randomize.String(),
 	}
 	return []interface{}{intervalSchedule}
 }
 
 func monitorV2FlattenTransformSchedule(gqlTransformSchedule gql.MonitorV2TransformSchedule) []interface{} {
 	transformSchedule := map[string]interface{}{
-		"freshness_goal": gqlTransformSchedule.FreshnessGoal,
+		"freshness_goal": gqlTransformSchedule.FreshnessGoal.String(),
 	}
 	return []interface{}{transformSchedule}
 }
@@ -1240,12 +770,17 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	if err != nil {
 		return nil, diag.Errorf("lookback_time is invalid: %s", err.Error())
 	}
+	scheduling, diags := newMonitorV2SchedulingInput("scheduling.0.", data)
+	if diags.HasError() {
+		return nil, diags
+	}
 
 	// instantiation
 	defnInput = &gql.MonitorV2DefinitionInput{
 		InputQuery:   *query,
 		Rules:        rules,
 		LookbackTime: *lookbackTime,
+		Scheduling:   scheduling,
 	}
 
 	// optionals
@@ -1263,13 +798,6 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 			groupings = append(groupings, *colInput)
 		}
 		defnInput.Groupings = groupings
-	}
-	if _, ok := data.GetOk("scheduling"); ok {
-		scheduling, diags := newMonitorV2SchedulingInput("scheduling.0.", data)
-		if diags.HasError() {
-			return nil, diags
-		}
-		defnInput.Scheduling = scheduling
 	}
 
 	return defnInput, diags
@@ -1301,8 +829,8 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 func newMonitorV2IntervalScheduleInput(path string, data *schema.ResourceData) (interval *gql.MonitorV2IntervalScheduleInput, diags diag.Diagnostics) {
 	// required
 	intervalField := data.Get(fmt.Sprintf("%sinterval", path)).(string)
-	intervalDuration, _ := types.ParseDurationScalar(intervalField)
 	randomizeField := data.Get(fmt.Sprintf("%srandomize", path)).(string)
+	intervalDuration, _ := types.ParseDurationScalar(intervalField)
 	randomizeDuration, _ := types.ParseDurationScalar(randomizeField)
 
 	// instantiation
@@ -1333,12 +861,14 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 	rule = &gql.MonitorV2RuleInput{Level: gql.MonitorV2AlarmLevel(level)}
 
 	// optionals
+	nRules := 0
 	if _, ok := data.GetOk(fmt.Sprintf("%scount", path)); ok {
 		count, diags := newMonitorV2CountRuleInput(fmt.Sprintf("%scount.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
 		rule.Count = count
+		nRules++
 	}
 	if _, ok := data.GetOk(fmt.Sprintf("%sthreshold", path)); ok {
 		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%s.threshold.0.", path), data)
@@ -1346,6 +876,18 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 			return nil, diags
 		}
 		rule.Threshold = threshold
+		nRules++
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%spromote", path)); ok {
+		promote, diags := newMonitorV2PromoteRuleInput(fmt.Sprintf("%spromote.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rule.Promote = promote
+		nRules++
+	}
+	if nRules != 1 {
+		return nil, diag.Errorf("exactly one of count, threshold, or promote must be specified")
 	}
 
 	return rule, diags
@@ -1365,6 +907,19 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 	// instantiation
 	comparison = &gql.MonitorV2CountRuleInput{
 		CompareValues: comparisonInputs,
+	}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%scompare_groups", path)); ok {
+		compareGroups := make([]gql.MonitorV2ColumnComparisonInput, 0)
+		for _, i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
+			columnComparison, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%scompare_groups.%d.", path, i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			compareGroups = append(compareGroups, *columnComparison)
+		}
+		comparison.CompareGroups = compareGroups
 	}
 
 	return comparison, diags

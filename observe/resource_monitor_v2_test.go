@@ -21,12 +21,7 @@ func TestAccObserveMonitorV2(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(monitorConfigPreamble+`
-					data "observe_dataset" "test" {
-						workspace = data.observe_workspace.default.oid
-						name      = observe_datastream.test.name
-					}
-
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
 						workspace_id = data.observe_workspace.default.oid
 						rule_kind = "Count"
@@ -34,7 +29,7 @@ func TestAccObserveMonitorV2(t *testing.T) {
 						lookback_time = "30m"
 						comment = "a descriptive comment"
 						inputs = {
-							"battery" = data.observe_dataset.default.oid
+							"test" = observe_datastream.test.dataset
 						}
 						stage {
 							pipeline = <<-EOF
@@ -56,12 +51,18 @@ func TestAccObserveMonitorV2(t *testing.T) {
 								}
 							}
 						}
+						scheduling {
+							interval {
+								interval = "15m"
+								randomize = "0"
+							}
+						}
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace_id"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "comment", "a descriptive comment"),
 				),
 			},
