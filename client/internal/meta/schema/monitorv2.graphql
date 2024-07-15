@@ -328,6 +328,9 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     dataStabilizationDelay: Duration
     """
     Groupings describes the groups that logically separate events/rows/etc from each other.
+    When the input monitor dataset is of type resource and the monitor strategy is of type promote, this field should
+    either be left empty to be mutated with the primary keys of the resource dataset or it should only contain the 
+    primary keys of the dataset.
     """
     groupings: [MonitorV2Column!]
     """
@@ -446,6 +449,7 @@ type MonitorV2Column @goModel(model: "observe/meta/metatypes.MonitorV2Column") {
     Column path is any non-link typed column along with an optional path which the user wants to group by.
     """
     columnPath: MonitorV2ColumnPath
+
 }
 
 input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnInput") {
@@ -565,6 +569,7 @@ type MonitorV2CountRule @goModel(model: "observe/meta/metatypes.MonitorV2CountRu
     (one rule for < 80 and one rule for > 90).
     """
     compareValues: [MonitorV2Comparison!]!
+
     """
     CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
     This gives the option to add extra dimension to the existing rule by specifying which column of
@@ -617,13 +622,16 @@ input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.Monito
 
 
 # The monitor will promote each event in the raw input dataset into an alert. In order to uniquely identify
-# and deduplicate these alerts, the primary key(s) plus the groupings will help deduplicate rows in the dataset:
-#   - Event Dataset: Rows with the same "Valid From" will be deduplicated based on their primary keys + groups.
-#   - Interval Dataset: Rows with the same "Valid From" and "Valid To" will be deduplicated based on their primary keys + groups.
-#   - Resource Dataset: Rows are already deduplicated for a resource dataset, so it will set additional primary keys using the groups
-#     to further deduplicate the resource.
-# For now, even though MonitorV2Column supports link columns, the promote rule will ignore those link columns and only care
-# about columnWithPath. The link columns are to future proof potential changes that may come from the compiler side.
+
+# and deduplicate these alerts, the groupings will help deduplicate the rows in the dataset:
+#   - Event Dataset: Rows can be deduplicated using the `groupings` field of the MonitorV2Definition.
+#   - Interval Dataset: Rows can be deduplicated using the `groupings` field of the MonitorV2Definition.
+#   - Resource Dataset: Rows are already deduplicated for a resource dataset, so the `groupings` field should
+#                       be left empty to be mutated by the backend to be the primary keys of the resource
+#                       dataset or the exact same primary keys of the resource dataset should be provided to
+#                       the `groupings` field.
+# For now, even though MonitorV2Column supports link columns, the promote rule will ignore those link columns and only
+# care about columnWithPath. The link columns are to future proof potential changes that may come from the compiler side.
 type MonitorV2PromoteRule @goModel(model: "observe/meta/metatypes.MonitorV2PromoteRule") {
     # payload
     """

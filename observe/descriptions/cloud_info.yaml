@@ -1,0 +1,9 @@
+description:
+  Cloud provider info for Observe instance.
+schema:
+  cloud_provider: |
+    Name of the cloud provider the Observe instance is running in.
+  account_id: |
+    The cloud account ID the Observe instance is running in.
+  region: |
+    The geographical region the Observe instance is running in.

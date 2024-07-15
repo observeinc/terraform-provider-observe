@@ -19,7 +19,11 @@ func worksheetOrError(w worksheetResponse, err error) (*Worksheet, error) {
 
 func (client *Client) SaveWorksheet(ctx context.Context, input *WorksheetInput) (*Worksheet, error) {
 	resp, err := saveWorksheet(ctx, client.Gql, *input)
-	return worksheetOrError(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	ws := resp.GetWorksheet()
+	return &ws, err
 }
 
 func (client *Client) GetWorksheet(ctx context.Context, id string) (*Worksheet, error) {
