@@ -15,7 +15,6 @@ description: |-
 ### Required
 
 - `inputs` (Map of String)
-- `lookback_time` (String)
 - `name` (String)
 - `rule_kind` (String)
 - `rules` (Block List, Min: 1) (see [below for nested schema](#nestedblock--rules))
@@ -30,6 +29,7 @@ description: |-
 - `description` (String)
 - `groupings` (Block List) (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String)
+- `lookback_time` (String)
 - `managed_by_id` (String)
 
 ### Read-Only

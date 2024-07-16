@@ -4606,7 +4606,7 @@ func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Sc
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
-	LookbackTime           types.DurationScalar      `json:"lookbackTime"`
+	LookbackTime           *types.DurationScalar     `json:"lookbackTime"`
 	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
@@ -4619,7 +4619,7 @@ func (v *MonitorV2DefinitionInput) GetInputQuery() MultiStageQueryInput { return
 func (v *MonitorV2DefinitionInput) GetRules() []MonitorV2RuleInput { return v.Rules }
 
 // GetLookbackTime returns MonitorV2DefinitionInput.LookbackTime, and is useful for accessing the field via an interface.
-func (v *MonitorV2DefinitionInput) GetLookbackTime() types.DurationScalar { return v.LookbackTime }
+func (v *MonitorV2DefinitionInput) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
 
 // GetDataStabilizationDelay returns MonitorV2DefinitionInput.DataStabilizationDelay, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetDataStabilizationDelay() *types.DurationScalar {

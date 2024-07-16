@@ -345,7 +345,7 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     # payload
     inputQuery: MultiStageQueryInput!
     rules: [MonitorV2RuleInput!]!
-    lookbackTime: Duration!
+    lookbackTime: Duration
     dataStabilizationDelay: Duration
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput

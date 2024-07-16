@@ -173,9 +173,9 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
-			"lookback_time": { // Duration!
+			"lookback_time": { // Duration
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
@@ -766,10 +766,6 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		}
 		rules = append(rules, *rule)
 	}
-	lookbackTime, err := types.ParseDurationScalar(data.Get("lookback_time").(string))
-	if err != nil {
-		return nil, diag.Errorf("lookback_time is invalid: %s", err.Error())
-	}
 	scheduling, diags := newMonitorV2SchedulingInput("scheduling.0.", data)
 	if diags.HasError() {
 		return nil, diags
@@ -777,10 +773,9 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 
 	// instantiation
 	defnInput = &gql.MonitorV2DefinitionInput{
-		InputQuery:   *query,
-		Rules:        rules,
-		LookbackTime: *lookbackTime,
-		Scheduling:   scheduling,
+		InputQuery: *query,
+		Rules:      rules,
+		Scheduling: scheduling,
 	}
 
 	// optionals
@@ -798,6 +793,19 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 			groupings = append(groupings, *colInput)
 		}
 		defnInput.Groupings = groupings
+	}
+	if lookbackTimeStr, ok := data.GetOk("lookback_time"); ok {
+		lookbackTime, err := types.ParseDurationScalar(lookbackTimeStr.(string))
+		if err != nil {
+			return nil, diag.Errorf("lookback_time is invalid: %s", err.Error())
+		}
+		defnInput.LookbackTime = lookbackTime
+	} else {
+		lookbackTime, err := types.ParseDurationScalar("0")
+		if err != nil {
+			return nil, diag.Errorf("lookback_time is invalid: %s", err.Error())
+		}
+		defnInput.LookbackTime = lookbackTime
 	}
 
 	return defnInput, diags
@@ -1107,7 +1115,6 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 	valueDuration, hasDuration := data.GetOk(fmt.Sprintf("%svalue_duration", path))
 	valueTimestamp, hasTimestamp := data.GetOk(fmt.Sprintf("%svalue_timestamp", path))
 
-	//	NOTE: I rely on the fact that sizeof(int) == sizeof(int64) on modern systems
 	nvalue := 0
 	var kinds []string
 	if hasBool && valueBool != nil {
