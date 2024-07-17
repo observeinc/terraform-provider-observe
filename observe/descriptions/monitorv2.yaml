@@ -61,48 +61,45 @@ schema:
     list of comparisons that provide an implicit AND where all comparisons must match.
   compare_groups: |
     list of comparisons made against the columns which the monitor is grouped by.
-comparison:
-  compare_fn: |
-    the type of comparison (greater, less, equal, etc.)
-  value_int64: |
-    list of size <=1 consisting of an integer value.
-  value_float64: |
-    list of size <=1 consisting of a float value.
-  value_bool: |
-    list of size <=1 consisting of a boolean value.
-  value_string: |
-    list of size <=1 consisting of a string value.
-  value_duration: |
-    list of size <=1 consisting of a duration value.
-  value_timestamp: |
-    list of size <=1 consisting of a timestamp value.
-column_path:
-  description: |
-    Specifies how the user wants to group by a specific column name or a JSON object column that has a path.
-  name: |
-    The name of the column.
-  path: |
-    The path of the path, if the name refers to a column with a JSON object.
-link_column_meta:
-  description: |
-    Contains the context surrounding the link column.
-  src_fields: |
-    The source fields used to link against the primary keys of the target dataset.
-  dst_fields: |
-    The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-  target_dataset: |
-    The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
-link_column:
-  description: |
-    Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources).
-  name: |
-    The name of the link column.
-column:
-  description: |
-    Represents two possible column types (link column, columnPath) of an observe dataset.
-column_comparison:
-  description: |
-    Specifies the one or multiple values you'd like to compare against the column.
-comparison:
-  description: |
-    Specifies the one or multiple values you'd like to compare against either the link or the columnPath.
+  column_path:
+    description: |
+      Specifies how the user wants to group by a specific column name or a JSON object column that has a path.
+    name: |
+      The name of the column.
+    path: |
+      The path of the path, if the name refers to a column with a JSON object.
+  link_column_meta:
+    description: |
+      Contains the context surrounding the link column.
+    src_fields: |
+      The source fields used to link against the primary keys of the target dataset.
+    dst_fields: |
+      The destination fields (a.k.a. primary keys) of the target dataset being linked against.
+    target_dataset: |
+      The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
+  link_column:
+    description: |
+      Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources).
+    name: |
+      The name of the link column.
+  comparison:
+    compare_fn: |
+      the type of comparison (greater, less, equal, etc.)
+    value_int64: |
+      list of size <=1 consisting of an integer value.
+    value_float64: |
+      list of size <=1 consisting of a float value.
+    value_bool: |
+      list of size <=1 consisting of a boolean value.
+    value_string: |
+      list of size <=1 consisting of a string value.
+    value_duration: |
+      list of size <=1 consisting of a duration value.
+    value_timestamp: |
+      list of size <=1 consisting of a timestamp value.
+  column:
+    description: |
+      Represents two possible column types (link column, columnPath) of an observe dataset.
+  column_comparison:
+    description: |
+      Specifies the one or multiple values you'd like to compare against the column.

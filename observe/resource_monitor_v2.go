@@ -179,14 +179,14 @@ func resourceMonitorV2() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "rules", "promote"),
+							Description: descriptions.Get("monitorv2", "schema", "rules", "promote"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
 										Type:        schema.TypeList,
 										Optional:    true,
 										Elem:        monitorV2ColumnComparisonResource(),
-										Description: descriptions.Get("monitorv2", "column_comparison", "description"),
+										Description: descriptions.Get("monitorv2", "schema", "column_comparison", "description"),
 									},
 								},
 							},
@@ -284,35 +284,35 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
-				Description:      descriptions.Get("monitorv2", "comparison", "compare_fn"),
+				Description:      descriptions.Get("monitorv2", "schema", "comparison", "compare_fn"),
 			},
 			"value_int64": { // Int64
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        &schema.Schema{Type: schema.TypeInt},
-				Description: descriptions.Get("monitorv2", "comparison", "value_int64"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_int64"),
 			},
 			"value_float64": { // Float
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        &schema.Schema{Type: schema.TypeFloat},
-				Description: descriptions.Get("monitorv2", "comparison", "value_float64"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_float64"),
 			},
 			"value_bool": { // Boolean
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        &schema.Schema{Type: schema.TypeBool},
-				Description: descriptions.Get("monitorv2", "comparison", "value_bool"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_bool"),
 			},
 			"value_string": { // String
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: descriptions.Get("monitorv2", "comparison", "value_string"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
 			"value_duration": { // Int64
 				Type:     schema.TypeList,
@@ -323,7 +323,7 @@ func monitorV2ComparisonResource() *schema.Resource {
 					ValidateDiagFunc: validateTimeDuration,
 					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
-				Description: descriptions.Get("monitorv2", "comparison", "value_duration"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_duration"),
 			},
 			"value_timestamp": { // Time
 				Type:     schema.TypeList,
@@ -333,7 +333,7 @@ func monitorV2ComparisonResource() *schema.Resource {
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validateTimestamp,
 				},
-				Description: descriptions.Get("monitorv2", "comparison", "value_timestamp"),
+				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_timestamp"),
 			},
 		},
 	}
@@ -345,12 +345,12 @@ func monitorV2ColumnPathResource() *schema.Resource {
 			"name": { // String!
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: descriptions.Get("monitorv2", "column_path", "name"),
+				Description: descriptions.Get("monitorv2", "schema", "column_path", "name"),
 			},
 			"path": { // String
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "column_path", "path"),
+				Description: descriptions.Get("monitorv2", "schema", "column_path", "path"),
 			},
 		},
 	}
@@ -363,18 +363,18 @@ func monitorV2LinkColumnMetaResource() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        monitorV2ColumnPathResource(),
-				Description: descriptions.Get("monitorv2", "link_column_meta", "src_fields"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "src_fields"),
 			},
 			"dst_fields": { // [String!]
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: descriptions.Get("monitorv2", "link_column_meta", "dst_fields"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "dst_fields"),
 			},
 			"target_dataset": { // Int64
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "link_column_meta", "target_dataset"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "target_dataset"),
 			},
 		},
 	}
@@ -386,14 +386,14 @@ func monitorV2LinkColumnResource() *schema.Resource {
 			"name": { // String!
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: descriptions.Get("monitorv2", "link_column", "name"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column", "name"),
 			},
 			"meta": { // MonitorV2LinkColumnMetaInput
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        monitorV2LinkColumnMetaResource(),
-				Description: descriptions.Get("monitorv2", "link_column_meta", "description"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "description"),
 			},
 		},
 	}
@@ -407,14 +407,14 @@ func monitorV2ColumnResource() *schema.Resource {
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        monitorV2LinkColumnResource(),
-				Description: descriptions.Get("monitorv2", "column", "link_column", "description"),
+				Description: descriptions.Get("monitorv2", "schema", "link_column", "description"),
 			},
 			"column_path": { // MonitorV2ColumnPathInput
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Elem:        monitorV2ColumnPathResource(),
-				Description: descriptions.Get("monitorv2", "column_path", "description"),
+				Description: descriptions.Get("monitorv2", "schema", "column_path", "description"),
 			},
 		},
 	}
@@ -428,7 +428,7 @@ func monitorV2ColumnComparisonResource() *schema.Resource {
 				Required:    true,
 				MinItems:    1,
 				Elem:        monitorV2ComparisonResource(),
-				Description: descriptions.Get("monitorv2", "comparison", "compare_values"),
+				Description: descriptions.Get("monitorv2", "schema", "compare_values"),
 			},
 			"column": { // MonitorV2ColumnInput!
 				Type:        schema.TypeList,
@@ -436,7 +436,7 @@ func monitorV2ColumnComparisonResource() *schema.Resource {
 				MinItems:    1,
 				MaxItems:    1,
 				Elem:        monitorV2ColumnResource(),
-				Description: descriptions.Get("monitorv2", "column", "description"),
+				Description: descriptions.Get("monitorv2", "schema", "column", "description"),
 			},
 		},
 	}
