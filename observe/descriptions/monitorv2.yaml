@@ -1,13 +1,14 @@
-# description:
-#   Monitors provide a flexible way to alert for patterns in your
-#   incoming data. A monitor executes a query periodically and applies rules to
-#   determine whether to trigger notifications. Notifications are forwarded to
-#   subscribed channels, which in turn route notifications to configured channel
-#   actions.
+description:
+  NOTE. This feature is still in development. It is not meant for customer use yet.
+
+  Monitors provide a configurable way to alert when conditions about incoming data
+  are matched. These alerts can optionally also be forwarded to notification receivers
+  like email and webhooks using shared or single-monitor actions to configure the
+  template and destinations to configure the receiver.
 
 schema:
-  disabled: |
-    Disables evaluation of the monitor, but preserves its configuration and history
+  workspace_id: |
+    OID of the workspace this object is contained in.
   comment: |
     A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
   rule_kind: |
@@ -18,27 +19,90 @@ schema:
     URL of the monitor icon.
   description: |
     A brief description of the monitor.
-  managed_by_id: |
-    ID of the user who manages the monitor.
-  folder_id: |
-    ID of the folder the monitor is in.
   rules:
+    description: |
+      All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational.
     level: |
-      The level of the monitor.
-    count:
-      compare_fn: |
-        The comparison function to use for the count rule.
-      compare_value: |
-        compare_value is the right-side value for comparisons that use it (like x > 10, this is 10).
+      The alarm level (Critical, Error, Informational, None, Warning).
+    count: |
+      The count rule to apply to incoming data.
+    threshold:
+      description: |
+        Gives flexibility for threshold and range-based monitors to trigger on values. To look for sustained behavior (CPU > 80 for 5 mins), specify lookbackTime.
+      value_column_name: |
+        Indicates which column in the input query has the value to apply the aggregation.
+      aggregation: |
+        The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+    promote: |
+      The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
+      If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition.
   lookback_time: |
-    LookbackTime optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
-  group_by_groups:
-    columns: |
-      The columns to group by.
-    group_name: |
-      The name of the group.
-    column_path:
-      column: |
-        The column to use for the column path.
-      path: |
-        The path to the column.
+    optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+  data_stabilization_delay: |
+    expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
+  groupings: |
+    Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
+  scheduling:
+    description: |
+      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive, but at least one is required.
+    interval:
+      description: |
+        Should be used to run explicit ad-hoc queries.
+      interval: |
+        How often the monitor should attempt to run.
+      randomize: |
+        A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
+    transform:
+      description: |
+        Should be used to defer scheduling to the transformer and evaluate when data becomes available.
+      freshness_goal: |
+        The freshness goal.
+  compare_values: |
+    list of comparisons that provide an implicit AND where all comparisons must match.
+  compare_groups: |
+    list of comparisons made against the columns which the monitor is grouped by.
+comparison:
+  compare_fn: |
+    the type of comparison (greater, less, equal, etc.)
+  value_int64: |
+    list of size <=1 consisting of an integer value.
+  value_float64: |
+    list of size <=1 consisting of a float value.
+  value_bool: |
+    list of size <=1 consisting of a boolean value.
+  value_string: |
+    list of size <=1 consisting of a string value.
+  value_duration: |
+    list of size <=1 consisting of a duration value.
+  value_timestamp: |
+    list of size <=1 consisting of a timestamp value.
+column_path:
+  description: |
+    Specifies how the user wants to group by a specific column name or a JSON object column that has a path.
+  name: |
+    The name of the column.
+  path: |
+    The path of the path, if the name refers to a column with a JSON object.
+link_column_meta:
+  description: |
+    Contains the context surrounding the link column.
+  src_fields: |
+    The source fields used to link against the primary keys of the target dataset.
+  dst_fields: |
+    The destination fields (a.k.a. primary keys) of the target dataset being linked against.
+  target_dataset: |
+    The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
+link_column:
+  description: |
+    Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources).
+  name: |
+    The name of the link column.
+column:
+  description: |
+    Represents two possible column types (link column, columnPath) of an observe dataset.
+column_comparison:
+  description: |
+    Specifies the one or multiple values you'd like to compare against the column.
+comparison:
+  description: |
+    Specifies the one or multiple values you'd like to compare against either the link or the columnPath.

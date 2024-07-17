@@ -13,6 +13,7 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 // TODO: make the schema keys constants?
@@ -20,6 +21,7 @@ import (
 
 func resourceMonitorV2() *schema.Resource {
 	return &schema.Resource{
+		Description:   descriptions.Get("monitorv2", "description"),
 		CreateContext: resourceMonitorV2Create,
 		ReadContext:   resourceMonitorV2Read,
 		UpdateContext: resourceMonitorV2Update,
@@ -31,39 +33,41 @@ func resourceMonitorV2() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
 			"comment": { // String
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "comment"),
 			},
 			"rule_kind": { // MonitorV2RuleKind!
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RuleKinds),
+				Description:      descriptions.Get("monitorv2", "schema", "rule_kind"),
 			},
 			"name": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitorv2", "schema", "name"),
 			},
 			"icon_url": { // String
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "icon_url"),
 			},
 			"description": { // String
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"managed_by_id": { // ObjectId
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateOID(oid.TypeUser),
-				Optional:         true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "description"),
 			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Required: true,
+				Type:        schema.TypeList,
+				MinItems:    1,
+				Required:    true,
+				Description: descriptions.Get("transform", "schema", "stage", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
@@ -74,19 +78,23 @@ func resourceMonitorV2() *schema.Resource {
 								stage := d.Get("stage").([]interface{})
 								return k == fmt.Sprintf("stage.%d.alias", len(stage)-1)
 							},
+							Description: descriptions.Get("transform", "schema", "stage", "alias"),
 						},
 						"input": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "input"),
 						},
 						"pipeline": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
 						"output_stage": {
-							Type:     schema.TypeBool,
-							Default:  false,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Default:     false,
+							Optional:    true,
+							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
 						},
 					},
 				},
@@ -95,77 +103,90 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
+				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
 			"rules": { // [MonitorV2RuleInput!]!
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "rules", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"level": { // MonitorV2AlarmLevel!
 							Type:             schema.TypeString,
 							Required:         true,
 							ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
+							Description:      descriptions.Get("monitorv2", "schema", "rules", "level"),
 						},
 						"count": { // MonitorV2CountRuleInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "count"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_values": { // [MonitorV2ComparisonInput!]!
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem:     monitorV2ComparisonResource(),
+										Type:        schema.TypeList,
+										Required:    true,
+										MinItems:    1,
+										Description: descriptions.Get("monitorv2", "schema", "compare_values"),
+										Elem:        monitorV2ComparisonResource(),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     monitorV2ColumnComparisonResource(),
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+										Elem:        monitorV2ColumnComparisonResource(),
 									},
 								},
 							},
 						},
 						"threshold": { // MonitorV2ThresholdRuleInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "threshold", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_values": { // [MonitorV2ComparisonInput!]!
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem:     monitorV2ComparisonResource(),
+										Type:        schema.TypeList,
+										Required:    true,
+										MinItems:    1,
+										Elem:        monitorV2ComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_values"),
 									},
 									"value_column_name": { // String!
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rules", "threshold", "value_column_name"),
 									},
 									"aggregation": { // MonitorV2ValueAggregation!
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
+										Description:      descriptions.Get("monitorv2", "schema", "rules", "threshold", "aggregation"),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     monitorV2ColumnComparisonResource(),
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
 									},
 								},
 							},
 						},
 						"promote": { // MonitorV2PromoteRuleInput
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "rules", "promote"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     monitorV2ColumnComparisonResource(),
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "column_comparison", "description"),
 									},
 								},
 							},
@@ -177,23 +198,27 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				Description:      descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
 			},
 			"groupings": { // [MonitorV2ColumnInput!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     monitorV2ColumnResource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        monitorV2ColumnResource(),
+				Description: descriptions.Get("monitorv2", "schema", "groupings"),
 			},
 			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Required:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "scheduling", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": { // MonitorV2IntervalScheduleInput
@@ -201,19 +226,22 @@ func resourceMonitorV2() *schema.Resource {
 							Optional:     true,
 							MaxItems:     1,
 							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
+							Description:  descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interval": { // Duration!
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateTimeDuration,
-										DiffSuppressFunc: diffSuppressTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "interval"),
 									},
 									"randomize": { // Duration!
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateTimeDuration,
-										DiffSuppressFunc: diffSuppressTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "randomize"),
 									},
 								},
 							},
@@ -223,13 +251,15 @@ func resourceMonitorV2() *schema.Resource {
 							Optional:     true,
 							MaxItems:     1,
 							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
+							Description:  descriptions.Get("monitorv2", "schema", "scheduling", "transform", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"freshness_goal": { // Duration!
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateTimeDuration,
-										DiffSuppressFunc: diffSuppressTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "transform", "freshness_goal"),
 									},
 								},
 							},
@@ -254,30 +284,35 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+				Description:      descriptions.Get("monitorv2", "comparison", "compare_fn"),
 			},
 			"value_int64": { // Int64
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeInt},
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeInt},
+				Description: descriptions.Get("monitorv2", "comparison", "value_int64"),
 			},
 			"value_float64": { // Float
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeFloat},
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeFloat},
+				Description: descriptions.Get("monitorv2", "comparison", "value_float64"),
 			},
 			"value_bool": { // Boolean
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeBool},
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeBool},
+				Description: descriptions.Get("monitorv2", "comparison", "value_bool"),
 			},
 			"value_string": { // String
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: descriptions.Get("monitorv2", "comparison", "value_string"),
 			},
 			"value_duration": { // Int64
 				Type:     schema.TypeList,
@@ -286,8 +321,9 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:             schema.TypeBool,
 					ValidateDiagFunc: validateTimeDuration,
-					DiffSuppressFunc: diffSuppressDuration,
+					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
+				Description: descriptions.Get("monitorv2", "comparison", "value_duration"),
 			},
 			"value_timestamp": { // Time
 				Type:     schema.TypeList,
@@ -297,6 +333,7 @@ func monitorV2ComparisonResource() *schema.Resource {
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validateTimestamp,
 				},
+				Description: descriptions.Get("monitorv2", "comparison", "value_timestamp"),
 			},
 		},
 	}
@@ -306,12 +343,14 @@ func monitorV2ColumnPathResource() *schema.Resource {
 	return &schema.Resource{ // MonitorV2ColumnPathInput
 		Schema: map[string]*schema.Schema{
 			"name": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitorv2", "column_path", "name"),
 			},
 			"path": { // String
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "column_path", "path"),
 			},
 		},
 	}
@@ -321,18 +360,21 @@ func monitorV2LinkColumnMetaResource() *schema.Resource {
 	return &schema.Resource{ // MonitorV2LinkColumnMetaInput
 		Schema: map[string]*schema.Schema{
 			"src_fields": { // [MonitorV2ColumnPathInput!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     monitorV2ColumnPathResource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        monitorV2ColumnPathResource(),
+				Description: descriptions.Get("monitorv2", "link_column_meta", "src_fields"),
 			},
 			"dst_fields": { // [String!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: descriptions.Get("monitorv2", "link_column_meta", "dst_fields"),
 			},
 			"target_dataset": { // Int64
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "link_column_meta", "target_dataset"),
 			},
 		},
 	}
@@ -342,14 +384,16 @@ func monitorV2LinkColumnResource() *schema.Resource {
 	return &schema.Resource{ // MonitorV2LinkColumnInput
 		Schema: map[string]*schema.Schema{
 			"name": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitorv2", "link_column", "name"),
 			},
 			"meta": { // MonitorV2LinkColumnMetaInput
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     monitorV2LinkColumnMetaResource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        monitorV2LinkColumnMetaResource(),
+				Description: descriptions.Get("monitorv2", "link_column_meta", "description"),
 			},
 		},
 	}
@@ -359,16 +403,18 @@ func monitorV2ColumnResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"link_column": { // MonitorV2LinkColumnInput
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     monitorV2LinkColumnResource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        monitorV2LinkColumnResource(),
+				Description: descriptions.Get("monitorv2", "column", "link_column", "description"),
 			},
 			"column_path": { // MonitorV2ColumnPathInput
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     monitorV2ColumnPathResource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        monitorV2ColumnPathResource(),
+				Description: descriptions.Get("monitorv2", "column_path", "description"),
 			},
 		},
 	}
@@ -378,17 +424,19 @@ func monitorV2ColumnComparisonResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"compare_values": { // [MonitorV2ComparisonInput!]!
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem:     monitorV2ComparisonResource(),
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				Elem:        monitorV2ComparisonResource(),
+				Description: descriptions.Get("monitorv2", "comparison", "compare_values"),
 			},
 			"column": { // MonitorV2ColumnInput!
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				MaxItems: 1,
-				Elem:     monitorV2ColumnResource(),
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				MaxItems:    1,
+				Elem:        monitorV2ColumnResource(),
+				Description: descriptions.Get("monitorv2", "column", "description"),
 			},
 		},
 	}
@@ -741,9 +789,6 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	}
 	if v, ok := data.GetOk("description"); ok {
 		input.Description = stringPtr(v.(string))
-	}
-	if v, ok := data.GetOk("managed_by_id"); ok {
-		input.ManagedById = stringPtr(v.(string))
 	}
 
 	return input, diags
