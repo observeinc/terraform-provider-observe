@@ -516,6 +516,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("rule_kind", toSnake(string(monitor.GetRuleKind()))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	_, err = flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -568,7 +572,7 @@ func monitorV2FlattenRules(gqlRules []gql.MonitorV2Rule) []interface{} {
 
 func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 	rule := map[string]interface{}{
-		"level": string(gqlRule.Level),
+		"level": toSnake(string(gqlRule.Level)),
 	}
 	if gqlRule.Count != nil {
 		rule["count"] = monitorV2FlattenCountRule(*gqlRule.Count)
@@ -596,7 +600,7 @@ func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
 func monitorV2FlattenThresholdRule(gqlThreshold gql.MonitorV2ThresholdRule) []interface{} {
 	thresholdRule := map[string]interface{}{
 		"value_column_name": gqlThreshold.ValueColumnName,
-		"compare_fn":        string(gqlThreshold.Aggregation),
+		"aggregation":       toSnake(string(gqlThreshold.Aggregation)),
 	}
 	if gqlThreshold.CompareValues != nil {
 		thresholdRule["compare_values"] = monitorV2FlattenComparisons(gqlThreshold.CompareValues)
@@ -654,7 +658,7 @@ func monitorV2FlattenComparisons(gqlComparisons []gql.MonitorV2Comparison) []int
 
 func monitorV2FlattenComparison(gqlComparison gql.MonitorV2Comparison) interface{} {
 	comparison := map[string]interface{}{
-		"compare_fn": string(gqlComparison.CompareFn),
+		"compare_fn": toSnake(string(gqlComparison.CompareFn)),
 	}
 	monitorV2FlattenPrimitiveValue(gqlComparison.CompareValue, comparison)
 	return comparison
@@ -704,14 +708,14 @@ func monitorV2FlattenColumnPaths(gqlColumnPaths []gql.MonitorV2ColumnPath) []int
 	return columnPaths
 }
 
-func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) interface{} {
+func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) []interface{} {
 	columnPath := map[string]interface{}{
 		"name": gqlColumnPath.Name,
 	}
 	if gqlColumnPath.Path != nil {
 		columnPath["path"] = *gqlColumnPath.Path
 	}
-	return columnPath
+	return []interface{}{columnPath}
 }
 
 func monitorV2FlattenLinkColumn(gqlLinkColumn gql.MonitorV2LinkColumn) []interface{} {
@@ -770,7 +774,7 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	if diags.HasError() {
 		return nil, diags
 	}
-	ruleKind := data.Get("rule_kind").(string)
+	ruleKind := toCamel(data.Get("rule_kind").(string))
 	name := data.Get("name").(string)
 
 	// instantiation
@@ -908,7 +912,7 @@ func newMonitorV2TransformScheduleInput(path string, data *schema.ResourceData) 
 
 func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.MonitorV2RuleInput, diags diag.Diagnostics) {
 	// required
-	level := data.Get(fmt.Sprintf("%slevel", path)).(string)
+	level := toCamel(data.Get(fmt.Sprintf("%slevel", path)).(string))
 
 	// instantiation
 	rule = &gql.MonitorV2RuleInput{Level: gql.MonitorV2AlarmLevel(level)}
@@ -924,7 +928,7 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 		nRules++
 	}
 	if _, ok := data.GetOk(fmt.Sprintf("%sthreshold", path)); ok {
-		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%s.threshold.0.", path), data)
+		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%sthreshold.0.", path), data)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -980,7 +984,7 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 
 func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ComparisonInput, diags diag.Diagnostics) {
 	// required
-	compareFn := gql.MonitorV2ComparisonFunction(data.Get(fmt.Sprintf("%scompare_fn", path)).(string))
+	compareFn := gql.MonitorV2ComparisonFunction(toCamel(data.Get(fmt.Sprintf("%scompare_fn", path)).(string)))
 	var compareValue gql.PrimitiveValueInput
 	diags = newMonitorV2PrimitiveValue(path, data, &compareValue)
 	if diags.HasError() {
@@ -1007,7 +1011,7 @@ func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (thr
 		compareValues = append(compareValues, *comparisonInput)
 	}
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
-	aggregation := gql.MonitorV2ValueAggregation(data.Get(fmt.Sprintf("%scompare_fn", path)).(string))
+	aggregation := gql.MonitorV2ValueAggregation(toCamel(data.Get(fmt.Sprintf("%saggregation", path)).(string)))
 
 	// instantiation
 	threshold = &gql.MonitorV2ThresholdRuleInput{
@@ -1027,7 +1031,7 @@ func newMonitorV2PromoteRuleInput(prefix string, data *schema.ResourceData) (pro
 	if _, ok := data.GetOk(fmt.Sprintf("%scompare_columns", prefix)); ok {
 		compareColumns := make([]gql.MonitorV2ColumnComparisonInput, 0)
 		for i := range data.Get(fmt.Sprintf("%scompare_columns", prefix)).([]interface{}) {
-			input, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%s.compare_columns.%d.", prefix, i), data)
+			input, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%scompare_columns.%d.", prefix, i), data)
 			if diags.HasError() {
 				return nil, diags
 			}
@@ -1049,7 +1053,7 @@ func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (
 		}
 		compareValues = append(compareValues, *comparisonInput)
 	}
-	columnInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.", path), data)
+	columnInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.0.", path), data)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -1064,16 +1068,18 @@ func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (
 }
 
 func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnInput, diags diag.Diagnostics) {
-	// required
-	linkColumnInput, diags := newMonitorV2LinkColumnInput(fmt.Sprintf("%slink_column.0.", path), data)
-	if diags.HasError() {
-		return nil, diags
-	}
-
 	// instantiation
-	column = &gql.MonitorV2ColumnInput{LinkColumn: linkColumnInput}
+	column = &gql.MonitorV2ColumnInput{}
 
 	// optional
+	if _, ok := data.GetOk(fmt.Sprintf("%slink_column", path)); ok {
+		linkColumn, diags := newMonitorV2LinkColumnInput(fmt.Sprintf("%slink_column.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		column.LinkColumn = linkColumn
+	}
+
 	if _, ok := data.GetOk(fmt.Sprintf("%scolumn_path", path)); ok {
 		columnPath, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%scolumn_path.0.", path), data)
 		if diags.HasError() {

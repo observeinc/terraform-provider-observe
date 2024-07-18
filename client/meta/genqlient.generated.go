@@ -4447,8 +4447,8 @@ func (v *MonitorV2ColumnComparisonInput) GetCompareValues() []MonitorV2Compariso
 func (v *MonitorV2ColumnComparisonInput) GetColumn() MonitorV2ColumnInput { return v.Column }
 
 type MonitorV2ColumnInput struct {
-	LinkColumn *MonitorV2LinkColumnInput `json:"linkColumn"`
-	ColumnPath *MonitorV2ColumnPathInput `json:"columnPath"`
+	LinkColumn *MonitorV2LinkColumnInput `json:"linkColumn,omitempty"`
+	ColumnPath *MonitorV2ColumnPathInput `json:"columnPath,omitempty"`
 }
 
 // GetLinkColumn returns MonitorV2ColumnInput.LinkColumn, and is useful for accessing the field via an interface.
@@ -4471,7 +4471,7 @@ func (v *MonitorV2ColumnPath) GetPath() *string { return v.Path }
 
 type MonitorV2ColumnPathInput struct {
 	Name string  `json:"name"`
-	Path *string `json:"path"`
+	Path *string `json:"path,omitempty"`
 }
 
 // GetName returns MonitorV2ColumnPathInput.Name, and is useful for accessing the field via an interface.
@@ -4607,7 +4607,7 @@ type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
 	LookbackTime           *types.DurationScalar     `json:"lookbackTime"`
-	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay"`
+	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay,omitempty"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
 }
@@ -4645,14 +4645,14 @@ func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetOutputStage() string {
 func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
 
 type MonitorV2Input struct {
-	Comment     *string                  `json:"comment"`
+	Comment     *string                  `json:"comment,omitempty"`
 	Definition  MonitorV2DefinitionInput `json:"definition"`
 	RuleKind    MonitorV2RuleKind        `json:"ruleKind"`
 	Name        string                   `json:"name"`
-	IconUrl     *string                  `json:"iconUrl"`
-	Description *string                  `json:"description"`
-	ManagedById *string                  `json:"managedById"`
-	FolderId    *string                  `json:"folderId"`
+	IconUrl     *string                  `json:"iconUrl,omitempty"`
+	Description *string                  `json:"description,omitempty"`
+	ManagedById *string                  `json:"managedById,omitempty"`
+	FolderId    *string                  `json:"folderId,omitempty"`
 }
 
 // GetComment returns MonitorV2Input.Comment, and is useful for accessing the field via an interface.
@@ -4725,7 +4725,7 @@ func (v *MonitorV2LinkColumn) GetMeta() *MonitorV2LinkColumnMeta { return v.Meta
 
 type MonitorV2LinkColumnInput struct {
 	Name string                        `json:"name"`
-	Meta *MonitorV2LinkColumnMetaInput `json:"meta"`
+	Meta *MonitorV2LinkColumnMetaInput `json:"meta,omitempty"`
 }
 
 // GetName returns MonitorV2LinkColumnInput.Name, and is useful for accessing the field via an interface.
@@ -4843,9 +4843,9 @@ func (v *MonitorV2Rule) GetPromote() *MonitorV2PromoteRule { return v.Promote }
 
 type MonitorV2RuleInput struct {
 	Level     MonitorV2AlarmLevel          `json:"level"`
-	Count     *MonitorV2CountRuleInput     `json:"count"`
-	Threshold *MonitorV2ThresholdRuleInput `json:"threshold"`
-	Promote   *MonitorV2PromoteRuleInput   `json:"promote"`
+	Count     *MonitorV2CountRuleInput     `json:"count,omitempty"`
+	Threshold *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
+	Promote   *MonitorV2PromoteRuleInput   `json:"promote,omitempty"`
 }
 
 // GetLevel returns MonitorV2RuleInput.Level, and is useful for accessing the field via an interface.

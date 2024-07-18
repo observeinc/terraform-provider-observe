@@ -143,6 +143,19 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
     }
 }
 
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -175,6 +188,19 @@ fragment MonitorV2 on MonitorV2 {
 
 # definitions of monitorv2 CRUD ops
 
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -196,6 +222,19 @@ mutation createMonitorV2(
 	}
 }
 
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
