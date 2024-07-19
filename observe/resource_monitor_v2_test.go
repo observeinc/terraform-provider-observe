@@ -184,7 +184,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace_id"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "promote"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "comment", "a descriptive comment"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.compare_fn", "greater"),
