@@ -1,5 +1,5 @@
-description:
-  NOTE. This feature is still in development. It is not meant for customer use yet.
+description: |
+  NOTE: This feature is still in development. It is not meant for customer use yet.
 
   Monitors provide a configurable way to alert when conditions about incoming data
   are matched. These alerts can optionally also be forwarded to notification receivers

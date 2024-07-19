@@ -510,9 +510,6 @@ func (c *Client) UpdateMonitorV2(ctx context.Context, id string, input *meta.Mon
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	if c.Config.ManagingObjectID != nil {
-		input.ManagedById = c.Config.ManagingObjectID
-	}
 	return c.Meta.UpdateMonitorV2(ctx, id, input)
 }
 
