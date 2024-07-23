@@ -500,10 +500,6 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("comment", monitor.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -551,6 +547,12 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 
 	if monitor.Definition.Scheduling != nil {
 		if err := data.Set("scheduling", monitorV2FlattenScheduling(*monitor.Definition.Scheduling)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if monitor.Comment != nil {
+		if err := data.Set("comment", *monitor.Comment); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
