@@ -1,0 +1,280 @@
+# definitions of monitor v2 data
+
+fragment MonitorV2Comparison on MonitorV2Comparison {
+    compareFn
+    # @genqlient(flatten: true)
+    compareValue {
+        ...PrimitiveValue
+    }
+}
+
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+    name
+    path
+}
+
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+    # @genqlient(flatten: true)
+    srcFields {
+        ...MonitorV2ColumnPath
+    }
+    dstFields
+    targetDataset
+}
+
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+    name
+    # @genqlient(flatten: true)
+    meta {
+        ...MonitorV2LinkColumnMeta
+    }
+}
+
+fragment MonitorV2Column on MonitorV2Column {
+    # @genqlient(flatten: true)
+    linkColumn {
+        ...MonitorV2LinkColumn
+    }
+    # @genqlient(flatten: true)
+    columnPath {
+        ...MonitorV2ColumnPath
+    }
+}
+
+fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
+    # @genqlient(flatten: true)
+    column {
+        ...MonitorV2Column
+    }
+    # @genqlient(flatten: true)
+    compareValues {
+        ...MonitorV2Comparison
+    }
+}
+
+fragment MonitorV2CountRule on MonitorV2CountRule {
+    # @genqlient(flatten: true)
+    compareValues {
+        ...MonitorV2Comparison
+    }
+    # @genqlient(flatten: true)
+    compareGroups {
+        ...MonitorV2ColumnComparison
+    }
+}
+
+fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
+    # @genqlient(flatten: true)
+    compareValues {
+        ...MonitorV2Comparison
+    }
+    valueColumnName
+    aggregation
+    # @genqlient(flatten: true)
+    compareGroups {
+        ...MonitorV2ColumnComparison
+    }
+}
+
+fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
+    # @genqlient(flatten: true)
+    compareColumns {
+        ...MonitorV2ColumnComparison
+    }
+}
+
+fragment MonitorV2Rule on MonitorV2Rule {
+    level
+    # @genqlient(flatten: true)
+    count {
+        ...MonitorV2CountRule
+    }
+    # @genqlient(flatten: true)
+    threshold {
+        ...MonitorV2ThresholdRule
+    }
+    # @genqlient(flatten: true)
+    promote {
+        ...MonitorV2PromoteRule
+    }
+}
+
+fragment MonitorV2Definition on MonitorV2Definition{
+    inputQuery {
+        outputStage
+        # @genqlient(flatten: true)
+        stages {
+            ...StageQuery
+        }
+    }
+    # @genqlient(flatten: true)
+    rules {
+        ...MonitorV2Rule
+    }
+    lookbackTime
+    dataStabilizationDelay
+    # @genqlient(flatten: true)
+    groupings {
+        ...MonitorV2Column
+    }
+    # @genqlient(flatten: true)
+    scheduling {
+        ...MonitorV2Scheduling
+    }
+}
+
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+    interval
+    randomize
+}
+
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+    freshnessGoal
+}
+
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+    # @genqlient(flatten: true)
+    interval {
+        ...MonitorV2IntervalSchedule
+    }
+    # @genqlient(flatten: true)
+    transform { 
+        ...MonitorV2TransformSchedule
+    }
+}
+
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+fragment MonitorV2 on MonitorV2 {
+    id
+    workspaceId
+    createdBy
+    createdDate
+    name
+    iconUrl
+    description
+    managedById
+    folderId
+    comment
+    rollupStatus
+    ruleKind
+    # @genqlient(flatten: true)
+    definition {
+        ...MonitorV2Definition
+    }
+}
+
+# definitions of monitorv2 CRUD ops
+
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+mutation createMonitorV2(
+	$workspaceId: ObjectId!,
+	$input: MonitorV2Input!
+) {
+    # @genqlient(flatten: true)
+	monitorV2: createMonitorV2(workspaceId:$workspaceId, input:$input) {
+        ...MonitorV2
+	}
+}
+
+# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+mutation updateMonitorV2(
+	$id: ObjectId!,
+	$input: MonitorV2Input!
+) {
+	# @genqlient(flatten: true)
+	monitorV2: updateMonitorV2(id:$id, input:$input) {
+        ...MonitorV2
+	}
+}
+
+query getMonitorV2($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	monitorV2: monitorV2(id: $id) {
+		...MonitorV2
+	}
+}
+
+mutation deleteMonitorV2($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	resultStatus: deleteMonitorV2(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+    monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+        # @genqlient(flatten: true)
+        results {
+            ...MonitorV2
+        }
+    }
+}
