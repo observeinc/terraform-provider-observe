@@ -500,6 +500,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("comment", monitor.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
