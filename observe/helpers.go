@@ -295,6 +295,12 @@ func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
 	return o == n
 }
 
+func diffSuppressTimeDurationZeroDistinctFromEmpty(k, prv, nxt string, d *schema.ResourceData) bool {
+	o, e1 := time.ParseDuration(prv)
+	n, e2 := time.ParseDuration(nxt)
+	return o == n && e1 == e2 // the e1 == e2 check distinguishes "0" from ""
+}
+
 func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
 	var prvValue, nxtValue interface{}
 	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {

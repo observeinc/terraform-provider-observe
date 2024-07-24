@@ -1,0 +1,51 @@
+description: |
+  Manages a poller, which configures Observe to pull data from a remote source.
+schema:
+  name: |
+    Poller name. Must be unique within workspace.
+  workspace: |
+    OID of workspace poller is contained in.
+  description: |
+    Poller description.
+  datastream: |
+    Datastream where poller will deliver data.
+  disabled: |
+    Whether to disable poller.
+  interval: |
+    Interval between poller runs. Only applicable to periodic poller kinds.
+  cloudwatch_metrics:
+    description: 
+      CloudWatch Metrics poller.
+    period: |
+      Metric resolution. Must be a multiple of 60s. When omitted, poller interval will be used.
+    delay: |
+      Collection delay. Must account for metrics availability via CloudWatch API.
+    region: |
+      AWS Region to scrape from.
+    assume_role_arn: |
+      AWS role to assume when scraping AWS CloudWatch Metrics. External ID will be set to datastream ID.
+    query:
+      description: |
+        Query specification.
+      namespace: |
+        AWS Metric Namespace to query.
+      metric_names: |
+        Metric names to filter down to. If more than one metric name is provided, `ListMetrics` will be called with no filter on metric names.
+      dimension: |
+        Dimension filter to set. A metric must match all provided dimension filters in order to be queried for data points.
+      resource_filter:
+        description: |
+          Resource filter specification. Allows querying metrics according to tags for associated resources. 
+        resource_type: |
+          Resource type to filter for as supported by `aws resourcegroupstaggingapi get-resources`, e.g. `ec2:instance`.
+        pattern: |
+          Regular expression for extracting identifier out of resource ARN.    
+        dimension_name: |
+          Metric dimension name for resource identifier.
+        tag_filter:
+          description: |
+            Set of tags to match resources on.
+          key: |
+            Tag key.
+          values: |
+            Set of acceptable tag values. Exact matches only.

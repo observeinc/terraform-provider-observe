@@ -76,6 +76,29 @@ fragment Poller on Poller {
 			includeGroups
 			excludeGroups
 		}
+		... on PollerCloudWatchMetricsConfig {
+			period
+			delay
+			region
+			assumeRoleArn
+			queries {
+				namespace
+				metricNames
+				dimensions {
+					name
+					value
+				}
+				resourceFilter {
+					resourceType
+					pattern
+					dimensionName
+					tagFilters {
+						key
+						values
+					}
+				}
+			}
+		}
 	}
 }
 
