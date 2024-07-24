@@ -180,7 +180,104 @@ func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceDat
 
 func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	// TODO
+	client := meta.(*observe.Client)
+
+	action, err := client.GetMonitorV2Action(ctx, data.Id())
+	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
+		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
+	}
+
+	if err := data.Set("workspace_id", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("type", toSnake(string(action.GetType()))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("name", action.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if action.Inline != nil {
+		if err := data.Set("inline", *action.Inline); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if action.Email != nil {
+		if err := data.Set("email", monitorV2FlattenEmailAction(*action.Email)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if action.Webhook != nil {
+		if err := data.Set("webhook", monitorV2FlattenWebhookAction(*action.Webhook)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if action.IconUrl != nil {
+		if err := data.Set("icon_url", *action.IconUrl); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if action.Description != nil {
+		if err := data.Set("description", *action.Description); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
+}
+
+func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) interface{} {
+	email := make(map[string]interface{})
+	if gqlEmail.Body != nil {
+		email["body"] = *gqlEmail.Body
+	}
+	if gqlEmail.Fragments != nil {
+		email["fragments"] = gqlEmail.Fragments.String()
+	}
+	if gqlEmail.Subject != nil {
+		email["subject"] = *gqlEmail.Subject
+	}
+	return email
+}
+
+func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) interface{} {
+	webhook := make(map[string]interface{})
+	if len(gqlWebhook.Headers) > 0 {
+		webhook["headers"] = monitorV2FlattenWebhookHeaders(gqlWebhook.Headers)
+	}
+	if gqlWebhook.Fragments != nil {
+		webhook["fragments"] = gqlWebhook.Fragments.String()
+	}
+	if gqlWebhook.Body != nil {
+		webhook["body"] = *gqlWebhook.Body
+	}
+	return webhook
+}
+
+func monitorV2FlattenWebhookHeaders(gqlHeaders []gql.MonitorV2WebhookHeader) []interface{} {
+	var headers []interface{}
+	for _, gqlHeader := range gqlHeaders {
+		headers = append(headers, monitorV2FlattenWebhookHeader(gqlHeader))
+	}
+	return headers
+}
+
+func monitorV2FlattenWebhookHeader(gqlHeader gql.MonitorV2WebhookHeader) interface{} {
+	header := map[string]interface{}{
+		"header": gqlHeader.Header,
+		"value":  gqlHeader.Value,
+	}
+	return header
 }
 
 func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2ActionInput, diags diag.Diagnostics) {
