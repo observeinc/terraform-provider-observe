@@ -7,10 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
-
-// workspaceId *string, folderId *string, nameExact *string, nameSubstring *string
 
 func dataSourceMonitorV2() *schema.Resource {
 	return &schema.Resource{
@@ -20,27 +19,24 @@ func dataSourceMonitorV2() *schema.Resource {
 			// used to lookup the monitor
 			// monitor can be looked up either by providing an ID
 			// or by providing search params that can uniquely ID the monitor.
-			"get_id": { // ObjectId!
+			"id": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateID(),
+				ValidateDiagFunc: validateOID(oid.TypeMonitorV2),
 				Description:      descriptions.Get("common", "schema", "id"),
 			},
-			"search_workspace_id": { // ObjectId!
+			"workspace": { // ObjectId!
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
+			},
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "workspace_id"),
-			},
-			"search_name_exact": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Description: descriptions.Get("monitorv2", "schema", "name"),
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2Definition
-			"workspace_id": { // ObjectId!
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("monitorv2", "schema", "workspace_id"),
-			},
 			"comment": { // String
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -50,11 +46,6 @@ func dataSourceMonitorV2() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "rule_kind"),
-			},
-			"name": { // String!
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("monitorv2", "schema", "name"),
 			},
 			"icon_url": { // String
 				Type:        schema.TypeString,
@@ -257,7 +248,7 @@ func dataSourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
-			"id": { // ObjectId!
+			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -423,8 +414,8 @@ func monitorV2ColumnComparisonDatasource() *schema.Resource {
 func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
 		client = meta.(*observe.Client)
-		name   = data.Get("search_name_exact").(string)
-		getID  = data.Get("get_id").(string)
+		name   = data.Get("name").(string)
+		getID  = data.Get("id").(string)
 	)
 
 	var m *gql.MonitorV2
@@ -433,9 +424,9 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 	if getID != "" {
 		m, err = client.GetMonitorV2(ctx, getID)
 	} else if name != "" {
-		workspaceID, _ := data.Get("search_workspace_id").(string)
+		workspaceID, _ := data.Get("workspace").(string)
 		if workspaceID != "" {
-			m, err = client.LookupMonitorV2(ctx, &workspaceID, nil, &name, nil)
+			m, err = client.LookupMonitorV2(ctx, &workspaceID, &name)
 		}
 	}
 

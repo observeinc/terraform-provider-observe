@@ -38,8 +38,8 @@ func (client *Client) DeleteMonitorV2(ctx context.Context, id string) error {
 	return resultStatusError(resp, err)
 }
 
-func (client *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, folderId *string, nameExact *string, nameSubstring *string) (*MonitorV2, error) {
-	resp, err := lookupMonitorV2(ctx, client.Gql, workspaceId, folderId, nameExact, nameSubstring)
+func (client *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameExact *string) (*MonitorV2, error) {
+	resp, err := lookupMonitorV2(ctx, client.Gql, workspaceId, nil, nameExact, nil)
 	if err != nil || resp == nil || len(resp.MonitorV2s.Results) != 1 {
 		return nil, err
 	}

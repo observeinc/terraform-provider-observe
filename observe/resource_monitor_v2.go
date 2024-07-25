@@ -28,7 +28,7 @@ func resourceMonitorV2() *schema.Resource {
 		DeleteContext: resourceMonitorV2Delete,
 		Schema: map[string]*schema.Schema{
 			// needed as input to MonitorV2Create, also part of MonitorV2 struct
-			"workspace_id": { // ObjectId!
+			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
@@ -450,7 +450,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace_id").(string))
+	id, _ := oid.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateMonitorV2(ctx, id.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
@@ -496,7 +496,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	// perform data.set on all the fields from this monitor
-	if err := data.Set("workspace_id", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
