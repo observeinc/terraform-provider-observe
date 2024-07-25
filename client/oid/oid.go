@@ -37,6 +37,7 @@ const (
 	TypeLink                    Type = "link"
 	TypeMonitor                 Type = "monitor"
 	TypeMonitorV2               Type = "monitorV2"
+	TypeMonitorV2Destination    Type = "monitorv2destination"
 	TypeMonitorAction           Type = "monitoraction"
 	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypePoller                  Type = "poller"

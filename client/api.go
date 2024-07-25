@@ -525,6 +525,37 @@ func (c *Client) GetMonitorV2(ctx context.Context, id string) (*meta.MonitorV2, 
 	return c.Meta.GetMonitorV2(ctx, id)
 }
 
+func (c *Client) CreateMonitorV2Destination(ctx context.Context, workspaceId string, input *meta.MonitorV2DestinationInput) (*meta.MonitorV2Destination, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.CreateMonitorV2Destination(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateMonitorV2Destination(ctx context.Context, id string, input *meta.MonitorV2DestinationInput) (*meta.MonitorV2Destination, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateMonitorV2Destination(ctx, id, input)
+}
+
+func (c *Client) DeleteMonitorV2Destination(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorV2Destination(ctx, id)
+}
+
+func (c *Client) GetMonitorV2Destination(ctx context.Context, id string) (*meta.MonitorV2Destination, error) {
+	return c.Meta.GetMonitorV2Destination(ctx, id)
+}
+
 // CreateMonitorActionAttachment creates a monitor action attachment
 func (c *Client) CreateMonitorActionAttachment(ctx context.Context, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
 	if !c.Flags[flagObs2110] {
