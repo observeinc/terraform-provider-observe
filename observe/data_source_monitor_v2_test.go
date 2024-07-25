@@ -18,7 +18,7 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
@@ -55,11 +55,11 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						get_id = observe_monitor_v2.first.id
+						id = observe_monitor_v2.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace_id"),
+					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "count"),
@@ -85,7 +85,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "threshold"
 						name = "%[1]s"
 						lookback_time = "30m"
@@ -116,11 +116,11 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						get_id = observe_monitor_v2.first.id
+						id = observe_monitor_v2.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace_id"),
+					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "threshold"),
@@ -148,7 +148,7 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "promote"
 						name = "%[1]s"
 						lookback_time = "0s"
@@ -184,11 +184,11 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						get_id = observe_monitor_v2.first.id
+						id = observe_monitor_v2.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace_id"),
+					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "promote"),
