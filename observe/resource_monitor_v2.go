@@ -269,7 +269,7 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			// end of fields of MonitorV2DefinitionInput
 			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
-			"id": { // ObjectId!
+			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -512,7 +512,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("id", monitor.Oid().String()); err != nil {
+	if err := data.Set("oid", monitor.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
