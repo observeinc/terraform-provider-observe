@@ -46,6 +46,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+- `oid` (String)
 
 <a id="nestedblock--rules"></a>
 ### Nested Schema for `rules`
