@@ -32,7 +32,7 @@ stage pipelines.
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
-- `workspace_id` (String) OID of the workspace this object is contained in.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
