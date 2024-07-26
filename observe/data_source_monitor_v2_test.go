@@ -55,7 +55,7 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						id = observe_monitor_v2.first.id
+						id = observe_monitor_v2.first.oid
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -184,7 +184,7 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						id = observe_monitor_v2.first.id
+						id = observe_monitor_v2.first.oid
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
