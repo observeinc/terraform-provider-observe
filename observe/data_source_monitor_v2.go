@@ -186,13 +186,11 @@ func dataSourceMonitorV2() *schema.Resource {
 			},
 			"lookback_time": { // Duration
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
 			},
