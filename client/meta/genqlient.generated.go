@@ -7959,6 +7959,7 @@ func (v *__createDatastreamInput) GetDatastream() DatastreamInput { return v.Dat
 type __createDatastreamTokenInput struct {
 	DatastreamId string               `json:"datastreamId"`
 	Token        DatastreamTokenInput `json:"token"`
+	Password     *string              `json:"password"`
 }
 
 // GetDatastreamId returns __createDatastreamTokenInput.DatastreamId, and is useful for accessing the field via an interface.
@@ -7966,6 +7967,9 @@ func (v *__createDatastreamTokenInput) GetDatastreamId() string { return v.Datas
 
 // GetToken returns __createDatastreamTokenInput.Token, and is useful for accessing the field via an interface.
 func (v *__createDatastreamTokenInput) GetToken() DatastreamTokenInput { return v.Token }
+
+// GetPassword returns __createDatastreamTokenInput.Password, and is useful for accessing the field via an interface.
+func (v *__createDatastreamTokenInput) GetPassword() *string { return v.Password }
 
 // __createDeferredForeignKeyInput is used internally by genqlient
 type __createDeferredForeignKeyInput struct {
@@ -11567,8 +11571,8 @@ func createDatastream(
 
 // The query or mutation executed by createDatastreamToken.
 const createDatastreamToken_Operation = `
-mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!) {
-	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token) {
+mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!, $password: String) {
+	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token, password: $password) {
 		... DatastreamToken
 	}
 }
@@ -11587,6 +11591,7 @@ func createDatastreamToken(
 	client graphql.Client,
 	datastreamId string,
 	token DatastreamTokenInput,
+	password *string,
 ) (*createDatastreamTokenResponse, error) {
 	req := &graphql.Request{
 		OpName: "createDatastreamToken",
@@ -11594,6 +11599,7 @@ func createDatastreamToken(
 		Variables: &__createDatastreamTokenInput{
 			DatastreamId: datastreamId,
 			Token:        token,
+			Password:     password,
 		},
 	}
 	var err error

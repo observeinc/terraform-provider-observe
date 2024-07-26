@@ -718,12 +718,12 @@ func (c *Client) LookupDatastream(ctx context.Context, workspaceID string, name 
 }
 
 // CreateDatastreamToken creates a datastream token
-func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput) (*meta.DatastreamToken, error) {
+func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput, password *string) (*meta.DatastreamToken, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input)
+	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input, password)
 }
 
 // GetDatastreamToken by ID

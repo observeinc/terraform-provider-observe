@@ -3,7 +3,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
+    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!, password: String): DatastreamToken!
     updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
     deleteDatastreamToken(id: String!): ResultStatus!
 }
