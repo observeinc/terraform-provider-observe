@@ -204,6 +204,10 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("oid", action.Oid().String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if action.Inline != nil {
 		if err := data.Set("inline", *action.Inline); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

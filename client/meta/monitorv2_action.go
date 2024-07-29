@@ -41,6 +41,6 @@ func (client *Client) DeleteMonitorV2Action(ctx context.Context, id string) erro
 func (m *MonitorV2Action) Oid() *oid.OID {
 	return &oid.OID{
 		Id:   m.Id,
-		Type: oid.TypeMonitorV2,
+		Type: oid.TypeMonitorV2Action,
 	}
 }
