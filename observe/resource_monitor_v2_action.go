@@ -74,11 +74,11 @@ func monitorV2EmailActionInput() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"subject": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -100,7 +100,7 @@ func monitorV2WebhookActionInput() *schema.Resource {
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -316,18 +316,16 @@ func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2Act
 }
 
 func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email *gql.MonitorV2EmailActionInput, diags diag.Diagnostics) {
+	// required
+	subject := data.Get(fmt.Sprintf("%ssubject", path)).(string)
+	email.Subject = &subject
+	body := data.Get(fmt.Sprintf("%sbody", path)).(string)
+	email.Body = &body
+
 	// instantiation
 	email = &gql.MonitorV2EmailActionInput{}
 
 	// optionals
-	if v, ok := data.GetOk(fmt.Sprintf("%ssubject", path)); ok {
-		subject := v.(string)
-		email.Subject = &subject
-	}
-	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
-		body := v.(string)
-		email.Body = &body
-	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
 	}
@@ -336,14 +334,14 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 }
 
 func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (webhook *gql.MonitorV2WebhookActionInput, diags diag.Diagnostics) {
+	// required
+	body := data.Get(fmt.Sprintf("%sbody", path)).(string)
+	webhook.Body = &body
+
 	// instantiation
 	webhook = &gql.MonitorV2WebhookActionInput{}
 
 	// optionals
-	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
-		body := v.(string)
-		webhook.Body = &body
-	}
 	if _, ok := data.GetOk(fmt.Sprintf("%sheaders", path)); ok {
 		webhook.Headers = make([]gql.MonitorV2WebhookHeaderInput, 0)
 		for i := range data.Get(fmt.Sprintf("%sheaders", path)).([]interface{}) {
