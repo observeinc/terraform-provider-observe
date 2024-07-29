@@ -22,7 +22,7 @@ func resourceMonitorV2Action() *schema.Resource {
 		DeleteContext: resourceMonitorV2Delete,
 		Schema: map[string]*schema.Schema{
 			// needed as input to CreateMonitorV2Action
-			"workspace_id": { // ObjectId!
+			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
@@ -39,16 +39,18 @@ func resourceMonitorV2Action() *schema.Resource {
 				Required:         true,
 			},
 			"email": { // MonitorV2EmailDestinationInput
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem:     monitorV2EmailActionInput(),
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"email", "webhook"},
+				Elem:         monitorV2EmailActionInput(),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem:     monitorV2WebhookActionInput(),
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"email", "webhook"},
+				Elem:         monitorV2WebhookActionInput(),
 			},
 			"name": { // String!
 				Type:     schema.TypeString,
@@ -63,7 +65,7 @@ func resourceMonitorV2Action() *schema.Resource {
 				Optional: true,
 			},
 			// end of monitorV2ActionInput
-			"id": { // ObjectId!
+			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -137,7 +139,7 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 		return diags
 	}
 
-	workspaceID, _ := oid.NewOID(data.Get("workspace_id").(string))
+	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
@@ -179,7 +181,6 @@ func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceDat
 }
 
 func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	// TODO
 	client := meta.(*observe.Client)
 
 	action, err := client.GetMonitorV2Action(ctx, data.Id())
@@ -191,7 +192,7 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
 	}
 
-	if err := data.Set("workspace_id", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
