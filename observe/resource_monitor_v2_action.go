@@ -2,7 +2,6 @@ package observe
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,10 +15,10 @@ import (
 
 func resourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMonitorV2Create,
-		ReadContext:   resourceMonitorV2Read,
-		UpdateContext: resourceMonitorV2Update,
-		DeleteContext: resourceMonitorV2Delete,
+		CreateContext: resourceMonitorV2ActionCreate,
+		ReadContext:   resourceMonitorV2ActionRead,
+		UpdateContext: resourceMonitorV2ActionUpdate,
+		DeleteContext: resourceMonitorV2ActionDelete,
 		Schema: map[string]*schema.Schema{
 			// needed as input to CreateMonitorV2Action
 			"workspace": { // ObjectId!
@@ -74,11 +73,11 @@ func monitorV2EmailActionInput() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"subject": { // String
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -100,7 +99,7 @@ func monitorV2WebhookActionInput() *schema.Resource {
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -231,7 +230,7 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 	return diags
 }
 
-func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) interface{} {
+func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) []interface{} {
 	email := make(map[string]interface{})
 	if gqlEmail.Body != nil {
 		email["body"] = *gqlEmail.Body
@@ -242,10 +241,10 @@ func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) interface{} 
 	if gqlEmail.Subject != nil {
 		email["subject"] = *gqlEmail.Subject
 	}
-	return email
+	return []interface{}{email}
 }
 
-func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) interface{} {
+func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) []interface{} {
 	webhook := make(map[string]interface{})
 	if len(gqlWebhook.Headers) > 0 {
 		webhook["headers"] = monitorV2FlattenWebhookHeaders(gqlWebhook.Headers)
@@ -256,7 +255,7 @@ func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) interf
 	if gqlWebhook.Body != nil {
 		webhook["body"] = *gqlWebhook.Body
 	}
-	return webhook
+	return []interface{}{webhook}
 }
 
 func monitorV2FlattenWebhookHeaders(gqlHeaders []gql.MonitorV2WebhookHeader) []interface{} {
@@ -312,20 +311,22 @@ func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2Act
 		input.Description = &description
 	}
 
-	return nil, diags
+	return input, diags
 }
 
 func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email *gql.MonitorV2EmailActionInput, diags diag.Diagnostics) {
-	// required
-	subject := data.Get(fmt.Sprintf("%ssubject", path)).(string)
-	email.Subject = &subject
-	body := data.Get(fmt.Sprintf("%sbody", path)).(string)
-	email.Body = &body
-
 	// instantiation
 	email = &gql.MonitorV2EmailActionInput{}
 
 	// optionals
+	if v, ok := data.GetOk(fmt.Sprintf("%ssubject", path)); ok {
+		subject := v.(string)
+		email.Subject = &subject
+	}
+	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
+		body := v.(string)
+		email.Body = &body
+	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
 	}
@@ -334,9 +335,6 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 }
 
 func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (webhook *gql.MonitorV2WebhookActionInput, diags diag.Diagnostics) {
-	// required
-	body := data.Get(fmt.Sprintf("%sbody", path)).(string)
-	webhook.Body = &body
 
 	// instantiation
 	webhook = &gql.MonitorV2WebhookActionInput{}
@@ -353,14 +351,11 @@ func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (web
 		}
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
-		fragmentsStr := v.(string)
-		err := json.Unmarshal([]byte(fragmentsStr), webhook.Fragments)
-		if err != nil {
-			return nil, diag.Errorf(err.Error())
-		}
-	}
-	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		webhook.Fragments = types.JsonObject(v.(string)).Ptr()
+	}
+	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
+		body := v.(string)
+		webhook.Body = &body
 	}
 
 	return webhook, diags
