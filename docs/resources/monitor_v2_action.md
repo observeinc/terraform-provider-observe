@@ -16,19 +16,19 @@ description: |-
 
 - `name` (String)
 - `type` (String)
-- `workspace_id` (String)
+- `workspace` (String)
 
 ### Optional
 
 - `description` (String)
 - `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
 - `icon_url` (String)
-- `inline` (Boolean)
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+- `oid` (String)
 
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`

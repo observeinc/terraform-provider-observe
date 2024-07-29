@@ -29,10 +29,6 @@ func resourceMonitorV2Action() *schema.Resource {
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
 			// fields of MonitorV2ActionInput
-			"inline": { // Boolean
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 			"type": { // MonitorV2ActionType!
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
@@ -208,12 +204,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if action.Inline != nil {
-		if err := data.Set("inline", *action.Inline); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
 	if action.Email != nil {
 		if err := data.Set("email", monitorV2FlattenEmailAction(*action.Email)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -291,16 +281,14 @@ func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2Act
 	name := data.Get("name").(string)
 
 	// instantiation
+	inlineVal := false
 	input = &gql.MonitorV2ActionInput{
-		Type: meta.MonitorV2ActionType(actionType),
-		Name: name,
+		Type:   meta.MonitorV2ActionType(actionType),
+		Name:   name,
+		Inline: &inlineVal, // we are not currently allowing inline actions
 	}
 
 	// optionals
-	if v, ok := data.GetOk("inline"); ok {
-		boolVal := v.(bool)
-		input.Inline = &boolVal
-	}
 	if _, ok := data.GetOk("email"); ok {
 		email, diags := newMonitorV2EmailActionInput(data, "email.0.")
 		if diags.HasError() {
