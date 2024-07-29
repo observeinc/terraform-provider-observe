@@ -33,25 +33,19 @@ description: |-
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`
 
-Required:
-
-- `body` (String)
-- `subject` (String)
-
 Optional:
 
+- `body` (String)
 - `fragments` (String)
+- `subject` (String)
 
 
 <a id="nestedblock--webhook"></a>
 ### Nested Schema for `webhook`
 
-Required:
-
-- `body` (String)
-
 Optional:
 
+- `body` (String)
 - `fragments` (String)
 - `headers` (Block List) (see [below for nested schema](#nestedblock--webhook--headers))
 
