@@ -556,6 +556,10 @@ func (c *Client) DeleteMonitorV2Action(ctx context.Context, id string) error {
 	return c.Meta.DeleteMonitorV2Action(ctx, id)
 }
 
+func (c *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2, error) {
+	return c.Meta.LookupMonitorV2(ctx, workspaceId, nameExact)
+}
+
 // CreateMonitorActionAttachment creates a monitor action attachment
 func (c *Client) CreateMonitorActionAttachment(ctx context.Context, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
 	if !c.Flags[flagObs2110] {
@@ -745,12 +749,12 @@ func (c *Client) LookupDatastream(ctx context.Context, workspaceID string, name 
 }
 
 // CreateDatastreamToken creates a datastream token
-func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput) (*meta.DatastreamToken, error) {
+func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput, password *string) (*meta.DatastreamToken, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input)
+	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input, password)
 }
 
 // GetDatastreamToken by ID

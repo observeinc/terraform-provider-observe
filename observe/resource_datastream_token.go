@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -19,6 +18,7 @@ const (
 	schemaDatastreamTokenDescriptionDescription = "Datastream description."
 	schemaDatastreamTokenDisabledDescription    = "Disable token."
 	schemaDatastreamTokenOIDDescription         = "The Observe ID for datastream token."
+	schemaDatastreamTokenPasswordDescription    = "Password to be used as part of the token secret"
 )
 
 func resourceDatastreamToken() *schema.Resource {
@@ -64,6 +64,13 @@ func resourceDatastreamToken() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaDatastreamTokenOIDDescription,
+			},
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Sensitive:   true,
+				Description: schemaDatastreamTokenPasswordDescription,
 			},
 		},
 	}
@@ -117,9 +124,12 @@ func resourceDatastreamTokenCreate(ctx context.Context, data *schema.ResourceDat
 	if diags.HasError() {
 		return diags
 	}
-
+	var password *string
+	if v, ok := data.GetOk("password"); ok {
+		password = stringPtr(v.(string))
+	}
 	id, _ := oid.NewOID(data.Get("datastream").(string))
-	result, err := client.CreateDatastreamToken(ctx, id.Id, config)
+	result, err := client.CreateDatastreamToken(ctx, id.Id, config, password)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

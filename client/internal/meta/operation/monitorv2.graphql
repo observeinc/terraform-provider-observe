@@ -143,6 +143,13 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
     }
 }
 
+fragment MonitorV2SearchResult on MonitorV2SearchResult {
+    # @genqlient(flatten: true)
+    results {
+        ...MonitorV2
+    }
+}
+
 # @genqlient(for: "MonitorV2Input.comment", omitempty: true)
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
@@ -271,10 +278,8 @@ mutation deleteMonitorV2($id: ObjectId!) {
 }
 
 query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+    # @genqlient(flatten: true)
     monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
-        # @genqlient(flatten: true)
-        results {
-            ...MonitorV2
-        }
+        ...MonitorV2SearchResult
     }
 }
