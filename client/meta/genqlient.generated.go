@@ -4901,6 +4901,14 @@ func (v *MonitorV2SchedulingInput) GetTransform() *MonitorV2TransformScheduleInp
 	return v.Transform
 }
 
+// MonitorV2SearchResult includes the GraphQL fields of MonitorV2SearchResult requested by the fragment MonitorV2SearchResult.
+type MonitorV2SearchResult struct {
+	Results []MonitorV2 `json:"results"`
+}
+
+// GetResults returns MonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
+func (v *MonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
+
 // MonitorV2ThresholdRule includes the GraphQL fields of MonitorV2ThresholdRule requested by the fragment MonitorV2ThresholdRule.
 type MonitorV2ThresholdRule struct {
 	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
@@ -10492,23 +10500,13 @@ type lookupMonitorResponse struct {
 // GetMonitor returns lookupMonitorResponse.Monitor, and is useful for accessing the field via an interface.
 func (v *lookupMonitorResponse) GetMonitor() *lookupMonitorMonitorProject { return v.Monitor }
 
-// lookupMonitorV2MonitorV2sMonitorV2SearchResult includes the requested fields of the GraphQL type MonitorV2SearchResult.
-type lookupMonitorV2MonitorV2sMonitorV2SearchResult struct {
-	Results []MonitorV2 `json:"results"`
-}
-
-// GetResults returns lookupMonitorV2MonitorV2sMonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
-
 // lookupMonitorV2Response is returned by lookupMonitorV2 on success.
 type lookupMonitorV2Response struct {
-	MonitorV2s lookupMonitorV2MonitorV2sMonitorV2SearchResult `json:"monitorV2s"`
+	MonitorV2s MonitorV2SearchResult `json:"monitorV2s"`
 }
 
 // GetMonitorV2s returns lookupMonitorV2Response.MonitorV2s, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2Response) GetMonitorV2s() lookupMonitorV2MonitorV2sMonitorV2SearchResult {
-	return v.MonitorV2s
-}
+func (v *lookupMonitorV2Response) GetMonitorV2s() MonitorV2SearchResult { return v.MonitorV2s }
 
 // lookupSnowflakeOutboundShareResponse is returned by lookupSnowflakeOutboundShare on success.
 type lookupSnowflakeOutboundShareResponse struct {
@@ -16778,9 +16776,12 @@ func lookupMonitor(
 const lookupMonitorV2_Operation = `
 query lookupMonitorV2 ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
 	monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
-		results {
-			... MonitorV2
-		}
+		... MonitorV2SearchResult
+	}
+}
+fragment MonitorV2SearchResult on MonitorV2SearchResult {
+	results {
+		... MonitorV2
 	}
 }
 fragment MonitorV2 on MonitorV2 {

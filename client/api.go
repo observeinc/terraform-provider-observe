@@ -525,6 +525,10 @@ func (c *Client) GetMonitorV2(ctx context.Context, id string) (*meta.MonitorV2, 
 	return c.Meta.GetMonitorV2(ctx, id)
 }
 
+func (c *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2, error) {
+	return c.Meta.LookupMonitorV2(ctx, workspaceId, nameExact)
+}
+
 // CreateMonitorActionAttachment creates a monitor action attachment
 func (c *Client) CreateMonitorActionAttachment(ctx context.Context, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
 	if !c.Flags[flagObs2110] {
