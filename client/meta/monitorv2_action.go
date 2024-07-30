@@ -34,7 +34,7 @@ func (client *Client) UpdateMonitorV2Action(ctx context.Context, id string, inpu
 }
 
 func (client *Client) DeleteMonitorV2Action(ctx context.Context, id string) error {
-	resp, err := deleteMonitorV2(ctx, client.Gql, id)
+	resp, err := deleteMonitorV2Action(ctx, client.Gql, id)
 	return resultStatusError(resp, err)
 }
 
