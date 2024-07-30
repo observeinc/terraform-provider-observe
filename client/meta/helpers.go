@@ -141,6 +141,13 @@ var AllMonitorV2RollupStatuses = []MonitorV2RollupStatus{
 	MonitorV2RollupStatusTriggering,
 }
 
+var AllMonitorV2ActionTypes = []MonitorV2ActionType{
+	MonitorV2ActionTypeEmail,
+	MonitorV2ActionTypePagerduty,
+	MonitorV2ActionTypeSlack,
+	MonitorV2ActionTypeWebhook,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }
