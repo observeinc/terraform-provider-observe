@@ -1862,6 +1862,7 @@ type DatastreamInput struct {
 	ExternalSourceId *string                    `json:"externalSourceId"`
 	PrometheusInput  *DatastreamPrometheusInput `json:"prometheusInput"`
 	OtelLogsInput    *DatastreamOtelLogsInput   `json:"otelLogsInput"`
+	K8sEntityInput   *DatastreamK8sEntityInput  `json:"k8sEntityInput"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -1884,6 +1885,16 @@ func (v *DatastreamInput) GetPrometheusInput() *DatastreamPrometheusInput { retu
 
 // GetOtelLogsInput returns DatastreamInput.OtelLogsInput, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetOtelLogsInput() *DatastreamOtelLogsInput { return v.OtelLogsInput }
+
+// GetK8sEntityInput returns DatastreamInput.K8sEntityInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetK8sEntityInput() *DatastreamK8sEntityInput { return v.K8sEntityInput }
+
+type DatastreamK8sEntityInput struct {
+	Enabled bool `json:"enabled"`
+}
+
+// GetEnabled returns DatastreamK8sEntityInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamK8sEntityInput) GetEnabled() bool { return v.Enabled }
 
 type DatastreamOtelLogsInput struct {
 	Enabled bool `json:"enabled"`
@@ -5573,6 +5584,21 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 	return &retval, nil
 }
 
+type PollerAWSSnapshotInput struct {
+	IncludeActions []string `json:"includeActions"`
+	Region         string   `json:"region"`
+	AssumeRoleArn  string   `json:"assumeRoleArn"`
+}
+
+// GetIncludeActions returns PollerAWSSnapshotInput.IncludeActions, and is useful for accessing the field via an interface.
+func (v *PollerAWSSnapshotInput) GetIncludeActions() []string { return v.IncludeActions }
+
+// GetRegion returns PollerAWSSnapshotInput.Region, and is useful for accessing the field via an interface.
+func (v *PollerAWSSnapshotInput) GetRegion() string { return v.Region }
+
+// GetAssumeRoleArn returns PollerAWSSnapshotInput.AssumeRoleArn, and is useful for accessing the field via an interface.
+func (v *PollerAWSSnapshotInput) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
 type PollerChunkInput struct {
 	Enabled bool               `json:"enabled"`
 	Size    *types.Int64Scalar `json:"size"`
@@ -5680,6 +5706,7 @@ func (v *PollerCloudWatchMetricsTagFilterInput) GetValues() []string { return v.
 // PollerConfig includes the requested fields of the GraphQL interface PollerConfig.
 //
 // PollerConfig is implemented by the following types:
+// PollerConfigPollerAWSSnapshotConfig
 // PollerConfigPollerCloudWatchMetricsConfig
 // PollerConfigPollerConfluentCloudConfig
 // PollerConfigPollerGCPMonitoringConfig
@@ -5702,6 +5729,7 @@ type PollerConfig interface {
 	GetChunk() *PollerConfigChunkPollerChunkConfig
 }
 
+func (v *PollerConfigPollerAWSSnapshotConfig) implementsGraphQLInterfacePollerConfig()       {}
 func (v *PollerConfigPollerCloudWatchMetricsConfig) implementsGraphQLInterfacePollerConfig() {}
 func (v *PollerConfigPollerConfluentCloudConfig) implementsGraphQLInterfacePollerConfig()    {}
 func (v *PollerConfigPollerGCPMonitoringConfig) implementsGraphQLInterfacePollerConfig()     {}
@@ -5723,6 +5751,9 @@ func __unmarshalPollerConfig(b []byte, v *PollerConfig) error {
 	}
 
 	switch tn.TypeName {
+	case "PollerAWSSnapshotConfig":
+		*v = new(PollerConfigPollerAWSSnapshotConfig)
+		return json.Unmarshal(b, *v)
 	case "PollerCloudWatchMetricsConfig":
 		*v = new(PollerConfigPollerCloudWatchMetricsConfig)
 		return json.Unmarshal(b, *v)
@@ -5754,6 +5785,14 @@ func __marshalPollerConfig(v *PollerConfig) ([]byte, error) {
 
 	var typename string
 	switch v := (*v).(type) {
+	case *PollerConfigPollerAWSSnapshotConfig:
+		typename = "PollerAWSSnapshotConfig"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*PollerConfigPollerAWSSnapshotConfig
+		}{typename, v}
+		return json.Marshal(result)
 	case *PollerConfigPollerCloudWatchMetricsConfig:
 		typename = "PollerCloudWatchMetricsConfig"
 
@@ -5821,6 +5860,36 @@ func (v *PollerConfigChunkPollerChunkConfig) GetEnabled() bool { return v.Enable
 
 // GetSize returns PollerConfigChunkPollerChunkConfig.Size, and is useful for accessing the field via an interface.
 func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { return v.Size }
+
+// PollerConfigPollerAWSSnapshotConfig includes the requested fields of the GraphQL type PollerAWSSnapshotConfig.
+type PollerConfigPollerAWSSnapshotConfig struct {
+	Typename *string                             `json:"__typename"`
+	Name     *string                             `json:"name"`
+	Retries  *types.Int64Scalar                  `json:"retries"`
+	Interval *types.DurationScalar               `json:"interval"`
+	Tags     *types.JsonObject                   `json:"tags"`
+	Chunk    *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+}
+
+// GetTypename returns PollerConfigPollerAWSSnapshotConfig.Typename, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetTypename() *string { return v.Typename }
+
+// GetName returns PollerConfigPollerAWSSnapshotConfig.Name, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetName() *string { return v.Name }
+
+// GetRetries returns PollerConfigPollerAWSSnapshotConfig.Retries, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetRetries() *types.Int64Scalar { return v.Retries }
+
+// GetInterval returns PollerConfigPollerAWSSnapshotConfig.Interval, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetInterval() *types.DurationScalar { return v.Interval }
+
+// GetTags returns PollerConfigPollerAWSSnapshotConfig.Tags, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetTags() *types.JsonObject { return v.Tags }
+
+// GetChunk returns PollerConfigPollerAWSSnapshotConfig.Chunk, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetChunk() *PollerConfigChunkPollerChunkConfig {
+	return v.Chunk
+}
 
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
@@ -6484,6 +6553,8 @@ type PollerInput struct {
 	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
 	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
+	CloudwatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudwatchMetricsConfig,omitempty"`
+	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig"`
 	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
 	ManagedById *string `json:"managedById"`
@@ -6538,6 +6609,14 @@ func (v *PollerInput) GetCloudWatchMetricsConfig() *PollerCloudWatchMetricsInput
 	return v.CloudWatchMetricsConfig
 }
 
+// GetCloudwatchMetricsConfig returns PollerInput.CloudwatchMetricsConfig, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetCloudwatchMetricsConfig() *PollerCloudWatchMetricsInput {
+	return v.CloudwatchMetricsConfig
+}
+
+// GetAwsSnapshotConfig returns PollerInput.AwsSnapshotConfig, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetAwsSnapshotConfig() *PollerAWSSnapshotInput { return v.AwsSnapshotConfig }
+
 // GetSkipExternalValidation returns PollerInput.SkipExternalValidation, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetSkipExternalValidation() *bool { return v.SkipExternalValidation }
 
@@ -6547,11 +6626,13 @@ func (v *PollerInput) GetManagedById() *string { return v.ManagedById }
 type PollerKind string
 
 const (
-	PollerKindPubsub         PollerKind = "PubSub"
-	PollerKindHttp           PollerKind = "HTTP"
-	PollerKindGcpmonitoring  PollerKind = "GCPMonitoring"
-	PollerKindMongodbatlas   PollerKind = "MongoDBAtlas"
-	PollerKindConfluentcloud PollerKind = "ConfluentCloud"
+	PollerKindPubsub            PollerKind = "PubSub"
+	PollerKindHttp              PollerKind = "HTTP"
+	PollerKindGcpmonitoring     PollerKind = "GCPMonitoring"
+	PollerKindMongodbatlas      PollerKind = "MongoDBAtlas"
+	PollerKindConfluentcloud    PollerKind = "ConfluentCloud"
+	PollerKindCloudwatchmetrics PollerKind = "CloudWatchMetrics"
+	PollerKindAwssnapshot       PollerKind = "AWSSnapshot"
 )
 
 type PollerMongoDBAtlasInput struct {

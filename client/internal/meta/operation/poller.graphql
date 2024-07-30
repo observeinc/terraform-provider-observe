@@ -102,7 +102,11 @@ fragment Poller on Poller {
 	}
 }
 
-mutation createPoller($workspaceId: ObjectId!, $poller: PollerInput!) {
+# @genqlient(for: "PollerInput.cloudwatchMetricsConfig", omitempty: true)
+mutation createPoller(
+    $workspaceId: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: createPoller(workspaceId:$workspaceId, poller: $poller) {
 		...Poller
@@ -116,7 +120,11 @@ query getPoller($id: ObjectId!) {
 	}
 }
 
-mutation updatePoller($id: ObjectId!, $poller: PollerInput!) {
+# @genqlient(for: "PollerInput.cloudwatchMetricsConfig", omitempty: true)
+mutation updatePoller(
+    $id: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: updatePoller(id:$id, poller: $poller) {
 		...Poller

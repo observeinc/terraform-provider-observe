@@ -25,6 +25,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     filedrop
     folder
     incident
+    investigationnotebook
     layeredsetting
     link
     monitor

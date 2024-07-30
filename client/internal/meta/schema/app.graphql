@@ -9,7 +9,7 @@ extend type Query {
     folders(workspaceId: ObjectId!, name: String, includePersonals: IncludePersonalsKind): [Folder!]!
 
     module(id: String!, version: String): Module!
-    modules(search: String): [Module!]!
+    modules(search: String, isConnection: Boolean): [Module!]!
 
     moduleVersions(id: String!, workspaceId: ObjectId): [ModuleVersion!]!
 
