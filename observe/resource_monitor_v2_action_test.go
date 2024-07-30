@@ -54,6 +54,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						}
 					}
 
+
 					resource "observe_monitor_v2_action" "act" {
 						workspace = data.observe_workspace.default.oid
 						type = "email"
