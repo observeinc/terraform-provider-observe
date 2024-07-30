@@ -36,6 +36,7 @@ resource "observe_datastream_token" "example" {
 
 - `description` (String) Datastream description.
 - `disabled` (Boolean) Disable token.
+- `password` (String, Sensitive) Password to be used as part of the token secret
 
 ### Read-Only
 

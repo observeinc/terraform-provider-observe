@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z]+):(?P<id>\d+)(/(?P<version>.*))?`)
+	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z0-9]+):(?P<id>\d+)(/(?P<version>.*))?`)
 	ornRegex      = regexp.MustCompile(`o::(?P<customer>\d+):(?P<type>[a-z]+):(?P<id>\d+)?`)
 	errInvalidOID = errors.New("invalid oid")
 )
@@ -36,8 +36,8 @@ const (
 	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
 	TypeLink                    Type = "link"
 	TypeMonitor                 Type = "monitor"
-	TypeMonitorV2               Type = "monitorV2"
-	TypeMonitorV2Destination    Type = "monitorv2destination"
+	TypeMonitorV2               Type = "monitorv2"
+	TypeMonitorV2Action         Type = "monitorv2action"
 	TypeMonitorAction           Type = "monitoraction"
 	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypePoller                  Type = "poller"

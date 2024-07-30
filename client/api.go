@@ -525,6 +525,37 @@ func (c *Client) GetMonitorV2(ctx context.Context, id string) (*meta.MonitorV2, 
 	return c.Meta.GetMonitorV2(ctx, id)
 }
 
+func (c *Client) CreateMonitorV2Action(ctx context.Context, workspaceId string, input *meta.MonitorV2ActionInput) (*meta.MonitorV2Action, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.CreateMonitorV2Action(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateMonitorV2Action(ctx context.Context, id string, input *meta.MonitorV2ActionInput) (*meta.MonitorV2Action, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateMonitorV2Action(ctx, id, input)
+}
+
+func (c *Client) GetMonitorV2Action(ctx context.Context, id string) (*meta.MonitorV2Action, error) {
+	return c.Meta.GetMonitorV2Action(ctx, id)
+}
+
+func (c *Client) DeleteMonitorV2Action(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorV2Action(ctx, id)
+}
+
 func (c *Client) CreateMonitorV2Destination(ctx context.Context, workspaceId string, input *meta.MonitorV2DestinationInput) (*meta.MonitorV2Destination, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
@@ -544,6 +575,10 @@ func (c *Client) UpdateMonitorV2Destination(ctx context.Context, id string, inpu
 	return c.Meta.UpdateMonitorV2Destination(ctx, id, input)
 }
 
+func (c *Client) GetMonitorV2Destination(ctx context.Context, id string) (*meta.MonitorV2Destination, error) {
+	return c.Meta.GetMonitorV2Destination(ctx, id)
+}
+
 func (c *Client) DeleteMonitorV2Destination(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
@@ -552,8 +587,8 @@ func (c *Client) DeleteMonitorV2Destination(ctx context.Context, id string) erro
 	return c.Meta.DeleteMonitorV2Destination(ctx, id)
 }
 
-func (c *Client) GetMonitorV2Destination(ctx context.Context, id string) (*meta.MonitorV2Destination, error) {
-	return c.Meta.GetMonitorV2Destination(ctx, id)
+func (c *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2, error) {
+	return c.Meta.LookupMonitorV2(ctx, workspaceId, nameExact)
 }
 
 // CreateMonitorActionAttachment creates a monitor action attachment
@@ -745,12 +780,12 @@ func (c *Client) LookupDatastream(ctx context.Context, workspaceID string, name 
 }
 
 // CreateDatastreamToken creates a datastream token
-func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput) (*meta.DatastreamToken, error) {
+func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput, password *string) (*meta.DatastreamToken, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input)
+	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input, password)
 }
 
 // GetDatastreamToken by ID

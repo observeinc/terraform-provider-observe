@@ -251,7 +251,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
     enabled: Boolean!
     size: Int64
-} 
+}
 
 """
 Config is mandatory, but varies based on the poller kind

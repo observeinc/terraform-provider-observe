@@ -17,16 +17,6 @@ fragment MonitorV2Destination on MonitorV2Destination {
     createdBy
 }
 
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-    users
-    addresses
-}
-
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-    url
-    method
-}
-
 # @genqlient(for: "MonitorV2DestinationInput.inline", omitempty: true)
 # @genqlient(for: "MonitorV2DestinationInput.email", omitempty: true)
 # @genqlient(for: "MonitorV2DestinationInput.webhook", omitempty: true)

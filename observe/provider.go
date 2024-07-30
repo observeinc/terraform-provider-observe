@@ -139,6 +139,7 @@ func Provider() *schema.Provider {
 			"observe_user":              dataSourceUser(),
 			"observe_ingest_info":       dataSourceIngestInfo(),
 			"observe_cloud_info":        dataSourceCloudInfo(),
+			"observe_monitor_v2":        dataSourceMonitorV2(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
@@ -154,6 +155,7 @@ func Provider() *schema.Provider {
 			"observe_monitor_action_attachment": resourceMonitorActionAttachment(),
 			"observe_monitor":                   resourceMonitor(),
 			"observe_monitor_v2":                resourceMonitorV2(),
+			"observe_monitor_v2_action":         resourceMonitorV2Action(),
 			"observe_board":                     resourceBoard(),
 			"observe_poller":                    resourcePoller(),
 			"observe_datastream":                resourceDatastream(),

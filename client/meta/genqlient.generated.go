@@ -11,6 +11,30 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
+// ActionDestinationLink includes the GraphQL fields of ActionDestinationLink requested by the fragment ActionDestinationLink.
+type ActionDestinationLink struct {
+	// Takes in a private or public destination id created from an earlier createDestination API call.
+	DestinationID         string                `json:"destinationID"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
+	// Included to be shown as part of the MonitorV2Action (and MonitorV2) output.
+	Definition MonitorV2DestinationDefinition `json:"definition"`
+}
+
+// GetDestinationID returns ActionDestinationLink.DestinationID, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLink) GetDestinationID() string { return v.DestinationID }
+
+// GetSendEndNotifications returns ActionDestinationLink.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLink) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns ActionDestinationLink.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLink) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
+
+// GetDefinition returns ActionDestinationLink.Definition, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLink) GetDefinition() MonitorV2DestinationDefinition { return v.Definition }
+
 type ActionInput struct {
 	Name             *string               `json:"name"`
 	IconUrl          *string               `json:"iconUrl"`
@@ -4391,6 +4415,101 @@ func (v *MonitorV2) GetRuleKind() MonitorV2RuleKind { return v.RuleKind }
 // GetDefinition returns MonitorV2.Definition, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetDefinition() MonitorV2Definition { return v.Definition }
 
+// MonitorV2Action includes the GraphQL fields of MonitorV2Action requested by the fragment MonitorV2Action.
+type MonitorV2Action struct {
+	// The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+	Inline *bool               `json:"inline"`
+	Type   MonitorV2ActionType `json:"type"`
+	// List of destinations for dispatching. Each entry will contain the
+	// destination definition regardless of whether the definition is shared or
+	// provided inline.
+	DestinationLinks []ActionDestinationLink `json:"destinationLinks"`
+	Email            *MonitorV2EmailAction   `json:"email"`
+	Webhook          *MonitorV2WebhookAction `json:"webhook"`
+	Id               string                  `json:"id"`
+	WorkspaceId      string                  `json:"workspaceId"`
+	Name             string                  `json:"name"`
+	IconUrl          *string                 `json:"iconUrl"`
+	Description      *string                 `json:"description"`
+	CreatedBy        types.UserIdScalar      `json:"createdBy"`
+	CreatedDate      types.TimeScalar        `json:"createdDate"`
+}
+
+// GetInline returns MonitorV2Action.Inline, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetInline() *bool { return v.Inline }
+
+// GetType returns MonitorV2Action.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetType() MonitorV2ActionType { return v.Type }
+
+// GetDestinationLinks returns MonitorV2Action.DestinationLinks, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetDestinationLinks() []ActionDestinationLink { return v.DestinationLinks }
+
+// GetEmail returns MonitorV2Action.Email, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetEmail() *MonitorV2EmailAction { return v.Email }
+
+// GetWebhook returns MonitorV2Action.Webhook, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetWebhook() *MonitorV2WebhookAction { return v.Webhook }
+
+// GetId returns MonitorV2Action.Id, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetId() string { return v.Id }
+
+// GetWorkspaceId returns MonitorV2Action.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns MonitorV2Action.Name, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorV2Action.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorV2Action.Description, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetDescription() *string { return v.Description }
+
+// GetCreatedBy returns MonitorV2Action.CreatedBy, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetCreatedBy() types.UserIdScalar { return v.CreatedBy }
+
+// GetCreatedDate returns MonitorV2Action.CreatedDate, and is useful for accessing the field via an interface.
+func (v *MonitorV2Action) GetCreatedDate() types.TimeScalar { return v.CreatedDate }
+
+type MonitorV2ActionInput struct {
+	Inline      *bool                        `json:"inline"`
+	Type        MonitorV2ActionType          `json:"type"`
+	Email       *MonitorV2EmailActionInput   `json:"email,omitempty"`
+	Webhook     *MonitorV2WebhookActionInput `json:"webhook,omitempty"`
+	Name        string                       `json:"name"`
+	IconUrl     *string                      `json:"iconUrl,omitempty"`
+	Description *string                      `json:"description,omitempty"`
+	ManagedById *string                      `json:"managedById,omitempty"`
+	FolderId    *string                      `json:"folderId,omitempty"`
+}
+
+// GetInline returns MonitorV2ActionInput.Inline, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetInline() *bool { return v.Inline }
+
+// GetType returns MonitorV2ActionInput.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetType() MonitorV2ActionType { return v.Type }
+
+// GetEmail returns MonitorV2ActionInput.Email, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetEmail() *MonitorV2EmailActionInput { return v.Email }
+
+// GetWebhook returns MonitorV2ActionInput.Webhook, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetWebhook() *MonitorV2WebhookActionInput { return v.Webhook }
+
+// GetName returns MonitorV2ActionInput.Name, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorV2ActionInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorV2ActionInput.Description, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns MonitorV2ActionInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns MonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
+
 // MonitorV2ActionType defines the type of monitor returned when querying all
 // actions for a monitor.
 type MonitorV2ActionType string
@@ -4700,6 +4819,27 @@ func (v *MonitorV2Destination) GetDescription() *string { return v.Description }
 // GetCreatedBy returns MonitorV2Destination.CreatedBy, and is useful for accessing the field via an interface.
 func (v *MonitorV2Destination) GetCreatedBy() types.UserIdScalar { return v.CreatedBy }
 
+// MonitorV2DestinationDefinition includes the GraphQL fields of MonitorV2DestinationDefinition requested by the fragment MonitorV2DestinationDefinition.
+type MonitorV2DestinationDefinition struct {
+	// The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+	Inline  *bool                        `json:"inline"`
+	Type    MonitorV2ActionType          `json:"type"`
+	Email   *MonitorV2EmailDestination   `json:"email"`
+	Webhook *MonitorV2WebhookDestination `json:"webhook"`
+}
+
+// GetInline returns MonitorV2DestinationDefinition.Inline, and is useful for accessing the field via an interface.
+func (v *MonitorV2DestinationDefinition) GetInline() *bool { return v.Inline }
+
+// GetType returns MonitorV2DestinationDefinition.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2DestinationDefinition) GetType() MonitorV2ActionType { return v.Type }
+
+// GetEmail returns MonitorV2DestinationDefinition.Email, and is useful for accessing the field via an interface.
+func (v *MonitorV2DestinationDefinition) GetEmail() *MonitorV2EmailDestination { return v.Email }
+
+// GetWebhook returns MonitorV2DestinationDefinition.Webhook, and is useful for accessing the field via an interface.
+func (v *MonitorV2DestinationDefinition) GetWebhook() *MonitorV2WebhookDestination { return v.Webhook }
+
 type MonitorV2DestinationInput struct {
 	Inline      *bool                             `json:"inline,omitempty"`
 	Type        MonitorV2ActionType               `json:"type"`
@@ -4738,6 +4878,40 @@ func (v *MonitorV2DestinationInput) GetManagedById() *string { return v.ManagedB
 
 // GetFolderId returns MonitorV2DestinationInput.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2DestinationInput) GetFolderId() *string { return v.FolderId }
+
+// MonitorV2EmailAction includes the GraphQL fields of MonitorV2EmailAction requested by the fragment MonitorV2EmailAction.
+type MonitorV2EmailAction struct {
+	// The email subject template.
+	Subject *string `json:"subject"`
+	// The email body template.
+	Body *string `json:"body"`
+	// Fragments allow users to bring in additional monitor or alarm metadata.
+	Fragments *types.JsonObject `json:"fragments"`
+}
+
+// GetSubject returns MonitorV2EmailAction.Subject, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailAction) GetSubject() *string { return v.Subject }
+
+// GetBody returns MonitorV2EmailAction.Body, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailAction) GetBody() *string { return v.Body }
+
+// GetFragments returns MonitorV2EmailAction.Fragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragments }
+
+type MonitorV2EmailActionInput struct {
+	Subject   *string           `json:"subject,omitempty"`
+	Body      *string           `json:"body,omitempty"`
+	Fragments *types.JsonObject `json:"fragments,omitempty"`
+}
+
+// GetSubject returns MonitorV2EmailActionInput.Subject, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetSubject() *string { return v.Subject }
+
+// GetBody returns MonitorV2EmailActionInput.Body, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetBody() *string { return v.Body }
+
+// GetFragments returns MonitorV2EmailActionInput.Fragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
 
 // MonitorV2EmailDestination includes the GraphQL fields of MonitorV2EmailDestination requested by the fragment MonitorV2EmailDestination.
 type MonitorV2EmailDestination struct {
@@ -5030,6 +5204,14 @@ func (v *MonitorV2SchedulingInput) GetTransform() *MonitorV2TransformScheduleInp
 	return v.Transform
 }
 
+// MonitorV2SearchResult includes the GraphQL fields of MonitorV2SearchResult requested by the fragment MonitorV2SearchResult.
+type MonitorV2SearchResult struct {
+	Results []MonitorV2 `json:"results"`
+}
+
+// GetResults returns MonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
+func (v *MonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
+
 // MonitorV2ThresholdRule includes the GraphQL fields of MonitorV2ThresholdRule requested by the fragment MonitorV2ThresholdRule.
 type MonitorV2ThresholdRule struct {
 	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
@@ -5120,6 +5302,40 @@ const (
 	MonitorV2ValueAggregationSumof MonitorV2ValueAggregation = "SumOf"
 )
 
+// MonitorV2WebhookAction includes the GraphQL fields of MonitorV2WebhookAction requested by the fragment MonitorV2WebhookAction.
+type MonitorV2WebhookAction struct {
+	// The webhook headers -- a header and a value template.
+	Headers []MonitorV2WebhookHeader `json:"headers"`
+	// The webhook body template.
+	Body *string `json:"body"`
+	// Fragments allow users to bring in additional monitor or alarm metadata.
+	Fragments *types.JsonObject `json:"fragments"`
+}
+
+// GetHeaders returns MonitorV2WebhookAction.Headers, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookAction) GetHeaders() []MonitorV2WebhookHeader { return v.Headers }
+
+// GetBody returns MonitorV2WebhookAction.Body, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookAction) GetBody() *string { return v.Body }
+
+// GetFragments returns MonitorV2WebhookAction.Fragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookAction) GetFragments() *types.JsonObject { return v.Fragments }
+
+type MonitorV2WebhookActionInput struct {
+	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
+	Body      *string                       `json:"body,omitempty"`
+	Fragments *types.JsonObject             `json:"fragments,omitempty"`
+}
+
+// GetHeaders returns MonitorV2WebhookActionInput.Headers, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetHeaders() []MonitorV2WebhookHeaderInput { return v.Headers }
+
+// GetBody returns MonitorV2WebhookActionInput.Body, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetBody() *string { return v.Body }
+
+// GetFragments returns MonitorV2WebhookActionInput.Fragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetFragments() *types.JsonObject { return v.Fragments }
+
 // MonitorV2WebhookDestination includes the GraphQL fields of MonitorV2WebhookDestination requested by the fragment MonitorV2WebhookDestination.
 type MonitorV2WebhookDestination struct {
 	// A webhook URL template to a destination that can be rendered.
@@ -5144,6 +5360,31 @@ func (v *MonitorV2WebhookDestinationInput) GetUrl() string { return v.Url }
 
 // GetMethod returns MonitorV2WebhookDestinationInput.Method, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookDestinationInput) GetMethod() MonitorV2HttpType { return v.Method }
+
+// MonitorV2WebhookHeader includes the GraphQL fields of MonitorV2WebhookHeader requested by the fragment MonitorV2WebhookHeader.
+type MonitorV2WebhookHeader struct {
+	// A webhook header.
+	Header string `json:"header"`
+	// A value template that can be rendered.
+	Value string `json:"value"`
+}
+
+// GetHeader returns MonitorV2WebhookHeader.Header, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookHeader) GetHeader() string { return v.Header }
+
+// GetValue returns MonitorV2WebhookHeader.Value, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookHeader) GetValue() string { return v.Value }
+
+type MonitorV2WebhookHeaderInput struct {
+	Header string `json:"header"`
+	Value  string `json:"value"`
+}
+
+// GetHeader returns MonitorV2WebhookHeaderInput.Header, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookHeaderInput) GetHeader() string { return v.Header }
+
+// GetValue returns MonitorV2WebhookHeaderInput.Value, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookHeaderInput) GetValue() string { return v.Value }
 
 type MultiStageQueryInput struct {
 	OutputStage     string                  `json:"outputStage"`
@@ -8105,6 +8346,7 @@ func (v *__createDatastreamInput) GetDatastream() DatastreamInput { return v.Dat
 type __createDatastreamTokenInput struct {
 	DatastreamId string               `json:"datastreamId"`
 	Token        DatastreamTokenInput `json:"token"`
+	Password     *string              `json:"password"`
 }
 
 // GetDatastreamId returns __createDatastreamTokenInput.DatastreamId, and is useful for accessing the field via an interface.
@@ -8112,6 +8354,9 @@ func (v *__createDatastreamTokenInput) GetDatastreamId() string { return v.Datas
 
 // GetToken returns __createDatastreamTokenInput.Token, and is useful for accessing the field via an interface.
 func (v *__createDatastreamTokenInput) GetToken() DatastreamTokenInput { return v.Token }
+
+// GetPassword returns __createDatastreamTokenInput.Password, and is useful for accessing the field via an interface.
+func (v *__createDatastreamTokenInput) GetPassword() *string { return v.Password }
 
 // __createDeferredForeignKeyInput is used internally by genqlient
 type __createDeferredForeignKeyInput struct {
@@ -8192,6 +8437,18 @@ func (v *__createMonitorInput) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetMonitor returns __createMonitorInput.Monitor, and is useful for accessing the field via an interface.
 func (v *__createMonitorInput) GetMonitor() MonitorInput { return v.Monitor }
+
+// __createMonitorV2ActionInput is used internally by genqlient
+type __createMonitorV2ActionInput struct {
+	WorkspaceId string               `json:"workspaceId"`
+	Input       MonitorV2ActionInput `json:"input"`
+}
+
+// GetWorkspaceId returns __createMonitorV2ActionInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__createMonitorV2ActionInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetInput returns __createMonitorV2ActionInput.Input, and is useful for accessing the field via an interface.
+func (v *__createMonitorV2ActionInput) GetInput() MonitorV2ActionInput { return v.Input }
 
 // __createMonitorV2DestinationInput is used internally by genqlient
 type __createMonitorV2DestinationInput struct {
@@ -8473,6 +8730,14 @@ type __deleteMonitorInput struct {
 // GetId returns __deleteMonitorInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteMonitorInput) GetId() string { return v.Id }
 
+// __deleteMonitorV2ActionInput is used internally by genqlient
+type __deleteMonitorV2ActionInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteMonitorV2ActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteMonitorV2ActionInput) GetId() string { return v.Id }
+
 // __deleteMonitorV2DestinationInput is used internally by genqlient
 type __deleteMonitorV2DestinationInput struct {
 	Id string `json:"id"`
@@ -8740,6 +9005,14 @@ type __getMonitorInput struct {
 
 // GetId returns __getMonitorInput.Id, and is useful for accessing the field via an interface.
 func (v *__getMonitorInput) GetId() string { return v.Id }
+
+// __getMonitorV2ActionInput is used internally by genqlient
+type __getMonitorV2ActionInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getMonitorV2ActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__getMonitorV2ActionInput) GetId() string { return v.Id }
 
 // __getMonitorV2DestinationInput is used internally by genqlient
 type __getMonitorV2DestinationInput struct {
@@ -9271,6 +9544,18 @@ func (v *__updateMonitorInput) GetId() string { return v.Id }
 // GetMonitor returns __updateMonitorInput.Monitor, and is useful for accessing the field via an interface.
 func (v *__updateMonitorInput) GetMonitor() MonitorInput { return v.Monitor }
 
+// __updateMonitorV2ActionInput is used internally by genqlient
+type __updateMonitorV2ActionInput struct {
+	Id    string               `json:"id"`
+	Input MonitorV2ActionInput `json:"input"`
+}
+
+// GetId returns __updateMonitorV2ActionInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateMonitorV2ActionInput) GetId() string { return v.Id }
+
+// GetInput returns __updateMonitorV2ActionInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateMonitorV2ActionInput) GetInput() MonitorV2ActionInput { return v.Input }
+
 // __updateMonitorV2DestinationInput is used internally by genqlient
 type __updateMonitorV2DestinationInput struct {
 	Id    string                    `json:"id"`
@@ -9677,6 +9962,16 @@ func (v *createMonitorResponse) GetMonitor() *createMonitorMonitorMonitorUpdateR
 	return v.Monitor
 }
 
+// createMonitorV2ActionResponse is returned by createMonitorV2Action on success.
+type createMonitorV2ActionResponse struct {
+	MonitorV2Action MonitorV2Action `json:"monitorV2Action"`
+}
+
+// GetMonitorV2Action returns createMonitorV2ActionResponse.MonitorV2Action, and is useful for accessing the field via an interface.
+func (v *createMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action {
+	return v.MonitorV2Action
+}
+
 // createMonitorV2DestinationResponse is returned by createMonitorV2Destination on success.
 type createMonitorV2DestinationResponse struct {
 	MonitorV2Destination MonitorV2Destination `json:"monitorV2Destination"`
@@ -9954,6 +10249,14 @@ type deleteMonitorResponse struct {
 
 // GetResultStatus returns deleteMonitorResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteMonitorResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteMonitorV2ActionResponse is returned by deleteMonitorV2Action on success.
+type deleteMonitorV2ActionResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteMonitorV2ActionResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteMonitorV2ActionResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteMonitorV2DestinationResponse is returned by deleteMonitorV2Destination on success.
 type deleteMonitorV2DestinationResponse struct {
@@ -10458,6 +10761,14 @@ type getMonitorResponse struct {
 // GetMonitor returns getMonitorResponse.Monitor, and is useful for accessing the field via an interface.
 func (v *getMonitorResponse) GetMonitor() Monitor { return v.Monitor }
 
+// getMonitorV2ActionResponse is returned by getMonitorV2Action on success.
+type getMonitorV2ActionResponse struct {
+	MonitorV2Action MonitorV2Action `json:"monitorV2Action"`
+}
+
+// GetMonitorV2Action returns getMonitorV2ActionResponse.MonitorV2Action, and is useful for accessing the field via an interface.
+func (v *getMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action { return v.MonitorV2Action }
+
 // getMonitorV2DestinationResponse is returned by getMonitorV2Destination on success.
 type getMonitorV2DestinationResponse struct {
 	MonitorV2Destination MonitorV2Destination `json:"monitorV2Destination"`
@@ -10710,23 +11021,13 @@ type lookupMonitorResponse struct {
 // GetMonitor returns lookupMonitorResponse.Monitor, and is useful for accessing the field via an interface.
 func (v *lookupMonitorResponse) GetMonitor() *lookupMonitorMonitorProject { return v.Monitor }
 
-// lookupMonitorV2MonitorV2sMonitorV2SearchResult includes the requested fields of the GraphQL type MonitorV2SearchResult.
-type lookupMonitorV2MonitorV2sMonitorV2SearchResult struct {
-	Results []MonitorV2 `json:"results"`
-}
-
-// GetResults returns lookupMonitorV2MonitorV2sMonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2MonitorV2sMonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
-
 // lookupMonitorV2Response is returned by lookupMonitorV2 on success.
 type lookupMonitorV2Response struct {
-	MonitorV2s lookupMonitorV2MonitorV2sMonitorV2SearchResult `json:"monitorV2s"`
+	MonitorV2s MonitorV2SearchResult `json:"monitorV2s"`
 }
 
 // GetMonitorV2s returns lookupMonitorV2Response.MonitorV2s, and is useful for accessing the field via an interface.
-func (v *lookupMonitorV2Response) GetMonitorV2s() lookupMonitorV2MonitorV2sMonitorV2SearchResult {
-	return v.MonitorV2s
-}
+func (v *lookupMonitorV2Response) GetMonitorV2s() MonitorV2SearchResult { return v.MonitorV2s }
 
 // lookupSnowflakeOutboundShareResponse is returned by lookupSnowflakeOutboundShare on success.
 type lookupSnowflakeOutboundShareResponse struct {
@@ -11224,6 +11525,16 @@ type updateMonitorResponse struct {
 // GetMonitor returns updateMonitorResponse.Monitor, and is useful for accessing the field via an interface.
 func (v *updateMonitorResponse) GetMonitor() *updateMonitorMonitorMonitorUpdateResult {
 	return v.Monitor
+}
+
+// updateMonitorV2ActionResponse is returned by updateMonitorV2Action on success.
+type updateMonitorV2ActionResponse struct {
+	MonitorV2Action MonitorV2Action `json:"monitorV2Action"`
+}
+
+// GetMonitorV2Action returns updateMonitorV2ActionResponse.MonitorV2Action, and is useful for accessing the field via an interface.
+func (v *updateMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action {
+	return v.MonitorV2Action
 }
 
 // updateMonitorV2DestinationResponse is returned by updateMonitorV2Destination on success.
@@ -11801,8 +12112,8 @@ func createDatastream(
 
 // The query or mutation executed by createDatastreamToken.
 const createDatastreamToken_Operation = `
-mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!) {
-	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token) {
+mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!, $password: String) {
+	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token, password: $password) {
 		... DatastreamToken
 	}
 }
@@ -11821,6 +12132,7 @@ func createDatastreamToken(
 	client graphql.Client,
 	datastreamId string,
 	token DatastreamTokenInput,
+	password *string,
 ) (*createDatastreamTokenResponse, error) {
 	req := &graphql.Request{
 		OpName: "createDatastreamToken",
@@ -11828,6 +12140,7 @@ func createDatastreamToken(
 		Variables: &__createDatastreamTokenInput{
 			DatastreamId: datastreamId,
 			Token:        token,
+			Password:     password,
 		},
 	}
 	var err error
@@ -12492,6 +12805,105 @@ func createMonitorV2(
 	var err error
 
 	var data createMonitorV2Response
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by createMonitorV2Action.
+const createMonitorV2Action_Operation = `
+mutation createMonitorV2Action ($workspaceId: ObjectId!, $input: MonitorV2ActionInput!) {
+	monitorV2Action: createMonitorV2Action(workspaceId: $workspaceId, input: $input) {
+		... MonitorV2Action
+	}
+}
+fragment MonitorV2Action on MonitorV2Action {
+	inline
+	type
+	destinationLinks {
+		... ActionDestinationLink
+	}
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	createdBy
+	createdDate
+}
+fragment ActionDestinationLink on ActionDestinationLink {
+	destinationID
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2DestinationDefinition
+	}
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+}
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailDestination
+	}
+	webhook {
+		... MonitorV2WebhookDestination
+	}
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+	users
+	addresses
+}
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+	url
+	method
+}
+`
+
+func createMonitorV2Action(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	input MonitorV2ActionInput,
+) (*createMonitorV2ActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorV2Action",
+		Query:  createMonitorV2Action_Operation,
+		Variables: &__createMonitorV2ActionInput{
+			WorkspaceId: workspaceId,
+			Input:       input,
+		},
+	}
+	var err error
+
+	var data createMonitorV2ActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -13909,6 +14321,46 @@ func deleteMonitorV2(
 	var err error
 
 	var data deleteMonitorV2Response
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by deleteMonitorV2Action.
+const deleteMonitorV2Action_Operation = `
+mutation deleteMonitorV2Action ($id: ObjectId!) {
+	resultStatus: deleteMonitorV2Action(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func deleteMonitorV2Action(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorV2ActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorV2Action",
+		Query:  deleteMonitorV2Action_Operation,
+		Variables: &__deleteMonitorV2ActionInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteMonitorV2ActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -15900,6 +16352,103 @@ func getMonitorV2(
 	return &data, err
 }
 
+// The query or mutation executed by getMonitorV2Action.
+const getMonitorV2Action_Operation = `
+query getMonitorV2Action ($id: ObjectId!) {
+	monitorV2Action(id: $id) {
+		... MonitorV2Action
+	}
+}
+fragment MonitorV2Action on MonitorV2Action {
+	inline
+	type
+	destinationLinks {
+		... ActionDestinationLink
+	}
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	createdBy
+	createdDate
+}
+fragment ActionDestinationLink on ActionDestinationLink {
+	destinationID
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2DestinationDefinition
+	}
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+}
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailDestination
+	}
+	webhook {
+		... MonitorV2WebhookDestination
+	}
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+	users
+	addresses
+}
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+	url
+	method
+}
+`
+
+func getMonitorV2Action(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorV2ActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorV2Action",
+		Query:  getMonitorV2Action_Operation,
+		Variables: &__getMonitorV2ActionInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getMonitorV2ActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getMonitorV2Destination.
 const getMonitorV2Destination_Operation = `
 query getMonitorV2Destination ($id: ObjectId!) {
@@ -17164,9 +17713,12 @@ func lookupMonitor(
 const lookupMonitorV2_Operation = `
 query lookupMonitorV2 ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
 	monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
-		results {
-			... MonitorV2
-		}
+		... MonitorV2SearchResult
+	}
+}
+fragment MonitorV2SearchResult on MonitorV2SearchResult {
+	results {
+		... MonitorV2
 	}
 }
 fragment MonitorV2 on MonitorV2 {
@@ -19258,6 +19810,105 @@ func updateMonitorV2(
 	var err error
 
 	var data updateMonitorV2Response
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by updateMonitorV2Action.
+const updateMonitorV2Action_Operation = `
+mutation updateMonitorV2Action ($id: ObjectId!, $input: MonitorV2ActionInput!) {
+	monitorV2Action: updateMonitorV2Action(id: $id, input: $input) {
+		... MonitorV2Action
+	}
+}
+fragment MonitorV2Action on MonitorV2Action {
+	inline
+	type
+	destinationLinks {
+		... ActionDestinationLink
+	}
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	createdBy
+	createdDate
+}
+fragment ActionDestinationLink on ActionDestinationLink {
+	destinationID
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2DestinationDefinition
+	}
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+}
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailDestination
+	}
+	webhook {
+		... MonitorV2WebhookDestination
+	}
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+	users
+	addresses
+}
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+	url
+	method
+}
+`
+
+func updateMonitorV2Action(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input MonitorV2ActionInput,
+) (*updateMonitorV2ActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorV2Action",
+		Query:  updateMonitorV2Action_Operation,
+		Variables: &__updateMonitorV2ActionInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateMonitorV2ActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

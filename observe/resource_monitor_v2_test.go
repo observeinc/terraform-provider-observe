@@ -8,9 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// todo write some tests
-// starting point: count, threshold, ????????????
-
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
 
 func TestAccObserveMonitorV2Count(t *testing.T) {
@@ -23,7 +20,7 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
@@ -60,7 +57,7 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace_id"),
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "count"),
@@ -86,7 +83,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "threshold"
 						name = "%[1]s"
 						lookback_time = "30m"
@@ -117,7 +114,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace_id"),
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
@@ -145,7 +142,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
 					resource "observe_monitor_v2" "first" {
-						workspace_id = data.observe_workspace.default.oid
+						workspace = data.observe_workspace.default.oid
 						rule_kind = "promote"
 						name = "%[1]s"
 						lookback_time = "0s"
@@ -181,7 +178,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace_id"),
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "promote"),
