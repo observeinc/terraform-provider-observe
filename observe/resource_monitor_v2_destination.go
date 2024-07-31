@@ -1,12 +1,10 @@
 package observe
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -44,21 +42,16 @@ import (
 
 func resourceMonitorV2Destination() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMonitorV2DestinationCreate,
-		ReadContext:   resourceMonitorV2DestinationRead,
-		UpdateContext: resourceMonitorV2DestinationUpdate,
-		DeleteContext: resourceMonitorV2DestinationDelete,
+		// CreateContext: resourceMonitorV2DestinationCreate,
+		// ReadContext:   resourceMonitorV2DestinationRead,
+		// UpdateContext: resourceMonitorV2DestinationUpdate,
+		// DeleteContext: resourceMonitorV2DestinationDelete,
 		Schema: map[string]*schema.Schema{
 			"workspace": { // ?
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-			},
-			"action": { // associated action
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
 			},
 			"type": { // MonitorV2ActionType!
 				Type:             schema.TypeString,
@@ -68,13 +61,13 @@ func resourceMonitorV2Destination() *schema.Resource {
 			"email": { // MonitorV2WebhookDestinationInput
 				Type:         schema.TypeList,
 				Optional:     true,
-				ExactlyOneOf: []string{"email", "webhook"},
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
 				Elem:         monitorV2EmailDestinationResource(),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
 				Type:         schema.TypeList,
 				Optional:     true,
-				ExactlyOneOf: []string{"email", "webhook"},
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
 				Elem:         monitorV2WebhookDestinationResource(),
 			},
 			"name": { // String!
@@ -134,133 +127,32 @@ func monitorV2EmailDestinationResource() *schema.Resource {
 	}
 }
 
-func resourceMonitorV2DestinationCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	input, diags := newMonitorV2DestinationInput(data)
-	if diags.HasError() {
-		return diags
-	}
-
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitorV2Destination(ctx, id.Id, input)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// update the link between action and destination
-	actOID, _ := oid.NewOID(data.Get("action").(string))
-	dstLinks := []gql.ActionDestinationLinkInput{
-		{
-			DestinationID: result.Id,
-		},
-	}
-	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actOID.Id, dstLinks)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	data.SetId(result.Id)
-	return append(diags, resourceMonitorV2DestinationRead(ctx, data, meta)...)
-}
-
-func resourceMonitorV2DestinationUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	input, diags := newMonitorV2DestinationInput(data)
-	if diags.HasError() {
-		return diags
-	}
-
-	_, err := client.UpdateMonitorV2Destination(ctx, data.Id(), input)
-	if err != nil {
-		if gql.HasErrorCode(err, "NOT_FOUND") {
-			diags = resourceMonitorV2DestinationCreate(ctx, data, meta)
-			if diags.HasError() {
-				return diags
-			}
-			return nil
-		}
-		return diag.FromErr(err)
-	}
-
-	// update the link between action and destination
-	actOID, _ := oid.NewOID(data.Get("action").(string))
-	dstLinks := []gql.ActionDestinationLinkInput{
-		{
-			DestinationID: data.Id(),
-		},
-	}
-	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actOID.Id, dstLinks)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return append(diags, resourceMonitorV2DestinationRead(ctx, data, meta)...)
-}
-
-func resourceMonitorV2DestinationRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	dest, err := client.GetMonitorV2Destination(ctx, data.Id())
-	if err != nil {
-		if gql.HasErrorCode(err, "NOT_FOUND") {
-			data.SetId("")
-			return nil
-		}
-		return diag.FromErr(err)
-	}
-
-	// required
-	if err := data.Set("workspace", oid.WorkspaceOid(dest.WorkspaceId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("oid", dest.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("name", dest.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("type", toSnake(string(dest.Type))); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+func monitorV2FlattenDestination(gqlDest gql.MonitorV2Destination) []interface{} {
+	dest := map[string]interface{}{
+		"workspace": oid.WorkspaceOid(gqlDest.WorkspaceId).String(),
+		"oid":       gqlDest.Oid().String(),
+		"name":      gqlDest.Name,
+		"type":      toSnake(string(gqlDest.Type)),
 	}
 
 	// optional
-	if dest.Description != nil {
-		if err := data.Set("description", *dest.Description); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if gqlDest.Description != nil {
+		dest["description"] = *gqlDest.Description
 	}
 
-	if dest.Email != nil {
-		if err := data.Set("email", monitorV2FlattenEmailDestination(*dest.Email)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if gqlDest.Email != nil {
+		dest["email"] = monitorV2FlattenEmailDestination(*gqlDest.Email)
 	}
 
-	if dest.IconUrl != nil {
-		if err := data.Set("icon_url", *dest.IconUrl); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if gqlDest.IconUrl != nil {
+		dest["icon_url"] = *gqlDest.IconUrl
 	}
 
-	if dest.Webhook != nil {
-		if err := data.Set("webhook", monitorv2FlattenWebhookDestination(*dest.Webhook)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if gqlDest.Webhook != nil {
+		dest["webhook"] = monitorv2FlattenWebhookDestination(*gqlDest.Webhook)
 	}
 
-	return diags
-}
-
-func resourceMonitorV2DestinationDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	if err := client.DeleteMonitorV2Destination(ctx, data.Id()); err != nil {
-		return diag.FromErr(err)
-	}
-	return diags
+	return []interface{}{dest}
 }
 
 func monitorV2FlattenEmailDestination(gqlEmail gql.MonitorV2EmailDestination) []interface{} {
@@ -290,10 +182,10 @@ func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestinati
 	return []interface{}{webhook}
 }
 
-func newMonitorV2DestinationInput(data *schema.ResourceData) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
+func newMonitorV2DestinationInput(data *schema.ResourceData, path string) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
 	// required
-	actionType := gql.MonitorV2ActionType(toCamel(data.Get("type").(string)))
-	name := data.Get("name").(string)
+	actionType := gql.MonitorV2ActionType(toCamel(data.Get(fmt.Sprintf("%stype", path)).(string)))
+	name := data.Get(fmt.Sprintf("%sname", path)).(string)
 
 	// instantiation
 	inlineVal := true // we are currently only allowing destinations to be inlined
@@ -304,27 +196,27 @@ func newMonitorV2DestinationInput(data *schema.ResourceData) (input *gql.Monitor
 	}
 
 	// optionals
-	if v, ok := data.GetOk("description"); ok {
+	if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
 		input.Description = stringPtr(v.(string))
 	}
-	if _, ok := data.GetOk("email"); ok {
-		email, diags := newMonitorV2EmailDestinationInput(data, "email.0.")
+	if _, ok := data.GetOk(fmt.Sprintf("%semail", path)); ok {
+		email, diags := newMonitorV2EmailDestinationInput(data, fmt.Sprintf("%semail.0.", path))
 		if diags.HasError() {
 			return nil, diags
 		}
 		input.Email = email
 	}
-	if _, ok := data.GetOk("webhook"); ok {
-		webhook, diags := newMonitorV2WebhookDestinationInput(data, "webhook.0.")
+	if _, ok := data.GetOk(fmt.Sprintf("%swebhook", path)); ok {
+		webhook, diags := newMonitorV2WebhookDestinationInput(data, fmt.Sprintf("%swebhook.0.", path))
 		if diags.HasError() {
 			return nil, diags
 		}
 		input.Webhook = webhook
 	}
-	if v, ok := data.GetOk("icon_url"); ok {
+	if v, ok := data.GetOk(fmt.Sprintf("%sicon_url", path)); ok {
 		input.IconUrl = stringPtr(v.(string))
 	}
-	if v, ok := data.GetOk("description"); ok {
+	if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
 		input.Description = stringPtr(v.(string))
 	}
 

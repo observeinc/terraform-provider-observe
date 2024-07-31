@@ -556,6 +556,14 @@ func (c *Client) DeleteMonitorV2Action(ctx context.Context, id string) error {
 	return c.Meta.DeleteMonitorV2Action(ctx, id)
 }
 
+func (c *Client) SaveActionWithDestinationLinks(ctx context.Context, actionId string, destinationLinks []meta.ActionDestinationLinkInput) (*meta.MonitorV2Action, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.SaveActionWithDestinationLinks(ctx, actionId, destinationLinks)
+}
+
 func (c *Client) CreateMonitorV2Destination(ctx context.Context, workspaceId string, input *meta.MonitorV2DestinationInput) (*meta.MonitorV2Destination, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()

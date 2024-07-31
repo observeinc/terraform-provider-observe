@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -63,6 +64,12 @@ func resourceMonitorV2Action() *schema.Resource {
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"destination": { //
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     resourceMonitorV2Destination(),
 			},
 		},
 	}
@@ -135,24 +142,48 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 	}
 
 	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, input)
+	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, input)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
-	data.SetId(result.Id)
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.")
+	dstResult, err := client.CreateMonitorV2Destination(ctx, workspaceID.Id, dstInput)
+	if err != nil {
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: dstResult.Id,
+		},
+	}
+	_, err = client.SaveActionWithDestinationLinks(ctx, actResult.Id, dstLinks)
+	if err != nil {
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	data.SetId(fmt.Sprintf("%s.%s", actResult.Id, dstResult.Id))
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
 }
 
 func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2ActionInput(data)
+	actId := strings.Split(data.Id(), ".")[0]
+	dstId := strings.Split(data.Id(), ".")[1]
+
+	actInput, diags := newMonitorV2ActionInput(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	_, err := client.UpdateMonitorV2Action(ctx, data.Id(), input)
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.")
+	if diags.HasError() {
+		return diags
+	}
+
+	_, err := client.UpdateMonitorV2Action(ctx, actId, actInput)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
@@ -164,6 +195,28 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
+	_, err = client.UpdateMonitorV2Destination(ctx, dstId, dstInput)
+	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: dstId,
+		},
+	}
+	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actId, dstLinks)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
 }
 
@@ -172,19 +225,38 @@ func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceDat
 	if err := client.DeleteMonitorV2Action(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete monitor action: %s", err.Error())
 	}
+	if err := client.DeleteMonitorV2Destination(ctx, data.Id()); err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
 }
 
 func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	action, err := client.GetMonitorV2Action(ctx, data.Id())
+	actId := strings.Split(data.Id(), ".")[0]
+	dstId := strings.Split(data.Id(), ".")[1]
+
+	action, err := client.GetMonitorV2Action(ctx, actId)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			data.SetId("")
 			return nil
 		}
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
+	}
+
+	dst, err := client.GetMonitorV2Destination(ctx, dstId)
+	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
+		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
+	}
+
+	if err := data.Set("destination", monitorV2FlattenDestination(*dst)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
