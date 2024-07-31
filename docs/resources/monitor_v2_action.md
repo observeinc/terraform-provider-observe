@@ -37,8 +37,6 @@ description: |-
 Required:
 
 - `name` (String)
-- `type` (String)
-- `workspace` (String)
 
 Optional:
 

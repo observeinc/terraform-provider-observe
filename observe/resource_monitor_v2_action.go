@@ -3,7 +3,6 @@ package observe
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -136,21 +135,27 @@ func monitorV2WebhookHeaderInput() *schema.Resource {
 func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2ActionInput(data)
+	actInput, diags := newMonitorV2ActionInput(data)
+	if diags.HasError() {
+		return diags
+	}
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
 	if diags.HasError() {
 		return diags
 	}
 
 	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
-	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, input)
+	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, actInput)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
-	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.")
 	dstResult, err := client.CreateMonitorV2Destination(ctx, workspaceID.Id, dstInput)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+	if err := data.Set("destination", monitorV2FlattenDestination(*dstResult)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	dstLinks := []gql.ActionDestinationLinkInput{
@@ -163,22 +168,31 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
-	data.SetId(fmt.Sprintf("%s.%s", actResult.Id, dstResult.Id))
+	data.SetId(actResult.Id)
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
 }
 
 func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	actId := strings.Split(data.Id(), ".")[0]
-	dstId := strings.Split(data.Id(), ".")[1]
+	actId := data.Id()
+	var dstId string
+
+	if v, ok := data.GetOk("destination.0.oid"); ok {
+		dstOID, err := oid.NewOID(v.(string))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		dstId = dstOID.Id
+	} else {
+		return diag.Errorf("no destination id found")
+	}
 
 	actInput, diags := newMonitorV2ActionInput(data)
 	if diags.HasError() {
 		return diags
 	}
-
-	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.")
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
 	if diags.HasError() {
 		return diags
 	}
@@ -234,8 +248,17 @@ func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceDat
 func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	actId := strings.Split(data.Id(), ".")[0]
-	dstId := strings.Split(data.Id(), ".")[1]
+	actId := data.Id()
+	var dstId string
+	if v, ok := data.GetOk("destination.0.oid"); ok {
+		dstOID, err := oid.NewOID(v.(string))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		dstId = dstOID.Id
+	} else {
+		return diag.Errorf("no destination id found")
+	}
 
 	action, err := client.GetMonitorV2Action(ctx, actId)
 	if err != nil {

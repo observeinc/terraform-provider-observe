@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
-	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 /************************************************************
@@ -42,22 +41,7 @@ import (
 
 func resourceMonitorV2Destination() *schema.Resource {
 	return &schema.Resource{
-		// CreateContext: resourceMonitorV2DestinationCreate,
-		// ReadContext:   resourceMonitorV2DestinationRead,
-		// UpdateContext: resourceMonitorV2DestinationUpdate,
-		// DeleteContext: resourceMonitorV2DestinationDelete,
 		Schema: map[string]*schema.Schema{
-			"workspace": { // ?
-				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
-				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-			},
-			"type": { // MonitorV2ActionType!
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
-			},
 			"email": { // MonitorV2WebhookDestinationInput
 				Type:         schema.TypeList,
 				Optional:     true,
@@ -129,10 +113,8 @@ func monitorV2EmailDestinationResource() *schema.Resource {
 
 func monitorV2FlattenDestination(gqlDest gql.MonitorV2Destination) []interface{} {
 	dest := map[string]interface{}{
-		"workspace": oid.WorkspaceOid(gqlDest.WorkspaceId).String(),
-		"oid":       gqlDest.Oid().String(),
-		"name":      gqlDest.Name,
-		"type":      toSnake(string(gqlDest.Type)),
+		"oid":  gqlDest.Oid().String(),
+		"name": gqlDest.Name,
 	}
 
 	// optional
@@ -182,9 +164,8 @@ func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestinati
 	return []interface{}{webhook}
 }
 
-func newMonitorV2DestinationInput(data *schema.ResourceData, path string) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
+func newMonitorV2DestinationInput(data *schema.ResourceData, path string, actionType gql.MonitorV2ActionType) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
 	// required
-	actionType := gql.MonitorV2ActionType(toCamel(data.Get(fmt.Sprintf("%stype", path)).(string)))
 	name := data.Get(fmt.Sprintf("%sname", path)).(string)
 
 	// instantiation
