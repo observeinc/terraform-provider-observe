@@ -99,6 +99,11 @@ fragment Poller on Poller {
 				}
 			}
 		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
+		}
 	}
 }
 

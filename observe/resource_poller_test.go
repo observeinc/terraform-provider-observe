@@ -605,3 +605,66 @@ func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObservePollerAWSSnapshot(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "15m"
+					datastream = observe_datastream.example.oid
+
+					aws_snapshot {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+						include_actions = ["*"]
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "AWSSnapshot"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "15m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "aws_snapshot.0.include_actions.0", "*"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "15m"
+					datastream = observe_datastream.example.oid
+
+					aws_snapshot {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+						include_actions = ["ec2:Describe*", "sqs:*"]
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "AWSSnapshot"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "15m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "aws_snapshot.0.include_actions.0", "ec2:Describe*"),
+				),
+			},
+		},
+	})
+}

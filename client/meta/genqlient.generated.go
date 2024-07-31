@@ -5863,12 +5863,15 @@ func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { retu
 
 // PollerConfigPollerAWSSnapshotConfig includes the requested fields of the GraphQL type PollerAWSSnapshotConfig.
 type PollerConfigPollerAWSSnapshotConfig struct {
-	Typename *string                             `json:"__typename"`
-	Name     *string                             `json:"name"`
-	Retries  *types.Int64Scalar                  `json:"retries"`
-	Interval *types.DurationScalar               `json:"interval"`
-	Tags     *types.JsonObject                   `json:"tags"`
-	Chunk    *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+	Typename       *string                             `json:"__typename"`
+	Name           *string                             `json:"name"`
+	Retries        *types.Int64Scalar                  `json:"retries"`
+	Interval       *types.DurationScalar               `json:"interval"`
+	Tags           *types.JsonObject                   `json:"tags"`
+	Chunk          *PollerConfigChunkPollerChunkConfig `json:"chunk"`
+	Region         string                              `json:"region"`
+	AssumeRoleArn  string                              `json:"assumeRoleArn"`
+	IncludeActions []string                            `json:"includeActions"`
 }
 
 // GetTypename returns PollerConfigPollerAWSSnapshotConfig.Typename, and is useful for accessing the field via an interface.
@@ -5890,6 +5893,15 @@ func (v *PollerConfigPollerAWSSnapshotConfig) GetTags() *types.JsonObject { retu
 func (v *PollerConfigPollerAWSSnapshotConfig) GetChunk() *PollerConfigChunkPollerChunkConfig {
 	return v.Chunk
 }
+
+// GetRegion returns PollerConfigPollerAWSSnapshotConfig.Region, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetRegion() string { return v.Region }
+
+// GetAssumeRoleArn returns PollerConfigPollerAWSSnapshotConfig.AssumeRoleArn, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
+// GetIncludeActions returns PollerConfigPollerAWSSnapshotConfig.IncludeActions, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerAWSSnapshotConfig) GetIncludeActions() []string { return v.IncludeActions }
 
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
@@ -12997,6 +13009,11 @@ fragment Poller on Poller {
 				}
 			}
 		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
+		}
 	}
 }
 fragment HttpRequestConfig on PollerHTTPRequestConfig {
@@ -16339,6 +16356,11 @@ fragment Poller on Poller {
 					}
 				}
 			}
+		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
 		}
 	}
 }
@@ -19751,6 +19773,11 @@ fragment Poller on Poller {
 					}
 				}
 			}
+		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
 		}
 	}
 }
