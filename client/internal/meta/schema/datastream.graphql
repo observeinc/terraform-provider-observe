@@ -73,6 +73,10 @@ type DatastreamOtelLogs @goModel(model: "observe/meta/metatypes.DatastreamOtelLo
     enabled: Boolean!
 }
 
+type DatastreamK8sEntity @goModel(model: "observe/meta/metatypes.DatastreamK8sEntityOutput") {
+    enabled: Boolean!
+}
+
 type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datastream") {
     id: ObjectId!
     name: String!
@@ -99,6 +103,7 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     externalSourceId: ObjectId
     prometheus: DatastreamPrometheus @goField(forceResolver:true)
     otelLogs: DatastreamOtelLogs @goField(forceResolver:true)
+    k8sEntity: DatastreamK8sEntity @goField(forceResolver:true)
 }
 
 input DatastreamPrometheusInput @goModel(model: "observe/meta/metatypes.DatastreamPrometheusInput") {
@@ -110,6 +115,10 @@ input DatastreamOtelLogsInput @goModel(model: "observe/meta/metatypes.Datastream
     enabled: Boolean!
 }
 
+input DatastreamK8sEntityInput @goModel(model: "observe/meta/metatypes.DatastreamK8sEntityInput") {
+    enabled: Boolean!
+}
+
 input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
     name: String!
     description: String
@@ -118,6 +127,7 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     externalSourceId: ObjectId
     prometheusInput: DatastreamPrometheusInput
     otelLogsInput: DatastreamOtelLogsInput
+    k8sEntityInput: DatastreamK8sEntityInput
 }
 
 interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {

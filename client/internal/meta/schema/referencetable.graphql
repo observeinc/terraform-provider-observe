@@ -21,6 +21,7 @@ type ReferenceTable implements WorkspaceObject & AuditedObject & FolderObject @g
     # not in output: upload: Upload
     datasetID: ObjectId!
     # not in output: schema: [DatasetFieldDefInput!]
+    # not in output: primaryKey: [String!]
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -47,6 +48,7 @@ input ReferenceTableInput @goModel(model: "observe/meta/metatypes.ReferenceTable
     upload: Upload
     # not in input: datasetID: ObjectId!
     schema: [DatasetFieldDefInput!]
+    primaryKey: [String!]
     # WorkspaceObject
     name: String
     iconUrl: String

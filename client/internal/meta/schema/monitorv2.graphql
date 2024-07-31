@@ -449,7 +449,6 @@ type MonitorV2Column @goModel(model: "observe/meta/metatypes.MonitorV2Column") {
     Column path is any non-link typed column along with an optional path which the user wants to group by.
     """
     columnPath: MonitorV2ColumnPath
-
 }
 
 input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnInput") {
@@ -569,7 +568,6 @@ type MonitorV2CountRule @goModel(model: "observe/meta/metatypes.MonitorV2CountRu
     (one rule for < 80 and one rule for > 90).
     """
     compareValues: [MonitorV2Comparison!]!
-
     """
     CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
     This gives the option to add extra dimension to the existing rule by specifying which column of
@@ -622,7 +620,6 @@ input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.Monito
 
 
 # The monitor will promote each event in the raw input dataset into an alert. In order to uniquely identify
-
 # and deduplicate these alerts, the groupings will help deduplicate the rows in the dataset:
 #   - Event Dataset: Rows can be deduplicated using the `groupings` field of the MonitorV2Definition.
 #   - Interval Dataset: Rows can be deduplicated using the `groupings` field of the MonitorV2Definition.
@@ -805,6 +802,10 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     Level is the severity the user configured in the monitor to be alerted on.
     """
     level: MonitorV2AlarmLevel!
+    """
+    Grouping hash shows which group this alarm originates from based on the group by values.
+    """
+    groupingHash: Int64!
 }
 
 input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2AlarmInput") {
@@ -815,6 +816,7 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     capturedValues: [MonitorV2CapturedValueInput!]!
     isActive: Boolean!
     level: MonitorV2AlarmLevel!
+    # not in input: groupingHash: Int64!
 }
 
 
@@ -1170,11 +1172,16 @@ input MonitorV2WebhookHeaderInput @goModel(model: "observe/meta/metatypes.Monito
 
 # MonitorV2MuteRule is a top-level object created by a user to be used (or reused) to mute monitors.
 # A mute rule is created with a schedule, which dictates when the system will apply the mute. A mute
-# rule is made active by tying it to one or more monitors using setMonitorV2MuteRules after the rule
-# has been created.
+# rule is is either global (null monitor) or tied to a single monitor.
 type MonitorV2MuteRule implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2MuteRule") {
     # payload
     schedule: MonitorV2MuteRuleSchedule!
+    """
+    Criteria is optional evaluation to apply to decide if the mute applies to an individual
+    notification. If criteria are not given the mute is applied to all notifications
+    for the monitor.
+    note: A global mute (null monitor assignment) with no criteria is not allowed.
+    """
     criteria: MonitorV2ComparisonExpression
     """
     ValidFrom is calculated dynamically from the schedule based on the type and the clock.
@@ -1187,9 +1194,25 @@ type MonitorV2MuteRule implements WorkspaceObject & AuditedObject & FolderObject
     """
     validTo: Time
     """
-    Monitors are the monitors that are currently linked to this rule.
+    MonitorID is an optional identifer you assign to bind this mute rule to a single monitor.
+    Leaving this null makes the rule global (evaluates against all notifications of all monitors).
     """
-    monitors: [MonitorV2!]! @goField(forceResolver: true)
+    monitorID: ObjectId
+    """
+    Monitor is the monitor resolved by MonitorID.
+    """
+    monitor: MonitorV2 @goField(forceResolver: true)
+    """
+    IsGlobal is just a convenience flag driven by a null check on monitorID.
+    """
+    isGlobal: Boolean!
+    """
+    IsConditional is a convenience flag driven by checking if the rule contains
+    any matching criteria. Having no matching criteria makes the rule an unconditional
+    mute (suppresses all notifications). It is not permitted to have an unconditional
+    mute be global.
+    """
+    isConditional: Boolean!
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -1217,7 +1240,10 @@ input MonitorV2MuteRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2Mu
     criteria: MonitorV2ComparisonExpressionInput
     # not in input: validFrom: Time!
     # not in input: validTo: Time
-    # resolver: monitors: [MonitorV2Input!]!
+    monitorID: ObjectId
+    # resolver: monitor: MonitorV2Input
+    # not in input: isGlobal: Boolean!
+    # not in input: isConditional: Boolean!
     # WorkspaceObject
     name: String!
     iconUrl: String

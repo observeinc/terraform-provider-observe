@@ -16,7 +16,7 @@ extend type Query {
     - match will be used to to match against (case ignored) metric name, label and description
     - heuristicsOptions, when provided, expands the search to also include computed metric heuristics
     """
-    metricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], linkToDatasets: [ObjectId!], match: String!, heuristicsOptions: MetricHeuristicsOptions): MetricSearchResult!
+    metricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], linkToDatasets: [ObjectId!], correlationTagMatches: [String!], match: String!, heuristicsOptions: MetricHeuristicsOptions): MetricSearchResult!
 
     """
     Search for resource instances matching all of the given key fragments.
