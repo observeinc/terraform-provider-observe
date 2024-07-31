@@ -1260,7 +1260,7 @@ type Dataset struct {
 	IconUrl              *string            `json:"iconUrl"`
 	AccelerationDisabled bool               `json:"accelerationDisabled"`
 	Version              types.TimeScalar   `json:"version"`
-	LastSaved            types.TimeScalar   `json:"lastSaved"`
+	UpdatedDate          types.TimeScalar   `json:"updatedDate"`
 	PathCost             *types.Int64Scalar `json:"pathCost"`
 	Source               *string            `json:"source"`
 	ManagedById          *string            `json:"managedById"`
@@ -1297,8 +1297,8 @@ func (v *Dataset) GetAccelerationDisabled() bool { return v.AccelerationDisabled
 // GetVersion returns Dataset.Version, and is useful for accessing the field via an interface.
 func (v *Dataset) GetVersion() types.TimeScalar { return v.Version }
 
-// GetLastSaved returns Dataset.LastSaved, and is useful for accessing the field via an interface.
-func (v *Dataset) GetLastSaved() types.TimeScalar { return v.LastSaved }
+// GetUpdatedDate returns Dataset.UpdatedDate, and is useful for accessing the field via an interface.
+func (v *Dataset) GetUpdatedDate() types.TimeScalar { return v.UpdatedDate }
 
 // GetPathCost returns Dataset.PathCost, and is useful for accessing the field via an interface.
 func (v *Dataset) GetPathCost() *types.Int64Scalar { return v.PathCost }
@@ -6553,7 +6553,6 @@ type PollerInput struct {
 	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
 	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
-	CloudwatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudwatchMetricsConfig,omitempty"`
 	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig"`
 	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
@@ -6607,11 +6606,6 @@ func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 // GetCloudWatchMetricsConfig returns PollerInput.CloudWatchMetricsConfig, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetCloudWatchMetricsConfig() *PollerCloudWatchMetricsInput {
 	return v.CloudWatchMetricsConfig
-}
-
-// GetCloudwatchMetricsConfig returns PollerInput.CloudwatchMetricsConfig, and is useful for accessing the field via an interface.
-func (v *PollerInput) GetCloudwatchMetricsConfig() *PollerCloudWatchMetricsInput {
-	return v.CloudwatchMetricsConfig
 }
 
 // GetAwsSnapshotConfig returns PollerInput.AwsSnapshotConfig, and is useful for accessing the field via an interface.
@@ -15112,7 +15106,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
@@ -16891,7 +16885,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
@@ -17091,7 +17085,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
@@ -17902,7 +17896,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
@@ -18021,7 +18015,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
