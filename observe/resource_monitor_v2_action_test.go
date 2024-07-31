@@ -155,8 +155,6 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 						name = "%[1]s"
 						description = "an interesting description"
 						destination {
-							workspace = data.observe_workspace.default.oid
-							type = "webhook"
 							webhook {
 								url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 								method = "post"
