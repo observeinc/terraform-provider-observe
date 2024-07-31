@@ -67,6 +67,8 @@ mutation deleteMonitorV2Destination($id: ObjectId!) {
 	}
 }
 
+# @genqlient(for: "ActionDestinationLinkInput.sendEndNotifications", omitempty: true)
+# @genqlient(for: "ActionDestinationLinkInput.sendRemindersInterval", omitempty: true)
 mutation saveActionWithDestinationLinks(
     $actionId: ObjectId!,
     $destinationLinks: [ActionDestinationLinkInput!]!

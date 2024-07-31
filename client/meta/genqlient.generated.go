@@ -37,8 +37,8 @@ func (v *ActionDestinationLink) GetDefinition() MonitorV2DestinationDefinition {
 
 type ActionDestinationLinkInput struct {
 	DestinationID         string                `json:"destinationID"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
-	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications,omitempty"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval,omitempty"`
 }
 
 // GetDestinationID returns ActionDestinationLinkInput.DestinationID, and is useful for accessing the field via an interface.

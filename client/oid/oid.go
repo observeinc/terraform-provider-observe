@@ -74,6 +74,8 @@ func (t Type) IsValid() bool {
 	case TypeMonitorAction:
 	case TypeMonitorActionAttachment:
 	case TypeMonitorV2:
+	case TypeMonitorV2Action:
+	case TypeMonitorV2Destination:
 	case TypePoller:
 	case TypePreferredPath:
 	case TypeUser:

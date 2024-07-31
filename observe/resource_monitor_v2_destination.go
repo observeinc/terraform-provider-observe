@@ -12,6 +12,36 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
+/************************************************************
+*                                                           *
+*   FOR WHOEVER GETS PUT ON THIS TASK AFTER I LEAVE:        *
+*                                                           *
+*   This file was written when the API used to require      *
+*   separate calls for creating a monv2 action and a        *
+*   destination. This is why, for example, the function     *
+*   resourceMonitorV2DestinationCreate calls 2 create       *
+*   API calls (one to make the action, another for dest).   *
+*   If you're reading this message with the intent of       *
+*   modifying this file, the API has probably changed       *
+*   so that a shared action and inlined destination can     *
+*   be edited in a single API call, which is likely         *
+*   what you were asked to change about this code.          *
+*                                                           *
+*   If possible, please do NOT remove any params from the   *
+*   existing schema or add any new required params. I       *
+*   tried to write the schema so that it would map onto     *
+*   the new API relatively cleanly. You probably won't      *
+*   need to change the schema, but you'll likely need to    *
+*   change how the variables read from said schema are      *
+*   arranged into the inputs fed to the API call.           *
+*                                                           *
+*   After making the changes, please delete this comment.   *
+*                                                           *
+*   Thanks! :)                                              *
+*   - Owen                                                  *
+*                                                           *
+***********************************************************/
+
 func resourceMonitorV2Destination() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2DestinationCreate,
@@ -39,7 +69,7 @@ func resourceMonitorV2Destination() *schema.Resource {
 				Type:         schema.TypeList,
 				Optional:     true,
 				ExactlyOneOf: []string{"email", "webhook"},
-				Elem:         &schema.Resource{},
+				Elem:         monitorV2EmailDestinationResource(),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
 				Type:         schema.TypeList,
@@ -51,7 +81,7 @@ func resourceMonitorV2Destination() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"iconUrl": { // String
+			"icon_url": { // String
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -122,7 +152,7 @@ func resourceMonitorV2DestinationCreate(ctx context.Context, data *schema.Resour
 	actOID, _ := oid.NewOID(data.Get("action").(string))
 	dstLinks := []gql.ActionDestinationLinkInput{
 		{
-			DestinationID: id.Id,
+			DestinationID: result.Id,
 		},
 	}
 	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actOID.Id, dstLinks)
@@ -185,7 +215,7 @@ func resourceMonitorV2DestinationRead(ctx context.Context, data *schema.Resource
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("id", dest.Oid().String()); err != nil {
+	if err := data.Set("oid", dest.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -233,7 +263,7 @@ func resourceMonitorV2DestinationDelete(ctx context.Context, data *schema.Resour
 	return diags
 }
 
-func monitorV2FlattenEmailDestination(gqlEmail gql.MonitorV2EmailDestination) interface{} {
+func monitorV2FlattenEmailDestination(gqlEmail gql.MonitorV2EmailDestination) []interface{} {
 	email := make(map[string]interface{})
 	if len(gqlEmail.Addresses) > 0 {
 		addrs := make([]string, 0)
@@ -249,15 +279,15 @@ func monitorV2FlattenEmailDestination(gqlEmail gql.MonitorV2EmailDestination) in
 		}
 		email["users"] = uidStrs
 	}
-	return email
+	return []interface{}{email}
 }
 
-func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestination) interface{} {
+func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestination) []interface{} {
 	webhook := map[string]interface{}{
 		"url":    gqlWebhook.Url,
 		"method": toSnake(string(gqlWebhook.Method)),
 	}
-	return webhook
+	return []interface{}{webhook}
 }
 
 func newMonitorV2DestinationInput(data *schema.ResourceData) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
