@@ -38,6 +38,12 @@ func (client *Client) DeleteMonitorV2Action(ctx context.Context, id string) erro
 	return resultStatusError(resp, err)
 }
 
+// used only when creating or updating a destination
+func (client *Client) SaveActionWithDestinationLinks(ctx context.Context, actionId string, destinationLinks []ActionDestinationLinkInput) (*MonitorV2Action, error) {
+	resp, err := saveActionWithDestinationLinks(ctx, client.Gql, actionId, destinationLinks)
+	return monitorV2ActionOrError(resp, err)
+}
+
 func (m *MonitorV2Action) Oid() *oid.OID {
 	return &oid.OID{
 		Id:   m.Id,

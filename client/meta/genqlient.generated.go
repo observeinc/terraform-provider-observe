@@ -35,6 +35,23 @@ func (v *ActionDestinationLink) GetSendRemindersInterval() *types.DurationScalar
 // GetDefinition returns ActionDestinationLink.Definition, and is useful for accessing the field via an interface.
 func (v *ActionDestinationLink) GetDefinition() MonitorV2DestinationDefinition { return v.Definition }
 
+type ActionDestinationLinkInput struct {
+	DestinationID         string                `json:"destinationID"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
+}
+
+// GetDestinationID returns ActionDestinationLinkInput.DestinationID, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLinkInput) GetDestinationID() string { return v.DestinationID }
+
+// GetSendEndNotifications returns ActionDestinationLinkInput.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLinkInput) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns ActionDestinationLinkInput.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *ActionDestinationLinkInput) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
+
 type ActionInput struct {
 	Name             *string               `json:"name"`
 	IconUrl          *string               `json:"iconUrl"`
@@ -9238,6 +9255,20 @@ func (v *__removeCorrelationTagInput) GetPath() LinkFieldInput { return v.Path }
 // GetTag returns __removeCorrelationTagInput.Tag, and is useful for accessing the field via an interface.
 func (v *__removeCorrelationTagInput) GetTag() string { return v.Tag }
 
+// __saveActionWithDestinationLinksInput is used internally by genqlient
+type __saveActionWithDestinationLinksInput struct {
+	ActionId         string                       `json:"actionId"`
+	DestinationLinks []ActionDestinationLinkInput `json:"destinationLinks"`
+}
+
+// GetActionId returns __saveActionWithDestinationLinksInput.ActionId, and is useful for accessing the field via an interface.
+func (v *__saveActionWithDestinationLinksInput) GetActionId() string { return v.ActionId }
+
+// GetDestinationLinks returns __saveActionWithDestinationLinksInput.DestinationLinks, and is useful for accessing the field via an interface.
+func (v *__saveActionWithDestinationLinksInput) GetDestinationLinks() []ActionDestinationLinkInput {
+	return v.DestinationLinks
+}
+
 // __saveDashboardInput is used internally by genqlient
 type __saveDashboardInput struct {
 	DashboardInput DashboardInput `json:"dashboardInput"`
@@ -11064,6 +11095,21 @@ type removeCorrelationTagResponse struct {
 
 // GetResultStatus returns removeCorrelationTagResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *removeCorrelationTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// saveActionWithDestinationLinksResponse is returned by saveActionWithDestinationLinks on success.
+type saveActionWithDestinationLinksResponse struct {
+	// saveActionsWithDestinations replaces all action's links to the destinations (MonitorV2) for the provided
+	// shared action. It only allows you to mutate shared actions' relationships with the shared destinations.
+	// Private actions' links can't be mutated through this call, so you will need to use saveMonitorV2Relations to do so.
+	// The purpose of the API is such that the users can create a shared action and make links to the destinations
+	// from the shared actions page or when an action has been shared from within the monitor editing page.
+	MonitorV2Action MonitorV2Action `json:"monitorV2Action"`
+}
+
+// GetMonitorV2Action returns saveActionWithDestinationLinksResponse.MonitorV2Action, and is useful for accessing the field via an interface.
+func (v *saveActionWithDestinationLinksResponse) GetMonitorV2Action() MonitorV2Action {
+	return v.MonitorV2Action
+}
 
 // saveDashboardResponse is returned by saveDashboard on success.
 type saveDashboardResponse struct {
@@ -18026,6 +18072,105 @@ func removeCorrelationTag(
 	var err error
 
 	var data removeCorrelationTagResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveActionWithDestinationLinks.
+const saveActionWithDestinationLinks_Operation = `
+mutation saveActionWithDestinationLinks ($actionId: ObjectId!, $destinationLinks: [ActionDestinationLinkInput!]!) {
+	monitorV2Action: saveActionWithDestinationLinks(actionId: $actionId, destinationLinks: $destinationLinks) {
+		... MonitorV2Action
+	}
+}
+fragment MonitorV2Action on MonitorV2Action {
+	inline
+	type
+	destinationLinks {
+		... ActionDestinationLink
+	}
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	createdBy
+	createdDate
+}
+fragment ActionDestinationLink on ActionDestinationLink {
+	destinationID
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2DestinationDefinition
+	}
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+}
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailDestination
+	}
+	webhook {
+		... MonitorV2WebhookDestination
+	}
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+	users
+	addresses
+}
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+	url
+	method
+}
+`
+
+func saveActionWithDestinationLinks(
+	ctx context.Context,
+	client graphql.Client,
+	actionId string,
+	destinationLinks []ActionDestinationLinkInput,
+) (*saveActionWithDestinationLinksResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveActionWithDestinationLinks",
+		Query:  saveActionWithDestinationLinks_Operation,
+		Variables: &__saveActionWithDestinationLinksInput{
+			ActionId:         actionId,
+			DestinationLinks: destinationLinks,
+		},
+	}
+	var err error
+
+	var data saveActionWithDestinationLinksResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

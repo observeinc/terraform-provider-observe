@@ -19,15 +19,16 @@ func resourceMonitorV2Destination() *schema.Resource {
 		UpdateContext: resourceMonitorV2DestinationUpdate,
 		DeleteContext: resourceMonitorV2DestinationDelete,
 		Schema: map[string]*schema.Schema{
-			"workspace_id": { // ?
+			"workspace": { // ?
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 			},
-			"inline": { // Boolean
-				Type:     schema.TypeBool,
-				Optional: true,
+			"action": { // associated action
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
 			},
 			"type": { // MonitorV2ActionType!
 				Type:             schema.TypeString,
@@ -59,7 +60,7 @@ func resourceMonitorV2Destination() *schema.Resource {
 				Optional: true,
 			},
 			// ^^^ end of input
-			"id": { // ObjectId!
+			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -111,8 +112,20 @@ func resourceMonitorV2DestinationCreate(ctx context.Context, data *schema.Resour
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace_id").(string))
+	id, _ := oid.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateMonitorV2Destination(ctx, id.Id, input)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// update the link between action and destination
+	actOID, _ := oid.NewOID(data.Get("action").(string))
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: id.Id,
+		},
+	}
+	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actOID.Id, dstLinks)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -141,6 +154,18 @@ func resourceMonitorV2DestinationUpdate(ctx context.Context, data *schema.Resour
 		return diag.FromErr(err)
 	}
 
+	// update the link between action and destination
+	actOID, _ := oid.NewOID(data.Get("action").(string))
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: data.Id(),
+		},
+	}
+	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actOID.Id, dstLinks)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return append(diags, resourceMonitorV2DestinationRead(ctx, data, meta)...)
 }
 
@@ -156,7 +181,7 @@ func resourceMonitorV2DestinationRead(ctx context.Context, data *schema.Resource
 	}
 
 	// required
-	if err := data.Set("workspace_id", oid.WorkspaceOid(dest.WorkspaceId).String()); err != nil {
+	if err := data.Set("workspace", oid.WorkspaceOid(dest.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -191,14 +216,8 @@ func resourceMonitorV2DestinationRead(ctx context.Context, data *schema.Resource
 		}
 	}
 
-	if dest.Inline != nil {
-		if err := data.Set("inline", *dest.Inline); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
 	if dest.Webhook != nil {
-		if err := data.Set("inline", monitorv2FlattenWebhookDestination(*dest.Webhook)); err != nil {
+		if err := data.Set("webhook", monitorv2FlattenWebhookDestination(*dest.Webhook)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -247,9 +266,11 @@ func newMonitorV2DestinationInput(data *schema.ResourceData) (input *gql.Monitor
 	name := data.Get("name").(string)
 
 	// instantiation
+	inlineVal := true // we are currently only allowing destinations to be inlined
 	input = &gql.MonitorV2DestinationInput{
-		Type: actionType,
-		Name: name,
+		Type:   actionType,
+		Name:   name,
+		Inline: &inlineVal,
 	}
 
 	// optionals

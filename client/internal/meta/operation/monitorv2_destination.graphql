@@ -67,3 +67,12 @@ mutation deleteMonitorV2Destination($id: ObjectId!) {
 	}
 }
 
+mutation saveActionWithDestinationLinks(
+    $actionId: ObjectId!,
+    $destinationLinks: [ActionDestinationLinkInput!]!
+) {
+    # @genqlient(flatten: true)
+    monitorV2Action: saveActionWithDestinationLinks(actionId: $actionId, destinationLinks: $destinationLinks) {
+        ...MonitorV2Action
+    }
+}

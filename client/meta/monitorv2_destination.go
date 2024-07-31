@@ -41,6 +41,6 @@ func (client *Client) DeleteMonitorV2Destination(ctx context.Context, id string)
 func (m *MonitorV2Destination) Oid() *oid.OID {
 	return &oid.OID{
 		Id:   m.Id,
-		Type: oid.TypeMonitorV2,
+		Type: oid.TypeMonitorV2Destination,
 	}
 }
