@@ -36,7 +36,6 @@ description: |-
 
 Required:
 
-- `action` (String)
 - `name` (String)
 - `type` (String)
 - `workspace` (String)
