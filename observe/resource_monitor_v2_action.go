@@ -236,22 +236,8 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 
 func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	actId := data.Id()
-	var dstId string
-	if v, ok := data.GetOk("destination.0.oid"); ok {
-		dstOID, err := oid.NewOID(v.(string))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		dstId = dstOID.Id
-	} else {
-		return diag.Errorf("no destination id found")
-	}
-	if err := client.DeleteMonitorV2Action(ctx, actId); err != nil {
+	if err := client.DeleteMonitorV2Action(ctx, data.Id()); err != nil {
 		return diag.Errorf("failed to delete monitor action: %s", err.Error())
-	}
-	if err := client.DeleteMonitorV2Destination(ctx, dstId); err != nil {
-		return diag.FromErr(err)
 	}
 	return diags
 }

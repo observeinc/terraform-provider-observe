@@ -54,10 +54,10 @@ func resourceMonitorV2Destination() *schema.Resource {
 				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
 				Elem:         monitorV2WebhookDestinationResource(),
 			},
-			"name": { // String!
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			// "name": { // String! 			for inline actions, name is ignored.
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
 			"icon_url": { // String
 				Type:     schema.TypeString,
 				Optional: true,
@@ -166,7 +166,7 @@ func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestinati
 
 func newMonitorV2DestinationInput(data *schema.ResourceData, path string, actionType gql.MonitorV2ActionType) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
 	// required
-	name := data.Get(fmt.Sprintf("%sname", path)).(string)
+	name := "my destination" // name is ignored for inlined destinations, so we can set it to any value.
 
 	// instantiation
 	inlineVal := true // we are currently only allowing destinations to be inlined

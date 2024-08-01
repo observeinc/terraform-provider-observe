@@ -71,9 +71,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						destination {
 							email {
 								addresses = ["test@observeinc.com"]
-								users = [data.observe_user.system.oid]
 							}
-							name = "%[1]s"
 							description = "an interesting dest description"
 						}
 						name = "%[1]s"
@@ -89,8 +87,6 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.subject", "somebody once told me"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.body", "the world is gonna roll me"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.addresses.0", "test@observeinc.com"),
-					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.users.#", "1"),
-					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
 				),
 			},
@@ -164,7 +160,6 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 								url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 								method = "post"
 							}
-							name = "%[1]s"
 							description = "an interesting dest description"
 						}
 					}
@@ -180,7 +175,6 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.body", "never gonna run around and desert you"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.url", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.method", "post"),
-					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
 				),
 			},
