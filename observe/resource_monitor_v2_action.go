@@ -13,6 +13,36 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
+/************************************************************
+*                                                           *
+*   FOR WHOEVER GETS PUT ON THIS TASK AFTER I LEAVE:        *
+*                                                           *
+*   This file was written when the API used to require      *
+*   separate calls for creating a monv2 action and a        *
+*   destination. This is why, for example, the function     *
+*   resourceMonitorV2DestinationCreate calls 2 create       *
+*   API calls (one to make the action, another for dest).   *
+*   If you're reading this message with the intent of       *
+*   modifying this file, the API has probably changed       *
+*   so that a shared action and inlined destination can     *
+*   be edited in a single API call, which is likely         *
+*   what you were asked to change about this code.          *
+*                                                           *
+*   If possible, please do NOT remove any params from the   *
+*   existing schema or add any new required params. I       *
+*   tried to write the schema so that it would map onto     *
+*   the new API relatively cleanly. You probably won't      *
+*   need to change the schema, but you'll likely need to    *
+*   change how the variables read from said schema are      *
+*   arranged into the inputs fed to the API call.           *
+*                                                           *
+*   After making the changes, please delete this comment.   *
+*                                                           *
+*   Thanks! :)                                              *
+*   - Owen                                                  *
+*                                                           *
+***********************************************************/
+
 func resourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2ActionCreate,
@@ -50,10 +80,6 @@ func resourceMonitorV2Action() *schema.Resource {
 			"name": { // String!
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"icon_url": { // String
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 			"description": { // String
 				Type:     schema.TypeString,
@@ -127,6 +153,74 @@ func monitorV2WebhookHeaderInput() *schema.Resource {
 			"value": { // String!
 				Type:     schema.TypeString,
 				Required: true,
+			},
+		},
+	}
+}
+
+func resourceMonitorV2Destination() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"email": { // MonitorV2WebhookDestinationInput
+				Type:         schema.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
+				Elem:         monitorV2EmailDestinationResource(),
+			},
+			"webhook": { // MonitorV2WebhookDestinationInput
+				Type:         schema.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
+				Elem:         monitorV2WebhookDestinationResource(),
+			},
+			// "name": { // String! 			for inline actions, name is ignored.
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
+			"description": { // String
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			// ^^^ end of input
+			"oid": { // ObjectId!
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func monitorV2WebhookDestinationResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"url": { // String!
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"method": { // MonitorV2HttpType!
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
+			},
+		},
+	}
+}
+
+func monitorV2EmailDestinationResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"users": { // [UserId!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(oid.TypeUser),
+				},
+			},
+			"addresses": { // [String!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -307,12 +401,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		}
 	}
 
-	if action.IconUrl != nil {
-		if err := data.Set("icon_url", *action.IconUrl); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
 	if action.Description != nil {
 		if err := data.Set("description", *action.Description); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -393,10 +481,6 @@ func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2Act
 			return nil, diags
 		}
 		input.Webhook = webhook
-	}
-	if v, ok := data.GetOk("icon_url"); ok {
-		iconURL := v.(string)
-		input.IconUrl = &iconURL
 	}
 	if v, ok := data.GetOk("description"); ok {
 		description := v.(string)
