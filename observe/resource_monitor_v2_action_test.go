@@ -89,6 +89,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.body", "the world is gonna roll me"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.addresses.0", "test@observeinc.com"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.users.#", "1"),
 				),
 			},
 		},
