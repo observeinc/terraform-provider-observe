@@ -113,8 +113,7 @@ func monitorV2EmailDestinationResource() *schema.Resource {
 
 func monitorV2FlattenDestination(gqlDest gql.MonitorV2Destination) []interface{} {
 	dest := map[string]interface{}{
-		"oid":  gqlDest.Oid().String(),
-		"name": gqlDest.Name,
+		"oid": gqlDest.Oid().String(),
 	}
 
 	// optional
