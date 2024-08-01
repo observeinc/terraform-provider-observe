@@ -32,7 +32,12 @@ extend type Mutation {
     If dependencyHandling is not specified, then the default is to apply
     changes but ignore downstream datasets or errors therein.
     """
-    saveDataset(workspaceId: ObjectId!, dataset: DatasetInput!, transform: TransformInput @deprecated(reason:"use query instead"), query: MultiStageQueryInput, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
+    saveDataset(
+        workspaceId: ObjectId!,
+        dataset: DatasetInput!,
+        query: MultiStageQueryInput,
+        dependencyHandling: DependencyHandlingInput,
+    ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
 
     saveSourceDataset(workspaceId: ObjectId!, datasetDefinition: DatasetDefinitionInput!, sourceTable: SourceTableDefinitionInput!, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
@@ -331,7 +336,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
-    lastSaved: Time! @deprecated(reason: "use updatedDate instead")
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
     inputs: [DatasetInputDataset!] @goField(forceResolver:true)

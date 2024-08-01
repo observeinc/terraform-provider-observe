@@ -274,7 +274,6 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     mongoDBAtlasConfig: PollerMongoDBAtlasInput
     confluentCloudConfig: PollerConfluentCloudInput
     cloudWatchMetricsConfig: PollerCloudWatchMetricsInput
-    cloudwatchMetricsConfig: PollerCloudWatchMetricsInput @deprecated(reason:"renamed to cloudWatchMetricsConfig")
     awsSnapshotConfig: PollerAWSSnapshotInput
     skipExternalValidation: Boolean
 
