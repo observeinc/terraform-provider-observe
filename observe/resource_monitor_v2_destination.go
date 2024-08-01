@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 /************************************************************
@@ -99,7 +100,7 @@ func monitorV2EmailDestinationResource() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					ValidateDiagFunc: validateUID(),
+					ValidateDiagFunc: validateOID(oid.TypeUser),
 				},
 			},
 			"addresses": { // [String!]
@@ -146,11 +147,12 @@ func monitorV2FlattenEmailDestination(gqlEmail gql.MonitorV2EmailDestination) []
 		email["addresses"] = addrs
 	}
 	if len(gqlEmail.Users) > 0 {
-		uidStrs := make([]string, 0)
+		userOIDStrs := make([]string, 0)
 		for _, uid := range gqlEmail.Users {
-			uidStrs = append(uidStrs, uid.String())
+			userOID := oid.UserOid(uid)
+			userOIDStrs = append(userOIDStrs, userOID.String())
 		}
-		email["users"] = uidStrs
+		email["users"] = userOIDStrs
 	}
 	return []interface{}{email}
 }
@@ -211,8 +213,11 @@ func newMonitorV2EmailDestinationInput(data *schema.ResourceData, path string) (
 	if _, ok := data.GetOk(fmt.Sprintf("%susers", path)); ok {
 		email.Users = make([]types.UserIdScalar, 0)
 		for i := range data.Get(fmt.Sprintf("%susers", path)).([]interface{}) {
-			uidStr := data.Get(fmt.Sprintf("%susers.%d", path, i)).(string)
-			uid, err := types.StringToUserIdScalar(uidStr)
+			userOID, err := oid.NewOID(data.Get(fmt.Sprintf("%susers.%d", path, i)).(string))
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+			uid, err := types.StringToUserIdScalar(userOID.Id)
 			if err != nil {
 				return nil, diag.FromErr(err)
 			}

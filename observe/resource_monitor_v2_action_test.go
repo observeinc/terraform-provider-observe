@@ -71,6 +71,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						destination {
 							email {
 								addresses = ["test@observeinc.com"]
+								users = [data.observe_user.system.oid]
 							}
 							description = "an interesting dest description"
 						}
