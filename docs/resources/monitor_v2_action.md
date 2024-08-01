@@ -23,7 +23,6 @@ description: |-
 - `description` (String)
 - `destination` (Block List, Max: 1) (see [below for nested schema](#nestedblock--destination))
 - `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
-- `icon_url` (String)
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only
@@ -38,7 +37,6 @@ Optional:
 
 - `description` (String)
 - `email` (Block List) (see [below for nested schema](#nestedblock--destination--email))
-- `icon_url` (String)
 - `webhook` (Block List) (see [below for nested schema](#nestedblock--destination--webhook))
 
 Read-Only:
