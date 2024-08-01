@@ -1416,14 +1416,14 @@ func (v *DatasetFieldTypeInput) GetNullable() *bool { return v.Nullable }
 
 // DatasetForeignKeysForeignKey includes the requested fields of the GraphQL type ForeignKey.
 type DatasetForeignKeysForeignKey struct {
-	Label         *string            `json:"label"`
+	Id            *string            `json:"id"`
 	TargetDataset *types.Int64Scalar `json:"targetDataset"`
 	SrcFields     []string           `json:"srcFields"`
 	DstFields     []string           `json:"dstFields"`
 }
 
-// GetLabel returns DatasetForeignKeysForeignKey.Label, and is useful for accessing the field via an interface.
-func (v *DatasetForeignKeysForeignKey) GetLabel() *string { return v.Label }
+// GetId returns DatasetForeignKeysForeignKey.Id, and is useful for accessing the field via an interface.
+func (v *DatasetForeignKeysForeignKey) GetId() *string { return v.Id }
 
 // GetTargetDataset returns DatasetForeignKeysForeignKey.TargetDataset, and is useful for accessing the field via an interface.
 func (v *DatasetForeignKeysForeignKey) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
@@ -5479,6 +5479,7 @@ type Poller struct {
 	DatastreamId *string      `json:"datastreamId"`
 	Disabled     bool         `json:"disabled"`
 	Kind         PollerKind   `json:"kind"`
+	Name         string       `json:"name"`
 	Config       PollerConfig `json:"-"`
 }
 
@@ -5499,6 +5500,9 @@ func (v *Poller) GetDisabled() bool { return v.Disabled }
 
 // GetKind returns Poller.Kind, and is useful for accessing the field via an interface.
 func (v *Poller) GetKind() PollerKind { return v.Kind }
+
+// GetName returns Poller.Name, and is useful for accessing the field via an interface.
+func (v *Poller) GetName() string { return v.Name }
 
 // GetConfig returns Poller.Config, and is useful for accessing the field via an interface.
 func (v *Poller) GetConfig() PollerConfig { return v.Config }
@@ -5549,6 +5553,8 @@ type __premarshalPoller struct {
 
 	Kind PollerKind `json:"kind"`
 
+	Name string `json:"name"`
+
 	Config json.RawMessage `json:"config"`
 }
 
@@ -5569,6 +5575,7 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 	retval.DatastreamId = v.DatastreamId
 	retval.Disabled = v.Disabled
 	retval.Kind = v.Kind
+	retval.Name = v.Name
 	{
 
 		dst := &retval.Config
@@ -5717,8 +5724,6 @@ type PollerConfig interface {
 	implementsGraphQLInterfacePollerConfig()
 	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
 	GetTypename() *string
-	// GetName returns the interface-field "name" from its implementation.
-	GetName() *string
 	// GetRetries returns the interface-field "retries" from its implementation.
 	GetRetries() *types.Int64Scalar
 	// GetInterval returns the interface-field "interval" from its implementation.
@@ -5864,7 +5869,6 @@ func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { retu
 // PollerConfigPollerAWSSnapshotConfig includes the requested fields of the GraphQL type PollerAWSSnapshotConfig.
 type PollerConfigPollerAWSSnapshotConfig struct {
 	Typename       *string                             `json:"__typename"`
-	Name           *string                             `json:"name"`
 	Retries        *types.Int64Scalar                  `json:"retries"`
 	Interval       *types.DurationScalar               `json:"interval"`
 	Tags           *types.JsonObject                   `json:"tags"`
@@ -5876,9 +5880,6 @@ type PollerConfigPollerAWSSnapshotConfig struct {
 
 // GetTypename returns PollerConfigPollerAWSSnapshotConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerAWSSnapshotConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerAWSSnapshotConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerAWSSnapshotConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerAWSSnapshotConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerAWSSnapshotConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -5906,7 +5907,6 @@ func (v *PollerConfigPollerAWSSnapshotConfig) GetIncludeActions() []string { ret
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
 	Typename      *string                                                                              `json:"__typename"`
-	Name          *string                                                                              `json:"name"`
 	Retries       *types.Int64Scalar                                                                   `json:"retries"`
 	Interval      *types.DurationScalar                                                                `json:"interval"`
 	Tags          *types.JsonObject                                                                    `json:"tags"`
@@ -5920,9 +5920,6 @@ type PollerConfigPollerCloudWatchMetricsConfig struct {
 
 // GetTypename returns PollerConfigPollerCloudWatchMetricsConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerCloudWatchMetricsConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerCloudWatchMetricsConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerCloudWatchMetricsConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -6048,7 +6045,6 @@ func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetrics
 // PollerConfigPollerConfluentCloudConfig includes the requested fields of the GraphQL type PollerConfluentCloudConfig.
 type PollerConfigPollerConfluentCloudConfig struct {
 	Typename *string                             `json:"__typename"`
-	Name     *string                             `json:"name"`
 	Retries  *types.Int64Scalar                  `json:"retries"`
 	Interval *types.DurationScalar               `json:"interval"`
 	Tags     *types.JsonObject                   `json:"tags"`
@@ -6057,9 +6053,6 @@ type PollerConfigPollerConfluentCloudConfig struct {
 
 // GetTypename returns PollerConfigPollerConfluentCloudConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerConfluentCloudConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerConfluentCloudConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerConfluentCloudConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerConfluentCloudConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerConfluentCloudConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -6080,7 +6073,6 @@ func (v *PollerConfigPollerConfluentCloudConfig) GetChunk() *PollerConfigChunkPo
 // PollerConfigPollerGCPMonitoringConfig includes the requested fields of the GraphQL type PollerGCPMonitoringConfig.
 type PollerConfigPollerGCPMonitoringConfig struct {
 	Typename                  *string                             `json:"__typename"`
-	Name                      *string                             `json:"name"`
 	Retries                   *types.Int64Scalar                  `json:"retries"`
 	Interval                  *types.DurationScalar               `json:"interval"`
 	Tags                      *types.JsonObject                   `json:"tags"`
@@ -6095,9 +6087,6 @@ type PollerConfigPollerGCPMonitoringConfig struct {
 
 // GetTypename returns PollerConfigPollerGCPMonitoringConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerGCPMonitoringConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerGCPMonitoringConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerGCPMonitoringConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerGCPMonitoringConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerGCPMonitoringConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -6142,7 +6131,6 @@ func (v *PollerConfigPollerGCPMonitoringConfig) GetTotalLimit() *types.Int64Scal
 // PollerConfigPollerHTTPConfig includes the requested fields of the GraphQL type PollerHTTPConfig.
 type PollerConfigPollerHTTPConfig struct {
 	Typename    *string                             `json:"__typename"`
-	Name        *string                             `json:"name"`
 	Retries     *types.Int64Scalar                  `json:"retries"`
 	Interval    *types.DurationScalar               `json:"interval"`
 	Tags        *types.JsonObject                   `json:"tags"`
@@ -6161,9 +6149,6 @@ type PollerConfigPollerHTTPConfig struct {
 
 // GetTypename returns PollerConfigPollerHTTPConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerHTTPConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerHTTPConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerHTTPConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerHTTPConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerHTTPConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -6275,7 +6260,6 @@ func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetTru
 // PollerConfigPollerMongoDBAtlasConfig includes the requested fields of the GraphQL type PollerMongoDBAtlasConfig.
 type PollerConfigPollerMongoDBAtlasConfig struct {
 	Typename      *string                             `json:"__typename"`
-	Name          *string                             `json:"name"`
 	Retries       *types.Int64Scalar                  `json:"retries"`
 	Interval      *types.DurationScalar               `json:"interval"`
 	Tags          *types.JsonObject                   `json:"tags"`
@@ -6288,9 +6272,6 @@ type PollerConfigPollerMongoDBAtlasConfig struct {
 
 // GetTypename returns PollerConfigPollerMongoDBAtlasConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerMongoDBAtlasConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerMongoDBAtlasConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerMongoDBAtlasConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerMongoDBAtlasConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerMongoDBAtlasConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -6321,7 +6302,6 @@ func (v *PollerConfigPollerMongoDBAtlasConfig) GetExcludeGroups() []string { ret
 // PollerConfigPollerPubSubConfig includes the requested fields of the GraphQL type PollerPubSubConfig.
 type PollerConfigPollerPubSubConfig struct {
 	Typename       *string                             `json:"__typename"`
-	Name           *string                             `json:"name"`
 	Retries        *types.Int64Scalar                  `json:"retries"`
 	Interval       *types.DurationScalar               `json:"interval"`
 	Tags           *types.JsonObject                   `json:"tags"`
@@ -6333,9 +6313,6 @@ type PollerConfigPollerPubSubConfig struct {
 
 // GetTypename returns PollerConfigPollerPubSubConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerPubSubConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerPubSubConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerPubSubConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerPubSubConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerPubSubConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -7779,8 +7756,6 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
-	StageID *string `json:"stageID,omitempty"`
-	StageId *string `json:"stageId,omitempty"`
 	// make id required when we've removed all deprecated use of stageId
 	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`
@@ -7789,12 +7764,6 @@ type StageQueryInput struct {
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
-
-// GetStageID returns StageQueryInput.StageID, and is useful for accessing the field via an interface.
-func (v *StageQueryInput) GetStageID() *string { return v.StageID }
-
-// GetStageId returns StageQueryInput.StageId, and is useful for accessing the field via an interface.
-func (v *StageQueryInput) GetStageId() *string { return v.StageId }
 
 // GetId returns StageQueryInput.Id, and is useful for accessing the field via an interface.
 func (v *StageQueryInput) GetId() *string { return v.Id }
@@ -12922,9 +12891,9 @@ fragment Poller on Poller {
 	datastreamId
 	disabled
 	kind
+	name
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags
@@ -15129,7 +15098,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -16270,9 +16239,9 @@ fragment Poller on Poller {
 	datastreamId
 	disabled
 	kind
+	name
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags
@@ -16913,7 +16882,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -17113,7 +17082,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -17924,7 +17893,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -18043,7 +18012,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -19687,9 +19656,9 @@ fragment Poller on Poller {
 	datastreamId
 	disabled
 	kind
+	name
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags

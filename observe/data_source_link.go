@@ -62,6 +62,6 @@ func dataSourceLinkRead(ctx context.Context, data *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 
-	data.SetId(source.Id + "/" + *link.Label)
+	data.SetId(source.Id + "/" + *link.Id)
 	return nil
 }

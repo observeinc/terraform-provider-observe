@@ -764,7 +764,7 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 
 	// read poller configuration
 	config := poller.Config
-	if err := data.Set("name", config.GetName()); err != nil {
+	if err := data.Set("name", poller.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if config.GetRetries() != nil {

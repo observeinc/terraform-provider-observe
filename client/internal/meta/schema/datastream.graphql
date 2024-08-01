@@ -94,7 +94,6 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
     updatedDate: Time!
-    disabled: Boolean! @deprecated(reason: "use state instead")
     state: DatastreamState!
     tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)

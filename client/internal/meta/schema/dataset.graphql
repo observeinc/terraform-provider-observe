@@ -142,7 +142,6 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
 }
 
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
-    stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
     input: [InputDefinition!]!
     params: JsonObject
@@ -153,8 +152,6 @@ type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
 }
 
 input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
-    stageID: String @deprecated(reason: "use id instead")
-    stageId: String @deprecated(reason: "use id instead") @goField(name:StageID)
     """
     make id required when we've removed all deprecated use of stageId
     """
@@ -245,7 +242,6 @@ input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.Dependency
 type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     targetDataset: Int64
     targetStageLabel: String
-    label: String @deprecated(reason: "use id instead")
     targetLabelFieldName: String
     srcFields: [String!]! @deprecated(reason: "use src instead")
     # Since link sources are no longer plain column references, to cleanly model them,
@@ -312,7 +308,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     version: Time!
     workspaceId: ObjectId!
     kind: DatasetKind!
-    label: String! @deprecated(reason: "use name instead") @goField(forceResolver: true)
     name: String!
     path: String!
     description: String
@@ -334,7 +329,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     relatedKeys: [RelatedKey!]
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
-    latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
@@ -349,7 +343,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
-    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
 
     """
     Optional custom configured override value of the on demand materialization
@@ -362,7 +355,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 
     # AccelerableObject (or fields that should eventually move to that interface)
     accelerable: Boolean!
-    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
 
@@ -436,10 +428,6 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     Format: <dataset-alias>.<metric-name>. If an alias is not defined for the dataset, the name is instead used as the alias
     """
     nameWithPath: String!
-    """
-    the short display name, not the list of metric labels
-    """
-    label: String! @deprecated(reason: "We should always use name. Using label causes too much confusion.")
     type: MetricType! @goField(name:MetricType)
     unit: String!
     description: String!
@@ -656,7 +644,6 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
 type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
     path: String!
     mapping: [InterfaceFieldMapping!]!
-    interface: InterfaceDefinition! @goField(forceResolver:true) @deprecated(reason:"already not used, see OB-32415")
 }
 
 type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {

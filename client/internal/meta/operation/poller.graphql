@@ -16,8 +16,8 @@ fragment Poller on Poller {
 	datastreamId
 	disabled
 	kind
+    name
 	config {
-		name
 		retries
 		interval
 		tags

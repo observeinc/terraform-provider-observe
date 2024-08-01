@@ -26,8 +26,6 @@ fragment StageQuery on StageQuery {
 
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
 # @genqlient(for: "ValueInput.bool", omitempty: true)
 # @genqlient(for: "ValueInput.float64", omitempty: true)
