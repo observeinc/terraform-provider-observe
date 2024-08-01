@@ -34,10 +34,6 @@ description: |-
 <a id="nestedblock--destination"></a>
 ### Nested Schema for `destination`
 
-Required:
-
-- `name` (String)
-
 Optional:
 
 - `description` (String)
