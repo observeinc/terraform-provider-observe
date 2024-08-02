@@ -59,12 +59,11 @@ extend type Mutation {
     terminateMonitorV2Alarm(alarmId: String!): MonitorV2Alarm!
 
     """
-    setMonitorV2MuteRules is used to update the full set of linkages between an existing MonitorV2MuteRule
-    and 1 or more MonitorV2's. If you send an empty or null set of links, that will remove all linkages to
-    the mute. We require explicit linkage so that we don't have to worry about global monitors and checking
-    for mute privs every time a rule might apply to a monitor action.
+    unmuteMonitorV2 is a fast way to remove all mute rules tied to a single monitor.
+    note: This has no impact on global mutes that may exist, which always apply to all
+    monitors.
     """
-    setMonitorV2MuteRules(ruleId: ObjectId!, monitorIds: [ObjectId!]): MonitorV2SetRulesResult!
+    unmuteMonitorV2(id: ObjectId!): MonitorV2!
 
     """
     setMonitorV2Enabled sets the enabled/disabled-ness of a monitor. Disabling a monitor will

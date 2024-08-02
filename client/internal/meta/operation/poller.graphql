@@ -99,10 +99,18 @@ fragment Poller on Poller {
 				}
 			}
 		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
+		}
 	}
 }
 
-mutation createPoller($workspaceId: ObjectId!, $poller: PollerInput!) {
+mutation createPoller(
+    $workspaceId: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: createPoller(workspaceId:$workspaceId, poller: $poller) {
 		...Poller
@@ -116,7 +124,10 @@ query getPoller($id: ObjectId!) {
 	}
 }
 
-mutation updatePoller($id: ObjectId!, $poller: PollerInput!) {
+mutation updatePoller(
+    $id: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: updatePoller(id:$id, poller: $poller) {
 		...Poller

@@ -20,6 +20,11 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
+directive @eol on
+    | INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+    | ARGUMENT_DEFINITION
+
 scalar Any @goModel(model: "observe/meta/metascalar.Any")
 scalar CustomerId @goModel(model: "observe/authorization/id.CustomerId")
 scalar Duration @goModel(model: "observe/compiler/comptypes.Duration")

@@ -1,0 +1,134 @@
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+    url
+    method
+}
+
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+    users
+    addresses
+}
+
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+    inline
+    type
+    # @genqlient(flatten: true)
+    email {
+        ...MonitorV2EmailDestination
+    }
+    # @genqlient(flatten: true)
+    webhook {
+        ...MonitorV2WebhookDestination
+    }
+}
+
+fragment ActionDestinationLink on ActionDestinationLink {
+    destinationID
+    sendEndNotifications
+    sendRemindersInterval
+    # @genqlient(flatten: true)
+    definition {
+        ...MonitorV2DestinationDefinition
+    }
+}
+
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+    subject
+    body
+    fragments
+}
+
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+    header
+    value
+}
+
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+    # @genqlient(flatten: true)
+    headers {
+        ...MonitorV2WebhookHeader
+    }
+    body
+    fragments
+}
+
+fragment MonitorV2Action on MonitorV2Action {
+    inline
+    type
+    # @genqlient(flatten: true)
+    destinationLinks {
+        ...ActionDestinationLink
+    }
+    # @genqlient(flatten: true)
+    email {
+        ...MonitorV2EmailAction
+    }
+    # @genqlient(flatten: true)
+    webhook {
+        ...MonitorV2WebhookAction
+    }
+    id
+    workspaceId
+    name
+    iconUrl
+    description
+    createdBy
+    createdDate
+}
+
+# @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.subject", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.body", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.body", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
+mutation createMonitorV2Action(
+    $workspaceId: ObjectId!,
+    $input: MonitorV2ActionInput!
+) {
+    # @genqlient(flatten: true)
+    monitorV2Action: createMonitorV2Action(workspaceId:$workspaceId, input:$input) {
+        ...MonitorV2Action
+    }
+}
+
+# @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.subject", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.body", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.body", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
+mutation updateMonitorV2Action(
+    $id: ObjectId!,
+    $input: MonitorV2ActionInput!
+) {
+    # @genqlient(flatten: true)
+    monitorV2Action: updateMonitorV2Action(id:$id, input:$input) {
+        ...MonitorV2Action
+    }
+}
+
+query getMonitorV2Action($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    monitorV2Action: monitorV2Action(id:$id) {
+        ...MonitorV2Action
+    }
+}
+
+mutation deleteMonitorV2Action($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	resultStatus: deleteMonitorV2Action(id: $id) {
+        ...ResultStatus
+	}
+}

@@ -68,6 +68,8 @@ copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm -f client/internal/meta/schema/*.graphql
 	cp -pR "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
+	sed -i.bak '/@eol/ { /directive/!d; }' client/internal/meta/schema/*
+	rm -rf client/internal/meta/schema/*.bak
 
 generate:
 	go generate ./...

@@ -59,6 +59,7 @@ resource "observe_poller" "weather" {
 
 ### Optional
 
+- `aws_snapshot` (Block List, Max: 1) AWS API Snapshot poller. (see [below for nested schema](#nestedblock--aws_snapshot))
 - `chunk` (Block List, Max: 1) (see [below for nested schema](#nestedblock--chunk))
 - `cloudwatch_metrics` (Block List, Max: 1) CloudWatch Metrics poller. (see [below for nested schema](#nestedblock--cloudwatch_metrics))
 - `datastream` (String) Datastream where poller will deliver data.
@@ -78,6 +79,16 @@ resource "observe_poller" "weather" {
 - `kind` (String)
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
+
+<a id="nestedblock--aws_snapshot"></a>
+### Nested Schema for `aws_snapshot`
+
+Required:
+
+- `assume_role_arn` (String) AWS role to assume when scraping AWS API. External ID will be set to datastream ID.
+- `include_actions` (List of String) Set of AWS API actions poller is allowed to execute.
+- `region` (String) AWS Region to scrape from.
+
 
 <a id="nestedblock--chunk"></a>
 ### Nested Schema for `chunk`

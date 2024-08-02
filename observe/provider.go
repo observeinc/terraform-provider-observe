@@ -155,6 +155,7 @@ func Provider() *schema.Provider {
 			"observe_monitor_action_attachment": resourceMonitorActionAttachment(),
 			"observe_monitor":                   resourceMonitor(),
 			"observe_monitor_v2":                resourceMonitorV2(),
+			"observe_monitor_v2_action":         resourceMonitorV2Action(),
 			"observe_board":                     resourceBoard(),
 			"observe_poller":                    resourcePoller(),
 			"observe_datastream":                resourceDatastream(),

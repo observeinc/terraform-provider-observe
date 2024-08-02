@@ -44,6 +44,11 @@ extend type Query {
   Estimate the costs of an existing acceleration job.
   """
   estimateExistingAccelerationJobCost(jobId: String!): [DatasetCostEstimate!]!
+
+  """
+  Estimate the costs of a rematerialization request.
+  """
+  estimateRematerializationCost(job: RematerializationInput!): [DatasetCostEstimate!]!
 }
 
 input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
@@ -70,6 +75,20 @@ input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJ
   dryRun: Boolean
 }
 
+input RematerializationInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
+  """
+  A rematerialization input contains a collection of rematerialization requests on
+  individual datasets. It is OK to have duplicate or overlapping requests.
+  Backend will handle that.
+  """
+  requests: [RematerializationRequest!]!
+
+  """
+  Optional context provided by the caller.
+  """
+  context: String
+}
+
 input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
   """
   The ID of the dataset to be accelerated in this request.
@@ -82,6 +101,21 @@ input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.Accelerat
   as intervals directly.
   """
   intervals: [TimeRangeInput!]!
+}
+
+input RematerializationRequest @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
+  """
+  The ID of the dataset to be rematerialized.
+  """
+  datasetId: ObjectId!
+
+  """
+  The time ranges to be rematerialized. It is OK to have duplicate or overlapping
+  ranges. Backend will handle that. This is an optional field and hence if the intervals is not
+  specified then the intervals corresponds to the backend internal setting that is used in the case
+  of a real rematerialization.
+  """
+  intervals: [TimeRangeInput!]
 }
 
 """

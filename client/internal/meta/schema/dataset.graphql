@@ -5,11 +5,6 @@ extend type Query {
     pathsBetweenDatasets2(from: [ObjectId!]!, to: ObjectId!, limit: Int64, costModel: RelationshipCostAttributes): RelationshipPathResult!
 
     """
-    Spit back out the data that was provided for each save operation on a dataset
-    """
-    datasetSaveHistory(id: ObjectId!): [DatasetHistoryRecord!]!
-
-    """
     The control UI is focused on some particular stage. checkQuery() and friends are helpful
     for that, but sometimes you're looking for a more holostic "what the hell is wrong with
     this dataset" view, which you may be able to get in one swell foop from this call. Note
@@ -37,7 +32,12 @@ extend type Mutation {
     If dependencyHandling is not specified, then the default is to apply
     changes but ignore downstream datasets or errors therein.
     """
-    saveDataset(workspaceId: ObjectId!, dataset: DatasetInput!, transform: TransformInput @deprecated(reason:"use query instead"), query: MultiStageQueryInput, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
+    saveDataset(
+        workspaceId: ObjectId!,
+        dataset: DatasetInput!,
+        query: MultiStageQueryInput,
+        dependencyHandling: DependencyHandlingInput,
+    ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
 
     saveSourceDataset(workspaceId: ObjectId!, datasetDefinition: DatasetDefinitionInput!, sourceTable: SourceTableDefinitionInput!, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
@@ -200,8 +200,8 @@ type DatasetMaterialization @goModel(model: "observe/meta/metatypes.DatasetMater
     """Size in bytes of the materialized tables."""
     size: Int64!
 
-    """Amount of time in nanoseconds that is materialized."""
-    duration: Int64!
+    """Time windows that are materialized."""
+    windows: [TimeRange!]
 }
 
 type StageDisposition @goModel(model: "observe/meta/metatypes.StageDisposition") {
@@ -336,7 +336,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
-    lastSaved: Time! @deprecated(reason: "use updatedDate instead")
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
     inputs: [DatasetInputDataset!] @goField(forceResolver:true)
@@ -552,23 +551,6 @@ input RelationshipCostAttributes @goModel(model: "observe/meta/metapath.Relation
     costReverseKeysSquared: Int64
     costKeyDisparitySquared: Int64
     extraDatasetCost: [RelationshipDatasetCost!]
-}
-
-"""
-note: This is a STRONGLY CUT DOWN flavor of the Dataset -- only what was
-provided on save-input is stored, not the full compiled output/schema.
-"""
-type DatasetHistoryRecord @goModel(model: "observe/meta/metatypes.DatasetHistoryRecord") {
-    id: ObjectId!
-    version: Time!
-    label: String!
-    savedByInfo: UserInfo! @goField(forceResolver:true)
-    action: String!
-    dataset: DatasetInputRecord
-    query: MultiStageQuery
-    error: String
-    humanReadableDescription: [String!]
-    shortDescription: String!
 }
 
 type DatasetInputRecord @goModel(model: "observe/meta/metatypes.DatasetInputRecord") {
