@@ -16,9 +16,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
-// TODO: make the schema keys constants?
-// annoying to change varnames in 3 non-obvious places
-
 func resourceMonitorV2() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("monitorv2", "description"),
@@ -273,6 +270,14 @@ func resourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"actions": { // [ObjectId]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+				},
+			},
 		},
 	}
 }
@@ -456,6 +461,13 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
+	if _, ok := data.GetOk("actions"); ok {
+		result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
+		if err != nil {
+			return diag.Errorf("failed to create monitor: %s", err.Error())
+		}
+	}
+
 	data.SetId(result.Id)
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
 }
@@ -477,7 +489,14 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 			}
 			return nil
 		}
-		return diag.Errorf("failed to create monitor: %s", err.Error())
+		return diag.Errorf("failed to update monitor: %s", err.Error())
+	}
+
+	if _, ok := data.GetOk("actions"); ok {
+		_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
+		if err != nil {
+			return diag.Errorf("failed to update monitor: %s", err.Error())
+		}
 	}
 
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
@@ -1219,4 +1238,22 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), path)
 	}
 	return nil
+}
+
+func relateMonitorV2ToActions(ctx context.Context, monitorId string, data *schema.ResourceData, client *observe.Client) (*gql.MonitorV2, error) {
+	actionRelations := make([]gql.ActionRelationInput, 0)
+	if _, ok := data.GetOk("actions"); ok {
+		for i := range data.Get("actions").([]interface{}) {
+			actOID, err := oid.NewOID(data.Get(fmt.Sprintf("actions.%d", i)).(string))
+			if err != nil {
+				return nil, err
+			}
+			actionRelations = append(actionRelations, gql.ActionRelationInput{
+				ActionRule: gql.MonitorV2ActionRuleInput{
+					ActionID: actOID.Id,
+				},
+			})
+		}
+	}
+	return client.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
 }

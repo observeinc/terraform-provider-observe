@@ -283,3 +283,15 @@ query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: S
         ...MonitorV2SearchResult
     }
 }
+
+# @genqlient(for: "ActionDestinationLinkInput.sendEndNotifications", omitempty: true)
+# @genqlient(for: "ActionDestinationLinkInput.sendRemindersInterval", omitempty: true)
+mutation saveMonitorV2Relations(
+    $monitorId: ObjectId!, 
+    $actionRelations: [ActionRelationInput!]!
+) {
+    # @genqlient(flatten: true)
+    monitorV2: saveMonitorV2Relations(monitorId: $monitorId, actionRelations: $actionRelations) {
+        ...MonitorV2
+    }
+}

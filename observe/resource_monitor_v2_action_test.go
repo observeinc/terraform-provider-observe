@@ -52,6 +52,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 								randomize = "0"
 							}
 						}
+						actions = [observe_monitor_v2_action.act.oid]
 					}
 
 					data "observe_user" "system" {
@@ -80,6 +81,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 					}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "type", "email"),
@@ -140,6 +142,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 								randomize = "0"
 							}
 						}
+						actions = [observe_monitor_v2_action.act.oid]
 					}
 
 					resource "observe_monitor_v2_action" "act" {
@@ -167,6 +170,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "type", "webhook"),

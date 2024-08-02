@@ -36,6 +36,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
+- `actions` (List of String)
 - `comment` (String) A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.

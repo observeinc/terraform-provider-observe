@@ -91,6 +91,18 @@ func (v *ActionInput) GetEmail() *EmailActionInput { return v.Email }
 // GetWebhook returns ActionInput.Webhook, and is useful for accessing the field via an interface.
 func (v *ActionInput) GetWebhook() *WebhookActionInput { return v.Webhook }
 
+// ActionRelationInput maps the action's relationship to the destinations the user desires to link with.
+type ActionRelationInput struct {
+	ActionRule MonitorV2ActionRuleInput     `json:"actionRule"`
+	DestLinks  []ActionDestinationLinkInput `json:"destLinks"`
+}
+
+// GetActionRule returns ActionRelationInput.ActionRule, and is useful for accessing the field via an interface.
+func (v *ActionRelationInput) GetActionRule() MonitorV2ActionRuleInput { return v.ActionRule }
+
+// GetDestLinks returns ActionRelationInput.DestLinks, and is useful for accessing the field via an interface.
+func (v *ActionRelationInput) GetDestLinks() []ActionDestinationLinkInput { return v.DestLinks }
+
 type AggregateFunction string
 
 const (
@@ -4537,6 +4549,17 @@ func (v *MonitorV2ActionInput) GetManagedById() *string { return v.ManagedById }
 
 // GetFolderId returns MonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
+
+type MonitorV2ActionRuleInput struct {
+	ActionID string                `json:"actionID"`
+	Levels   []MonitorV2AlarmLevel `json:"levels"`
+}
+
+// GetActionID returns MonitorV2ActionRuleInput.ActionID, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetActionID() string { return v.ActionID }
+
+// GetLevels returns MonitorV2ActionRuleInput.Levels, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
 
 // MonitorV2ActionType defines the type of monitor returned when querying all
 // actions for a monitor.
@@ -9384,6 +9407,20 @@ func (v *__saveDatasetInput) GetQuery() MultiStageQueryInput { return v.Query }
 // GetDep returns __saveDatasetInput.Dep, and is useful for accessing the field via an interface.
 func (v *__saveDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
 
+// __saveMonitorV2RelationsInput is used internally by genqlient
+type __saveMonitorV2RelationsInput struct {
+	MonitorId       string                `json:"monitorId"`
+	ActionRelations []ActionRelationInput `json:"actionRelations"`
+}
+
+// GetMonitorId returns __saveMonitorV2RelationsInput.MonitorId, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2RelationsInput) GetMonitorId() string { return v.MonitorId }
+
+// GetActionRelations returns __saveMonitorV2RelationsInput.ActionRelations, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2RelationsInput) GetActionRelations() []ActionRelationInput {
+	return v.ActionRelations
+}
+
 // __saveSourceDatasetInput is used internally by genqlient
 type __saveSourceDatasetInput struct {
 	WorkspaceId       string                     `json:"workspaceId"`
@@ -11227,6 +11264,21 @@ type saveDatasetResponse struct {
 
 // GetDataset returns saveDatasetResponse.Dataset, and is useful for accessing the field via an interface.
 func (v *saveDatasetResponse) GetDataset() *saveDatasetDatasetDatasetSaveResult { return v.Dataset }
+
+// saveMonitorV2RelationsResponse is returned by saveMonitorV2Relations on success.
+type saveMonitorV2RelationsResponse struct {
+	// saveMonitorV2Relations replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
+	// for the provided monitor with the provided list of actionRules and destinationLinks.
+	// Shared Actions can't be mutated through this call other than attaching it to the monitor, so you will need to used
+	// saveActionWithDestinationLinks to mutate sharedAction's links to the destinations.
+	// It does not allow you to mutate any shared actions' relationships with the destinations. Only the inlined actions'
+	// relationships with the destinations are mutateable.Hence, this API will error out if you provide destinationLinks
+	// where the action is shared.
+	MonitorV2 MonitorV2 `json:"monitorV2"`
+}
+
+// GetMonitorV2 returns saveMonitorV2RelationsResponse.MonitorV2, and is useful for accessing the field via an interface.
+func (v *saveMonitorV2RelationsResponse) GetMonitorV2() MonitorV2 { return v.MonitorV2 }
 
 // saveSourceDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
 type saveSourceDatasetDatasetDatasetSaveResult struct {
@@ -18497,6 +18549,189 @@ func saveDataset(
 	var err error
 
 	var data saveDatasetResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveMonitorV2Relations.
+const saveMonitorV2Relations_Operation = `
+mutation saveMonitorV2Relations ($monitorId: ObjectId!, $actionRelations: [ActionRelationInput!]!) {
+	monitorV2: saveMonitorV2Relations(monitorId: $monitorId, actionRelations: $actionRelations) {
+		... MonitorV2
+	}
+}
+fragment MonitorV2 on MonitorV2 {
+	id
+	workspaceId
+	createdBy
+	createdDate
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	comment
+	rollupStatus
+	ruleKind
+	definition {
+		... MonitorV2Definition
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
+		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
+	}
+}
+fragment StageQuery on StageQuery {
+	id
+	pipeline
+	params
+	layout
+	input {
+		inputName
+		inputRole
+		datasetId
+		datasetPath
+		stageId
+	}
+}
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	valueColumnName
+	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
+	compareColumns {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
+	column {
+		... MonitorV2Column
+	}
+	compareValues {
+		... MonitorV2Comparison
+	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+`
+
+func saveMonitorV2Relations(
+	ctx context.Context,
+	client graphql.Client,
+	monitorId string,
+	actionRelations []ActionRelationInput,
+) (*saveMonitorV2RelationsResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveMonitorV2Relations",
+		Query:  saveMonitorV2Relations_Operation,
+		Variables: &__saveMonitorV2RelationsInput{
+			MonitorId:       monitorId,
+			ActionRelations: actionRelations,
+		},
+	}
+	var err error
+
+	var data saveMonitorV2RelationsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
