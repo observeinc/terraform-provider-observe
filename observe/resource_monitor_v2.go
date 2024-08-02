@@ -1035,6 +1035,7 @@ func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (thr
 		}
 		compareValues = append(compareValues, *comparisonInput)
 	}
+
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	aggregation := gql.MonitorV2ValueAggregation(toCamel(data.Get(fmt.Sprintf("%saggregation", path)).(string)))
 
