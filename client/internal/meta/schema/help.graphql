@@ -124,6 +124,7 @@ enum InferMode @goModel(model:"observe/meta/metatypes.InferMode") {
     Documentation # search Observe documentation, return matching help
     Browse        # search dashboards/datasets in the customer instance
     Query         # search actual payload data
+    Suggestions   # suggestions for what to do based on past incidents
 }
 
 scalar JSONInt64 @goModel(model:"observe/meta/metascalar.JSONInt64")

@@ -17,6 +17,8 @@ enum PollerKind @goModel(model: "observe/meta/metatypes.PollerKind") {
     GCPMonitoring
     MongoDBAtlas
     ConfluentCloud
+    CloudWatchMetrics
+    AWSSnapshot
 }
 
 type PollerStats implements DatastreamSourceStats @goModel(model: "observe/meta/metatypes.PollerStats") {
@@ -251,7 +253,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
     enabled: Boolean!
     size: Int64
-}
+} 
 
 """
 Config is mandatory, but varies based on the poller kind
@@ -272,6 +274,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     mongoDBAtlasConfig: PollerMongoDBAtlasInput
     confluentCloudConfig: PollerConfluentCloudInput
     cloudWatchMetricsConfig: PollerCloudWatchMetricsInput
+    awsSnapshotConfig: PollerAWSSnapshotInput
     skipExternalValidation: Boolean
 
     """
@@ -379,4 +382,23 @@ input PollerCloudWatchMetricsResourceFilterInput @goModel(model: "observe/meta/m
 input PollerCloudWatchMetricsTagFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsTagFilterInput") {
     key: String!
     values: [String!]
+}
+
+type PollerAWSSnapshotConfig implements PollerConfig @goModel(model: "observe/meta/metatypes.PollerAWSSnapshotConfig") {
+    name: String
+    retries: Int64
+    interval: Duration
+    chunk: PollerChunkConfig
+    apiReqLimit: RateLimitConfig
+    tags: JsonObject
+
+    includeActions: [String!]!
+    region: String!
+    assumeRoleArn: String!
+}
+
+input PollerAWSSnapshotInput @goModel(model: "observe/meta/metatypes.PollerAWSSnapshotInput") {
+    includeActions: [String!]!
+    region: String!
+    assumeRoleArn: String!
 }

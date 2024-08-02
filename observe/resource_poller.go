@@ -23,6 +23,7 @@ var pollerBlockTypes = []string{
 	"gcp_monitoring",
 	"mongodbatlas",
 	"cloudwatch_metrics",
+	"aws_snapshot",
 }
 
 func requestResourceRegex() *schema.Resource {
@@ -500,6 +501,34 @@ func resourcePoller() *schema.Resource {
 					},
 				},
 			},
+			"aws_snapshot": {
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: pollerBlockTypes,
+				RequiredWith: []string{"interval", "datastream"},
+				Description:  descriptions.Get("poller", "schema", "aws_snapshot", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"region": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: descriptions.Get("poller", "schema", "aws_snapshot", "region"),
+						},
+						"assume_role_arn": {
+							Type:        schema.TypeString,
+							Description: descriptions.Get("poller", "schema", "aws_snapshot", "assume_role_arn"),
+							Required:    true,
+						},
+						"include_actions": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Description: descriptions.Get("poller", "schema", "aws_snapshot", "include_actions"),
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -643,6 +672,13 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 		}
 
 		input.CloudWatchMetricsConfig = m
+	}
+	if data.Get("aws_snapshot.#") == 1 {
+		input.AwsSnapshotConfig = &gql.PollerAWSSnapshotInput{
+			Region:         data.Get("aws_snapshot.0.region").(string),
+			AssumeRoleArn:  data.Get("aws_snapshot.0.assume_role_arn").(string),
+			IncludeActions: makeStrSlice(data.Get("aws_snapshot.0.include_actions").([]interface{})),
+		}
 	}
 
 	return
@@ -924,6 +960,19 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
+	if awsSnapshotConfig, ok := config.(*gql.PollerConfigPollerAWSSnapshotConfig); ok {
+		cfg := map[string]any{
+			"region":          awsSnapshotConfig.Region,
+			"assume_role_arn": awsSnapshotConfig.AssumeRoleArn,
+		}
+		if len(awsSnapshotConfig.IncludeActions) != 0 {
+			cfg["include_actions"] = awsSnapshotConfig.IncludeActions
+		}
+		if err := data.Set("aws_snapshot", []any{cfg}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 

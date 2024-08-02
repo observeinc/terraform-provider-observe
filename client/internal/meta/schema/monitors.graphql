@@ -140,7 +140,7 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     rule: MonitorRule!
     notificationSpec: NotificationSpecification!
     channels: [Channel!] @deprecated(reason:"field will be removed in favor of actionIds")
-    actions: [MonitorAction!]!
+    actions: [MonitorAction!]! @goField(forceResolver:true)
 
     """
     We preserve monitor update history. Historic monitors do not have activeMonitorInfo populated,

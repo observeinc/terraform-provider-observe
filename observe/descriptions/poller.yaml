@@ -49,3 +49,12 @@ schema:
             Tag key.
           values: |
             Set of acceptable tag values. Exact matches only.
+  aws_snapshot:
+    description:
+      AWS API Snapshot poller.
+    region: |
+      AWS Region to scrape from.
+    assume_role_arn: |
+      AWS role to assume when scraping AWS API. External ID will be set to datastream ID.
+    include_actions: |
+      Set of AWS API actions poller is allowed to execute.
