@@ -461,6 +461,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
+	// TODO: delete the "if" statement after the Save API call is changed to accept empty lists
 	if _, ok := data.GetOk("actions"); ok {
 		result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
 		if err != nil {
@@ -492,6 +493,7 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to update monitor: %s", err.Error())
 	}
 
+	// TODO: delete the "if" statement after the Save API call is changed to accept empty lists
 	if _, ok := data.GetOk("actions"); ok {
 		_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
 		if err != nil {
