@@ -148,6 +148,11 @@ var AllMonitorV2ActionTypes = []MonitorV2ActionType{
 	MonitorV2ActionTypeWebhook,
 }
 
+var AllMonitorV2HttpTypes = []MonitorV2HttpType{
+	MonitorV2HttpTypePost,
+	MonitorV2HttpTypePut,
+}
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }

@@ -13,6 +13,36 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
+/************************************************************
+*                                                           *
+*   FOR WHOEVER GETS PUT ON THIS TASK AFTER I LEAVE:        *
+*                                                           *
+*   This file was written when the API used to require      *
+*   separate calls for creating a monv2 action and a        *
+*   destination. This is why, for example, the function     *
+*   resourceMonitorV2DestinationCreate calls 2 create       *
+*   API calls (one to make the action, another for dest).   *
+*   If you're reading this message with the intent of       *
+*   modifying this file, the API has probably changed       *
+*   so that a shared action and inlined destination can     *
+*   be edited in a single API call, which is likely         *
+*   what you were asked to change about this code.          *
+*                                                           *
+*   If possible, please do NOT remove any params from the   *
+*   existing schema or add any new required params. I       *
+*   tried to write the schema so that it would map onto     *
+*   the new API relatively cleanly. You probably won't      *
+*   need to change the schema, but you'll likely need to    *
+*   change how the variables read from said schema are      *
+*   arranged into the inputs fed to the API call.           *
+*                                                           *
+*   After making the changes, please delete this comment.   *
+*                                                           *
+*   Thanks! :)                                              *
+*   - Owen                                                  *
+*                                                           *
+***********************************************************/
+
 func resourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2ActionCreate,
@@ -51,10 +81,6 @@ func resourceMonitorV2Action() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"icon_url": { // String
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"description": { // String
 				Type:     schema.TypeString,
 				Optional: true,
@@ -63,6 +89,12 @@ func resourceMonitorV2Action() *schema.Resource {
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"destination": { //
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     resourceMonitorV2Destination(),
 			},
 		},
 	}
@@ -126,33 +158,140 @@ func monitorV2WebhookHeaderInput() *schema.Resource {
 	}
 }
 
+func resourceMonitorV2Destination() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"email": { // MonitorV2WebhookDestinationInput
+				Type:         schema.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
+				Elem:         monitorV2EmailDestinationResource(),
+			},
+			"webhook": { // MonitorV2WebhookDestinationInput
+				Type:         schema.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
+				Elem:         monitorV2WebhookDestinationResource(),
+			},
+			// "name": { // String! 			for inline actions, name is ignored.
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
+			"description": { // String
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			// ^^^ end of input
+			"oid": { // ObjectId!
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func monitorV2WebhookDestinationResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"url": { // String!
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"method": { // MonitorV2HttpType!
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
+			},
+		},
+	}
+}
+
+func monitorV2EmailDestinationResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"users": { // [UserId!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(oid.TypeUser),
+				},
+			},
+			"addresses": { // [String!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+		},
+	}
+}
+
 func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2ActionInput(data)
+	actInput, diags := newMonitorV2ActionInput(data)
+	if diags.HasError() {
+		return diags
+	}
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
 	if diags.HasError() {
 		return diags
 	}
 
 	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, input)
+	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, actInput)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
-	data.SetId(result.Id)
+	dstResult, err := client.CreateMonitorV2Destination(ctx, workspaceID.Id, dstInput)
+	if err != nil {
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+	if err := data.Set("destination", monitorV2FlattenDestination(*dstResult)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: dstResult.Id,
+		},
+	}
+	_, err = client.SaveActionWithDestinationLinks(ctx, actResult.Id, dstLinks)
+	if err != nil {
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	data.SetId(actResult.Id)
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
 }
 
 func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2ActionInput(data)
+	actId := data.Id()
+	var dstId string
+
+	if v, ok := data.GetOk("destination.0.oid"); ok {
+		dstOID, err := oid.NewOID(v.(string))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		dstId = dstOID.Id
+	} else {
+		return diag.Errorf("no destination id found")
+	}
+
+	actInput, diags := newMonitorV2ActionInput(data)
+	if diags.HasError() {
+		return diags
+	}
+	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
 	if diags.HasError() {
 		return diags
 	}
 
-	_, err := client.UpdateMonitorV2Action(ctx, data.Id(), input)
+	_, err := client.UpdateMonitorV2Action(ctx, actId, actInput)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
@@ -162,6 +301,28 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 			return nil
 		}
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	_, err = client.UpdateMonitorV2Destination(ctx, dstId, dstInput)
+	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
+		return diag.Errorf("failed to create monitor action: %s", err.Error())
+	}
+
+	dstLinks := []gql.ActionDestinationLinkInput{
+		{
+			DestinationID: dstId,
+		},
+	}
+	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actId, dstLinks)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
@@ -178,13 +339,38 @@ func resourceMonitorV2ActionDelete(ctx context.Context, data *schema.ResourceDat
 func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	action, err := client.GetMonitorV2Action(ctx, data.Id())
+	actId := data.Id()
+	var dstId string
+	if v, ok := data.GetOk("destination.0.oid"); ok {
+		dstOID, err := oid.NewOID(v.(string))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		dstId = dstOID.Id
+	} else {
+		return diag.Errorf("no destination id found")
+	}
+
+	action, err := client.GetMonitorV2Action(ctx, actId)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			data.SetId("")
 			return nil
 		}
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
+	}
+
+	dst, err := client.GetMonitorV2Destination(ctx, dstId)
+	if err != nil {
+		if gql.HasErrorCode(err, "NOT_FOUND") {
+			data.SetId("")
+			return nil
+		}
+		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
+	}
+
+	if err := data.Set("destination", monitorV2FlattenDestination(*dst)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
@@ -211,12 +397,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 
 	if action.Webhook != nil {
 		if err := data.Set("webhook", monitorV2FlattenWebhookAction(*action.Webhook)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if action.IconUrl != nil {
-		if err := data.Set("icon_url", *action.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -301,10 +481,6 @@ func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2Act
 			return nil, diags
 		}
 		input.Webhook = webhook
-	}
-	if v, ok := data.GetOk("icon_url"); ok {
-		iconURL := v.(string)
-		input.IconUrl = &iconURL
 	}
 	if v, ok := data.GetOk("description"); ok {
 		description := v.(string)

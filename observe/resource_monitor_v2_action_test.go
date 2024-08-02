@@ -54,6 +54,9 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						}
 					}
 
+					data "observe_user" "system" {
+						email = "%[2]s"
+					}
 
 					resource "observe_monitor_v2_action" "act" {
 						workspace = data.observe_workspace.default.oid
@@ -65,10 +68,17 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 								foo = "bar"
 							})
 						}
+						destination {
+							email {
+								addresses = ["test@observeinc.com"]
+								users = [data.observe_user.system.oid]
+							}
+							description = "an interesting dest description"
+						}
 						name = "%[1]s"
 						description = "an interesting description"
 					}
-				`, randomPrefix),
+				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "name", randomPrefix),
@@ -77,6 +87,9 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.fragments", "{\"foo\":\"bar\"}"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.subject", "somebody once told me"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.body", "the world is gonna roll me"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.addresses.0", "test@observeinc.com"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.email.0.users.#", "1"),
 				),
 			},
 		},
@@ -144,6 +157,13 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 						}
 						name = "%[1]s"
 						description = "an interesting description"
+						destination {
+							webhook {
+								url = "https://example.com/"
+								method = "post"
+							}
+							description = "an interesting dest description"
+						}
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -155,6 +175,9 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.headers.0.header", "never gonna give you up"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.headers.0.value", "never gonna let you down"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.body", "never gonna run around and desert you"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.url", "https://example.com/"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.method", "post"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
 				),
 			},
 		},

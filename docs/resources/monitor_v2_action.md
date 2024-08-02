@@ -21,14 +21,46 @@ description: |-
 ### Optional
 
 - `description` (String)
+- `destination` (Block List, Max: 1) (see [below for nested schema](#nestedblock--destination))
 - `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
-- `icon_url` (String)
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `oid` (String)
+
+<a id="nestedblock--destination"></a>
+### Nested Schema for `destination`
+
+Optional:
+
+- `description` (String)
+- `email` (Block List) (see [below for nested schema](#nestedblock--destination--email))
+- `webhook` (Block List) (see [below for nested schema](#nestedblock--destination--webhook))
+
+Read-Only:
+
+- `oid` (String)
+
+<a id="nestedblock--destination--email"></a>
+### Nested Schema for `destination.email`
+
+Optional:
+
+- `addresses` (List of String)
+- `users` (List of String)
+
+
+<a id="nestedblock--destination--webhook"></a>
+### Nested Schema for `destination.webhook`
+
+Required:
+
+- `method` (String)
+- `url` (String)
+
+
 
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`
