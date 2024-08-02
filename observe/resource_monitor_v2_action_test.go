@@ -159,7 +159,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 						description = "an interesting description"
 						destination {
 							webhook {
-								url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+								url = "https://example.com/"
 								method = "post"
 							}
 							description = "an interesting dest description"
@@ -175,7 +175,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.headers.0.header", "never gonna give you up"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.headers.0.value", "never gonna let you down"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "webhook.0.body", "never gonna run around and desert you"),
-					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.url", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.url", "https://example.com/"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.webhook.0.method", "post"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
 				),
