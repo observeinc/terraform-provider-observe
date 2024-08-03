@@ -462,12 +462,12 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	// TODO: delete the "if" statement after the Save API call is changed to accept empty lists
-	if _, ok := data.GetOk("actions"); ok {
-		result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
-		if err != nil {
-			return diag.Errorf("failed to create monitor: %s", err.Error())
-		}
+	// if _, ok := data.GetOk("actions"); ok {
+	result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
+	if err != nil {
+		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
+	// }
 
 	data.SetId(result.Id)
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
@@ -494,12 +494,12 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	// TODO: delete the "if" statement after the Save API call is changed to accept empty lists
-	if _, ok := data.GetOk("actions"); ok {
-		_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
-		if err != nil {
-			return diag.Errorf("failed to update monitor: %s", err.Error())
-		}
+	// if _, ok := data.GetOk("actions"); ok {
+	_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
+	if err != nil {
+		return diag.Errorf("failed to update monitor: %s", err.Error())
 	}
+	// }
 
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
 }
@@ -1244,8 +1244,9 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 }
 
 func relateMonitorV2ToActions(ctx context.Context, monitorId string, data *schema.ResourceData, client *observe.Client) (*gql.MonitorV2, error) {
-	actionRelations := make([]gql.ActionRelationInput, 0)
+	var actionRelations []gql.ActionRelationInput
 	if _, ok := data.GetOk("actions"); ok {
+		actionRelations = make([]gql.ActionRelationInput, 0)
 		for i := range data.Get("actions").([]interface{}) {
 			actOID, err := oid.NewOID(data.Get(fmt.Sprintf("actions.%d", i)).(string))
 			if err != nil {

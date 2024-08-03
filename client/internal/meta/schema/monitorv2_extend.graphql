@@ -38,7 +38,7 @@ extend type Mutation {
     relationships with the destinations are mutateable.Hence, this API will error out if you provide destinationLinks 
     where the action is shared.
     """
-    saveMonitorV2Relations(monitorId: ObjectId!, actionRelations: [ActionRelationInput!]!): MonitorV2!
+    saveMonitorV2Relations(monitorId: ObjectId!, actionRelations: [ActionRelationInput!]): MonitorV2!
 
     """
     saveActionsWithDestinations replaces all action's links to the destinations (MonitorV2) for the provided 
@@ -47,7 +47,7 @@ extend type Mutation {
     The purpose of the API is such that the users can create a shared action and make links to the destinations
     from the shared actions page or when an action has been shared from within the monitor editing page.
     """
-    saveActionWithDestinationLinks(actionId: ObjectId!, destinationLinks: [ActionDestinationLinkInput]!): MonitorV2Action!
+    saveActionWithDestinationLinks(actionId: ObjectId!, destinationLinks: [ActionDestinationLinkInput!]): MonitorV2Action!
 
     """
     terminateMonitorV2Alarm allows an explicit termination of an active alarm. The purpose is to

@@ -18562,7 +18562,7 @@ func saveDataset(
 
 // The query or mutation executed by saveMonitorV2Relations.
 const saveMonitorV2Relations_Operation = `
-mutation saveMonitorV2Relations ($monitorId: ObjectId!, $actionRelations: [ActionRelationInput!]!) {
+mutation saveMonitorV2Relations ($monitorId: ObjectId!, $actionRelations: [ActionRelationInput!]) {
 	monitorV2: saveMonitorV2Relations(monitorId: $monitorId, actionRelations: $actionRelations) {
 		... MonitorV2
 	}
