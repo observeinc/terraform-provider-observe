@@ -103,3 +103,5 @@ schema:
   column_comparison:
     description: |
       Specifies the one or multiple values you'd like to compare against the column.
+  actions: |
+    The list of OIDs of shared actions to which this monitor is connected.

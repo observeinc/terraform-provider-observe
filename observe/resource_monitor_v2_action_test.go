@@ -187,3 +187,126 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						comment = "a descriptive comment"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								colmake kind:"test", description:"test"
+							EOF
+							output_stage = true
+						}
+						stage {
+							pipeline = <<-EOF
+								filter kind ~ "test"
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							interval {
+								interval = "15m"
+								randomize = "0"
+							}
+						}
+						actions = [observe_monitor_v2_action.act1.oid, observe_monitor_v2_action.act2.oid]
+					}
+
+					data "observe_user" "system" {
+						email = "%[2]s"
+					}
+
+					resource "observe_monitor_v2_action" "act1" {
+						workspace = data.observe_workspace.default.oid
+						type = "email"
+						email {
+							subject = "somebody once told me"
+							body = "the world is gonna roll me"
+							fragments = jsonencode({
+								foo = "bar"
+							})
+						}
+						destination {
+							email {
+								addresses = ["test@observeinc.com"]
+								users = [data.observe_user.system.oid]
+							}
+							description = "an interesting dest description 1"
+						}
+						name = "%[1]s-1"
+						description = "an interesting description 1"
+					}
+
+					resource "observe_monitor_v2_action" "act2" {
+						workspace = data.observe_workspace.default.oid
+						type = "email"
+						email {
+							subject = "never gonna give you up"
+							body = "never gonna let you down"
+							fragments = jsonencode({
+								fizz = "buzz"
+							})
+						}
+						destination {
+							email {
+								addresses = ["test@observeinc.com"]
+								users = [data.observe_user.system.oid]
+							}
+							description = "an interesting dest description 2"
+						}
+						name = "%[1]s-2"
+						description = "an interesting description 2"
+					}
+				`, randomPrefix, systemUser()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "2"),
+
+					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act1", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "name", randomPrefix+"-1"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "description", "an interesting description 1"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "email.0.fragments", "{\"foo\":\"bar\"}"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "email.0.subject", "somebody once told me"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "email.0.body", "the world is gonna roll me"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "destination.0.email.0.addresses.0", "test@observeinc.com"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "destination.0.description", "an interesting dest description 1"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "destination.0.email.0.users.#", "1"),
+
+					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act2", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "name", randomPrefix+"-2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "description", "an interesting description 2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "email.0.fragments", "{\"fizz\":\"buzz\"}"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "email.0.subject", "never gonna give you up"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "email.0.body", "never gonna let you down"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "destination.0.email.0.addresses.0", "test@observeinc.com"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "destination.0.description", "an interesting dest description 2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act2", "destination.0.email.0.users.#", "1"),
+				),
+			},
+		},
+	})
+}
