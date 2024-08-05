@@ -238,11 +238,11 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 						}
 						actions {
 							oid = observe_monitor_v2_action.act1.oid
-							levels = ["critical"]
+							levels = ["informational"]
 						}
 						actions {
 							oid = observe_monitor_v2_action.act2.oid
-							levels = ["warning"]
+							levels = ["informational"]
 						}
 					}
 
@@ -294,8 +294,8 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "2"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "critical"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.levels.0", "warning"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.levels.0", "informational"),
 
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act1", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "name", randomPrefix+"-1"),
