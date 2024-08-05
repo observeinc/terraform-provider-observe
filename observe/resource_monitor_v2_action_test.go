@@ -295,7 +295,7 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "critical"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.1", "warning"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.levels.0", "warning"),
 
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act1", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "name", randomPrefix+"-1"),
