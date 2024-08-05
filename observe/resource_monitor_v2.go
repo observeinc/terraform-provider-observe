@@ -16,9 +16,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
-// TODO: make the schema keys constants?
-// annoying to change varnames in 3 non-obvious places
-
 func resourceMonitorV2() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("monitorv2", "description"),
@@ -268,6 +265,31 @@ func resourceMonitorV2() *schema.Resource {
 				},
 			},
 			// end of fields of MonitorV2DefinitionInput
+			// the following field describes how monitorv2 is connected to shared actions.
+			"actions": { // [MonitorV2ActionRuleInput]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"oid": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
+						},
+						"levels": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
+							},
+							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
+						},
+					},
+				},
+				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
+			},
 			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
@@ -456,6 +478,11 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
+	result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
+	if err != nil {
+		return diags
+	}
+
 	data.SetId(result.Id)
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
 }
@@ -477,7 +504,12 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 			}
 			return nil
 		}
-		return diag.Errorf("failed to create monitor: %s", err.Error())
+		return diag.Errorf("failed to update monitor: %s", err.Error())
+	}
+
+	_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
+	if err != nil {
+		return diag.Errorf("failed to update monitor: %s", err.Error())
 	}
 
 	return append(diags, resourceMonitorV2Read(ctx, data, meta)...)
@@ -557,6 +589,12 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
+	if len(monitor.ActionRules) > 0 {
+		if err := data.Set("actions", monitorV2FlattenActionRules(monitor.ActionRules)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 
@@ -590,6 +628,28 @@ func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 		rule["promote"] = monitorV2FlattenPromoteRule(*gqlRule.Promote)
 	}
 	return rule
+}
+
+func monitorV2FlattenActionRules(gqlActionRules []gql.MonitorV2ActionRule) []interface{} {
+	var actionRules []interface{}
+	for _, gqlActionRule := range gqlActionRules {
+		actionRules = append(actionRules, monitorV2FlattenActionRule(gqlActionRule))
+	}
+	return actionRules
+}
+
+func monitorV2FlattenActionRule(gqlActionRule gql.MonitorV2ActionRule) interface{} {
+	rules := map[string]interface{}{
+		"oid": oid.MonitorV2ActionOid(gqlActionRule.ActionID).String(),
+	}
+	if len(gqlActionRule.Levels) > 0 {
+		levels := make([]interface{}, 0)
+		for _, level := range gqlActionRule.Levels {
+			levels = append(levels, toSnake(string(level)))
+		}
+		rules["levels"] = levels
+	}
+	return rules
 }
 
 func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
@@ -1016,6 +1076,7 @@ func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (thr
 		}
 		compareValues = append(compareValues, *comparisonInput)
 	}
+
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	aggregation := gql.MonitorV2ValueAggregation(toCamel(data.Get(fmt.Sprintf("%saggregation", path)).(string)))
 
@@ -1219,4 +1280,44 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), path)
 	}
 	return nil
+}
+
+func relateMonitorV2ToActions(ctx context.Context, monitorId string, data *schema.ResourceData, client *observe.Client) (*gql.MonitorV2, error) {
+	var actionRelations []gql.ActionRelationInput
+	if _, ok := data.GetOk("actions"); ok {
+		actionRelations = make([]gql.ActionRelationInput, 0)
+		for i := range data.Get("actions").([]interface{}) {
+			actionRule, err := newMonitorV2ActionRuleInput(fmt.Sprintf("actions.%d.", i), data)
+			if err != nil {
+				return nil, err
+			}
+			actionRelations = append(actionRelations, gql.ActionRelationInput{
+				ActionRule: *actionRule,
+			})
+		}
+	}
+	return client.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
+}
+
+func newMonitorV2ActionRuleInput(path string, data *schema.ResourceData) (*gql.MonitorV2ActionRuleInput, error) {
+	// required
+	actOID, err := oid.NewOID(data.Get(fmt.Sprintf("%soid", path)).(string))
+	if err != nil {
+		return nil, err
+	}
+
+	// instantiation
+	act := &gql.MonitorV2ActionRuleInput{
+		ActionID: actOID.Id,
+	}
+
+	// optional
+	if _, ok := data.GetOk(fmt.Sprintf("%slevels", path)); ok {
+		act.Levels = make([]gql.MonitorV2AlarmLevel, 0)
+		for i := range data.Get(fmt.Sprintf("%slevels", path)).([]interface{}) {
+			act.Levels = append(act.Levels, gql.MonitorV2AlarmLevel(toCamel(data.Get(fmt.Sprintf("%slevels.%d", path, i)).(string))))
+		}
+	}
+
+	return act, nil
 }

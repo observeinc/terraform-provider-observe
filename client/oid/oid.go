@@ -234,6 +234,10 @@ func MonitorV2Oid(id string) OID {
 	return OID{Id: id, Type: TypeMonitorV2}
 }
 
+func MonitorV2ActionOid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorV2Action}
+}
+
 func PollerOid(id string) OID {
 	return OID{Id: id, Type: TypePoller}
 }
