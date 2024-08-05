@@ -4538,6 +4538,14 @@ func (v *MonitorV2ActionInput) GetManagedById() *string { return v.ManagedById }
 // GetFolderId returns MonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
 
+// MonitorV2ActionSearchResult includes the GraphQL fields of MonitorV2ActionSearchResult requested by the fragment MonitorV2ActionSearchResult.
+type MonitorV2ActionSearchResult struct {
+	Results []MonitorV2Action `json:"results"`
+}
+
+// GetResults returns MonitorV2ActionSearchResult.Results, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionSearchResult) GetResults() []MonitorV2Action { return v.Results }
+
 // MonitorV2ActionType defines the type of monitor returned when querying all
 // actions for a monitor.
 type MonitorV2ActionType string
@@ -9426,6 +9434,26 @@ func (v *__searchMonitorActionsInput) GetWorkspaceId() *string { return v.Worksp
 // GetName returns __searchMonitorActionsInput.Name, and is useful for accessing the field via an interface.
 func (v *__searchMonitorActionsInput) GetName() *string { return v.Name }
 
+// __searchMonitorV2ActionInput is used internally by genqlient
+type __searchMonitorV2ActionInput struct {
+	WorkspaceId   *string `json:"workspaceId"`
+	FolderId      *string `json:"folderId"`
+	NameExact     *string `json:"nameExact"`
+	NameSubstring *string `json:"nameSubstring"`
+}
+
+// GetWorkspaceId returns __searchMonitorV2ActionInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2ActionInput) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetFolderId returns __searchMonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
+
+// GetNameExact returns __searchMonitorV2ActionInput.NameExact, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2ActionInput) GetNameExact() *string { return v.NameExact }
+
+// GetNameSubstring returns __searchMonitorV2ActionInput.NameSubstring, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2ActionInput) GetNameSubstring() *string { return v.NameSubstring }
+
 // __setChannelsForChannelActionInput is used internally by genqlient
 type __setChannelsForChannelActionInput struct {
 	ActionId   string   `json:"actionId"`
@@ -11336,6 +11364,16 @@ func (v *searchMonitorActionsResponse) __premarshalJSON() (*__premarshalsearchMo
 		}
 	}
 	return &retval, nil
+}
+
+// searchMonitorV2ActionResponse is returned by searchMonitorV2Action on success.
+type searchMonitorV2ActionResponse struct {
+	MonitorV2Actions MonitorV2ActionSearchResult `json:"monitorV2Actions"`
+}
+
+// GetMonitorV2Actions returns searchMonitorV2ActionResponse.MonitorV2Actions, and is useful for accessing the field via an interface.
+func (v *searchMonitorV2ActionResponse) GetMonitorV2Actions() MonitorV2ActionSearchResult {
+	return v.MonitorV2Actions
 }
 
 // setChannelsForChannelActionResponse is returned by setChannelsForChannelAction on success.
@@ -18738,6 +18776,114 @@ func searchMonitorActions(
 	var err error
 
 	var data searchMonitorActionsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by searchMonitorV2Action.
+const searchMonitorV2Action_Operation = `
+query searchMonitorV2Action ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+	monitorV2Actions: searchMonitorV2Action(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+		... MonitorV2ActionSearchResult
+	}
+}
+fragment MonitorV2ActionSearchResult on MonitorV2ActionSearchResult {
+	results {
+		... MonitorV2Action
+	}
+}
+fragment MonitorV2Action on MonitorV2Action {
+	inline
+	type
+	destinationLinks {
+		... ActionDestinationLink
+	}
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	createdBy
+	createdDate
+}
+fragment ActionDestinationLink on ActionDestinationLink {
+	destinationID
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2DestinationDefinition
+	}
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+}
+fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailDestination
+	}
+	webhook {
+		... MonitorV2WebhookDestination
+	}
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
+	users
+	addresses
+}
+fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
+	url
+	method
+}
+`
+
+func searchMonitorV2Action(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId *string,
+	folderId *string,
+	nameExact *string,
+	nameSubstring *string,
+) (*searchMonitorV2ActionResponse, error) {
+	req := &graphql.Request{
+		OpName: "searchMonitorV2Action",
+		Query:  searchMonitorV2Action_Operation,
+		Variables: &__searchMonitorV2ActionInput{
+			WorkspaceId:   workspaceId,
+			FolderId:      folderId,
+			NameExact:     nameExact,
+			NameSubstring: nameSubstring,
+		},
+	}
+	var err error
+
+	var data searchMonitorV2ActionResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
