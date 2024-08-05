@@ -591,7 +591,6 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 
 	if len(monitor.ActionRules) > 0 {
 		if err := data.Set("actions", monitorV2FlattenActionRules(monitor.ActionRules)); err != nil {
-			panic(err.Error())
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
