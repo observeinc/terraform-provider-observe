@@ -521,6 +521,14 @@ func (c *Client) DeleteMonitorV2(ctx context.Context, id string) error {
 	return c.Meta.DeleteMonitorV2(ctx, id)
 }
 
+func (c *Client) SaveMonitorV2Relations(ctx context.Context, monitorId string, actionRelations []meta.ActionRelationInput) (*meta.MonitorV2, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
+}
+
 func (c *Client) GetMonitorV2(ctx context.Context, id string) (*meta.MonitorV2, error) {
 	return c.Meta.GetMonitorV2(ctx, id)
 }
