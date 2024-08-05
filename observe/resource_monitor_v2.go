@@ -265,11 +265,6 @@ func resourceMonitorV2() *schema.Resource {
 				},
 			},
 			// end of fields of MonitorV2DefinitionInput
-			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
-			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			// the following field describes how monitorv2 is connected to shared actions.
 			"actions": { // [MonitorV2ActionRuleInput]
 				Type:     schema.TypeList,
@@ -294,6 +289,11 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
+			},
+			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
+			"oid": { // ObjectId!
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -589,6 +589,13 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
+	if len(monitor.ActionRules) > 0 {
+		if err := data.Set("actions", monitorV2FlattenActionRules(monitor.ActionRules)); err != nil {
+			panic(err.Error())
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 
@@ -622,6 +629,28 @@ func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 		rule["promote"] = monitorV2FlattenPromoteRule(*gqlRule.Promote)
 	}
 	return rule
+}
+
+func monitorV2FlattenActionRules(gqlActionRules []gql.MonitorV2ActionRule) []interface{} {
+	var actionRules []interface{}
+	for _, gqlActionRule := range gqlActionRules {
+		actionRules = append(actionRules, monitorV2FlattenActionRule(gqlActionRule))
+	}
+	return actionRules
+}
+
+func monitorV2FlattenActionRule(gqlActionRule gql.MonitorV2ActionRule) interface{} {
+	rules := map[string]interface{}{
+		"oid": oid.MonitorV2ActionOid(gqlActionRule.ActionID).String(),
+	}
+	if len(gqlActionRule.Levels) > 0 {
+		levels := make([]interface{}, 0)
+		for _, level := range gqlActionRule.Levels {
+			levels = append(levels, toSnake(string(level)))
+		}
+		rules["levels"] = levels
+	}
+	return rules
 }
 
 func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {

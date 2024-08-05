@@ -150,6 +150,11 @@ fragment MonitorV2SearchResult on MonitorV2SearchResult {
     }
 }
 
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+    actionID
+    levels
+}
+
 # @genqlient(for: "MonitorV2Input.comment", omitempty: true)
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
@@ -190,6 +195,10 @@ fragment MonitorV2 on MonitorV2 {
     # @genqlient(flatten: true)
     definition {
         ...MonitorV2Definition
+    }
+    # @genqlient(flatten: true)
+    actionRules {
+        ...MonitorV2ActionRule
     }
 }
 

@@ -4414,6 +4414,10 @@ type MonitorV2 struct {
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
 	Definition MonitorV2Definition `json:"definition"`
+	// List of actions and conditions for dispatching. Each entry will
+	// contain the action definition regardless of whether the definition is
+	// shared or provided inline.
+	ActionRules []MonitorV2ActionRule `json:"actionRules"`
 }
 
 // GetId returns MonitorV2.Id, and is useful for accessing the field via an interface.
@@ -4454,6 +4458,9 @@ func (v *MonitorV2) GetRuleKind() MonitorV2RuleKind { return v.RuleKind }
 
 // GetDefinition returns MonitorV2.Definition, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetDefinition() MonitorV2Definition { return v.Definition }
+
+// GetActionRules returns MonitorV2.ActionRules, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetActionRules() []MonitorV2ActionRule { return v.ActionRules }
 
 // MonitorV2Action includes the GraphQL fields of MonitorV2Action requested by the fragment MonitorV2Action.
 type MonitorV2Action struct {
@@ -4549,6 +4556,20 @@ func (v *MonitorV2ActionInput) GetManagedById() *string { return v.ManagedById }
 
 // GetFolderId returns MonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
+
+// MonitorV2ActionRule includes the GraphQL fields of MonitorV2ActionRule requested by the fragment MonitorV2ActionRule.
+type MonitorV2ActionRule struct {
+	// Takes in a private or public action id created from an earlier createAction API call.
+	ActionID string `json:"actionID"`
+	// Dispatch this action when the alarm matches any of the provided levels.
+	Levels []MonitorV2AlarmLevel `json:"levels"`
+}
+
+// GetActionID returns MonitorV2ActionRule.ActionID, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetActionID() string { return v.ActionID }
+
+// GetLevels returns MonitorV2ActionRule.Levels, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
 
 type MonitorV2ActionRuleInput struct {
 	ActionID string                `json:"actionID"`
@@ -12841,6 +12862,9 @@ fragment MonitorV2 on MonitorV2 {
 	definition {
 		... MonitorV2Definition
 	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -12860,6 +12884,10 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
 }
 fragment StageQuery on StageQuery {
 	id
@@ -16384,6 +16412,9 @@ fragment MonitorV2 on MonitorV2 {
 	definition {
 		... MonitorV2Definition
 	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -16403,6 +16434,10 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
 }
 fragment StageQuery on StageQuery {
 	id
@@ -17932,6 +17967,9 @@ fragment MonitorV2 on MonitorV2 {
 	definition {
 		... MonitorV2Definition
 	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -17951,6 +17989,10 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18583,6 +18625,9 @@ fragment MonitorV2 on MonitorV2 {
 	definition {
 		... MonitorV2Definition
 	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -18602,6 +18647,10 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
 }
 fragment StageQuery on StageQuery {
 	id
@@ -20138,6 +20187,9 @@ fragment MonitorV2 on MonitorV2 {
 	definition {
 		... MonitorV2Definition
 	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -20157,6 +20209,10 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
 }
 fragment StageQuery on StageQuery {
 	id

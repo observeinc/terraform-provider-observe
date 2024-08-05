@@ -250,6 +250,28 @@ func dataSourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			// the following field describes how monitorv2 is connected to shared actions.
+			"actions": { // [MonitorV2ActionRuleInput]
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"oid": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "oid"),
+						},
+						"levels": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
+						},
+					},
+				},
+				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
+			},
 		},
 	}
 }
