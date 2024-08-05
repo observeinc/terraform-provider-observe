@@ -270,14 +270,30 @@ func resourceMonitorV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"actions": { // [ObjectId]
+			// the following field describes how monitorv2 is connected to shared actions.
+			"actions": { // [MonitorV2ActionRuleInput]
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"oid": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
+						},
+						"levels": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
+							},
+							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
+						},
+					},
 				},
-				Description: descriptions.Get("monitorv2", "schema", "actions"),
+				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
 			},
 		},
 	}
@@ -464,7 +480,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 
 	result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
 	if err != nil {
-		return diag.Errorf("failed to create monitor: %s", err.Error())
+		return diags
 	}
 
 	data.SetId(result.Id)
@@ -1243,16 +1259,37 @@ func relateMonitorV2ToActions(ctx context.Context, monitorId string, data *schem
 	if _, ok := data.GetOk("actions"); ok {
 		actionRelations = make([]gql.ActionRelationInput, 0)
 		for i := range data.Get("actions").([]interface{}) {
-			actOID, err := oid.NewOID(data.Get(fmt.Sprintf("actions.%d", i)).(string))
+			actionRule, err := newMonitorV2ActionRuleInput(fmt.Sprintf("actions.%d.", i), data)
 			if err != nil {
 				return nil, err
 			}
 			actionRelations = append(actionRelations, gql.ActionRelationInput{
-				ActionRule: gql.MonitorV2ActionRuleInput{
-					ActionID: actOID.Id,
-				},
+				ActionRule: *actionRule,
 			})
 		}
 	}
 	return client.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
+}
+
+func newMonitorV2ActionRuleInput(path string, data *schema.ResourceData) (*gql.MonitorV2ActionRuleInput, error) {
+	// required
+	actOID, err := oid.NewOID(data.Get(fmt.Sprintf("%soid", path)).(string))
+	if err != nil {
+		return nil, err
+	}
+
+	// instantiation
+	act := &gql.MonitorV2ActionRuleInput{
+		ActionID: actOID.Id,
+	}
+
+	// optional
+	if _, ok := data.GetOk(fmt.Sprintf("%slevels", path)); ok {
+		act.Levels = make([]gql.MonitorV2AlarmLevel, 0)
+		for i := range data.Get(fmt.Sprintf("%slevels", path)).([]interface{}) {
+			act.Levels = append(act.Levels, gql.MonitorV2AlarmLevel(toCamel(data.Get(fmt.Sprintf("%slevels.%d", path, i)).(string))))
+		}
+	}
+
+	return act, nil
 }

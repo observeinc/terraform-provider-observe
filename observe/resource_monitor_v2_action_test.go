@@ -52,7 +52,9 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 								randomize = "0"
 							}
 						}
-						actions = [observe_monitor_v2_action.act.oid]
+						actions {
+							oid = observe_monitor_v2_action.act.oid
+						}
 					}
 
 					data "observe_user" "system" {
@@ -142,7 +144,9 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 								randomize = "0"
 							}
 						}
-						actions = [observe_monitor_v2_action.act.oid]
+						actions {
+							oid = observe_monitor_v2_action.act.oid
+						}
 					}
 
 					resource "observe_monitor_v2_action" "act" {
@@ -232,7 +236,14 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 								randomize = "0"
 							}
 						}
-						actions = [observe_monitor_v2_action.act1.oid, observe_monitor_v2_action.act2.oid]
+						actions {
+							oid = observe_monitor_v2_action.act1.oid
+							levels = ["critical"]
+						}
+						actions {
+							oid = observe_monitor_v2_action.act2.oid
+							levels = ["warning"]
+						}
 					}
 
 					data "observe_user" "system" {
@@ -283,6 +294,8 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "critical"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.1", "warning"),
 
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act1", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "name", randomPrefix+"-1"),

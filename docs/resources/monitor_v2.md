@@ -36,7 +36,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
-- `actions` (List of String) The list of OIDs of shared actions to which this monitor is connected.
+- `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
 - `comment` (String) A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.
@@ -415,6 +415,18 @@ contains a single element.
 - `output_stage` (Boolean) A boolean flag used to specify the output stage. Should be used only for
 a stage preceding the last stage. The last stage is an output stage by default.
 - `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
+
+
+<a id="nestedblock--actions"></a>
+### Nested Schema for `actions`
+
+Required:
+
+- `oid` (String) The OID of this shared action.
+
+Optional:
+
+- `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
 
 
 <a id="nestedblock--groupings"></a>
