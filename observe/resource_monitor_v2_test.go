@@ -24,7 +24,6 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -61,7 +60,6 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "count"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "comment", "a descriptive comment"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.value_int64.0", "0"),
@@ -87,7 +85,6 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 						rule_kind = "threshold"
 						name = "%[1]s"
 						lookback_time = "30m"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -118,7 +115,6 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "comment", "a descriptive comment"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
@@ -146,7 +142,6 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 						rule_kind = "promote"
 						name = "%[1]s"
 						lookback_time = "0s"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -182,7 +177,6 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "promote"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "comment", "a descriptive comment"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.value_int64.0", "1"),

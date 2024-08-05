@@ -4398,18 +4398,15 @@ func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.Ex
 
 // MonitorV2 includes the GraphQL fields of MonitorV2 requested by the fragment MonitorV2.
 type MonitorV2 struct {
-	Id          string             `json:"id"`
-	WorkspaceId string             `json:"workspaceId"`
-	CreatedBy   types.UserIdScalar `json:"createdBy"`
-	CreatedDate types.TimeScalar   `json:"createdDate"`
-	Name        string             `json:"name"`
-	IconUrl     *string            `json:"iconUrl"`
-	Description *string            `json:"description"`
-	ManagedById *string            `json:"managedById"`
-	FolderId    string             `json:"folderId"`
-	// A longer description of the monitor.
-	// This can include details like how to resolve the issue, links to runbooks, etc.
-	Comment      *string               `json:"comment"`
+	Id           string                `json:"id"`
+	WorkspaceId  string                `json:"workspaceId"`
+	CreatedBy    types.UserIdScalar    `json:"createdBy"`
+	CreatedDate  types.TimeScalar      `json:"createdDate"`
+	Name         string                `json:"name"`
+	IconUrl      *string               `json:"iconUrl"`
+	Description  *string               `json:"description"`
+	ManagedById  *string               `json:"managedById"`
+	FolderId     string                `json:"folderId"`
 	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
@@ -4446,9 +4443,6 @@ func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
 
 // GetFolderId returns MonitorV2.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetFolderId() string { return v.FolderId }
-
-// GetComment returns MonitorV2.Comment, and is useful for accessing the field via an interface.
-func (v *MonitorV2) GetComment() *string { return v.Comment }
 
 // GetRollupStatus returns MonitorV2.RollupStatus, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetRollupStatus() MonitorV2RollupStatus { return v.RollupStatus }
@@ -5020,7 +5014,7 @@ const (
 )
 
 type MonitorV2Input struct {
-	Comment     *string                  `json:"comment,omitempty"`
+	Comment     *string                  `json:"comment"`
 	Definition  MonitorV2DefinitionInput `json:"definition"`
 	RuleKind    MonitorV2RuleKind        `json:"ruleKind"`
 	Name        string                   `json:"name"`
@@ -12856,7 +12850,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	managedById
 	folderId
-	comment
 	rollupStatus
 	ruleKind
 	definition {
@@ -16406,7 +16399,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	managedById
 	folderId
-	comment
 	rollupStatus
 	ruleKind
 	definition {
@@ -17961,7 +17953,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	managedById
 	folderId
-	comment
 	rollupStatus
 	ruleKind
 	definition {
@@ -18619,7 +18610,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	managedById
 	folderId
-	comment
 	rollupStatus
 	ruleKind
 	definition {
@@ -20181,7 +20171,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	managedById
 	folderId
-	comment
 	rollupStatus
 	ruleKind
 	definition {
