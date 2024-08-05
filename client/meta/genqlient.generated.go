@@ -4557,14 +4557,6 @@ func (v *MonitorV2ActionInput) GetManagedById() *string { return v.ManagedById }
 // GetFolderId returns MonitorV2ActionInput.FolderId, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
 
-// MonitorV2ActionSearchResult includes the GraphQL fields of MonitorV2ActionSearchResult requested by the fragment MonitorV2ActionSearchResult.
-type MonitorV2ActionSearchResult struct {
-	Results []MonitorV2Action `json:"results"`
-}
-
-// GetResults returns MonitorV2ActionSearchResult.Results, and is useful for accessing the field via an interface.
-func (v *MonitorV2ActionSearchResult) GetResults() []MonitorV2Action { return v.Results }
-
 // MonitorV2ActionRule includes the GraphQL fields of MonitorV2ActionRule requested by the fragment MonitorV2ActionRule.
 type MonitorV2ActionRule struct {
 	// Takes in a private or public action id created from an earlier createAction API call.
@@ -4589,6 +4581,14 @@ func (v *MonitorV2ActionRuleInput) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRuleInput.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRuleInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// MonitorV2ActionSearchResult includes the GraphQL fields of MonitorV2ActionSearchResult requested by the fragment MonitorV2ActionSearchResult.
+type MonitorV2ActionSearchResult struct {
+	Results []MonitorV2Action `json:"results"`
+}
+
+// GetResults returns MonitorV2ActionSearchResult.Results, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionSearchResult) GetResults() []MonitorV2Action { return v.Results }
 
 // MonitorV2ActionType defines the type of monitor returned when querying all
 // actions for a monitor.
