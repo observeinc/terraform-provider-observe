@@ -10,7 +10,7 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-func datasourceMonitorV2Action() *schema.Resource {
+func dataSourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMonitorV2ActionRead,
 		Schema: map[string]*schema.Schema{
