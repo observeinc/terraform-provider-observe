@@ -340,16 +340,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 	client := meta.(*observe.Client)
 
 	actId := data.Id()
-	var dstId string
-	if v, ok := data.GetOk("destination.0.oid"); ok {
-		dstOID, err := oid.NewOID(v.(string))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		dstId = dstOID.Id
-	} else {
-		return diag.Errorf("no destination id found")
-	}
 
 	action, err := client.GetMonitorV2Action(ctx, actId)
 	if err != nil {
@@ -360,6 +350,11 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
 	}
 
+	if len(action.DestinationLinks) < 1 {
+		return diag.Errorf("no destination id found")
+	}
+
+	dstId := action.DestinationLinks[0].DestinationID
 	dst, err := client.GetMonitorV2Destination(ctx, dstId)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {

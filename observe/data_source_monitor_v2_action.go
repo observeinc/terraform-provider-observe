@@ -36,11 +36,13 @@ func dataSourceMonitorV2Action() *schema.Resource {
 			},
 			"email": { // MonitorV2EmailDestinationInput
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem:     monitorV2EmailActionDatasource(),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem:     monitorV2WebhookActionDatasource(),
 			},
@@ -55,6 +57,7 @@ func dataSourceMonitorV2Action() *schema.Resource {
 			},
 			"destination": { //
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem:     datasourceMonitorV2Destination(),
 			},
@@ -74,10 +77,8 @@ func monitorV2EmailActionDatasource() *schema.Resource {
 				Computed: true,
 			},
 			"fragments": { // JsonObject
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -88,18 +89,17 @@ func monitorV2WebhookActionDatasource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"headers": { // [MonitorV2WebhookHeaderInput!]
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
-				Elem:     monitorV2WebhookHeaderInput(),
+				Elem:     monitorV2WebhookHeaderDatasource(),
 			},
 			"body": { // String
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"fragments": { // JsonObject
-				Type:             schema.TypeString,
-				ValidateDiagFunc: validateStringIsJSON,
-				DiffSuppressFunc: diffSuppressJSON,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -124,13 +124,14 @@ func datasourceMonitorV2Destination() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"email": { // MonitorV2WebhookDestinationInput
-				Type:         schema.TypeList,
-				Computed:     true,
-				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
-				Elem:         monitorV2EmailDestinationDatasource(),
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem:     monitorV2EmailDestinationDatasource(),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem:     monitorV2WebhookDestinationDatasource(),
 			},

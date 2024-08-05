@@ -23,24 +23,24 @@ description: |-
 ### Read-Only
 
 - `description` (String)
-- `destination` (List of Object) (see [below for nested schema](#nestedatt--destination))
-- `email` (List of Object) (see [below for nested schema](#nestedatt--email))
+- `destination` (Block List) (see [below for nested schema](#nestedblock--destination))
+- `email` (Block List) (see [below for nested schema](#nestedblock--email))
 - `id` (String) The ID of this resource.
 - `oid` (String)
 - `type` (String)
-- `webhook` (List of Object) (see [below for nested schema](#nestedatt--webhook))
+- `webhook` (Block List) (see [below for nested schema](#nestedblock--webhook))
 
-<a id="nestedatt--destination"></a>
+<a id="nestedblock--destination"></a>
 ### Nested Schema for `destination`
 
 Read-Only:
 
 - `description` (String)
-- `email` (List of Object) (see [below for nested schema](#nestedobjatt--destination--email))
+- `email` (Block List) (see [below for nested schema](#nestedblock--destination--email))
 - `oid` (String)
-- `webhook` (List of Object) (see [below for nested schema](#nestedobjatt--destination--webhook))
+- `webhook` (Block List) (see [below for nested schema](#nestedblock--destination--webhook))
 
-<a id="nestedobjatt--destination--email"></a>
+<a id="nestedblock--destination--email"></a>
 ### Nested Schema for `destination.email`
 
 Read-Only:
@@ -49,7 +49,7 @@ Read-Only:
 - `users` (List of String)
 
 
-<a id="nestedobjatt--destination--webhook"></a>
+<a id="nestedblock--destination--webhook"></a>
 ### Nested Schema for `destination.webhook`
 
 Read-Only:
@@ -59,7 +59,7 @@ Read-Only:
 
 
 
-<a id="nestedatt--email"></a>
+<a id="nestedblock--email"></a>
 ### Nested Schema for `email`
 
 Read-Only:
@@ -69,16 +69,16 @@ Read-Only:
 - `subject` (String)
 
 
-<a id="nestedatt--webhook"></a>
+<a id="nestedblock--webhook"></a>
 ### Nested Schema for `webhook`
 
 Read-Only:
 
 - `body` (String)
 - `fragments` (String)
-- `headers` (List of Object) (see [below for nested schema](#nestedobjatt--webhook--headers))
+- `headers` (Block List) (see [below for nested schema](#nestedblock--webhook--headers))
 
-<a id="nestedobjatt--webhook--headers"></a>
+<a id="nestedblock--webhook--headers"></a>
 ### Nested Schema for `webhook.headers`
 
 Read-Only:
