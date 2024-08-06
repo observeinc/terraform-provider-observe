@@ -140,6 +140,7 @@ func Provider() *schema.Provider {
 			"observe_ingest_info":       dataSourceIngestInfo(),
 			"observe_cloud_info":        dataSourceCloudInfo(),
 			"observe_monitor_v2":        dataSourceMonitorV2(),
+			"observe_monitor_v2_action": dataSourceMonitorV2Action(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),

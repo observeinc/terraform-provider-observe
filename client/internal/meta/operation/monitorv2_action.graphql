@@ -75,6 +75,13 @@ fragment MonitorV2Action on MonitorV2Action {
     createdDate
 }
 
+fragment MonitorV2ActionSearchResult on MonitorV2ActionSearchResult {
+    # @genqlient(flatten: true)
+    results {
+        ...MonitorV2Action
+    }
+}
+
 # @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
@@ -131,4 +138,11 @@ mutation deleteMonitorV2Action($id: ObjectId!) {
 	resultStatus: deleteMonitorV2Action(id: $id) {
         ...ResultStatus
 	}
+}
+
+query searchMonitorV2Action($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+    # @genqlient(flatten: true)
+    monitorV2Actions: searchMonitorV2Action(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+        ...MonitorV2ActionSearchResult
+    }
 }

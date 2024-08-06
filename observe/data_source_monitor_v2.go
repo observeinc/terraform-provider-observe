@@ -24,6 +24,7 @@ func dataSourceMonitorV2() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeMonitorV2),
 				Description:      descriptions.Get("common", "schema", "id"),
+				ExactlyOneOf:     []string{"name", "id"},
 			},
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
@@ -32,9 +33,10 @@ func dataSourceMonitorV2() *schema.Resource {
 				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "name"),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  descriptions.Get("monitorv2", "schema", "name"),
+				ExactlyOneOf: []string{"name", "id"},
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2Definition
 			"comment": { // String
