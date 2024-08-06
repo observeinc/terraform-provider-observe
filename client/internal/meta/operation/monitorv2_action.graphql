@@ -32,6 +32,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 }
 
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+    users
+    addresses
     subject
     body
     fragments
@@ -49,6 +51,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
     }
     body
     fragments
+    url
+    method
 }
 
 fragment MonitorV2Action on MonitorV2Action {

@@ -90,11 +90,9 @@ func resourceMonitorV2Action() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"destination": { //
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     resourceMonitorV2Destination(),
+			"destination": { // OID of destination, TODO: remove this after API migration
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -180,70 +178,6 @@ func monitorV2WebhookHeaderInput() *schema.Resource {
 	}
 }
 
-func resourceMonitorV2Destination() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"email": { // MonitorV2WebhookDestinationInput
-				Type:         schema.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
-				Elem:         monitorV2EmailDestinationResource(),
-			},
-			"webhook": { // MonitorV2WebhookDestinationInput
-				Type:         schema.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
-				Elem:         monitorV2WebhookDestinationResource(),
-			},
-			"description": { // String
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			// ^^^ end of input
-			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
-	}
-}
-
-func monitorV2WebhookDestinationResource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"url": { // String!
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"method": { // MonitorV2HttpType!
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
-			},
-		},
-	}
-}
-
-func monitorV2EmailDestinationResource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"users": { // [UserId!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					ValidateDiagFunc: validateOID(oid.TypeUser),
-				},
-			},
-			"addresses": { // [String!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-		},
-	}
-}
-
 func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
@@ -266,7 +200,7 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
-	if err := data.Set("destination", monitorV2FlattenDestination(*dstResult)); err != nil {
+	if err := data.Set("destination", dstResult.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -288,9 +222,10 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 	client := meta.(*observe.Client)
 
 	actId := data.Id()
-	var dstId string
 
-	if v, ok := data.GetOk("destination.0.oid"); ok {
+	// TODO: delete this after API migration is complete (if unsure what "API migration" means, ask Andrew)
+	var dstId string
+	if v, ok := data.GetOk("destination"); ok {
 		dstOID, err := oid.NewOID(v.(string))
 		if err != nil {
 			return diag.FromErr(err)
@@ -304,6 +239,8 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 	if diags.HasError() {
 		return diags
 	}
+
+	// TODO: delete this after API migration is complete
 	dstInput, diags := newMonitorV2DestinationInput(actInput)
 	if diags.HasError() {
 		return diags
@@ -321,9 +258,11 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
 
+	// TODO: delete this after API migration is complete
 	_, err = client.UpdateMonitorV2Destination(ctx, dstId, dstInput)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
+			// creating the action will create the destination
 			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
 			if diags.HasError() {
 				return diags
@@ -358,7 +297,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 	client := meta.(*observe.Client)
 
 	actId := data.Id()
-
 	action, err := client.GetMonitorV2Action(ctx, actId)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
@@ -382,8 +320,13 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
 	}
 
-	if err := data.Set("destination", monitorV2FlattenDestination(*dst)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// sanity-check the return values
+	if action.Webhook != nil {
+		if action.Webhook.Url == nil || action.Webhook.Method == nil {
+			diags = append(diags, diag.Errorf("action url or method was not set")...)
+		} else if *action.Webhook.Url != dst.Webhook.Url || *action.Webhook.Method != dst.Webhook.Method {
+			diags = append(diags, diag.Errorf("action url or method disagrees with destination")...)
+		}
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
@@ -434,6 +377,21 @@ func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) []interface{
 	if gqlEmail.Subject != nil {
 		email["subject"] = *gqlEmail.Subject
 	}
+	if len(gqlEmail.Addresses) > 0 {
+		addrs := make([]string, 0)
+		for _, addr := range gqlEmail.Addresses {
+			addrs = append(addrs, addr)
+		}
+		email["addresses"] = addrs
+	}
+	if len(gqlEmail.Users) > 0 {
+		userOIDStrs := make([]string, 0)
+		for _, uid := range gqlEmail.Users {
+			userOID := oid.UserOid(uid)
+			userOIDStrs = append(userOIDStrs, userOID.String())
+		}
+		email["users"] = userOIDStrs
+	}
 	return []interface{}{email}
 }
 
@@ -447,6 +405,15 @@ func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) []inte
 	}
 	if gqlWebhook.Body != nil {
 		webhook["body"] = *gqlWebhook.Body
+	}
+
+	// TODO: URL and Method are only temporarily optional in gql while frontend migrates.
+	// after the migration is complete, re-sync the gql and regenerate.
+	if gqlWebhook.Url != nil {
+		webhook["url"] = *gqlWebhook.Url
+	}
+	if gqlWebhook.Method != nil {
+		webhook["method"] = toSnake(string(*gqlWebhook.Method))
 	}
 	return []interface{}{webhook}
 }
@@ -519,14 +486,40 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
 	}
+	if _, ok := data.GetOk(fmt.Sprintf("%susers", path)); ok {
+		email.Users = make([]types.UserIdScalar, 0)
+		for i := range data.Get(fmt.Sprintf("%susers", path)).([]interface{}) {
+			userOID, err := oid.NewOID(data.Get(fmt.Sprintf("%susers.%d", path, i)).(string))
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+			uid, err := types.StringToUserIdScalar(userOID.Id)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+			email.Users = append(email.Users, uid)
+		}
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%saddresses", path)); ok {
+		email.Addresses = make([]string, 0)
+		for i := range data.Get(fmt.Sprintf("%saddresses", path)).([]interface{}) {
+			addr := data.Get(fmt.Sprintf("%saddresses.%d", path, i)).(string)
+			email.Addresses = append(email.Addresses, addr)
+		}
+	}
 
 	return email, diags
 }
 
 func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (webhook *gql.MonitorV2WebhookActionInput, diags diag.Diagnostics) {
+	url := data.Get(fmt.Sprintf("%surl", path)).(string)
+	method := gql.MonitorV2HttpType(toCamel(data.Get(fmt.Sprintf("%smethod", path)).(string)))
 
 	// instantiation
-	webhook = &gql.MonitorV2WebhookActionInput{}
+	webhook = &gql.MonitorV2WebhookActionInput{
+		Url:    &url,
+		Method: &method,
+	}
 
 	// optionals
 	if _, ok := data.GetOk(fmt.Sprintf("%sheaders", path)); ok {
