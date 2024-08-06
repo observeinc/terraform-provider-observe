@@ -35,8 +35,10 @@ func newMonitorV2DestinationInput(actInput *gql.MonitorV2ActionInput) (input *gq
 	}
 
 	if actInput.Webhook != nil {
-		input.Webhook.Method = *actInput.Webhook.Method
-		input.Webhook.Url = *actInput.Webhook.Url
+		input.Webhook = &gql.MonitorV2WebhookDestinationInput{
+			Method: *actInput.Webhook.Method,
+			Url:    *actInput.Webhook.Url,
+		}
 	}
 
 	return input, diags
