@@ -23,50 +23,23 @@ description: |-
 ### Read-Only
 
 - `description` (String)
-- `destination` (Block List) (see [below for nested schema](#nestedblock--destination))
+- `destination` (String)
 - `email` (Block List) (see [below for nested schema](#nestedblock--email))
 - `id` (String) The ID of this resource.
 - `oid` (String)
 - `type` (String)
 - `webhook` (Block List) (see [below for nested schema](#nestedblock--webhook))
 
-<a id="nestedblock--destination"></a>
-### Nested Schema for `destination`
-
-Read-Only:
-
-- `description` (String)
-- `email` (Block List) (see [below for nested schema](#nestedblock--destination--email))
-- `oid` (String)
-- `webhook` (Block List) (see [below for nested schema](#nestedblock--destination--webhook))
-
-<a id="nestedblock--destination--email"></a>
-### Nested Schema for `destination.email`
-
-Read-Only:
-
-- `addresses` (List of String)
-- `users` (List of String)
-
-
-<a id="nestedblock--destination--webhook"></a>
-### Nested Schema for `destination.webhook`
-
-Read-Only:
-
-- `method` (String)
-- `url` (String)
-
-
-
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`
 
 Read-Only:
 
+- `addresses` (List of String)
 - `body` (String)
 - `fragments` (String)
 - `subject` (String)
+- `users` (List of String)
 
 
 <a id="nestedblock--webhook"></a>
@@ -77,6 +50,8 @@ Read-Only:
 - `body` (String)
 - `fragments` (String)
 - `headers` (Block List) (see [below for nested schema](#nestedblock--webhook--headers))
+- `method` (String)
+- `url` (String)
 
 <a id="nestedblock--webhook--headers"></a>
 ### Nested Schema for `webhook.headers`

@@ -57,11 +57,9 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"destination": { //
-				Type:     schema.TypeList,
-				Optional: true,
+			"destination": { // ObjectId!
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem:     datasourceMonitorV2Destination(),
 			},
 		},
 	}
@@ -81,6 +79,16 @@ func monitorV2EmailActionDatasource() *schema.Resource {
 			"fragments": { // JsonObject
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"users": { // [UserId!]
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"addresses": { // [String!]
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -103,6 +111,14 @@ func monitorV2WebhookActionDatasource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"url": { // String!
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"method": { // MonitorV2HttpType!
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -117,66 +133,6 @@ func monitorV2WebhookHeaderDatasource() *schema.Resource {
 			"value": { // String!
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-		},
-	}
-}
-
-func datasourceMonitorV2Destination() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"email": { // MonitorV2WebhookDestinationInput
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     monitorV2EmailDestinationDatasource(),
-			},
-			"webhook": { // MonitorV2WebhookDestinationInput
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     monitorV2WebhookDestinationDatasource(),
-			},
-			"description": { // String
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			// ^^^ end of input
-			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
-	}
-}
-
-func monitorV2WebhookDestinationDatasource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"url": { // String!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"method": { // MonitorV2HttpType!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
-	}
-}
-
-func monitorV2EmailDestinationDatasource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"users": { // [UserId!]
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"addresses": { // [String!]
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
