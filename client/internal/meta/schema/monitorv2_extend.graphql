@@ -19,7 +19,7 @@ extend type Query {
     monitorV2TemplateDictionary takes in the monitor v2 input and the alarm input to produce a template dictionary
     for the frontend which can be used to render the template.
     """
-    monitorV2TemplateDictionary(monitorInput: MonitorV2Input!, alarmInput: MonitorV2AlarmInput!): TemplateDictionary!
+    monitorV2TemplateDictionary(alertType: MonitorV2AlertType, monitorInput: MonitorV2Input!, alarmInput: MonitorV2AlarmInput!): TemplateDictionary!
 
     """
     Receive an actionInput and sample data payload to render all the fields in the mustache template.

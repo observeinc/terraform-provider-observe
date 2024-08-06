@@ -45,6 +45,17 @@ enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmL
   Warning
 }
 
+"""
+MonitorV2AlertType simply describes what type of alert template dictionary you'd like to generate
+as part of the monitorV2TemplateDictionary method. This MonitorV2AlertType is what shows up as the
+type of alert for the user -- New, Reminder, or Ended.
+"""
+enum MonitorV2AlertType @goModel(model: "observe/meta/metatypes.MonitorV2AlertType") {
+  Ended
+  New
+  Reminder
+}
+
 enum MonitorV2BooleanOperator @goModel(model: "observe/meta/metatypes.MonitorV2BooleanOperator") {
   And
   Or
@@ -149,7 +160,7 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     A longer description of the monitor.
     This can include details like how to resolve the issue, links to runbooks, etc.
     """
-    comment: String
+    comment: String @deprecated(reason:"Use the description field over the comment field")
     meta: MonitorV2Meta @goField(forceResolver: true)
     rollupStatus: MonitorV2RollupStatus! @goField(forceResolver: true)
     definition: MonitorV2Definition!

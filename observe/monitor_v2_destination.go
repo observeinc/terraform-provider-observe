@@ -59,39 +59,47 @@ func monitorv2FlattenWebhookDestination(gqlWebhook gql.MonitorV2WebhookDestinati
 	return []interface{}{webhook}
 }
 
-func newMonitorV2DestinationInput(data *schema.ResourceData, path string, actionType gql.MonitorV2ActionType) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
+func newMonitorV2DestinationInput(actInput *gql.MonitorV2ActionInput) (input *gql.MonitorV2DestinationInput, diags diag.Diagnostics) {
 	// required
 	name := "my destination" // name is ignored for inlined destinations, so we can set it to any value.
 
 	// instantiation
 	inlineVal := true // we are currently only allowing destinations to be inlined
 	input = &gql.MonitorV2DestinationInput{
-		Type:   actionType,
+		Type:   actInput.Type,
 		Name:   name,
 		Inline: &inlineVal,
 	}
 
-	// optionals
-	if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
-		input.Description = stringPtr(v.(string))
-	}
-	if _, ok := data.GetOk(fmt.Sprintf("%semail", path)); ok {
-		email, diags := newMonitorV2EmailDestinationInput(data, fmt.Sprintf("%semail.0.", path))
-		if diags.HasError() {
-			return nil, diags
-		}
-		input.Email = email
-	}
-	if _, ok := data.GetOk(fmt.Sprintf("%swebhook", path)); ok {
-		webhook, diags := newMonitorV2WebhookDestinationInput(data, fmt.Sprintf("%swebhook.0.", path))
-		if diags.HasError() {
-			return nil, diags
-		}
-		input.Webhook = webhook
-	}
-	if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
-		input.Description = stringPtr(v.(string))
-	}
+	// if actInput.Email != nil {
+
+	// }
+
+	// if actInput.Webhook != nil {
+
+	// }
+
+	// // optionals
+	// if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
+	// 	input.Description = stringPtr(v.(string))
+	// }
+	// if _, ok := data.GetOk(fmt.Sprintf("%semail", path)); ok {
+	// 	email, diags := newMonitorV2EmailDestinationInput(data, fmt.Sprintf("%semail.0.", path))
+	// 	if diags.HasError() {
+	// 		return nil, diags
+	// 	}
+	// 	input.Email = email
+	// }
+	// if _, ok := data.GetOk(fmt.Sprintf("%swebhook", path)); ok {
+	// 	webhook, diags := newMonitorV2WebhookDestinationInput(data, fmt.Sprintf("%swebhook.0.", path))
+	// 	if diags.HasError() {
+	// 		return nil, diags
+	// 	}
+	// 	input.Webhook = webhook
+	// }
+	// if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
+	// 	input.Description = stringPtr(v.(string))
+	// }
 
 	return input, diags
 }

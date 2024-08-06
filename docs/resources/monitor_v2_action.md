@@ -67,13 +67,20 @@ Required:
 
 Optional:
 
+- `addresses` (List of String)
 - `body` (String)
 - `fragments` (String)
 - `subject` (String)
+- `users` (List of String)
 
 
 <a id="nestedblock--webhook"></a>
 ### Nested Schema for `webhook`
+
+Required:
+
+- `method` (String)
+- `url` (String)
 
 Optional:
 

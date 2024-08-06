@@ -117,6 +117,19 @@ func monitorV2EmailActionInput() *schema.Resource {
 				DiffSuppressFunc: diffSuppressJSON,
 				Optional:         true,
 			},
+			"users": { // [UserId!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateOID(oid.TypeUser),
+				},
+			},
+			"addresses": { // [String!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -138,6 +151,15 @@ func monitorV2WebhookActionInput() *schema.Resource {
 				ValidateDiagFunc: validateStringIsJSON,
 				DiffSuppressFunc: diffSuppressJSON,
 				Optional:         true,
+			},
+			"url": { // String!
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"method": { // MonitorV2HttpType!
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
 			},
 		},
 	}
@@ -173,10 +195,6 @@ func resourceMonitorV2Destination() *schema.Resource {
 				ExactlyOneOf: []string{"destination.0.email", "destination.0.webhook"},
 				Elem:         monitorV2WebhookDestinationResource(),
 			},
-			// "name": { // String! 			for inline actions, name is ignored.
-			// 	Type:     schema.TypeString,
-			// 	Required: true,
-			// },
 			"description": { // String
 				Type:     schema.TypeString,
 				Optional: true,
@@ -233,7 +251,7 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 	if diags.HasError() {
 		return diags
 	}
-	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
+	dstInput, diags := newMonitorV2DestinationInput(actInput)
 	if diags.HasError() {
 		return diags
 	}
@@ -286,7 +304,7 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 	if diags.HasError() {
 		return diags
 	}
-	dstInput, diags := newMonitorV2DestinationInput(data, "destination.0.", actInput.Type)
+	dstInput, diags := newMonitorV2DestinationInput(actInput)
 	if diags.HasError() {
 		return diags
 	}
