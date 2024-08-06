@@ -22,7 +22,6 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -114,7 +113,6 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -206,7 +204,6 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 						rule_kind = "count"
 						name = "%[1]s"
 						lookback_time = "30m"
-						comment = "a descriptive comment"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}

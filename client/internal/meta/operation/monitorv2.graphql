@@ -155,7 +155,6 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
     levels
 }
 
-# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
@@ -189,7 +188,6 @@ fragment MonitorV2 on MonitorV2 {
     description
     managedById
     folderId
-    comment
     rollupStatus
     ruleKind
     # @genqlient(flatten: true)
@@ -204,7 +202,6 @@ fragment MonitorV2 on MonitorV2 {
 
 # definitions of monitorv2 CRUD ops
 
-# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
@@ -238,7 +235,6 @@ mutation createMonitorV2(
 	}
 }
 
-# @genqlient(for: "MonitorV2Input.comment", omitempty: true)
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)

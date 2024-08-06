@@ -39,11 +39,6 @@ func dataSourceMonitorV2() *schema.Resource {
 				ExactlyOneOf: []string{"name", "id"},
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2Definition
-			"comment": { // String
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("monitorv2", "schema", "comment"),
-			},
 			"rule_kind": { // MonitorV2RuleKind!
 				Type:        schema.TypeString,
 				Computed:    true,

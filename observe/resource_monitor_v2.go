@@ -33,11 +33,6 @@ func resourceMonitorV2() *schema.Resource {
 				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
-			"comment": { // String
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "comment"),
-			},
 			"rule_kind": { // MonitorV2RuleKind!
 				Type:             schema.TypeString,
 				Required:         true,
@@ -583,12 +578,6 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
-	if monitor.Comment != nil {
-		if err := data.Set("comment", *monitor.Comment); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
 	if len(monitor.ActionRules) > 0 {
 		if err := data.Set("actions", monitorV2FlattenActionRules(monitor.ActionRules)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -851,9 +840,6 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	}
 
 	// optionals
-	if v, ok := data.GetOk("comment"); ok {
-		input.Comment = stringPtr(v.(string))
-	}
 	if v, ok := data.GetOk("icon_url"); ok {
 		input.IconUrl = stringPtr(v.(string))
 	}
