@@ -426,6 +426,7 @@ Required:
 Optional:
 
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
+- `send_end_notifications` (Boolean)
 
 
 <a id="nestedblock--groupings"></a>

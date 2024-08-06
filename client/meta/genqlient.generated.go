@@ -4568,8 +4568,8 @@ func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Level
 type MonitorV2ActionRuleInput struct {
 	ActionID              string                `json:"actionID"`
 	Levels                []MonitorV2AlarmLevel `json:"levels"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
-	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications,omitempty"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval,omitempty"`
 }
 
 // GetActionID returns MonitorV2ActionRuleInput.ActionID, and is useful for accessing the field via an interface.

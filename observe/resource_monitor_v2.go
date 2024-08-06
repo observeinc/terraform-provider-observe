@@ -281,6 +281,14 @@ func resourceMonitorV2() *schema.Resource {
 							},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
 						},
+						"send_end_notifications": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						// "send_reminders_interval": {
+						// 	Type:     schema.TypeBool,
+						// 	Optional: true,
+						// },
 					},
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
