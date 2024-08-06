@@ -4556,7 +4556,9 @@ type MonitorV2ActionRule struct {
 	// Takes in a private or public action id created from an earlier createAction API call.
 	ActionID string `json:"actionID"`
 	// Dispatch this action when the alarm matches any of the provided levels.
-	Levels []MonitorV2AlarmLevel `json:"levels"`
+	Levels                []MonitorV2AlarmLevel `json:"levels"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
 }
 
 // GetActionID returns MonitorV2ActionRule.ActionID, and is useful for accessing the field via an interface.
@@ -4564,6 +4566,14 @@ func (v *MonitorV2ActionRule) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRule.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetSendEndNotifications returns MonitorV2ActionRule.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns MonitorV2ActionRule.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
 
 type MonitorV2ActionRuleInput struct {
 	ActionID              string                `json:"actionID"`
@@ -12965,6 +12975,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -16518,6 +16530,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18076,6 +18090,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18737,6 +18753,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -20410,6 +20428,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id

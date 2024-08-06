@@ -230,10 +230,14 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 						actions {
 							oid = observe_monitor_v2_action.act1.oid
 							levels = ["informational"]
+							send_end_notifications = true
+							send_reminders_interval = "10m"
 						}
 						actions {
 							oid = observe_monitor_v2_action.act2.oid
 							levels = ["informational"]
+							send_end_notifications = false
+							send_reminders_interval = "20m"
 						}
 					}
 
@@ -276,7 +280,11 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.#", "2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_end_notifications", "true"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "10m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.levels.0", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_end_notifications", "false"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "20m0s"),
 
 					resource.TestCheckResourceAttrSet("observe_monitor_v2_action.act1", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2_action.act1", "name", randomPrefix+"-1"),

@@ -153,6 +153,8 @@ fragment MonitorV2SearchResult on MonitorV2SearchResult {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
     actionID
     levels
+    sendEndNotifications
+    sendRemindersInterval
 }
 
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)

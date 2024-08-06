@@ -83,7 +83,7 @@ Required:
 Optional:
 
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
 - `value_float64` (List of Number) list of size <=1 consisting of a float value.
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
@@ -163,7 +163,7 @@ Required:
 Optional:
 
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
 - `value_float64` (List of Number) list of size <=1 consisting of a float value.
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
@@ -252,7 +252,7 @@ Required:
 Optional:
 
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
 - `value_float64` (List of Number) list of size <=1 consisting of a float value.
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
@@ -284,7 +284,7 @@ Required:
 Optional:
 
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
 - `value_float64` (List of Number) list of size <=1 consisting of a float value.
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
@@ -364,7 +364,7 @@ Required:
 Optional:
 
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
 - `value_float64` (List of Number) list of size <=1 consisting of a float value.
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
@@ -426,7 +426,8 @@ Required:
 Optional:
 
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
-- `send_end_notifications` (Boolean)
+- `send_end_notifications` (Boolean) If true, notifications will be sent if the monitor stops triggering.
+- `send_reminders_interval` (String) Determines how frequently you will be reminded of an ongoing alert.
 
 
 <a id="nestedblock--groupings"></a>

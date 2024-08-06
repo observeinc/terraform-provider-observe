@@ -266,13 +266,13 @@ func resourceMonitorV2() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"oid": {
+						"oid": { // ObjectId!
 							Type:             schema.TypeString,
 							Required:         true,
 							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
 							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
 						},
-						"levels": {
+						"levels": { // [MonitorV2AlarmLevel!]
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -281,14 +281,18 @@ func resourceMonitorV2() *schema.Resource {
 							},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
 						},
-						"send_end_notifications": {
-							Type:     schema.TypeBool,
-							Optional: true,
+						"send_end_notifications": { // Boolean
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "send_end_notifications"),
 						},
-						// "send_reminders_interval": {
-						// 	Type:     schema.TypeBool,
-						// 	Optional: true,
-						// },
+						"send_reminders_interval": { // Duration
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateTimeDuration,
+							DiffSuppressFunc: diffSuppressTimeDuration,
+							Description:      descriptions.Get("monitorv2", "schema", "actions", "send_reminders_interval"),
+						},
 					},
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
@@ -344,7 +348,7 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Schema{
-					Type:             schema.TypeBool,
+					Type:             schema.TypeInt,
 					ValidateDiagFunc: validateTimeDuration,
 					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
@@ -645,6 +649,12 @@ func monitorV2FlattenActionRule(gqlActionRule gql.MonitorV2ActionRule) interface
 			levels = append(levels, toSnake(string(level)))
 		}
 		rules["levels"] = levels
+	}
+	if gqlActionRule.SendEndNotifications != nil {
+		rules["send_end_notifications"] = *gqlActionRule.SendEndNotifications
+	}
+	if gqlActionRule.SendRemindersInterval != nil {
+		rules["send_reminders_interval"] = gqlActionRule.SendRemindersInterval.String()
 	}
 	return rules
 }
@@ -1311,6 +1321,17 @@ func newMonitorV2ActionRuleInput(path string, data *schema.ResourceData) (*gql.M
 		for i := range data.Get(fmt.Sprintf("%slevels", path)).([]interface{}) {
 			act.Levels = append(act.Levels, gql.MonitorV2AlarmLevel(toCamel(data.Get(fmt.Sprintf("%slevels.%d", path, i)).(string))))
 		}
+	}
+
+	if v, ok := data.GetOk(fmt.Sprintf("%ssend_end_notifications", path)); ok {
+		boolVal := v.(bool)
+		act.SendEndNotifications = &boolVal
+	}
+
+	if v, ok := data.GetOk(fmt.Sprintf("%ssend_reminders_interval", path)); ok {
+		stringVal := v.(string)
+		interval, _ := types.ParseDurationScalar(stringVal)
+		act.SendRemindersInterval = interval
 	}
 
 	return act, nil

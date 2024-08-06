@@ -110,3 +110,7 @@ schema:
       The OID of this shared action.
     levels: |
       The alarm level(s) at which this monitor should trigger this shared action.
+    send_end_notifications: |
+      If true, notifications will be sent if the monitor stops triggering.
+    send_reminders_interval: |
+      Determines how frequently you will be reminded of an ongoing alert.
