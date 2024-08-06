@@ -4566,8 +4566,10 @@ func (v *MonitorV2ActionRule) GetActionID() string { return v.ActionID }
 func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
 
 type MonitorV2ActionRuleInput struct {
-	ActionID string                `json:"actionID"`
-	Levels   []MonitorV2AlarmLevel `json:"levels"`
+	ActionID              string                `json:"actionID"`
+	Levels                []MonitorV2AlarmLevel `json:"levels"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
 }
 
 // GetActionID returns MonitorV2ActionRuleInput.ActionID, and is useful for accessing the field via an interface.
@@ -4575,6 +4577,14 @@ func (v *MonitorV2ActionRuleInput) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRuleInput.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRuleInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetSendEndNotifications returns MonitorV2ActionRuleInput.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns MonitorV2ActionRuleInput.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
 
 // MonitorV2ActionSearchResult includes the GraphQL fields of MonitorV2ActionSearchResult requested by the fragment MonitorV2ActionSearchResult.
 type MonitorV2ActionSearchResult struct {
@@ -4973,10 +4983,18 @@ func (v *MonitorV2EmailAction) GetBody() *string { return v.Body }
 func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragments }
 
 type MonitorV2EmailActionInput struct {
-	Subject   *string           `json:"subject,omitempty"`
-	Body      *string           `json:"body,omitempty"`
-	Fragments *types.JsonObject `json:"fragments,omitempty"`
+	Users     []types.UserIdScalar `json:"users"`
+	Addresses []string             `json:"addresses"`
+	Subject   *string              `json:"subject,omitempty"`
+	Body      *string              `json:"body,omitempty"`
+	Fragments *types.JsonObject    `json:"fragments,omitempty"`
 }
+
+// GetUsers returns MonitorV2EmailActionInput.Users, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetUsers() []types.UserIdScalar { return v.Users }
+
+// GetAddresses returns MonitorV2EmailActionInput.Addresses, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetAddresses() []string { return v.Addresses }
 
 // GetSubject returns MonitorV2EmailActionInput.Subject, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailActionInput) GetSubject() *string { return v.Subject }
@@ -5396,10 +5414,18 @@ func (v *MonitorV2WebhookAction) GetBody() *string { return v.Body }
 func (v *MonitorV2WebhookAction) GetFragments() *types.JsonObject { return v.Fragments }
 
 type MonitorV2WebhookActionInput struct {
+	Url       *string                       `json:"url"`
+	Method    *MonitorV2HttpType            `json:"method"`
 	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
 	Body      *string                       `json:"body,omitempty"`
 	Fragments *types.JsonObject             `json:"fragments,omitempty"`
 }
+
+// GetUrl returns MonitorV2WebhookActionInput.Url, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetUrl() *string { return v.Url }
+
+// GetMethod returns MonitorV2WebhookActionInput.Method, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetMethod() *MonitorV2HttpType { return v.Method }
 
 // GetHeaders returns MonitorV2WebhookActionInput.Headers, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookActionInput) GetHeaders() []MonitorV2WebhookHeaderInput { return v.Headers }

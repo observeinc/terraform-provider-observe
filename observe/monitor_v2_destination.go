@@ -71,35 +71,21 @@ func newMonitorV2DestinationInput(actInput *gql.MonitorV2ActionInput) (input *gq
 		Inline: &inlineVal,
 	}
 
-	// if actInput.Email != nil {
+	if actInput.Email != nil {
+		input.Email.Users = make([]types.UserIdScalar, 0)
+		for _, usr := range actInput.Email.Users {
+			input.Email.Users = append(input.Email.Users, usr)
+		}
+		input.Email.Addresses = make([]string, 0)
+		for _, addr := range actInput.Email.Addresses {
+			input.Email.Addresses = append(input.Email.Addresses, addr)
+		}
+	}
 
-	// }
-
-	// if actInput.Webhook != nil {
-
-	// }
-
-	// // optionals
-	// if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
-	// 	input.Description = stringPtr(v.(string))
-	// }
-	// if _, ok := data.GetOk(fmt.Sprintf("%semail", path)); ok {
-	// 	email, diags := newMonitorV2EmailDestinationInput(data, fmt.Sprintf("%semail.0.", path))
-	// 	if diags.HasError() {
-	// 		return nil, diags
-	// 	}
-	// 	input.Email = email
-	// }
-	// if _, ok := data.GetOk(fmt.Sprintf("%swebhook", path)); ok {
-	// 	webhook, diags := newMonitorV2WebhookDestinationInput(data, fmt.Sprintf("%swebhook.0.", path))
-	// 	if diags.HasError() {
-	// 		return nil, diags
-	// 	}
-	// 	input.Webhook = webhook
-	// }
-	// if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
-	// 	input.Description = stringPtr(v.(string))
-	// }
+	if actInput.Webhook != nil {
+		input.Webhook.Method = *actInput.Webhook.Method
+		input.Webhook.Url = *actInput.Webhook.Url
+	}
 
 	return input, diags
 }
