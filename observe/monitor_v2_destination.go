@@ -20,13 +20,13 @@ func newMonitorV2DestinationInput(actInput *gql.MonitorV2ActionInput) (input *gq
 
 	if actInput.Email != nil {
 		input.Email = &gql.MonitorV2EmailDestinationInput{}
-		if len(input.Email.Users) > 0 {
+		if len(actInput.Email.Users) > 0 {
 			input.Email.Users = make([]types.UserIdScalar, 0)
 			for _, usr := range actInput.Email.Users {
 				input.Email.Users = append(input.Email.Users, usr)
 			}
 		}
-		if len(input.Email.Addresses) > 0 {
+		if len(actInput.Email.Addresses) > 0 {
 			input.Email.Addresses = make([]string, 0)
 			for _, addr := range actInput.Email.Addresses {
 				input.Email.Addresses = append(input.Email.Addresses, addr)
