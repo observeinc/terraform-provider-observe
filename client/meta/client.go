@@ -105,3 +105,7 @@ func New(endpoint string, client *http.Client) (*Client, error) {
 		Gql:      gql,
 	}, nil
 }
+
+func (c *Client) RestEndpoint() string {
+    return strings.TrimSuffix(c.endpoint, "/meta")
+}

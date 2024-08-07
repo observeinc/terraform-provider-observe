@@ -1462,3 +1462,52 @@ func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
 func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
 	return c.Meta.GetCloudInfo(ctx)
 }
+
+// Reference Tables
+
+func (c *Client) CreateReferenceTable(ctx context.Context, workspaceId string, input *meta.ReferenceTableInput) (*meta.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	result, err := c.Meta.CreateReferenceTable(ctx, workspaceId, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *Client) UpdateReferenceTable(ctx context.Context, id string, input *meta.ReferenceTableInput) (*meta.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	result, err := c.Meta.UpdateReferenceTable(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) DeleteReferenceTable(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteReferenceTable(ctx, id)
+}
+
+func (c *Client) GetReferenceTable(ctx context.Context, id string) (*meta.ReferenceTable, error) {
+	return c.Meta.GetReferenceTable(ctx, id)
+}
+
+func (c *Client) LookupReferenceTable(ctx context.Context, workspaceId *string, nameExact *string) (*meta.ReferenceTable, error) {
+	return c.Meta.LookupReferenceTable(ctx, workspaceId, nameExact)
+}
