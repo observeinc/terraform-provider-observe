@@ -186,7 +186,7 @@ Read-Only:
 - `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
 - `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
@@ -201,7 +201,7 @@ Read-Only:
 - `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
 - `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
@@ -277,7 +277,7 @@ Read-Only:
 - `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
 - `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
@@ -357,7 +357,7 @@ Read-Only:
 - `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
 - `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
@@ -372,7 +372,7 @@ Read-Only:
 - `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
 - `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
 - `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value
 - `value_int64` (List of Number) list of size <=1 consisting of an integer value.
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
