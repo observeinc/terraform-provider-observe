@@ -160,7 +160,7 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     A longer description of the monitor.
     This can include details like how to resolve the issue, links to runbooks, etc.
     """
-    comment: String
+    comment: String @deprecated(reason:"Use the description field over the comment field")
     meta: MonitorV2Meta @goField(forceResolver: true)
     rollupStatus: MonitorV2RollupStatus! @goField(forceResolver: true)
     definition: MonitorV2Definition!
