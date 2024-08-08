@@ -26,7 +26,6 @@ description: |-
 
 ### Read-Only
 
-- `destination` (String)
 - `id` (String) The ID of this resource.
 - `oid` (String)
 
