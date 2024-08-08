@@ -153,6 +153,8 @@ fragment MonitorV2SearchResult on MonitorV2SearchResult {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
     actionID
     levels
+    sendEndNotifications
+    sendRemindersInterval
 }
 
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
@@ -291,6 +293,8 @@ query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: S
 
 # @genqlient(for: "ActionDestinationLinkInput.sendEndNotifications", omitempty: true)
 # @genqlient(for: "ActionDestinationLinkInput.sendRemindersInterval", omitempty: true)
+# @genqlient(for: "MonitorV2ActionRuleInput.sendEndNotifications", omitempty: true)
+# @genqlient(for: "MonitorV2ActionRuleInput.sendRemindersInterval", omitempty: true)
 mutation saveMonitorV2Relations(
     $monitorId: ObjectId!, 
     $actionRelations: [ActionRelationInput!]

@@ -30,13 +30,8 @@ func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 							fragments = jsonencode({
 								foo = "bar"
 							})
-						}
-						destination {
-							email {
-								addresses = ["test@observeinc.com"]
-								users = [data.observe_user.system.oid]
-							}
-							description = "an interesting dest description"
+							addresses = ["test@observeinc.com"]
+							users = [data.observe_user.system.oid]
 						}
 						name = "%[1]s"
 						description = "an interesting description"
@@ -54,9 +49,8 @@ func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "email.0.fragments", "{\"foo\":\"bar\"}"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "email.0.subject", "somebody once told me"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "email.0.body", "the world is gonna roll me"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.email.0.addresses.0", "test@observeinc.com"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.email.0.users.#", "1"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "email.0.addresses.0", "test@observeinc.com"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "email.0.users.#", "1"),
 				),
 			},
 		},
@@ -84,16 +78,11 @@ func TestAccObserveMonitorV2ActionWebhookDatasource(t *testing.T) {
 							fragments = jsonencode({
 								foo = "bar"
 							})
+							url = "https://example.com/"
+							method = "post"
 						}
 						name = "%[1]s"
 						description = "an interesting description"
-						destination {
-							webhook {
-								url = "https://example.com/"
-								method = "post"
-							}
-							description = "an interesting dest description"
-						}
 					}
 
 					data "observe_monitor_v2_action" "act" {
@@ -109,9 +98,8 @@ func TestAccObserveMonitorV2ActionWebhookDatasource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "webhook.0.headers.0.header", "never gonna give you up"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "webhook.0.headers.0.value", "never gonna let you down"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "webhook.0.body", "never gonna run around and desert you"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.webhook.0.url", "https://example.com/"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.webhook.0.method", "post"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "destination.0.description", "an interesting dest description"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "webhook.0.url", "https://example.com/"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "webhook.0.method", "post"),
 				),
 			},
 		},

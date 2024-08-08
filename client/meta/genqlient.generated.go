@@ -4556,7 +4556,9 @@ type MonitorV2ActionRule struct {
 	// Takes in a private or public action id created from an earlier createAction API call.
 	ActionID string `json:"actionID"`
 	// Dispatch this action when the alarm matches any of the provided levels.
-	Levels []MonitorV2AlarmLevel `json:"levels"`
+	Levels                []MonitorV2AlarmLevel `json:"levels"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
 }
 
 // GetActionID returns MonitorV2ActionRule.ActionID, and is useful for accessing the field via an interface.
@@ -4565,9 +4567,19 @@ func (v *MonitorV2ActionRule) GetActionID() string { return v.ActionID }
 // GetLevels returns MonitorV2ActionRule.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
 
+// GetSendEndNotifications returns MonitorV2ActionRule.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns MonitorV2ActionRule.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
+
 type MonitorV2ActionRuleInput struct {
-	ActionID string                `json:"actionID"`
-	Levels   []MonitorV2AlarmLevel `json:"levels"`
+	ActionID              string                `json:"actionID"`
+	Levels                []MonitorV2AlarmLevel `json:"levels"`
+	SendEndNotifications  *bool                 `json:"sendEndNotifications,omitempty"`
+	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval,omitempty"`
 }
 
 // GetActionID returns MonitorV2ActionRuleInput.ActionID, and is useful for accessing the field via an interface.
@@ -4575,6 +4587,14 @@ func (v *MonitorV2ActionRuleInput) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRuleInput.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRuleInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetSendEndNotifications returns MonitorV2ActionRuleInput.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetSendEndNotifications() *bool { return v.SendEndNotifications }
+
+// GetSendRemindersInterval returns MonitorV2ActionRuleInput.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
 
 // MonitorV2ActionSearchResult includes the GraphQL fields of MonitorV2ActionSearchResult requested by the fragment MonitorV2ActionSearchResult.
 type MonitorV2ActionSearchResult struct {
@@ -4955,6 +4975,10 @@ func (v *MonitorV2DestinationInput) GetFolderId() *string { return v.FolderId }
 
 // MonitorV2EmailAction includes the GraphQL fields of MonitorV2EmailAction requested by the fragment MonitorV2EmailAction.
 type MonitorV2EmailAction struct {
+	// A list of Observe users to email.
+	Users []types.UserIdScalar `json:"users"`
+	// A list of email addresses to email.
+	Addresses []string `json:"addresses"`
 	// The email subject template.
 	Subject *string `json:"subject"`
 	// The email body template.
@@ -4962,6 +4986,12 @@ type MonitorV2EmailAction struct {
 	// Fragments allow users to bring in additional monitor or alarm metadata.
 	Fragments *types.JsonObject `json:"fragments"`
 }
+
+// GetUsers returns MonitorV2EmailAction.Users, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailAction) GetUsers() []types.UserIdScalar { return v.Users }
+
+// GetAddresses returns MonitorV2EmailAction.Addresses, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailAction) GetAddresses() []string { return v.Addresses }
 
 // GetSubject returns MonitorV2EmailAction.Subject, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailAction) GetSubject() *string { return v.Subject }
@@ -4973,10 +5003,18 @@ func (v *MonitorV2EmailAction) GetBody() *string { return v.Body }
 func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragments }
 
 type MonitorV2EmailActionInput struct {
-	Subject   *string           `json:"subject,omitempty"`
-	Body      *string           `json:"body,omitempty"`
-	Fragments *types.JsonObject `json:"fragments,omitempty"`
+	Users     []types.UserIdScalar `json:"users"`
+	Addresses []string             `json:"addresses"`
+	Subject   *string              `json:"subject,omitempty"`
+	Body      *string              `json:"body,omitempty"`
+	Fragments *types.JsonObject    `json:"fragments,omitempty"`
 }
+
+// GetUsers returns MonitorV2EmailActionInput.Users, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetUsers() []types.UserIdScalar { return v.Users }
+
+// GetAddresses returns MonitorV2EmailActionInput.Addresses, and is useful for accessing the field via an interface.
+func (v *MonitorV2EmailActionInput) GetAddresses() []string { return v.Addresses }
 
 // GetSubject returns MonitorV2EmailActionInput.Subject, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailActionInput) GetSubject() *string { return v.Subject }
@@ -5384,6 +5422,10 @@ type MonitorV2WebhookAction struct {
 	Body *string `json:"body"`
 	// Fragments allow users to bring in additional monitor or alarm metadata.
 	Fragments *types.JsonObject `json:"fragments"`
+	// A webhook URL template to a destination that can be rendered.
+	Url *string `json:"url"`
+	// HTTP POST or PUT request into the webhook URL.
+	Method *MonitorV2HttpType `json:"method"`
 }
 
 // GetHeaders returns MonitorV2WebhookAction.Headers, and is useful for accessing the field via an interface.
@@ -5395,11 +5437,25 @@ func (v *MonitorV2WebhookAction) GetBody() *string { return v.Body }
 // GetFragments returns MonitorV2WebhookAction.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookAction) GetFragments() *types.JsonObject { return v.Fragments }
 
+// GetUrl returns MonitorV2WebhookAction.Url, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookAction) GetUrl() *string { return v.Url }
+
+// GetMethod returns MonitorV2WebhookAction.Method, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookAction) GetMethod() *MonitorV2HttpType { return v.Method }
+
 type MonitorV2WebhookActionInput struct {
+	Url       *string                       `json:"url"`
+	Method    *MonitorV2HttpType            `json:"method"`
 	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
 	Body      *string                       `json:"body,omitempty"`
 	Fragments *types.JsonObject             `json:"fragments,omitempty"`
 }
+
+// GetUrl returns MonitorV2WebhookActionInput.Url, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetUrl() *string { return v.Url }
+
+// GetMethod returns MonitorV2WebhookActionInput.Method, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookActionInput) GetMethod() *MonitorV2HttpType { return v.Method }
 
 // GetHeaders returns MonitorV2WebhookActionInput.Headers, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookActionInput) GetHeaders() []MonitorV2WebhookHeaderInput { return v.Headers }
@@ -12919,6 +12975,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -13096,6 +13154,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
 	subject
 	body
 	fragments
@@ -13106,6 +13166,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	}
 	body
 	fragments
+	url
+	method
 }
 fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
 	inline
@@ -16468,6 +16530,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -16643,6 +16707,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
 	subject
 	body
 	fragments
@@ -16653,6 +16719,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	}
 	body
 	fragments
+	url
+	method
 }
 fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
 	inline
@@ -18022,6 +18090,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18339,6 +18409,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
 	subject
 	body
 	fragments
@@ -18349,6 +18421,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	}
 	body
 	fragments
+	url
+	method
 }
 fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
 	inline
@@ -18679,6 +18753,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -19102,6 +19178,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
 	subject
 	body
 	fragments
@@ -19112,6 +19190,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	}
 	body
 	fragments
+	url
+	method
 }
 fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
 	inline
@@ -20348,6 +20428,8 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	sendEndNotifications
+	sendRemindersInterval
 }
 fragment StageQuery on StageQuery {
 	id
@@ -20525,6 +20607,8 @@ fragment ActionDestinationLink on ActionDestinationLink {
 	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
 	subject
 	body
 	fragments
@@ -20535,6 +20619,8 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	}
 	body
 	fragments
+	url
+	method
 }
 fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
 	inline

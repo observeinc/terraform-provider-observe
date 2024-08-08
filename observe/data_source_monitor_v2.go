@@ -265,6 +265,14 @@ func dataSourceMonitorV2() *schema.Resource {
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
 						},
+						"send_end_notifications": { // Boolean
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"send_reminders_interval": { // Duration
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),

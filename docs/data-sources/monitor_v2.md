@@ -55,6 +55,8 @@ Read-Only:
 
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
 - `oid` (String) The OID of this shared action.
+- `send_end_notifications` (Boolean)
+- `send_reminders_interval` (String)
 
 
 <a id="nestedblock--groupings"></a>

@@ -45,6 +45,17 @@ enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmL
   Warning
 }
 
+"""
+MonitorV2AlertType simply describes what type of alert template dictionary you'd like to generate
+as part of the monitorV2TemplateDictionary method. This MonitorV2AlertType is what shows up as the
+type of alert for the user -- New, Reminder, or Ended.
+"""
+enum MonitorV2AlertType @goModel(model: "observe/meta/metatypes.MonitorV2AlertType") {
+  Ended
+  New
+  Reminder
+}
+
 enum MonitorV2BooleanOperator @goModel(model: "observe/meta/metatypes.MonitorV2BooleanOperator") {
   And
   Or
@@ -149,7 +160,7 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     A longer description of the monitor.
     This can include details like how to resolve the issue, links to runbooks, etc.
     """
-    comment: String
+    comment: String @deprecated(reason:"Use the description field over the comment field")
     meta: MonitorV2Meta @goField(forceResolver: true)
     rollupStatus: MonitorV2RollupStatus! @goField(forceResolver: true)
     definition: MonitorV2Definition!
@@ -855,6 +866,8 @@ type MonitorV2ActionRule @goModel(model: "observe/meta/metatypes.MonitorV2Action
     Dispatch this action when the alarm matches any of the provided levels.
     """
     levels: [MonitorV2AlarmLevel!]
+    sendEndNotifications: Boolean
+    sendRemindersInterval: Duration
     """
     Included to be shown as part of the MonitorV2 output.
     """
@@ -866,6 +879,8 @@ input MonitorV2ActionRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2
     # not in input: monitorID: ObjectId!
     actionID: ObjectId!
     levels: [MonitorV2AlarmLevel!]
+    sendEndNotifications: Boolean
+    sendRemindersInterval: Duration
     # not in input: definition: MonitorV2ActionDefinitionInput!
 }
 
@@ -877,13 +892,13 @@ type MonitorV2ActionDefinition @goModel(model: "observe/meta/metatypes.MonitorV2
     """
     inline: Boolean
     type: MonitorV2ActionType!
-    # not in output: actionID: ObjectId!
+    # not in output: actionID: ObjectId! @deprecated(reason:"This is no longer needed with the migration of destination fields into action")
     """
     List of destinations for dispatching. Each entry will contain the
     destination definition regardless of whether the definition is shared or 
     provided inline.
     """
-    destinationLinks: [ActionDestinationLink!]! @goField(forceResolver: true)
+    destinationLinks: [ActionDestinationLink!]! @deprecated(reason:"Do not use this field now that the destination fields migrated into MonitorV2Action from MonitorV2Destination")
     email: MonitorV2EmailAction
     webhook: MonitorV2WebhookAction
 }
@@ -911,13 +926,13 @@ type MonitorV2Action implements WorkspaceObject & AuditedObject & FolderObject @
     """
     inline: Boolean
     type: MonitorV2ActionType!
-    # not in output: actionID: ObjectId!
+    # not in output: actionID: ObjectId! @deprecated(reason:"This is no longer needed with the migration of destination fields into action")
     """
     List of destinations for dispatching. Each entry will contain the
     destination definition regardless of whether the definition is shared or 
     provided inline.
     """
-    destinationLinks: [ActionDestinationLink!]! @goField(forceResolver: true)
+    destinationLinks: [ActionDestinationLink!]! @deprecated(reason:"Do not use this field now that the destination fields migrated into MonitorV2Action from MonitorV2Destination")
     email: MonitorV2EmailAction
     webhook: MonitorV2WebhookAction
     # WorkspaceObject
@@ -967,6 +982,14 @@ type MonitorV2ActionSearchResult @goModel(model: "observe/meta/metatypes.Monitor
 type MonitorV2EmailAction @goModel(model: "observe/meta/metatypes.MonitorV2EmailAction") {
     # payload
     """
+    A list of Observe users to email.
+    """
+    users: [UserId!]
+    """
+    A list of email addresses to email.
+    """
+    addresses: [String!]
+    """
     The email subject template.
     """
     subject: String
@@ -982,6 +1005,8 @@ type MonitorV2EmailAction @goModel(model: "observe/meta/metatypes.MonitorV2Email
 
 input MonitorV2EmailActionInput @goModel(model: "observe/meta/metatypes.MonitorV2EmailActionInput") {
     # payload
+    users: [UserId!]
+    addresses: [String!]
     subject: String
     body: String
     fragments: JsonObject
@@ -990,6 +1015,14 @@ input MonitorV2EmailActionInput @goModel(model: "observe/meta/metatypes.MonitorV
 
 type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2WebhookAction") {
     # payload
+    """
+    A webhook URL template to a destination that can be rendered.
+    """
+    url: String
+    """
+    HTTP POST or PUT request into the webhook URL.
+    """
+    method: MonitorV2HttpType
     """
     The webhook headers -- a header and a value template.
     """
@@ -1006,6 +1039,8 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
 
 input MonitorV2WebhookActionInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookActionInput") {
     # payload
+    url: String
+    method: MonitorV2HttpType
     headers: [MonitorV2WebhookHeaderInput!]
     body: String
     fragments: JsonObject
@@ -1014,17 +1049,17 @@ input MonitorV2WebhookActionInput @goModel(model: "observe/meta/metatypes.Monito
 
 type ActionDestinationLink @goModel(model: "observe/meta/metatypes.ActionDestinationLink") {
     # payload
-    # not in output: actionID: ObjectId!
+    # not in output: actionID: ObjectId! @deprecated(reason:"Use the action rule instead of destination links")
     """
     Takes in a private or public destination id created from an earlier createDestination API call.
     """
-    destinationID: ObjectId!
-    sendEndNotifications: Boolean
-    sendRemindersInterval: Duration
+    destinationID: ObjectId! @deprecated(reason:"Use the action rule instead of destination links")
+    sendEndNotifications: Boolean @deprecated(reason:"Use the action rule instead of destination links")
+    sendRemindersInterval: Duration @deprecated(reason:"Use the action rule instead of destination links")
     """
     Included to be shown as part of the MonitorV2Action (and MonitorV2) output.
     """
-    definition: MonitorV2DestinationDefinition!
+    definition: MonitorV2DestinationDefinition! @deprecated(reason:"Use the action rule instead of destination links")
 }
 
 input ActionDestinationLinkInput @goModel(model: "observe/meta/metatypes.ActionDestinationLinkInput") {
@@ -1043,14 +1078,14 @@ input ActionDestinationLinkInput @goModel(model: "observe/meta/metatypes.ActionD
 # the workspace and can be used by any monitor.
 type MonitorV2Destination implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.MonitorV2Destination") {
     # payload
-    # not in output: definition: JsonObject!
+    # not in output: definition: JsonObject! @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
     """
     The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
     """
     inline: Boolean
-    type: MonitorV2ActionType!
-    email: MonitorV2EmailDestination
-    webhook: MonitorV2WebhookDestination
+    type: MonitorV2ActionType! @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
+    email: MonitorV2EmailDestination @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
+    webhook: MonitorV2WebhookDestination @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -1099,9 +1134,9 @@ type MonitorV2DestinationDefinition @goModel(model: "observe/meta/metatypes.Moni
     The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
     """
     inline: Boolean
-    type: MonitorV2ActionType!
-    email: MonitorV2EmailDestination
-    webhook: MonitorV2WebhookDestination
+    type: MonitorV2ActionType! @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
+    email: MonitorV2EmailDestination @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
+    webhook: MonitorV2WebhookDestination @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
 }
 
 input MonitorV2DestinationDefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DestinationDefinitionInput") {
@@ -1118,11 +1153,11 @@ type MonitorV2EmailDestination @goModel(model: "observe/meta/metatypes.MonitorV2
     """
     A list of Observe users to email.
     """
-    users: [UserId!]
+    users: [UserId!] @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
     """
     A list of email addresses to email.
     """
-    addresses: [String!]
+    addresses: [String!] @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
 }
 
 input MonitorV2EmailDestinationInput @goModel(model: "observe/meta/metatypes.MonitorV2EmailDestinationInput") {
@@ -1137,11 +1172,11 @@ type MonitorV2WebhookDestination @goModel(model: "observe/meta/metatypes.Monitor
     """
     A webhook URL template to a destination that can be rendered.
     """
-    url: String!
+    url: String! @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
     """
     HTTP POST or PUT request into the webhook URL.
     """
-    method: MonitorV2HttpType!
+    method: MonitorV2HttpType! @deprecated(reason:"Use the destination fields within MonitorV2ActionDefinition over MonitorV2Destination")
 }
 
 input MonitorV2WebhookDestinationInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookDestinationInput") {
