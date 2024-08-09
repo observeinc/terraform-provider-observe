@@ -38,12 +38,6 @@ func (client *Client) DeleteMonitorV2Action(ctx context.Context, id string) erro
 	return resultStatusError(resp, err)
 }
 
-// used only when creating or updating a destination
-func (client *Client) SaveActionWithDestinationLinks(ctx context.Context, actionId string, destinationLinks []ActionDestinationLinkInput) (*MonitorV2Action, error) {
-	resp, err := saveActionWithDestinationLinks(ctx, client.Gql, actionId, destinationLinks)
-	return monitorV2ActionOrError(resp, err)
-}
-
 func (client *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) (*MonitorV2Action, error) {
 	resp, err := searchMonitorV2Action(ctx, client.Gql, workspaceId, nil, nameExact, nil)
 	if err != nil || resp == nil || len(resp.MonitorV2Actions.Results) != 1 {
