@@ -11,47 +11,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
-// ActionDestinationLink includes the GraphQL fields of ActionDestinationLink requested by the fragment ActionDestinationLink.
-type ActionDestinationLink struct {
-	// Takes in a private or public destination id created from an earlier createDestination API call.
-	DestinationID         string                `json:"destinationID"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
-	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
-	// Included to be shown as part of the MonitorV2Action (and MonitorV2) output.
-	Definition MonitorV2DestinationDefinition `json:"definition"`
-}
-
-// GetDestinationID returns ActionDestinationLink.DestinationID, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLink) GetDestinationID() string { return v.DestinationID }
-
-// GetSendEndNotifications returns ActionDestinationLink.SendEndNotifications, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLink) GetSendEndNotifications() *bool { return v.SendEndNotifications }
-
-// GetSendRemindersInterval returns ActionDestinationLink.SendRemindersInterval, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLink) GetSendRemindersInterval() *types.DurationScalar {
-	return v.SendRemindersInterval
-}
-
-// GetDefinition returns ActionDestinationLink.Definition, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLink) GetDefinition() MonitorV2DestinationDefinition { return v.Definition }
-
-type ActionDestinationLinkInput struct {
-	DestinationID         string                `json:"destinationID"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications,omitempty"`
-	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval,omitempty"`
-}
-
-// GetDestinationID returns ActionDestinationLinkInput.DestinationID, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLinkInput) GetDestinationID() string { return v.DestinationID }
-
-// GetSendEndNotifications returns ActionDestinationLinkInput.SendEndNotifications, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLinkInput) GetSendEndNotifications() *bool { return v.SendEndNotifications }
-
-// GetSendRemindersInterval returns ActionDestinationLinkInput.SendRemindersInterval, and is useful for accessing the field via an interface.
-func (v *ActionDestinationLinkInput) GetSendRemindersInterval() *types.DurationScalar {
-	return v.SendRemindersInterval
-}
-
 type ActionInput struct {
 	Name             *string               `json:"name"`
 	IconUrl          *string               `json:"iconUrl"`
@@ -93,15 +52,11 @@ func (v *ActionInput) GetWebhook() *WebhookActionInput { return v.Webhook }
 
 // ActionRelationInput maps the action's relationship to the destinations the user desires to link with.
 type ActionRelationInput struct {
-	ActionRule MonitorV2ActionRuleInput     `json:"actionRule"`
-	DestLinks  []ActionDestinationLinkInput `json:"destLinks"`
+	ActionRule MonitorV2ActionRuleInput `json:"actionRule"`
 }
 
 // GetActionRule returns ActionRelationInput.ActionRule, and is useful for accessing the field via an interface.
 func (v *ActionRelationInput) GetActionRule() MonitorV2ActionRuleInput { return v.ActionRule }
-
-// GetDestLinks returns ActionRelationInput.DestLinks, and is useful for accessing the field via an interface.
-func (v *ActionRelationInput) GetDestLinks() []ActionDestinationLinkInput { return v.DestLinks }
 
 type AggregateFunction string
 
@@ -4459,21 +4414,17 @@ func (v *MonitorV2) GetActionRules() []MonitorV2ActionRule { return v.ActionRule
 // MonitorV2Action includes the GraphQL fields of MonitorV2Action requested by the fragment MonitorV2Action.
 type MonitorV2Action struct {
 	// The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
-	Inline *bool               `json:"inline"`
-	Type   MonitorV2ActionType `json:"type"`
-	// List of destinations for dispatching. Each entry will contain the
-	// destination definition regardless of whether the definition is shared or
-	// provided inline.
-	DestinationLinks []ActionDestinationLink `json:"destinationLinks"`
-	Email            *MonitorV2EmailAction   `json:"email"`
-	Webhook          *MonitorV2WebhookAction `json:"webhook"`
-	Id               string                  `json:"id"`
-	WorkspaceId      string                  `json:"workspaceId"`
-	Name             string                  `json:"name"`
-	IconUrl          *string                 `json:"iconUrl"`
-	Description      *string                 `json:"description"`
-	CreatedBy        types.UserIdScalar      `json:"createdBy"`
-	CreatedDate      types.TimeScalar        `json:"createdDate"`
+	Inline      *bool                   `json:"inline"`
+	Type        MonitorV2ActionType     `json:"type"`
+	Email       *MonitorV2EmailAction   `json:"email"`
+	Webhook     *MonitorV2WebhookAction `json:"webhook"`
+	Id          string                  `json:"id"`
+	WorkspaceId string                  `json:"workspaceId"`
+	Name        string                  `json:"name"`
+	IconUrl     *string                 `json:"iconUrl"`
+	Description *string                 `json:"description"`
+	CreatedBy   types.UserIdScalar      `json:"createdBy"`
+	CreatedDate types.TimeScalar        `json:"createdDate"`
 }
 
 // GetInline returns MonitorV2Action.Inline, and is useful for accessing the field via an interface.
@@ -4481,9 +4432,6 @@ func (v *MonitorV2Action) GetInline() *bool { return v.Inline }
 
 // GetType returns MonitorV2Action.Type, and is useful for accessing the field via an interface.
 func (v *MonitorV2Action) GetType() MonitorV2ActionType { return v.Type }
-
-// GetDestinationLinks returns MonitorV2Action.DestinationLinks, and is useful for accessing the field via an interface.
-func (v *MonitorV2Action) GetDestinationLinks() []ActionDestinationLink { return v.DestinationLinks }
 
 // GetEmail returns MonitorV2Action.Email, and is useful for accessing the field via an interface.
 func (v *MonitorV2Action) GetEmail() *MonitorV2EmailAction { return v.Email }
@@ -4868,27 +4816,6 @@ func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetOutputStage() string {
 // GetStages returns MonitorV2DefinitionInputQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
 
-// MonitorV2DestinationDefinition includes the GraphQL fields of MonitorV2DestinationDefinition requested by the fragment MonitorV2DestinationDefinition.
-type MonitorV2DestinationDefinition struct {
-	// The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
-	Inline  *bool                        `json:"inline"`
-	Type    MonitorV2ActionType          `json:"type"`
-	Email   *MonitorV2EmailDestination   `json:"email"`
-	Webhook *MonitorV2WebhookDestination `json:"webhook"`
-}
-
-// GetInline returns MonitorV2DestinationDefinition.Inline, and is useful for accessing the field via an interface.
-func (v *MonitorV2DestinationDefinition) GetInline() *bool { return v.Inline }
-
-// GetType returns MonitorV2DestinationDefinition.Type, and is useful for accessing the field via an interface.
-func (v *MonitorV2DestinationDefinition) GetType() MonitorV2ActionType { return v.Type }
-
-// GetEmail returns MonitorV2DestinationDefinition.Email, and is useful for accessing the field via an interface.
-func (v *MonitorV2DestinationDefinition) GetEmail() *MonitorV2EmailDestination { return v.Email }
-
-// GetWebhook returns MonitorV2DestinationDefinition.Webhook, and is useful for accessing the field via an interface.
-func (v *MonitorV2DestinationDefinition) GetWebhook() *MonitorV2WebhookDestination { return v.Webhook }
-
 // MonitorV2EmailAction includes the GraphQL fields of MonitorV2EmailAction requested by the fragment MonitorV2EmailAction.
 type MonitorV2EmailAction struct {
 	// A list of Observe users to email.
@@ -4940,20 +4867,6 @@ func (v *MonitorV2EmailActionInput) GetBody() *string { return v.Body }
 
 // GetFragments returns MonitorV2EmailActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
-
-// MonitorV2EmailDestination includes the GraphQL fields of MonitorV2EmailDestination requested by the fragment MonitorV2EmailDestination.
-type MonitorV2EmailDestination struct {
-	// A list of Observe users to email.
-	Users []types.UserIdScalar `json:"users"`
-	// A list of email addresses to email.
-	Addresses []string `json:"addresses"`
-}
-
-// GetUsers returns MonitorV2EmailDestination.Users, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailDestination) GetUsers() []types.UserIdScalar { return v.Users }
-
-// GetAddresses returns MonitorV2EmailDestination.Addresses, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailDestination) GetAddresses() []string { return v.Addresses }
 
 // MonitorV2HttpType describes the two HTTP request methods that users can choose to alert to
 // their desired webhook destinations: POST and PUT.
@@ -5370,20 +5283,6 @@ func (v *MonitorV2WebhookActionInput) GetBody() *string { return v.Body }
 
 // GetFragments returns MonitorV2WebhookActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookActionInput) GetFragments() *types.JsonObject { return v.Fragments }
-
-// MonitorV2WebhookDestination includes the GraphQL fields of MonitorV2WebhookDestination requested by the fragment MonitorV2WebhookDestination.
-type MonitorV2WebhookDestination struct {
-	// A webhook URL template to a destination that can be rendered.
-	Url string `json:"url"`
-	// HTTP POST or PUT request into the webhook URL.
-	Method MonitorV2HttpType `json:"method"`
-}
-
-// GetUrl returns MonitorV2WebhookDestination.Url, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookDestination) GetUrl() string { return v.Url }
-
-// GetMethod returns MonitorV2WebhookDestination.Method, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookDestination) GetMethod() MonitorV2HttpType { return v.Method }
 
 // MonitorV2WebhookHeader includes the GraphQL fields of MonitorV2WebhookHeader requested by the fragment MonitorV2WebhookHeader.
 type MonitorV2WebhookHeader struct {
@@ -12915,9 +12814,6 @@ mutation createMonitorV2Action ($workspaceId: ObjectId!, $input: MonitorV2Action
 fragment MonitorV2Action on MonitorV2Action {
 	inline
 	type
-	destinationLinks {
-		... ActionDestinationLink
-	}
 	email {
 		... MonitorV2EmailAction
 	}
@@ -12931,14 +12827,6 @@ fragment MonitorV2Action on MonitorV2Action {
 	description
 	createdBy
 	createdDate
-}
-fragment ActionDestinationLink on ActionDestinationLink {
-	destinationID
-	sendEndNotifications
-	sendRemindersInterval
-	definition {
-		... MonitorV2DestinationDefinition
-	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -12956,27 +12844,9 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	url
 	method
 }
-fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
-	inline
-	type
-	email {
-		... MonitorV2EmailDestination
-	}
-	webhook {
-		... MonitorV2WebhookDestination
-	}
-}
 fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 	header
 	value
-}
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-	users
-	addresses
-}
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-	url
-	method
 }
 `
 
@@ -16367,9 +16237,6 @@ query getMonitorV2Action ($id: ObjectId!) {
 fragment MonitorV2Action on MonitorV2Action {
 	inline
 	type
-	destinationLinks {
-		... ActionDestinationLink
-	}
 	email {
 		... MonitorV2EmailAction
 	}
@@ -16383,14 +16250,6 @@ fragment MonitorV2Action on MonitorV2Action {
 	description
 	createdBy
 	createdDate
-}
-fragment ActionDestinationLink on ActionDestinationLink {
-	destinationID
-	sendEndNotifications
-	sendRemindersInterval
-	definition {
-		... MonitorV2DestinationDefinition
-	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -16408,27 +16267,9 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	url
 	method
 }
-fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
-	inline
-	type
-	email {
-		... MonitorV2EmailDestination
-	}
-	webhook {
-		... MonitorV2WebhookDestination
-	}
-}
 fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 	header
 	value
-}
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-	users
-	addresses
-}
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-	url
-	method
 }
 `
 
@@ -18676,9 +18517,6 @@ fragment MonitorV2ActionSearchResult on MonitorV2ActionSearchResult {
 fragment MonitorV2Action on MonitorV2Action {
 	inline
 	type
-	destinationLinks {
-		... ActionDestinationLink
-	}
 	email {
 		... MonitorV2EmailAction
 	}
@@ -18692,14 +18530,6 @@ fragment MonitorV2Action on MonitorV2Action {
 	description
 	createdBy
 	createdDate
-}
-fragment ActionDestinationLink on ActionDestinationLink {
-	destinationID
-	sendEndNotifications
-	sendRemindersInterval
-	definition {
-		... MonitorV2DestinationDefinition
-	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -18717,27 +18547,9 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	url
 	method
 }
-fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
-	inline
-	type
-	email {
-		... MonitorV2EmailDestination
-	}
-	webhook {
-		... MonitorV2WebhookDestination
-	}
-}
 fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 	header
 	value
-}
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-	users
-	addresses
-}
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-	url
-	method
 }
 `
 
@@ -20105,9 +19917,6 @@ mutation updateMonitorV2Action ($id: ObjectId!, $input: MonitorV2ActionInput!) {
 fragment MonitorV2Action on MonitorV2Action {
 	inline
 	type
-	destinationLinks {
-		... ActionDestinationLink
-	}
 	email {
 		... MonitorV2EmailAction
 	}
@@ -20121,14 +19930,6 @@ fragment MonitorV2Action on MonitorV2Action {
 	description
 	createdBy
 	createdDate
-}
-fragment ActionDestinationLink on ActionDestinationLink {
-	destinationID
-	sendEndNotifications
-	sendRemindersInterval
-	definition {
-		... MonitorV2DestinationDefinition
-	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -20146,27 +19947,9 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 	url
 	method
 }
-fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
-	inline
-	type
-	email {
-		... MonitorV2EmailDestination
-	}
-	webhook {
-		... MonitorV2WebhookDestination
-	}
-}
 fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 	header
 	value
-}
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-	users
-	addresses
-}
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-	url
-	method
 }
 `
 

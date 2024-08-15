@@ -1,36 +1,3 @@
-fragment MonitorV2WebhookDestination on MonitorV2WebhookDestination {
-    url
-    method
-}
-
-fragment MonitorV2EmailDestination on MonitorV2EmailDestination {
-    users
-    addresses
-}
-
-fragment MonitorV2DestinationDefinition on MonitorV2DestinationDefinition {
-    inline
-    type
-    # @genqlient(flatten: true)
-    email {
-        ...MonitorV2EmailDestination
-    }
-    # @genqlient(flatten: true)
-    webhook {
-        ...MonitorV2WebhookDestination
-    }
-}
-
-fragment ActionDestinationLink on ActionDestinationLink {
-    destinationID
-    sendEndNotifications
-    sendRemindersInterval
-    # @genqlient(flatten: true)
-    definition {
-        ...MonitorV2DestinationDefinition
-    }
-}
-
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
     users
     addresses
@@ -58,10 +25,6 @@ fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
 fragment MonitorV2Action on MonitorV2Action {
     inline
     type
-    # @genqlient(flatten: true)
-    destinationLinks {
-        ...ActionDestinationLink
-    }
     # @genqlient(flatten: true)
     email {
         ...MonitorV2EmailAction
