@@ -101,13 +101,20 @@ func resourceCorrelationTagCreate(ctx context.Context, data *schema.ResourceData
 		return diags
 	}
 
-	err := client.CreateCorrelationTag(ctx, params.Dataset, params.Tag, params.Path)
+	isPresent, err := client.IsCorrelationTagPresent(ctx, params.Dataset, params.Tag, params.Path)
 	if err != nil {
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to create correlation tag",
-			Detail:   err.Error(),
-		})
+		return diag.FromErr(err)
+	}
+
+	if !isPresent {
+		err := client.CreateCorrelationTag(ctx, params.Dataset, params.Tag, params.Path)
+		if err != nil {
+			return append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "failed to create correlation tag",
+				Detail:   err.Error(),
+			})
+		}
 	}
 
 	data.SetId(constructCorrelationTagId(params.Dataset, params.Tag, params.Path))
