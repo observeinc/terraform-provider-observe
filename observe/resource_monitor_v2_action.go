@@ -13,36 +13,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-/************************************************************
-*                                                           *
-*   FOR WHOEVER GETS PUT ON THIS TASK AFTER I LEAVE:        *
-*                                                           *
-*   This file was written when the API used to require      *
-*   separate calls for creating a monv2 action and a        *
-*   destination. This is why, for example, the function     *
-*   resourceMonitorV2DestinationCreate calls 2 create       *
-*   API calls (one to make the action, another for dest).   *
-*   If you're reading this message with the intent of       *
-*   modifying this file, the API has probably changed       *
-*   so that a shared action and inlined destination can     *
-*   be edited in a single API call, which is likely         *
-*   what you were asked to change about this code.          *
-*                                                           *
-*   If possible, please do NOT remove any params from the   *
-*   existing schema or add any new required params. I       *
-*   tried to write the schema so that it would map onto     *
-*   the new API relatively cleanly. You probably won't      *
-*   need to change the schema, but you'll likely need to    *
-*   change how the variables read from said schema are      *
-*   arranged into the inputs fed to the API call.           *
-*                                                           *
-*   After making the changes, please delete this comment.   *
-*                                                           *
-*   Thanks! :)                                              *
-*   - Owen                                                  *
-*                                                           *
-***********************************************************/
-
 func resourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMonitorV2ActionCreate,
@@ -87,10 +57,6 @@ func resourceMonitorV2Action() *schema.Resource {
 			},
 			// end of monitorV2ActionInput
 			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"destination": { // OID of destination, TODO: remove this after API migration
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -185,31 +151,9 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 	if diags.HasError() {
 		return diags
 	}
-	dstInput, diags := newMonitorV2DestinationInput(actInput)
-	if diags.HasError() {
-		return diags
-	}
 
 	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
 	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, actInput)
-	if err != nil {
-		return diag.Errorf("failed to create monitor action: %s", err.Error())
-	}
-
-	dstResult, err := client.CreateMonitorV2Destination(ctx, workspaceID.Id, dstInput)
-	if err != nil {
-		return diag.Errorf("failed to create monitor action: %s", err.Error())
-	}
-	if err := data.Set("destination", dstResult.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	dstLinks := []gql.ActionDestinationLinkInput{
-		{
-			DestinationID: dstResult.Id,
-		},
-	}
-	_, err = client.SaveActionWithDestinationLinks(ctx, actResult.Id, dstLinks)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}
@@ -221,32 +165,12 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	actId := data.Id()
-
-	// TODO: delete this after API migration is complete (if unsure what "API migration" means, ask Andrew)
-	var dstId string
-	if v, ok := data.GetOk("destination"); ok {
-		dstOID, err := oid.NewOID(v.(string))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		dstId = dstOID.Id
-	} else {
-		return diag.Errorf("no destination id found")
-	}
-
 	actInput, diags := newMonitorV2ActionInput(data)
 	if diags.HasError() {
 		return diags
 	}
 
-	// TODO: delete this after API migration is complete
-	dstInput, diags := newMonitorV2DestinationInput(actInput)
-	if diags.HasError() {
-		return diags
-	}
-
-	_, err := client.UpdateMonitorV2Action(ctx, actId, actInput)
+	_, err := client.UpdateMonitorV2Action(ctx, data.Id(), actInput)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
@@ -256,30 +180,6 @@ func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceDat
 			return nil
 		}
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
-	}
-
-	// TODO: delete this after API migration is complete
-	_, err = client.UpdateMonitorV2Destination(ctx, dstId, dstInput)
-	if err != nil {
-		if gql.HasErrorCode(err, "NOT_FOUND") {
-			// creating the action will create the destination
-			diags = resourceMonitorV2ActionCreate(ctx, data, meta)
-			if diags.HasError() {
-				return diags
-			}
-			return nil
-		}
-		return diag.Errorf("failed to create monitor action: %s", err.Error())
-	}
-
-	dstLinks := []gql.ActionDestinationLinkInput{
-		{
-			DestinationID: dstId,
-		},
-	}
-	_, err = client.Meta.SaveActionWithDestinationLinks(ctx, actId, dstLinks)
-	if err != nil {
-		return diag.FromErr(err)
 	}
 
 	return append(diags, resourceMonitorV2ActionRead(ctx, data, meta)...)
@@ -304,29 +204,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 			return nil
 		}
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
-	}
-
-	if len(action.DestinationLinks) < 1 {
-		return diag.Errorf("no destination id found")
-	}
-
-	dstId := action.DestinationLinks[0].DestinationID
-	dst, err := client.GetMonitorV2Destination(ctx, dstId)
-	if err != nil {
-		if gql.HasErrorCode(err, "NOT_FOUND") {
-			data.SetId("")
-			return nil
-		}
-		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
-	}
-
-	// sanity-check the return values
-	if action.Webhook != nil {
-		if action.Webhook.Url == nil || action.Webhook.Method == nil {
-			diags = append(diags, diag.Errorf("action url or method was not set")...)
-		} else if *action.Webhook.Url != dst.Webhook.Url || *action.Webhook.Method != dst.Webhook.Method {
-			diags = append(diags, diag.Errorf("action url or method disagrees with destination")...)
-		}
 	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {

@@ -25,7 +25,34 @@ extend type Query {
     Receive an actionInput and sample data payload to render all the fields in the mustache template.
     SampleData is the json payload that contains all the fields to render the mustache template.
     """
-    monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!, destInputs: [MonitorV2DestinationInput!]): RenderedTemplate!
+    monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): RenderedTemplate!
+
+    """
+    searchMonitorV2Alarms can be used to query alerts in the explorer using various optional filters.
+
+    monitorIds optionally restricts to a specific monitors
+    nameSubstring restricts to monitors with partial match on the name
+    alarmId optionally restricts to a single alarm
+    minTime and maxTime optionally restrict to alarms that partially overlap with the time range
+    levels optionally restricts by severity levels
+    groupingHash optionally restricts to alarms with the same groupiingHash, which can be used to
+        see logically grouped alarms.
+    active optionally filters on the active flag
+    
+    note: At this time, rbac enforcement is done on the associated monitor for list privs
+    """
+    searchMonitorV2Alarms(
+        workspaceId: ObjectId!,
+        monitorIds: [ObjectId!],
+        nameSubstring: String,
+        alarmId: String,
+        minTime: Time,
+        maxTime: Time,
+        levels: [MonitorV2AlarmLevel!],
+        groupingHash: Int64,
+        active: Boolean,
+        # TODO: captured value search?
+    ): MonitorV2AlarmSearchResult!
 }
 
 extend type Mutation {
@@ -39,15 +66,6 @@ extend type Mutation {
     where the action is shared.
     """
     saveMonitorV2Relations(monitorId: ObjectId!, actionRelations: [ActionRelationInput!]): MonitorV2!
-
-    """
-    saveActionsWithDestinations replaces all action's links to the destinations (MonitorV2) for the provided 
-    shared action. It only allows you to mutate shared actions' relationships with the shared destinations.
-    Private actions' links can't be mutated through this call, so you will need to use saveMonitorV2Relations to do so.
-    The purpose of the API is such that the users can create a shared action and make links to the destinations
-    from the shared actions page or when an action has been shared from within the monitor editing page.
-    """
-    saveActionWithDestinationLinks(actionId: ObjectId!, destinationLinks: [ActionDestinationLinkInput!]): MonitorV2Action!
 
     """
     terminateMonitorV2Alarm allows an explicit termination of an active alarm. The purpose is to
@@ -76,7 +94,7 @@ extend type Mutation {
     the actionInput and destinationInputs object. Afterward, it sends a test alert to see whether the customer can
     receive an alert at their designated end point.
     """
-    testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!, destInputs: [MonitorV2DestinationInput!]!): ResultStatus!
+    testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): ResultStatus!
 }
 
 # Future placeholder for mutation in one go -- an optional definition can be added along with what type of mutation
@@ -86,7 +104,6 @@ ActionRelationInput maps the action's relationship to the destinations the user 
 """
 input ActionRelationInput @goModel(model: "observe/meta/metatypes.ActionRelationInput") {
     actionRule: MonitorV2ActionRuleInput!
-    destLinks: [ActionDestinationLinkInput!]
 }
 
 type TemplateDictionary @goModel(model: "observe/meta/metatypes.TemplateDictionary") {
@@ -103,6 +120,9 @@ type RenderedEmail @goModel(model: "observe/meta/metatypes.RenderedEmail") {
 }
 
 type RenderedWebhook @goModel(model: "observe/meta/metatypes.RenderedWebhook") {
-    destinations: [MonitorV2WebhookDestination!]
     action: MonitorV2WebhookAction!
+}
+
+type MonitorV2AlarmSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2AlarmSearchResult") {
+    results: [MonitorV2Alarm!]!
 }

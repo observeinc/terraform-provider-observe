@@ -141,7 +141,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 						workspace = data.observe_workspace.default.oid
 						rule_kind = "promote"
 						name = "%[1]s"
-						lookback_time = "0s"
+						lookback_time = "10s"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -175,7 +175,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "10s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "promote"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.compare_fn", "greater"),
