@@ -206,10 +206,6 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
 	}
 
-	if len(action.DestinationLinks) < 1 {
-		return diag.Errorf("no destination id found")
-	}
-
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
