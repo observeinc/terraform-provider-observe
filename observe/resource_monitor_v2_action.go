@@ -69,11 +69,11 @@ func monitorV2EmailActionInput() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"subject": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -108,7 +108,7 @@ func monitorV2WebhookActionInput() *schema.Resource {
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -245,15 +245,13 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 
 func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) []interface{} {
 	email := make(map[string]interface{})
-	if gqlEmail.Body != nil {
-		email["body"] = *gqlEmail.Body
-	}
+	email["subject"] = gqlEmail.Subject
+	email["body"] = gqlEmail.Body
+
 	if gqlEmail.Fragments != nil {
 		email["fragments"] = gqlEmail.Fragments.String()
 	}
-	if gqlEmail.Subject != nil {
-		email["subject"] = *gqlEmail.Subject
-	}
+
 	if len(gqlEmail.Addresses) > 0 {
 		addrs := make([]string, 0)
 		for _, addr := range gqlEmail.Addresses {
@@ -280,18 +278,10 @@ func monitorV2FlattenWebhookAction(gqlWebhook gql.MonitorV2WebhookAction) []inte
 	if gqlWebhook.Fragments != nil {
 		webhook["fragments"] = gqlWebhook.Fragments.String()
 	}
-	if gqlWebhook.Body != nil {
-		webhook["body"] = *gqlWebhook.Body
-	}
+	webhook["url"] = gqlWebhook.Url
+	webhook["method"] = toSnake(string(gqlWebhook.Method))
+	webhook["body"] = gqlWebhook.Body
 
-	// TODO: URL and Method are only temporarily optional in gql while frontend migrates.
-	// after the migration is complete, re-sync the gql and regenerate.
-	if gqlWebhook.Url != nil {
-		webhook["url"] = *gqlWebhook.Url
-	}
-	if gqlWebhook.Method != nil {
-		webhook["method"] = toSnake(string(*gqlWebhook.Method))
-	}
 	return []interface{}{webhook}
 }
 
@@ -353,12 +343,10 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 
 	// optionals
 	if v, ok := data.GetOk(fmt.Sprintf("%ssubject", path)); ok {
-		subject := v.(string)
-		email.Subject = &subject
+		email.Subject = v.(string)
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
-		body := v.(string)
-		email.Body = &body
+		email.Body = v.(string)
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
@@ -394,8 +382,8 @@ func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (web
 
 	// instantiation
 	webhook = &gql.MonitorV2WebhookActionInput{
-		Url:    &url,
-		Method: &method,
+		Url:    url,
+		Method: method,
 	}
 
 	// optionals
@@ -413,8 +401,7 @@ func newMonitorV2WebhookActionInput(data *schema.ResourceData, path string) (web
 		webhook.Fragments = types.JsonObject(v.(string)).Ptr()
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
-		body := v.(string)
-		webhook.Body = &body
+		webhook.Body = v.(string)
 	}
 
 	return webhook, diags
