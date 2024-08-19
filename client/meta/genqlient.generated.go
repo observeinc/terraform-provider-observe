@@ -4823,9 +4823,9 @@ type MonitorV2EmailAction struct {
 	// A list of email addresses to email.
 	Addresses []string `json:"addresses"`
 	// The email subject template.
-	Subject *string `json:"subject"`
+	Subject string `json:"subject"`
 	// The email body template.
-	Body *string `json:"body"`
+	Body string `json:"body"`
 	// Fragments allow users to bring in additional monitor or alarm metadata.
 	Fragments *types.JsonObject `json:"fragments"`
 }
@@ -4837,10 +4837,10 @@ func (v *MonitorV2EmailAction) GetUsers() []types.UserIdScalar { return v.Users 
 func (v *MonitorV2EmailAction) GetAddresses() []string { return v.Addresses }
 
 // GetSubject returns MonitorV2EmailAction.Subject, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailAction) GetSubject() *string { return v.Subject }
+func (v *MonitorV2EmailAction) GetSubject() string { return v.Subject }
 
 // GetBody returns MonitorV2EmailAction.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailAction) GetBody() *string { return v.Body }
+func (v *MonitorV2EmailAction) GetBody() string { return v.Body }
 
 // GetFragments returns MonitorV2EmailAction.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragments }
@@ -4848,8 +4848,8 @@ func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragm
 type MonitorV2EmailActionInput struct {
 	Users     []types.UserIdScalar `json:"users"`
 	Addresses []string             `json:"addresses"`
-	Subject   *string              `json:"subject,omitempty"`
-	Body      *string              `json:"body,omitempty"`
+	Subject   string               `json:"subject"`
+	Body      string               `json:"body"`
 	Fragments *types.JsonObject    `json:"fragments,omitempty"`
 }
 
@@ -4860,10 +4860,10 @@ func (v *MonitorV2EmailActionInput) GetUsers() []types.UserIdScalar { return v.U
 func (v *MonitorV2EmailActionInput) GetAddresses() []string { return v.Addresses }
 
 // GetSubject returns MonitorV2EmailActionInput.Subject, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailActionInput) GetSubject() *string { return v.Subject }
+func (v *MonitorV2EmailActionInput) GetSubject() string { return v.Subject }
 
 // GetBody returns MonitorV2EmailActionInput.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailActionInput) GetBody() *string { return v.Body }
+func (v *MonitorV2EmailActionInput) GetBody() string { return v.Body }
 
 // GetFragments returns MonitorV2EmailActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
@@ -5237,49 +5237,49 @@ type MonitorV2WebhookAction struct {
 	// The webhook headers -- a header and a value template.
 	Headers []MonitorV2WebhookHeader `json:"headers"`
 	// The webhook body template.
-	Body *string `json:"body"`
+	Body string `json:"body"`
 	// Fragments allow users to bring in additional monitor or alarm metadata.
 	Fragments *types.JsonObject `json:"fragments"`
 	// A webhook URL template to a destination that can be rendered.
-	Url *string `json:"url"`
+	Url string `json:"url"`
 	// HTTP POST or PUT request into the webhook URL.
-	Method *MonitorV2HttpType `json:"method"`
+	Method MonitorV2HttpType `json:"method"`
 }
 
 // GetHeaders returns MonitorV2WebhookAction.Headers, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookAction) GetHeaders() []MonitorV2WebhookHeader { return v.Headers }
 
 // GetBody returns MonitorV2WebhookAction.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookAction) GetBody() *string { return v.Body }
+func (v *MonitorV2WebhookAction) GetBody() string { return v.Body }
 
 // GetFragments returns MonitorV2WebhookAction.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookAction) GetFragments() *types.JsonObject { return v.Fragments }
 
 // GetUrl returns MonitorV2WebhookAction.Url, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookAction) GetUrl() *string { return v.Url }
+func (v *MonitorV2WebhookAction) GetUrl() string { return v.Url }
 
 // GetMethod returns MonitorV2WebhookAction.Method, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookAction) GetMethod() *MonitorV2HttpType { return v.Method }
+func (v *MonitorV2WebhookAction) GetMethod() MonitorV2HttpType { return v.Method }
 
 type MonitorV2WebhookActionInput struct {
-	Url       *string                       `json:"url"`
-	Method    *MonitorV2HttpType            `json:"method"`
+	Url       string                        `json:"url"`
+	Method    MonitorV2HttpType             `json:"method"`
 	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
-	Body      *string                       `json:"body,omitempty"`
+	Body      string                        `json:"body"`
 	Fragments *types.JsonObject             `json:"fragments,omitempty"`
 }
 
 // GetUrl returns MonitorV2WebhookActionInput.Url, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookActionInput) GetUrl() *string { return v.Url }
+func (v *MonitorV2WebhookActionInput) GetUrl() string { return v.Url }
 
 // GetMethod returns MonitorV2WebhookActionInput.Method, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookActionInput) GetMethod() *MonitorV2HttpType { return v.Method }
+func (v *MonitorV2WebhookActionInput) GetMethod() MonitorV2HttpType { return v.Method }
 
 // GetHeaders returns MonitorV2WebhookActionInput.Headers, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookActionInput) GetHeaders() []MonitorV2WebhookHeaderInput { return v.Headers }
 
 // GetBody returns MonitorV2WebhookActionInput.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2WebhookActionInput) GetBody() *string { return v.Body }
+func (v *MonitorV2WebhookActionInput) GetBody() string { return v.Body }
 
 // GetFragments returns MonitorV2WebhookActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookActionInput) GetFragments() *types.JsonObject { return v.Fragments }
