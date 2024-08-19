@@ -55,11 +55,8 @@ fragment MonitorV2ActionSearchResult on MonitorV2ActionSearchResult {
 # @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
-# @genqlient(for: "MonitorV2EmailActionInput.subject", omitempty: true)
-# @genqlient(for: "MonitorV2EmailActionInput.body", omitempty: true)
 # @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
 # @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
-# @genqlient(for: "MonitorV2WebhookActionInput.body", omitempty: true)
 # @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
 mutation createMonitorV2Action(
     $workspaceId: ObjectId!,
@@ -77,11 +74,8 @@ mutation createMonitorV2Action(
 # @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
-# @genqlient(for: "MonitorV2EmailActionInput.subject", omitempty: true)
-# @genqlient(for: "MonitorV2EmailActionInput.body", omitempty: true)
 # @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
 # @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
-# @genqlient(for: "MonitorV2WebhookActionInput.body", omitempty: true)
 # @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
 mutation updateMonitorV2Action(
     $id: ObjectId!,
