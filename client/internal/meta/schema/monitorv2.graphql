@@ -809,7 +809,7 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     no longer satisfied. If the active flag is true, then this is just the latest time for
     which the criteria are met.
     """
-    end: Time!
+    end: Time
     """
     Captured values describe the value captured from the monitor output dataset. It can contain
     the groupBy columns, linkPrimaryKey coluns, aggregation columns, or the regular columns.
@@ -842,7 +842,7 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     # payload
     id: String!
     start: Time!
-    end: Time!
+    end: Time
     capturedValues: [MonitorV2CapturedValueInput!]!
     isActive: Boolean!
     level: MonitorV2AlarmLevel!
@@ -854,6 +854,13 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
 type MonitorV2Preview @goModel(model: "observe/meta/metatypes.MonitorV2Preview") {
     # payload
     alarms: [MonitorV2Alarm!]!
+    """
+    stabilityBookmarkTime displays the time until which the alarms are stable. Any alarm with
+    an end time that crosses the bookmark time would mean that the end time may change from later
+    arriving data. This is an internal backend heuristic to do the work of "anything after
+    this time is potentially unstable and need to re-validate".
+    """
+    stabilityBookmarkTime: Time!
 }
 
 
@@ -994,11 +1001,11 @@ type MonitorV2EmailAction @goModel(model: "observe/meta/metatypes.MonitorV2Email
     """
     The email subject template.
     """
-    subject: String
+    subject: String!
     """
     The email body template.
     """
-    body: String
+    body: String!
     """
     Fragments allow users to bring in additional monitor or alarm metadata.
     """
@@ -1009,8 +1016,8 @@ input MonitorV2EmailActionInput @goModel(model: "observe/meta/metatypes.MonitorV
     # payload
     users: [UserId!]
     addresses: [String!]
-    subject: String
-    body: String
+    subject: String!
+    body: String!
     fragments: JsonObject
 }
 
@@ -1020,11 +1027,11 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
     """
     A webhook URL template to a destination that can be rendered.
     """
-    url: String
+    url: String!
     """
     HTTP POST or PUT request into the webhook URL.
     """
-    method: MonitorV2HttpType
+    method: MonitorV2HttpType!
     """
     The webhook headers -- a header and a value template.
     """
@@ -1032,7 +1039,7 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
     """
     The webhook body template.
     """
-    body: String
+    body: String!
     """
     Fragments allow users to bring in additional monitor or alarm metadata.
     """
@@ -1041,10 +1048,10 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
 
 input MonitorV2WebhookActionInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookActionInput") {
     # payload
-    url: String
-    method: MonitorV2HttpType
+    url: String!
+    method: MonitorV2HttpType!
     headers: [MonitorV2WebhookHeaderInput!]
-    body: String
+    body: String!
     fragments: JsonObject
 }
 
