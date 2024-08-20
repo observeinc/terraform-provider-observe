@@ -33,10 +33,6 @@ func dataSourceDataset() *schema.Resource {
 				Description: descriptions.Get("dataset", "schema", "name") +
 					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
-			"acceleration_disabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 			"id": {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
@@ -60,6 +56,10 @@ func dataSourceDataset() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: descriptions.Get("common", "schema", "icon_url"),
+			},
+			"acceleration_disabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"path_cost": {
 				Type:        schema.TypeInt,
