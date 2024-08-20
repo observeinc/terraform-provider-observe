@@ -113,7 +113,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						id = observe_monitor_v2.first.oid
+						id = observe_monitor_v2.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -179,7 +179,7 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 					}
 
 					data "observe_monitor_v2" "lookup" {
-						id = observe_monitor_v2.first.oid
+						id = observe_monitor_v2.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
