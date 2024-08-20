@@ -19,7 +19,7 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ExactlyOneOf:     []string{"name", "id"},
-				ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+				ValidateDiagFunc: validateID(),
 			},
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,

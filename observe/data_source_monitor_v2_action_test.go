@@ -38,7 +38,7 @@ func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 					}
 
 					data "observe_monitor_v2_action" "act" {
-						id = observe_monitor_v2_action.act.oid
+						id = observe_monitor_v2_action.act.id
 					}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
@@ -86,7 +86,7 @@ func TestAccObserveMonitorV2ActionWebhookDatasource(t *testing.T) {
 					}
 
 					data "observe_monitor_v2_action" "act" {
-						id = observe_monitor_v2_action.act.oid
+						id = observe_monitor_v2_action.act.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
