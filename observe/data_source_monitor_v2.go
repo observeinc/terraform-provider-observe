@@ -22,7 +22,7 @@ func dataSourceMonitorV2() *schema.Resource {
 			"id": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateOID(oid.TypeMonitorV2),
+				ValidateDiagFunc: validateID(),
 				Description:      descriptions.Get("common", "schema", "id"),
 				ExactlyOneOf:     []string{"name", "id"},
 			},
