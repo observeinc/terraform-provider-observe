@@ -481,3 +481,8 @@ Optional:
 
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
 
+## Import
+Import is supported using the following syntax:
+```shell
+terraform import observe_monitor_v2.example 1414010
+```
