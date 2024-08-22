@@ -65,10 +65,8 @@ Required:
 
 - `header` (String)
 - `value` (String)
-
 ## Import
 Import is supported using the following syntax:
 ```shell
 terraform import observe_monitor_v2_action.example 1414010
 ```
-
