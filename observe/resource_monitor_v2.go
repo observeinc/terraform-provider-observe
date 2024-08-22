@@ -211,7 +211,7 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				MaxItems:    1,
 				Description: descriptions.Get("monitorv2", "schema", "scheduling", "description"),
 				Elem: &schema.Resource{

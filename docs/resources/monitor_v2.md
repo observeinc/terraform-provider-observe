@@ -28,7 +28,6 @@ stage pipelines.
 - `name` (String) Monitor name.
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rules` (Block List, Min: 1) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
-- `scheduling` (Block List, Min: 1, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive, but at least one is required. (see [below for nested schema](#nestedblock--scheduling))
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
@@ -42,6 +41,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+- `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
 
@@ -374,32 +374,6 @@ Optional:
 
 
 
-<a id="nestedblock--scheduling"></a>
-### Nested Schema for `scheduling`
-
-Optional:
-
-- `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
-- `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
-
-<a id="nestedblock--scheduling--interval"></a>
-### Nested Schema for `scheduling.interval`
-
-Required:
-
-- `interval` (String) How often the monitor should attempt to run.
-- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
-
-
-<a id="nestedblock--scheduling--transform"></a>
-### Nested Schema for `scheduling.transform`
-
-Required:
-
-- `freshness_goal` (String) The freshness goal.
-
-
-
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
 
@@ -480,6 +454,34 @@ Required:
 Optional:
 
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+
+
+
+<a id="nestedblock--scheduling"></a>
+### Nested Schema for `scheduling`
+
+Optional:
+
+- `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
+
+<a id="nestedblock--scheduling--interval"></a>
+### Nested Schema for `scheduling.interval`
+
+Required:
+
+- `interval` (String) How often the monitor should attempt to run.
+- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
+
+
+<a id="nestedblock--scheduling--transform"></a>
+### Nested Schema for `scheduling.transform`
+
+Required:
+
+- `freshness_goal` (String) The freshness goal.
 ## Import
 Import is supported using the following syntax:
 ```shell
