@@ -19,6 +19,9 @@ func resourceMonitorV2Action() *schema.Resource {
 		ReadContext:   resourceMonitorV2ActionRead,
 		UpdateContext: resourceMonitorV2ActionUpdate,
 		DeleteContext: resourceMonitorV2ActionDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			// needed as input to CreateMonitorV2Action
 			"workspace": { // ObjectId!
