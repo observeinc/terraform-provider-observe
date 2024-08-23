@@ -953,6 +953,10 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 		scheduling.Transform = transform
 	}
 
+	if scheduling.Interval == nil && scheduling.Transform == nil {
+		return nil, diags
+	}
+
 	return scheduling, diags
 }
 
