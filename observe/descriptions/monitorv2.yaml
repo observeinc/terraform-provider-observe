@@ -44,7 +44,7 @@ schema:
     Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
   scheduling:
     description: |
-      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive, but at least one is required.
+      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform.
     interval:
       description: |
         Should be used to run explicit ad-hoc queries.

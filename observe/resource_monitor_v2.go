@@ -211,7 +211,7 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				MaxItems:    1,
 				Description: descriptions.Get("monitorv2", "schema", "scheduling", "description"),
 				Elem: &schema.Resource{
@@ -951,6 +951,10 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 			return nil, diags
 		}
 		scheduling.Transform = transform
+	}
+
+	if scheduling.Interval == nil && scheduling.Transform == nil {
+		return nil, diags
 	}
 
 	return scheduling, diags

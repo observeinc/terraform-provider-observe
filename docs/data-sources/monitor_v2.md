@@ -43,7 +43,7 @@ stage pipelines.
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
-- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive, but at least one is required. (see [below for nested schema](#nestedblock--scheduling))
+- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
