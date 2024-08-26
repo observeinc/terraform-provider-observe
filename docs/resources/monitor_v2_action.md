@@ -34,12 +34,12 @@ description: |-
 
 Required:
 
-- `body` (String)
 - `subject` (String)
 
 Optional:
 
 - `addresses` (List of String)
+- `body` (String)
 - `fragments` (String)
 - `users` (List of String)
 
