@@ -4825,7 +4825,7 @@ type MonitorV2EmailAction struct {
 	// The email subject template.
 	Subject string `json:"subject"`
 	// The email body template.
-	Body string `json:"body"`
+	Body *string `json:"body"`
 	// Fragments allow users to bring in additional monitor or alarm metadata.
 	Fragments *types.JsonObject `json:"fragments"`
 }
@@ -4840,7 +4840,7 @@ func (v *MonitorV2EmailAction) GetAddresses() []string { return v.Addresses }
 func (v *MonitorV2EmailAction) GetSubject() string { return v.Subject }
 
 // GetBody returns MonitorV2EmailAction.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailAction) GetBody() string { return v.Body }
+func (v *MonitorV2EmailAction) GetBody() *string { return v.Body }
 
 // GetFragments returns MonitorV2EmailAction.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailAction) GetFragments() *types.JsonObject { return v.Fragments }
@@ -4849,7 +4849,7 @@ type MonitorV2EmailActionInput struct {
 	Users     []types.UserIdScalar `json:"users"`
 	Addresses []string             `json:"addresses"`
 	Subject   string               `json:"subject"`
-	Body      string               `json:"body"`
+	Body      *string              `json:"body"`
 	Fragments *types.JsonObject    `json:"fragments,omitempty"`
 }
 
@@ -4863,7 +4863,7 @@ func (v *MonitorV2EmailActionInput) GetAddresses() []string { return v.Addresses
 func (v *MonitorV2EmailActionInput) GetSubject() string { return v.Subject }
 
 // GetBody returns MonitorV2EmailActionInput.Body, and is useful for accessing the field via an interface.
-func (v *MonitorV2EmailActionInput) GetBody() string { return v.Body }
+func (v *MonitorV2EmailActionInput) GetBody() *string { return v.Body }
 
 // GetFragments returns MonitorV2EmailActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *MonitorV2EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }

@@ -76,7 +76,7 @@ func monitorV2EmailActionInput() *schema.Resource {
 			},
 			"body": { // String
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"fragments": { // JsonObject
 				Type:             schema.TypeString,
@@ -249,7 +249,9 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) []interface{} {
 	email := make(map[string]interface{})
 	email["subject"] = gqlEmail.Subject
-	email["body"] = gqlEmail.Body
+	if gqlEmail.Body != nil {
+		email["body"] = *gqlEmail.Body
+	}
 
 	if gqlEmail.Fragments != nil {
 		email["fragments"] = gqlEmail.Fragments.String()
@@ -349,7 +351,8 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 		email.Subject = v.(string)
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
-		email.Body = v.(string)
+		body := v.(string)
+		email.Body = &body
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
