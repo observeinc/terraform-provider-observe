@@ -128,6 +128,10 @@ func resourceSnowflakeOutboundShareRead(ctx context.Context, d *schema.ResourceD
 
 	share, err := client.GetSnowflakeOutboundShare(ctx, d.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

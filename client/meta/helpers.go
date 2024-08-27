@@ -153,6 +153,10 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+const (
+	ErrNotFound = "NOT_FOUND"
+)
+
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
 }

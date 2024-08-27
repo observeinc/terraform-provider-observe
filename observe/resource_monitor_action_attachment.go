@@ -139,7 +139,7 @@ func resourceMonitorActionAttachmentRead(ctx context.Context, data *schema.Resou
 
 	monitorActionAttachmentPtr, err := client.GetMonitorActionAttachment(ctx, data.Id())
 	if err != nil {
-		if gql.HasErrorCode(err, "NOT_FOUND") {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
 			data.SetId("")
 			return nil
 		}
