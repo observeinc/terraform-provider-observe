@@ -92,6 +92,10 @@ func resourceRbacGroupRead(ctx context.Context, data *schema.ResourceData, meta 
 
 	group, err := client.GetRbacGroup(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read rbacgroup: %s", err.Error())
 	}
 	return rbacGroupToResourceData(group, data)
