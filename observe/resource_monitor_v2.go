@@ -216,37 +216,11 @@ func resourceMonitorV2() *schema.Resource {
 				Description: descriptions.Get("monitorv2", "schema", "scheduling", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"interval": { // MonitorV2IntervalScheduleInput
-							Type:         schema.TypeList,
-							Optional:     true,
-							MaxItems:     1,
-							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
-							Description:  descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"interval": { // Duration!
-										Type:             schema.TypeString,
-										Required:         true,
-										ValidateDiagFunc: validateTimeDuration,
-										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
-										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "interval"),
-									},
-									"randomize": { // Duration!
-										Type:             schema.TypeString,
-										Required:         true,
-										ValidateDiagFunc: validateTimeDuration,
-										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
-										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "randomize"),
-									},
-								},
-							},
-						},
 						"transform": { // MonitorV2TransformScheduleInput
-							Type:         schema.TypeList,
-							Optional:     true,
-							MaxItems:     1,
-							ExactlyOneOf: []string{"scheduling.0.interval", "scheduling.0.transform"},
-							Description:  descriptions.Get("monitorv2", "schema", "scheduling", "transform", "description"),
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "scheduling", "transform", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"freshness_goal": { // Duration!
