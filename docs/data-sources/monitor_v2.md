@@ -385,17 +385,7 @@ Read-Only:
 
 Read-Only:
 
-- `interval` (Block List) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
 - `transform` (Block List) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
-
-<a id="nestedblock--scheduling--interval"></a>
-### Nested Schema for `scheduling.interval`
-
-Read-Only:
-
-- `interval` (String) How often the monitor should attempt to run.
-- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
-
 
 <a id="nestedblock--scheduling--transform"></a>
 ### Nested Schema for `scheduling.transform`

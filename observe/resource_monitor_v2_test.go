@@ -11,7 +11,6 @@ import (
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
 
 func TestAccObserveMonitorV2Count(t *testing.T) {
-	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,9 +48,8 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 							}
 						}
 						scheduling {
-							interval {
-								interval = "15m"
-								randomize = "0"
+							transform {
+								freshness_goal= "15m"
 							}
 						}
 					}
@@ -64,8 +62,7 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.value_int64.0", "0"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
@@ -73,7 +70,6 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2Threshold(t *testing.T) {
-	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -105,9 +101,8 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 							}
 						}
 						scheduling {
-							interval {
-								interval = "15m"
-								randomize = "0"
+							transform {
+								freshness_goal = "15m"
 							}
 						}
 					}
@@ -122,8 +117,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "all_of"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
@@ -131,7 +125,6 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2Promote(t *testing.T) {
-	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -144,7 +137,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 						workspace = data.observe_workspace.default.oid
 						rule_kind = "promote"
 						name = "%[1]s"
-						lookback_time = "10s"
+						lookback_time = "0s"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -168,9 +161,8 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 							}
 						}
 						scheduling {
-							interval {
-								interval = "15m"
-								randomize = "0"
+							transform {
+								freshness_goal= "15m"
 							}
 						}
 					}
@@ -178,14 +170,13 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "10s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "promote"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.value_int64.0", "1"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_number"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
