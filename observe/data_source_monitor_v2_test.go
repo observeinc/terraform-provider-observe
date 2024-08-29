@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
+	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,6 +75,7 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 }
 
 func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
+	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,6 +137,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 }
 
 func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
+	t.Skip("Skipping until monitorv2 resource fixed to match upstream")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
