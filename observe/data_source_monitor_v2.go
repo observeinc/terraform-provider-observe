@@ -205,26 +205,6 @@ func dataSourceMonitorV2() *schema.Resource {
 				Description: descriptions.Get("monitorv2", "schema", "scheduling", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"interval": { // MonitorV2IntervalScheduleInput
-							Type:        schema.TypeList,
-							Optional:    true,
-							Computed:    true,
-							Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"interval": { // Duration!
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "interval"),
-									},
-									"randomize": { // Duration!
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "randomize"),
-									},
-								},
-							},
-						},
 						"transform": { // MonitorV2TransformScheduleInput
 							Type:        schema.TypeList,
 							Optional:    true,

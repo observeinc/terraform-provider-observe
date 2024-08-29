@@ -47,7 +47,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 						}
 						scheduling {
 							transform {
-								freshness_target = "15m"
+								freshness_goal = "15m"
 							}
 						}
 						actions {
@@ -131,7 +131,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 						}
 						scheduling {
 							transform {
-								freshness_target = "15m"
+								freshness_goal = "15m"
 							}
 						}
 						actions {
@@ -215,7 +215,7 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 						}
 						scheduling {
 							transform {
-								freshness_target = "15m"
+								freshness_goal = "15m"
 							}
 						}
 						actions {

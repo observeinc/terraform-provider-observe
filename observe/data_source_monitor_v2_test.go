@@ -64,8 +64,7 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.count.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.count.0.compare_values.0.value_int64.0", "0"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
@@ -124,8 +123,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.aggregation", "all_of"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
@@ -145,7 +143,7 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 						workspace = data.observe_workspace.default.oid
 						rule_kind = "promote"
 						name = "%[1]s"
-						lookback_time = "10s"
+						lookback_time = "0s"
 						inputs = {
 							"test" = observe_datastream.test.dataset
 						}
@@ -182,14 +180,13 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "10s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "promote"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.promote.0.compare_columns.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.promote.0.compare_columns.0.compare_values.0.value_int64.0", "1"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_number"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.interval", "15m0s"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.randomize", "0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 		},
