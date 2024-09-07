@@ -81,27 +81,7 @@ Read-Only:
 
 Read-Only:
 
-- `meta` (Block List) Contains the context surrounding the link column. (see [below for nested schema](#nestedblock--groupings--link_column--meta))
 - `name` (String) The name of the link column.
-
-<a id="nestedblock--groupings--link_column--meta"></a>
-### Nested Schema for `groupings.link_column.meta`
-
-Read-Only:
-
-- `dst_fields` (List of String) The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-- `src_fields` (Block List) The source fields used to link against the primary keys of the target dataset. (see [below for nested schema](#nestedblock--groupings--link_column--meta--src_fields))
-- `target_dataset` (Number) The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
-
-<a id="nestedblock--groupings--link_column--meta--src_fields"></a>
-### Nested Schema for `groupings.link_column.meta.src_fields`
-
-Read-Only:
-
-- `name` (String) The name of the column.
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
 
 
 
@@ -154,27 +134,7 @@ Read-Only:
 
 Read-Only:
 
-- `meta` (Block List) Contains the context surrounding the link column. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column--meta))
 - `name` (String) The name of the link column.
-
-<a id="nestedblock--rules--count--compare_groups--column--link_column--meta"></a>
-### Nested Schema for `rules.count.compare_groups.column.link_column.meta`
-
-Read-Only:
-
-- `dst_fields` (List of String) The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-- `src_fields` (Block List) The source fields used to link against the primary keys of the target dataset. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column--meta--src_fields))
-- `target_dataset` (Number) The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
-
-<a id="nestedblock--rules--count--compare_groups--column--link_column--meta--src_fields"></a>
-### Nested Schema for `rules.count.compare_groups.column.link_column.meta.src_fields`
-
-Read-Only:
-
-- `name` (String) The name of the column.
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
 
 
 
@@ -245,27 +205,7 @@ Read-Only:
 
 Read-Only:
 
-- `meta` (Block List) Contains the context surrounding the link column. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--link_column--meta))
 - `name` (String) The name of the link column.
-
-<a id="nestedblock--rules--promote--compare_columns--column--link_column--meta"></a>
-### Nested Schema for `rules.promote.compare_columns.column.link_column.meta`
-
-Read-Only:
-
-- `dst_fields` (List of String) The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-- `src_fields` (Block List) The source fields used to link against the primary keys of the target dataset. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--link_column--meta--src_fields))
-- `target_dataset` (Number) The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
-
-<a id="nestedblock--rules--promote--compare_columns--column--link_column--meta--src_fields"></a>
-### Nested Schema for `rules.promote.compare_columns.column.link_column.meta.src_fields`
-
-Read-Only:
-
-- `name` (String) The name of the column.
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
 
 
 
@@ -325,27 +265,7 @@ Read-Only:
 
 Read-Only:
 
-- `meta` (Block List) Contains the context surrounding the link column. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column--meta))
 - `name` (String) The name of the link column.
-
-<a id="nestedblock--rules--threshold--compare_groups--column--link_column--meta"></a>
-### Nested Schema for `rules.threshold.compare_groups.column.link_column.meta`
-
-Read-Only:
-
-- `dst_fields` (List of String) The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-- `src_fields` (Block List) The source fields used to link against the primary keys of the target dataset. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column--meta--src_fields))
-- `target_dataset` (Number) The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
-
-<a id="nestedblock--rules--threshold--compare_groups--column--link_column--meta--src_fields"></a>
-### Nested Schema for `rules.threshold.compare_groups.column.link_column.meta.src_fields`
-
-Read-Only:
-
-- `name` (String) The name of the column.
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
 
 
 
