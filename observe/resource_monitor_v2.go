@@ -881,7 +881,7 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	}
 	if _, ok := data.GetOk("groupings"); ok {
 		groupings := make([]gql.MonitorV2ColumnInput, 0)
-		for _, i := range data.Get("groupings").([]interface{}) {
+		for i := range data.Get("groupings").([]interface{}) {
 			colInput, diags := newMonitorV2ColumnInput(fmt.Sprintf("groupings.%d.", i), data)
 			if diags.HasError() {
 				return nil, diags
