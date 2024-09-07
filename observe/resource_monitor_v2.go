@@ -362,30 +362,6 @@ func monitorV2ColumnPathResource() *schema.Resource {
 	}
 }
 
-func monitorV2LinkColumnMetaResource() *schema.Resource {
-	return &schema.Resource{ // MonitorV2LinkColumnMetaInput
-		Schema: map[string]*schema.Schema{
-			"src_fields": { // [MonitorV2ColumnPathInput!]
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        monitorV2ColumnPathResource(),
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "src_fields"),
-			},
-			"dst_fields": { // [String!]
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "dst_fields"),
-			},
-			"target_dataset": { // Int64
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "target_dataset"),
-			},
-		},
-	}
-}
-
 func monitorV2LinkColumnResource() *schema.Resource {
 	return &schema.Resource{ // MonitorV2LinkColumnInput
 		Schema: map[string]*schema.Schema{
@@ -393,13 +369,6 @@ func monitorV2LinkColumnResource() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: descriptions.Get("monitorv2", "schema", "link_column", "name"),
-			},
-			"meta": { // MonitorV2LinkColumnMetaInput
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Elem:        monitorV2LinkColumnMetaResource(),
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "description"),
 			},
 		},
 	}
@@ -772,24 +741,7 @@ func monitorV2FlattenLinkColumn(gqlLinkColumn gql.MonitorV2LinkColumn) []interfa
 	linkColumn := map[string]interface{}{
 		"name": gqlLinkColumn.Name,
 	}
-	if gqlLinkColumn.Meta != nil {
-		linkColumn["meta"] = monitorV2FlattenLinkColumnMeta(*gqlLinkColumn.Meta)
-	}
 	return []interface{}{linkColumn}
-}
-
-func monitorV2FlattenLinkColumnMeta(gqlLinkColumnMeta gql.MonitorV2LinkColumnMeta) []interface{} {
-	linkColumnMeta := map[string]interface{}{}
-	if gqlLinkColumnMeta.SrcFields != nil {
-		linkColumnMeta["src_fields"] = monitorV2FlattenColumnPaths(gqlLinkColumnMeta.SrcFields)
-	}
-	if gqlLinkColumnMeta.DstFields != nil {
-		linkColumnMeta["dst_fields"] = gqlLinkColumnMeta.DstFields
-	}
-	if gqlLinkColumnMeta.TargetDataset != nil {
-		linkColumnMeta["target_dataset"] = *gqlLinkColumnMeta.TargetDataset
-	}
-	return []interface{}{linkColumnMeta}
 }
 
 func monitorV2FlattenScheduling(gqlScheduling gql.MonitorV2Scheduling) []interface{} {
@@ -1150,48 +1102,7 @@ func newMonitorV2LinkColumnInput(path string, data *schema.ResourceData) (column
 	// instantiation
 	column = &gql.MonitorV2LinkColumnInput{Name: name}
 
-	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%smeta", path)); ok {
-		meta, diags := newMonitorV2LinkColumnMetaInput(fmt.Sprintf("%smeta.0.", path), data)
-		if diags.HasError() {
-			return nil, diags
-		}
-		column.Meta = meta
-	}
-
 	return column, diags
-}
-
-func newMonitorV2LinkColumnMetaInput(path string, data *schema.ResourceData) (meta *gql.MonitorV2LinkColumnMetaInput, diags diag.Diagnostics) {
-	// instantiation
-	meta = &gql.MonitorV2LinkColumnMetaInput{}
-
-	// optionals
-	if _, ok := data.GetOk(fmt.Sprintf("%ssrc_fields", path)); ok {
-		srcFields := make([]gql.MonitorV2ColumnPathInput, 0)
-		for i := range data.Get(fmt.Sprintf("%ssrc_fields", path)).([]interface{}) {
-			srcField, diags := newMonitorV2ColumnPathInput(fmt.Sprintf("%ssrc_fields.%d.", path, i), data)
-			if diags.HasError() {
-				return nil, diags
-			}
-			srcFields = append(srcFields, *srcField)
-		}
-		meta.SrcFields = srcFields
-	}
-	if _, ok := data.GetOk(fmt.Sprintf("%sdst_fields", path)); ok {
-		dstFields := make([]string, 0)
-		for i := range data.Get(fmt.Sprintf("%sdst_fields", path)).([]interface{}) {
-			dstField := data.Get(fmt.Sprintf("%sdst_fields.%d", path, i)).(string)
-			dstFields = append(dstFields, dstField)
-		}
-		meta.DstFields = dstFields
-	}
-	if _, ok := data.GetOk(fmt.Sprintf("%starget_dataset", path)); ok {
-		v := data.Get(fmt.Sprintf("%starget_dataset", path))
-		meta.TargetDataset = types.Int64Scalar(v.(int64)).Ptr()
-	}
-
-	return meta, diags
 }
 
 func newMonitorV2ColumnPathInput(path string, data *schema.ResourceData) (column *gql.MonitorV2ColumnPathInput, diags diag.Diagnostics) {

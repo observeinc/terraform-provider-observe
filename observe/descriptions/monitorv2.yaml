@@ -68,15 +68,6 @@ schema:
       The name of the column.
     path: |
       The path of the path, if the name refers to a column with a JSON object.
-  link_column_meta:
-    description: |
-      Contains the context surrounding the link column.
-    src_fields: |
-      The source fields used to link against the primary keys of the target dataset.
-    dst_fields: |
-      The destination fields (a.k.a. primary keys) of the target dataset being linked against.
-    target_dataset: |
-      The resource dataset ID which the link came from. Empty if the link was created from a stage in the shape of a resource from the worksheet.
   link_column:
     description: |
       Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources).

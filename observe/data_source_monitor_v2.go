@@ -330,31 +330,6 @@ func monitorV2ColumnPathDatasource() *schema.Resource {
 	}
 }
 
-func monitorV2LinkColumnMetaDatasource() *schema.Resource {
-	return &schema.Resource{ // MonitorV2LinkColumnMetaInput
-		Schema: map[string]*schema.Schema{
-			"src_fields": { // [MonitorV2ColumnPathInput!]
-				Type:        schema.TypeList,
-				Optional:    true,
-				Computed:    true,
-				Elem:        monitorV2ColumnPathDatasource(),
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "src_fields"),
-			},
-			"dst_fields": { // [String!]
-				Type:        schema.TypeList,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "dst_fields"),
-			},
-			"target_dataset": { // Int64
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "target_dataset"),
-			},
-		},
-	}
-}
-
 func monitorV2LinkColumnDatasource() *schema.Resource {
 	return &schema.Resource{ // MonitorV2LinkColumnInput
 		Schema: map[string]*schema.Schema{
@@ -362,13 +337,6 @@ func monitorV2LinkColumnDatasource() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "link_column", "name"),
-			},
-			"meta": { // MonitorV2LinkColumnMetaInput
-				Type:        schema.TypeList,
-				Optional:    true,
-				Computed:    true,
-				Elem:        monitorV2LinkColumnMetaDatasource(),
-				Description: descriptions.Get("monitorv2", "schema", "link_column_meta", "description"),
 			},
 		},
 	}
