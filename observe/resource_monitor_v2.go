@@ -1020,7 +1020,7 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 	// optionals
 	if _, ok := data.GetOk(fmt.Sprintf("%scompare_groups", path)); ok {
 		compareGroups := make([]gql.MonitorV2ColumnComparisonInput, 0)
-		for _, i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
+		for i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
 			columnComparison, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%scompare_groups.%d.", path, i), data)
 			if diags.HasError() {
 				return nil, diags
