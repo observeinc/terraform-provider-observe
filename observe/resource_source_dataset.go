@@ -344,6 +344,10 @@ func resourceSourceDatasetRead(ctx context.Context, data *schema.ResourceData, m
 	client := meta.(*observe.Client)
 	result, err := client.GetSourceDataset(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),

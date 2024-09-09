@@ -150,6 +150,10 @@ func resourceDashboardLinkRead(ctx context.Context, data *schema.ResourceData, m
 
 	link, err := client.Meta.GetDashboardLink(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read dashboard link: %s", err.Error())
 	}
 

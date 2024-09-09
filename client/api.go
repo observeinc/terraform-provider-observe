@@ -1097,7 +1097,7 @@ func (c *Client) DeletePreferredPath(ctx context.Context, id string) error {
 func (c *Client) GetPreferredPath(ctx context.Context, id string) (*meta.PreferredPath, error) {
 	resultWithStatus, err := c.Meta.GetPreferredPath(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get preferred path: %w", err)
+		return nil, err
 	}
 
 	if resultWithStatus.Error != nil {
