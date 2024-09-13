@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -57,6 +58,10 @@ func resourceDefaultDashboardRead(ctx context.Context, data *schema.ResourceData
 
 	dashid, err := client.GetDefaultDashboard(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read default dashboard: %s", err.Error())
 	}
 

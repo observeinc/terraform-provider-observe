@@ -744,6 +744,10 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 
 	poller, err := client.GetPoller(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read poller: %s", err.Error())
 	}
 
