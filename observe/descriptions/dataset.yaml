@@ -13,3 +13,5 @@ schema:
     The maximum on-demand materialization length for the dataset.
   acceleration_disabled: |
     Disables periodic materialization of the dataset
+  data_table_view_state: |
+    JSON representation of state used for dataset formatting in the UI

@@ -12,6 +12,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset

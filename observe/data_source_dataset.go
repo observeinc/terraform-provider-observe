@@ -81,6 +81,11 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
+			"data_table_view_state": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "data_table_view_state"),
+			},
 			"stage": {
 				Type:     schema.TypeList,
 				Computed: true,
