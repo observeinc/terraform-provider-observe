@@ -37,6 +37,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 ### Read-Only
 
 - `acceleration_disabled` (Boolean)
+- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.

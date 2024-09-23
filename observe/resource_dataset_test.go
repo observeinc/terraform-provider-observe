@@ -125,6 +125,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					}
 
 					acceleration_disabled = true
+					data_table_view_state = jsonencode({viewType = "Auto"})
 
 					stage {
 					  pipeline = <<-EOF
@@ -141,6 +142,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "true"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "data_table_view_state", "{\"viewType\":\"Auto\"}"),
 				),
 			},
 			{

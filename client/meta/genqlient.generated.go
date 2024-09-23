@@ -1251,6 +1251,7 @@ type Dataset struct {
 	// Optional custom configured override value of the on demand materialization
 	// range for the dataset.
 	OnDemandMaterializationLength *types.Int64Scalar                       `json:"onDemandMaterializationLength"`
+	DataTableViewState            *types.JsonObject                        `json:"dataTableViewState"`
 	ForeignKeys                   []DatasetForeignKeysForeignKey           `json:"foreignKeys"`
 	Transform                     *DatasetTransform                        `json:"transform"`
 	Typedef                       DatasetTypedef                           `json:"typedef"`
@@ -1297,6 +1298,9 @@ func (v *Dataset) GetManagedById() *string { return v.ManagedById }
 func (v *Dataset) GetOnDemandMaterializationLength() *types.Int64Scalar {
 	return v.OnDemandMaterializationLength
 }
+
+// GetDataTableViewState returns Dataset.DataTableViewState, and is useful for accessing the field via an interface.
+func (v *Dataset) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
 
 // GetForeignKeys returns Dataset.ForeignKeys, and is useful for accessing the field via an interface.
 func (v *Dataset) GetForeignKeys() []DatasetForeignKeysForeignKey { return v.ForeignKeys }
@@ -1434,6 +1438,7 @@ type DatasetInput struct {
 	IconUrl              *string            `json:"iconUrl"`
 	Layout               *types.JsonObject  `json:"layout"`
 	PathCost             *types.Int64Scalar `json:"pathCost"`
+	DataTableViewState   *types.JsonObject  `json:"dataTableViewState"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
 	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
@@ -1476,6 +1481,9 @@ func (v *DatasetInput) GetLayout() *types.JsonObject { return v.Layout }
 
 // GetPathCost returns DatasetInput.PathCost, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetPathCost() *types.Int64Scalar { return v.PathCost }
+
+// GetDataTableViewState returns DatasetInput.DataTableViewState, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
 
 // GetOnDemandMaterializationLength returns DatasetInput.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
@@ -15188,6 +15196,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset
@@ -16955,6 +16964,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset
@@ -17155,6 +17165,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset
@@ -17974,6 +17985,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset
@@ -18284,6 +18296,7 @@ fragment Dataset on Dataset {
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset

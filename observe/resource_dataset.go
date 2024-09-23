@@ -99,6 +99,13 @@ func resourceDataset() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
+			"data_table_view_state": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ValidateDiagFunc: validateStringIsJSON,
+				DiffSuppressFunc: diffSuppressJSON,
+				Description: descriptions.Get("dataset", "schema", "data_table_view_state"),
+			},
 			"stage": {
 				Type:        schema.TypeList,
 				MinItems:    1,
@@ -192,6 +199,10 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 		// null it is
 	}
 
+	if v, ok := data.GetOk("data_table_view_state"); ok {
+		input.DataTableViewState = types.JsonObject(v.(string)).Ptr()
+	}
+
 	return input, query, diags
 }
 
@@ -239,6 +250,12 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 
 	if d.PathCost != nil && *d.PathCost.IntPtr() != currentCost {
 		if err := data.Set("path_cost", d.PathCost); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.DataTableViewState != nil {
+		if err := data.Set("data_table_view_state", d.DataTableViewState.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

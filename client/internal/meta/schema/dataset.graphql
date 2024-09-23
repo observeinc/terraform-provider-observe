@@ -184,12 +184,26 @@ type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResul
     """
     errorDatasets: [DatasetError!]
     """
-    True when saving the dataset results in throwing away materialized data.
+    Changing a dataset definition might make currently materialized data obsolete,
+    in which case we dematerialize (throw away) this data and recompute new data.
+    This is the list of datasets that would get dematerialized.
+
     Data is dematerialized when the change to the dataset is significant,
     that is, when it alters transform logic. Minor changes like whitespace and
     comments do not cause dematerialization.
+
+    Note that changing a dataset might cause downstream datasets to get
+    dematerialized also.
     """
     dematerializedDatasets: [DatasetMaterialization!]
+    """
+    The Observe compute credit (OCC) cost of rematerializing affected datasets.
+    Note that the datasets in this list might differ from those in dematerializedDatasets
+    since this list might include some upstream datasets. In general, don't try
+    to correlate elements in this list with elements in other lists; treat them
+    independently as much as possible.
+    """
+    rematerializationCosts: [DatasetCostEstimate!]
 }
 
 """Information about a materialized dataset."""
@@ -350,6 +364,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedById: ObjectId
     folderId: ObjectId!
     indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
+    dataTableViewState: JsonObject
 
     """
     Optional custom configured override value of the on demand materialization
@@ -362,24 +377,17 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 
     # AccelerableObject (or fields that should eventually move to that interface)
     accelerable: Boolean!
-    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
 
     """
-    True if this dataset is hibernated. In this case, the dataset will not
-    automatically accelerate new data. You can still query the dataset on the
-    accelerated range and issue manual acceleration jobs.
-    """
-    hibernated: Boolean!
-
-    """
+    If the dataset is not hibernated, this field will be set to null.
     If the dataset is hibernated, this field will be set to the time when it was
     hibernated. The dataset will not automatically accelerate new data.
     You can still query the dataset on the accelerated range and issue manual
     acceleration jobs.
     """
-    hibernatedAt: Time
+    hibernatedAt: Time @goField(forceResolver:true)
 
     # AuditedObject
     createdBy: UserId!
@@ -391,13 +399,13 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 }
 
 enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
-    CumulativeCounter
-    Counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
-    RatePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
-    Delta
-    Gauge
-    Tdigest
-    Sample
+    cumulativeCounter
+    counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    ratePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    delta
+    gauge
+    tdigest
+    sample
 }
 
 type MetricTag @goModel(model: "observe/compiler/comptypes.MetricTag") {
@@ -589,6 +597,7 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     iconUrl: String
     layout: JsonObject
     pathCost: Int64
+    dataTableViewState: JsonObject
     """
     Max on-demand materialization length for the dataset (in nanoseconds). If not set
     will use the default value in transformer config.
