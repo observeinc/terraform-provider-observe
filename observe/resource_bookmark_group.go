@@ -10,20 +10,12 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-)
-
-const (
-	schemaBookmarkGroupOIDDescription          = "Observe ID of the bookmark group."
-	schemaBookmarkGroupWorkspaceDescription    = "OID of workspace bookmark group belongs to."
-	schemaBookmarkGroupNameDescription         = "Name of bookmark group."
-	schemaBookmarkGroupDescriptionDescription  = "Description of bookmark group."
-	schemaBookmarkGroupIconDescription         = "Icon used when presenting bookmark group."
-	schemaBookmarkGroupPresentationDescription = ""
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceBookmarkGroup() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a bookmark group.",
+		Description:   descriptions.Get("bookmark_group", "description"),
 		CreateContext: resourceBookmarkGroupCreate,
 		ReadContext:   resourceBookmarkGroupRead,
 		UpdateContext: resourceBookmarkGroupUpdate,
@@ -35,29 +27,29 @@ func resourceBookmarkGroup() *schema.Resource {
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaBookmarkGroupOIDDescription,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"workspace": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      schemaBookmarkGroupWorkspaceDescription,
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: schemaBookmarkGroupNameDescription,
+				Description: descriptions.Get("bookmark_group", "schema", "name"),
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: schemaBookmarkGroupDescriptionDescription,
+				Description: descriptions.Get("bookmark_group", "schema", "description"),
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: schemaBookmarkGroupIconDescription,
+				Description: descriptions.Get("bookmark_group", "schema", "icon_url"),
 			},
 			"presentation": {
 				Type: schema.TypeString,
@@ -67,7 +59,13 @@ func resourceBookmarkGroup() *schema.Resource {
 				}, false),
 				Default:     gql.BookmarkGroupPresentationPercustomerworkspace,
 				Optional:    true,
-				Description: schemaBookmarkGroupPresentationDescription,
+				Description: descriptions.Get("bookmark_group", "schema", "presentation"),
+			},
+			"is_home": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				Description: descriptions.Get("bookmark_group", "schema", "is_home"),
 			},
 		},
 	}
@@ -77,6 +75,7 @@ func newBookmarkGroupConfig(data *schema.ResourceData) (input *gql.BookmarkGroup
 	input = &gql.BookmarkGroupInput{
 		Name:        stringPtr(data.Get("name").(string)),
 		Description: stringPtr(data.Get("description").(string)),
+		IsHome:      boolPtr(data.Get("is_home").(bool)),
 	}
 
 	p := gql.BookmarkGroupPresentation(data.Get("presentation").(string))
@@ -102,6 +101,10 @@ func bookmarkGroupToResourceData(bg *gql.BookmarkGroup, data *schema.ResourceDat
 		if err := data.Set("icon_url", bg.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("is_home", bg.IsHome); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if diags.HasError() {

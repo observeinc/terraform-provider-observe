@@ -4,6 +4,7 @@ fragment BookmarkGroup on BookmarkGroup {
 	description
 	iconUrl
 	workspaceId
+	isHome
 }
 
 mutation createOrUpdateBookmarkGroup(
