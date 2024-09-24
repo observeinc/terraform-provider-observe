@@ -25,18 +25,20 @@ resource "observe_bookmark_group" "example" {
 ### Required
 
 - `name` (String) Name of bookmark group.
-- `workspace` (String) OID of workspace bookmark group belongs to.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `description` (String) Description of bookmark group.
 - `icon_url` (String) Icon used when presenting bookmark group.
+- `is_home` (Boolean) Whether to add this bookmark group to the home page
 - `presentation` (String)
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `oid` (String) Observe ID of the bookmark group.
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 ## Import
 Import is supported using the following syntax:
 ```shell

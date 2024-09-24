@@ -345,6 +345,7 @@ type BookmarkGroup struct {
 	Description string `json:"description"`
 	IconUrl     string `json:"iconUrl"`
 	WorkspaceId string `json:"workspaceId"`
+	IsHome      bool   `json:"isHome"`
 }
 
 // GetId returns BookmarkGroup.Id, and is useful for accessing the field via an interface.
@@ -361,6 +362,9 @@ func (v *BookmarkGroup) GetIconUrl() string { return v.IconUrl }
 
 // GetWorkspaceId returns BookmarkGroup.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *BookmarkGroup) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetIsHome returns BookmarkGroup.IsHome, and is useful for accessing the field via an interface.
+func (v *BookmarkGroup) GetIsHome() bool { return v.IsHome }
 
 type BookmarkGroupInput struct {
 	Name         *string                    `json:"name"`
@@ -12945,6 +12949,7 @@ fragment BookmarkGroup on BookmarkGroup {
 	description
 	iconUrl
 	workspaceId
+	isHome
 }
 `
 
@@ -14804,6 +14809,7 @@ fragment BookmarkGroup on BookmarkGroup {
 	description
 	iconUrl
 	workspaceId
+	isHome
 }
 `
 

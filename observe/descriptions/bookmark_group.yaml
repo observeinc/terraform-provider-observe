@@ -1,0 +1,12 @@
+description: |
+  Manages a bookmark group.
+schema:
+  name: |
+    Name of bookmark group.
+  description: |
+    Description of bookmark group.
+  icon_url: |
+    Icon used when presenting bookmark group.
+  presentation: ""
+  is_home: |
+    Whether to add this bookmark group to the home page
