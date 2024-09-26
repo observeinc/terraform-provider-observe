@@ -51,6 +51,7 @@ const (
 	TypeRbacStatement           Type = "rbacstatement"
 	TypeSnowflakeOutboundShare  Type = "snowflakeoutboundshare"
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
+	TypeReferenceTable          Type = "referencetable"
 )
 
 func (t Type) IsValid() bool {
