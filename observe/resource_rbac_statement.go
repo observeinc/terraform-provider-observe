@@ -27,15 +27,6 @@ const (
 	schemaRbacStatementSubjectGroupDescription = "OID of a RBAC Group."
 )
 
-var rbacStatementObjectTypes = []string{
-	"object.0.id",
-	"object.0.folder",
-	"object.0.workspace",
-	// excluding type from ExactlyOneOf since it's required to specify both a type and and id for v2 resource statements
-	// "object.0.type",
-	"object.0.all",
-}
-
 func resourceRbacStatement() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Manages a RBAC Statement.",
@@ -88,19 +79,16 @@ func resourceRbacStatement() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:         schema.TypeString,
-							ExactlyOneOf: rbacStatementObjectTypes,
 							Optional:     true,
 							Description:  schemaRbacStatementObjectIdDescription,
 						},
 						"folder": {
 							Type:         schema.TypeString,
-							ExactlyOneOf: rbacStatementObjectTypes,
 							Optional:     true,
 							Description:  schemaRbacStatementObjectFolderDescription,
 						},
 						"workspace": {
 							Type:         schema.TypeString,
-							ExactlyOneOf: rbacStatementObjectTypes,
 							Optional:     true,
 							Description:  schemaRbacStatementObjectWorkspaceDescription,
 						},
@@ -124,7 +112,6 @@ func resourceRbacStatement() *schema.Resource {
 						},
 						"all": {
 							Type:         schema.TypeBool,
-							ExactlyOneOf: rbacStatementObjectTypes,
 							Optional:     true,
 							Default:      false,
 						},
@@ -348,7 +335,11 @@ func rbacStatementToResourceData(r *gql.RbacStatement, data *schema.ResourceData
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("version", r.Version); err != nil {
+	version := 1
+	if r.Version != nil {
+		version = *r.Version
+	}
+	if err := data.Set("version", version); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
