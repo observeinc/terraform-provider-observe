@@ -21,6 +21,7 @@ const (
 	schemaRbacStatementObjectTypeDescription      = "The type of object such as dataset."
 	schemaRbacStatementObjectNameDescription      = "The name of object. Can be provided along with `type`."
 	schemaRbacStatementObjectOwnerDescription     = "True to bind to objects owned by the user. Can be provided along with `type`."
+	schemaRbacStatementVersionDescription          = "The version of the statement. Defaults to V1"
 
 	schemaRbacStatementSubjectUserDescription  = "OID of a user."
 	schemaRbacStatementSubjectGroupDescription = "OID of a RBAC Group."
@@ -30,7 +31,8 @@ var rbacStatementObjectTypes = []string{
 	"object.0.id",
 	"object.0.folder",
 	"object.0.workspace",
-	"object.0.type",
+	// excluding type from ExactlyOneOf since it's required to specify both a type and and id for v2 resource statements
+	// "object.0.type",
 	"object.0.all",
 }
 
@@ -104,7 +106,6 @@ func resourceRbacStatement() *schema.Resource {
 						},
 						"type": {
 							Type:         schema.TypeString,
-							ExactlyOneOf: rbacStatementObjectTypes,
 							Optional:     true,
 							Description:  schemaRbacStatementObjectTypeDescription,
 						},
@@ -135,6 +136,12 @@ func resourceRbacStatement() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllRbacRoles),
 			},
+			"version": {
+				Type: schema.TypeInt,
+				Optional: true,
+				Default: 1,
+				ValidateDiagFunc: validateInSlice([]int{1, 2}),
+			},
 			"oid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -150,13 +157,22 @@ func newRbacStatementConfig(data *schema.ResourceData) (input *gql.RbacStatement
 		input.Description = v.(string)
 	}
 
+	var version int
+	if v, ok := data.GetOk("version"); ok {
+		version = v.(int)
+		// we only care about setting the version field if it's V2
+		if version == 2 {
+			input.Version = &version
+		}
+	}
+
 	subject, err := newRbacSubjectInput(data)
 	if err != nil {
 		return nil, diag.Errorf(err.Error())
 	}
 	input.Subject = subject
 
-	object, err := newRbacObjectInput(data)
+	object, err := newRbacObjectInput(data, version)
 	if err != nil {
 		return nil, diag.Errorf(err.Error())
 	}
@@ -186,24 +202,36 @@ func newRbacSubjectInput(data *schema.ResourceData) (gql.RbacSubjectInput, error
 	return subject, nil
 }
 
-func newRbacObjectInput(data *schema.ResourceData) (gql.RbacObjectInput, error) {
+func newRbacObjectInput(data *schema.ResourceData, version int) (gql.RbacObjectInput, error) {
 	object := gql.RbacObjectInput{}
 	if v, ok := data.GetOk("object.0.id"); ok {
 		object.ObjectId = stringPtr(v.(string))
 	}
 	if v, ok := data.GetOk("object.0.folder"); ok {
+		if version == 2 {
+			return object, fmt.Errorf("object.folder is not supported in V2 statements")
+		}
 		object.FolderId = stringPtr(v.(string))
 	}
 	if v, ok := data.GetOk("object.0.workspace"); ok {
+		if version == 2 {
+			return object, fmt.Errorf("object.workspace is not supported in V2 statements")
+		}
 		object.WorkspaceId = stringPtr(v.(string))
 	}
 	if v, ok := data.GetOk("object.0.type"); ok {
 		object.Type = stringPtr(v.(string))
 		if oname, ok := data.GetOk("object.0.name"); ok {
+			if version == 2 {
+				return object, fmt.Errorf("object.name is not supported in V2 statements")
+			}
 			object.Name = stringPtr(oname.(string))
 		}
 	}
 	object.Owner = boolPtr(data.Get("object.0.owner").(bool))
+	if version == 2 && *object.Owner {
+		return object, fmt.Errorf("object.owner is not supported in V2 statements")
+	}
 	object.All = boolPtr(data.Get("object.0.all").(bool))
 	return object, nil
 }
@@ -284,22 +312,32 @@ func rbacStatementToResourceData(r *gql.RbacStatement, data *schema.ResourceData
 
 	// object
 	object := make(map[string]interface{}, 0)
-	if r.Object.ObjectId != nil {
-		object["id"] = *r.Object.ObjectId
-	} else if r.Object.FolderId != nil {
-		object["folder"] = *r.Object.FolderId
-	} else if r.Object.WorkspaceId != nil {
-		object["workspace"] = *r.Object.WorkspaceId
-	} else if r.Object.Type != nil {
-		object["type"] = *r.Object.Type
-		if r.Object.Name != nil {
-			object["name"] = *r.Object.Name
+	if r.Version != nil && *r.Version == 2 {
+		// RBAC v2 statements will have an id AND a type for resource statements, and neither for role statements
+		if r.Object.ObjectId != nil {
+			object["id"] = *r.Object.ObjectId
 		}
-		if r.Object.Owner != nil {
-			object["owner"] = *r.Object.Owner
+		if r.Object.Type != nil {
+			object["type"] = *r.Object.Type
 		}
-	} else if r.Object.All != nil {
-		object["all"] = *r.Object.All
+	} else {
+		if r.Object.ObjectId != nil {
+			object["id"] = *r.Object.ObjectId
+		} else if r.Object.FolderId != nil {
+			object["folder"] = *r.Object.FolderId
+		} else if r.Object.WorkspaceId != nil {
+			object["workspace"] = *r.Object.WorkspaceId
+		} else if r.Object.Type != nil {
+			object["type"] = *r.Object.Type
+			if r.Object.Name != nil {
+				object["name"] = *r.Object.Name
+			}
+			if r.Object.Owner != nil {
+				object["owner"] = *r.Object.Owner
+			}
+		} else if r.Object.All != nil {
+			object["all"] = *r.Object.All
+		}
 	}
 	if err := data.Set("object", []interface{}{object}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -307,6 +345,10 @@ func rbacStatementToResourceData(r *gql.RbacStatement, data *schema.ResourceData
 
 	// role
 	if err := data.Set("role", string(r.Role)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("version", r.Version); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

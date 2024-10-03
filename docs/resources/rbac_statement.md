@@ -56,6 +56,7 @@ resource "observe_rbac_statement" "group_example" {
 ### Optional
 
 - `description` (String)
+- `version` (Number)
 
 ### Read-Only
 

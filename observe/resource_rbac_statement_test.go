@@ -289,3 +289,85 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveRbacV2StatementWithGroupCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	rbacV2Preamble := configPreamble + datastreamConfigPreamble
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(rbacV2Preamble + `
+				resource "observe_rbac_group" "example" {
+				  name      = "%[1]s"
+				}
+
+				resource "observe_rbac_statement" "example" {
+				  description = "%[1]s"
+				  subject {
+				    group = observe_rbac_group.example.oid
+				  }
+				  object {
+				  	type = "datastream"
+				    id = observe_datastream.test.id
+				  }
+				  role = "Editor"
+				  version = 2
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
+					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.group"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
+					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "object.0.id"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "role", "Editor"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "version", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveRbacV2StatementWithUserCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	rbacV2Preamble := configPreamble + datastreamConfigPreamble
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(rbacV2Preamble + `
+				data "observe_user" "system" {
+                  email = "%[2]s"
+                }
+
+				resource "observe_rbac_statement" "example" {
+				  description = "%[1]s"
+				  subject {
+				    user = data.observe_user.system.oid
+				  }
+				  object {
+				  	type = "datastream"
+				    id = observe_datastream.test.id
+				  }
+				  role = "Viewer"
+				  version = 2
+				}
+				`, randomPrefix, systemUser()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "description", randomPrefix),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "subject.#", "1"),
+					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "subject.0.user"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "object.#", "1"),
+					resource.TestCheckResourceAttrSet("observe_rbac_statement.example", "object.0.id"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "role", "Viewer"),
+					resource.TestCheckResourceAttr("observe_rbac_statement.example", "version", "2"),
+				),
+			},
+		},
+	})
+}

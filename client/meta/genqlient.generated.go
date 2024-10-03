@@ -7214,6 +7214,7 @@ type RbacStatement struct {
 	Subject     RbacStatementSubjectRbacSubject `json:"subject"`
 	Object      RbacStatementObjectRbacObject   `json:"object"`
 	Role        RbacRole                        `json:"role"`
+	Version     *int                            `json:"version"`
 }
 
 // GetId returns RbacStatement.Id, and is useful for accessing the field via an interface.
@@ -7231,11 +7232,15 @@ func (v *RbacStatement) GetObject() RbacStatementObjectRbacObject { return v.Obj
 // GetRole returns RbacStatement.Role, and is useful for accessing the field via an interface.
 func (v *RbacStatement) GetRole() RbacRole { return v.Role }
 
+// GetVersion returns RbacStatement.Version, and is useful for accessing the field via an interface.
+func (v *RbacStatement) GetVersion() *int { return v.Version }
+
 type RbacStatementInput struct {
 	Description string           `json:"description"`
 	Subject     RbacSubjectInput `json:"subject"`
 	Object      RbacObjectInput  `json:"object"`
 	Role        RbacRole         `json:"role"`
+	Version     *int             `json:"version"`
 }
 
 // GetDescription returns RbacStatementInput.Description, and is useful for accessing the field via an interface.
@@ -7249,6 +7254,9 @@ func (v *RbacStatementInput) GetObject() RbacObjectInput { return v.Object }
 
 // GetRole returns RbacStatementInput.Role, and is useful for accessing the field via an interface.
 func (v *RbacStatementInput) GetRole() RbacRole { return v.Role }
+
+// GetVersion returns RbacStatementInput.Version, and is useful for accessing the field via an interface.
+func (v *RbacStatementInput) GetVersion() *int { return v.Version }
 
 // RbacStatementObjectRbacObject includes the requested fields of the GraphQL type RbacObject.
 type RbacStatementObjectRbacObject struct {
@@ -13289,6 +13297,7 @@ fragment RbacStatement on RbacStatement {
 		all
 	}
 	role
+	version
 }
 `
 
@@ -16689,6 +16698,7 @@ fragment RbacStatement on RbacStatement {
 		all
 	}
 	role
+	version
 }
 `
 
@@ -20312,6 +20322,7 @@ fragment RbacStatement on RbacStatement {
 		all
 	}
 	role
+	version
 }
 `
 

@@ -196,6 +196,23 @@ func validateStringInSlice(valid []string, ignoreCase bool) schema.SchemaValidat
 	}
 }
 
+func validateInSlice[T comparable](valid []T) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		t, ok := i.(T)
+		if !ok {
+			return diag.Errorf("expected type of %s to be %T", i, t)
+		}
+
+		for _, v := range valid {
+			if t == v {
+				return nil
+			}
+		}
+
+		return diag.Errorf("expected %v to be one of %v", t, i)
+	}
+}
+
 func validateTimeDuration(i interface{}, path cty.Path) diag.Diagnostics {
 	s := i.(string)
 	if _, err := time.ParseDuration(s); err != nil {
