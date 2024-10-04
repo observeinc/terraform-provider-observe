@@ -1,6 +1,7 @@
 interface AccelerableObject @goModel(model: "observe/meta/metatypes.AccelerableObject") {
     accelerationInfo: AccelerationInfo!
     accelerationDisabled: Boolean!
+    accelerationDisabledSource: String!
     # TODO:
     # * Add accelerable: Boolean!
     # * Add this interface to monitors
