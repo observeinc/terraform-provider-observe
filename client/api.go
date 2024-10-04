@@ -73,6 +73,12 @@ func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, da
 	return c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
 }
 
+// List all datasets, but only asks for id and name to prevent looping in expensive
+// resolvers
+func (c *Client) ListDatasetsIdNameOnly(ctx context.Context) ([]*meta.DatasetIdName, error) {
+	return c.Meta.ListDatasetsIdNameOnly(ctx)
+}
+
 // UpdateSourceDataset updates the existing source dataset
 func (c *Client) UpdateSourceDataset(ctx context.Context, workspaceId string, id string, dataset *meta.DatasetDefinitionInput, table *meta.SourceTableDefinitionInput) (*meta.Dataset, error) {
 	if !c.Flags[flagObs2110] {
@@ -811,6 +817,12 @@ func (c *Client) GetWorksheet(ctx context.Context, id string) (*meta.Worksheet, 
 	return c.Meta.GetWorksheet(ctx, id)
 }
 
+// List all worksheets, but only fetch ids and labels to prevent using expensive
+// resolvers
+func (c *Client) ListWorksheetIdLabelOnly(ctx context.Context, workspaceId string) ([]*meta.WorksheetIdLabel, error) {
+	return c.Meta.ListWorksheetIdLabelOnly(ctx, workspaceId)
+}
+
 // UpdateWorksheet updates a worksheet
 // XXX: this should not have to take workspaceId, but API forces us to
 func (c *Client) UpdateWorksheet(ctx context.Context, id string, workspaceId string, input *meta.WorksheetInput) (*meta.Worksheet, error) {
@@ -1213,6 +1225,11 @@ func (c *Client) GetUser(ctx context.Context, id string) (*meta.User, error) {
 // LookupUser by email.
 func (c *Client) LookupUser(ctx context.Context, email string) (*meta.User, error) {
 	return c.Meta.LookupUser(ctx, email)
+}
+
+// List all users in current customer
+func (c *Client) ListUsers(ctx context.Context) ([]meta.User, error) {
+	return c.Meta.ListUsers(ctx)
 }
 
 // CreateRbacGroupmember creates an rbacgroupmember
