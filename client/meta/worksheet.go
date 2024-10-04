@@ -31,6 +31,19 @@ func (client *Client) GetWorksheet(ctx context.Context, id string) (*Worksheet, 
 	return worksheetOrError(resp, err)
 }
 
+func (client *Client) ListWorksheetIdLabelOnly(ctx context.Context, workspaceId string) ([]*WorksheetIdLabel, error) {
+	resp, err := listWorksheetsIdLabelOnly(ctx, client.Gql, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*WorksheetIdLabel, 0)
+	for _, wks := range resp.WorksheetSearch.Worksheets {
+		sheet := wks.Worksheet
+		result = append(result, &sheet)
+	}
+	return result, nil
+}
+
 func (client *Client) DeleteWorksheet(ctx context.Context, id string) error {
 	resp, err := deleteWorksheet(ctx, client.Gql, id)
 	return optionalResultStatusError(resp, err)
