@@ -3,7 +3,6 @@ package observe
 import (
 	"context"
 	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -146,7 +145,7 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 		role = toSnake(string(AdminWorkspace))
 	} else if stmt.Object.Type != nil {
 		objType := oid.Type(*stmt.Object.Type)
-		if !slices.Contains(validRbacV2Types, objType) {
+		if !sliceContains(validRbacV2Types, objType) {
 			diags = append(diags, diag.Errorf("invalid object type for v2 statment: %s", objType)...)
 		}
 
@@ -321,9 +320,9 @@ var viewGrantRoleForType = map[oid.Type]GrantRole{
 func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
 	if r == AdminWorkspace {
 		return gql.RbacRoleManager, nil
-	} else if slices.Contains(createGrantRoles, r) || slices.Contains(editGrantRoles, r) {
+	} else if sliceContains(createGrantRoles, r) || sliceContains(editGrantRoles, r) {
 		return gql.RbacRoleEditor, nil
-	} else if slices.Contains(viewGrantRoles, r) {
+	} else if sliceContains(viewGrantRoles, r) {
 		return gql.RbacRoleViewer, nil
 	} else {
 		return "", fmt.Errorf("invalid role: %s", r)
@@ -349,7 +348,7 @@ func (r GrantRole) ToType() *oid.Type {
 
 func (r GrantRole) ToRbacObject(resourceId *string) (gql.RbacObjectInput, error) {
 	// an oid qualifier is only valid for edit roles and view roles
-	isResourceRole := slices.Contains(editGrantRoles, r) || slices.Contains(viewGrantRoles, r)
+	isResourceRole := sliceContains(editGrantRoles, r) || sliceContains(viewGrantRoles, r)
 	if isResourceRole && resourceId == nil {
 		return gql.RbacObjectInput{}, fmt.Errorf("role %s must be qualified with an object id", r)
 	}

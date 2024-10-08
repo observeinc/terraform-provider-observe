@@ -488,3 +488,12 @@ func validateDatastreamName() schema.SchemaValidateDiagFunc {
 func asPointer[T any](val T) *T {
 	return &val
 }
+
+func sliceContains[T comparable](slice []T, val T) bool {
+	for _, v := range slice {
+		if v == val {
+			return true
+		}
+	}
+	return false
+}
