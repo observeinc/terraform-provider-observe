@@ -24,7 +24,7 @@ data "observe_rbac_group" "example" {
 ### Optional
 
 - `id` (String) RbacGroup ID. Either `name` or `id` must be provided.
-- `name` (String) RbacGroup Name. Either `name` or `id` must be provided
+- `name` (String) RbacGroup Name. Either `name` or `id` must be provided. If RBAC v2 is enabled, can be set to "everyone" to refer to pre-defined group always including all users.
 
 ### Read-Only
 

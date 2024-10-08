@@ -484,3 +484,7 @@ func validateDatasetName() schema.SchemaValidateDiagFunc {
 func validateDatastreamName() schema.SchemaValidateDiagFunc {
 	return validateDatasetName()
 }
+
+func asPointer[T any](val T) *T {
+	return &val
+}

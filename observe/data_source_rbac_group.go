@@ -12,7 +12,7 @@ import (
 const (
 	schemaRbacGroupIdDescription          = "RbacGroup ID. Either `name` or `id` must be provided."
 	schemaRbacGroupOIDDescription         = "The Observe ID for rbacGroup."
-	schemaRbacGroupNameDescription        = "RbacGroup Name. Either `name` or `id` must be provided"
+	schemaRbacGroupNameDescription        = "RbacGroup Name. Either `name` or `id` must be provided. If RBAC v2 is enabled, can be set to \"everyone\" to refer to pre-defined group always including all users."
 	schemaRbacGroupDescriptionDescription = "RbacGroup description."
 )
 
@@ -63,6 +63,17 @@ func dataSourceRbacGroupRead(ctx context.Context, data *schema.ResourceData, met
 		r, err = client.GetRbacGroup(ctx, explicitId)
 	} else if name != "" {
 		r, err = client.LookupRbacGroup(ctx, name)
+
+		// In RBAC v2, "everyone" is a special group with id "1" that always includes all users.
+		// To prevent issues for customers who have a real group named "everyone", only
+		// return this special group if the lookup failed.
+		if err != nil && name == "everyone" {
+			r = &gql.RbacGroup{
+				Id:   "1",
+				Name: "everyone",
+			}
+			err = nil
+		}
 	}
 
 	if err != nil {
