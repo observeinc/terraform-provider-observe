@@ -22,12 +22,12 @@ func TestAccObserveGrantGroupDatasetCreate(t *testing.T) {
 
 				resource "observe_grant" "example" {
 				  subject = observe_rbac_group.example.oid
-				  role    = "dataset_create"
+				  role    = "dataset_creator"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
-					resource.TestCheckResourceAttr("observe_grant.example", "role", "dataset_create"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "dataset_creator"),
 				),
 			},
 		},
@@ -48,7 +48,7 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 
 				resource "observe_grant" "example" {
 				  subject = data.observe_user.system.oid
-				  role    = "datastream_edit"
+				  role    = "datastream_editor"
 				  qualifier {
 				    oid = observe_datastream.test.oid
 				  }
@@ -56,7 +56,7 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
-					resource.TestCheckResourceAttr("observe_grant.example", "role", "datastream_edit"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "datastream_editor"),
 					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_grant.example", "qualifier.0.oid"),
 				),
@@ -69,7 +69,7 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 
 				resource "observe_grant" "example" {
 				  subject = data.observe_user.system.oid
-				  role    = "datastream_view"
+				  role    = "datastream_viewer"
 				  qualifier {
 				    oid = observe_datastream.test.oid
 				  }
@@ -116,7 +116,7 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 
 				resource "observe_grant" "example" {
 				  subject = data.observe_rbac_group.everyone.oid
-				  role    = "worksheet_view"
+				  role    = "worksheet_viewer"
 				  qualifier {
 				    oid = observe_worksheet.example.oid
 				  }
@@ -124,7 +124,7 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
-					resource.TestCheckResourceAttr("observe_grant.example", "role", "worksheet_view"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "worksheet_viewer"),
 					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_grant.example", "qualifier.0.oid"),
 				),
@@ -147,12 +147,12 @@ func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 
 				resource "observe_grant" "example" {
 				  subject = observe_rbac_group.example.oid
-				  role    = "admin_workspace"
+				  role    = "administrator"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
-					resource.TestCheckResourceAttr("observe_grant.example", "role", "admin_workspace"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "administrator"),
 				),
 			},
 		},

@@ -3,15 +3,18 @@
 page_title: "observe_grant Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  NOTE: This feature is still under development. It is not meant for customer use yet.
   Manages an Observe grant. Grants allow configuring permissions for users and groups by
-  assigning roles. A grant may also optionally be qualified by an object id. Must have
-  RBAC v2 enabled, replaces rbac_statement.
+  assigning roles. A grant may also optionally be qualified by an object id. Replaces
+  rbac_statement. Reach out to Observe to enable this feature.
 ---
 # observe_grant
 
+NOTE: This feature is still under development. It is not meant for customer use yet.
+
 Manages an Observe grant. Grants allow configuring permissions for users and groups by
-assigning roles. A grant may also optionally be qualified by an object id. Must have
-RBAC v2 enabled, replaces rbac_statement.
+assigning roles. A grant may also optionally be qualified by an object id. Replaces
+rbac_statement. Reach out to Observe to enable this feature.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
@@ -39,13 +42,13 @@ data "observe_dataset" "example" {
 // Allow user example to create worksheets
 resource "observe_grant" "user_example" {
   subject = data.observe_user.example.oid
-  role    = "worksheet_create"
+  role    = "worksheet_creator"
 }
 
 // Allow group engineering to edit dataset Engineering Logs
-resource "observe_rbac_statement" "group_example" {
+resource "observe_grant" "group_example" {
   subject = data.observe_rbac_group.example.oid
-  role    = "dataset_edit"
+  role    = "dataset_editor"
   qualifier {
     oid = data.observe_dataset.example.oid
   }
@@ -54,7 +57,7 @@ resource "observe_rbac_statement" "group_example" {
 // Allow everyone to view dataset Engineering Logs
 resource "observe_grant" "everyone_example" {
   subject = data.observe_rbac_group.everyone.oid
-  role    = "dataset_view"
+  role    = "dataset_viewer"
   qualifier {
     oid = data.observe_dataset.example.oid
   }

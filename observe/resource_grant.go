@@ -63,7 +63,9 @@ func resourceGrant() *schema.Resource {
 
 // for now, translates grants into rbac v1 statements until api support is added
 func newGrantInput(data *schema.ResourceData) (input *gql.RbacStatementInput, diags diag.Diagnostics) {
-	input = &gql.RbacStatementInput{}
+	input = &gql.RbacStatementInput{
+		Version: intPtr(2),
+	}
 
 	// subject
 	subject, err := oid.NewOID(data.Get("subject").(string))
@@ -106,12 +108,7 @@ func newGrantInput(data *schema.ResourceData) (input *gql.RbacStatementInput, di
 	if err != nil {
 		return nil, diag.Errorf(err.Error())
 	}
-	input.Object.Owner = boolPtr(false)
-	if input.Object.All == nil {
-		input.Object.All = boolPtr(false)
-	}
 
-	input.Version = intPtr(2)
 	return input, diags
 }
 
@@ -142,7 +139,7 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 	var role string
 	qualifier := make(map[string]interface{}, 0)
 	if stmt.Role == gql.RbacRoleManager && stmt.Object.All != nil && *stmt.Object.All {
-		role = toSnake(string(AdminWorkspace))
+		role = toSnake(string(Administrator))
 	} else if stmt.Object.Type != nil {
 		objType := oid.Type(*stmt.Object.Type)
 		if !sliceContains(validRbacV2Types, objType) {
@@ -250,75 +247,75 @@ func resourceGrantDelete(ctx context.Context, data *schema.ResourceData, meta in
 type GrantRole string
 
 const (
-	AdminWorkspace   GrantRole = "AdminWorkspace"
-	DashboardCreate  GrantRole = "DashboardCreate"
-	DashboardEdit    GrantRole = "DashboardEdit"
-	DashboardView    GrantRole = "DashboardView"
-	DatasetCreate    GrantRole = "DatasetCreate"
-	DatasetEdit      GrantRole = "DatasetEdit"
-	DatasetView      GrantRole = "DatasetView"
-	DatastreamCreate GrantRole = "DatastreamCreate"
-	DatastreamEdit   GrantRole = "DatastreamEdit"
-	DatastreamView   GrantRole = "DatastreamView"
-	MonitorCreate    GrantRole = "MonitorCreate"
-	MonitorEdit      GrantRole = "MonitorEdit"
-	MonitorView      GrantRole = "MonitorView"
-	WorksheetCreate  GrantRole = "WorksheetCreate"
-	WorksheetEdit    GrantRole = "WorksheetEdit"
-	WorksheetView    GrantRole = "WorksheetView"
+	Administrator     GrantRole = "Administrator"
+	DashboardCreator  GrantRole = "DashboardCreator"
+	DashboardEditor   GrantRole = "DashboardEditor"
+	DashboardViewer   GrantRole = "DashboardViewer"
+	DatasetCreator    GrantRole = "DatasetCreator"
+	DatasetEditor     GrantRole = "DatasetEditor"
+	DatasetViewer     GrantRole = "DatasetViewer"
+	DatastreamCreator GrantRole = "DatastreamCreator"
+	DatastreamEditor  GrantRole = "DatastreamEditor"
+	DatastreamViewer  GrantRole = "DatastreamViewer"
+	MonitorCreator    GrantRole = "MonitorCreator"
+	MonitorEditor     GrantRole = "MonitorEditor"
+	MonitorViewer     GrantRole = "MonitorViewer"
+	WorksheetCreator  GrantRole = "WorksheetCreator"
+	WorksheetEditor   GrantRole = "WorksheetEditor"
+	WorksheetViewer   GrantRole = "WorksheetViewer"
 )
 
 var validGrantRoles = []GrantRole{
-	AdminWorkspace,
-	DashboardCreate,
-	DashboardEdit,
-	DashboardView,
-	DatasetCreate,
-	DatasetEdit,
-	DatasetView,
-	DatastreamCreate,
-	DatastreamEdit,
-	DatastreamView,
-	MonitorCreate,
-	MonitorEdit,
-	MonitorView,
-	WorksheetCreate,
-	WorksheetEdit,
-	WorksheetView,
+	Administrator,
+	DashboardCreator,
+	DashboardEditor,
+	DashboardViewer,
+	DatasetCreator,
+	DatasetEditor,
+	DatasetViewer,
+	DatastreamCreator,
+	DatastreamEditor,
+	DatastreamViewer,
+	MonitorCreator,
+	MonitorEditor,
+	MonitorViewer,
+	WorksheetCreator,
+	WorksheetEditor,
+	WorksheetViewer,
 }
 
-var createGrantRoles = []GrantRole{DashboardCreate, DatasetCreate, DatastreamCreate, MonitorCreate, WorksheetCreate}
-var editGrantRoles = []GrantRole{DashboardEdit, DatasetEdit, DatastreamEdit, MonitorEdit, WorksheetEdit}
-var viewGrantRoles = []GrantRole{DashboardView, DatasetView, DatastreamView, MonitorView, WorksheetView}
+var createGrantRoles = []GrantRole{DashboardCreator, DatasetCreator, DatastreamCreator, MonitorCreator, WorksheetCreator}
+var editGrantRoles = []GrantRole{DashboardEditor, DatasetEditor, DatastreamEditor, MonitorEditor, WorksheetEditor}
+var viewGrantRoles = []GrantRole{DashboardViewer, DatasetViewer, DatastreamViewer, MonitorViewer, WorksheetViewer}
 
 var validRbacV2Types = []oid.Type{oid.TypeDashboard, oid.TypeDataset, oid.TypeDatastream, oid.TypeMonitor, oid.TypeWorksheet}
 
 var createGrantRoleForType = map[oid.Type]GrantRole{
-	oid.TypeDashboard:  DashboardCreate,
-	oid.TypeDataset:    DatasetCreate,
-	oid.TypeDatastream: DatastreamCreate,
-	oid.TypeMonitor:    MonitorCreate,
-	oid.TypeWorksheet:  WorksheetCreate,
+	oid.TypeDashboard:  DashboardCreator,
+	oid.TypeDataset:    DatasetCreator,
+	oid.TypeDatastream: DatastreamCreator,
+	oid.TypeMonitor:    MonitorCreator,
+	oid.TypeWorksheet:  WorksheetCreator,
 }
 
 var editGrantRoleForType = map[oid.Type]GrantRole{
-	oid.TypeDashboard:  DashboardEdit,
-	oid.TypeDataset:    DatasetEdit,
-	oid.TypeDatastream: DatastreamEdit,
-	oid.TypeMonitor:    MonitorEdit,
-	oid.TypeWorksheet:  WorksheetEdit,
+	oid.TypeDashboard:  DashboardEditor,
+	oid.TypeDataset:    DatasetEditor,
+	oid.TypeDatastream: DatastreamEditor,
+	oid.TypeMonitor:    MonitorEditor,
+	oid.TypeWorksheet:  WorksheetEditor,
 }
 
 var viewGrantRoleForType = map[oid.Type]GrantRole{
-	oid.TypeDashboard:  DashboardView,
-	oid.TypeDataset:    DatasetView,
-	oid.TypeDatastream: DatastreamView,
-	oid.TypeMonitor:    MonitorView,
-	oid.TypeWorksheet:  WorksheetView,
+	oid.TypeDashboard:  DashboardViewer,
+	oid.TypeDataset:    DatasetViewer,
+	oid.TypeDatastream: DatastreamViewer,
+	oid.TypeMonitor:    MonitorViewer,
+	oid.TypeWorksheet:  WorksheetViewer,
 }
 
 func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
-	if r == AdminWorkspace {
+	if r == Administrator {
 		return gql.RbacRoleManager, nil
 	} else if sliceContains(createGrantRoles, r) || sliceContains(editGrantRoles, r) {
 		return gql.RbacRoleEditor, nil
@@ -331,15 +328,15 @@ func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
 
 func (r GrantRole) ToType() *oid.Type {
 	switch r {
-	case DashboardCreate, DashboardEdit, DashboardView:
+	case DashboardCreator, DashboardEditor, DashboardViewer:
 		return asPointer(oid.TypeDashboard)
-	case DatasetCreate, DatasetEdit, DatasetView:
+	case DatasetCreator, DatasetEditor, DatasetViewer:
 		return asPointer(oid.TypeDataset)
-	case DatastreamCreate, DatastreamEdit, DatastreamView:
+	case DatastreamCreator, DatastreamEditor, DatastreamViewer:
 		return asPointer(oid.TypeDatastream)
-	case MonitorCreate, MonitorEdit, MonitorView:
+	case MonitorCreator, MonitorEditor, MonitorViewer:
 		return asPointer(oid.TypeMonitor)
-	case WorksheetCreate, WorksheetEdit, WorksheetView:
+	case WorksheetCreator, WorksheetEditor, WorksheetViewer:
 		return asPointer(oid.TypeWorksheet)
 	default:
 		return nil
@@ -347,18 +344,24 @@ func (r GrantRole) ToType() *oid.Type {
 }
 
 func (r GrantRole) ToRbacObject(resourceId *string) (gql.RbacObjectInput, error) {
+	objectInput := gql.RbacObjectInput{
+		Owner: boolPtr(false),
+		All:   boolPtr(false),
+	}
 	// an oid qualifier is only valid for edit roles and view roles
 	isResourceRole := sliceContains(editGrantRoles, r) || sliceContains(viewGrantRoles, r)
 	if isResourceRole && resourceId == nil {
-		return gql.RbacObjectInput{}, fmt.Errorf("role %s must be qualified with an object id", r)
+		return objectInput, fmt.Errorf("role %s must be qualified with an object id", r)
 	}
 	if !isResourceRole && resourceId != nil {
-		return gql.RbacObjectInput{}, fmt.Errorf("role %s cannot be qualified with an object id", r)
+		return objectInput, fmt.Errorf("role %s cannot be qualified with an object id", r)
 	}
 	switch r {
-	case AdminWorkspace:
-		return gql.RbacObjectInput{All: boolPtr(true)}, nil
+	case Administrator:
+		objectInput.All = boolPtr(true)
 	default:
-		return gql.RbacObjectInput{Type: (*string)(r.ToType()), ObjectId: resourceId}, nil
+		objectInput.Type = (*string)(r.ToType())
+		objectInput.ObjectId = resourceId
 	}
+	return objectInput, nil
 }

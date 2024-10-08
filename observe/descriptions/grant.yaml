@@ -1,7 +1,9 @@
 description: |
+  NOTE: This feature is still under development. It is not meant for customer use yet.
+
   Manages an Observe grant. Grants allow configuring permissions for users and groups by
-  assigning roles. A grant may also optionally be qualified by an object id. Must have
-  RBAC v2 enabled, replaces rbac_statement.
+  assigning roles. A grant may also optionally be qualified by an object id. Replaces
+  rbac_statement. Reach out to Observe to enable this feature.
 
 schema:
   subject: |

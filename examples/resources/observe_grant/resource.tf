@@ -23,13 +23,13 @@ data "observe_dataset" "example" {
 // Allow user example to create worksheets
 resource "observe_grant" "user_example" {
   subject = data.observe_user.example.oid
-  role    = "worksheet_create"
+  role    = "worksheet_creator"
 }
 
 // Allow group engineering to edit dataset Engineering Logs
-resource "observe_rbac_statement" "group_example" {
+resource "observe_grant" "group_example" {
   subject = data.observe_rbac_group.example.oid
-  role    = "dataset_edit"
+  role    = "dataset_editor"
   qualifier {
     oid = data.observe_dataset.example.oid
   }
@@ -38,7 +38,7 @@ resource "observe_rbac_statement" "group_example" {
 // Allow everyone to view dataset Engineering Logs
 resource "observe_grant" "everyone_example" {
   subject = data.observe_rbac_group.everyone.oid
-  role    = "dataset_view"
+  role    = "dataset_viewer"
   qualifier {
     oid = data.observe_dataset.example.oid
   }

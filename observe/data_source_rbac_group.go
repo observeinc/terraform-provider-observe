@@ -12,7 +12,7 @@ import (
 const (
 	schemaRbacGroupIdDescription          = "RbacGroup ID. Either `name` or `id` must be provided."
 	schemaRbacGroupOIDDescription         = "The Observe ID for rbacGroup."
-	schemaRbacGroupNameDescription        = "RbacGroup Name. Either `name` or `id` must be provided. If RBAC v2 is enabled, can be set to \"everyone\" to refer to pre-defined group always including all users."
+	schemaRbacGroupNameDescription        = "RbacGroup Name. Either `name` or `id` must be provided."
 	schemaRbacGroupDescriptionDescription = "RbacGroup description."
 )
 
