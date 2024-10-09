@@ -69,6 +69,19 @@ func (client *Client) ListDatasets(ctx context.Context) (ds []*Dataset, err erro
 	return result, nil
 }
 
+func (client *Client) ListDatasetsIdNameOnly(ctx context.Context) (ds []*DatasetIdName, err error) {
+	resp, err := listDatasetsIdNameOnly(ctx, client.Gql)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*DatasetIdName, 0)
+	for _, ds := range resp.Datasets {
+		d := ds.Dataset
+		result = append(result, &d)
+	}
+	return result, nil
+}
+
 func (client *Client) SaveSourceDataset(ctx context.Context, workspaceId string, input *DatasetDefinitionInput, sourceInput *SourceTableDefinitionInput) (*Dataset, error) {
 	resp, err := saveSourceDataset(ctx, client.Gql, workspaceId, *input, *sourceInput, dep())
 	return datasetOrError(resp.Dataset, err)

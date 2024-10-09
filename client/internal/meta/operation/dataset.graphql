@@ -64,6 +64,11 @@ fragment Dataset on Dataset {
 	}
 }
 
+fragment DatasetIdName on Dataset {
+	name
+	id
+}
+
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
@@ -119,6 +124,15 @@ query listDatasets{
 		# @genqlient(flatten: true)
 		datasets {
 			...Dataset
+		}
+	}
+}
+
+query listDatasetsIdNameOnly {
+	datasets: datasetSearch {
+		# @genqlient(flatten: true)
+		dataset {
+			...DatasetIdName
 		}
 	}
 }

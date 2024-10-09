@@ -1426,6 +1426,18 @@ func (v *DatasetForeignKeysForeignKey) GetSrcFields() []string { return v.SrcFie
 // GetDstFields returns DatasetForeignKeysForeignKey.DstFields, and is useful for accessing the field via an interface.
 func (v *DatasetForeignKeysForeignKey) GetDstFields() []string { return v.DstFields }
 
+// DatasetIdName includes the GraphQL fields of Dataset requested by the fragment DatasetIdName.
+type DatasetIdName struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
+
+// GetName returns DatasetIdName.Name, and is useful for accessing the field via an interface.
+func (v *DatasetIdName) GetName() string { return v.Name }
+
+// GetId returns DatasetIdName.Id, and is useful for accessing the field via an interface.
+func (v *DatasetIdName) GetId() string { return v.Id }
+
 type DatasetInput struct {
 	// if id is not specified, a new dataset is created
 	Id          *string `json:"id"`
@@ -8018,6 +8030,7 @@ type User struct {
 	Id      types.UserIdScalar `json:"id"`
 	Email   string             `json:"email"`
 	Comment *string            `json:"comment"`
+	Label   string             `json:"label"`
 }
 
 // GetId returns User.Id, and is useful for accessing the field via an interface.
@@ -8028,6 +8041,9 @@ func (v *User) GetEmail() string { return v.Email }
 
 // GetComment returns User.Comment, and is useful for accessing the field via an interface.
 func (v *User) GetComment() *string { return v.Comment }
+
+// GetLabel returns User.Label, and is useful for accessing the field via an interface.
+func (v *User) GetLabel() string { return v.Label }
 
 // These are the OPAL native types that can go into worksheet parameters.  Some
 // of the native OPAL types aren't (currently?) exposed to the worksheet
@@ -8152,6 +8168,18 @@ func (v *Worksheet) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetStages returns Worksheet.Stages, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
+
+// WorksheetIdLabel includes the GraphQL fields of Worksheet requested by the fragment WorksheetIdLabel.
+type WorksheetIdLabel struct {
+	Id    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// GetId returns WorksheetIdLabel.Id, and is useful for accessing the field via an interface.
+func (v *WorksheetIdLabel) GetId() string { return v.Id }
+
+// GetLabel returns WorksheetIdLabel.Label, and is useful for accessing the field via an interface.
+func (v *WorksheetIdLabel) GetLabel() string { return v.Label }
 
 type WorksheetInput struct {
 	// if id is not specified, a new worksheet is created
@@ -9104,6 +9132,14 @@ type __getWorkspaceInput struct {
 
 // GetId returns __getWorkspaceInput.Id, and is useful for accessing the field via an interface.
 func (v *__getWorkspaceInput) GetId() string { return v.Id }
+
+// __listWorksheetsIdLabelOnlyInput is used internally by genqlient
+type __listWorksheetsIdLabelOnlyInput struct {
+	WorkspaceId string `json:"workspaceId"`
+}
+
+// GetWorkspaceId returns __listWorksheetsIdLabelOnlyInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__listWorksheetsIdLabelOnlyInput) GetWorkspaceId() string { return v.WorkspaceId }
 
 // __lookupAppInput is used internally by genqlient
 type __lookupAppInput struct {
@@ -10888,6 +10924,27 @@ type listDatasetsDatasetsProject struct {
 // GetDatasets returns listDatasetsDatasetsProject.Datasets, and is useful for accessing the field via an interface.
 func (v *listDatasetsDatasetsProject) GetDatasets() []Dataset { return v.Datasets }
 
+// listDatasetsIdNameOnlyDatasetsDatasetMatch includes the requested fields of the GraphQL type DatasetMatch.
+type listDatasetsIdNameOnlyDatasetsDatasetMatch struct {
+	Dataset DatasetIdName `json:"dataset"`
+}
+
+// GetDataset returns listDatasetsIdNameOnlyDatasetsDatasetMatch.Dataset, and is useful for accessing the field via an interface.
+func (v *listDatasetsIdNameOnlyDatasetsDatasetMatch) GetDataset() DatasetIdName { return v.Dataset }
+
+// listDatasetsIdNameOnlyResponse is returned by listDatasetsIdNameOnly on success.
+type listDatasetsIdNameOnlyResponse struct {
+	// searchMode defaults to InclusiveMode, which means "any matches, counts" sorted by better-scoring.
+	// If you pass in ExclusiveMode, then you get "must match each thing" behavior, which may end up
+	// returning no datasets at all quite easily.
+	Datasets []listDatasetsIdNameOnlyDatasetsDatasetMatch `json:"datasets"`
+}
+
+// GetDatasets returns listDatasetsIdNameOnlyResponse.Datasets, and is useful for accessing the field via an interface.
+func (v *listDatasetsIdNameOnlyResponse) GetDatasets() []listDatasetsIdNameOnlyDatasetsDatasetMatch {
+	return v.Datasets
+}
+
 // listDatasetsResponse is returned by listDatasets on success.
 type listDatasetsResponse struct {
 	Datasets []listDatasetsDatasetsProject `json:"datasets"`
@@ -10895,6 +10952,52 @@ type listDatasetsResponse struct {
 
 // GetDatasets returns listDatasetsResponse.Datasets, and is useful for accessing the field via an interface.
 func (v *listDatasetsResponse) GetDatasets() []listDatasetsDatasetsProject { return v.Datasets }
+
+// listUsersResponse is returned by listUsers on success.
+type listUsersResponse struct {
+	Users *listUsersUsersCustomer `json:"users"`
+}
+
+// GetUsers returns listUsersResponse.Users, and is useful for accessing the field via an interface.
+func (v *listUsersResponse) GetUsers() *listUsersUsersCustomer { return v.Users }
+
+// listUsersUsersCustomer includes the requested fields of the GraphQL type Customer.
+type listUsersUsersCustomer struct {
+	Users []User `json:"users"`
+}
+
+// GetUsers returns listUsersUsersCustomer.Users, and is useful for accessing the field via an interface.
+func (v *listUsersUsersCustomer) GetUsers() []User { return v.Users }
+
+// listWorksheetsIdLabelOnlyResponse is returned by listWorksheetsIdLabelOnly on success.
+type listWorksheetsIdLabelOnlyResponse struct {
+	WorksheetSearch listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper `json:"worksheetSearch"`
+}
+
+// GetWorksheetSearch returns listWorksheetsIdLabelOnlyResponse.WorksheetSearch, and is useful for accessing the field via an interface.
+func (v *listWorksheetsIdLabelOnlyResponse) GetWorksheetSearch() listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper {
+	return v.WorksheetSearch
+}
+
+// listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper includes the requested fields of the GraphQL type WorksheetSearchResultWrapper.
+type listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper struct {
+	Worksheets []listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult `json:"worksheets"`
+}
+
+// GetWorksheets returns listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper.Worksheets, and is useful for accessing the field via an interface.
+func (v *listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapper) GetWorksheets() []listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult {
+	return v.Worksheets
+}
+
+// listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult includes the requested fields of the GraphQL type WorksheetSearchResult.
+type listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult struct {
+	Worksheet WorksheetIdLabel `json:"worksheet"`
+}
+
+// GetWorksheet returns listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult.Worksheet, and is useful for accessing the field via an interface.
+func (v *listWorksheetsIdLabelOnlyWorksheetSearchWorksheetSearchResultWrapperWorksheetsWorksheetSearchResult) GetWorksheet() WorksheetIdLabel {
+	return v.Worksheet
+}
 
 // listWorkspacesResponse is returned by listWorkspaces on success.
 type listWorkspacesResponse struct {
@@ -15008,6 +15111,7 @@ fragment User on User {
 	id
 	email
 	comment
+	label
 }
 `
 
@@ -16831,6 +16935,7 @@ fragment User on User {
 	id
 	email
 	comment
+	label
 }
 `
 
@@ -17056,6 +17161,125 @@ func listDatasets(
 	var err error
 
 	var data listDatasetsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by listDatasetsIdNameOnly.
+const listDatasetsIdNameOnly_Operation = `
+query listDatasetsIdNameOnly {
+	datasets: datasetSearch {
+		dataset {
+			... DatasetIdName
+		}
+	}
+}
+fragment DatasetIdName on Dataset {
+	name
+	id
+}
+`
+
+func listDatasetsIdNameOnly(
+	ctx context.Context,
+	client graphql.Client,
+) (*listDatasetsIdNameOnlyResponse, error) {
+	req := &graphql.Request{
+		OpName: "listDatasetsIdNameOnly",
+		Query:  listDatasetsIdNameOnly_Operation,
+	}
+	var err error
+
+	var data listDatasetsIdNameOnlyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by listUsers.
+const listUsers_Operation = `
+query listUsers {
+	users: currentCustomer {
+		users {
+			... User
+		}
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+	label
+}
+`
+
+func listUsers(
+	ctx context.Context,
+	client graphql.Client,
+) (*listUsersResponse, error) {
+	req := &graphql.Request{
+		OpName: "listUsers",
+		Query:  listUsers_Operation,
+	}
+	var err error
+
+	var data listUsersResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by listWorksheetsIdLabelOnly.
+const listWorksheetsIdLabelOnly_Operation = `
+query listWorksheetsIdLabelOnly ($workspaceId: ObjectId!) {
+	worksheetSearch(terms: {workspaceId:[$workspaceId]}) {
+		worksheets {
+			worksheet {
+				... WorksheetIdLabel
+			}
+		}
+	}
+}
+fragment WorksheetIdLabel on Worksheet {
+	id
+	label
+}
+`
+
+func listWorksheetsIdLabelOnly(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+) (*listWorksheetsIdLabelOnlyResponse, error) {
+	req := &graphql.Request{
+		OpName: "listWorksheetsIdLabelOnly",
+		Query:  listWorksheetsIdLabelOnly_Operation,
+		Variables: &__listWorksheetsIdLabelOnlyInput{
+			WorkspaceId: workspaceId,
+		},
+	}
+	var err error
+
+	var data listWorksheetsIdLabelOnlyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

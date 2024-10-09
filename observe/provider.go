@@ -116,6 +116,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).",
 			},
+			"export_object_bindings": {
+				Type:        schema.TypeBool,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_EXPORT_OBJECT_BINDINGS", false),
+				Optional:    true,
+				Description: "Enable generating object ID-name bindings for cross-tenant export/import (internal use).",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -260,6 +266,10 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("managing_object_id"); ok {
 			managingId := v.(string)
 			config.ManagingObjectID = &managingId
+		}
+
+		if v, ok := data.GetOk("export_object_bindings"); ok {
+			config.ExportObjectBindings = v.(bool)
 		}
 
 		// trace identifier to attach to all HTTP requests in the traceparent header

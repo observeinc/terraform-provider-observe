@@ -86,6 +86,7 @@ terraform plan
 
 - `api_token` (String, Sensitive) An Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.
 - `domain` (String) Observe API domain. Defaults to `observeinc.com`.
+- `export_object_bindings` (Boolean) Enable generating object ID-name bindings for cross-tenant export/import (internal use).
 - `flags` (String) Toggle experimental features.
 - `http_client_timeout` (String) HTTP client timeout. Defaults to 2m.
 - `insecure` (Boolean) Skip TLS certificate validation.
