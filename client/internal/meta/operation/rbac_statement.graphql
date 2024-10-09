@@ -16,6 +16,7 @@ fragment RbacStatement on RbacStatement {
                 all
         }
         role
+        version
 }
 
 mutation createRbacStatement($config: RbacStatementInput!) {

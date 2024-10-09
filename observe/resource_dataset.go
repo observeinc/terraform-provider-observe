@@ -100,11 +100,11 @@ func resourceDataset() *schema.Resource {
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
 			"data_table_view_state": {
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:             schema.TypeString,
+				Optional:         true,
 				ValidateDiagFunc: validateStringIsJSON,
 				DiffSuppressFunc: diffSuppressJSON,
-				Description: descriptions.Get("dataset", "schema", "data_table_view_state"),
+				Description:      descriptions.Get("dataset", "schema", "data_table_view_state"),
 			},
 			"stage": {
 				Type:        schema.TypeList,

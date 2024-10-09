@@ -15,19 +15,30 @@ extend type Query {
     rbacStatement(id: ORN!): RbacStatement!
 
     """
-    All groups defined in this tenant.
+    All groups defined.
     """
     rbacGroups: [RbacGroup!]!
 
     """
-    All group memberships defined in this tenant.
+    All group memberships defined.
     """
     rbacGroupmembers: [RbacGroupmember!]!
 
     """
-    All RBAC statements defined in this tenant.
+    All RBAC statements defined.
     """
     rbacStatements: [RbacStatement!]!
+
+
+    """
+    Get all RBAC Role Statements
+    """
+    rbacRoleStatements: [RbacStatement!]!
+
+    """
+    Get all RBAC resource statements for several objects at once
+    """
+    rbacResourceStatements(ids: [ObjectId!]!): [RbacStatement!]!
 
     """
     Given a particular user, and a particular object/role request, return what would happen.
@@ -66,6 +77,11 @@ extend type Query {
     Get the group users will be assigned to by default
     """
     rbacDefaultGroup: RbacGroup!
+
+        """
+    Get the group users will be assigned to by default
+    """
+    rbacDefaultSharingGroups: [RbacDefaultSharingGroup!]!
 }
 
 extend type User {
@@ -116,6 +132,8 @@ extend type Mutation {
     """
     setRbacDefaultGroup(id: ORN!): ResultStatus!
     unsetRbacDefaultGroup: ResultStatus!
+
+    setRbacDefaultSharingGroups(shares: [RbacDefaultSharingGroupInput!]): ResultStatus!
 }
 
 scalar ORN @goModel(model: "observe/authorization/id.ORN")
@@ -212,6 +230,8 @@ type RbacStatement implements AuditedObject @goModel(model: "observe/rbac/policy
     object: RbacObject!
     role: RbacRole!
 
+    version: Int
+
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver: true)
     createdDate: Time!
@@ -225,6 +245,7 @@ input RbacStatementInput @goModel(model: "observe/rbac/policy.Statement") {
     subject: RbacSubjectInput!
     object: RbacObjectInput!
     role: RbacRole!
+    version: Int
 }
 
 input UpdateRbacStatementInput @goModel(model: "observe/rbac/policy.Statement") {
@@ -233,12 +254,23 @@ input UpdateRbacStatementInput @goModel(model: "observe/rbac/policy.Statement") 
     subject: RbacSubjectInput!
     object: RbacObjectInput!
     role: RbacRole!
+    version: Int
 }
 
 type MutateRbacStatementsResponse @goModel(model: "observe/meta/metatypes.MutateRbacStatementsResponse") {
     createdStatements: [RbacStatement!]!
     updatedStatements: [RbacStatement!]!
     deletedStatements: [ORN!]!
+}
+
+type RbacDefaultSharingGroup  @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
+    groupId: ORN!
+    allowEdit: Boolean!
+}
+
+input RbacDefaultSharingGroupInput @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
+    groupId: ORN!
+    allowEdit: Boolean!
 }
 
 """

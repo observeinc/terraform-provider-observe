@@ -62,9 +62,9 @@ func resourceBookmarkGroup() *schema.Resource {
 				Description: descriptions.Get("bookmark_group", "schema", "presentation"),
 			},
 			"is_home": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
 				Description: descriptions.Get("bookmark_group", "schema", "is_home"),
 			},
 		},
