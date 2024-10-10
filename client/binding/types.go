@@ -13,7 +13,6 @@ type Ref struct {
 type Target struct {
 	TfLocalBindingVar string `json:"tf_local_binding_var"`
 	TfName            string `json:"tf_name"`
-	Value             string `json:"value"`
 }
 
 type Mapping map[Ref]Target
@@ -23,8 +22,10 @@ type Kind string
 type KindSet map[Kind]struct{}
 
 type BindingsObject struct {
-	Mappings Mapping `json:"mappings"`
-	Kinds    []Kind  `json:"kinds"`
+	Mappings      Mapping `json:"mappings"`
+	Kinds         []Kind  `json:"kinds"`
+	Workspace     Target  `json:"workspace"`
+	WorkspaceName string  `json:"workspace_name"`
 }
 
 const (

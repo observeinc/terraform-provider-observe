@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 var (
@@ -16,16 +18,28 @@ var (
 	hasLeadingDigit = regexp.MustCompile(`^[0-9]`)
 )
 
+type ResourceCacheEntry struct {
+	TfName string
+	Label  string
+}
+
 type ResourceCache struct {
-	idToLabel Mapping
+	idToLabel      map[Ref]ResourceCacheEntry
+	workspaceOid   *oid.OID
+	workspaceEntry *ResourceCacheEntry
 }
 
-type NewResourceCacheOptArgs struct {
-	workspaceId string
-}
+func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client) (ResourceCache, error) {
+	var cache = ResourceCache{idToLabel: make(map[Ref]ResourceCacheEntry)}
+	// special case: one workspace per customer, always needed for lookup
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return cache, err
+	}
+	cache.addEntry(KindWorkspace, workspaces[0].Label, workspaces[0].Oid().String(), nil, make(map[string]struct{}))
+	cache.workspaceOid = workspaces[0].Oid()
+	cache.workspaceEntry = cache.LookupId(KindWorkspace, cache.workspaceOid.String())
 
-func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client, optArgs NewResourceCacheOptArgs) (ResourceCache, error) {
-	var cache = ResourceCache{idToLabel: make(Mapping)}
 	for resourceKind := range kinds {
 		// colisions are really bad, so make a best effort to prevent them
 		existingResourceNames := make(map[string]struct{})
@@ -40,21 +54,13 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				cache.addEntry(KindDataset, ds.Name, ds.Id, &disambiguator, existingResourceNames)
 			}
 		case KindWorksheet:
-			worksheets, err := client.ListWorksheetIdLabelOnly(ctx, optArgs.workspaceId)
+			worksheets, err := client.ListWorksheetIdLabelOnly(ctx, cache.workspaceOid.Id)
 			if err != nil {
 				return cache, err
 			}
 			for _, wk := range worksheets {
 				cache.addEntry(KindWorksheet, wk.Label, wk.Id, &disambiguator, existingResourceNames)
 			}
-		case KindWorkspace:
-			// special case: one workspace per customer, will always be referred to as
-			// "default"
-			workspaces, err := client.ListWorkspaces(ctx)
-			if err != nil {
-				return cache, err
-			}
-			cache.addEntry(KindWorkspace, "Default", workspaces[0].Oid().String(), &disambiguator, existingResourceNames)
 		case KindUser:
 			users, err := client.ListUsers(ctx)
 			if err != nil {
@@ -76,18 +82,18 @@ func (c *ResourceCache) addEntry(kind Kind, label string, id string, disambiguat
 	}
 	var empty struct{}
 	existingNames[resourceName] = empty
-	c.idToLabel[Ref{kind: kind, key: id}] = Target{
+	c.idToLabel[Ref{kind: kind, key: id}] = ResourceCacheEntry{
 		TfName: resourceName,
-		Value:  label,
+		Label:  label,
 	}
 }
 
-func (c *ResourceCache) LookupId(kind Kind, id string) *Target {
-	maybeLabel, ok := c.idToLabel[Ref{kind: kind, key: id}]
+func (c *ResourceCache) LookupId(kind Kind, id string) *ResourceCacheEntry {
+	maybeEnt, ok := c.idToLabel[Ref{kind: kind, key: id}]
 	if !ok {
 		return nil
 	}
-	return &maybeLabel
+	return &maybeEnt
 }
 
 type Generator struct {
@@ -95,7 +101,6 @@ type Generator struct {
 	resourceType    string
 	resourceName    string
 	enabledBindings KindSet
-	client          *observe.Client
 	bindings        Mapping
 	cache           ResourceCache
 }
@@ -106,7 +111,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	if !enabled {
 		return Generator{enabled: false}, nil
 	}
-	rc, err := NewResourceCache(ctx, enabledBindings, client, NewResourceCacheOptArgs{})
+	rc, err := NewResourceCache(ctx, enabledBindings, client)
 	if err != nil {
 		return Generator{}, err
 	}
@@ -116,29 +121,38 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 		resourceType:    resourceType,
 		resourceName:    resourceName,
 		enabledBindings: enabledBindings,
-		client:          client,
 		bindings:        bindings,
 		cache:           rc,
 	}, nil
 }
 
+// lookup by kind and id, if valid and enabled then return a loval variable reference,
+// otherwise return the id (no-op)
 func (g *Generator) TryBind(kind Kind, id string) string {
-	if ! g.enabled {
+	if !g.enabled {
 		return id
 	}
-	if t := g.cache.LookupId(kind, id); t != nil {
-		tfLocal := sanitizeIdentifier(fmt.Sprintf("binding__%s_%s__%s_%s", g.resourceType, g.resourceName, kind, t.TfName))
-		g.bindings[Ref{kind: kind, key: t.Value}] = Target{
-			Value: t.Value,
-			TfName: t.TfName,
-			TfLocalBindingVar: tfLocal,
+	var e *ResourceCacheEntry
+	if kind == KindWorkspace && id == g.cache.workspaceOid.String() {
+		// workspaces are special since there should only be one primary one
+		e = g.cache.workspaceEntry
+	} else {
+		// lookup
+		e = g.cache.LookupId(kind, id)
+		if e == nil {
+			return id
 		}
-		return fmt.Sprintf("${local.%s}", tfLocal)
 	}
-	return id
+	// process into local var ref
+	terraformLocal := g.fmtTfLocalVar(kind, e.TfName)
+	g.bindings[Ref{kind: kind, key: e.Label}] = Target{
+		TfName:            e.TfName,
+		TfLocalBindingVar: terraformLocal,
+	}
+	return g.fmtTfLocalVarRef(terraformLocal)
 }
 
-func (g *Generator) Generate(ctx context.Context, data interface{}) {
+func (g *Generator) Generate(data interface{}) {
 	mapOverJsonStringKeys(data, func(key string, value string, jsonMapNode map[string]interface{}) {
 		kinds := resolveKeyToKinds(key)
 		for _, kind := range kinds {
@@ -146,30 +160,24 @@ func (g *Generator) Generate(ctx context.Context, data interface{}) {
 			if _, found := g.enabledBindings[kind]; !found {
 				continue
 			}
-			// Lookup resource in cache
-			maybeLabel := g.cache.LookupId(kind, value)
-			// update with binding
-			if maybeLabel != nil {
-				b := Ref{kind: kind, key: maybeLabel.Value}
-				terraformLocal := sanitizeIdentifier(fmt.Sprintf("binding__%s_%s__%s_%s", g.resourceType, g.resourceName, kind, maybeLabel.TfName))
-				g.bindings[b] = Target{
-					Value:             value,
-					TfName:            maybeLabel.TfName,
-					TfLocalBindingVar: terraformLocal,
-				}
-				jsonMapNode[key] = fmt.Sprintf("${local.%s}", terraformLocal)
+			// try bind the name
+			maybeRef := g.TryBind(kind, value)
+			// if lookup succeeded, then the returned value should be a lv ref and not the
+			// input id
+			if maybeRef != value {
+				jsonMapNode[key] = maybeRef
 				break
 			}
 		}
 	})
 }
 
-func (g *Generator) GenerateJson(ctx context.Context, jsonStr []byte) ([]byte, error) {
+func (g *Generator) GenerateJson(jsonStr []byte) ([]byte, error) {
 	if !g.enabled {
 		return jsonStr, nil
 	}
 	serialized, err := transformJson(jsonStr, func(dataPtr *interface{}) error {
-		g.Generate(ctx, *dataPtr)
+		g.Generate(*dataPtr)
 		return nil
 	})
 	if err != nil {
@@ -178,16 +186,31 @@ func (g *Generator) GenerateJson(ctx context.Context, jsonStr []byte) ([]byte, e
 	return serialized, nil
 }
 
-func (g *Generator) InsertBindingsObject(data map[string]interface{}) {
+func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 	enabledList := make([]Kind, 0)
 	for binding := range g.enabledBindings {
 		enabledList = append(enabledList, binding)
 	}
+	// sort for stability of comparison later on
+	sort.Slice(enabledList, func(i int, j int) bool {
+		return string(enabledList[i]) < string(enabledList[j])
+	})
+
+	workspaceTarget := g.cache.workspaceEntry
+	if workspaceTarget == nil {
+		return fmt.Errorf("Internal error: workspace was not resolved correctly.")
+	}
 	bindingsObject := BindingsObject{
 		Mappings: g.bindings,
 		Kinds:    enabledList,
+		Workspace: Target{
+			TfLocalBindingVar: g.fmtTfLocalVar(KindWorkspace, workspaceTarget.TfName),
+			TfName:            workspaceTarget.TfName,
+		},
+		WorkspaceName: g.cache.workspaceEntry.Label,
 	}
 	data[bindingsKey] = bindingsObject
+	return nil
 }
 
 func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types.JsonObject, error) {
@@ -195,13 +218,24 @@ func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types
 		return jsonData, nil
 	}
 	serialized, err := transformJson([]byte(jsonData.String()), func(dataPtr *interface{}) error {
-		g.InsertBindingsObject((*dataPtr).(map[string]interface{}))
-		return nil
+		return g.InsertBindingsObject((*dataPtr).(map[string]interface{}))
 	})
 	if err != nil {
 		return nil, err
 	}
 	return types.JsonObject(serialized).Ptr(), nil
+}
+
+func (g *Generator) HasBindings() bool {
+	return g.enabled && len(g.bindings) > 0
+}
+
+func (g *Generator) fmtTfLocalVar(kind Kind, targetTfName string) string {
+	return sanitizeIdentifier(fmt.Sprintf("binding__%s_%s__%s_%s", g.resourceType, g.resourceName, kind, targetTfName))
+}
+
+func (g *Generator) fmtTfLocalVarRef(tfLocalVar string) string {
+	return fmt.Sprintf("${local.%s}", tfLocalVar)
 }
 
 func resolveKeyToKinds(key string) []Kind {
@@ -210,10 +244,18 @@ func resolveKeyToKinds(key string) []Kind {
 		return []Kind{KindDataset, KindWorksheet}
 	case "datasetId":
 		fallthrough
+	case "keyForDatasetId":
+		fallthrough
+	case "sourceDatasetId":
+		fallthrough
 	case "targetDataset":
 		fallthrough
 	case "dataset":
 		return []Kind{KindDataset}
+	case "workspaceId":
+		return []Kind{KindWorkspace}
+	case "userId":
+		return []Kind{KindUser}
 	default:
 		return []Kind{}
 	}

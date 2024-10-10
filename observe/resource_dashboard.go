@@ -120,8 +120,7 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 	}
 
 	if v, ok := data.GetOk("layout"); ok {
-		layoutJson := types.JsonObject(v.(string)).Ptr()
-		input.Layout = layoutJson.Ptr()
+		input.Layout = types.JsonObject(v.(string)).Ptr()
 	}
 
 	if v, ok := data.GetOk("parameters"); ok {
@@ -185,7 +184,7 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		if stagesRaw, err := json.Marshal(d.Stages); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'stages' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
-		} else if stagesRaw, err := gen.GenerateJson(ctx, stagesRaw); err != nil {
+		} else if stagesRaw, err := gen.GenerateJson(stagesRaw); err != nil {
 			diagErr := fmt.Errorf("failed to generate bindings for 'stages' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("stages", string(stagesRaw)); err != nil {
@@ -197,7 +196,7 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		if parametersRaw, err := json.Marshal(d.Parameters); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'parameters' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
-		} else if parametersRaw, err := gen.GenerateJson(ctx, parametersRaw); err != nil {
+		} else if parametersRaw, err := gen.GenerateJson(parametersRaw); err != nil {
 			diagErr := fmt.Errorf("failed to generate bindings for 'parameters' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("parameters", string(parametersRaw)); err != nil {
@@ -209,7 +208,7 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		if parameterValuesRaw, err := json.Marshal(d.ParameterValues); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'parameter_values' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
-		} else if parameterValuesRaw, err := gen.GenerateJson(ctx, parameterValuesRaw); err != nil {
+		} else if parameterValuesRaw, err := gen.GenerateJson(parameterValuesRaw); err != nil {
 			diagErr := fmt.Errorf("failed to generate bindings for 'parameterValuesRaw' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("parameter_values", string(parameterValuesRaw)); err != nil {
@@ -217,12 +216,26 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		}
 	}
 
-	if d.Layout != nil {
-		if layout, err := gen.InsertBindingsObjectJson(d.Layout); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		} else if err := data.Set("layout", layout); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	if d.Layout != nil || gen.HasBindings() {
+		if d.Layout == nil {
+			empty := types.JsonObject("{}")
+			d.Layout = &empty
 		}
+		if layout, err := d.Layout.MarshalJSON(); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'layout' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if layout, err := gen.GenerateJson(layout); err != nil {
+			diagErr := fmt.Errorf("failed to generate bindings for 'layout' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else {
+			layoutJson := types.JsonObject(string(layout))
+			if layout, err := gen.InsertBindingsObjectJson(&layoutJson); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			} else if err := data.Set("layout", layout); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {
