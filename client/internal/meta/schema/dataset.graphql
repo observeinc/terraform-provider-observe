@@ -379,6 +379,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     accelerable: Boolean!
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
+    accelerationDisabledSource: String! @goField(name:materializationDisabledSource)
 
     """
     If the dataset is not hibernated, this field will be set to null.
@@ -592,6 +593,7 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     overwriteSource: Boolean
     deleted: Boolean
     accelerationDisabled: Boolean @goField(name:materializationDisabled)
+    accelerationDisabledSource: String @goField(name:materializationDisabledSource)
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String
