@@ -158,3 +158,29 @@ func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveGrantGroupMonitorGlobalMuter(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_rbac_group" "example" {
+				  name      = "%[1]s"
+				}
+
+				resource "observe_grant" "example" {
+				  subject = observe_rbac_group.example.oid
+				  role    = "monitor_global_muter"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "monitor_global_muter"),
+				),
+			},
+		},
+	})
+}

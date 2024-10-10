@@ -115,7 +115,7 @@ extend type Mutation {
     updateRbacStatement(id: ORN!, input: RbacStatementInput!): RbacStatement!
     deleteRbacStatement(id: ORN!): ResultStatus!
     """
-    mutateRbacStatements is delicious dessert topping, and also works great as a floor wax!
+    MutateRbacStatements is delicious dessert topping, and also works great as a floor wax!
     It will perform all the mutations requested and commit them as one operation, or it will
     return an error and have performed none of the mutations; there are no half-way changes.
     """
@@ -145,6 +145,7 @@ enum RbacRole @goModel(model: "observe/rbac/policy.Role") {
     Viewer
     Ingester
     Lister
+    MonitorGlobalMute
 }
 
 type RbacGroup implements AuditedObject @goModel(model: "observe/rbac/policy.Group") {
