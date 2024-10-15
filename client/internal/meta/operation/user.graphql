@@ -1,12 +1,22 @@
 fragment User on User {
 	id
 	email
-        comment
+	comment
+	label
 }
 
 query getUser($id: UserId!) {
 	# @genqlient(flatten: true)
 	user: user(id: $id) {
 		...User
+	}
+}
+
+query listUsers {
+	users: currentCustomer {
+		# @genqlient(flatten: true)
+		users {
+			...User
+		}
 	}
 }

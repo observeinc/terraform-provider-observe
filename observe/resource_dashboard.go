@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -141,8 +142,15 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 	return input, diags
 }
 
-func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
+func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema.ResourceData,
+	client *observe.Client, genBindings bool) (diags diag.Diagnostics) {
+	bindFor := binding.NewKindSet(binding.KindDataset, binding.KindWorkspace)
+	gen, err := binding.NewGenerator(ctx, genBindings, "dashboard", d.Name, client, bindFor)
+	if err != nil {
+		return diag.Errorf("Failed to initialize binding generator: %s", err.Error())
+	}
+
+	if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, oid.WorkspaceOid(d.WorkspaceId).String())); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -176,13 +184,10 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags
 		if stagesRaw, err := json.Marshal(d.Stages); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'stages' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if stagesRaw, err := gen.GenerateJson(stagesRaw); err != nil {
+			diagErr := fmt.Errorf("failed to generate bindings for 'stages' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("stages", string(stagesRaw)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if d.Layout != nil {
-		if err := data.Set("layout", d.Layout); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -190,6 +195,9 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags
 	if d.Parameters != nil {
 		if parametersRaw, err := json.Marshal(d.Parameters); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'parameters' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if parametersRaw, err := gen.GenerateJson(parametersRaw); err != nil {
+			diagErr := fmt.Errorf("failed to generate bindings for 'parameters' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("parameters", string(parametersRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -200,9 +208,34 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags
 		if parameterValuesRaw, err := json.Marshal(d.ParameterValues); err != nil {
 			diagErr := fmt.Errorf("failed to parse 'parameter_values' response field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if parameterValuesRaw, err := gen.GenerateJson(parameterValuesRaw); err != nil {
+			diagErr := fmt.Errorf("failed to generate bindings for 'parameterValuesRaw' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
 		} else if err := data.Set("parameter_values", string(parameterValuesRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if d.Layout != nil || gen.Enabled {
+		if d.Layout == nil {
+			empty := types.JsonObject("{}")
+			d.Layout = &empty
+		}
+		if layout, err := d.Layout.MarshalJSON(); err != nil {
+			diagErr := fmt.Errorf("failed to parse 'layout' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else if layout, err := gen.GenerateJson(layout); err != nil {
+			diagErr := fmt.Errorf("failed to generate bindings for 'layout' response field: %w", err)
+			diags = append(diags, diag.FromErr(diagErr)...)
+		} else {
+			layoutJson := types.JsonObject(string(layout))
+			if layout, err := gen.InsertBindingsObjectJson(&layoutJson); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			} else if err := data.Set("layout", layout); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {
@@ -249,7 +282,7 @@ func resourceDashboardRead(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	return dashboardToResourceData(result, data)
+	return dashboardToResourceData(ctx, result, data, client, false)
 }
 
 func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -270,7 +303,7 @@ func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	return dashboardToResourceData(result, data)
+	return dashboardToResourceData(ctx, result, data, client, false)
 }
 
 func resourceDashboardDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

@@ -10,6 +10,11 @@ fragment Worksheet on Worksheet {
 	}
 }
 
+fragment WorksheetIdLabel on Worksheet {
+	id
+	label
+}
+
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -34,6 +39,17 @@ query getWorksheet($id: ObjectId!) {
 	# @genqlient(flatten: true)
 	worksheet: worksheet(id: $id) {
 		...Worksheet
+	}
+}
+
+query listWorksheetsIdLabelOnly($workspaceId: ObjectId!) {
+	worksheetSearch: worksheetSearch(terms: { workspaceId: [$workspaceId] }) {
+		worksheets {
+			# @genqlient(flatten: true)
+			worksheet {
+				...WorksheetIdLabel
+			}
+		}
 	}
 }
 

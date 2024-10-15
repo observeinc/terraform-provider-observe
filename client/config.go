@@ -52,6 +52,9 @@ type Config struct {
 
 	// optional traceparent identifier to pass via header
 	TraceParent *string `json:"traceparent"`
+
+	// enable extra queries needed to export bindings
+	ExportObjectBindings bool `json:"export_object_bindings"`
 }
 
 func (c *Config) Hash() uint64 {

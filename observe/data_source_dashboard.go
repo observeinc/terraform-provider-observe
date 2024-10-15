@@ -82,5 +82,5 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 	}
 	data.SetId(ws.Id)
 
-	return dashboardToResourceData(ws, data)
+	return dashboardToResourceData(ctx, ws, data, client, true)
 }
