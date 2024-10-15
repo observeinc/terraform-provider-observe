@@ -69,7 +69,7 @@ func prepareResourceCacheFixture() ResourceCache {
 
 func prepareGeneratorFixture() Generator {
 	return Generator{
-		enabled:         true,
+		Enabled:         true,
 		resourceName:    "name",
 		resourceType:    "type",
 		enabledBindings: NewKindSet(KindWorksheet, KindDataset, KindWorkspace, KindUser),

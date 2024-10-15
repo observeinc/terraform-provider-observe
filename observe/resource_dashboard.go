@@ -216,7 +216,7 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		}
 	}
 
-	if d.Layout != nil || gen.HasBindings() {
+	if d.Layout != nil || gen.Enabled {
 		if d.Layout == nil {
 			empty := types.JsonObject("{}")
 			d.Layout = &empty

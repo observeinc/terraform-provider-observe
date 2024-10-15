@@ -97,7 +97,7 @@ func (c *ResourceCache) LookupId(kind Kind, id string) *ResourceCacheEntry {
 }
 
 type Generator struct {
-	enabled         bool
+	Enabled         bool
 	resourceType    string
 	resourceName    string
 	enabledBindings KindSet
@@ -109,7 +109,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	client *observe.Client, enabledBindings KindSet) (Generator, error) {
 	enabled = enabled && client.Config.ExportObjectBindings
 	if !enabled {
-		return Generator{enabled: false}, nil
+		return Generator{Enabled: false}, nil
 	}
 	rc, err := NewResourceCache(ctx, enabledBindings, client)
 	if err != nil {
@@ -117,7 +117,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	}
 	bindings := NewMapping()
 	return Generator{
-		enabled:         true,
+		Enabled:         true,
 		resourceType:    resourceType,
 		resourceName:    resourceName,
 		enabledBindings: enabledBindings,
@@ -129,7 +129,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 // lookup by kind and id, if valid and enabled then return a loval variable reference,
 // otherwise return the id (no-op)
 func (g *Generator) TryBind(kind Kind, id string) string {
-	if !g.enabled {
+	if !g.Enabled {
 		return id
 	}
 	var e *ResourceCacheEntry
@@ -173,7 +173,7 @@ func (g *Generator) Generate(data interface{}) {
 }
 
 func (g *Generator) GenerateJson(jsonStr []byte) ([]byte, error) {
-	if !g.enabled {
+	if !g.Enabled {
 		return jsonStr, nil
 	}
 	serialized, err := transformJson(jsonStr, func(dataPtr *interface{}) error {
@@ -214,7 +214,7 @@ func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 }
 
 func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types.JsonObject, error) {
-	if !g.enabled {
+	if !g.Enabled {
 		return jsonData, nil
 	}
 	serialized, err := transformJson([]byte(jsonData.String()), func(dataPtr *interface{}) error {
@@ -224,10 +224,6 @@ func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types
 		return nil, err
 	}
 	return types.JsonObject(serialized).Ptr(), nil
-}
-
-func (g *Generator) HasBindings() bool {
-	return g.enabled && len(g.bindings) > 0
 }
 
 func (g *Generator) fmtTfLocalVar(kind Kind, targetTfName string) string {
