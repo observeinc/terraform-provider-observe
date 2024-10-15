@@ -127,22 +127,21 @@ func dataSourceDataset() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						correlationTagNameKey: {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: descriptions.Get("correlation_tag", "schema", correlationTagNameKey),
 							ForceNew:    true,
 						},
 						correlationTagColumnKey: {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: descriptions.Get("correlation_tag", "schema", correlationTagColumnKey),
 							ForceNew:    true,
 						},
 						correlationTagPathKey: {
 							Type:        schema.TypeString,
-							Required:    false,
+							Computed:    true,
 							Description: descriptions.Get("correlation_tag", "schema", correlationTagPathKey),
 							ForceNew:    true,
-							Optional:    true,
 						},
 					},
 				},
