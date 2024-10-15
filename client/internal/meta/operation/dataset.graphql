@@ -62,6 +62,13 @@ fragment Dataset on Dataset {
 			sqlType
 		}
 	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
 }
 
 fragment DatasetIdName on Dataset {
