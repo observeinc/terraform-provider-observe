@@ -15,3 +15,6 @@ schema:
     Disables periodic materialization of the dataset
   data_table_view_state: |
     JSON representation of state used for dataset formatting in the UI
+  correlation_tag:
+    description: |
+      Correlation tags associated with this dataset.

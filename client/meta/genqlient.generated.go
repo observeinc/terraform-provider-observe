@@ -1254,12 +1254,13 @@ type Dataset struct {
 	ManagedById          *string            `json:"managedById"`
 	// Optional custom configured override value of the on demand materialization
 	// range for the dataset.
-	OnDemandMaterializationLength *types.Int64Scalar                       `json:"onDemandMaterializationLength"`
-	DataTableViewState            *types.JsonObject                        `json:"dataTableViewState"`
-	ForeignKeys                   []DatasetForeignKeysForeignKey           `json:"foreignKeys"`
-	Transform                     *DatasetTransform                        `json:"transform"`
-	Typedef                       DatasetTypedef                           `json:"typedef"`
-	SourceTable                   *DatasetSourceTableSourceTableDefinition `json:"sourceTable"`
+	OnDemandMaterializationLength *types.Int64Scalar                                   `json:"onDemandMaterializationLength"`
+	DataTableViewState            *types.JsonObject                                    `json:"dataTableViewState"`
+	ForeignKeys                   []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
+	Transform                     *DatasetTransform                                    `json:"transform"`
+	Typedef                       DatasetTypedef                                       `json:"typedef"`
+	SourceTable                   *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
+	CorrelationTagMappings        []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
 }
 
 // GetWorkspaceId returns Dataset.WorkspaceId, and is useful for accessing the field via an interface.
@@ -1317,6 +1318,41 @@ func (v *Dataset) GetTypedef() DatasetTypedef { return v.Typedef }
 
 // GetSourceTable returns Dataset.SourceTable, and is useful for accessing the field via an interface.
 func (v *Dataset) GetSourceTable() *DatasetSourceTableSourceTableDefinition { return v.SourceTable }
+
+// GetCorrelationTagMappings returns Dataset.CorrelationTagMappings, and is useful for accessing the field via an interface.
+func (v *Dataset) GetCorrelationTagMappings() []DatasetCorrelationTagMappingsCorrelationTagMapping {
+	return v.CorrelationTagMappings
+}
+
+// DatasetCorrelationTagMappingsCorrelationTagMapping includes the requested fields of the GraphQL type CorrelationTagMapping.
+type DatasetCorrelationTagMappingsCorrelationTagMapping struct {
+	Tag  string                                                          `json:"tag"`
+	Path DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField `json:"path"`
+}
+
+// GetTag returns DatasetCorrelationTagMappingsCorrelationTagMapping.Tag, and is useful for accessing the field via an interface.
+func (v *DatasetCorrelationTagMappingsCorrelationTagMapping) GetTag() string { return v.Tag }
+
+// GetPath returns DatasetCorrelationTagMappingsCorrelationTagMapping.Path, and is useful for accessing the field via an interface.
+func (v *DatasetCorrelationTagMappingsCorrelationTagMapping) GetPath() DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField {
+	return v.Path
+}
+
+// DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField includes the requested fields of the GraphQL type LinkField.
+type DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField struct {
+	Column string  `json:"column"`
+	Path   *string `json:"path"`
+}
+
+// GetColumn returns DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField.Column, and is useful for accessing the field via an interface.
+func (v *DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetColumn() string {
+	return v.Column
+}
+
+// GetPath returns DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField.Path, and is useful for accessing the field via an interface.
+func (v *DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetPath() *string {
+	return v.Path
+}
 
 type DatasetDefinitionInput struct {
 	Dataset  DatasetInput                    `json:"dataset"`
@@ -15364,6 +15400,13 @@ fragment Dataset on Dataset {
 			sqlType
 		}
 	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -17134,6 +17177,13 @@ fragment Dataset on Dataset {
 			sqlType
 		}
 	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -17452,6 +17502,13 @@ fragment Dataset on Dataset {
 		fields {
 			name
 			sqlType
+		}
+	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
 		}
 	}
 }
@@ -18274,6 +18331,13 @@ fragment Dataset on Dataset {
 			sqlType
 		}
 	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18583,6 +18647,13 @@ fragment Dataset on Dataset {
 		fields {
 			name
 			sqlType
+		}
+	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
 		}
 	}
 }

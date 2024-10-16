@@ -118,6 +118,34 @@ func dataSourceDataset() *schema.Resource {
 					},
 				},
 			},
+			"correlation_tag": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Optional:    true,
+				Description: descriptions.Get("dataset", "schema", "correlation_tag", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						correlationTagNameKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagNameKey),
+							ForceNew:    true,
+						},
+						correlationTagColumnKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagColumnKey),
+							ForceNew:    true,
+						},
+						correlationTagPathKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagPathKey),
+							ForceNew:    true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -156,5 +184,17 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 	data.SetId(d.Id)
 
-	return datasetToResourceData(d, data)
+	diags = datasetToResourceData(d, data)
+	if d.CorrelationTagMappings != nil {
+		var cts []interface{}
+		for _, ct := range d.CorrelationTagMappings {
+			cts = append(cts, map[string]interface{}{
+				correlationTagNameKey:   ct.Tag,
+				correlationTagColumnKey: ct.Path.Column,
+				correlationTagPathKey:   ct.Path.Path,
+			})
+		}
+		data.Set("correlation_tag", cts)
+	}
+	return
 }

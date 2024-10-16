@@ -37,6 +37,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 ### Read-Only
 
 - `acceleration_disabled` (Boolean)
+- `correlation_tag` (Block List) Correlation tags associated with this dataset. (see [below for nested schema](#nestedblock--correlation_tag))
 - `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
@@ -53,6 +54,26 @@ paths between two datasets.
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
+
+<a id="nestedblock--correlation_tag"></a>
+### Nested Schema for `correlation_tag`
+
+Read-Only:
+
+- `column` (String) The column to which the correlation tag should be attached.
+- `name` (String) The name to attach.
+- `path` (String) If the column is of type "object", a correlation tag can be attached to a
+key nested within the object. Standard Javascript notation can be used to specify the path to the key.
+For example, say the object has the following structure -
+{
+  "a": {
+    "b": {
+      "c": "value"
+    }
+  }
+}
+Then the path to the key "c" would be "a.b.c" or "a['b']['c']"
+
 
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
