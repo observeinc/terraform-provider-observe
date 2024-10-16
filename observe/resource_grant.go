@@ -140,6 +140,8 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 	qualifier := make(map[string]interface{}, 0)
 	if stmt.Role == gql.RbacRoleManager && stmt.Object.All != nil && *stmt.Object.All {
 		role = toSnake(string(Administrator))
+	} else if stmt.Role == gql.RbacRoleMonitorglobalmute {
+		role = toSnake(string(MonitorGlobalMuter))
 	} else if stmt.Object.Type != nil {
 		objType := oid.Type(*stmt.Object.Type)
 		if !sliceContains(validRbacV2Types, objType) {
