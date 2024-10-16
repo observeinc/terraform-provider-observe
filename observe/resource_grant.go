@@ -140,6 +140,8 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 	qualifier := make(map[string]interface{}, 0)
 	if stmt.Role == gql.RbacRoleManager && stmt.Object.All != nil && *stmt.Object.All {
 		role = toSnake(string(Administrator))
+	} else if stmt.Role == gql.RbacRoleMonitorglobalmute {
+		role = toSnake(string(MonitorGlobalMuter))
 	} else if stmt.Object.Type != nil {
 		objType := oid.Type(*stmt.Object.Type)
 		if !sliceContains(validRbacV2Types, objType) {
@@ -247,22 +249,23 @@ func resourceGrantDelete(ctx context.Context, data *schema.ResourceData, meta in
 type GrantRole string
 
 const (
-	Administrator     GrantRole = "Administrator"
-	DashboardCreator  GrantRole = "DashboardCreator"
-	DashboardEditor   GrantRole = "DashboardEditor"
-	DashboardViewer   GrantRole = "DashboardViewer"
-	DatasetCreator    GrantRole = "DatasetCreator"
-	DatasetEditor     GrantRole = "DatasetEditor"
-	DatasetViewer     GrantRole = "DatasetViewer"
-	DatastreamCreator GrantRole = "DatastreamCreator"
-	DatastreamEditor  GrantRole = "DatastreamEditor"
-	DatastreamViewer  GrantRole = "DatastreamViewer"
-	MonitorCreator    GrantRole = "MonitorCreator"
-	MonitorEditor     GrantRole = "MonitorEditor"
-	MonitorViewer     GrantRole = "MonitorViewer"
-	WorksheetCreator  GrantRole = "WorksheetCreator"
-	WorksheetEditor   GrantRole = "WorksheetEditor"
-	WorksheetViewer   GrantRole = "WorksheetViewer"
+	Administrator      GrantRole = "Administrator"
+	DashboardCreator   GrantRole = "DashboardCreator"
+	DashboardEditor    GrantRole = "DashboardEditor"
+	DashboardViewer    GrantRole = "DashboardViewer"
+	DatasetCreator     GrantRole = "DatasetCreator"
+	DatasetEditor      GrantRole = "DatasetEditor"
+	DatasetViewer      GrantRole = "DatasetViewer"
+	DatastreamCreator  GrantRole = "DatastreamCreator"
+	DatastreamEditor   GrantRole = "DatastreamEditor"
+	DatastreamViewer   GrantRole = "DatastreamViewer"
+	MonitorCreator     GrantRole = "MonitorCreator"
+	MonitorEditor      GrantRole = "MonitorEditor"
+	MonitorViewer      GrantRole = "MonitorViewer"
+	MonitorGlobalMuter GrantRole = "MonitorGlobalMuter"
+	WorksheetCreator   GrantRole = "WorksheetCreator"
+	WorksheetEditor    GrantRole = "WorksheetEditor"
+	WorksheetViewer    GrantRole = "WorksheetViewer"
 )
 
 var validGrantRoles = []GrantRole{
@@ -279,6 +282,7 @@ var validGrantRoles = []GrantRole{
 	MonitorCreator,
 	MonitorEditor,
 	MonitorViewer,
+	MonitorGlobalMuter,
 	WorksheetCreator,
 	WorksheetEditor,
 	WorksheetViewer,
@@ -317,6 +321,8 @@ var viewGrantRoleForType = map[oid.Type]GrantRole{
 func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
 	if r == Administrator {
 		return gql.RbacRoleManager, nil
+	} else if r == MonitorGlobalMuter {
+		return gql.RbacRoleMonitorglobalmute, nil
 	} else if sliceContains(createGrantRoles, r) || sliceContains(editGrantRoles, r) {
 		return gql.RbacRoleEditor, nil
 	} else if sliceContains(viewGrantRoles, r) {
@@ -359,6 +365,9 @@ func (r GrantRole) ToRbacObject(resourceId *string) (gql.RbacObjectInput, error)
 	switch r {
 	case Administrator:
 		objectInput.All = boolPtr(true)
+	case MonitorGlobalMuter:
+		// this grant role doesn't require anything on the statement object,
+		// just setting the statement role is sufficient
 	default:
 		objectInput.Type = (*string)(r.ToType())
 		objectInput.ObjectId = resourceId
