@@ -93,6 +93,12 @@ func resourceDataset() *schema.Resource {
 				Default:     false,
 				Description: descriptions.Get("dataset", "schema", "acceleration_disabled"),
 			},
+			"acceleration_disabled_source": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateEnums(gql.AllAccelerationDisabledSource),
+				Description:      descriptions.Get("dataset", "schema", "acceleration_disabled_source"),
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -192,6 +198,11 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 	b := data.Get("acceleration_disabled").(bool)
 	input.AccelerationDisabled = &b
 
+	if v, ok := data.GetOk("acceleration_disabled_source"); ok {
+		c := gql.AccelerationDisabledSource(toCamel(v.(string)))
+		input.AccelerationDisabledSource = &c
+	}
+
 	if v, ok := data.GetOk("path_cost"); ok {
 		input.PathCost = types.Int64Scalar(v.(int)).Ptr()
 	} else {
@@ -240,6 +251,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if err := data.Set("acceleration_disabled", d.AccelerationDisabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("acceleration_disabled_source", toSnake(string(d.AccelerationDisabledSource))); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

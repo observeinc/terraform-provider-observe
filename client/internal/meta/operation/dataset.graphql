@@ -6,6 +6,7 @@ fragment Dataset on Dataset {
 	description
 	iconUrl
 	accelerationDisabled
+	accelerationDisabledSource
 	version
 	updatedDate
 	pathCost
@@ -78,6 +79,7 @@ fragment DatasetIdName on Dataset {
 
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -147,6 +149,7 @@ query listDatasetsIdNameOnly {
 # @genqlient(for: "DatasetFieldTypeInput.nullable", omitempty: true)
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
