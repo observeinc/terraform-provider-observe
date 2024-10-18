@@ -11,6 +11,14 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
+type AccelerationDisabledSource string
+
+const (
+	AccelerationDisabledSourceEmpty   AccelerationDisabledSource = "Empty"
+	AccelerationDisabledSourceMonitor AccelerationDisabledSource = "Monitor"
+	AccelerationDisabledSourceView    AccelerationDisabledSource = "View"
+)
+
 type ActionInput struct {
 	Name             *string               `json:"name"`
 	IconUrl          *string               `json:"iconUrl"`
@@ -1482,15 +1490,22 @@ type DatasetInput struct {
 	// Format - source/comment. Examples - monitor/471142069, web/user created.
 	Source *string `json:"source"`
 	// Used only when id is specified - that is to say, only when the dataset is updated.
-	OverwriteSource      *bool              `json:"overwriteSource"`
-	Deleted              *bool              `json:"deleted,omitempty"`
-	AccelerationDisabled *bool              `json:"accelerationDisabled,omitempty"`
-	LatencyDesired       *types.Int64Scalar `json:"latencyDesired"`
-	FreshnessDesired     *types.Int64Scalar `json:"freshnessDesired"`
-	IconUrl              *string            `json:"iconUrl"`
-	Layout               *types.JsonObject  `json:"layout"`
-	PathCost             *types.Int64Scalar `json:"pathCost"`
-	DataTableViewState   *types.JsonObject  `json:"dataTableViewState"`
+	OverwriteSource *bool `json:"overwriteSource"`
+	Deleted         *bool `json:"deleted,omitempty"`
+	// Specifies if dataset acceleration should be disabled. Set to true if
+	// dataset materialization is not desired. Defaults to false.
+	AccelerationDisabled *bool `json:"accelerationDisabled,omitempty"`
+	// Optional reason given for why a dataset is not accelerated. For example,
+	// when creating a dataset view, user must set accelerationDisabled to true
+	// and set accelerationDisabledSource to 'View'. Options include: 'Empty',
+	// 'Monitor', and 'View'. Defaults to 'Empty'.
+	AccelerationDisabledSource *AccelerationDisabledSource `json:"accelerationDisabledSource"`
+	LatencyDesired             *types.Int64Scalar          `json:"latencyDesired"`
+	FreshnessDesired           *types.Int64Scalar          `json:"freshnessDesired"`
+	IconUrl                    *string                     `json:"iconUrl"`
+	Layout                     *types.JsonObject           `json:"layout"`
+	PathCost                   *types.Int64Scalar          `json:"pathCost"`
+	DataTableViewState         *types.JsonObject           `json:"dataTableViewState"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
 	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
@@ -1518,6 +1533,11 @@ func (v *DatasetInput) GetDeleted() *bool { return v.Deleted }
 
 // GetAccelerationDisabled returns DatasetInput.AccelerationDisabled, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetAccelerationDisabled() *bool { return v.AccelerationDisabled }
+
+// GetAccelerationDisabledSource returns DatasetInput.AccelerationDisabledSource, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetAccelerationDisabledSource() *AccelerationDisabledSource {
+	return v.AccelerationDisabledSource
+}
 
 // GetLatencyDesired returns DatasetInput.LatencyDesired, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetLatencyDesired() *types.Int64Scalar { return v.LatencyDesired }
