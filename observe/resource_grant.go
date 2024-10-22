@@ -17,7 +17,6 @@ func resourceGrant() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("grant", "description"),
 		CreateContext: resourceGrantCreate,
-		UpdateContext: resourceGrantUpdate,
 		ReadContext:   resourceGrantRead,
 		DeleteContext: resourceGrantDelete,
 		Importer: &schema.ResourceImporter{
@@ -29,12 +28,14 @@ func resourceGrant() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeUser, oid.TypeRbacGroup),
 				Description:      descriptions.Get("grant", "schema", "subject"),
+				ForceNew:         true,
 			},
 			"role": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
 				Description:      descriptions.Get("grant", "schema", "role"),
+				ForceNew:         true,
 			},
 			"qualifier": {
 				Type:     schema.TypeList,
@@ -52,6 +53,7 @@ func resourceGrant() *schema.Resource {
 						// in the future, will contain other qualifiers such as "tags"
 					},
 				},
+				ForceNew: true,
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -80,11 +82,7 @@ func newGrantInput(data *schema.ResourceData) (input *gql.RbacStatementInput, di
 		}
 		input.Subject.UserId = &uid
 	} else if subject.Type == oid.TypeRbacGroup {
-		if subject.Id == "1" {
-			input.Subject.All = boolPtr(true)
-		} else {
-			input.Subject.GroupId = &subject.Id
-		}
+		input.Subject.GroupId = &subject.Id
 	}
 
 	// role
@@ -122,9 +120,7 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 
 	// subject
 	subject := ""
-	if stmt.Subject.All != nil && *stmt.Subject.All {
-		subject = oid.RbacGroupOid("1").String()
-	} else if stmt.Subject.UserId != nil {
+	if stmt.Subject.UserId != nil {
 		subject = oid.UserOid(*stmt.Subject.UserId).String()
 	} else if stmt.Subject.GroupId != nil {
 		subject = oid.RbacGroupOid(*stmt.Subject.GroupId).String()
@@ -205,22 +201,6 @@ func resourceGrantCreate(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	data.SetId(result.Id)
-	return append(diags, resourceGrantRead(ctx, data, meta)...)
-}
-
-func resourceGrantUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	input, diags := newGrantInput(data)
-	if diags.HasError() {
-		return diags
-	}
-
-	_, err := client.UpdateRbacStatement(ctx, data.Id(), input)
-	if err != nil {
-		return diag.Errorf("failed to update grant: %s", err.Error())
-	}
-
 	return append(diags, resourceGrantRead(ctx, data, meta)...)
 }
 

@@ -92,7 +92,7 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				data "observe_rbac_group" "everyone" {
-				  name = "everyone"
+				  name = "Everyone"
 				}
 
 				data "observe_oid" "dataset" {
