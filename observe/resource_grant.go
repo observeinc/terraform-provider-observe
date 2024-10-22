@@ -17,7 +17,6 @@ func resourceGrant() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("grant", "description"),
 		CreateContext: resourceGrantCreate,
-		UpdateContext: resourceGrantUpdate,
 		ReadContext:   resourceGrantRead,
 		DeleteContext: resourceGrantDelete,
 		Importer: &schema.ResourceImporter{
@@ -202,22 +201,6 @@ func resourceGrantCreate(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	data.SetId(result.Id)
-	return append(diags, resourceGrantRead(ctx, data, meta)...)
-}
-
-func resourceGrantUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	input, diags := newGrantInput(data)
-	if diags.HasError() {
-		return diags
-	}
-
-	_, err := client.UpdateRbacStatement(ctx, data.Id(), input)
-	if err != nil {
-		return diag.Errorf("failed to update grant: %s", err.Error())
-	}
-
 	return append(diags, resourceGrantRead(ctx, data, meta)...)
 }
 
