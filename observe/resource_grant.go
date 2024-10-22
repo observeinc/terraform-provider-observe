@@ -29,12 +29,14 @@ func resourceGrant() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeUser, oid.TypeRbacGroup),
 				Description:      descriptions.Get("grant", "schema", "subject"),
+				ForceNew:         true,
 			},
 			"role": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
 				Description:      descriptions.Get("grant", "schema", "role"),
+				ForceNew:         true,
 			},
 			"qualifier": {
 				Type:     schema.TypeList,
@@ -52,6 +54,7 @@ func resourceGrant() *schema.Resource {
 						// in the future, will contain other qualifiers such as "tags"
 					},
 				},
+				ForceNew: true,
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -80,11 +83,7 @@ func newGrantInput(data *schema.ResourceData) (input *gql.RbacStatementInput, di
 		}
 		input.Subject.UserId = &uid
 	} else if subject.Type == oid.TypeRbacGroup {
-		if subject.Id == "1" {
-			input.Subject.All = boolPtr(true)
-		} else {
-			input.Subject.GroupId = &subject.Id
-		}
+		input.Subject.GroupId = &subject.Id
 	}
 
 	// role
@@ -122,9 +121,7 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 
 	// subject
 	subject := ""
-	if stmt.Subject.All != nil && *stmt.Subject.All {
-		subject = oid.RbacGroupOid("1").String()
-	} else if stmt.Subject.UserId != nil {
+	if stmt.Subject.UserId != nil {
 		subject = oid.UserOid(*stmt.Subject.UserId).String()
 	} else if stmt.Subject.GroupId != nil {
 		subject = oid.RbacGroupOid(*stmt.Subject.GroupId).String()

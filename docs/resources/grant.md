@@ -29,9 +29,9 @@ data "observe_rbac_group" "example" {
   name = "engineering"
 }
 
-// "everyone" is a special pre-defined group that always includes all users
+// "Everyone" is a special pre-defined group that always includes all users
 data "observe_rbac_group" "everyone" {
-  name = "everyone"
+  name = "Everyone"
 }
 
 data "observe_dataset" "example" {
