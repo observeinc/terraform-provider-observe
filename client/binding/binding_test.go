@@ -43,27 +43,28 @@ const (
 	  },
 	  "sv": "41000121",
 	  "userId": "${local.binding__type_name__user_basic_user}",
-	  "workspaceId": "${local.binding__type_name__workspace_workspace_1}"
+	  "workspaceId": "${local.binding__type_name__workspace_test_wks}"
 	}
 	`
+	dataset1Id = "41000123"
 )
 
 func prepareResourceCacheFixture() ResourceCache {
+	workspaceId := "41000001"
 	r := ResourceCache{
-		idToLabel:    make(map[Ref]ResourceCacheEntry),
-		workspaceOid: &oid.OID{Type: oid.TypeWorkspace, Id: "41000001"},
-		workspaceEntry: &ResourceCacheEntry{
-			TfName: "workspace_1",
-			Label:  "Workspace 1",
-		},
+		idToLabel:       make(map[Ref]ResourceCacheEntry),
+		workspaceOid:    &oid.OID{Type: oid.TypeWorkspace, Id: workspaceId},
+		forResourceKind: "type",
+		forResourceName: "name",
 	}
 	disambiguator := 1
 	existingResourceNames := make(map[string]struct{})
-	r.addEntry(KindDataset, "dataset_1", "41000123", &disambiguator, existingResourceNames)
-	r.addEntry(KindDataset, "dataset_2", "41000200", &disambiguator, existingResourceNames)
-	r.addEntry(KindWorkspace, "default", "41000101", &disambiguator, existingResourceNames)
-	r.addEntry(KindWorksheet, "worksheet_1", "41000201", &disambiguator, existingResourceNames)
-	r.addEntry(KindUser, "basic_user", "41000100", &disambiguator, existingResourceNames)
+	r.addEntry(KindDataset, "dataset_1", dataset1Id, true, &disambiguator, existingResourceNames)
+	r.addEntry(KindDataset, "dataset_2", "41000200", true, &disambiguator, existingResourceNames)
+	r.addEntry(KindWorkspace, "Test wks", workspaceId, false, &disambiguator, existingResourceNames)
+	r.addEntry(KindWorksheet, "worksheet_1", "41000201", true, &disambiguator, existingResourceNames)
+	r.addEntry(KindUser, "basic_user", "41000100", true, &disambiguator, existingResourceNames)
+	r.workspaceEntry = r.LookupId(KindWorkspace, workspaceId)
 	return r
 }
 
@@ -129,10 +130,11 @@ func TestGenerateJson(t *testing.T) {
 
 func TestInsertBindingsObjectJson(t *testing.T) {
 	g := prepareGeneratorFixture()
-	g.bindings[Ref{kind: KindDataset, key: "dataset_1"}] = Target{
-		TfLocalBindingVar: g.fmtTfLocalVar(KindDataset, "dataset_1"),
-		TfName:            "dataset_1",
-	}
+	g.TryBind(KindDataset, dataset1Id)
+	// g.bindings[Ref{kind: KindDataset, key: "dataset_1"}] = Target{
+	// 	TfLocalBindingVar: g.fmtTfLocalVar(KindDataset, &, false),
+	// 	TfName:            "dataset_1",
+	// }
 	g.enabledBindings = NewKindSet(KindDataset, KindWorkspace)
 	jsonData := `
 	{
@@ -145,7 +147,7 @@ func TestInsertBindingsObjectJson(t *testing.T) {
 			"mappings": map[string]interface{}{
 				"dataset:dataset_1": map[string]interface{}{
 					"tf_local_binding_var": "binding__type_name__dataset_dataset_1",
-					"tf_name":              "dataset_1",
+					"tf_name":              "type_name__dataset_dataset_1",
 				},
 			},
 			"kinds": []interface{}{
@@ -153,10 +155,10 @@ func TestInsertBindingsObjectJson(t *testing.T) {
 				"workspace",
 			},
 			"workspace": map[string]interface{}{
-				"tf_local_binding_var": "binding__type_name__workspace_workspace_1",
-				"tf_name":              "workspace_1",
+				"tf_local_binding_var": "binding__type_name__workspace_test_wks",
+				"tf_name":              "workspace_test_wks",
 			},
-			"workspace_name": "Workspace 1",
+			"workspace_name": "Test wks",
 		},
 	}
 	outputJson, err := g.InsertBindingsObjectJson((*types.JsonObject)(&jsonData))
