@@ -25,14 +25,20 @@ func datasetOrError(d datasetResponse, err error) (*Dataset, error) {
 	return d.GetDataset(), nil
 }
 
-func dep() *DependencyHandlingInput {
+func DefaultDependencyHandling() *DependencyHandlingInput {
 	mode := SaveModeUpdateDatasetAndDependenciesIgnoringAllErrors
 	return &DependencyHandlingInput{SaveMode: &mode}
 }
 
+func DependencyHandlingSkipRematerialization() *DependencyHandlingInput {
+	saveMode := SaveModeUpdateDatasetAndDependenciesIgnoringAllErrors
+	rematMode := RematerializationModeSkiprematerialization
+	return &DependencyHandlingInput{SaveMode: &saveMode, RematerializationMode: &rematMode}
+}
+
 // SaveDataset creates and updates datasets
-func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) (*Dataset, error) {
-	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dep())
+func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, dependencyHandling *DependencyHandlingInput) (*Dataset, error) {
+	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)
 	return datasetOrError(resp.Dataset, err)
 }
 
@@ -44,7 +50,7 @@ func (client *Client) GetDataset(ctx context.Context, id string) (*Dataset, erro
 
 // DeleteDataset deletes dataset by ID.
 func (client *Client) DeleteDataset(ctx context.Context, id string) error {
-	resp, err := deleteDataset(ctx, client.Gql, id, dep())
+	resp, err := deleteDataset(ctx, client.Gql, id, DefaultDependencyHandling())
 	return optionalResultStatusError(resp, err)
 }
 
@@ -83,7 +89,7 @@ func (client *Client) ListDatasetsIdNameOnly(ctx context.Context) (ds []*Dataset
 }
 
 func (client *Client) SaveSourceDataset(ctx context.Context, workspaceId string, input *DatasetDefinitionInput, sourceInput *SourceTableDefinitionInput) (*Dataset, error) {
-	resp, err := saveSourceDataset(ctx, client.Gql, workspaceId, *input, *sourceInput, dep())
+	resp, err := saveSourceDataset(ctx, client.Gql, workspaceId, *input, *sourceInput, DefaultDependencyHandling())
 	return datasetOrError(resp.Dataset, err)
 }
 

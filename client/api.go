@@ -33,7 +33,7 @@ func (c *Client) GetDataset(ctx context.Context, id string) (*meta.Dataset, erro
 	return c.Meta.GetDataset(ctx, id)
 }
 
-func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) (*meta.Dataset, error) {
+func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.Dataset, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
@@ -46,7 +46,7 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 		input.ManagedById = c.Config.ManagingObjectID
 	}
 
-	return c.Meta.SaveDataset(ctx, wsid, input, queryInput)
+	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 }
 
 // DeleteDataset by ID

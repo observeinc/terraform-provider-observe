@@ -59,6 +59,9 @@ frequency with which queries are run, which incurs higher transform costs.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.
+- `rematerialization_mode` (String) Specifies rematerialization mode when updating a dataset. Options include
+"rematerialize" and "skip_rematerialization". If no option is used, "rematerialize"
+is used by default.
 
 ### Read-Only
 
