@@ -248,12 +248,32 @@ enum SaveMode @goModel(model: "observe/meta/metatypes.SaveMode") {
     PreflightDatasetAndDependencies
 }
 
+"""
+Specifies what type of rematerialization will occur when a dataset is updated
+"""
+enum RematerializationMode @goModel(model: "observe/meta/metatypes.RematerializationMode") {
+    """
+    Rematerialize dataset and all downstream dependencies
+    """
+    Rematerialize
+    """
+    Skips rematerialization if certain conditions are met, will rematerialize otherwise. Use with
+    SaveMode.PreflightDataset to verify rematerialization will not occur for a given dataset update
+    before updating the dataset.
+    """
+    SkipRematerialization
+}
+
 input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.DependencyHandling") {
     saveMode: SaveMode
     """
     For saveMode UpdateDatasetAndDependenciesUnlessNewErrors, here are errors that don't count as "new"
     """
     ignoreSpecificErrors: [ObjectId!]
+    """
+    If no mode is specified, Rematerialize will be used by default
+    """
+    rematerializationMode: RematerializationMode
 }
 
 type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
