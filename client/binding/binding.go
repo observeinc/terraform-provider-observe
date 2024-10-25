@@ -24,19 +24,25 @@ type ResourceCacheEntry struct {
 }
 
 type ResourceCache struct {
-	idToLabel      map[Ref]ResourceCacheEntry
-	workspaceOid   *oid.OID
-	workspaceEntry *ResourceCacheEntry
+	idToLabel       map[Ref]ResourceCacheEntry
+	workspaceOid    *oid.OID
+	workspaceEntry  *ResourceCacheEntry
+	forResourceKind string
+	forResourceName string
 }
 
-func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client) (ResourceCache, error) {
-	var cache = ResourceCache{idToLabel: make(map[Ref]ResourceCacheEntry)}
+func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client, forResourceKind string, forResourceName string) (ResourceCache, error) {
+	var cache = ResourceCache{
+		idToLabel:       make(map[Ref]ResourceCacheEntry),
+		forResourceKind: forResourceKind,
+		forResourceName: sanitizeIdentifier(forResourceName),
+	}
 	// special case: one workspace per customer, always needed for lookup
 	workspaces, err := client.ListWorkspaces(ctx)
 	if err != nil {
 		return cache, err
 	}
-	cache.addEntry(KindWorkspace, workspaces[0].Label, workspaces[0].Oid().String(), nil, make(map[string]struct{}))
+	cache.addEntry(KindWorkspace, workspaces[0].Label, workspaces[0].Oid().String(), false, nil, make(map[string]struct{}))
 	cache.workspaceOid = workspaces[0].Oid()
 	cache.workspaceEntry = cache.LookupId(KindWorkspace, cache.workspaceOid.String())
 
@@ -51,7 +57,7 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, ds := range datasets {
-				cache.addEntry(KindDataset, ds.Name, ds.Id, &disambiguator, existingResourceNames)
+				cache.addEntry(KindDataset, ds.Name, ds.Id, true, &disambiguator, existingResourceNames)
 			}
 		case KindWorksheet:
 			worksheets, err := client.ListWorksheetIdLabelOnly(ctx, cache.workspaceOid.Id)
@@ -59,7 +65,7 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, wk := range worksheets {
-				cache.addEntry(KindWorksheet, wk.Label, wk.Id, &disambiguator, existingResourceNames)
+				cache.addEntry(KindWorksheet, wk.Label, wk.Id, true, &disambiguator, existingResourceNames)
 			}
 		case KindUser:
 			users, err := client.ListUsers(ctx)
@@ -67,14 +73,14 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, user := range users {
-				cache.addEntry(KindUser, user.Label, user.Id.String(), &disambiguator, existingResourceNames)
+				cache.addEntry(KindUser, user.Label, user.Id.String(), true, &disambiguator, existingResourceNames)
 			}
 		}
 	}
 	return cache, nil
 }
 
-func (c *ResourceCache) addEntry(kind Kind, label string, id string, disambiguator *int, existingNames map[string]struct{}) {
+func (c *ResourceCache) addEntry(kind Kind, label string, id string, addPrefix bool, disambiguator *int, existingNames map[string]struct{}) {
 	resourceName := sanitizeIdentifier(label)
 	if _, found := existingNames[resourceName]; found {
 		resourceName = fmt.Sprintf("%s_%d", resourceName, *disambiguator)
@@ -82,8 +88,15 @@ func (c *ResourceCache) addEntry(kind Kind, label string, id string, disambiguat
 	}
 	var empty struct{}
 	existingNames[resourceName] = empty
+
+	var tfName string
+	if addPrefix {
+		tfName = fmt.Sprintf("%s_%s__%s_%s", c.forResourceKind, c.forResourceName, kind, resourceName)
+	} else {
+		tfName = fmt.Sprintf("%s_%s", kind, resourceName)
+	}
 	c.idToLabel[Ref{kind: kind, key: id}] = ResourceCacheEntry{
-		TfName: resourceName,
+		TfName: tfName,
 		Label:  label,
 	}
 }
@@ -111,7 +124,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	if !enabled {
 		return Generator{Enabled: false}, nil
 	}
-	rc, err := NewResourceCache(ctx, enabledBindings, client)
+	rc, err := NewResourceCache(ctx, enabledBindings, client, resourceType, resourceName)
 	if err != nil {
 		return Generator{}, err
 	}
@@ -126,7 +139,7 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	}, nil
 }
 
-// lookup by kind and id, if valid and enabled then return a loval variable reference,
+// lookup by kind and id, if valid and enabled then return a local variable reference,
 // otherwise return the id (no-op)
 func (g *Generator) TryBind(kind Kind, id string) string {
 	if !g.Enabled {
@@ -144,7 +157,8 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 		}
 	}
 	// process into local var ref
-	terraformLocal := g.fmtTfLocalVar(kind, e.TfName)
+	insertPrefix := kind == KindWorkspace
+	terraformLocal := g.fmtTfLocalVar(kind, e, insertPrefix)
 	g.bindings[Ref{kind: kind, key: e.Label}] = Target{
 		TfName:            e.TfName,
 		TfLocalBindingVar: terraformLocal,
@@ -204,7 +218,7 @@ func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 		Mappings: g.bindings,
 		Kinds:    enabledList,
 		Workspace: Target{
-			TfLocalBindingVar: g.fmtTfLocalVar(KindWorkspace, workspaceTarget.TfName),
+			TfLocalBindingVar: g.fmtTfLocalVar(KindWorkspace, workspaceTarget, true),
 			TfName:            workspaceTarget.TfName,
 		},
 		WorkspaceName: g.cache.workspaceEntry.Label,
@@ -226,8 +240,11 @@ func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types
 	return types.JsonObject(serialized).Ptr(), nil
 }
 
-func (g *Generator) fmtTfLocalVar(kind Kind, targetTfName string) string {
-	return sanitizeIdentifier(fmt.Sprintf("binding__%s_%s__%s_%s", g.resourceType, g.resourceName, kind, targetTfName))
+func (g *Generator) fmtTfLocalVar(kind Kind, e *ResourceCacheEntry, insertPrefix bool) string {
+	if insertPrefix {
+		return sanitizeIdentifier(fmt.Sprintf("binding__%s_%s__%s", g.resourceType, g.resourceName, e.TfName))
+	}
+	return sanitizeIdentifier(fmt.Sprintf("binding__%s", e.TfName))
 }
 
 func (g *Generator) fmtTfLocalVarRef(tfLocalVar string) string {
@@ -304,10 +321,7 @@ func transformJson(data []byte, f func(data *interface{}) error) ([]byte, error)
 }
 
 func sanitizeIdentifier(name string) string {
-	path := strings.Split(name, "/")
-
-	shortForm := strings.ToLower(path[len(path)-1])
-	sanitized := replaceInvalid.ReplaceAllString(shortForm, "_")
+	sanitized := strings.ToLower(replaceInvalid.ReplaceAllString(name, "_"))
 
 	if hasLeadingDigit.MatchString(sanitized) {
 		sanitized = "_" + sanitized
