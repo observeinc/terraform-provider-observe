@@ -153,6 +153,11 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+var AllRematerializationModes = []RematerializationMode{
+	RematerializationModeRematerialize,
+	RematerializationModeSkiprematerialization,
+}
+
 const (
 	ErrNotFound = "NOT_FOUND"
 )

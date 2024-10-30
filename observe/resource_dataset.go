@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -152,7 +149,7 @@ func resourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "rematerialize",
-				ValidateDiagFunc: validateRematerializationMode,
+				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
 		},
@@ -459,20 +456,4 @@ func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
 
 	// ignore version
 	return oldOID.Type == newOID.Type && oldOID.Id == newOID.Id
-}
-
-func validateRematerializationMode(i interface{}, path cty.Path) diag.Diagnostics {
-	s := i.(string)
-
-	rematModes := []string{rematerializationModeRematerialize, rematerializationModeSkipRematerialization}
-	for _, rematMode := range rematModes {
-		if s == rematMode {
-			return nil
-		}
-	}
-
-	return diag.Diagnostics{diag.Diagnostic{
-		Severity: diag.Error,
-		Summary:  fmt.Sprintf("Unexpected rematerialization mode, expected one of: %s, got: %s", strings.Join(rematModes, ","), s),
-	}}
 }
