@@ -153,6 +153,12 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+var AllAccelerationDisabledSource = []AccelerationDisabledSource{
+	AccelerationDisabledSourceEmpty,
+	AccelerationDisabledSourceMonitor,
+	AccelerationDisabledSourceView,
+}
+
 const (
 	ErrNotFound = "NOT_FOUND"
 )
