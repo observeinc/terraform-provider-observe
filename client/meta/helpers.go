@@ -153,6 +153,12 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+var AllAccelerationDisabledSource = []AccelerationDisabledSource{
+	AccelerationDisabledSourceEmpty,
+	AccelerationDisabledSourceMonitor,
+	AccelerationDisabledSourceView,
+}
+
 var AllRematerializationModes = []RematerializationMode{
 	RematerializationModeRematerialize,
 	RematerializationModeSkiprematerialization,

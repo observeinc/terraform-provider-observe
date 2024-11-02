@@ -341,6 +341,12 @@ type DatasetInputDataset @goModel(model: "observe/meta/metatypes.DatasetInputDat
     inputRole: InputRole!,
 }
 
+enum AccelerationDisabledSource @goModel(model:"observe/meta/metatypes.DatasetMaterializationDisabledSource") {
+    Empty
+    Monitor
+    View
+}
+
 type Dataset implements WorkspaceObject & FolderObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Dataset") {
     id: ObjectId!
     version: Time!
@@ -399,6 +405,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     accelerable: Boolean!
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
+    accelerationDisabledSource: AccelerationDisabledSource! @goField(name:materializationDisabledSource)
 
     """
     If the dataset is not hibernated, this field will be set to null.
@@ -611,7 +618,18 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     """
     overwriteSource: Boolean
     deleted: Boolean
+    """
+    Specifies if dataset acceleration should be disabled. Set to true if
+    dataset materialization is not desired. Defaults to false.
+    """
     accelerationDisabled: Boolean @goField(name:materializationDisabled)
+    """
+    Optional reason given for why a dataset is not accelerated. For example,
+    when creating a dataset view, user must set accelerationDisabled to true
+    and set accelerationDisabledSource to 'View'. Options include: 'Empty',
+    'Monitor', and 'View'. Defaults to 'Empty'.
+    """
+    accelerationDisabledSource: AccelerationDisabledSource @goField(name:materializationDisabledSource)
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String

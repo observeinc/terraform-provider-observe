@@ -37,6 +37,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 ### Read-Only
 
 - `acceleration_disabled` (Boolean)
+- `acceleration_disabled_source` (String)
 - `correlation_tag` (Block List) Correlation tags associated with this dataset. (see [below for nested schema](#nestedblock--correlation_tag))
 - `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
 - `description` (String) Dataset description.
