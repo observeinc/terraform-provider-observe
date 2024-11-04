@@ -159,6 +159,11 @@ var AllAccelerationDisabledSource = []AccelerationDisabledSource{
 	AccelerationDisabledSourceView,
 }
 
+var AllRematerializationModes = []RematerializationMode{
+	RematerializationModeRematerialize,
+	RematerializationModeSkiprematerialization,
+}
+
 const (
 	ErrNotFound = "NOT_FOUND"
 )

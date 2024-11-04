@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -22,6 +21,9 @@ const (
 	schemaDatasetDescriptionDescription = "Dataset description."
 	schemaDatasetIconDescription        = "Icon image."
 	schemaDatasetOIDDescription         = "The Observe ID for dataset."
+
+	rematerializationModeRematerialize         = "rematerialize"
+	rematerializationModeSkipRematerialization = "skip_rematerialization"
 )
 
 func resourceDataset() *schema.Resource {
@@ -148,6 +150,13 @@ func resourceDataset() *schema.Resource {
 						},
 					},
 				},
+			},
+			"rematerialization_mode": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "rematerialize",
+				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
+				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
 		},
 	}
@@ -355,8 +364,20 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
+	dependencyHandling := gql.DefaultDependencyHandling()
+	switch data.Get("rematerialization_mode").(string) {
+	case rematerializationModeRematerialize:
+	case rematerializationModeSkipRematerialization:
+		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Skipping rematerialization on a new dataset is a no-op",
+		})
+	}
+
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -399,7 +420,14 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	input.Id = &id
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
+	dependencyHandling := gql.DefaultDependencyHandling()
+	switch data.Get("rematerialization_mode").(string) {
+	case rematerializationModeRematerialize:
+	case rematerializationModeSkipRematerialization:
+		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	}
+
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

@@ -2231,6 +2231,8 @@ type DependencyHandlingInput struct {
 	SaveMode *SaveMode `json:"saveMode"`
 	// For saveMode UpdateDatasetAndDependenciesUnlessNewErrors, here are errors that don't count as "new"
 	IgnoreSpecificErrors []string `json:"ignoreSpecificErrors"`
+	// If no mode is specified, Rematerialize will be used by default
+	RematerializationMode *RematerializationMode `json:"rematerializationMode"`
 }
 
 // GetSaveMode returns DependencyHandlingInput.SaveMode, and is useful for accessing the field via an interface.
@@ -2238,6 +2240,11 @@ func (v *DependencyHandlingInput) GetSaveMode() *SaveMode { return v.SaveMode }
 
 // GetIgnoreSpecificErrors returns DependencyHandlingInput.IgnoreSpecificErrors, and is useful for accessing the field via an interface.
 func (v *DependencyHandlingInput) GetIgnoreSpecificErrors() []string { return v.IgnoreSpecificErrors }
+
+// GetRematerializationMode returns DependencyHandlingInput.RematerializationMode, and is useful for accessing the field via an interface.
+func (v *DependencyHandlingInput) GetRematerializationMode() *RematerializationMode {
+	return v.RematerializationMode
+}
 
 type EmailActionInput struct {
 	TargetUsers     []types.UserIdScalar `json:"targetUsers"`
@@ -7395,6 +7402,18 @@ func (v *RbacSubjectInput) GetGroupId() *string { return v.GroupId }
 
 // GetAll returns RbacSubjectInput.All, and is useful for accessing the field via an interface.
 func (v *RbacSubjectInput) GetAll() *bool { return v.All }
+
+// Specifies what type of rematerialization will occur when a dataset is updated
+type RematerializationMode string
+
+const (
+	// Rematerialize dataset and all downstream dependencies
+	RematerializationModeRematerialize RematerializationMode = "Rematerialize"
+	// Skips rematerialization if certain conditions are met, will rematerialize otherwise. Use with
+	// SaveMode.PreflightDataset to verify rematerialization will not occur for a given dataset update
+	// before updating the dataset.
+	RematerializationModeSkiprematerialization RematerializationMode = "SkipRematerialization"
+)
 
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
