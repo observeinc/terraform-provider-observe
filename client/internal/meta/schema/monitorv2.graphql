@@ -58,12 +58,11 @@ enum MonitorV2BooleanOperator @goModel(model: "observe/meta/metatypes.MonitorV2B
 
 """
 MonitorV2CapturedType describes the type of column that's captured in the dataset which the monitor observes over.
-There are 3 types:
+There are 2 types:
   1. GroupBy:         If a monitor is grouped by this particular column, this will be one of the types that's tagged.
-  2. LinkSourceField: If this column is one of the source columns used to produce the link column that's grouped,
-                      this type will be the one that's tagged.
-  3. Aggregation:     If this column is the aggregation column used for count or threshold strategy type, this will
+  2. Aggregation:     If this column is the aggregation column used for count or threshold strategy type, this will
                       be the type that's tagged.
+Note: LinkSourceField is deprecated and not used in the backend anymore as it can be inferred from the monitor v2 meta fields.
 """
 enum MonitorV2CapturedValueType @goModel(model: "observe/meta/metatypes.MonitorV2CapturedValueType") {
   Aggregation
@@ -72,12 +71,16 @@ enum MonitorV2CapturedValueType @goModel(model: "observe/meta/metatypes.MonitorV
 }
 
 enum MonitorV2ComparisonFunction @goModel(model: "observe/meta/metatypes.MonitorV2ComparisonFunction") {
+  Contains
   Equal
   Greater
   GreaterOrEqual
   Less
   LessOrEqual
+  NotContains
   NotEqual
+  NotStartsWith
+  StartsWith
 }
 
 """

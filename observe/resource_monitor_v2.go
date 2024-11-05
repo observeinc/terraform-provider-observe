@@ -289,7 +289,7 @@ func monitorV2ComparisonResource() *schema.Resource {
 			"compare_fn": { // MonitorV2ComparisonFunction!
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ComparisonFunctions),
 				Description:      descriptions.Get("monitorv2", "schema", "comparison", "compare_fn"),
 			},
 			"value_int64": { // Int64
