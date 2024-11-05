@@ -4761,12 +4761,16 @@ func (v *MonitorV2Comparison) GetCompareValue() PrimitiveValue { return v.Compar
 type MonitorV2ComparisonFunction string
 
 const (
+	MonitorV2ComparisonFunctionContains       MonitorV2ComparisonFunction = "Contains"
 	MonitorV2ComparisonFunctionEqual          MonitorV2ComparisonFunction = "Equal"
 	MonitorV2ComparisonFunctionGreater        MonitorV2ComparisonFunction = "Greater"
 	MonitorV2ComparisonFunctionGreaterorequal MonitorV2ComparisonFunction = "GreaterOrEqual"
 	MonitorV2ComparisonFunctionLess           MonitorV2ComparisonFunction = "Less"
 	MonitorV2ComparisonFunctionLessorequal    MonitorV2ComparisonFunction = "LessOrEqual"
+	MonitorV2ComparisonFunctionNotcontains    MonitorV2ComparisonFunction = "NotContains"
 	MonitorV2ComparisonFunctionNotequal       MonitorV2ComparisonFunction = "NotEqual"
+	MonitorV2ComparisonFunctionNotstartswith  MonitorV2ComparisonFunction = "NotStartsWith"
+	MonitorV2ComparisonFunctionStartswith     MonitorV2ComparisonFunction = "StartsWith"
 )
 
 type MonitorV2ComparisonInput struct {

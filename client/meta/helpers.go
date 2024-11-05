@@ -23,6 +23,19 @@ var AllCompareFunctions = []CompareFunction{
 	CompareFunctionIsnotnull,
 }
 
+var AllMonitorV2ComparisonFunctions = []MonitorV2ComparisonFunction{
+	MonitorV2ComparisonFunctionContains,
+	MonitorV2ComparisonFunctionEqual,
+	MonitorV2ComparisonFunctionGreater,
+	MonitorV2ComparisonFunctionGreaterorequal,
+	MonitorV2ComparisonFunctionLess,
+	MonitorV2ComparisonFunctionLessorequal,
+	MonitorV2ComparisonFunctionNotcontains,
+	MonitorV2ComparisonFunctionNotequal,
+	MonitorV2ComparisonFunctionNotstartswith,
+	MonitorV2ComparisonFunctionStartswith,
+}
+
 var AllFacetFunctions = []FacetFunction{
 	FacetFunctionEquals,
 	FacetFunctionNotequal,
