@@ -96,6 +96,9 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					inputs = {
 					  "test" = observe_datastream.test.dataset
 					}
+					
+					acceleration_disabled = true
+					acceleration_disabled_source = "view"
 
 					stage {}
 				}`, randomPrefix),
@@ -108,8 +111,8 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
-					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "false"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "rematerialize"),
 				),
 			},
 			{
@@ -125,10 +128,10 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					  "test" = observe_datastream.test.dataset
 					}
 
-					acceleration_disabled = true
-					acceleration_disabled_source = "view"
 					data_table_view_state = jsonencode({viewType = "Auto"})
 					rematerialization_mode = "skip_rematerialization"
+					acceleration_disabled = true
+					acceleration_disabled_source = "view"
 
 					stage {
 					  pipeline = <<-EOF
@@ -162,6 +165,9 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					inputs = {
 					  "test" = observe_datastream.test.dataset
 					}
+					
+					acceleration_disabled = true
+					acceleration_disabled_source = "view"
 
 					stage {
 					  pipeline = <<-EOF
