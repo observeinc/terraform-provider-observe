@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -22,6 +21,9 @@ const (
 	schemaDatasetDescriptionDescription = "Dataset description."
 	schemaDatasetIconDescription        = "Icon image."
 	schemaDatasetOIDDescription         = "The Observe ID for dataset."
+
+	rematerializationModeRematerialize         = "rematerialize"
+	rematerializationModeSkipRematerialization = "skip_rematerialization"
 )
 
 func resourceDataset() *schema.Resource {
@@ -93,11 +95,24 @@ func resourceDataset() *schema.Resource {
 				Default:     false,
 				Description: descriptions.Get("dataset", "schema", "acceleration_disabled"),
 			},
+			"acceleration_disabled_source": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateEnums(gql.AllAccelerationDisabledSource),
+				Description:      descriptions.Get("dataset", "schema", "acceleration_disabled_source"),
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
+			},
+			"data_table_view_state": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateStringIsJSON,
+				DiffSuppressFunc: diffSuppressJSON,
+				Description:      descriptions.Get("dataset", "schema", "data_table_view_state"),
 			},
 			"stage": {
 				Type:        schema.TypeList,
@@ -135,6 +150,13 @@ func resourceDataset() *schema.Resource {
 						},
 					},
 				},
+			},
+			"rematerialization_mode": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "rematerialize",
+				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
+				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
 		},
 	}
@@ -185,11 +207,20 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 	b := data.Get("acceleration_disabled").(bool)
 	input.AccelerationDisabled = &b
 
+	if v, ok := data.GetOk("acceleration_disabled_source"); ok {
+		c := gql.AccelerationDisabledSource(toCamel(v.(string)))
+		input.AccelerationDisabledSource = &c
+	}
+
 	if v, ok := data.GetOk("path_cost"); ok {
 		input.PathCost = types.Int64Scalar(v.(int)).Ptr()
 	} else {
 		input.PathCost = types.Int64Scalar(0).Ptr()
 		// null it is
+	}
+
+	if v, ok := data.GetOk("data_table_view_state"); ok {
+		input.DataTableViewState = types.JsonObject(v.(string)).Ptr()
 	}
 
 	return input, query, diags
@@ -232,6 +263,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("acceleration_disabled_source", toSnake(string(d.AccelerationDisabledSource))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	var currentCost int
 	if v, ok := data.GetOk("path_cost"); ok {
 		currentCost = v.(int)
@@ -239,6 +274,12 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 
 	if d.PathCost != nil && *d.PathCost.IntPtr() != currentCost {
 		if err := data.Set("path_cost", d.PathCost); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.DataTableViewState != nil {
+		if err := data.Set("data_table_view_state", d.DataTableViewState.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -261,7 +302,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []*gql.StageQuery, outputStage string) ([]string, error) {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, error) {
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
@@ -323,8 +364,20 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
+	dependencyHandling := gql.DefaultDependencyHandling()
+	switch data.Get("rematerialization_mode").(string) {
+	case rematerializationModeRematerialize:
+	case rematerializationModeSkipRematerialization:
+		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Skipping rematerialization on a new dataset is a no-op",
+		})
+	}
+
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -342,6 +395,10 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 	client := meta.(*observe.Client)
 	result, err := client.GetDataset(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),
@@ -363,7 +420,14 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	input.Id = &id
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput)
+	dependencyHandling := gql.DefaultDependencyHandling()
+	switch data.Get("rematerialization_mode").(string) {
+	case rematerializationModeRematerialize:
+	case rematerializationModeSkipRematerialization:
+		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	}
+
+	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

@@ -286,6 +286,10 @@ func resourceChannelActionRead(ctx context.Context, data *schema.ResourceData, m
 
 	channelActionPtr, err := client.GetChannelAction(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read channel action: %s", err.Error())
 	}
 	channelAction := *channelActionPtr

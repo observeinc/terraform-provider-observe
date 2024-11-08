@@ -259,6 +259,10 @@ func resourceFiledropRead(ctx context.Context, data *schema.ResourceData, meta i
 
 	filedrop, err := client.GetFiledrop(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read filedrop: %s", err.Error())
 	}
 

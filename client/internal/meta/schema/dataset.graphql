@@ -1,13 +1,8 @@
 extend type Query {
     dataset(id: ObjectId!): Dataset
     datasets(ids: [ObjectId!]!): [DatasetEnumerationResult!]!
-    pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath]!
+    pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath!]!
     pathsBetweenDatasets2(from: [ObjectId!]!, to: ObjectId!, limit: Int64, costModel: RelationshipCostAttributes): RelationshipPathResult!
-
-    """
-    Spit back out the data that was provided for each save operation on a dataset
-    """
-    datasetSaveHistory(id: ObjectId!): [DatasetHistoryRecord!]!
 
     """
     The control UI is focused on some particular stage. checkQuery() and friends are helpful
@@ -37,7 +32,12 @@ extend type Mutation {
     If dependencyHandling is not specified, then the default is to apply
     changes but ignore downstream datasets or errors therein.
     """
-    saveDataset(workspaceId: ObjectId!, dataset: DatasetInput!, transform: TransformInput @deprecated(reason:"use query instead"), query: MultiStageQueryInput, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
+    saveDataset(
+        workspaceId: ObjectId!,
+        dataset: DatasetInput!,
+        query: MultiStageQueryInput,
+        dependencyHandling: DependencyHandlingInput,
+    ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
 
     saveSourceDataset(workspaceId: ObjectId!, datasetDefinition: DatasetDefinitionInput!, sourceTable: SourceTableDefinitionInput!, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
@@ -96,7 +96,7 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     deleted: Boolean!
     current: TransformVersion
     currentVersion: Time!
-    version(version: Time!): TransformVersion @goField(forceResolver:true)
+    version(version: Time!): TransformVersion
 }
 
 input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
@@ -121,14 +121,14 @@ input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQue
 
 type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     outputStage: String!
-    stages: [StageQuery]!
+    stages: [StageQuery!]!
     parameters: [ParameterSpec!]!
     parameterValues: [ParameterBinding!]
     layout: JsonObject
 }
 
 type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion") {
-    transform: Transform @goField(forceResolver:true)
+    transform: Transform
     savedDate: Time!
     savedBy: User @goField(forceResolver:true)
     savedByInfo: UserInfo! @goField(forceResolver:true)
@@ -144,7 +144,7 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
     stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
-    input: [InputDefinition]!
+    input: [InputDefinition!]!
     params: JsonObject
     pipeline: String!
     layout: JsonObject
@@ -183,6 +183,39 @@ type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResul
     information about errors that occur in the affected, and/or downstream datasets
     """
     errorDatasets: [DatasetError!]
+    """
+    Changing a dataset definition might make currently materialized data obsolete,
+    in which case we dematerialize (throw away) this data and recompute new data.
+    This is the list of datasets that would get dematerialized.
+
+    Data is dematerialized when the change to the dataset is significant,
+    that is, when it alters transform logic. Minor changes like whitespace and
+    comments do not cause dematerialization.
+
+    Note that changing a dataset might cause downstream datasets to get
+    dematerialized also.
+    """
+    dematerializedDatasets: [DatasetMaterialization!]
+    """
+    The Observe compute credit (OCC) cost of rematerializing affected datasets.
+    Note that the datasets in this list might differ from those in dematerializedDatasets
+    since this list might include some upstream datasets. In general, don't try
+    to correlate elements in this list with elements in other lists; treat them
+    independently as much as possible.
+    """
+    rematerializationCosts: [DatasetCostEstimate!]
+}
+
+"""Information about a materialized dataset."""
+type DatasetMaterialization @goModel(model: "observe/meta/metatypes.DatasetMaterialization") {
+    """Metadata about the dataset."""
+    dataset: Dataset
+
+    """Size in bytes of the materialized tables."""
+    size: Int64!
+
+    """Time windows that are materialized."""
+    windows: [TimeRange!]
 }
 
 type StageDisposition @goModel(model: "observe/meta/metatypes.StageDisposition") {
@@ -215,12 +248,32 @@ enum SaveMode @goModel(model: "observe/meta/metatypes.SaveMode") {
     PreflightDatasetAndDependencies
 }
 
+"""
+Specifies what type of rematerialization will occur when a dataset is updated
+"""
+enum RematerializationMode @goModel(model: "observe/meta/metatypes.RematerializationMode") {
+    """
+    Rematerialize dataset and all downstream dependencies
+    """
+    Rematerialize
+    """
+    Skips rematerialization if certain conditions are met, will rematerialize otherwise. Use with
+    SaveMode.PreflightDataset to verify rematerialization will not occur for a given dataset update
+    before updating the dataset.
+    """
+    SkipRematerialization
+}
+
 input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.DependencyHandling") {
     saveMode: SaveMode
     """
     For saveMode UpdateDatasetAndDependenciesUnlessNewErrors, here are errors that don't count as "new"
     """
     ignoreSpecificErrors: [ObjectId!]
+    """
+    If no mode is specified, Rematerialize will be used by default
+    """
+    rematerializationMode: RematerializationMode
 }
 
 type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
@@ -228,7 +281,11 @@ type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     targetStageLabel: String
     label: String @deprecated(reason: "use id instead")
     targetLabelFieldName: String
-    srcFields: [String!]!
+    srcFields: [String!]! @deprecated(reason: "use src instead")
+    # Since link sources are no longer plain column references, to cleanly model them,
+    # I'm creating a new type that contains both column name and path (if any). Plan is to
+    # deprecate srcFields in future. 
+    src: [LinkField!]!
     dstFields: [String!]!
     id: String
 }
@@ -271,9 +328,23 @@ type GroupingKey @goModel(model: "observe/compiler/comptypes.GroupingKey") {
     elements: [GroupingElement!]!
 }
 
+"""
+IndexMetadata represents the metadata information of a dataset of the result schema of a query.
+Currently only used for token index.
+"""
+type IndexMetadata @goModel(model: "observe/compiler/comptypes.IndexMetadata") {
+    columns: [String!]
+}
+
 type DatasetInputDataset @goModel(model: "observe/meta/metatypes.DatasetInputDataset") {
-	datasetId: ObjectId!,
-	inputRole: InputRole!,
+    datasetId: ObjectId!,
+    inputRole: InputRole!,
+}
+
+enum AccelerationDisabledSource @goModel(model:"observe/meta/metatypes.DatasetMaterializationDisabledSource") {
+    Empty
+    Monitor
+    View
 }
 
 type Dataset implements WorkspaceObject & FolderObject & AuditedObject & AccelerableObject @goModel(model: "observe/meta/metatypes.Dataset") {
@@ -291,7 +362,8 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     latencyDesired: Int64
     freshnessDesired: Int64
     typedefId: ObjectId!
-    typedef: Typedef!
+    typedef: Typedef! @deprecated(reason: "use fieldList instead")
+    fieldList: [FieldDesc!]
     validFromField: String
     validToField: String
     labelField: String
@@ -301,9 +373,9 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     foreignKeys: [ForeignKey!]
     relatedKeys: [RelatedKey!]
     groupingKey: GroupingKey
+    correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
-    lastSaved: Time! @deprecated(reason: "use updatedDate instead")
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
     inputs: [DatasetInputDataset!] @goField(forceResolver:true)
@@ -317,6 +389,8 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
+    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
+    dataTableViewState: JsonObject
 
     """
     Optional custom configured override value of the on demand materialization
@@ -329,10 +403,18 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 
     # AccelerableObject (or fields that should eventually move to that interface)
     accelerable: Boolean!
-    streamable: Boolean! @deprecated(reason: "renamed to accelerable") @goField(name:accelerable)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
-    streamingInfo: StreamingInfo! @deprecated(reason: "renamed to accelerationInfo") @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
+    accelerationDisabledSource: AccelerationDisabledSource! @goField(name:materializationDisabledSource)
+
+    """
+    If the dataset is not hibernated, this field will be set to null.
+    If the dataset is hibernated, this field will be set to the time when it was
+    hibernated. The dataset will not automatically accelerate new data.
+    You can still query the dataset on the accelerated range and issue manual
+    acceleration jobs.
+    """
+    hibernatedAt: Time @goField(forceResolver:true)
 
     # AuditedObject
     createdBy: UserId!
@@ -344,12 +426,13 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
 }
 
 enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
-    CumulativeCounter
-    Counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
-    RatePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
-    Delta
-    Gauge
-    Sample
+    cumulativeCounter
+    counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    ratePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    delta
+    gauge
+    tdigest
+    sample
 }
 
 type MetricTag @goModel(model: "observe/compiler/comptypes.MetricTag") {
@@ -369,6 +452,16 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
     cardinality: Int64
     interval: Duration
     intervalStddev: Duration
+    """
+    The last time this metric was reported. This time could be underreported by at most an hour.
+
+    When a metric has a lastReported of T, here is the information you can extract from it:
+    1. the metric was actually reported at the timestamp T
+    2. the metric was NEVER reported between [T+1h, now-5m), for fresh metric datasets (most are)
+    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either freshness decayed, or has a high freshness goal)
+    In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
+    """
+    lastReported: Time
     tags: [MetricTag!]
 }
 
@@ -475,7 +568,7 @@ type RelationshipPathElement @goModel(model: "observe/meta/metapath.Relationship
 }
 
 type RelationshipPathResult @goModel(model: "observe/meta/metapath.RelationshipPathResult") {
-    paths:    [RelationshipPath]!
+    paths:    [RelationshipPath!]!
     comments: [String!]!
     errors:   [String!]!
 }
@@ -493,23 +586,6 @@ input RelationshipCostAttributes @goModel(model: "observe/meta/metapath.Relation
     costReverseKeysSquared: Int64
     costKeyDisparitySquared: Int64
     extraDatasetCost: [RelationshipDatasetCost!]
-}
-
-"""
-note: This is a STRONGLY CUT DOWN flavor of the Dataset -- only what was
-provided on save-input is stored, not the full compiled output/schema.
-"""
-type DatasetHistoryRecord @goModel(model: "observe/meta/metatypes.DatasetHistoryRecord") {
-    id: ObjectId!
-    version: Time!
-    label: String!
-    savedByInfo: UserInfo! @goField(forceResolver:true)
-    action: String!
-    dataset: DatasetInputRecord
-    query: MultiStageQuery
-    error: String
-    humanReadableDescription: [String!]
-    shortDescription: String!
 }
 
 type DatasetInputRecord @goModel(model: "observe/meta/metatypes.DatasetInputRecord") {
@@ -542,12 +618,24 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     """
     overwriteSource: Boolean
     deleted: Boolean
+    """
+    Specifies if dataset acceleration should be disabled. Set to true if
+    dataset materialization is not desired. Defaults to false.
+    """
     accelerationDisabled: Boolean @goField(name:materializationDisabled)
+    """
+    Optional reason given for why a dataset is not accelerated. For example,
+    when creating a dataset view, user must set accelerationDisabled to true
+    and set accelerationDisabledSource to 'View'. Options include: 'Empty',
+    'Monitor', and 'View'. Defaults to 'Empty'.
+    """
+    accelerationDisabledSource: AccelerationDisabledSource @goField(name:materializationDisabledSource)
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String
     layout: JsonObject
     pathCost: Int64
+    dataTableViewState: JsonObject
     """
     Max on-demand materialization length for the dataset (in nanoseconds). If not set
     will use the default value in transformer config.
@@ -615,7 +703,7 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
 type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
     path: String!
     mapping: [InterfaceFieldMapping!]!
-    interface: InterfaceDefinition! @goField(forceResolver:true)
+    interface: InterfaceDefinition! @goField(forceResolver:true) @deprecated(reason:"already not used, see OB-32415")
 }
 
 type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {
@@ -623,6 +711,9 @@ type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFiel
     field: String!
 }
 
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
 type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefinition") {
     name: String!
     """
@@ -639,10 +730,12 @@ type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefini
     qualifiers: [String!]!
 }
 
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
 type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
     interfaceField: String!
     rep: String!
-    typeclasses: [String!]
     optional: Boolean!
 }
 
@@ -756,4 +849,10 @@ type ObjectBillingInfo @goModel(model: "observe/meta/metatypes.ObjectBillingInfo
     periodFrom: Time!
     periodTo: Time!
     credits: Float!
+}
+
+# A correlationTagMapping is a mapping from a tag to a path in a dataset.
+type CorrelationTagMapping @goModel(model: "observe/compiler/comptypes.CorrelationTagMapping") {
+    tag: String!
+    path: LinkField!
 }

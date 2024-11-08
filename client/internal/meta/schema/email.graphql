@@ -1,0 +1,17 @@
+extend type Query {
+    """
+    Get Target Email Address Verification State.
+    """
+    email(address: String!): EmailAddress @goField(forceResolver:true)
+    """
+    Get Target Email Addresses Verification States.
+    """
+    emails(addresses: [String!]!): [EmailAddress!] @goField(forceResolver:true)
+}
+
+type EmailAddress @goModel(model: "observe/meta/metatypes.EmailAddress") {
+    email: String!
+    verificationState: EmailActionTargetState!
+    customerId: CustomerId!
+    userId: UserId
+}

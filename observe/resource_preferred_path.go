@@ -199,6 +199,10 @@ func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, m
 
 	path, err := client.GetPreferredPath(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		if path == nil {
 			return diag.Errorf("failed to read preferred path: %s", err)
 		}

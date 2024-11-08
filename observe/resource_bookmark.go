@@ -149,6 +149,10 @@ func resourceBookmarkRead(ctx context.Context, data *schema.ResourceData, meta i
 	client := meta.(*observe.Client)
 	result, err := client.GetBookmark(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to retrieve bookmark [id=%s]", data.Id()),

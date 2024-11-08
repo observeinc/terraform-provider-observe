@@ -2,11 +2,6 @@ extend type Query {
     poller(id: ObjectId!): Poller!
     pollers(workspaceId: ObjectId!, kind: PollerKind, name: String, datastreamId: ObjectId): [Poller!]!
     getPollers(workspaceId: ObjectId!, kind: PollerKind, name: String): [Poller!]!
-
-    datastream(id: ObjectId!): Datastream!
-    datastreams(workspaceId: ObjectId!, name: String): [Datastream!]!
-
-    datastreamToken(id: String!): DatastreamToken!
 }
 
 extend type Mutation {
@@ -14,155 +9,6 @@ extend type Mutation {
     createPoller(workspaceId: ObjectId!, poller: PollerInput!): Poller!
     deletePoller(id: ObjectId!): ResultStatus!
     setPollerDisabled(id: ObjectId!, disabled: Boolean!): ResultStatus!
-
-    createDatastream(workspaceId: ObjectId!, datastream: DatastreamInput!): Datastream!
-    updateDatastream(id: ObjectId!, datastream: DatastreamInput!): Datastream!
-    deleteDatastream(id: ObjectId!): ResultStatus!
-
-    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!): DatastreamToken!
-    updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
-    deleteDatastreamToken(id: String!): ResultStatus!
-}
-
-"""
-stats common to datastream sources such as tokens, pollers etc
-"""
-interface DatastreamSourceStats @goModel(model: "observe/meta/metatypes.DatastreamSourceStats") {
-    firstIngest: Time!
-    lastIngest: Time!
-    lastError: Time
-    errors: [DatastreamError!]
-    observations: [TimeSeriesValue!]
-    volumeBytes: [TimeSeriesValue!]
-}
-
-type DatastreamError @goModel(model: "observe/meta/metatypes.DatastreamError") {
-    time: Time!
-    message: String!
-    code: Int64
-}
-
-"""
-summarized per datastream stats
-"""
-type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
-    firstIngest: Time
-    lastIngest: Time
-    lastError: Time
-    numTokens: Int64!
-    """
-    per minute observation counts for the past hour
-    """
-    observations: [TimeSeriesValue!]
-    """
-    per minute ingest volume bytes for the past hour
-    """
-    volumeBytes: [TimeSeriesValue!]
-    """
-    total observations for the past hour derived from the above per minute counts
-    """
-    totalObservations: Int64!
-    """
-    total volume bytes for the past hour derived from the above per minute counts
-    """
-    totalVolumeBytes: Int64!
-}
-
-type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datastream") {
-    id: ObjectId!
-    name: String!
-    description: String
-    iconUrl: String
-    customerId: CustomerId!
-    workspaceId: ObjectId!
-    managedBy: WorkspaceObject @goField(forceResolver:true)
-    managedById: ObjectId
-    folderId: ObjectId!
-    datasetId: ObjectId!
-    createdBy: UserId!
-    createdByInfo: UserInfo! @goField(forceResolver:true)
-    updatedBy: UserId!
-    updatedByInfo: UserInfo! @goField(forceResolver:true)
-    createdDate: Time!
-    updatedDate: Time!
-    disabled: Boolean!
-    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
-    pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
-    filedrops: [Filedrop!] @goField(forceResolver:true)
-    stats: DatastreamStats @goField(forceResolver:true)
-}
-
-input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
-    name: String!
-    description: String
-    iconUrl: String
-    disabled: Boolean
-}
-
-interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.DatastreamToken") {
-    id: String!
-    name: String!
-    description: String
-    createdBy: UserId!
-    createdByInfo: UserInfo! @goField(forceResolver:true)
-    updatedBy: UserId!
-    updatedByInfo: UserInfo! @goField(forceResolver:true)
-    createdDate: Time!
-    updatedDate: Time!
-    disabled: Boolean!
-
-    datastreamId: ObjectId!
-    managedById: ObjectId
-    stats: DatastreamTokenStats @goField(forceResolver:true)
-    """
-    only populated for creates
-    """
-    secret: String
-    appMetadata: DatastreamTokenAppMetadata
-}
-
-type DatastreamTokenAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadata") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-type DatastreamTokenStats implements TokenStats & DatastreamSourceStats @goModel(model: "observe/meta/metatypes.DatastreamTokenStats") {
-    firstUsed: Time!
-    lastUsed: Time!
-    lastError: Time
-    firstIngest: Time!
-    lastIngest: Time!
-    errors: [DatastreamError!]
-    observations: [TimeSeriesValue!]
-    volumeBytes: [TimeSeriesValue!]
-}
-
-type TimeSeriesValue @goModel(model: "observe/meta/metatypes.TimeSeriesValue") {
-    time: Time!
-    value: Int64!
-}
-
-input DatastreamTokenAppMetadataInput @goModel(model: "observe/meta/metatypes.DatastreamTokenAppMetadataInput") {
-    appId: ObjectId!
-    moduleId: String
-    instructions: String!
-    datasourceName: String!
-}
-
-input DatastreamTokenInput @goModel(model: "observe/meta/metatypes.DatastreamTokenInput") {
-    name: String!
-    description: String
-    disabled: Boolean
-    appMetadata: DatastreamTokenAppMetadataInput
 }
 
 enum PollerKind @goModel(model: "observe/meta/metatypes.PollerKind") {
@@ -171,6 +17,8 @@ enum PollerKind @goModel(model: "observe/meta/metatypes.PollerKind") {
     GCPMonitoring
     MongoDBAtlas
     ConfluentCloud
+    CloudWatchMetrics
+    AWSSnapshot
 }
 
 type PollerStats implements DatastreamSourceStats @goModel(model: "observe/meta/metatypes.PollerStats") {
@@ -192,6 +40,7 @@ type Poller implements WorkspaceObject & AuditedObject @goModel(model: "observe/
     managedById: ObjectId
     customerId: CustomerId!
     datastreamId: ObjectId
+    datastreamTokenId: String
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     updatedBy: UserId!
@@ -265,8 +114,47 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
 
     requests: [PollerHTTPRequestConfig!]
     rules: [PollerHTTPRuleConfig!]
+    timestamps: [PollerHTTPTimestampConfig!]
 }
 
+type PollerCloudWatchMetricsConfig implements PollerConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsConfig") {
+    name: String
+    retries: Int64
+    interval: Duration
+    chunk: PollerChunkConfig
+    apiReqLimit: RateLimitConfig
+    tags: JsonObject
+
+    period: Int64!
+    delay: Int64!
+    queries: [PollerCloudWatchMetricsQueryConfig!]!
+    region: String!
+    assumeRoleArn: String!
+}
+
+type PollerCloudWatchMetricsQueryConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsQueryInput") {
+    namespace: String!
+    metricNames: [String!]
+    dimensions: [PollerCloudWatchMetricsDimensionFilterConfig!]
+    resourceFilter: PollerCloudWatchMetricsResourceFilterConfig
+}
+
+type PollerCloudWatchMetricsDimensionFilterConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsDimensionFilterInput") {
+    name: String!
+    value: String
+}
+
+type PollerCloudWatchMetricsResourceFilterConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsResourceFilterInput") {
+    resourceType: String
+    pattern: String
+    dimensionName: String
+    tagFilters: [PollerCloudWatchMetricsTagFilterConfig!]!
+}
+
+type PollerCloudWatchMetricsTagFilterConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsTagFilterInput") {
+    key: String!
+    values: [String!]
+}
 
 enum PollerHTTPRequestAuthScheme @goModel(model: "observe/meta/metatypes.PollerHTTPRequestAuthScheme") {
     Basic
@@ -282,6 +170,32 @@ type PollerHTTPRequestConfig @goModel(model: "observe/meta/metatypes.PollerHTTPR
    body: String
    headers: JsonObject
    params: JsonObject
+}
+
+enum PollerHTTPTimestampFormatScheme @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampFormatScheme") {
+    ANSIC
+    UnixDate
+    RubyDate
+    RFC822
+    RFC822Z
+    RFC850
+    RFC1123
+    RFC1123Z
+    RFC3339
+    RFC3339Nano
+    Kitchen
+    Unix
+    UnixMilli
+    UnixMicro
+    UnixMano
+}
+
+type PollerHTTPTimestampConfig @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampInput") {
+    name: String
+    source: String
+    format: PollerHTTPTimestampFormatScheme
+    offset: String
+    truncate: String
 }
 
 type PollerHTTPRuleConfig @goModel(model: "observe/meta/metatypes.PollerHTTPRuleInput") {
@@ -359,6 +273,8 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     gcpConfig: PollerGCPMonitoringInput
     mongoDBAtlasConfig: PollerMongoDBAtlasInput
     confluentCloudConfig: PollerConfluentCloudInput
+    cloudWatchMetricsConfig: PollerCloudWatchMetricsInput
+    awsSnapshotConfig: PollerAWSSnapshotInput
     skipExternalValidation: Boolean
 
     """
@@ -383,6 +299,15 @@ input PollerHTTPInput @goModel(model: "observe/meta/metatypes.PollerHTTPInput") 
     template: PollerHTTPRequestInput
     requests: [PollerHTTPRequestInput!]
     rules: [PollerHTTPRuleInput!]
+    timestamps: [PollerHTTPTimestampInput!]
+}
+
+input PollerHTTPTimestampInput @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampInput") {
+    name: String
+    source: String
+    format: PollerHTTPTimestampFormatScheme
+    offset: String
+    truncate: String
 }
 
 input PollerHTTPRequestInput @goModel(model: "observe/meta/metatypes.PollerHTTPRequestInput") {
@@ -425,4 +350,55 @@ input PollerMongoDBAtlasInput @goModel(model: "observe/meta/metatypes.PollerMong
 input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerConfluentCloudInput") {
     key: String!
     secret: String!
+}
+
+input PollerCloudWatchMetricsInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsInput") {
+    period: Int64!
+    delay: Int64!
+    queries: [PollerCloudWatchMetricsQueryInput!]!
+    region: String!
+    assumeRoleArn: String!
+}
+
+input PollerCloudWatchMetricsQueryInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsQueryInput") {
+    namespace: String!
+    metricNames: [String!]
+    dimensions: [PollerCloudWatchMetricsDimensionFilterInput!]
+    resourceFilter: PollerCloudWatchMetricsResourceFilterInput
+}
+
+input PollerCloudWatchMetricsDimensionFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsDimensionFilterInput") {
+    name: String!
+    value: String
+}
+
+input PollerCloudWatchMetricsResourceFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsResourceFilterInput") {
+    resourceType: String
+    pattern: String
+    dimensionName: String
+    tagFilters: [PollerCloudWatchMetricsTagFilterInput!]!
+}
+
+input PollerCloudWatchMetricsTagFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsTagFilterInput") {
+    key: String!
+    values: [String!]
+}
+
+type PollerAWSSnapshotConfig implements PollerConfig @goModel(model: "observe/meta/metatypes.PollerAWSSnapshotConfig") {
+    name: String
+    retries: Int64
+    interval: Duration
+    chunk: PollerChunkConfig
+    apiReqLimit: RateLimitConfig
+    tags: JsonObject
+
+    includeActions: [String!]!
+    region: String!
+    assumeRoleArn: String!
+}
+
+input PollerAWSSnapshotInput @goModel(model: "observe/meta/metatypes.PollerAWSSnapshotInput") {
+    includeActions: [String!]!
+    region: String!
+    assumeRoleArn: String!
 }

@@ -269,6 +269,10 @@ func resourceMonitorActionRead(ctx context.Context, data *schema.ResourceData, m
 
 	monitorActionPtr, err := client.GetMonitorAction(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read monitor action: %s", err.Error())
 	}
 	monitorAction := *monitorActionPtr

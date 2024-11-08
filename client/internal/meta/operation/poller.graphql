@@ -54,6 +54,13 @@ fragment Poller on Poller {
 					type
 				}
 			}
+			timestamps {
+				name
+				source
+				format
+				offset
+				truncate
+			}
 		}
 		... on PollerGCPMonitoringConfig {
 			projectId
@@ -69,10 +76,41 @@ fragment Poller on Poller {
 			includeGroups
 			excludeGroups
 		}
+		... on PollerCloudWatchMetricsConfig {
+			period
+			delay
+			region
+			assumeRoleArn
+			queries {
+				namespace
+				metricNames
+				dimensions {
+					name
+					value
+				}
+				resourceFilter {
+					resourceType
+					pattern
+					dimensionName
+					tagFilters {
+						key
+						values
+					}
+				}
+			}
+		}
+		... on PollerAWSSnapshotConfig {
+			region
+			assumeRoleArn
+			includeActions
+		}
 	}
 }
 
-mutation createPoller($workspaceId: ObjectId!, $poller: PollerInput!) {
+mutation createPoller(
+    $workspaceId: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: createPoller(workspaceId:$workspaceId, poller: $poller) {
 		...Poller
@@ -86,7 +124,10 @@ query getPoller($id: ObjectId!) {
 	}
 }
 
-mutation updatePoller($id: ObjectId!, $poller: PollerInput!) {
+mutation updatePoller(
+    $id: ObjectId!,
+    $poller: PollerInput!,
+) {
 	# @genqlient(flatten: true)
 	poller: updatePoller(id:$id, poller: $poller) {
 		...Poller

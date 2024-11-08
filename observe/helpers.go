@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
@@ -295,6 +294,12 @@ func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
 	return o == n
 }
 
+func diffSuppressTimeDurationZeroDistinctFromEmpty(k, prv, nxt string, d *schema.ResourceData) bool {
+	o, e1 := time.ParseDuration(prv)
+	n, e2 := time.ParseDuration(nxt)
+	return o == n && e1 == e2 // the e1 == e2 check distinguishes "0" from ""
+}
+
 func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
 	var prvValue, nxtValue interface{}
 	if err := json.Unmarshal([]byte(prv), &prvValue); err != nil {
@@ -477,4 +482,17 @@ func validateDatasetName() schema.SchemaValidateDiagFunc {
 
 func validateDatastreamName() schema.SchemaValidateDiagFunc {
 	return validateDatasetName()
+}
+
+func asPointer[T any](val T) *T {
+	return &val
+}
+
+func sliceContains[T comparable](slice []T, val T) bool {
+	for _, v := range slice {
+		if v == val {
+			return true
+		}
+	}
+	return false
 }

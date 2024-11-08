@@ -68,6 +68,8 @@ copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm -f client/internal/meta/schema/*.graphql
 	cp -pR "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
+	sed -i.bak '/@eol/ { /directive/!d; }' client/internal/meta/schema/*
+	rm -rf client/internal/meta/schema/*.bak
 
 generate:
 	go generate ./...
@@ -137,5 +139,7 @@ docs-sync: generate
 		--exclude="*" \
 		docs/ \
 		$(OBSERVE_DOCS_ROOT)/docs/content/terraform/generated
+	
+	./scripts/docsindex.sh $(OBSERVE_DOCS_ROOT)/docs/content/terraform/generated/index.md
 
 .PHONY: build generate test sweep testacc vet fmt fmtcheck errcheck test-compile docs

@@ -3,6 +3,8 @@ package meta
 import (
 	"errors"
 	"fmt"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 var AllBoardType = []BoardType{
@@ -19,6 +21,19 @@ var AllCompareFunctions = []CompareFunction{
 	CompareFunctionLessorequal,
 	CompareFunctionIsnull,
 	CompareFunctionIsnotnull,
+}
+
+var AllMonitorV2ComparisonFunctions = []MonitorV2ComparisonFunction{
+	MonitorV2ComparisonFunctionContains,
+	MonitorV2ComparisonFunctionEqual,
+	MonitorV2ComparisonFunctionGreater,
+	MonitorV2ComparisonFunctionGreaterorequal,
+	MonitorV2ComparisonFunctionLess,
+	MonitorV2ComparisonFunctionLessorequal,
+	MonitorV2ComparisonFunctionNotcontains,
+	MonitorV2ComparisonFunctionNotequal,
+	MonitorV2ComparisonFunctionNotstartswith,
+	MonitorV2ComparisonFunctionStartswith,
 }
 
 var AllFacetFunctions = []FacetFunction{
@@ -83,6 +98,24 @@ var AllPollerHTTPRequestAuthSchemes = []PollerHTTPRequestAuthScheme{
 	PollerHTTPRequestAuthSchemeDigest,
 }
 
+var AllPollerHTTPTimestampFormats = []PollerHTTPTimestampFormatScheme{
+	PollerHTTPTimestampFormatSchemeAnsic,
+	PollerHTTPTimestampFormatSchemeUnixdate,
+	PollerHTTPTimestampFormatSchemeRubydate,
+	PollerHTTPTimestampFormatSchemeRfc822,
+	PollerHTTPTimestampFormatSchemeRfc822z,
+	PollerHTTPTimestampFormatSchemeRfc850,
+	PollerHTTPTimestampFormatSchemeRfc1123,
+	PollerHTTPTimestampFormatSchemeRfc1123z,
+	PollerHTTPTimestampFormatSchemeRfc3339,
+	PollerHTTPTimestampFormatSchemeRfc3339nano,
+	PollerHTTPTimestampFormatSchemeKitchen,
+	PollerHTTPTimestampFormatSchemeUnix,
+	PollerHTTPTimestampFormatSchemeUnixmilli,
+	PollerHTTPTimestampFormatSchemeUnixmicro,
+	PollerHTTPTimestampFormatSchemeUnixmano,
+}
+
 // AllBookmarkKindTypes This list is incomplete and will be filled in
 // as we support more types of bookmarks in the terraform provider
 var AllBookmarkKindTypes = []BookmarkKind{
@@ -91,6 +124,62 @@ var AllBookmarkKindTypes = []BookmarkKind{
 	BookmarkKindLogexplorer,
 	BookmarkKindMetricexplorer,
 }
+
+var AllMonitorV2RuleKinds = []MonitorV2RuleKind{
+	MonitorV2RuleKindCount,
+	MonitorV2RuleKindPromote,
+	MonitorV2RuleKindThreshold,
+}
+
+var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
+	MonitorV2AlarmLevelCritical,
+	MonitorV2AlarmLevelError,
+	MonitorV2AlarmLevelInformational,
+	MonitorV2AlarmLevelNone,
+	MonitorV2AlarmLevelWarning,
+}
+
+var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
+	MonitorV2ValueAggregationAllof,
+	MonitorV2ValueAggregationAnyof,
+	MonitorV2ValueAggregationAvgof,
+	MonitorV2ValueAggregationSumof,
+}
+
+var AllMonitorV2RollupStatuses = []MonitorV2RollupStatus{
+	MonitorV2RollupStatusDegraded,
+	MonitorV2RollupStatusFailed,
+	MonitorV2RollupStatusInactive,
+	MonitorV2RollupStatusRunning,
+	MonitorV2RollupStatusTriggering,
+}
+
+var AllMonitorV2ActionTypes = []MonitorV2ActionType{
+	MonitorV2ActionTypeEmail,
+	MonitorV2ActionTypePagerduty,
+	MonitorV2ActionTypeSlack,
+	MonitorV2ActionTypeWebhook,
+}
+
+var AllMonitorV2HttpTypes = []MonitorV2HttpType{
+	MonitorV2HttpTypePost,
+	MonitorV2HttpTypePut,
+}
+
+var AllAccelerationDisabledSource = []AccelerationDisabledSource{
+	AccelerationDisabledSourceEmpty,
+	AccelerationDisabledSourceMonitor,
+	AccelerationDisabledSourceView,
+}
+
+var AllRematerializationModes = []RematerializationMode{
+	RematerializationModeRematerialize,
+	RematerializationModeSkiprematerialization,
+}
+
+const (
+	ErrNotFound = "NOT_FOUND"
+)
 
 type resultStatusResponse interface {
 	GetResultStatus() ResultStatus
@@ -128,4 +217,18 @@ func extractResultStatusError(rs ResultStatus) error {
 		return fmt.Errorf("request failed: %q", msg)
 	}
 	return errors.New("request failed")
+}
+
+func HasErrorCode(err error, code string) bool {
+	if err == nil {
+		return false
+	}
+	if errList, ok := err.(gqlerror.List); ok {
+		for _, err := range errList {
+			if err.Extensions["code"] == code {
+				return true
+			}
+		}
+	}
+	return false
 }

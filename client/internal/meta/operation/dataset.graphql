@@ -6,12 +6,14 @@ fragment Dataset on Dataset {
 	description
 	iconUrl
 	accelerationDisabled
+	accelerationDisabledSource
 	version
-	lastSaved
+	updatedDate
 	pathCost
 	source
 	managedById
 	onDemandMaterializationLength
+	dataTableViewState
 	foreignKeys {
 		label
 		targetDataset
@@ -61,10 +63,23 @@ fragment Dataset on Dataset {
 			sqlType
 		}
 	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
+}
+
+fragment DatasetIdName on Dataset {
+	name
+	id
 }
 
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)
@@ -122,9 +137,19 @@ query listDatasets{
 	}
 }
 
+query listDatasetsIdNameOnly {
+	datasets: datasetSearch {
+		# @genqlient(flatten: true)
+		dataset {
+			...DatasetIdName
+		}
+	}
+}
+
 # @genqlient(for: "DatasetFieldTypeInput.nullable", omitempty: true)
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.stageID", omitempty: true)

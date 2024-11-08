@@ -34,6 +34,21 @@ extend type Query {
   Get the full acceleration status of a dataset identified by the datasetId.
   """
   datasetAccelerationStatus(datasetId: ObjectId!): DatasetAccelerationStatus!
+
+  """
+  Estimate the costs of an acceleration job.
+  """
+  estimateAccelerationJobCost(job: AccelerationJobInput!): [DatasetCostEstimate!]!
+
+  """
+  Estimate the costs of an existing acceleration job.
+  """
+  estimateExistingAccelerationJobCost(jobId: String!): [DatasetCostEstimate!]!
+
+  """
+  Estimate the costs of a rematerialization request.
+  """
+  estimateRematerializationCost(job: RematerializationInput!): [DatasetCostEstimate!]!
 }
 
 input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
@@ -60,6 +75,20 @@ input AccelerationJobInput @goModel(model: "observe/meta/metatypes.AccelerationJ
   dryRun: Boolean
 }
 
+input RematerializationInput @goModel(model: "observe/meta/metatypes.AccelerationJobInput") {
+  """
+  A rematerialization input contains a collection of rematerialization requests on
+  individual datasets. It is OK to have duplicate or overlapping requests.
+  Backend will handle that.
+  """
+  requests: [RematerializationRequest!]!
+
+  """
+  Optional context provided by the caller.
+  """
+  context: String
+}
+
 input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
   """
   The ID of the dataset to be accelerated in this request.
@@ -72,6 +101,21 @@ input AccelerationRequestInput @goModel(model: "observe/meta/metatypes.Accelerat
   as intervals directly.
   """
   intervals: [TimeRangeInput!]!
+}
+
+input RematerializationRequest @goModel(model: "observe/meta/metatypes.AccelerationRequestInput") {
+  """
+  The ID of the dataset to be rematerialized.
+  """
+  datasetId: ObjectId!
+
+  """
+  The time ranges to be rematerialized. It is OK to have duplicate or overlapping
+  ranges. Backend will handle that. This is an optional field and hence if the intervals is not
+  specified then the intervals corresponds to the backend internal setting that is used in the case
+  of a real rematerialization.
+  """
+  intervals: [TimeRangeInput!]
 }
 
 """
@@ -103,6 +147,11 @@ type AccelerationRequestStatus @goModel(model: "observe/meta/metatypes.Accelerat
   in the requested windows.
   """
   acceleratedWindows: [TimeRange!]!
+
+  """
+  Optional credits used for this particular dataset in the parent acceleration job.
+  """
+  credits: Float
 }
 
 enum AccelerationJobState @goModel(model: "observe/meta/metatypes.AccelerationJobState") {
@@ -161,6 +210,11 @@ type AccelerationJob @goModel(model: "observe/meta/metatypes.AccelerationJob") {
   Status of the requests in this job. One per dataset.
   """
   datasetStatuses: [AccelerationRequestStatus!]!
+
+  """
+  Optional value of the credits used for this acceleration job summed for all datasets
+  """
+  credits: Float
 }
 
 type DatasetAccelerationStatus @goModel(model: "observe/meta/metatypes.DatasetAccelerationStatus") {
@@ -190,6 +244,49 @@ type DatasetAccelerationStatus @goModel(model: "observe/meta/metatypes.DatasetAc
   All running acceleration jobs for this dataset.
   """
   runningJobs: [AccelerationJob!]!
+}
+
+"""
+A very low confidence indicates the there was no data to perform the cost estimation. A low confidence
+indicates that the estimate is made using incomplete data. A medium confidence indicates that the
+backfill cost estimation is made using the ongoing data and the prediction is decent but could be
+improved if there was backfill data available. A high confidence indicates that we had all the
+appropriate backfill data to make a good estimation.
+"""
+enum ConfidenceCostEstimate @goModel(model: "observe/meta/metatypes.ConfidenceCostEstimate") {
+  VeryLow
+  Low
+  Medium
+  High
+}
+
+type DatasetCostEstimate @goModel(model: "observe/meta/metatypes.DatasetCostEstimate") {
+  datasetId: ObjectId!
+
+  """
+  Cost estimate OCCs of materializing the dataset for the given input window.
+  """
+  absoluteCostEstimate: Float!
+
+  """
+  Additional cost OCCs of materializing the dataset on top of already existing acceleration requests.
+  To given an example, User 1 issues a request to backfill dataset for last 10 days. User 2 then issues
+  a request to backfill the same dataset for the last 20 days.
+  For User 1, absoluteCostEstimate and additionalCostEstimate are same i.e. of 10 days.
+  For User 2, absoluteCostEstimate corresponds to backfilling 20 days and additionalCostEstimate
+  corresponds to backfilling for 10 days.
+  """
+  additionalCostEstimate: Float!
+
+  """
+  Confidence for the cost estimation of the absolute cost estimate of the dataset.
+  """
+  confidenceAbsoluteCostEstimate: ConfidenceCostEstimate!
+
+  """
+  Confidence for the cost estimation of the additional cost estimate of the dataset.
+  """
+  confidenceAdditionalCostEstimate: ConfidenceCostEstimate!
 }
 
 type SearchAccelerationJobsResult @goModel(model: "observe/meta/metatypes.SearchAccelerationJobsResult") {

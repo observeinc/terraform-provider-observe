@@ -13,3 +13,15 @@ schema:
     The maximum on-demand materialization length for the dataset.
   acceleration_disabled: |
     Disables periodic materialization of the dataset
+  acceleration_disabled_source: |
+    Source of disabled materialization
+  data_table_view_state: |
+    JSON representation of state used for dataset formatting in the UI
+  correlation_tag:
+    description: |
+      Correlation tags associated with this dataset.
+  rematerialization_mode: |
+    Specifies rematerialization mode when updating a dataset. Options include
+    "rematerialize" and "skip_rematerialization" - if no option is used, "rematerialize"
+    is used by default. "skip_rematerialization" will skip rematerialization if certain conditions
+    are met, will rematerialize otherwise.

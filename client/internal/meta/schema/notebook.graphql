@@ -1,0 +1,316 @@
+# Objects that represent a notebook.
+# this file is auto-generated, do not edit
+extend type Query {
+    investigationNotebook(id: ObjectId!): InvestigationNotebook!
+    searchInvestigationNotebook(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): InvestigationNotebookSearchResult!
+}
+
+extend type Mutation {
+    createInvestigationNotebook(workspaceId: ObjectId!, input: InvestigationNotebookInput!): InvestigationNotebook!
+    updateInvestigationNotebook(id: ObjectId!, input: InvestigationNotebookInput!): InvestigationNotebook!
+    deleteInvestigationNotebook(id: ObjectId!): ResultStatus!
+}
+
+enum NotebookActionConfirmation @goModel(model: "observe/meta/metatypes.NotebookActionConfirmation") {
+  No
+  Pending
+  Yes
+}
+
+enum NotebookBlockType @goModel(model: "observe/meta/metatypes.NotebookBlockType") {
+  actionPing
+  actionRaiseIncident
+  actionTicket
+  contentImage
+  contentMarkdown
+  contentQuery
+  o11yPlaceholder
+}
+
+# A single block in a notebook
+type NotebookBlock @goModel(model: "observe/meta/metatypes.NotebookBlock") {
+    # payload
+    type: NotebookBlockType!
+    properties: NotebookBlockProperties!
+    """
+    A unique UUID for this block
+    """
+    id: String
+    """
+    The hash of the content of this block
+    """
+    contentHash: String!
+}
+
+input NotebookBlockInput @goModel(model: "observe/meta/metatypes.NotebookBlockInput") {
+    # payload
+    type: NotebookBlockType!
+    properties: NotebookBlockPropertiesInput!
+    id: String
+    # not in input: contentHash: String!
+}
+
+
+# A notebook object that contains a list of blocks and various investigation related information
+type InvestigationNotebook implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.InvestigationNotebook") {
+    # payload
+    """
+    The alert that triggered this notebook (if any)
+    """
+    alert: NotebookAlertInfo
+    """
+    The runbook associated with this notebook (if any)
+    """
+    runbook: NotebookRunbookInfo
+    """
+    The incident that this notebook is associated with
+    """
+    incident: Incident! @goField(forceResolver: true)
+    """
+    The ID of the incident that this notebook is associated with. We will allocate a new Incident automatically if not specified on create.
+    """
+    incidentID: ObjectId
+    """
+    The list of blocks in this notebook
+    """
+    blocks: [NotebookBlock!]!
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input InvestigationNotebookInput @goModel(model: "observe/meta/metatypes.InvestigationNotebookInput") {
+    # payload
+    alert: NotebookAlertInfoInput
+    runbook: NotebookRunbookInfoInput
+    # resolver: incident: Incident!
+    incidentID: ObjectId
+    blocks: [NotebookBlockInput!]!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type InvestigationNotebookSearchResult @goModel(model: "observe/meta/metatypes.InvestigationNotebookSearchResult") {
+    results: [InvestigationNotebook!]!
+}
+
+# Information about an alert that triggered a notebook
+type NotebookAlertInfo @goModel(model: "observe/meta/metatypes.NotebookAlertInfo") {
+    # payload
+    monitorID: ObjectId!
+    alertID: String!
+    status: MonitorV2RollupStatus!
+    level: MonitorV2AlarmLevel!
+    triggeredAt: Time!
+    duration: Duration!
+    monitorUrl: String!
+    alertUrl: String!
+}
+
+input NotebookAlertInfoInput @goModel(model: "observe/meta/metatypes.NotebookAlertInfoInput") {
+    # payload
+    monitorID: ObjectId!
+    alertID: String!
+    # not in input: status: MonitorV2RollupStatus!
+    # not in input: level: MonitorV2AlarmLevel!
+    # not in input: triggeredAt: Time!
+    # not in input: duration: Duration!
+    # not in input: monitorUrl: String!
+    # not in input: alertUrl: String!
+}
+
+
+# The properties of a notebook block
+type NotebookBlockProperties @goModel(model: "observe/meta/metatypes.NotebookBlockProperties") {
+    # payload
+    markdown: NotebookMarkdown
+    query: NotebookQuery
+    image: NotebookImage
+    raiseIncident: NotebookRaiseIncidentAction
+    ping: NotebookPingAction
+    ticket: NotebookTicketAction
+    o11yPlaceholder: NotebookO11yPlaceholder
+}
+
+input NotebookBlockPropertiesInput @goModel(model: "observe/meta/metatypes.NotebookBlockPropertiesInput") {
+    # payload
+    markdown: NotebookMarkdownInput
+    query: NotebookQueryInput
+    image: NotebookImageInput
+    raiseIncident: NotebookRaiseIncidentActionInput
+    ping: NotebookPingActionInput
+    ticket: NotebookTicketActionInput
+    o11yPlaceholder: NotebookO11yPlaceholderInput
+}
+
+
+# The information needed to render a markdown block
+type NotebookMarkdown @goModel(model: "observe/meta/metatypes.NotebookMarkdown") {
+    # payload
+    text: String!
+}
+
+input NotebookMarkdownInput @goModel(model: "observe/meta/metatypes.NotebookMarkdownInput") {
+    # payload
+    text: String!
+}
+
+
+# The information needed to render an image block
+type NotebookImage @goModel(model: "observe/meta/metatypes.NotebookImage") {
+    # payload
+    base64: String!
+    description: String!
+}
+
+input NotebookImageInput @goModel(model: "observe/meta/metatypes.NotebookImageInput") {
+    # payload
+    base64: String!
+    description: String!
+}
+
+
+# The information needed to pre-fill a form to raise an incident
+type NotebookRaiseIncidentAction @goModel(model: "observe/meta/metatypes.NotebookRaiseIncidentAction") {
+    # payload
+    preview: NotebookActionPreview!
+    summary: String!
+    severity: String!
+    slack: NotebookSlackInfo!
+    teams: [String!]!
+    incidentOwner: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+input NotebookRaiseIncidentActionInput @goModel(model: "observe/meta/metatypes.NotebookRaiseIncidentActionInput") {
+    # payload
+    preview: NotebookActionPreviewInput!
+    summary: String!
+    severity: String!
+    slack: NotebookSlackInfoInput!
+    teams: [String!]!
+    incidentOwner: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+
+# The information needed to pre-fill a form to ping a user
+type NotebookPingAction @goModel(model: "observe/meta/metatypes.NotebookPingAction") {
+    # payload
+    preview: NotebookActionPreview!
+    user: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+input NotebookPingActionInput @goModel(model: "observe/meta/metatypes.NotebookPingActionInput") {
+    # payload
+    preview: NotebookActionPreviewInput!
+    user: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+
+# The information needed to pre-fill a form to create a ticket
+type NotebookTicketAction @goModel(model: "observe/meta/metatypes.NotebookTicketAction") {
+    # payload
+    preview: NotebookActionPreview!
+    name: String!
+    description: String!
+    priority: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+input NotebookTicketActionInput @goModel(model: "observe/meta/metatypes.NotebookTicketActionInput") {
+    # payload
+    preview: NotebookActionPreviewInput!
+    name: String!
+    description: String!
+    priority: String!
+    confirmation: NotebookActionConfirmation!
+}
+
+
+# The information needed to render a query block
+type NotebookQuery @goModel(model: "observe/meta/metatypes.NotebookQuery") {
+    # payload
+    query: MultiStageQuery!
+    description: String!
+}
+
+input NotebookQueryInput @goModel(model: "observe/meta/metatypes.NotebookQueryInput") {
+    # payload
+    query: MultiStageQueryInput!
+    description: String!
+}
+
+
+# The information needed to render a preview of an action
+type NotebookActionPreview @goModel(model: "observe/meta/metatypes.NotebookActionPreview") {
+    # payload
+    text: String!
+}
+
+input NotebookActionPreviewInput @goModel(model: "observe/meta/metatypes.NotebookActionPreviewInput") {
+    # payload
+    text: String!
+}
+
+
+# The information needed to pre-fill a form to send a slack message
+type NotebookSlackInfo @goModel(model: "observe/meta/metatypes.NotebookSlackInfo") {
+    # payload
+    channelName: String!
+}
+
+input NotebookSlackInfoInput @goModel(model: "observe/meta/metatypes.NotebookSlackInfoInput") {
+    # payload
+    channelName: String!
+}
+
+
+# The information needed to render a runbook block
+type NotebookRunbookInfo @goModel(model: "observe/meta/metatypes.NotebookRunbookInfo") {
+    # payload
+    url: String!
+}
+
+input NotebookRunbookInfoInput @goModel(model: "observe/meta/metatypes.NotebookRunbookInfoInput") {
+    # payload
+    url: String!
+}
+
+
+# The information needed to render an o11y placeholder block
+type NotebookO11yPlaceholder @goModel(model: "observe/meta/metatypes.NotebookO11yPlaceholder") {
+    # payload
+    text: String!
+}
+
+input NotebookO11yPlaceholderInput @goModel(model: "observe/meta/metatypes.NotebookO11yPlaceholderInput") {
+    # payload
+    text: String!
+}
+
+

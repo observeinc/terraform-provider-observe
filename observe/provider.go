@@ -116,6 +116,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).",
 			},
+			"export_object_bindings": {
+				Type:        schema.TypeBool,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_EXPORT_OBJECT_BINDINGS", false),
+				Optional:    true,
+				Description: "Enable generating object ID-name bindings for cross-tenant export/import (internal use).",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -125,6 +131,7 @@ func Provider() *schema.Provider {
 			"observe_query":             dataSourceQuery(),
 			"observe_board":             dataSourceBoard(),
 			"observe_monitor":           dataSourceMonitor(),
+			"observe_monitor_action":    dataSourceMonitorAction(),
 			"observe_datastream":        dataSourceDatastream(),
 			"observe_worksheet":         dataSourceWorksheet(),
 			"observe_dashboard":         dataSourceDashboard(),
@@ -136,6 +143,10 @@ func Provider() *schema.Provider {
 			"observe_oid":               dataSourceOID(),
 			"observe_rbac_group":        dataSourceRbacGroup(),
 			"observe_user":              dataSourceUser(),
+			"observe_ingest_info":       dataSourceIngestInfo(),
+			"observe_cloud_info":        dataSourceCloudInfo(),
+			"observe_monitor_v2":        dataSourceMonitorV2(),
+			"observe_monitor_v2_action": dataSourceMonitorV2Action(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
@@ -150,6 +161,8 @@ func Provider() *schema.Provider {
 			"observe_monitor_action":            resourceMonitorAction(),
 			"observe_monitor_action_attachment": resourceMonitorActionAttachment(),
 			"observe_monitor":                   resourceMonitor(),
+			"observe_monitor_v2":                resourceMonitorV2(),
+			"observe_monitor_v2_action":         resourceMonitorV2Action(),
 			"observe_board":                     resourceBoard(),
 			"observe_poller":                    resourcePoller(),
 			"observe_datastream":                resourceDatastream(),
@@ -162,11 +175,13 @@ func Provider() *schema.Provider {
 			"observe_preferred_path":            resourcePreferredPath(),
 			"observe_default_dashboard":         resourceDefaultDashboard(),
 			"observe_layered_setting_record":    resourceLayeredSettingRecord(),
+			"observe_correlation_tag":           resourceCorrelationTag(),
 			"observe_dashboard_link":            resourceDashboardLink(),
 			"observe_rbac_group":                resourceRbacGroup(),
 			"observe_rbac_default_group":        resourceRbacDefaultGroup(),
 			"observe_rbac_group_member":         resourceRbacGroupmember(),
 			"observe_rbac_statement":            resourceRbacStatement(),
+			"observe_grant":                     resourceGrant(),
 			"observe_filedrop":                  resourceFiledrop(),
 			"observe_snowflake_outbound_share":  resourceSnowflakeOutboundShare(),
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
@@ -251,6 +266,10 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("managing_object_id"); ok {
 			managingId := v.(string)
 			config.ManagingObjectID = &managingId
+		}
+
+		if v, ok := data.GetOk("export_object_bindings"); ok {
+			config.ExportObjectBindings = v.(bool)
 		}
 
 		// trace identifier to attach to all HTTP requests in the traceparent header

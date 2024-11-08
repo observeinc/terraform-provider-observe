@@ -1,0 +1,109 @@
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+    users
+    addresses
+    subject
+    body
+    fragments
+}
+
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+    header
+    value
+}
+
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+    # @genqlient(flatten: true)
+    headers {
+        ...MonitorV2WebhookHeader
+    }
+    body
+    fragments
+    url
+    method
+}
+
+fragment MonitorV2Action on MonitorV2Action {
+    inline
+    type
+    # @genqlient(flatten: true)
+    email {
+        ...MonitorV2EmailAction
+    }
+    # @genqlient(flatten: true)
+    webhook {
+        ...MonitorV2WebhookAction
+    }
+    id
+    workspaceId
+    name
+    iconUrl
+    description
+    createdBy
+    createdDate
+}
+
+fragment MonitorV2ActionSearchResult on MonitorV2ActionSearchResult {
+    # @genqlient(flatten: true)
+    results {
+        ...MonitorV2Action
+    }
+}
+
+# @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
+mutation createMonitorV2Action(
+    $workspaceId: ObjectId!,
+    $input: MonitorV2ActionInput!
+) {
+    # @genqlient(flatten: true)
+    monitorV2Action: createMonitorV2Action(workspaceId:$workspaceId, input:$input) {
+        ...MonitorV2Action
+    }
+}
+
+# @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
+mutation updateMonitorV2Action(
+    $id: ObjectId!,
+    $input: MonitorV2ActionInput!
+) {
+    # @genqlient(flatten: true)
+    monitorV2Action: updateMonitorV2Action(id:$id, input:$input) {
+        ...MonitorV2Action
+    }
+}
+
+query getMonitorV2Action($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    monitorV2Action: monitorV2Action(id:$id) {
+        ...MonitorV2Action
+    }
+}
+
+mutation deleteMonitorV2Action($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	resultStatus: deleteMonitorV2Action(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query searchMonitorV2Action($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+    # @genqlient(flatten: true)
+    monitorV2Actions: searchMonitorV2Action(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+        ...MonitorV2ActionSearchResult
+    }
+}

@@ -194,6 +194,10 @@ func resourceDatasetOutboundShareRead(ctx context.Context, d *schema.ResourceDat
 
 	datasetShare, err := client.GetDatasetOutboundShare(ctx, d.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			d.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Failed to read dataset outbound share",

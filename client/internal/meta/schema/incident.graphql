@@ -1,0 +1,95 @@
+# Collate multiple separate objects and data into a single organizational unit.
+# this file is auto-generated, do not edit
+extend type Query {
+    incident(id: ObjectId!): Incident!
+    searchIncident(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): IncidentSearchResult!
+}
+
+extend type Mutation {
+    createIncident(workspaceId: ObjectId!, input: IncidentInput!): Incident!
+    updateIncident(id: ObjectId!, input: IncidentInput!): Incident!
+    deleteIncident(id: ObjectId!): ResultStatus!
+}
+
+enum IncidentStatus @goModel(model: "observe/meta/metatypes.IncidentStatus") {
+  Active
+  Closed
+  Inactive
+}
+
+type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Incident") {
+    # payload
+    status: IncidentStatus!
+    inactiveTime: Time
+    closedTime: Time
+    users: [UserInfo!]! @goField(forceResolver: true)
+    slackChannels: [IncidentSlackchannel!]! @goField(forceResolver: true)
+    worksheets: [ObjectId!]! @goField(forceResolver: true)
+    dashboards: [ObjectId!]! @goField(forceResolver: true)
+    # WorkspaceObject
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    # FolderObject
+    folderId: ObjectId!
+
+    # AuditedObject
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input IncidentInput @goModel(model: "observe/meta/metatypes.IncidentInput") {
+    # payload
+    status: IncidentStatus!
+    # not in input: inactiveTime: Time
+    # not in input: closedTime: Time
+    # resolver: users: [UserInfo!]!
+    # resolver: slackChannels: [IncidentSlackchannelInput!]!
+    # resolver: worksheets: [ObjectId!]!
+    # resolver: dashboards: [ObjectId!]!
+    # WorkspaceObject
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    # FolderObject
+    folderId: ObjectId
+}
+
+type IncidentSearchResult @goModel(model: "observe/meta/metatypes.IncidentSearchResult") {
+    results: [Incident!]!
+}
+
+type IncidentSlackchannel @goModel(model: "observe/meta/metatypes.IncidentSlackchannel") {
+    # payload
+    connectionID: String!
+    slackchannelID: String!
+    lastSummarized: Time
+    lastRetroed: Time
+    embedVector: String
+    summary: String
+    retrospective: String
+}
+
+input IncidentSlackchannelInput @goModel(model: "observe/meta/metatypes.IncidentSlackchannelInput") {
+    # payload
+    connectionID: String!
+    slackchannelID: String!
+    # not in input: lastSummarized: Time
+    # not in input: lastRetroed: Time
+    # not in input: embedVector: String
+    # not in input: summary: String
+    # not in input: retrospective: String
+}
+
+

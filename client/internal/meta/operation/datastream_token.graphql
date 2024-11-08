@@ -14,9 +14,9 @@ query getDatastreamToken($id: String!) {
 	}
 }
 
-mutation createDatastreamToken($datastreamId: ObjectId!, $token: DatastreamTokenInput!) {
+mutation createDatastreamToken($datastreamId: ObjectId!, $token: DatastreamTokenInput!, $password: String) {
 	# @genqlient(flatten: true)
-	datastreamToken: createDatastreamToken(datastreamId:$datastreamId, token: $token) {
+	datastreamToken: createDatastreamToken(datastreamId:$datastreamId, token: $token, password: $password) {
 		...DatastreamToken
 	}
 }

@@ -2,6 +2,24 @@
 
 # ---- Customer properties ----
 
+type LayeredCustomerContractLimit @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimit") {
+    ingestLogGbPerDay: Int64
+    ingestMetricDpm: Int64
+    ingestSpanGbPerDay: Int64
+    ingestTotalGbPerDay: Int64
+    queryCreditsPerDay: Float
+    transformCreditsPerDay: Float
+}
+
+input LayeredCustomerContractLimitInput @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimitInput") {
+    ingestLogGbPerDay: Int64 @goField(forceResolver: true)
+    ingestMetricDpm: Int64 @goField(forceResolver: true)
+    ingestSpanGbPerDay: Int64 @goField(forceResolver: true)
+    ingestTotalGbPerDay: Int64 @goField(forceResolver: true)
+    queryCreditsPerDay: Float @goField(forceResolver: true)
+    transformCreditsPerDay: Float @goField(forceResolver: true)
+}
+
 type LayeredCustomerCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomerCustomer") {
     snowflakeShareName: String
 }
@@ -48,10 +66,16 @@ input LayeredCustomerMonitorInput @goModel(model:"observe/meta/metatypes.Layered
 
 type LayeredCustomerQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernor") {
     creditsPerDay: Float
+    throttledLimitCreditsPerDay: Float
+    userCreditsPerDay: Float
+    userThrottledLimitCreditsPerDay: Float
 }
 
 input LayeredCustomerQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernorInput") {
     creditsPerDay: Float @goField(forceResolver: true)
+    throttledLimitCreditsPerDay: Float @goField(forceResolver: true)
+    userCreditsPerDay: Float @goField(forceResolver: true)
+    userThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
 }
 
 type LayeredCustomerScanner @goModel(model:"observe/meta/metatypes.LayeredCustomerScanner") {
@@ -64,15 +88,26 @@ input LayeredCustomerScannerInput @goModel(model:"observe/meta/metatypes.Layered
 
 type LayeredCustomerTransformGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerTransformGovernor") {
     creditsPerDay: Float
+    datasetOverrideIncreaseBoundAbsoluteSeconds: Int64
+    datasetOverrideIncreaseBoundRelative: Float
     enforced: Boolean
+    logDebugOutput: Boolean
+    monitorOverrideIncreaseBoundAbsoluteSeconds: Int64
+    monitorOverrideIncreaseBoundRelative: Float
 }
 
 input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerTransformGovernorInput") {
     creditsPerDay: Float @goField(forceResolver: true)
+    datasetOverrideIncreaseBoundAbsoluteSeconds: Int64 @goField(forceResolver: true)
+    datasetOverrideIncreaseBoundRelative: Float @goField(forceResolver: true)
     enforced: Boolean @goField(forceResolver: true)
+    logDebugOutput: Boolean @goField(forceResolver: true)
+    monitorOverrideIncreaseBoundAbsoluteSeconds: Int64 @goField(forceResolver: true)
+    monitorOverrideIncreaseBoundRelative: Float @goField(forceResolver: true)
 }
 
 type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
+    contractLimit: LayeredCustomerContractLimit!
     customer: LayeredCustomerCustomer!
     dataRetention: LayeredCustomerDataRetention!
     dataset: LayeredCustomerDataset!
@@ -84,6 +119,7 @@ type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
 }
 
 input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
+    contractLimit: LayeredCustomerContractLimitInput
     customer: LayeredCustomerCustomerInput
     dataRetention: LayeredCustomerDataRetentionInput
     dataset: LayeredCustomerDatasetInput
@@ -99,7 +135,7 @@ extend type Customer {
 }
 
 extend type Mutation {
-	saveCustomerSettings(workspaceId: ObjectId!, input: LayeredCustomerInput!): [LayeredSettingRecord!]!
+    saveCustomerSettings(workspaceId: ObjectId!, input: LayeredCustomerInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Workspace properties ----
@@ -177,7 +213,7 @@ extend type Project {
 }
 
 extend type Mutation {
-	saveProjectSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorkspaceInput!): [LayeredSettingRecord!]!
+    saveProjectSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorkspaceInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Folder properties ----
@@ -203,7 +239,7 @@ extend type Folder {
 }
 
 extend type Mutation {
-	saveFolderSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredFolderInput!): [LayeredSettingRecord!]!
+    saveFolderSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredFolderInput!): [LayeredSettingRecord!]!
 }
 
 # ---- App properties ----
@@ -249,7 +285,7 @@ extend type App {
 }
 
 extend type Mutation {
-	saveAppSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredAppInput!): [LayeredSettingRecord!]!
+    saveAppSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredAppInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Monitor properties ----
@@ -270,14 +306,26 @@ input LayeredMonitorScannerInput @goModel(model:"observe/meta/metatypes.LayeredM
     powerLevel: Int64 @goField(forceResolver: true)
 }
 
+type LayeredMonitorTransformGovernor @goModel(model:"observe/meta/metatypes.LayeredMonitorTransformGovernor") {
+    monitorOverrideIncreaseBoundAbsoluteSeconds: Int64
+    monitorOverrideIncreaseBoundRelative: Float
+}
+
+input LayeredMonitorTransformGovernorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorTransformGovernorInput") {
+    monitorOverrideIncreaseBoundAbsoluteSeconds: Int64 @goField(forceResolver: true)
+    monitorOverrideIncreaseBoundRelative: Float @goField(forceResolver: true)
+}
+
 type LayeredMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitor") {
     monitor: LayeredMonitorMonitor!
     scanner: LayeredMonitorScanner!
+    transformGovernor: LayeredMonitorTransformGovernor!
 }
 
 input LayeredMonitorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorInput") {
     monitor: LayeredMonitorMonitorInput
     scanner: LayeredMonitorScannerInput
+    transformGovernor: LayeredMonitorTransformGovernorInput
 }
 
 extend type Monitor {
@@ -285,7 +333,7 @@ extend type Monitor {
 }
 
 extend type Mutation {
-	saveMonitorSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredMonitorInput!): [LayeredSettingRecord!]!
+    saveMonitorSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredMonitorInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Worksheet properties ----
@@ -311,7 +359,7 @@ extend type Worksheet {
 }
 
 extend type Mutation {
-	saveWorksheetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorksheetInput!): [LayeredSettingRecord!]!
+    saveWorksheetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorksheetInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Dashboard properties ----
@@ -337,7 +385,7 @@ extend type Dashboard {
 }
 
 extend type Mutation {
-	saveDashboardSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDashboardInput!): [LayeredSettingRecord!]!
+    saveDashboardSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDashboardInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Datastream properties ----
@@ -373,7 +421,7 @@ extend type Datastream {
 }
 
 extend type Mutation {
-	saveDatastreamSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatastreamInput!): [LayeredSettingRecord!]!
+    saveDatastreamSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatastreamInput!): [LayeredSettingRecord!]!
 }
 
 # ---- Dataset properties ----
@@ -406,16 +454,28 @@ input LayeredDatasetScannerInput @goModel(model:"observe/meta/metatypes.LayeredD
     powerLevel: Int64 @goField(forceResolver: true)
 }
 
+type LayeredDatasetTransformGovernor @goModel(model:"observe/meta/metatypes.LayeredDatasetTransformGovernor") {
+    datasetOverrideIncreaseBoundAbsoluteSeconds: Int64
+    datasetOverrideIncreaseBoundRelative: Float
+}
+
+input LayeredDatasetTransformGovernorInput @goModel(model:"observe/meta/metatypes.LayeredDatasetTransformGovernorInput") {
+    datasetOverrideIncreaseBoundAbsoluteSeconds: Int64 @goField(forceResolver: true)
+    datasetOverrideIncreaseBoundRelative: Float @goField(forceResolver: true)
+}
+
 type LayeredDataset @goModel(model:"observe/meta/metatypes.LayeredDataset") {
     dataset: LayeredDatasetDataset!
     linkify: LayeredDatasetLinkify!
     scanner: LayeredDatasetScanner!
+    transformGovernor: LayeredDatasetTransformGovernor!
 }
 
 input LayeredDatasetInput @goModel(model:"observe/meta/metatypes.LayeredDatasetInput") {
     dataset: LayeredDatasetDatasetInput
     linkify: LayeredDatasetLinkifyInput
     scanner: LayeredDatasetScannerInput
+    transformGovernor: LayeredDatasetTransformGovernorInput
 }
 
 extend type Dataset {
@@ -423,7 +483,7 @@ extend type Dataset {
 }
 
 extend type Mutation {
-	saveDatasetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatasetInput!): [LayeredSettingRecord!]!
+    saveDatasetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatasetInput!): [LayeredSettingRecord!]!
 }
 
 # ---- User properties ----
@@ -438,10 +498,14 @@ input LayeredUserLinkifyInput @goModel(model:"observe/meta/metatypes.LayeredUser
 
 type LayeredUserQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredUserQueryGovernor") {
     bypassUntil: Time
+    userCreditsPerDay: Float
+    userThrottledLimitCreditsPerDay: Float
 }
 
 input LayeredUserQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredUserQueryGovernorInput") {
     bypassUntil: Time @goField(forceResolver: true)
+    userCreditsPerDay: Float @goField(forceResolver: true)
+    userThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
 }
 
 type LayeredUserScanner @goModel(model:"observe/meta/metatypes.LayeredUserScanner") {
@@ -469,5 +533,5 @@ extend type User {
 }
 
 extend type Mutation {
-	saveUserSettings(workspaceId: ObjectId!, uid: UserId!, input: LayeredUserInput!): [LayeredSettingRecord!]!
+    saveUserSettings(workspaceId: ObjectId!, uid: UserId!, input: LayeredUserInput!): [LayeredSettingRecord!]!
 }

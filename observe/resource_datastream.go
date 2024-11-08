@@ -142,6 +142,10 @@ func resourceDatastreamRead(ctx context.Context, data *schema.ResourceData, meta
 	client := meta.(*observe.Client)
 	result, err := client.GetDatastream(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("failed to retrieve datastream [id=%s]", data.Id()),

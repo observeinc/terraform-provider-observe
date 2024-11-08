@@ -465,6 +465,206 @@ func TestAccObservePollerHTTP(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_poller.first", "datastream"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "timestamp" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					interval  = "1m"
+					retries   = 5
+					datastream = observe_datastream.example.oid
+					skip_external_validation = true
+
+					http {
+						request {
+							username    = "user"
+							password    = "pass"
+							auth_scheme = "Digest"
+							url    = "https://example.com/path"
+						}
+
+						timestamp {
+							name = "now"
+							format = "RFC822"
+							truncate = "1s"
+						}
+
+						timestamp {
+							name = "start"
+							source = "now"
+							format = "RFC822"
+							offset = "1h"
+							truncate = "1s"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix, "http"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "name", randomPrefix+"-http"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "kind", "HTTP"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "interval", "1m0s"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.template.#", "0"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.request.0.url", "https://example.com/path"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.request.0.auth_scheme", "Digest"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.0.name", "now"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.0.format", "RFC822"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.0.truncate", "1s"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.1.name", "start"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.1.source", "now"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.1.format", "RFC822"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.1.offset", "1h"),
+					resource.TestCheckResourceAttr("observe_poller.timestamp", "http.0.timestamp.1.truncate", "1s"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "5m"
+					datastream = observe_datastream.example.oid
+
+					cloudwatch_metrics {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+
+						query {
+							namespace    = "AWS/EC2"
+							metric_names = ["CPUUtilization"]
+
+							resource_filter {
+								tag_filter {
+									key = "monitor"
+									values = ["on"]
+								}
+							}
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "CloudWatchMetrics"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.query.0.resource_filter.0.tag_filter.0.key", "monitor"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "5m"
+					datastream = observe_datastream.example.oid
+
+					cloudwatch_metrics {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+
+						query {
+							namespace    = "AWS/EC2"
+							metric_names = ["CPUUtilization"]
+
+							dimension {
+								name = "InstanceType"
+							}
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "CloudWatchMetrics"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.query.0.resource_filter.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObservePollerAWSSnapshot(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "15m"
+					datastream = observe_datastream.example.oid
+
+					aws_snapshot {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+						include_actions = ["*"]
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "AWSSnapshot"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "15m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "aws_snapshot.0.include_actions.0", "*"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					interval  = "15m"
+					datastream = observe_datastream.example.oid
+
+					aws_snapshot {
+						assume_role_arn = "arn:aws:iam::123456789012:role/metric-role"
+						region          = "us-west-2"
+						include_actions = ["ec2:Describe*", "sqs:*"]
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_poller.first", "kind", "AWSSnapshot"),
+					resource.TestCheckResourceAttr("observe_poller.first", "interval", "15m0s"),
+					resource.TestCheckResourceAttr("observe_poller.first", "aws_snapshot.0.include_actions.0", "ec2:Describe*"),
+				),
+			},
 		},
 	})
 }

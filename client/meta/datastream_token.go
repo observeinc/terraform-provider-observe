@@ -18,8 +18,8 @@ func datastreamTokenOrError(d datastreamTokenResponse, err error) (*DatastreamTo
 	return &result, nil
 }
 
-func (client *Client) CreateDatastreamToken(ctx context.Context, workspaceId string, input *DatastreamTokenInput) (*DatastreamToken, error) {
-	resp, err := createDatastreamToken(ctx, client.Gql, workspaceId, *input)
+func (client *Client) CreateDatastreamToken(ctx context.Context, workspaceId string, input *DatastreamTokenInput, password *string) (*DatastreamToken, error) {
+	resp, err := createDatastreamToken(ctx, client.Gql, workspaceId, *input, password)
 	return datastreamTokenOrError(resp, err)
 }
 

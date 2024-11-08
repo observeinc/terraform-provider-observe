@@ -25,10 +25,15 @@ var (
 
 // GetDataset returns dataset by ID
 func (c *Client) GetDataset(ctx context.Context, id string) (*meta.Dataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
 	return c.Meta.GetDataset(ctx, id)
 }
 
-func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) (*meta.Dataset, error) {
+func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.Dataset, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
@@ -41,7 +46,7 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 		input.ManagedById = c.Config.ManagingObjectID
 	}
 
-	return c.Meta.SaveDataset(ctx, wsid, input, queryInput)
+	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 }
 
 // DeleteDataset by ID
@@ -66,6 +71,12 @@ func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, da
 	}
 
 	return c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
+}
+
+// List all datasets, but only asks for id and name to prevent looping in expensive
+// resolvers
+func (c *Client) ListDatasetsIdNameOnly(ctx context.Context) ([]*meta.DatasetIdName, error) {
+	return c.Meta.ListDatasetsIdNameOnly(ctx)
 }
 
 // UpdateSourceDataset updates the existing source dataset
@@ -434,6 +445,10 @@ func (c *Client) GetMonitorAction(ctx context.Context, id string) (*meta.Monitor
 	return c.Meta.GetMonitorAction(ctx, id)
 }
 
+func (c *Client) LookupMonitorAction(ctx context.Context, workspaceID string, name string) (*meta.MonitorAction, error) {
+	return c.Meta.LookupMonitorAction(ctx, workspaceID, name)
+}
+
 // CreateMonitor creates a monitor
 func (c *Client) CreateMonitor(ctx context.Context, workspaceId string, input *meta.MonitorInput) (*meta.Monitor, error) {
 	if !c.Flags[flagObs2110] {
@@ -483,6 +498,84 @@ func (c *Client) DeleteMonitor(ctx context.Context, id string) error {
 // GetMonitor returns monitor by ID
 func (c *Client) GetMonitor(ctx context.Context, id string) (*meta.Monitor, error) {
 	return c.Meta.GetMonitor(ctx, id)
+}
+
+func (c *Client) CreateMonitorV2(ctx context.Context, workspaceId string, input *meta.MonitorV2Input) (*meta.MonitorV2, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.CreateMonitorV2(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateMonitorV2(ctx context.Context, id string, input *meta.MonitorV2Input) (*meta.MonitorV2, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateMonitorV2(ctx, id, input)
+}
+
+func (c *Client) DeleteMonitorV2(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorV2(ctx, id)
+}
+
+func (c *Client) SaveMonitorV2Relations(ctx context.Context, monitorId string, actionRelations []meta.ActionRelationInput) (*meta.MonitorV2, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
+}
+
+func (c *Client) GetMonitorV2(ctx context.Context, id string) (*meta.MonitorV2, error) {
+	return c.Meta.GetMonitorV2(ctx, id)
+}
+
+func (c *Client) CreateMonitorV2Action(ctx context.Context, workspaceId string, input *meta.MonitorV2ActionInput) (*meta.MonitorV2Action, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.CreateMonitorV2Action(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateMonitorV2Action(ctx context.Context, id string, input *meta.MonitorV2ActionInput) (*meta.MonitorV2Action, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateMonitorV2Action(ctx, id, input)
+}
+
+func (c *Client) GetMonitorV2Action(ctx context.Context, id string) (*meta.MonitorV2Action, error) {
+	return c.Meta.GetMonitorV2Action(ctx, id)
+}
+
+func (c *Client) DeleteMonitorV2Action(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorV2Action(ctx, id)
+}
+
+func (c *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2, error) {
+	return c.Meta.LookupMonitorV2(ctx, workspaceId, nameExact)
+}
+
+func (c *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2Action, error) {
+	return c.Meta.SearchMonitorV2Action(ctx, workspaceId, nameExact)
 }
 
 // CreateMonitorActionAttachment creates a monitor action attachment
@@ -674,12 +767,12 @@ func (c *Client) LookupDatastream(ctx context.Context, workspaceID string, name 
 }
 
 // CreateDatastreamToken creates a datastream token
-func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput) (*meta.DatastreamToken, error) {
+func (c *Client) CreateDatastreamToken(ctx context.Context, datastreamId string, input *meta.DatastreamTokenInput, password *string) (*meta.DatastreamToken, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
-	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input)
+	return c.Meta.CreateDatastreamToken(ctx, datastreamId, input, password)
 }
 
 // GetDatastreamToken by ID
@@ -722,6 +815,12 @@ func (c *Client) CreateWorksheet(ctx context.Context, workspaceId string, input 
 // GetWorksheet by ID
 func (c *Client) GetWorksheet(ctx context.Context, id string) (*meta.Worksheet, error) {
 	return c.Meta.GetWorksheet(ctx, id)
+}
+
+// List all worksheets, but only fetch ids and labels to prevent using expensive
+// resolvers
+func (c *Client) ListWorksheetIdLabelOnly(ctx context.Context, workspaceId string) ([]*meta.WorksheetIdLabel, error) {
+	return c.Meta.ListWorksheetIdLabelOnly(ctx, workspaceId)
 }
 
 // UpdateWorksheet updates a worksheet
@@ -1010,7 +1109,7 @@ func (c *Client) DeletePreferredPath(ctx context.Context, id string) error {
 func (c *Client) GetPreferredPath(ctx context.Context, id string) (*meta.PreferredPath, error) {
 	resultWithStatus, err := c.Meta.GetPreferredPath(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get preferred path: %w", err)
+		return nil, err
 	}
 
 	if resultWithStatus.Error != nil {
@@ -1128,6 +1227,11 @@ func (c *Client) LookupUser(ctx context.Context, email string) (*meta.User, erro
 	return c.Meta.LookupUser(ctx, email)
 }
 
+// List all users in current customer
+func (c *Client) ListUsers(ctx context.Context) ([]meta.User, error) {
+	return c.Meta.ListUsers(ctx)
+}
+
 // CreateRbacGroupmember creates an rbacgroupmember
 func (c *Client) CreateRbacGroupmember(ctx context.Context, input *meta.RbacGroupmemberInput) (*meta.RbacGroupmember, error) {
 	if !c.Flags[flagObs2110] {
@@ -1198,6 +1302,9 @@ func (c *Client) CreateFiledrop(ctx context.Context, workspaceId string, datastr
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
 	result, err := c.Meta.CreateFiledrop(ctx, workspaceId, datastreamId, input)
 	if err != nil {
 		return nil, err
@@ -1210,6 +1317,9 @@ func (c *Client) UpdateFiledrop(ctx context.Context, id string, input *meta.File
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
 	}
 	result, err := c.Meta.UpdateFiledrop(ctx, id, input)
 	if err != nil {
@@ -1293,4 +1403,40 @@ func (c *Client) DeleteDatasetOutboundShare(ctx context.Context, id string) erro
 	}
 
 	return c.Meta.DeleteDatasetOutboundShare(ctx, id)
+}
+
+func (c *Client) CreateCorrelationTag(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	err := c.Meta.CreateCorrelationTag(ctx, dataset, tag, path)
+	if err != nil {
+		return fmt.Errorf("Failed to create correlation tag: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) IsCorrelationTagPresent(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) (bool, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.IsCorrelationTagPresent(ctx, dataset, tag, path)
+}
+
+func (c *Client) DeleteCorrelationTag(ctx context.Context, dataset, tag string, path meta.LinkFieldInput) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteCorrelationTag(ctx, dataset, tag, path)
+}
+
+func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
+	return c.Meta.GetIngestInfo(ctx)
+}
+
+func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
+	return c.Meta.GetCloudInfo(ctx)
 }

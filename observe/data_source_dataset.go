@@ -33,10 +33,6 @@ func dataSourceDataset() *schema.Resource {
 				Description: descriptions.Get("dataset", "schema", "name") +
 					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
-			"acceleration_disabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 			"id": {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
@@ -61,6 +57,14 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
+			"acceleration_disabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"acceleration_disabled_source": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"path_cost": {
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -80,6 +84,11 @@ func dataSourceDataset() *schema.Resource {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Description: descriptions.Get("transform", "schema", "inputs"),
+			},
+			"data_table_view_state": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "data_table_view_state"),
 			},
 			"stage": {
 				Type:     schema.TypeList,
@@ -109,6 +118,34 @@ func dataSourceDataset() *schema.Resource {
 							Type:        schema.TypeBool,
 							Computed:    true,
 							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
+						},
+					},
+				},
+			},
+			"correlation_tag": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Optional:    true,
+				Description: descriptions.Get("dataset", "schema", "correlation_tag", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						correlationTagNameKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagNameKey),
+							ForceNew:    true,
+						},
+						correlationTagColumnKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagColumnKey),
+							ForceNew:    true,
+						},
+						correlationTagPathKey: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("correlation_tag", "schema", correlationTagPathKey),
+							ForceNew:    true,
 						},
 					},
 				},
@@ -151,5 +188,17 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 	data.SetId(d.Id)
 
-	return datasetToResourceData(d, data)
+	diags = datasetToResourceData(d, data)
+	if d.CorrelationTagMappings != nil {
+		var cts []interface{}
+		for _, ct := range d.CorrelationTagMappings {
+			cts = append(cts, map[string]interface{}{
+				correlationTagNameKey:   ct.Tag,
+				correlationTagColumnKey: ct.Path.Column,
+				correlationTagPathKey:   ct.Path.Path,
+			})
+		}
+		data.Set("correlation_tag", cts)
+	}
+	return
 }

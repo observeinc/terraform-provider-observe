@@ -1,0 +1,87 @@
+---
+subcategory: ""
+page_title: "Manage Layered Settings"
+description: |-
+    Manage Layered Settings
+---
+
+## Manage Layered Settings
+
+This page lists examples of how to manage different Observe layered setting records within Terraform. More examples will be added over time.
+
+### Layered Setting Definitions
+Below are the layered setting definitions, including the required and optional values.
+```json
+
+    {
+      "default_value": "397",
+      "possible_target_scopes": ["Customer", "Datastream"],
+      "setting": "DataRetention.periodDays",
+      "type": "int64",
+      "writable_by": ["admin"]
+    }
+
+    {
+      "default_value": "null(int64)",
+      "possible_target_scopes": ["Customer", "App", "Dataset"],
+      "setting": "Dataset.freshnessDesired",
+      "type": "int64",
+      "writable_by": ["writer", "admin"]
+    }
+
+    {
+      "default_value": "null(int64)",
+      "possible_target_scopes": ["Customer", "App", "Monitor"],
+      "setting": "Monitor.freshnessGoal",
+      "type": "int64",
+      "writable_by": ["writer", "admin"]
+    }
+
+    {
+      "default_value": "null(timestamp)",
+      "possible_target_scopes": ["User"],
+      "setting": "QueryGovernor.bypassUntil",
+      "type": "timestamp",
+      "writable_by": ["reader", "writer", "admin"]
+    }
+
+    {
+      "default_value": "0.0",
+      "possible_target_scopes": ["Customer"],
+      "setting": "QueryGovernor.creditsPerDay",
+      "type": "float64",
+      "writable_by": ["admin"]
+    }
+
+    {
+      "default_value": "0.0",
+      "possible_target_scopes": ["Customer", "User"],
+      "setting": "QueryGovernor.userCreditsPerDay",
+      "type": "float64",
+      "writable_by": ["admin"]
+    }
+
+    {
+      "default_value": "0.0",
+      "possible_target_scopes": ["Customer", "User"],
+      "setting": "QueryGovernor.userThrottledLimitCreditsPerDay",
+      "type": "float64",
+      "writable_by": ["admin"]
+    }
+
+    {
+      "default_value": "0.0",
+      "possible_target_scopes": ["Customer"],
+      "setting": "TransformGovernor.creditsPerDay",
+      "type": "float64",
+      "writable_by": ["admin"]
+    }
+```
+
+### Configure Data Retention Settings
+
+{{ tffile "examples/guides/observe_layered_setting_record/data_retention.tf" }}
+
+### Configure Credit Manager Settings
+
+{{ tffile "examples/guides/observe_layered_setting_record/query_gov.tf" }}

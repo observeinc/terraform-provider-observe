@@ -1,0 +1,11 @@
+description:
+  Ingest info for the Observe tenant.
+schema:
+  collect_url: |
+    Base URL for the Observe ingest API.
+  domain: |
+    Base domain for the Observe ingest API.
+  scheme: |
+    URI scheme for ingesting data.
+  port: |
+    Port over which data should be sent. If omitted, assume scheme defaults.

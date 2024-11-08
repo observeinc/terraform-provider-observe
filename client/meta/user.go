@@ -36,11 +36,19 @@ func (client *Client) LookupUser(ctx context.Context, email string) (*User, erro
 	if resp.Customer != nil {
 		for i, u := range resp.Customer.Users {
 			if u.Email == email {
-				return resp.Customer.Users[i], nil
+				return &resp.Customer.Users[i], nil
 			}
 		}
 	}
 	return nil, fmt.Errorf("user not found")
+}
+
+func (client *Client) ListUsers(ctx context.Context) ([]User, error) {
+	resp, err := listUsers(ctx, client.Gql)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Users.Users, nil
 }
 
 func (u *User) Oid() *oid.OID {

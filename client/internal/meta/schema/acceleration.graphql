@@ -31,40 +31,44 @@ type AccelerationError implements ErrorInstance @goModel(model: "observe/meta/me
 }
 
 """
-Describes the minimum target staleness of any datasets and monitors downstream
-of this dataset/monitor, and the set of datasets and monitors downstream of
-this dataset that have that target staleness. Currently only considers
-configured target staleness.
+Describes the minimum target staleness of any downstream objects from a dataset:
+
+* Dataset
+* Monitor
+* Dataset outbound share
+
+Downstream objects may either reference this dataset directly or depend on it
+indirectly via other intermediate datasets.
+
+It is not applicable to monitors, since they do not have downstream objects.
+
+Currently only considers configured target staleness.
 """
 type MinimumDownstreamTargetStaleness @goModel(model: "observe/meta/metatypes.MinimumDownstreamTargetStaleness") {
     """
-    Minimum target staleness of all datasets/monitors downstream of this one.
-    Currently this only considers the configured target staleness of downstream
-    datasets/monitors.
+    Minimum target staleness of all datasets, monitors, and outbound shares
+    downstream of this dataset. Currently this only considers the configured
+    target staleness of downstream objects.
     """
     minimumDownstreamTargetStalenessSeconds: Float!
 
     """
-    List of Downstream datasets that have the configured target staleness in
-    minimumDownstreamTargetStalenessSeconds
+    List of downstream datasets that have the configured target staleness given
+    in `minimumDownstreamTargetStalenessSeconds`.
     """
     datasetIds: [ObjectId!]
 
     """
-    List of Downstream monitors that have the configured target staleness in
-    minimumDownstreamTargetStalenessSeconds
+    List of downstream monitors that have the configured target staleness given
+    in `minimumDownstreamTargetStalenessSeconds`.
     """
     monitorIds: [ObjectId!]
-}
 
-# FIXME: to be removed once the frontend has changed to the renamed
-# accelerationInfo field
-enum StreamingState @goModel(model: "observe/meta/metatypes.AccelerationState") {
-    Initializing
-    Live
-    Unavailable
-    Disabled
-    Error
+    """
+    List of downstream dataset outbound shares that have the configured target
+    staleness given in `minimumDownstreamTargetStalenessSeconds`.
+    """
+    shareIds: [ObjectId!]
 }
 
 enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
@@ -78,6 +82,13 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
     Normal operation, we are actively accelerating new data as they come in.
     """
     Live
+
+    """
+    Like normal operation (Live), but additionally this dataset is updated as fast
+    as possible. As long as this dataset is in live mode, the freshness goal is
+    reduced to "zero" and reset to the original value again afterwards.
+    """
+    LiveMode
 
     """
     Acceleration is unavailable because the dataset or its upstream dataset is
@@ -98,20 +109,6 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
     by the user.
     """
     Error
-}
-
-# FIXME: to be removed once the frontend has changed to the renamed
-# accelerationInfo field
-type StreamingInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
-    state: StreamingState!
-    stalenessSeconds: Float
-    configuredTargetStalenessSeconds: Float
-    targetStalenessSeconds: Float
-    alwaysAccelerated: Boolean
-    acceleratedRangeStart: Time
-    targetAcceleratedRangeStart: Time
-    freshnessTime: Time
-    errors: [AccelerationError]!
 }
 
 type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
@@ -141,9 +138,8 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     The actual target staleness target of the dataset. Note that this can be
     higher than the configured staleness target, due to decaying or credit
-    manager overrides. Also if
-    this value is different from the field above, it means the dataset is
-    hibernated.
+    manager overrides. Also if this value is different from the field above,
+    it means the dataset is freshness decayed.
     Empty if alwaysAccelerated is true.
     """
     targetStalenessSeconds: Float
@@ -225,9 +221,52 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     effectiveOnDemandMaterializationLength: Int64!
 
     """
+    Whether data retention is enabled for this dataset. When disabled, then
+    effectiveDataRetentionPeriodDays and effectiveDataRetentionTimestamp are not set.
+    """
+    dataRetentionEnabled: Boolean!
+
+    """
+    Effective data retention period in number of days.
+    When requested and data retention is disabled, this field is not returned.
+    """
+    effectiveDataRetentionPeriodDays: Int64
+
+    """
+    Effective timestamp of the data retention period used, i.e. data being valid before this timestamp is deleted.
+    Note that the deletion is done at a fixed (randomly-chosen) time during each day, so you may see a few artifacts
+    in your data until the actual deletion was done.
+    When requested and data retention is disabled, this field is not returned.
+    """
+    effectiveDataRetentionTimestamp: Time
+
+    """
+    The minimum timestamp for temporal datasets. For event datasets, this refers to the valid_from column,
+    while for interval and resource datasets, this refers to the valid_to column.
+    For non-temporal datasets this is not set.
+    Due to the update frequency of this field, it is not guaranteed to be up-to-date and it may not yet be populated.
+    """
+    minimumDataTimestamp: Time
+
+    """
+    True if this dataset is hibernated. In this case, the dataset will not
+    automatically accelerate new data. You can still query the dataset on the
+    accelerated range and issue manual acceleration jobs.
+    """
+    hibernated: Boolean!
+
+    """
+    If the dataset is hibernated, this field will be set to the time when it was
+    hibernated. The dataset will not automatically accelerate new data.
+    You can still query the dataset on the accelerated range and issue manual
+    acceleration jobs.
+    """
+    hibernatedAt: Time
+
+    """
     Acceleration errors. Only not null if the state is "Error". Note that right
     now it only includes acceleration error of the particular dataset, but in
     the future shall include upstream dataset's errors.
     """
-    errors: [AccelerationError]!
+    errors: [AccelerationError!]!
 }

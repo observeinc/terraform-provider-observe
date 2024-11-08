@@ -2,6 +2,8 @@ package meta
 
 import (
 	"context"
+	"errors"
+
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -24,6 +26,21 @@ func (client *Client) CreateMonitorAction(ctx context.Context, input *MonitorAct
 func (client *Client) GetMonitorAction(ctx context.Context, id string) (*MonitorAction, error) {
 	resp, err := getMonitorAction(ctx, client.Gql, id)
 	return monitorActionOrError(resp, err)
+}
+
+func (client *Client) LookupMonitorAction(ctx context.Context, workspaceId, name string) (*MonitorAction, error) {
+	resp, err := searchMonitorActions(ctx, client.Gql, &workspaceId, &name)
+	if err != nil {
+		return nil, err
+	}
+	switch len(resp.MonitorActions) {
+	case 0:
+		return nil, errors.New("monitor action not found")
+	case 1:
+		return &resp.MonitorActions[0], nil
+	default:
+		return nil, errors.New("not implemented")
+	}
 }
 
 func (client *Client) UpdateMonitorAction(ctx context.Context, id string, input *MonitorActionInput) (*MonitorAction, error) {

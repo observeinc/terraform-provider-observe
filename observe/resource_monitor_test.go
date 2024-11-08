@@ -256,6 +256,43 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.importance", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.merge", "merged"),
 					resource.TestCheckResourceAttr("observe_monitor.first", "disabled", "false"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_reminder", "true"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.reminder_frequency", "5m0s"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(monitorConfigPreamble+`
+				resource "observe_monitor" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = "colmake temp_number:14"
+					}
+
+
+					rule {
+                        source_column    = "temp_number"
+
+						threshold {
+                            compare_function = "greater"
+                            compare_values   = [ 70 ]
+                            lookback_time    = "10m0s"
+						}
+					}
+
+					notification_spec {
+						merge = "merged"
+						notify_on_close = true
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.notify_on_reminder", "false"),
+					resource.TestCheckResourceAttr("observe_monitor.first", "notification_spec.0.reminder_frequency", ""),
 				),
 			},
 		},

@@ -129,6 +129,10 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 
 	link, err := client.GetForeignKey(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		if link == nil {
 			return diag.Errorf("failed to read link: %s", err.Error())
 		}

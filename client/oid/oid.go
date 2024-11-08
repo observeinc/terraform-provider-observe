@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z]+):(?P<id>\d+)(/(?P<version>.*))?`)
+	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z0-9]+):(?P<id>\d+)(/(?P<version>.*))?`)
 	ornRegex      = regexp.MustCompile(`o::(?P<customer>\d+):(?P<type>[a-z]+):(?P<id>\d+)?`)
 	errInvalidOID = errors.New("invalid oid")
 )
@@ -36,6 +36,9 @@ const (
 	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
 	TypeLink                    Type = "link"
 	TypeMonitor                 Type = "monitor"
+	TypeMonitorV2               Type = "monitorv2"
+	TypeMonitorV2Action         Type = "monitorv2action"
+	TypeMonitorV2Destination    Type = "monitorv2destination"
 	TypeMonitorAction           Type = "monitoraction"
 	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypePoller                  Type = "poller"
@@ -70,6 +73,9 @@ func (t Type) IsValid() bool {
 	case TypeMonitor:
 	case TypeMonitorAction:
 	case TypeMonitorActionAttachment:
+	case TypeMonitorV2:
+	case TypeMonitorV2Action:
+	case TypeMonitorV2Destination:
 	case TypePoller:
 	case TypePreferredPath:
 	case TypeUser:
@@ -222,6 +228,14 @@ func MonitorOid(id string) OID {
 
 func MonitorActionOid(id string) OID {
 	return OID{Id: id, Type: TypeMonitorAction}
+}
+
+func MonitorV2Oid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorV2}
+}
+
+func MonitorV2ActionOid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorV2Action}
 }
 
 func PollerOid(id string) OID {

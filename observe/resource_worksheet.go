@@ -137,6 +137,10 @@ func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, met
 	id, _ := oid.NewOID(data.Get("workspace").(string))
 	result, err := client.CreateWorksheet(ctx, id.Id, config)
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "failed to create worksheet",

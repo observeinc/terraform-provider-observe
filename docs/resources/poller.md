@@ -3,11 +3,11 @@
 page_title: "observe_poller Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  
+  Manages a poller, which configures Observe to pull data from a remote source.
 ---
 # observe_poller
 
-
+Manages a poller, which configures Observe to pull data from a remote source.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
@@ -54,17 +54,19 @@ resource "observe_poller" "weather" {
 
 ### Required
 
-- `name` (String)
-- `workspace` (String)
+- `name` (String) Poller name. Must be unique within workspace.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
+- `aws_snapshot` (Block List, Max: 1) AWS API Snapshot poller. (see [below for nested schema](#nestedblock--aws_snapshot))
 - `chunk` (Block List, Max: 1) (see [below for nested schema](#nestedblock--chunk))
-- `datastream` (String)
-- `disabled` (Boolean)
+- `cloudwatch_metrics` (Block List, Max: 1) CloudWatch Metrics poller. (see [below for nested schema](#nestedblock--cloudwatch_metrics))
+- `datastream` (String) Datastream where poller will deliver data.
+- `disabled` (Boolean) Whether to disable poller.
 - `gcp_monitoring` (Block List, Max: 1) (see [below for nested schema](#nestedblock--gcp_monitoring))
 - `http` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http))
-- `interval` (String)
+- `interval` (String) Interval between poller runs. Only applicable to periodic poller kinds.
 - `mongodbatlas` (Block List, Max: 1) (see [below for nested schema](#nestedblock--mongodbatlas))
 - `pubsub` (Block List, Max: 1) (see [below for nested schema](#nestedblock--pubsub))
 - `retries` (Number)
@@ -75,7 +77,18 @@ resource "observe_poller" "weather" {
 
 - `id` (String) The ID of this resource.
 - `kind` (String)
-- `oid` (String)
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
+
+<a id="nestedblock--aws_snapshot"></a>
+### Nested Schema for `aws_snapshot`
+
+Required:
+
+- `assume_role_arn` (String) AWS role to assume when scraping AWS API. External ID will be set to datastream ID.
+- `include_actions` (List of String) Set of AWS API actions poller is allowed to execute.
+- `region` (String) AWS Region to scrape from.
+
 
 <a id="nestedblock--chunk"></a>
 ### Nested Schema for `chunk`
@@ -87,6 +100,73 @@ Required:
 Optional:
 
 - `size` (Number)
+
+
+<a id="nestedblock--cloudwatch_metrics"></a>
+### Nested Schema for `cloudwatch_metrics`
+
+Required:
+
+- `assume_role_arn` (String) AWS role to assume when scraping AWS CloudWatch Metrics. External ID will be set to datastream ID.
+- `query` (Block List, Min: 1) (see [below for nested schema](#nestedblock--cloudwatch_metrics--query))
+- `region` (String) AWS Region to scrape from.
+
+Optional:
+
+- `delay` (String) Collection delay. Must account for metrics availability via CloudWatch API.
+- `period` (String) Metric resolution. Must be a multiple of 60s. When omitted, poller interval will be used.
+
+<a id="nestedblock--cloudwatch_metrics--query"></a>
+### Nested Schema for `cloudwatch_metrics.query`
+
+Required:
+
+- `namespace` (String) AWS Metric Namespace to query.
+
+Optional:
+
+- `dimension` (Block List) Dimension filter to set. A metric must match all provided dimension filters in order to be queried for data points. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--dimension))
+- `metric_names` (List of String) Metric names to filter down to. If more than one metric name is provided, `ListMetrics` will be called with no filter on metric names.
+- `resource_filter` (Block List) Resource filter specification. Allows querying metrics according to tags for associated resources. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--resource_filter))
+
+<a id="nestedblock--cloudwatch_metrics--query--dimension"></a>
+### Nested Schema for `cloudwatch_metrics.query.dimension`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `value` (String)
+
+
+<a id="nestedblock--cloudwatch_metrics--query--resource_filter"></a>
+### Nested Schema for `cloudwatch_metrics.query.resource_filter`
+
+Required:
+
+- `tag_filter` (Block List, Min: 1) Set of tags to match resources on. (see [below for nested schema](#nestedblock--cloudwatch_metrics--query--resource_filter--tag_filter))
+
+Optional:
+
+- `dimension_name` (String) Metric dimension name for resource identifier.
+- `pattern` (String) Regular expression for extracting identifier out of resource ARN.
+- `resource_type` (String) Resource type to filter for as supported by `aws resourcegroupstaggingapi get-resources`, e.g. `ec2:instance`.
+
+<a id="nestedblock--cloudwatch_metrics--query--resource_filter--tag_filter"></a>
+### Nested Schema for `cloudwatch_metrics.query.resource_filter.tag_filter`
+
+Required:
+
+- `key` (String) Tag key.
+
+Optional:
+
+- `values` (List of String) Set of acceptable tag values. Exact matches only.
+
+
+
 
 
 <a id="nestedblock--gcp_monitoring"></a>
@@ -118,6 +198,7 @@ Optional:
 - `request` (Block List) (see [below for nested schema](#nestedblock--http--request))
 - `rule` (Block List) (see [below for nested schema](#nestedblock--http--rule))
 - `template` (Block List, Max: 1) (see [below for nested schema](#nestedblock--http--template))
+- `timestamp` (Block List) (see [below for nested schema](#nestedblock--http--timestamp))
 
 <a id="nestedblock--http--request"></a>
 ### Nested Schema for `http.request`
@@ -185,6 +266,21 @@ Optional:
 - `username` (String)
 
 
+<a id="nestedblock--http--timestamp"></a>
+### Nested Schema for `http.timestamp`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `format` (String)
+- `offset` (String)
+- `source` (String)
+- `truncate` (String)
+
+
 
 <a id="nestedblock--mongodbatlas"></a>
 ### Nested Schema for `mongodbatlas`
@@ -213,3 +309,217 @@ Import is supported using the following syntax:
 ```shell
 terraform import observe_poller.example 1414010
 ```
+
+## CloudWatch Metrics poller
+
+To configure a CloudWatch Metrics poller, you must provide an AWS IAM role which Observe can assume. This role:
+- must allow `cloudwatch:GetMetricData` and `cloudwatch:ListMetrics` actions
+- must allow `tag:GetResources`, if resource filtering is used in the query
+- should set the ExternalID to the the datastream ID
+
+The following example provides a complete setup for delivering EC2 CloudWatch metrics to a `Default` datastream in the `Default` workspace, using both the `aws` and `observe` providers:
+
+```terraform
+data "aws_caller_identity" "current" {}
+
+// Get AWS AccountID associated to Observe tenant
+data "observe_cloud_info" "current" {}
+
+data "observe_workspace" "this" {
+  name = "Default"
+}
+
+data "observe_datastream" "this" {
+  workspace = data.observe_workspace.this.oid
+  name      = "Default"
+}
+
+resource "aws_iam_role" "cloudwatch_role" {
+  name_prefix = "observe-metrics"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          AWS = [
+            "arn:aws:iam::${data.observe_cloud_info.current.account_id}:root",
+          ]
+        }
+        Condition = {
+          StringEquals = {
+            "sts:ExternalId" = data.observe_datastream.this.id
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "cloudwatch_policy" {
+  name_prefix = "cloudwatch-policy"
+  description = "Policy to allow CloudWatchMetrics poller"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = [
+          "cloudwatch:GetMetricData",
+          "cloudwatch:ListMetrics",
+          "tag:GetResources",
+        ],
+        Effect   = "Allow",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy" {
+  role       = aws_iam_role.cloudwatch_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy.arn
+}
+
+resource "observe_poller" "this" {
+  workspace = data.observe_workspace.this.oid
+  name      = "Example Poller"
+  interval  = "2m"
+
+  datastream = data.observe_datastream.this.oid
+
+  cloudwatch_metrics {
+    region          = "us-west-2"
+    assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+    query {
+      namespace = "AWS/EC2"
+    }
+  }
+}
+```
+
+### Filtering by namespace
+
+A single poller can contain multiple queries. Each query corresponds to a
+single `cloudwatch:ListMetrics` action. This action may corresponds to multiple
+requests due to pagination.
+
+Each query must provide a namespace, e.g:
+
+```terraform
+cloudwatch_metrics {
+  region          = "us-west-2"
+  assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+  query {
+    namespace = "AWS/EC2"
+  }
+
+  query {
+    namespace = "AWS/SQS"
+  }
+}
+```
+
+The above example is the equivalent to retrieving all data points for the
+metrics returned by `aws cloudwatch list-metrics --namespace AWS/EC2` and `aws
+cloudwatch list-metrics --namespace AWS/SQS`
+
+### Filtering by metric names
+
+You may additionally filter queries to a subset of metric names:
+
+```terraform
+cloudwatch_metrics {
+  region          = "us-west-2"
+  assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+  query {
+    namespace    = "AWS/SQS"
+    metric_names = ["NumberOfMessagesSent", "NumberOfMessagesReceived"]
+  }
+}
+```
+
+Behind the scenes, the AWS API `ListMetrics` API only allows for filtering by
+one metric name. If more than one metric name is provided, we will issue a
+single ListMetrics call, and filter by metric name on the client side. If you
+would like to ensure that each `ListMetrics` call is filtered server side, you
+should provide each metric name as a separate queries:
+
+```terraform
+cloudwatch_metrics {
+  region          = "us-west-2"
+  assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+  query {
+    namespace    = "AWS/SQS"
+    metric_names = ["NumberOfMessagesSent"]
+  }
+
+  query {
+    namespace    = "AWS/SQS"
+    metric_names = ["NumberOfMessagesReceived"]
+  }
+}
+```
+
+### Filtering by dimension
+
+You can also provide a set of dimension filters, e.g:
+
+```terraform
+cloudwatch_metrics {
+  region          = "us-west-2"
+  assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+  query {
+    namespace = "AWS/Lambda"
+
+    dimension {
+      name  = "FunctionName"
+      value = "foo"
+    }
+
+    dimension {
+      name  = "Resource"
+      value = "foo"
+    }
+  }
+}
+```
+
+All dimensions must exactly match. You can debug the behavior by using the AWS cli, e.g 
+
+```
+aws cloudwatch list-metrics --namespace AWS/Lambda --dimensions Name=FunctionName,Value=foo Name=Resource,Value=foo
+```
+
+### Filtering by resource tags
+
+It is often more convenient to retrieve metrics refering to a set of commonly
+tagged resources. For example, we may want `CPUUtilization` for all EC2
+instances with the tag `Environment` set to particular values. This can be
+achieved via a `resource_filter`:
+
+```terraform
+cloudwatch_metrics {
+  region          = "us-west-2"
+  assume_role_arn = aws_iam_role.cloudwatch_role.arn
+
+  query {
+    namespace = "AWS/EC2"
+    resource_filter {
+      tag_filter {
+        key    = "Environment"
+        values = ["Staging", "Production"]
+      }
+    }
+  }
+}
+```
+
+

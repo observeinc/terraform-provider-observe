@@ -59,6 +59,30 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 					resource.TestCheckResourceAttrPair("observe_datastream_token.example", "datastream", "observe_datastream.example", "oid"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_workspace" "example" {
+				  name      = "%[1]s"
+				}
+
+				resource "observe_datastream" "example" {
+				  workspace = observe_workspace.example.oid
+				  name      = "Hello"
+				}
+
+				resource "observe_datastream_token" "example" {
+				  datastream = observe_datastream.example.oid
+				  name      = "SecretWorlds"
+				  password	= "Very-Very-Secret-Long-Hidden-Password"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_datastream_token.example", "name", "SecretWorlds"),
+					resource.TestCheckResourceAttr("observe_datastream_token.example", "id", "ds22hZTuuQwkqtbqWOGkSs2agrBwP0"),
+					resource.TestCheckResourceAttr("observe_datastream_token.example", "secret", "ds22hZTuuQwkqtbqWOGkSs2agrBwP0:Very-Very-Secret-Long-Hidden-Password"),
+					resource.TestCheckResourceAttrPair("observe_datastream_token.example", "datastream", "observe_datastream.example", "oid"),
+				),
+			},
 		},
 	})
 }

@@ -3,6 +3,7 @@ package observe
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -172,6 +173,65 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 						"is_hidden": "false",
 					}),
 				),
+			},
+		},
+	})
+}
+
+func TestInvalidValidFromFieldErrors(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
+
+	if os.Getenv("CI") != "true" {
+		// The schemas "EXTERNAL" and "EXTERNAL2" were manually created for the provider CI Observe account.
+		// While the test still passes even if the schema does not exist, it probably shouldn't, since Snowflake errors on the underlying commands.
+		// The tables are entirely non-existent which is likewise not validated.
+		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's Snowflake database.")
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_source_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%s"
+
+					schema = "EXTERNAL"
+					table_name = "%s_TABLE_NAME"
+					source_update_table_name = "%s_SOURCE_UPDATE_TABLE_NAME"
+					valid_from_field = "bad_timestamp"
+					
+					field {
+						name = "BATCH_ID"
+						type = "int64"
+						sql_type = "NUMBER(38,0)"
+						is_hidden = true
+					}
+					field {
+						name = "TIMESTAMP"
+						type = "timestamp"
+						sql_type = "NUMBER(38,0)"
+					}
+					field {
+						name = "LOG"
+						type = "string"
+						sql_type = "TEXT"
+						is_enum = true
+						is_searchable = false
+						is_hidden = false
+						is_const = false
+						is_metric = false
+					}
+					field {
+						name = "TAG"
+						type = "any"
+						sql_type = "VARIANT"
+					}
+				}`, randomPrefix, randomTablePrefix, randomTablePrefix),
+				ExpectError: regexp.MustCompile(`valid_from_field "bad_timestamp" does not refer to a valid field`),
 			},
 		},
 	})

@@ -245,6 +245,10 @@ func resourceRbacStatementRead(ctx context.Context, data *schema.ResourceData, m
 
 	stmt, err := client.GetRbacStatement(ctx, data.Id())
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read rbacstatement: %s", err.Error())
 	}
 	return rbacStatementToResourceData(stmt, data)

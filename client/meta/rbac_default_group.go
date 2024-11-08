@@ -29,5 +29,4 @@ func (client *Client) SetRbacDefaultGroup(ctx context.Context, id string) error 
 func (client *Client) UnsetRbacDefaultGroup(ctx context.Context) error {
 	resp, err := unsetRbacDefaultGroup(ctx, client.Gql)
 	return resultStatusError(resp, err)
-	return nil
 }

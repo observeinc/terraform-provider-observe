@@ -19,12 +19,29 @@ func worksheetOrError(w worksheetResponse, err error) (*Worksheet, error) {
 
 func (client *Client) SaveWorksheet(ctx context.Context, input *WorksheetInput) (*Worksheet, error) {
 	resp, err := saveWorksheet(ctx, client.Gql, *input)
-	return worksheetOrError(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	ws := resp.GetWorksheet()
+	return &ws, err
 }
 
 func (client *Client) GetWorksheet(ctx context.Context, id string) (*Worksheet, error) {
 	resp, err := getWorksheet(ctx, client.Gql, id)
 	return worksheetOrError(resp, err)
+}
+
+func (client *Client) ListWorksheetIdLabelOnly(ctx context.Context, workspaceId string) ([]*WorksheetIdLabel, error) {
+	resp, err := listWorksheetsIdLabelOnly(ctx, client.Gql, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*WorksheetIdLabel, 0)
+	for _, wks := range resp.WorksheetSearch.Worksheets {
+		sheet := wks.Worksheet
+		result = append(result, &sheet)
+	}
+	return result, nil
 }
 
 func (client *Client) DeleteWorksheet(ctx context.Context, id string) error {

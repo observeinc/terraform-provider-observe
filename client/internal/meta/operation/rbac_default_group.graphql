@@ -1,6 +1,6 @@
-query getRbacDefaultGroup() {
+query getRbacDefaultGroup {
 	# @genqlient(flatten: true)
-	rbacDefaultGroup: rbacDefaultGroup() {
+	rbacDefaultGroup: rbacDefaultGroup {
 		...RbacGroup
 	}
 }
@@ -12,9 +12,9 @@ mutation setRbacDefaultGroup($id: ORN!) {
     }
 }
 
-mutation unsetRbacDefaultGroup() {
+mutation unsetRbacDefaultGroup {
     # @genqlient(flatten: true)
-    resultStatus: unsetRbacDefaultGroup() {
+    resultStatus: unsetRbacDefaultGroup {
         ...ResultStatus
     }
 }

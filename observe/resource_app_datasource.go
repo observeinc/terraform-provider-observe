@@ -115,7 +115,11 @@ func resourceAppDataSourceRead(ctx context.Context, data *schema.ResourceData, m
 
 	appdatasource, err := client.GetAppDataSource(ctx, data.Id())
 	if err != nil {
-		return diag.Errorf("failed to read app: %s", err.Error())
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
+		return diag.Errorf("failed to read appdatasource: %s", err.Error())
 	}
 
 	return appDataSourceToResourceData(appdatasource, data)
