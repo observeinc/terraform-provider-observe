@@ -376,6 +376,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
+    lastSaved: Time!
     isSourceDataset: Boolean
     transform: Transform @goField(forceResolver:true)
     inputs: [DatasetInputDataset!] @goField(forceResolver:true)

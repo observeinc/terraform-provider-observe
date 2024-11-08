@@ -1257,7 +1257,7 @@ type Dataset struct {
 	AccelerationDisabled       bool                       `json:"accelerationDisabled"`
 	AccelerationDisabledSource AccelerationDisabledSource `json:"accelerationDisabledSource"`
 	Version                    types.TimeScalar           `json:"version"`
-	UpdatedDate                types.TimeScalar           `json:"updatedDate"`
+	LastSaved                  types.TimeScalar           `json:"lastSaved"`
 	PathCost                   *types.Int64Scalar         `json:"pathCost"`
 	Source                     *string                    `json:"source"`
 	ManagedById                *string                    `json:"managedById"`
@@ -1301,8 +1301,8 @@ func (v *Dataset) GetAccelerationDisabledSource() AccelerationDisabledSource {
 // GetVersion returns Dataset.Version, and is useful for accessing the field via an interface.
 func (v *Dataset) GetVersion() types.TimeScalar { return v.Version }
 
-// GetUpdatedDate returns Dataset.UpdatedDate, and is useful for accessing the field via an interface.
-func (v *Dataset) GetUpdatedDate() types.TimeScalar { return v.UpdatedDate }
+// GetLastSaved returns Dataset.LastSaved, and is useful for accessing the field via an interface.
+func (v *Dataset) GetLastSaved() types.TimeScalar { return v.LastSaved }
 
 // GetPathCost returns Dataset.PathCost, and is useful for accessing the field via an interface.
 func (v *Dataset) GetPathCost() *types.Int64Scalar { return v.PathCost }
@@ -15397,7 +15397,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById
@@ -17175,7 +17175,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById
@@ -17503,7 +17503,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById
@@ -18331,7 +18331,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById
@@ -18650,7 +18650,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById

@@ -8,7 +8,7 @@ fragment Dataset on Dataset {
 	accelerationDisabled
 	accelerationDisabledSource
 	version
-	updatedDate
+	lastSaved
 	pathCost
 	source
 	managedById
