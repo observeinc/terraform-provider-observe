@@ -353,6 +353,10 @@ func newMonitorV2EmailActionInput(data *schema.ResourceData, path string) (email
 	if v, ok := data.GetOk(fmt.Sprintf("%sbody", path)); ok {
 		body := v.(string)
 		email.Body = &body
+	} else {
+		// body must be empty string, NOT JSON NULL
+		emptyString := ""
+		email.Body = &emptyString
 	}
 	if v, ok := data.GetOk(fmt.Sprintf("%sfragments", path)); ok {
 		email.Fragments = types.JsonObject(v.(string)).Ptr()
