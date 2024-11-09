@@ -94,7 +94,7 @@ func (client *Client) SaveSourceDataset(ctx context.Context, workspaceId string,
 }
 
 func (d *Dataset) Oid() *oid.OID {
-	version := d.UpdatedDate.String()
+	version := d.LastSaved.String()
 	return &oid.OID{
 		Id:      d.Id,
 		Type:    oid.TypeDataset,
