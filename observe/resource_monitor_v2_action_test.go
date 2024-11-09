@@ -92,6 +92,53 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 	})
 }
 
+func TestAccObserveMonitorv2ActionEmailEmptyBody(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					data "observe_user" "system" {
+						email = "%[2]s"
+					}
+
+					resource "observe_monitor_v2_action" "act" {
+						workspace = data.observe_workspace.default.oid
+						type = "email"
+						email {
+							subject = "somebody once told me"
+							fragments = jsonencode({
+								body = "my email body"
+								title = "my email title"
+							})
+							addresses = ["test@observeinc.com"]
+							users = [data.observe_user.system.oid]
+						}
+						name = "%[1]s"
+						description = "an interesting description"
+					}
+				`, randomPrefix, systemUser()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "description", "an interesting description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act",
+						"email.0.fragments",
+						"{\"body\":\"my email body\",\"title\":\"my email title\"}"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.subject", "somebody once told me"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.body", ""),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.addresses.0", "test@observeinc.com"),
+					resource.TestCheckResourceAttr("observe_monitor_v2_action.act", "email.0.users.#", "1"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
