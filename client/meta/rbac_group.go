@@ -2,7 +2,7 @@ package meta
 
 import (
 	"context"
-	"fmt"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -55,7 +55,14 @@ func (client *Client) LookupRbacGroup(ctx context.Context, name string) (*RbacGr
 		}
 	}
 	if out == nil {
-		return nil, fmt.Errorf("rbacgroup not found")
+		return nil, gqlerror.List{
+			&gqlerror.Error{
+				Message: "rbacgroup not found",
+				Extensions: map[string]interface{}{
+					"code": ErrNotFound,
+				},
+			},
+		}
 	}
 	return out, nil
 }

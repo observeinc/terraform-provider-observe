@@ -70,7 +70,7 @@ func dataSourceRbacGroupRead(ctx context.Context, data *schema.ResourceData, met
 	// However, we want to support creating RBAC v2 statements before it's turned on,
 	// so we return the special Everyone group id 1 if name is "Everyone" and there
 	// is no existing v1 group called "Everyone".
-	if err != nil && name == "Everyone" {
+	if err != nil && gql.HasErrorCode(err, gql.ErrNotFound) && name == "Everyone" {
 		r = &gql.RbacGroup{
 			Id:   fmt.Sprintf("o::%s:rbacgroup:%d", client.CustomerID, 1),
 			Name: "Everyone",
