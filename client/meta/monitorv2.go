@@ -18,6 +18,17 @@ func monitorV2OrError(m monitorV2Response, err error) (*MonitorV2, error) {
 	return &result, nil
 }
 
+func (client *Client) SaveMonitorV2WithActions(
+	ctx context.Context,
+	workspaceId string,
+	monitorId *string,
+	input *MonitorV2Input,
+	actions []MonitorV2ActionAndRelationInput,
+) (*MonitorV2, error) {
+	resp, err := saveMonitorV2WithActions(ctx, client.Gql, workspaceId, monitorId, *input, actions)
+	return monitorV2OrError(resp, err)
+}
+
 func (client *Client) CreateMonitorV2(ctx context.Context, workspaceId string, input *MonitorV2Input) (*MonitorV2, error) {
 	resp, err := createMonitorV2(ctx, client.Gql, workspaceId, *input)
 	return monitorV2OrError(resp, err)

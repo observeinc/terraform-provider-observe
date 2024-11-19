@@ -36,6 +36,11 @@ func resourceMonitorV2Action() *schema.Resource {
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
 				Required:         true,
 			},
+			// TODO: remove this. we are only doing this for shared actions
+			"inline": { // Boolean
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"email": { // MonitorV2EmailDestinationInput
 				Type:         schema.TypeList,
 				MaxItems:     1,
@@ -150,7 +155,7 @@ func monitorV2WebhookHeaderInput() *schema.Resource {
 func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	actInput, diags := newMonitorV2ActionInput(data)
+	actInput, diags := newMonitorV2ActionInput("", data)
 	if diags.HasError() {
 		return diags
 	}
@@ -168,7 +173,7 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 func resourceMonitorV2ActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	actInput, diags := newMonitorV2ActionInput(data)
+	actInput, diags := newMonitorV2ActionInput("", data)
 	if diags.HasError() {
 		return diags
 	}
@@ -306,37 +311,43 @@ func monitorV2FlattenWebhookHeader(gqlHeader gql.MonitorV2WebhookHeader) interfa
 	return header
 }
 
-func newMonitorV2ActionInput(data *schema.ResourceData) (input *gql.MonitorV2ActionInput, diags diag.Diagnostics) {
+func newMonitorV2ActionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ActionInput, diags diag.Diagnostics) {
 	// required
-	actionType := toCamel(data.Get("type").(string))
-	name := data.Get("name").(string)
+	actionType := toCamel(data.Get(fmt.Sprintf("%stype", path)).(string))
 
 	// instantiation
-	inlineVal := false
+	var inline = false // default behavior is that explicit action creation is for shared (non-inline) actions only
 	input = &gql.MonitorV2ActionInput{
 		Type:   meta.MonitorV2ActionType(actionType),
-		Name:   name,
-		Inline: &inlineVal, // we are not currently allowing inline actions
+		Inline: &inline,
+	}
+
+	if name, ok := data.GetOk(fmt.Sprintf("%sname", path)); ok {
+		input.Name = name.(string)
 	}
 
 	// optionals
-	if _, ok := data.GetOk("email"); ok {
-		email, diags := newMonitorV2EmailActionInput(data, "email.0.")
+	if _, ok := data.GetOk(fmt.Sprintf("%semail", path)); ok {
+		email, diags := newMonitorV2EmailActionInput(data, fmt.Sprintf("%semail.0.", path))
 		if diags.HasError() {
 			return nil, diags
 		}
 		input.Email = email
 	}
 	if _, ok := data.GetOk("webhook"); ok {
-		webhook, diags := newMonitorV2WebhookActionInput(data, "webhook.0.")
+		webhook, diags := newMonitorV2WebhookActionInput(data, fmt.Sprintf("%swebhook.0.", path))
 		if diags.HasError() {
 			return nil, diags
 		}
 		input.Webhook = webhook
 	}
-	if v, ok := data.GetOk("description"); ok {
+	if v, ok := data.GetOk(fmt.Sprintf("%sdescription", path)); ok {
 		description := v.(string)
 		input.Description = &description
+	}
+	if v, ok := data.GetOk(fmt.Sprintf("%sinline", path)); ok {
+		inline := v.(bool)
+		input.Inline = &inline
 	}
 
 	return input, diags

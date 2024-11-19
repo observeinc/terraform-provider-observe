@@ -113,6 +113,7 @@ fragment MonitorV2Definition on MonitorV2Definition{
     }
     lookbackTime
     dataStabilizationDelay
+    maxAlertsPerHour
     # @genqlient(flatten: true)
     groupings {
         ...MonitorV2Column
@@ -155,6 +156,23 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
     levels
     sendEndNotifications
     sendRemindersInterval
+    # @genqlient(flatten: true)
+    definition {
+        ...MonitorV2ActionDefinition
+    }
+}
+
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+    inline
+    type
+    # @genqlient(flatten: true)
+    email {
+        ...MonitorV2EmailAction
+    }
+    # @genqlient(flatten: true)
+    webhook {
+        ...MonitorV2WebhookAction
+    }
 }
 
 # @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
@@ -162,6 +180,7 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
@@ -180,6 +199,7 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 fragment MonitorV2 on MonitorV2 {
     id
     workspaceId
@@ -209,6 +229,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
@@ -227,6 +248,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation createMonitorV2(
 	$workspaceId: ObjectId!,
 	$input: MonitorV2Input!
@@ -242,6 +264,7 @@ mutation createMonitorV2(
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
@@ -260,6 +283,7 @@ mutation createMonitorV2(
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation updateMonitorV2(
 	$id: ObjectId!,
 	$input: MonitorV2Input!
@@ -291,6 +315,8 @@ query lookupMonitorV2($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: S
     }
 }
 
+# @genqlient(for: "MonitorV2ActionRuleInput.levels", omitempty: true)
+# @genqlient(for: "MonitorV2ActionRuleInput.conditions", omitempty: true)
 # @genqlient(for: "MonitorV2ActionRuleInput.sendEndNotifications", omitempty: true)
 # @genqlient(for: "MonitorV2ActionRuleInput.sendRemindersInterval", omitempty: true)
 mutation saveMonitorV2Relations(
@@ -302,3 +328,67 @@ mutation saveMonitorV2Relations(
         ...MonitorV2
     }
 }
+
+# @genqlient(for: "MonitorV2Input.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2Input.description", omitempty: true)
+# @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.groupings", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
+# @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.threshold", omitempty: true)
+# @genqlient(for: "MonitorV2RuleInput.promote", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.inline", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2ActionInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2EmailActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.headers", omitempty: true)
+# @genqlient(for: "MonitorV2WebhookActionInput.fragments", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.action", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.actionID", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.levels", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.conditions", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.sendEndNotifications", omitempty: true)
+# @genqlient(for: "MonitorV2ActionAndRelationInput.sendRemindersInterval", omitempty: true)
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.compareTerms", omitempty: true)
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.subExpressions", omitempty: true)
+# @genqlient(for: "MonitorV2CountRuleInput.compareGroups", omitempty: true)
+# @genqlient(for: "MonitorV2ThresholdRuleInput.compareGroups", omitempty: true)
+# @genqlient(for: "MonitorV2PromoteRuleInput.compareColumns", omitempty: true)
+mutation saveMonitorV2WithActions(
+    $workspaceId: ObjectId!,
+    $monitorId: ObjectId,
+    $input: MonitorV2Input!,
+    $actions: [MonitorV2ActionAndRelationInput!],
+) {
+    # @genqlient(flatten: true)
+    monitorV2: saveMonitorV2WithActions(
+        workspaceId: $workspaceId,
+        monitorId: $monitorId,
+        input: $input,
+        actions: $actions,
+    ) {
+        ...MonitorV2
+    }
+}
+

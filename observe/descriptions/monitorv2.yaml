@@ -40,6 +40,8 @@ schema:
     optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
   data_stabilization_delay: |
     expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
+  max_alerts_per_hour: |
+    overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
   groupings: |
     Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
   scheduling:
@@ -98,7 +100,9 @@ schema:
     description: |
       The list of shared actions to which this monitor is connected.
     oid: |
-      The OID of this shared action.
+      The OID of this shared action. This should be used for existing shared actions.
+    action: |
+      This value should be used for creating inline private actions.
     levels: |
       The alarm level(s) at which this monitor should trigger this shared action.
     send_end_notifications: |

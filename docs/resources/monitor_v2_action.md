@@ -22,6 +22,7 @@ description: |-
 
 - `description` (String)
 - `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
+- `inline` (Boolean)
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
 
 ### Read-Only

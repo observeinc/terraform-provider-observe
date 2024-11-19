@@ -203,6 +203,11 @@ func resourceMonitorV2() *schema.Resource {
 				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				Description:      descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
 			},
+			"max_alerts_per_hour": { //Int64
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
+			},
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -243,11 +248,47 @@ func resourceMonitorV2() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"oid": { // ObjectId!
+						"oid": { // ObjectId
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
 							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
+						},
+						"action": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "action"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// fields of MonitorV2ActionInput
+									"type": { // MonitorV2ActionType!
+										Type:             schema.TypeString,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
+										Required:         true,
+									},
+									"email": { // MonitorV2EmailDestinationInput
+										Type:     schema.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										// note: ExactlyOneOf doesn't work because it cannot be referenced through
+										// `actions` which is not a MaxItems=1 configuration.
+										//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
+										Elem: monitorV2EmailActionInput(),
+									},
+									"webhook": { // MonitorV2WebhookDestinationInput
+										Type:     schema.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
+										Elem: monitorV2WebhookActionInput(),
+									},
+									"description": { // String
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 						"levels": { // [MonitorV2AlarmLevel!]
 							Type:     schema.TypeList,
@@ -425,15 +466,16 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitorV2(ctx, id.Id, input)
-	if err != nil {
-		return diag.Errorf("failed to create monitor: %s", err.Error())
+	actions, diags := newMonitorV2WithActions(data)
+	if diags.HasError() {
+		return diags
 	}
 
-	result, err = relateMonitorV2ToActions(ctx, result.Id, data, client)
+	wid, _ := oid.NewOID(data.Get("workspace").(string))
+
+	result, err := client.SaveMonitorV2WithActions(ctx, wid.Id, nil, input, actions)
 	if err != nil {
-		return diags
+		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
 
 	data.SetId(result.Id)
@@ -448,7 +490,16 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	_, err := client.UpdateMonitorV2(ctx, data.Id(), input)
+	actions, diags := newMonitorV2WithActions(data)
+	if diags.HasError() {
+		return diags
+	}
+
+	// TODO: do we require workspace here?
+	wid, _ := oid.NewOID(data.Get("workspace").(string))
+	mid := data.Id()
+
+	_, err := client.SaveMonitorV2WithActions(ctx, wid.Id, &mid, input, actions)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorV2Create(ctx, data, meta)
@@ -457,11 +508,6 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 			}
 			return nil
 		}
-		return diag.Errorf("failed to update monitor: %s", err.Error())
-	}
-
-	_, err = relateMonitorV2ToActions(ctx, data.Id(), data, client)
-	if err != nil {
 		return diag.Errorf("failed to update monitor: %s", err.Error())
 	}
 
@@ -524,6 +570,12 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
+	if monitor.Definition.MaxAlertsPerHour != nil {
+		if err := data.Set("max_alerts_per_hour", monitor.Definition.MaxAlertsPerHour.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	if monitor.Definition.Groupings != nil {
 		if err := data.Set("groupings", monitorV2FlattenGroupings(monitor.Definition.Groupings)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -537,7 +589,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	if len(monitor.ActionRules) > 0 {
-		if err := data.Set("actions", monitorV2FlattenActionRules(monitor.ActionRules)); err != nil {
+		if err := data.Set("actions", monitorV2FlattenActionRules(ctx, client, monitor.ActionRules)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -577,20 +629,47 @@ func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 	return rule
 }
 
-func monitorV2FlattenActionRules(gqlActionRules []gql.MonitorV2ActionRule) []interface{} {
+func monitorV2FlattenActionRules(ctx context.Context, client *observe.Client, gqlActionRules []gql.MonitorV2ActionRule) []interface{} {
 	var actionRules []interface{}
 	for _, gqlActionRule := range gqlActionRules {
-		actionRules = append(actionRules, monitorV2FlattenActionRule(gqlActionRule))
+		actionRules = append(actionRules, monitorV2FlattenActionRule(ctx, client, gqlActionRule))
 	}
 	return actionRules
 }
 
-func monitorV2FlattenActionRule(gqlActionRule gql.MonitorV2ActionRule) interface{} {
-	rules := map[string]interface{}{
-		"oid": oid.MonitorV2ActionOid(gqlActionRule.ActionID).String(),
+func monitorV2FlattenActionRule(ctx context.Context, client *observe.Client, gqlActionRule gql.MonitorV2ActionRule) interface{} {
+	rules := map[string]interface{}{}
+
+	if gqlActionRule.Definition.Inline == nil || !*gqlActionRule.Definition.Inline {
+		// This is a shared action. It is assumed the monitor was created with the action id set
+		// and so that's what we return in the resource.
+		rules["oid"] = oid.MonitorV2ActionOid(gqlActionRule.ActionID).String()
+	} else {
+		actMap := map[string]any{}
+		rules["action"] = []any{actMap}
+
+		// This is an inline/private action. We don't (yet?) get everything we want to populate in the
+		// response so we have to do a read to get this.
+		action, err := client.GetMonitorV2Action(ctx, oid.MonitorV2ActionOid(gqlActionRule.ActionID).String())
+		if err != nil {
+			return rules
+		}
+
+		actMap["type"] = toSnake(string(action.GetType()))
+
+		if action.Email != nil {
+			actMap["email"] = monitorV2FlattenEmailAction(*action.Email)
+		}
+		if action.Webhook != nil {
+			actMap["webhook"] = monitorV2FlattenWebhookAction(*action.Webhook)
+		}
+		if action.Description != nil {
+			actMap["description"] = *action.Description
+		}
 	}
+
 	if len(gqlActionRule.Levels) > 0 {
-		levels := make([]interface{}, 0)
+		levels := make([]interface{}, 0, len(gqlActionRule.Levels))
 		for _, level := range gqlActionRule.Levels {
 			levels = append(levels, toSnake(string(level)))
 		}
@@ -770,6 +849,22 @@ func monitorV2FlattenTransformSchedule(gqlTransformSchedule gql.MonitorV2Transfo
 	return []interface{}{transformSchedule}
 }
 
+func newMonitorV2WithActions(data *schema.ResourceData) (actions []gql.MonitorV2ActionAndRelationInput, diags diag.Diagnostics) {
+	inActions, ok := data.GetOk("actions")
+	if !ok {
+		return nil, diags
+	}
+	for i := range inActions.([]interface{}) {
+		actionRelation, err := newMonitorV2ActionAndRelation(fmt.Sprintf("actions.%d.", i), data)
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, *actionRelation)
+	}
+
+	return
+}
+
 func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
 	// required
 	definitionInput, diags := newMonitorV2DefinitionInput(data)
@@ -831,6 +926,10 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
 	}
+	if v, ok := data.GetOk("max_alerts_per_hour"); ok {
+		defnInput.MaxAlertsPerHour = types.Int64Scalar(v.(int)).Ptr()
+	}
+
 	if _, ok := data.GetOk("groupings"); ok {
 		groupings := make([]gql.MonitorV2ColumnInput, 0)
 		for i := range data.Get("groupings").([]interface{}) {
@@ -1227,4 +1326,44 @@ func newMonitorV2ActionRuleInput(path string, data *schema.ResourceData) (*gql.M
 	}
 
 	return act, nil
+}
+
+func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql.MonitorV2ActionAndRelationInput, diag.Diagnostics) {
+	var result gql.MonitorV2ActionAndRelationInput
+
+	actionPath := fmt.Sprintf("%saction.0", path)
+	if _, ok := data.GetOk(actionPath); ok {
+		if actInput, err := newMonitorV2ActionInput(fmt.Sprintf("%s.", actionPath), data); err != nil {
+			return nil, err
+		} else {
+			// override default instantiation and force these to be private (inline) actions.
+			var inline = true
+			actInput.Inline = &inline
+			result.Action = actInput
+		}
+	} else {
+		actOID, _ := oid.NewOID(data.Get(fmt.Sprintf("%soid", path)).(string))
+		result.ActionID = &actOID.Id
+	}
+
+	// optional
+	if _, ok := data.GetOk(fmt.Sprintf("%slevels", path)); ok {
+		result.Levels = make([]gql.MonitorV2AlarmLevel, 0)
+		for i := range data.Get(fmt.Sprintf("%slevels", path)).([]interface{}) {
+			result.Levels = append(result.Levels, gql.MonitorV2AlarmLevel(toCamel(data.Get(fmt.Sprintf("%slevels.%d", path, i)).(string))))
+		}
+	}
+
+	if v, ok := data.GetOk(fmt.Sprintf("%ssend_end_notifications", path)); ok {
+		boolVal := v.(bool)
+		result.SendEndNotifications = &boolVal
+	}
+
+	if v, ok := data.GetOk(fmt.Sprintf("%ssend_reminders_interval", path)); ok {
+		stringVal := v.(string)
+		interval, _ := types.ParseDurationScalar(stringVal)
+		result.SendRemindersInterval = interval
+	}
+
+	return &result, nil
 }

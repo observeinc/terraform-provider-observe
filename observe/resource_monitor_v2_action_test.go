@@ -348,3 +348,93 @@ func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								colmake kind:"test", description:"test"
+							EOF
+							output_stage = true
+						}
+						stage {
+							pipeline = <<-EOF
+								filter kind ~ "test"
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+						actions {
+							action {
+								type = "email"
+								email {
+									subject = "somebody once told me"
+									body = "the world is gonna roll me"
+									fragments = jsonencode({
+										foo = "bar"
+									})
+									addresses = ["test@observeinc.com"]
+									users = [data.observe_user.system.oid]
+								}
+								description = "an interesting description 1"
+							}
+							levels = ["informational"]
+							send_end_notifications = true
+							send_reminders_interval = "10m"
+						}
+						actions {
+							action {
+								type = "email"
+								email {
+									subject = "never gonna give you up"
+									body = "never gonna let you down"
+									fragments = jsonencode({
+										fizz = "buzz"
+									})
+									addresses = ["test@observeinc.com"]
+									users = [data.observe_user.system.oid]
+								}
+								description = "an interesting description 2"
+							}
+							levels = ["informational"]
+							send_end_notifications = false
+							send_reminders_interval = "20m"
+						}
+					}
+
+					data "observe_user" "system" {
+						email = "%[2]s"
+					}
+				`, randomPrefix, systemUser()),
+				Check: resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
