@@ -5574,6 +5574,214 @@ func (v *MultiStageQueryInput) GetParameterValues() []ParameterBindingInput { re
 // GetLayout returns MultiStageQueryInput.Layout, and is useful for accessing the field via an interface.
 func (v *MultiStageQueryInput) GetLayout() *types.JsonObject { return v.Layout }
 
+// MutateRbacStatementsResponse includes the GraphQL fields of MutateRbacStatementsResponse requested by the fragment MutateRbacStatementsResponse.
+type MutateRbacStatementsResponse struct {
+	CreatedStatements []MutateRbacStatementsResponseCreatedStatementsRbacStatement `json:"createdStatements"`
+	UpdatedStatements []MutateRbacStatementsResponseUpdatedStatementsRbacStatement `json:"updatedStatements"`
+	DeletedStatements []string                                                     `json:"deletedStatements"`
+}
+
+// GetCreatedStatements returns MutateRbacStatementsResponse.CreatedStatements, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponse) GetCreatedStatements() []MutateRbacStatementsResponseCreatedStatementsRbacStatement {
+	return v.CreatedStatements
+}
+
+// GetUpdatedStatements returns MutateRbacStatementsResponse.UpdatedStatements, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponse) GetUpdatedStatements() []MutateRbacStatementsResponseUpdatedStatementsRbacStatement {
+	return v.UpdatedStatements
+}
+
+// GetDeletedStatements returns MutateRbacStatementsResponse.DeletedStatements, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponse) GetDeletedStatements() []string { return v.DeletedStatements }
+
+// MutateRbacStatementsResponseCreatedStatementsRbacStatement includes the requested fields of the GraphQL type RbacStatement.
+type MutateRbacStatementsResponseCreatedStatementsRbacStatement struct {
+	RbacStatement `json:"-"`
+}
+
+// GetId returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Id, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetId() string {
+	return v.RbacStatement.Id
+}
+
+// GetDescription returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Description, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetDescription() string {
+	return v.RbacStatement.Description
+}
+
+// GetSubject returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Subject, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetSubject() RbacStatementSubjectRbacSubject {
+	return v.RbacStatement.Subject
+}
+
+// GetObject returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Object, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetObject() RbacStatementObjectRbacObject {
+	return v.RbacStatement.Object
+}
+
+// GetRole returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Role, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetRole() RbacRole {
+	return v.RbacStatement.Role
+}
+
+// GetVersion returns MutateRbacStatementsResponseCreatedStatementsRbacStatement.Version, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) GetVersion() *int {
+	return v.RbacStatement.Version
+}
+
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*MutateRbacStatementsResponseCreatedStatementsRbacStatement
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.MutateRbacStatementsResponseCreatedStatementsRbacStatement = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.RbacStatement)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalMutateRbacStatementsResponseCreatedStatementsRbacStatement struct {
+	Id string `json:"id"`
+
+	Description string `json:"description"`
+
+	Subject RbacStatementSubjectRbacSubject `json:"subject"`
+
+	Object RbacStatementObjectRbacObject `json:"object"`
+
+	Role RbacRole `json:"role"`
+
+	Version *int `json:"version"`
+}
+
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *MutateRbacStatementsResponseCreatedStatementsRbacStatement) __premarshalJSON() (*__premarshalMutateRbacStatementsResponseCreatedStatementsRbacStatement, error) {
+	var retval __premarshalMutateRbacStatementsResponseCreatedStatementsRbacStatement
+
+	retval.Id = v.RbacStatement.Id
+	retval.Description = v.RbacStatement.Description
+	retval.Subject = v.RbacStatement.Subject
+	retval.Object = v.RbacStatement.Object
+	retval.Role = v.RbacStatement.Role
+	retval.Version = v.RbacStatement.Version
+	return &retval, nil
+}
+
+// MutateRbacStatementsResponseUpdatedStatementsRbacStatement includes the requested fields of the GraphQL type RbacStatement.
+type MutateRbacStatementsResponseUpdatedStatementsRbacStatement struct {
+	RbacStatement `json:"-"`
+}
+
+// GetId returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Id, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetId() string {
+	return v.RbacStatement.Id
+}
+
+// GetDescription returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Description, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetDescription() string {
+	return v.RbacStatement.Description
+}
+
+// GetSubject returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Subject, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetSubject() RbacStatementSubjectRbacSubject {
+	return v.RbacStatement.Subject
+}
+
+// GetObject returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Object, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetObject() RbacStatementObjectRbacObject {
+	return v.RbacStatement.Object
+}
+
+// GetRole returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Role, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetRole() RbacRole {
+	return v.RbacStatement.Role
+}
+
+// GetVersion returns MutateRbacStatementsResponseUpdatedStatementsRbacStatement.Version, and is useful for accessing the field via an interface.
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) GetVersion() *int {
+	return v.RbacStatement.Version
+}
+
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*MutateRbacStatementsResponseUpdatedStatementsRbacStatement
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.MutateRbacStatementsResponseUpdatedStatementsRbacStatement = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.RbacStatement)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalMutateRbacStatementsResponseUpdatedStatementsRbacStatement struct {
+	Id string `json:"id"`
+
+	Description string `json:"description"`
+
+	Subject RbacStatementSubjectRbacSubject `json:"subject"`
+
+	Object RbacStatementObjectRbacObject `json:"object"`
+
+	Role RbacRole `json:"role"`
+
+	Version *int `json:"version"`
+}
+
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *MutateRbacStatementsResponseUpdatedStatementsRbacStatement) __premarshalJSON() (*__premarshalMutateRbacStatementsResponseUpdatedStatementsRbacStatement, error) {
+	var retval __premarshalMutateRbacStatementsResponseUpdatedStatementsRbacStatement
+
+	retval.Id = v.RbacStatement.Id
+	retval.Description = v.RbacStatement.Description
+	retval.Subject = v.RbacStatement.Subject
+	retval.Object = v.RbacStatement.Object
+	retval.Role = v.RbacStatement.Role
+	retval.Version = v.RbacStatement.Version
+	return &retval, nil
+}
+
 type NotificationImportance string
 
 const (
@@ -8256,6 +8464,33 @@ const (
 	TimeUnitNanosecond  TimeUnit = "Nanosecond"
 )
 
+type UpdateRbacStatementInput struct {
+	Id          string           `json:"id"`
+	Description string           `json:"description"`
+	Subject     RbacSubjectInput `json:"subject"`
+	Object      RbacObjectInput  `json:"object"`
+	Role        RbacRole         `json:"role"`
+	Version     *int             `json:"version"`
+}
+
+// GetId returns UpdateRbacStatementInput.Id, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetId() string { return v.Id }
+
+// GetDescription returns UpdateRbacStatementInput.Description, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetDescription() string { return v.Description }
+
+// GetSubject returns UpdateRbacStatementInput.Subject, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetSubject() RbacSubjectInput { return v.Subject }
+
+// GetObject returns UpdateRbacStatementInput.Object, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetObject() RbacObjectInput { return v.Object }
+
+// GetRole returns UpdateRbacStatementInput.Role, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetRole() RbacRole { return v.Role }
+
+// GetVersion returns UpdateRbacStatementInput.Version, and is useful for accessing the field via an interface.
+func (v *UpdateRbacStatementInput) GetVersion() *int { return v.Version }
+
 // User includes the GraphQL fields of User requested by the fragment User.
 type User struct {
 	Id      types.UserIdScalar `json:"id"`
@@ -9312,6 +9547,14 @@ type __getRbacGroupmemberInput struct {
 // GetId returns __getRbacGroupmemberInput.Id, and is useful for accessing the field via an interface.
 func (v *__getRbacGroupmemberInput) GetId() string { return v.Id }
 
+// __getRbacResourceStatementsInput is used internally by genqlient
+type __getRbacResourceStatementsInput struct {
+	Ids []string `json:"ids"`
+}
+
+// GetIds returns __getRbacResourceStatementsInput.Ids, and is useful for accessing the field via an interface.
+func (v *__getRbacResourceStatementsInput) GetIds() []string { return v.Ids }
+
 // __getRbacStatementInput is used internally by genqlient
 type __getRbacStatementInput struct {
 	Id string `json:"id"`
@@ -9479,6 +9722,22 @@ type __lookupWorkspaceInput struct {
 
 // GetName returns __lookupWorkspaceInput.Name, and is useful for accessing the field via an interface.
 func (v *__lookupWorkspaceInput) GetName() string { return v.Name }
+
+// __mutateRbacStatementsInput is used internally by genqlient
+type __mutateRbacStatementsInput struct {
+	ToCreate []RbacStatementInput       `json:"toCreate"`
+	ToUpdate []UpdateRbacStatementInput `json:"toUpdate"`
+	ToDelete []string                   `json:"toDelete"`
+}
+
+// GetToCreate returns __mutateRbacStatementsInput.ToCreate, and is useful for accessing the field via an interface.
+func (v *__mutateRbacStatementsInput) GetToCreate() []RbacStatementInput { return v.ToCreate }
+
+// GetToUpdate returns __mutateRbacStatementsInput.ToUpdate, and is useful for accessing the field via an interface.
+func (v *__mutateRbacStatementsInput) GetToUpdate() []UpdateRbacStatementInput { return v.ToUpdate }
+
+// GetToDelete returns __mutateRbacStatementsInput.ToDelete, and is useful for accessing the field via an interface.
+func (v *__mutateRbacStatementsInput) GetToDelete() []string { return v.ToDelete }
 
 // __removeCorrelationTagInput is used internally by genqlient
 type __removeCorrelationTagInput struct {
@@ -11115,6 +11374,17 @@ type getRbacGroupsResponse struct {
 // GetRbacGroups returns getRbacGroupsResponse.RbacGroups, and is useful for accessing the field via an interface.
 func (v *getRbacGroupsResponse) GetRbacGroups() []RbacGroup { return v.RbacGroups }
 
+// getRbacResourceStatementsResponse is returned by getRbacResourceStatements on success.
+type getRbacResourceStatementsResponse struct {
+	// Get all RBAC resource statements for several objects at once
+	RbacResourceStatements []RbacStatement `json:"rbacResourceStatements"`
+}
+
+// GetRbacResourceStatements returns getRbacResourceStatementsResponse.RbacResourceStatements, and is useful for accessing the field via an interface.
+func (v *getRbacResourceStatementsResponse) GetRbacResourceStatements() []RbacStatement {
+	return v.RbacResourceStatements
+}
+
 // getRbacStatementResponse is returned by getRbacStatement on success.
 type getRbacStatementResponse struct {
 	// Read an individual statement
@@ -11397,6 +11667,19 @@ type lookupWorkspaceResponse struct {
 
 // GetWorkspace returns lookupWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *lookupWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
+
+// mutateRbacStatementsResponse is returned by mutateRbacStatements on success.
+type mutateRbacStatementsResponse struct {
+	// MutateRbacStatements is delicious dessert topping, and also works great as a floor wax!
+	// It will perform all the mutations requested and commit them as one operation, or it will
+	// return an error and have performed none of the mutations; there are no half-way changes.
+	MutateRbacStatements MutateRbacStatementsResponse `json:"mutateRbacStatements"`
+}
+
+// GetMutateRbacStatements returns mutateRbacStatementsResponse.MutateRbacStatements, and is useful for accessing the field via an interface.
+func (v *mutateRbacStatementsResponse) GetMutateRbacStatements() MutateRbacStatementsResponse {
+	return v.MutateRbacStatements
+}
 
 // removeCorrelationTagResponse is returned by removeCorrelationTag on success.
 type removeCorrelationTagResponse struct {
@@ -17125,6 +17408,61 @@ func getRbacGroups(
 	return &data, err
 }
 
+// The query or mutation executed by getRbacResourceStatements.
+const getRbacResourceStatements_Operation = `
+query getRbacResourceStatements ($ids: [ObjectId!]!) {
+	rbacResourceStatements(ids: $ids) {
+		... RbacStatement
+	}
+}
+fragment RbacStatement on RbacStatement {
+	id
+	description
+	subject {
+		userId
+		groupId
+		all
+	}
+	object {
+		objectId
+		folderId
+		workspaceId
+		type
+		name
+		owner
+		all
+	}
+	role
+	version
+}
+`
+
+func getRbacResourceStatements(
+	ctx context.Context,
+	client graphql.Client,
+	ids []string,
+) (*getRbacResourceStatementsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacResourceStatements",
+		Query:  getRbacResourceStatements_Operation,
+		Variables: &__getRbacResourceStatementsInput{
+			Ids: ids,
+		},
+	}
+	var err error
+
+	var data getRbacResourceStatementsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getRbacStatement.
 const getRbacStatement_Operation = `
 query getRbacStatement ($id: ORN!) {
@@ -18435,6 +18773,74 @@ func lookupWorkspace(
 	var err error
 
 	var data lookupWorkspaceResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by mutateRbacStatements.
+const mutateRbacStatements_Operation = `
+mutation mutateRbacStatements ($toCreate: [RbacStatementInput!], $toUpdate: [UpdateRbacStatementInput!], $toDelete: [ORN!]) {
+	mutateRbacStatements(toCreate: $toCreate, toUpdate: $toUpdate, toDelete: $toDelete) {
+		... MutateRbacStatementsResponse
+	}
+}
+fragment MutateRbacStatementsResponse on MutateRbacStatementsResponse {
+	createdStatements {
+		... RbacStatement
+	}
+	updatedStatements {
+		... RbacStatement
+	}
+	deletedStatements
+}
+fragment RbacStatement on RbacStatement {
+	id
+	description
+	subject {
+		userId
+		groupId
+		all
+	}
+	object {
+		objectId
+		folderId
+		workspaceId
+		type
+		name
+		owner
+		all
+	}
+	role
+	version
+}
+`
+
+func mutateRbacStatements(
+	ctx context.Context,
+	client graphql.Client,
+	toCreate []RbacStatementInput,
+	toUpdate []UpdateRbacStatementInput,
+	toDelete []string,
+) (*mutateRbacStatementsResponse, error) {
+	req := &graphql.Request{
+		OpName: "mutateRbacStatements",
+		Query:  mutateRbacStatements_Operation,
+		Variables: &__mutateRbacStatementsInput{
+			ToCreate: toCreate,
+			ToUpdate: toUpdate,
+			ToDelete: toDelete,
+		},
+	}
+	var err error
+
+	var data mutateRbacStatementsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

@@ -65,49 +65,84 @@ func resourceGrant() *schema.Resource {
 
 // for now, translates grants into rbac v1 statements until api support is added
 func newGrantInput(data *schema.ResourceData) (input *gql.RbacStatementInput, diags diag.Diagnostics) {
+	var err error
 	input = &gql.RbacStatementInput{
 		Version: intPtr(2),
 	}
 
 	// subject
-	subject, err := oid.NewOID(data.Get("subject").(string))
+	input.Subject, err = newGrantSubjectInput(data.Get("subject").(string))
 	if err != nil {
-		return nil, diag.Errorf("error parsing subject: %s", err.Error())
-	}
-	input.Subject.All = boolPtr(false)
-	if subject.Type == oid.TypeUser {
-		uid, err := types.StringToUserIdScalar(subject.Id)
-		if err != nil {
-			return nil, diag.Errorf("error parsing subject user: %s", err.Error())
-		}
-		input.Subject.UserId = &uid
-	} else if subject.Type == oid.TypeRbacGroup {
-		input.Subject.GroupId = &subject.Id
+		return nil, diag.FromErr(err)
 	}
 
 	// role
 	role := GrantRole(toCamel(data.Get("role").(string)))
 	input.Role, err = role.ToRbacRole()
 	if err != nil {
-		return nil, diag.Errorf(err.Error())
+		return nil, diag.FromErr(err)
 	}
 
 	// object
-	var resourceId *string
 	resourceOidStr, ok := data.GetOk("qualifier.0.oid")
 	if ok {
-		resourceOid, err := oid.NewOID(resourceOidStr.(string))
-		if err != nil {
-			return nil, diag.Errorf("error parsing qualifier.oid: %s", err.Error())
+		resourceOid, err2 := oid.NewOID(resourceOidStr.(string))
+		if err2 != nil {
+			return nil, diag.Errorf("error parsing resource oid: %s", err2.Error())
 		}
-		resourceId = &resourceOid.Id
+		input.Object, err = newGrantObjectInput(role, &resourceOid.Id)
+	} else {
+		input.Object, err = newGrantObjectInput(role, nil)
 	}
-	input.Object, err = role.ToRbacObject(resourceId)
 	if err != nil {
-		return nil, diag.Errorf(err.Error())
+		return nil, diag.FromErr(err)
 	}
 
 	return input, diags
+}
+
+func newGrantSubjectInput(subjectOidStr string) (subjectInput gql.RbacSubjectInput, err error) {
+	subject, err := oid.NewOID(subjectOidStr)
+	if err != nil {
+		return subjectInput, fmt.Errorf("error parsing subject: %s", err.Error())
+	}
+	subjectInput.All = boolPtr(false)
+	if subject.Type == oid.TypeUser {
+		uid, err := types.StringToUserIdScalar(subject.Id)
+		if err != nil {
+			return subjectInput, fmt.Errorf("error parsing subject user: %s", err.Error())
+		}
+		subjectInput.UserId = &uid
+	} else if subject.Type == oid.TypeRbacGroup {
+		subjectInput.GroupId = &subject.Id
+	}
+	return subjectInput, nil
+}
+
+func newGrantObjectInput(role GrantRole, resourceId *string) (gql.RbacObjectInput, error) {
+	objectInput := gql.RbacObjectInput{
+		Owner: boolPtr(false),
+		All:   boolPtr(false),
+	}
+	// an oid qualifier is only valid for edit roles and view roles
+	isResourceRole := sliceContains(editGrantRoles, role) || sliceContains(viewGrantRoles, role)
+	if isResourceRole && resourceId == nil {
+		return objectInput, fmt.Errorf("role %s must be qualified with an object id", role)
+	}
+	if !isResourceRole && resourceId != nil {
+		return objectInput, fmt.Errorf("role %s cannot be qualified with an object id", role)
+	}
+	switch role {
+	case Administrator:
+		objectInput.All = boolPtr(true)
+	case MonitorGlobalMuter:
+		// this grant role doesn't require anything on the statement object,
+		// just setting the statement role is sufficient
+	default:
+		objectInput.Type = (*string)(role.ToType())
+		objectInput.ObjectId = resourceId
+	}
+	return objectInput, nil
 }
 
 // for now, receives an rbac v1 statement and translates it into a grant until api support is added
@@ -119,56 +154,12 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 	}
 
 	// subject
-	subject := ""
-	if stmt.Subject.UserId != nil {
-		subject = oid.UserOid(*stmt.Subject.UserId).String()
-	} else if stmt.Subject.GroupId != nil {
-		subject = oid.RbacGroupOid(*stmt.Subject.GroupId).String()
-	} else {
-		diags = append(diags, diag.Errorf("invalid subject")...)
-	}
-	if err := data.Set("subject", subject); err != nil {
+	if err := data.Set("subject", flattenGrantSubject(stmt.Subject)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// role and qualifier
-	var role string
-	qualifier := make(map[string]interface{}, 0)
-	if stmt.Role == gql.RbacRoleManager && stmt.Object.All != nil && *stmt.Object.All {
-		role = toSnake(string(Administrator))
-	} else if stmt.Role == gql.RbacRoleMonitorglobalmute {
-		role = toSnake(string(MonitorGlobalMuter))
-	} else if stmt.Object.Type != nil {
-		objType := oid.Type(*stmt.Object.Type)
-		if !sliceContains(validRbacV2Types, objType) {
-			diags = append(diags, diag.Errorf("invalid object type for v2 statment: %s", objType)...)
-		}
-
-		if stmt.Object.ObjectId != nil {
-			resourceOid := oid.OID{Type: objType, Id: *stmt.Object.ObjectId}
-			qualifier["oid"] = resourceOid.String()
-
-			if stmt.Role == gql.RbacRoleViewer {
-				if grantRole, ok := viewGrantRoleForType[objType]; ok {
-					role = toSnake(string(grantRole))
-				}
-			} else if stmt.Role == gql.RbacRoleEditor {
-				if grantRole, ok := editGrantRoleForType[objType]; ok {
-					role = toSnake(string(grantRole))
-				}
-			}
-		} else {
-			// editor without object id is create
-			if stmt.Role == gql.RbacRoleEditor {
-				if grantRole, ok := createGrantRoleForType[objType]; ok {
-					role = toSnake(string(grantRole))
-				}
-			}
-		}
-	}
-	if role == "" {
-		diags = append(diags, diag.Errorf("invalid statement")...)
-	}
+	role, qualifier := flattenRoleAndObject(stmt.Role, stmt.Object)
 	if err := data.Set("role", string(role)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -185,6 +176,52 @@ func grantToResourceData(stmt *gql.RbacStatement, data *schema.ResourceData) (di
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	return diags
+}
+
+func flattenGrantSubject(subject gql.RbacStatementSubjectRbacSubject) string {
+	if subject.UserId != nil {
+		return oid.UserOid(*subject.UserId).String()
+	} else if subject.GroupId != nil {
+		return oid.RbacGroupOid(*subject.GroupId).String()
+	}
+	return ""
+}
+
+func flattenRoleAndObject(stmtRole gql.RbacRole, stmtObject gql.RbacStatementObjectRbacObject) (role string, qualifier map[string]interface{}) {
+	qualifier = make(map[string]interface{})
+	if stmtRole == gql.RbacRoleManager && stmtObject.All != nil && *stmtObject.All {
+		role = toSnake(string(Administrator))
+	} else if stmtRole == gql.RbacRoleMonitorglobalmute {
+		role = toSnake(string(MonitorGlobalMuter))
+	} else if stmtObject.Type != nil {
+		objType := oid.Type(*stmtObject.Type)
+		if !sliceContains(validRbacV2Types, objType) {
+			return "", nil
+		}
+
+		if stmtObject.ObjectId != nil {
+			resourceOid := oid.OID{Type: objType, Id: *stmtObject.ObjectId}
+			qualifier["oid"] = resourceOid.String()
+
+			if stmtRole == gql.RbacRoleViewer {
+				if grantRole, ok := viewGrantRoleForType[objType]; ok {
+					role = toSnake(string(grantRole))
+				}
+			} else if stmtRole == gql.RbacRoleEditor {
+				if grantRole, ok := editGrantRoleForType[objType]; ok {
+					role = toSnake(string(grantRole))
+				}
+			}
+		} else {
+			// editor without object id is create
+			if stmtRole == gql.RbacRoleEditor {
+				if grantRole, ok := createGrantRoleForType[objType]; ok {
+					role = toSnake(string(grantRole))
+				}
+			}
+		}
+	}
+	return
 }
 
 func resourceGrantCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -327,30 +364,4 @@ func (r GrantRole) ToType() *oid.Type {
 	default:
 		return nil
 	}
-}
-
-func (r GrantRole) ToRbacObject(resourceId *string) (gql.RbacObjectInput, error) {
-	objectInput := gql.RbacObjectInput{
-		Owner: boolPtr(false),
-		All:   boolPtr(false),
-	}
-	// an oid qualifier is only valid for edit roles and view roles
-	isResourceRole := sliceContains(editGrantRoles, r) || sliceContains(viewGrantRoles, r)
-	if isResourceRole && resourceId == nil {
-		return objectInput, fmt.Errorf("role %s must be qualified with an object id", r)
-	}
-	if !isResourceRole && resourceId != nil {
-		return objectInput, fmt.Errorf("role %s cannot be qualified with an object id", r)
-	}
-	switch r {
-	case Administrator:
-		objectInput.All = boolPtr(true)
-	case MonitorGlobalMuter:
-		// this grant role doesn't require anything on the statement object,
-		// just setting the statement role is sufficient
-	default:
-		objectInput.Type = (*string)(r.ToType())
-		objectInput.ObjectId = resourceId
-	}
-	return objectInput, nil
 }

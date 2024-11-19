@@ -19,6 +19,16 @@ fragment RbacStatement on RbacStatement {
         version
 }
 
+fragment MutateRbacStatementsResponse on MutateRbacStatementsResponse {
+    createdStatements {
+        ...RbacStatement
+    }
+    updatedStatements {
+        ...RbacStatement
+    }
+    deletedStatements
+}
+
 mutation createRbacStatement($config: RbacStatementInput!) {
     # @genqlient(flatten: true)
     rbacStatement: createRbacStatement(input: $config) {
@@ -44,5 +54,19 @@ mutation deleteRbacStatement($id: ORN!) {
     # @genqlient(flatten: true)
     resultStatus: deleteRbacStatement(id: $id) {
         ...ResultStatus
+    }
+}
+
+mutation mutateRbacStatements($toCreate: [RbacStatementInput!], $toUpdate:[UpdateRbacStatementInput!], $toDelete: [ORN!]) {
+    # @genqlient(flatten: true)
+    mutateRbacStatements: mutateRbacStatements(toCreate: $toCreate, toUpdate: $toUpdate, toDelete: $toDelete) {
+        ...MutateRbacStatementsResponse
+    }
+}
+
+query getRbacResourceStatements($ids: [ObjectId!]!) {
+    # @genqlient(flatten: true)
+    rbacResourceStatements: rbacResourceStatements(ids: $ids) {
+        ...RbacStatement
     }
 }

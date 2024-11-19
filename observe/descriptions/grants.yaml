@@ -1,0 +1,12 @@
+description: |
+  NOTE: This feature is still under development. It is not meant for customer use yet.
+  
+  Manages the complete set of grants for a given resource.
+schema:
+  oid: |
+    The OID of the resource to manage grants for.
+  grant:
+    subject: |
+      OID of the subject. Must be a user or a group.
+    role: |
+      The role to grant.
