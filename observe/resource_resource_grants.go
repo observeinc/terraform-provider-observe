@@ -11,13 +11,14 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
-func resourceGrants() *schema.Resource {
+// the resource name is "resource_grants" (since it manages grants for another resource)
+func resourceResourceGrants() *schema.Resource {
 	return &schema.Resource{
-		Description:   descriptions.Get("grants", "description"),
-		CreateContext: resourceGrantsCreate,
-		ReadContext:   resourceGrantsRead,
-		UpdateContext: resourceGrantsUpdate,
-		DeleteContext: resourceGrantsDelete,
+		Description:   descriptions.Get("resource_grants", "description"),
+		CreateContext: resourceResourceGrantsCreate,
+		ReadContext:   resourceResourceGrantsRead,
+		UpdateContext: resourceResourceGrantsUpdate,
+		DeleteContext: resourceResourceGrantsDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -27,7 +28,7 @@ func resourceGrants() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateOID(validRbacV2Types...),
 				DiffSuppressFunc: diffSuppressOIDVersion,
-				Description:      descriptions.Get("grants", "schema", "oid"),
+				Description:      descriptions.Get("resource_grants", "schema", "oid"),
 				ForceNew:         true,
 			},
 			"grant": {
@@ -46,13 +47,13 @@ func resourceGrantsGrant() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeUser, oid.TypeRbacGroup),
-				Description:      descriptions.Get("grants", "schema", "grant", "subject"),
+				Description:      descriptions.Get("resource_grants", "schema", "grant", "subject"),
 			},
 			"role": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
-				Description:      descriptions.Get("grants", "schema", "grant", "role"),
+				Description:      descriptions.Get("resource_grants", "schema", "grant", "role"),
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -62,7 +63,7 @@ func resourceGrantsGrant() *schema.Resource {
 	}
 }
 
-func resourceGrantsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceResourceGrantsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
 	resourceOid, err := oid.NewOID(d.Get("oid").(string))
@@ -77,7 +78,7 @@ func resourceGrantsCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	existingGrantsSet := grantsToSet(existingStatements)
 	newGrantsSet := d.Get("grant").(*schema.Set)
-	diags := resourceGrantsMutate(ctx, client, resourceOid, existingGrantsSet, newGrantsSet)
+	diags := mutateResourceGrants(ctx, client, resourceOid, existingGrantsSet, newGrantsSet)
 	if diags.HasError() {
 		return diags
 	}
@@ -88,10 +89,10 @@ func resourceGrantsCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	// Setting it to the resource OID lets us use only this ID in resourceGrantsRead,
 	// which has the benefit of allowing ImportStatePassthroughContext to just work.
 	d.SetId(resourceOid.String())
-	return resourceGrantsRead(ctx, d, m)
+	return resourceResourceGrantsRead(ctx, d, m)
 }
 
-func resourceGrantsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceResourceGrantsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
 	// Using d.Id() instead of the oid field allows ImportStatePassthroughContext to work.
@@ -109,7 +110,7 @@ func resourceGrantsRead(ctx context.Context, d *schema.ResourceData, m interface
 	return grantsToResourceData(*resourceOid, grants, d)
 }
 
-func resourceGrantsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceResourceGrantsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
 	resourceOid, err := oid.NewOID(d.Get("oid").(string))
@@ -118,10 +119,10 @@ func resourceGrantsUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	old, new := d.GetChange("grant")
-	return resourceGrantsMutate(ctx, client, resourceOid, old.(*schema.Set), new.(*schema.Set))
+	return mutateResourceGrants(ctx, client, resourceOid, old.(*schema.Set), new.(*schema.Set))
 }
 
-func resourceGrantsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceResourceGrantsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
 	resourceOid, err := oid.NewOID(d.Get("oid").(string))
@@ -131,10 +132,10 @@ func resourceGrantsDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	existingGrants := d.Get("grant").(*schema.Set)
 	emptySet := schema.NewSet(schema.HashResource(resourceGrantsGrant()), []interface{}{})
-	return resourceGrantsMutate(ctx, client, resourceOid, existingGrants, emptySet)
+	return mutateResourceGrants(ctx, client, resourceOid, existingGrants, emptySet)
 }
 
-func resourceGrantsMutate(ctx context.Context, client *observe.Client, resourceOid *oid.OID, oldGrants *schema.Set, newGrants *schema.Set) diag.Diagnostics {
+func mutateResourceGrants(ctx context.Context, client *observe.Client, resourceOid *oid.OID, oldGrants *schema.Set, newGrants *schema.Set) diag.Diagnostics {
 	createGrants := newGrants.Difference(oldGrants)
 	deleteGrants := oldGrants.Difference(newGrants)
 
