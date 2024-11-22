@@ -1,7 +1,8 @@
 description: |
   NOTE: This feature is still under development. It is not meant for customer use yet.
   
-  Authoritative. Manages the complete set of grants for a given resource.
+  Authoritative. Manages the complete set of grants for a given resource, replacing
+  any existing ones. If no grants are specified, only admins will have access.
 schema:
   oid: |
     The OID of the resource to manage grants for.

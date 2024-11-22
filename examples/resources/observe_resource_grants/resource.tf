@@ -15,6 +15,11 @@ data "observe_dataset" "example" {
   name      = "Engineering Logs"
 }
 
+data "observe_dataset" "example2" {
+  workspace = data.observe_workspace.default.oid
+  name      = "Secrets"
+} 
+
 // Allow group engineering to edit and Everyone to view dataset Engineering Logs.
 // Ensures there are no other statements targeting this dataset,
 // so no one else (except admins) can view or edit it.
@@ -28,4 +33,10 @@ resource "observe_resource_grants" "example" {
     subject = data.observe_rbac_group.everyone.oid
     role    = "dataset_viewer"
   }
+}
+
+
+// Only allow admins to view or edit the dataset Secrets
+resource "observe_resource_grants" "example2" {
+  oid = data.observe_dataset.example2.oid
 }
