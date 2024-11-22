@@ -35,7 +35,7 @@ data "observe_dataset" "example" {
 data "observe_dataset" "example2" {
   workspace = data.observe_workspace.default.oid
   name      = "Secrets"
-} 
+}
 
 // Allow group engineering to edit and Everyone to view dataset Engineering Logs.
 // Ensures there are no other statements targeting this dataset,
