@@ -466,7 +466,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	actions, diags := newMonitorV2WithActions(data)
+	actions, diags := newMonitorV2ActionAndRelationInputs(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -490,7 +490,7 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	actions, diags := newMonitorV2WithActions(data)
+	actions, diags := newMonitorV2ActionAndRelationInputs(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -571,7 +571,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	if monitor.Definition.MaxAlertsPerHour != nil {
-		if err := data.Set("max_alerts_per_hour", monitor.Definition.MaxAlertsPerHour.String()); err != nil {
+		if err := data.Set("max_alerts_per_hour", monitor.Definition.MaxAlertsPerHour); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -849,7 +849,7 @@ func monitorV2FlattenTransformSchedule(gqlTransformSchedule gql.MonitorV2Transfo
 	return []interface{}{transformSchedule}
 }
 
-func newMonitorV2WithActions(data *schema.ResourceData) (actions []gql.MonitorV2ActionAndRelationInput, diags diag.Diagnostics) {
+func newMonitorV2ActionAndRelationInputs(data *schema.ResourceData) (actions []gql.MonitorV2ActionAndRelationInput, diags diag.Diagnostics) {
 	inActions, ok := data.GetOk("actions")
 	if !ok {
 		return nil, diags
@@ -1275,57 +1275,6 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 		return diag.Errorf("Only one value may be specified (value_string, value_bool, etc); there are %d: %s. Path = %s", len(kinds), strings.Join(kinds, ","), path)
 	}
 	return nil
-}
-
-func relateMonitorV2ToActions(ctx context.Context, monitorId string, data *schema.ResourceData, client *observe.Client) (*gql.MonitorV2, error) {
-	var actionRelations []gql.ActionRelationInput
-	if _, ok := data.GetOk("actions"); ok {
-		actionRelations = make([]gql.ActionRelationInput, 0)
-		for i := range data.Get("actions").([]interface{}) {
-			actionRule, err := newMonitorV2ActionRuleInput(fmt.Sprintf("actions.%d.", i), data)
-			if err != nil {
-				return nil, err
-			}
-			actionRelations = append(actionRelations, gql.ActionRelationInput{
-				ActionRule: *actionRule,
-			})
-		}
-	}
-	return client.SaveMonitorV2Relations(ctx, monitorId, actionRelations)
-}
-
-func newMonitorV2ActionRuleInput(path string, data *schema.ResourceData) (*gql.MonitorV2ActionRuleInput, error) {
-	// required
-	actOID, err := oid.NewOID(data.Get(fmt.Sprintf("%soid", path)).(string))
-	if err != nil {
-		return nil, err
-	}
-
-	// instantiation
-	act := &gql.MonitorV2ActionRuleInput{
-		ActionID: actOID.Id,
-	}
-
-	// optional
-	if _, ok := data.GetOk(fmt.Sprintf("%slevels", path)); ok {
-		act.Levels = make([]gql.MonitorV2AlarmLevel, 0)
-		for i := range data.Get(fmt.Sprintf("%slevels", path)).([]interface{}) {
-			act.Levels = append(act.Levels, gql.MonitorV2AlarmLevel(toCamel(data.Get(fmt.Sprintf("%slevels.%d", path, i)).(string))))
-		}
-	}
-
-	if v, ok := data.GetOk(fmt.Sprintf("%ssend_end_notifications", path)); ok {
-		boolVal := v.(bool)
-		act.SendEndNotifications = &boolVal
-	}
-
-	if v, ok := data.GetOk(fmt.Sprintf("%ssend_reminders_interval", path)); ok {
-		stringVal := v.(string)
-		interval, _ := types.ParseDurationScalar(stringVal)
-		act.SendRemindersInterval = interval
-	}
-
-	return act, nil
 }
 
 func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql.MonitorV2ActionAndRelationInput, diag.Diagnostics) {

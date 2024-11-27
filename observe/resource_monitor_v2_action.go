@@ -36,11 +36,6 @@ func resourceMonitorV2Action() *schema.Resource {
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
 				Required:         true,
 			},
-			// TODO: remove this. we are only doing this for shared actions
-			"inline": { // Boolean
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 			"email": { // MonitorV2EmailDestinationInput
 				Type:         schema.TypeList,
 				MaxItems:     1,
