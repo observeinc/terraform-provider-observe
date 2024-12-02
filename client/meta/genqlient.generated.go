@@ -4618,7 +4618,7 @@ func (v *MonitorV2ActionDefinition) GetEmail() *MonitorV2EmailAction { return v.
 func (v *MonitorV2ActionDefinition) GetWebhook() *MonitorV2WebhookAction { return v.Webhook }
 
 type MonitorV2ActionInput struct {
-	Inline      *bool                        `json:"inline"`
+	Inline      *bool                        `json:"inline,omitempty"`
 	Type        MonitorV2ActionType          `json:"type"`
 	Email       *MonitorV2EmailActionInput   `json:"email,omitempty"`
 	Webhook     *MonitorV2WebhookActionInput `json:"webhook,omitempty"`
