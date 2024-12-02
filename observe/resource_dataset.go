@@ -157,6 +157,11 @@ func resourceDataset() *schema.Resource {
 				Default:          "rematerialize",
 				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
+				// rematerialization_mode is a config option that only applies to the update operation
+				// (i.e. it's not a property of the dataset), and therefore it doesn't make sense to
+				// consider changes to *only* this field as a diff. It's only relevant when there are
+				// also changes to the OPAL.
+				DiffSuppressFunc: diffSuppressAlways,
 			},
 		},
 	}

@@ -381,6 +381,10 @@ func diffSuppressWhenWorkspace(k, prv, nxt string, d *schema.ResourceData) bool 
 	return prv == nxt
 }
 
+func diffSuppressAlways(k, prv, nxt string, d *schema.ResourceData) bool {
+	return true
+}
+
 var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
