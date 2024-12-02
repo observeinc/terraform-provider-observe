@@ -340,10 +340,6 @@ func newMonitorV2ActionInput(path string, data *schema.ResourceData) (input *gql
 		description := v.(string)
 		input.Description = &description
 	}
-	if v, ok := data.GetOk(fmt.Sprintf("%sinline", path)); ok {
-		inline := v.(bool)
-		input.Inline = &inline
-	}
 
 	return input, diags
 }
