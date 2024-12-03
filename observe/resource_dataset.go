@@ -21,9 +21,6 @@ const (
 	schemaDatasetDescriptionDescription = "Dataset description."
 	schemaDatasetIconDescription        = "Icon image."
 	schemaDatasetOIDDescription         = "The Observe ID for dataset."
-
-	rematerializationModeRematerialize         = "rematerialize"
-	rematerializationModeSkipRematerialization = "skip_rematerialization"
 )
 
 func resourceDataset() *schema.Resource {
@@ -365,9 +362,10 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	switch data.Get("rematerialization_mode").(string) {
-	case rematerializationModeRematerialize:
-	case rematerializationModeSkipRematerialization:
+	rematerializationMode := gql.RematerializationMode(toCamel(data.Get("rematerialization_mode").(string)))
+	switch rematerializationMode {
+	case gql.RematerializationModeRematerialize:
+	case gql.RematerializationModeSkiprematerialization:
 		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
 
 		diags = append(diags, diag.Diagnostic{
@@ -406,6 +404,14 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
+	// Since rematerialization_mode is not an actual property of the dataset, we don't have a value
+	// for it in the `result` from the API. So we set it to "rematerialize" (the default value)
+	// if it's not set, to prevent unnecessary diffs for existing dataset resources.
+	rematerializationMode := data.Get("rematerialization_mode").(string)
+	if rematerializationMode == "" {
+		data.Set("rematerialization_mode", toSnake(string(gql.RematerializationModeRematerialize)))
+	}
+
 	return datasetToResourceData(result, data)
 }
 
@@ -421,9 +427,10 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	switch data.Get("rematerialization_mode").(string) {
-	case rematerializationModeRematerialize:
-	case rematerializationModeSkipRematerialization:
+	rematerializationMode := gql.RematerializationMode(toCamel(data.Get("rematerialization_mode").(string)))
+	switch rematerializationMode {
+	case gql.RematerializationModeRematerialize:
+	case gql.RematerializationModeSkiprematerialization:
 		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
 	}
 
