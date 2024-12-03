@@ -500,6 +500,23 @@ func (c *Client) GetMonitor(ctx context.Context, id string) (*meta.Monitor, erro
 	return c.Meta.GetMonitor(ctx, id)
 }
 
+func (c *Client) SaveMonitorV2WithActions(
+	ctx context.Context,
+	workspaceId string,
+	monitorId *string,
+	input *meta.MonitorV2Input,
+	actions []meta.MonitorV2ActionAndRelationInput,
+) (*meta.MonitorV2, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.SaveMonitorV2WithActions(ctx, workspaceId, monitorId, input, actions)
+}
+
 func (c *Client) CreateMonitorV2(ctx context.Context, workspaceId string, input *meta.MonitorV2Input) (*meta.MonitorV2, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()

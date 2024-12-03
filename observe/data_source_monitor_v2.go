@@ -186,10 +186,17 @@ func dataSourceMonitorV2() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
-			"data_stabilization_delay": { // Duration
+			"data_stabilization_delay": { // Int64
 				Type:        schema.TypeString,
 				Computed:    true,
+				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
+			},
+			"max_alerts_per_hour": { //Int64
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
 			},
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:        schema.TypeList,

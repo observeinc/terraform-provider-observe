@@ -4444,7 +4444,7 @@ func (v *MonitorRuleThresholdInput) GetThresholdAggFunction() *ThresholdAggFunct
 // GetExpressionSummary returns MonitorRuleThresholdInput.ExpressionSummary, and is useful for accessing the field via an interface.
 func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.ExpressionSummary }
 
-// MonitorV2 includes the GraphQL fields of MonitorV2 requested by the fragment MonitorV2.
+// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 type MonitorV2 struct {
 	Id           string                `json:"id"`
 	WorkspaceId  string                `json:"workspaceId"`
@@ -4553,6 +4553,70 @@ func (v *MonitorV2Action) GetCreatedBy() types.UserIdScalar { return v.CreatedBy
 // GetCreatedDate returns MonitorV2Action.CreatedDate, and is useful for accessing the field via an interface.
 func (v *MonitorV2Action) GetCreatedDate() types.TimeScalar { return v.CreatedDate }
 
+// MonitorV2ActionAndRelationInput allows for defining a relation and an optional action at the same
+// time for the saveMonitorV2WithActions function. This emulates what the primitives
+// do using MonitorV2ActionInput and MonitorV2ActionRuleInput.
+//
+// One of `action` or `actionID` is required. The `actionID` references an existing
+// action (typically a shared action) or the `action` can be defined and created
+// in this input.
+//
+// The remaining parameters (like `levels` and others) are to bind the
+// relationship (see saveMonitorV2Relations) to the monitor.
+type MonitorV2ActionAndRelationInput struct {
+	Action                *MonitorV2ActionInput               `json:"action,omitempty"`
+	ActionID              *string                             `json:"actionID,omitempty"`
+	Levels                []MonitorV2AlarmLevel               `json:"levels,omitempty"`
+	Conditions            *MonitorV2ComparisonExpressionInput `json:"conditions,omitempty"`
+	SendEndNotifications  *bool                               `json:"sendEndNotifications,omitempty"`
+	SendRemindersInterval *types.DurationScalar               `json:"sendRemindersInterval,omitempty"`
+}
+
+// GetAction returns MonitorV2ActionAndRelationInput.Action, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetAction() *MonitorV2ActionInput { return v.Action }
+
+// GetActionID returns MonitorV2ActionAndRelationInput.ActionID, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetActionID() *string { return v.ActionID }
+
+// GetLevels returns MonitorV2ActionAndRelationInput.Levels, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetConditions returns MonitorV2ActionAndRelationInput.Conditions, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetConditions() *MonitorV2ComparisonExpressionInput {
+	return v.Conditions
+}
+
+// GetSendEndNotifications returns MonitorV2ActionAndRelationInput.SendEndNotifications, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetSendEndNotifications() *bool {
+	return v.SendEndNotifications
+}
+
+// GetSendRemindersInterval returns MonitorV2ActionAndRelationInput.SendRemindersInterval, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionAndRelationInput) GetSendRemindersInterval() *types.DurationScalar {
+	return v.SendRemindersInterval
+}
+
+// MonitorV2ActionDefinition includes the GraphQL fields of MonitorV2ActionDefinition requested by the fragment MonitorV2ActionDefinition.
+type MonitorV2ActionDefinition struct {
+	// The inline field determines whether the object is inlined within another object or not. If not inlined, it can be shared with other objects.
+	Inline  *bool                   `json:"inline"`
+	Type    MonitorV2ActionType     `json:"type"`
+	Email   *MonitorV2EmailAction   `json:"email"`
+	Webhook *MonitorV2WebhookAction `json:"webhook"`
+}
+
+// GetInline returns MonitorV2ActionDefinition.Inline, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionDefinition) GetInline() *bool { return v.Inline }
+
+// GetType returns MonitorV2ActionDefinition.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionDefinition) GetType() MonitorV2ActionType { return v.Type }
+
+// GetEmail returns MonitorV2ActionDefinition.Email, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionDefinition) GetEmail() *MonitorV2EmailAction { return v.Email }
+
+// GetWebhook returns MonitorV2ActionDefinition.Webhook, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionDefinition) GetWebhook() *MonitorV2WebhookAction { return v.Webhook }
+
 type MonitorV2ActionInput struct {
 	Inline      *bool                        `json:"inline"`
 	Type        MonitorV2ActionType          `json:"type"`
@@ -4596,10 +4660,17 @@ func (v *MonitorV2ActionInput) GetFolderId() *string { return v.FolderId }
 type MonitorV2ActionRule struct {
 	// Takes in a private or public action id created from an earlier createAction API call.
 	ActionID string `json:"actionID"`
-	// Dispatch this action when the alarm matches any of the provided levels.
-	Levels                []MonitorV2AlarmLevel `json:"levels"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications"`
+	// Dispatch this action when the alarm matches any of the provided levels
+	// AND'd with any of the optional conditions.
+	Levels []MonitorV2AlarmLevel `json:"levels"`
+	// Send notifications when the condition ends.
+	// note: At this time, this only happens on the AlarmEnded event.
+	SendEndNotifications *bool `json:"sendEndNotifications"`
+	// Send a reminder notification for as long as the condition is active
+	// on this interval.
 	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval"`
+	// Included to be shown as part of the MonitorV2 output.
+	Definition MonitorV2ActionDefinition `json:"definition"`
 }
 
 // GetActionID returns MonitorV2ActionRule.ActionID, and is useful for accessing the field via an interface.
@@ -4616,11 +4687,15 @@ func (v *MonitorV2ActionRule) GetSendRemindersInterval() *types.DurationScalar {
 	return v.SendRemindersInterval
 }
 
+// GetDefinition returns MonitorV2ActionRule.Definition, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetDefinition() MonitorV2ActionDefinition { return v.Definition }
+
 type MonitorV2ActionRuleInput struct {
-	ActionID              string                `json:"actionID"`
-	Levels                []MonitorV2AlarmLevel `json:"levels"`
-	SendEndNotifications  *bool                 `json:"sendEndNotifications,omitempty"`
-	SendRemindersInterval *types.DurationScalar `json:"sendRemindersInterval,omitempty"`
+	ActionID              string                              `json:"actionID"`
+	Levels                []MonitorV2AlarmLevel               `json:"levels,omitempty"`
+	Conditions            *MonitorV2ComparisonExpressionInput `json:"conditions,omitempty"`
+	SendEndNotifications  *bool                               `json:"sendEndNotifications,omitempty"`
+	SendRemindersInterval *types.DurationScalar               `json:"sendRemindersInterval,omitempty"`
 }
 
 // GetActionID returns MonitorV2ActionRuleInput.ActionID, and is useful for accessing the field via an interface.
@@ -4628,6 +4703,11 @@ func (v *MonitorV2ActionRuleInput) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRuleInput.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRuleInput) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetConditions returns MonitorV2ActionRuleInput.Conditions, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRuleInput) GetConditions() *MonitorV2ComparisonExpressionInput {
+	return v.Conditions
+}
 
 // GetSendEndNotifications returns MonitorV2ActionRuleInput.SendEndNotifications, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRuleInput) GetSendEndNotifications() *bool { return v.SendEndNotifications }
@@ -4664,6 +4744,13 @@ const (
 	MonitorV2AlarmLevelInformational MonitorV2AlarmLevel = "Informational"
 	MonitorV2AlarmLevelNone          MonitorV2AlarmLevel = "None"
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
+)
+
+type MonitorV2BooleanOperator string
+
+const (
+	MonitorV2BooleanOperatorAnd MonitorV2BooleanOperator = "And"
+	MonitorV2BooleanOperatorOr  MonitorV2BooleanOperator = "Or"
 )
 
 // MonitorV2Column includes the GraphQL fields of MonitorV2Column requested by the fragment MonitorV2Column.
@@ -4748,7 +4835,7 @@ func (v *MonitorV2ColumnPathInput) GetPath() *string { return v.Path }
 // MonitorV2Comparison includes the GraphQL fields of MonitorV2Comparison requested by the fragment MonitorV2Comparison.
 type MonitorV2Comparison struct {
 	CompareFn MonitorV2ComparisonFunction `json:"compareFn"`
-	// compareValue is the right-side value for comparisons that use it (like x > 10, this is 10).
+	// The right-side value for comparisons that use it (like x > 10, this is 10).
 	CompareValue PrimitiveValue `json:"compareValue"`
 }
 
@@ -4757,6 +4844,27 @@ func (v *MonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction { retur
 
 // GetCompareValue returns MonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
 func (v *MonitorV2Comparison) GetCompareValue() PrimitiveValue { return v.CompareValue }
+
+type MonitorV2ComparisonExpressionInput struct {
+	CompareTerms   []MonitorV2ComparisonTermInput       `json:"compareTerms"`
+	SubExpressions []MonitorV2ComparisonExpressionInput `json:"subExpressions"`
+	Operator       MonitorV2BooleanOperator             `json:"operator"`
+}
+
+// GetCompareTerms returns MonitorV2ComparisonExpressionInput.CompareTerms, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonExpressionInput) GetCompareTerms() []MonitorV2ComparisonTermInput {
+	return v.CompareTerms
+}
+
+// GetSubExpressions returns MonitorV2ComparisonExpressionInput.SubExpressions, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonExpressionInput) GetSubExpressions() []MonitorV2ComparisonExpressionInput {
+	return v.SubExpressions
+}
+
+// GetOperator returns MonitorV2ComparisonExpressionInput.Operator, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonExpressionInput) GetOperator() MonitorV2BooleanOperator {
+	return v.Operator
+}
 
 type MonitorV2ComparisonFunction string
 
@@ -4783,6 +4891,17 @@ func (v *MonitorV2ComparisonInput) GetCompareFn() MonitorV2ComparisonFunction { 
 
 // GetCompareValue returns MonitorV2ComparisonInput.CompareValue, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonInput) GetCompareValue() PrimitiveValueInput { return v.CompareValue }
+
+type MonitorV2ComparisonTermInput struct {
+	Comparison MonitorV2ComparisonInput `json:"comparison"`
+	Column     MonitorV2ColumnInput     `json:"column"`
+}
+
+// GetComparison returns MonitorV2ComparisonTermInput.Comparison, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonTermInput) GetComparison() MonitorV2ComparisonInput { return v.Comparison }
+
+// GetColumn returns MonitorV2ComparisonTermInput.Column, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonTermInput) GetColumn() MonitorV2ColumnInput { return v.Column }
 
 // MonitorV2CountRule includes the GraphQL fields of MonitorV2CountRule requested by the fragment MonitorV2CountRule.
 type MonitorV2CountRule struct {
@@ -4839,6 +4958,10 @@ type MonitorV2Definition struct {
 	// to arrive later than other data and thus would change previously evaluated results. Another way to think of this
 	// value is defining where the "Ragged Right Edge" starts relative to the clock.
 	DataStabilizationDelay *types.DurationScalar `json:"dataStabilizationDelay"`
+	// MaxAlertsPerHour sets the rate allowed before a monitor is considered possibly bad
+	// and automatically disabled by the system. This has a default value of 100 if null/unset.
+	// A value of 0 means "no limit".
+	MaxAlertsPerHour *types.Int64Scalar `json:"maxAlertsPerHour"`
 	// Groupings describes the groups that logically separate events/rows/etc from each other.
 	// When the input monitor dataset is of type resource and the monitor strategy is of type promote, this field should
 	// either be left empty to be mutated with the primary keys of the resource dataset or it should only contain the
@@ -4866,6 +4989,9 @@ func (v *MonitorV2Definition) GetDataStabilizationDelay() *types.DurationScalar 
 	return v.DataStabilizationDelay
 }
 
+// GetMaxAlertsPerHour returns MonitorV2Definition.MaxAlertsPerHour, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetMaxAlertsPerHour() *types.Int64Scalar { return v.MaxAlertsPerHour }
+
 // GetGroupings returns MonitorV2Definition.Groupings, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetGroupings() []MonitorV2Column { return v.Groupings }
 
@@ -4877,6 +5003,7 @@ type MonitorV2DefinitionInput struct {
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
 	LookbackTime           *types.DurationScalar     `json:"lookbackTime"`
 	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay,omitempty"`
+	MaxAlertsPerHour       *types.Int64Scalar        `json:"maxAlertsPerHour,omitempty"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
 }
@@ -4893,6 +5020,11 @@ func (v *MonitorV2DefinitionInput) GetLookbackTime() *types.DurationScalar { ret
 // GetDataStabilizationDelay returns MonitorV2DefinitionInput.DataStabilizationDelay, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetDataStabilizationDelay() *types.DurationScalar {
 	return v.DataStabilizationDelay
+}
+
+// GetMaxAlertsPerHour returns MonitorV2DefinitionInput.MaxAlertsPerHour, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetMaxAlertsPerHour() *types.Int64Scalar {
+	return v.MaxAlertsPerHour
 }
 
 // GetGroupings returns MonitorV2DefinitionInput.Groupings, and is useful for accessing the field via an interface.
@@ -4975,14 +5107,15 @@ const (
 )
 
 type MonitorV2Input struct {
-	Comment     *string                  `json:"comment"`
-	Definition  MonitorV2DefinitionInput `json:"definition"`
-	RuleKind    MonitorV2RuleKind        `json:"ruleKind"`
-	Name        string                   `json:"name"`
-	IconUrl     *string                  `json:"iconUrl,omitempty"`
-	Description *string                  `json:"description,omitempty"`
-	ManagedById *string                  `json:"managedById,omitempty"`
-	FolderId    *string                  `json:"folderId,omitempty"`
+	Comment           *string                          `json:"comment"`
+	Definition        MonitorV2DefinitionInput         `json:"definition"`
+	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
+	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
+	Name              string                           `json:"name"`
+	IconUrl           *string                          `json:"iconUrl,omitempty"`
+	Description       *string                          `json:"description,omitempty"`
+	ManagedById       *string                          `json:"managedById,omitempty"`
+	FolderId          *string                          `json:"folderId,omitempty"`
 }
 
 // GetComment returns MonitorV2Input.Comment, and is useful for accessing the field via an interface.
@@ -4993,6 +5126,11 @@ func (v *MonitorV2Input) GetDefinition() MonitorV2DefinitionInput { return v.Def
 
 // GetRuleKind returns MonitorV2Input.RuleKind, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetRuleKind() MonitorV2RuleKind { return v.RuleKind }
+
+// GetInvestigationInfo returns MonitorV2Input.InvestigationInfo, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetInvestigationInfo() *MonitorV2InvestigationInfoInput {
+	return v.InvestigationInfo
+}
 
 // GetName returns MonitorV2Input.Name, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetName() string { return v.Name }
@@ -5037,6 +5175,13 @@ func (v *MonitorV2IntervalScheduleInput) GetInterval() types.DurationScalar { re
 
 // GetRandomize returns MonitorV2IntervalScheduleInput.Randomize, and is useful for accessing the field via an interface.
 func (v *MonitorV2IntervalScheduleInput) GetRandomize() types.DurationScalar { return v.Randomize }
+
+type MonitorV2InvestigationInfoInput struct {
+	RunbookContent string `json:"runbookContent"`
+}
+
+// GetRunbookContent returns MonitorV2InvestigationInfoInput.RunbookContent, and is useful for accessing the field via an interface.
+func (v *MonitorV2InvestigationInfoInput) GetRunbookContent() string { return v.RunbookContent }
 
 // MonitorV2LinkColumn includes the GraphQL fields of MonitorV2LinkColumn requested by the fragment MonitorV2LinkColumn.
 type MonitorV2LinkColumn struct {
@@ -9393,6 +9538,28 @@ func (v *__saveMonitorV2RelationsInput) GetActionRelations() []ActionRelationInp
 	return v.ActionRelations
 }
 
+// __saveMonitorV2WithActionsInput is used internally by genqlient
+type __saveMonitorV2WithActionsInput struct {
+	WorkspaceId string                            `json:"workspaceId"`
+	MonitorId   *string                           `json:"monitorId"`
+	Input       MonitorV2Input                    `json:"input"`
+	Actions     []MonitorV2ActionAndRelationInput `json:"actions"`
+}
+
+// GetWorkspaceId returns __saveMonitorV2WithActionsInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2WithActionsInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetMonitorId returns __saveMonitorV2WithActionsInput.MonitorId, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2WithActionsInput) GetMonitorId() *string { return v.MonitorId }
+
+// GetInput returns __saveMonitorV2WithActionsInput.Input, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2WithActionsInput) GetInput() MonitorV2Input { return v.Input }
+
+// GetActions returns __saveMonitorV2WithActionsInput.Actions, and is useful for accessing the field via an interface.
+func (v *__saveMonitorV2WithActionsInput) GetActions() []MonitorV2ActionAndRelationInput {
+	return v.Actions
+}
+
 // __saveSourceDatasetInput is used internally by genqlient
 type __saveSourceDatasetInput struct {
 	WorkspaceId       string                     `json:"workspaceId"`
@@ -11271,7 +11438,7 @@ func (v *saveDatasetResponse) GetDataset() *saveDatasetDatasetDatasetSaveResult 
 
 // saveMonitorV2RelationsResponse is returned by saveMonitorV2Relations on success.
 type saveMonitorV2RelationsResponse struct {
-	// saveMonitorV2Relations replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
+	// Replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
 	// for the provided monitor with the provided list of actionRules and destinationLinks.
 	// Shared Actions can't be mutated through this call other than attaching it to the monitor, so you will need to used
 	// saveActionWithDestinationLinks to mutate sharedAction's links to the destinations.
@@ -11283,6 +11450,24 @@ type saveMonitorV2RelationsResponse struct {
 
 // GetMonitorV2 returns saveMonitorV2RelationsResponse.MonitorV2, and is useful for accessing the field via an interface.
 func (v *saveMonitorV2RelationsResponse) GetMonitorV2() MonitorV2 { return v.MonitorV2 }
+
+// saveMonitorV2WithActionsResponse is returned by saveMonitorV2WithActions on success.
+type saveMonitorV2WithActionsResponse struct {
+	// SaveMonitorV2WithActions builds on the primitives of createMonitorV2, updateMonitorV2,
+	// createMonitorV2Action, updateMonitorV2Action, deleteMonitorV2Action, and saveMonitorV2Relations.
+	// The intent is to provide a one-shot API for easier use in terraforming and a more transactional
+	// API for the front-end. The way this function works is as follows.
+	//
+	// If monitorId is set, the input field is considered an update to an existing monitor. Otherwise,
+	// this is treated as a creation.
+	//
+	// The actions list is the ordered list the user is creating the actions. It can include existing
+	// actions (typically already-created shared actions) or actions to be created (typically inline).
+	MonitorV2 MonitorV2 `json:"monitorV2"`
+}
+
+// GetMonitorV2 returns saveMonitorV2WithActionsResponse.MonitorV2, and is useful for accessing the field via an interface.
+func (v *saveMonitorV2WithActionsResponse) GetMonitorV2() MonitorV2 { return v.MonitorV2 }
 
 // saveSourceDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
 type saveSourceDatasetDatasetDatasetSaveResult struct {
@@ -12860,6 +13045,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	}
 	lookbackTime
 	dataStabilizationDelay
+	maxAlertsPerHour
 	groupings {
 		... MonitorV2Column
 	}
@@ -12872,6 +13058,9 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	levels
 	sendEndNotifications
 	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -12914,6 +13103,16 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 		... MonitorV2TransformSchedule
 	}
 }
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
 fragment MonitorV2CountRule on MonitorV2CountRule {
 	compareValues {
 		... MonitorV2Comparison
@@ -12954,6 +13153,22 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
 }
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
 fragment MonitorV2Comparison on MonitorV2Comparison {
 	compareFn
 	compareValue {
@@ -12975,6 +13190,10 @@ fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
 	dstFields
 	targetDataset
 }
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
 fragment PrimitiveValue on PrimitiveValue {
 	bool
 	float64
@@ -12985,6 +13204,7 @@ fragment PrimitiveValue on PrimitiveValue {
 }
 `
 
+// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 func createMonitorV2(
 	ctx context.Context,
 	client graphql.Client,
@@ -16298,6 +16518,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	}
 	lookbackTime
 	dataStabilizationDelay
+	maxAlertsPerHour
 	groupings {
 		... MonitorV2Column
 	}
@@ -16310,6 +16531,9 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	levels
 	sendEndNotifications
 	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -16352,6 +16576,16 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 		... MonitorV2TransformSchedule
 	}
 }
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
 fragment MonitorV2CountRule on MonitorV2CountRule {
 	compareValues {
 		... MonitorV2Comparison
@@ -16392,6 +16626,22 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
 }
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
 fragment MonitorV2Comparison on MonitorV2Comparison {
 	compareFn
 	compareValue {
@@ -16412,6 +16662,10 @@ fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
 	}
 	dstFields
 	targetDataset
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
 }
 fragment PrimitiveValue on PrimitiveValue {
 	bool
@@ -17909,6 +18163,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	}
 	lookbackTime
 	dataStabilizationDelay
+	maxAlertsPerHour
 	groupings {
 		... MonitorV2Column
 	}
@@ -17921,6 +18176,9 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	levels
 	sendEndNotifications
 	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -17963,6 +18221,16 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 		... MonitorV2TransformSchedule
 	}
 }
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
 fragment MonitorV2CountRule on MonitorV2CountRule {
 	compareValues {
 		... MonitorV2Comparison
@@ -18003,6 +18271,22 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
 }
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
 fragment MonitorV2Comparison on MonitorV2Comparison {
 	compareFn
 	compareValue {
@@ -18023,6 +18307,10 @@ fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
 	}
 	dstFields
 	targetDataset
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
 }
 fragment PrimitiveValue on PrimitiveValue {
 	bool
@@ -18478,6 +18766,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	}
 	lookbackTime
 	dataStabilizationDelay
+	maxAlertsPerHour
 	groupings {
 		... MonitorV2Column
 	}
@@ -18490,6 +18779,9 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	levels
 	sendEndNotifications
 	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18532,6 +18824,16 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 		... MonitorV2TransformSchedule
 	}
 }
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
 fragment MonitorV2CountRule on MonitorV2CountRule {
 	compareValues {
 		... MonitorV2Comparison
@@ -18572,6 +18874,22 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
 }
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
 fragment MonitorV2Comparison on MonitorV2Comparison {
 	compareFn
 	compareValue {
@@ -18592,6 +18910,10 @@ fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
 	}
 	dstFields
 	targetDataset
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
 }
 fragment PrimitiveValue on PrimitiveValue {
 	bool
@@ -18620,6 +18942,235 @@ func saveMonitorV2Relations(
 	var err error
 
 	var data saveMonitorV2RelationsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveMonitorV2WithActions.
+const saveMonitorV2WithActions_Operation = `
+mutation saveMonitorV2WithActions ($workspaceId: ObjectId!, $monitorId: ObjectId, $input: MonitorV2Input!, $actions: [MonitorV2ActionAndRelationInput!]) {
+	monitorV2: saveMonitorV2WithActions(workspaceId: $workspaceId, monitorId: $monitorId, input: $input, actions: $actions) {
+		... MonitorV2
+	}
+}
+fragment MonitorV2 on MonitorV2 {
+	id
+	workspaceId
+	createdBy
+	createdDate
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	rollupStatus
+	ruleKind
+	definition {
+		... MonitorV2Definition
+	}
+	actionRules {
+		... MonitorV2ActionRule
+	}
+}
+fragment MonitorV2Definition on MonitorV2Definition {
+	inputQuery {
+		outputStage
+		stages {
+			... StageQuery
+		}
+	}
+	rules {
+		... MonitorV2Rule
+	}
+	lookbackTime
+	dataStabilizationDelay
+	maxAlertsPerHour
+	groupings {
+		... MonitorV2Column
+	}
+	scheduling {
+		... MonitorV2Scheduling
+	}
+}
+fragment MonitorV2ActionRule on MonitorV2ActionRule {
+	actionID
+	levels
+	sendEndNotifications
+	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
+}
+fragment StageQuery on StageQuery {
+	id
+	pipeline
+	params
+	layout
+	input {
+		inputName
+		inputRole
+		datasetId
+		datasetPath
+		stageId
+	}
+}
+fragment MonitorV2Rule on MonitorV2Rule {
+	level
+	count {
+		... MonitorV2CountRule
+	}
+	threshold {
+		... MonitorV2ThresholdRule
+	}
+	promote {
+		... MonitorV2PromoteRule
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment MonitorV2Scheduling on MonitorV2Scheduling {
+	interval {
+		... MonitorV2IntervalSchedule
+	}
+	transform {
+		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
+	valueColumnName
+	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2PromoteRule on MonitorV2PromoteRule {
+	compareColumns {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
+	interval
+	randomize
+}
+fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
+	freshnessGoal
+}
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2ColumnComparison on MonitorV2ColumnComparison {
+	column {
+		... MonitorV2Column
+	}
+	compareValues {
+		... MonitorV2Comparison
+	}
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+`
+
+func saveMonitorV2WithActions(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	monitorId *string,
+	input MonitorV2Input,
+	actions []MonitorV2ActionAndRelationInput,
+) (*saveMonitorV2WithActionsResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveMonitorV2WithActions",
+		Query:  saveMonitorV2WithActions_Operation,
+		Variables: &__saveMonitorV2WithActionsInput{
+			WorkspaceId: workspaceId,
+			MonitorId:   monitorId,
+			Input:       input,
+			Actions:     actions,
+		},
+	}
+	var err error
+
+	var data saveMonitorV2WithActionsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -20133,6 +20684,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	}
 	lookbackTime
 	dataStabilizationDelay
+	maxAlertsPerHour
 	groupings {
 		... MonitorV2Column
 	}
@@ -20145,6 +20697,9 @@ fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	levels
 	sendEndNotifications
 	sendRemindersInterval
+	definition {
+		... MonitorV2ActionDefinition
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -20187,6 +20742,16 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 		... MonitorV2TransformSchedule
 	}
 }
+fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
+	inline
+	type
+	email {
+		... MonitorV2EmailAction
+	}
+	webhook {
+		... MonitorV2WebhookAction
+	}
+}
 fragment MonitorV2CountRule on MonitorV2CountRule {
 	compareValues {
 		... MonitorV2Comparison
@@ -20227,6 +20792,22 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
 }
+fragment MonitorV2EmailAction on MonitorV2EmailAction {
+	users
+	addresses
+	subject
+	body
+	fragments
+}
+fragment MonitorV2WebhookAction on MonitorV2WebhookAction {
+	headers {
+		... MonitorV2WebhookHeader
+	}
+	body
+	fragments
+	url
+	method
+}
 fragment MonitorV2Comparison on MonitorV2Comparison {
 	compareFn
 	compareValue {
@@ -20248,6 +20829,10 @@ fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
 	dstFields
 	targetDataset
 }
+fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
+	header
+	value
+}
 fragment PrimitiveValue on PrimitiveValue {
 	bool
 	float64
@@ -20258,6 +20843,7 @@ fragment PrimitiveValue on PrimitiveValue {
 }
 `
 
+// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 func updateMonitorV2(
 	ctx context.Context,
 	client graphql.Client,

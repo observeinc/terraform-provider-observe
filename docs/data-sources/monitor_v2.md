@@ -26,14 +26,15 @@ template and destinations to configure the receiver.
 
 ### Optional
 
+- `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `id` (String) Resource ID for this object.
+- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `name` (String) Monitor name.
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
 
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
-- `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
@@ -54,7 +55,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 Read-Only:
 
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
-- `oid` (String) The OID of this shared action.
+- `oid` (String) The OID of this shared action. This should be used for existing shared actions.
 - `send_end_notifications` (Boolean)
 - `send_reminders_interval` (String)
 

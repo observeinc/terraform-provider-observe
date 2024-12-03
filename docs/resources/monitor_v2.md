@@ -41,6 +41,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
@@ -315,15 +316,66 @@ a stage preceding the last stage. The last stage is an output stage by default.
 <a id="nestedblock--actions"></a>
 ### Nested Schema for `actions`
 
+Optional:
+
+- `action` (Block List, Max: 1) This value should be used for creating inline private actions. (see [below for nested schema](#nestedblock--actions--action))
+- `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
+- `oid` (String) The OID of this shared action. This should be used for existing shared actions.
+- `send_end_notifications` (Boolean) If true, notifications will be sent if the monitor stops triggering.
+- `send_reminders_interval` (String) Determines how frequently you will be reminded of an ongoing alert.
+
+<a id="nestedblock--actions--action"></a>
+### Nested Schema for `actions.action`
+
 Required:
 
-- `oid` (String) The OID of this shared action.
+- `type` (String)
 
 Optional:
 
-- `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
-- `send_end_notifications` (Boolean) If true, notifications will be sent if the monitor stops triggering.
-- `send_reminders_interval` (String) Determines how frequently you will be reminded of an ongoing alert.
+- `description` (String)
+- `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--actions--action--email))
+- `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--actions--action--webhook))
+
+<a id="nestedblock--actions--action--email"></a>
+### Nested Schema for `actions.action.email`
+
+Required:
+
+- `subject` (String)
+
+Optional:
+
+- `addresses` (List of String)
+- `body` (String)
+- `fragments` (String)
+- `users` (List of String)
+
+
+<a id="nestedblock--actions--action--webhook"></a>
+### Nested Schema for `actions.action.webhook`
+
+Required:
+
+- `body` (String)
+- `method` (String)
+- `url` (String)
+
+Optional:
+
+- `fragments` (String)
+- `headers` (Block List) (see [below for nested schema](#nestedblock--actions--action--webhook--headers))
+
+<a id="nestedblock--actions--action--webhook--headers"></a>
+### Nested Schema for `actions.action.webhook.headers`
+
+Required:
+
+- `header` (String)
+- `value` (String)
+
+
+
 
 
 <a id="nestedblock--groupings"></a>

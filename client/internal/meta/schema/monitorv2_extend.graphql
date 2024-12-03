@@ -1,13 +1,13 @@
 extend type Query {
     """
-    previewMonitorV2 accepts the same input as create or update, but for the purpose of showing to the user
+    Accepts the same input as create or update, but for the purpose of showing to the user
     how the candidate monitor definition will behave against the input data. The return is a preview type that
     shows how the monitoring strategy will emit results.
     """
     previewMonitorV2(workspaceId: ObjectId!, input: MonitorV2Input!, params: QueryParams!): MonitorV2Preview!
 
     """
-    monitorV2ByVersion allows fetching of the current or previous MonitorV2 by id and version
+    Allows fetching of the current or previous MonitorV2 by id and version
     (where version is the same as the monitorVersion of the MonitorV2). The purpose here is to obtain the
     definition for historical DetectionEvent's emitted. This can be used to understand what the upstream
     data looked like at the time of the detection event (noting of course that the actual data may have changed
@@ -16,10 +16,17 @@ extend type Query {
     monitorV2DefinitionByVersion(id: ObjectId!, version: Int64!): MonitorV2Definition!
 
     """
-    monitorV2TemplateDictionary takes in the monitor v2 input and the alarm input to produce a template dictionary
-    for the frontend which can be used to render the template.
+    Takes in the monitor v2 input and the alarm input to produce a template dictionary
+    for the frontend which can be used to render the template. The URLs generated will be the normal
+    URLs in the observe UI, but with zero value identifiers. The optional workspaceId is so that
+    any URLs with a workspaceId have the correct value.
     """
-    monitorV2TemplateDictionary(alertType: MonitorV2AlertType, monitorInput: MonitorV2Input!, alarmInput: MonitorV2AlarmInput!): TemplateDictionary!
+    monitorV2TemplateDictionary(
+        alertType: MonitorV2AlertType,
+        monitorInput: MonitorV2Input!,
+        alarmInput: MonitorV2AlarmInput!,
+        workspaceId: ObjectId,
+    ): TemplateDictionary!
 
     """
     Receive an actionInput and sample data payload to render all the fields in the mustache template.
@@ -28,7 +35,7 @@ extend type Query {
     monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): RenderedTemplate!
 
     """
-    searchMonitorV2Alarms can be used to query alerts in the explorer using various optional filters.
+    Can be used to query alerts in the explorer using various optional filters.
 
     monitorIds optionally restricts to a specific monitors
     nameSubstring restricts to monitors with partial match on the name
@@ -57,7 +64,7 @@ extend type Query {
 
 extend type Mutation {
     """
-    saveMonitorV2Relations replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
+    Replaces all monitor relations (MonitorV2ActionRule, ActionDestinationLink)
     for the provided monitor with the provided list of actionRules and destinationLinks.
     Shared Actions can't be mutated through this call other than attaching it to the monitor, so you will need to used
     saveActionWithDestinationLinks to mutate sharedAction's links to the destinations.
@@ -68,7 +75,7 @@ extend type Mutation {
     saveMonitorV2Relations(monitorId: ObjectId!, actionRelations: [ActionRelationInput!]): MonitorV2!
 
     """
-    terminateMonitorV2Alarm allows an explicit termination of an active alarm. The purpose is to
+    Allows an explicit termination of an active alarm. The purpose is to
     give the user the ability to eliminate via termination an active alarm that for some reason
     did not end normally. This is possibly an escape hatch for early adoption bugs, but could end
     up being an imperative for edge cases we haven't anticipated and where a snooze or mute is
@@ -77,24 +84,43 @@ extend type Mutation {
     terminateMonitorV2Alarm(alarmId: String!): MonitorV2Alarm!
 
     """
-    unmuteMonitorV2 is a fast way to remove all mute rules tied to a single monitor.
+    A fast way to remove all mute rules tied to a single monitor.
     note: This has no impact on global mutes that may exist, which always apply to all
     monitors.
     """
     unmuteMonitorV2(id: ObjectId!): MonitorV2!
 
     """
-    setMonitorV2Enabled sets the enabled/disabled-ness of a monitor. Disabling a monitor will
+    Sets the enabled/disabled-ness of a monitor. Disabling a monitor will
     stop evaluation and detection of the monitor.
     """
     setMonitorV2Enabled(id: ObjectId!, enabled: Boolean!): MonitorV2!
 
     """
-    sendMonitorV2TestAlert takes in the template dictionary generated from monitorV2TemplateDictionary along with
+    Takes in the template dictionary generated from monitorV2TemplateDictionary along with
     the actionInput and destinationInputs object. Afterward, it sends a test alert to see whether the customer can
     receive an alert at their designated end point.
     """
     testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): ResultStatus!
+
+    """
+    SaveMonitorV2WithActions builds on the primitives of createMonitorV2, updateMonitorV2,
+    createMonitorV2Action, updateMonitorV2Action, deleteMonitorV2Action, and saveMonitorV2Relations.
+    The intent is to provide a one-shot API for easier use in terraforming and a more transactional
+    API for the front-end. The way this function works is as follows.
+
+    If monitorId is set, the input field is considered an update to an existing monitor. Otherwise,
+    this is treated as a creation.
+
+    The actions list is the ordered list the user is creating the actions. It can include existing
+    actions (typically already-created shared actions) or actions to be created (typically inline).
+    """
+    saveMonitorV2WithActions(
+        workspaceId: ObjectId!,
+        monitorId: ObjectId,
+        input: MonitorV2Input!,
+        actions: [MonitorV2ActionAndRelationInput!],
+    ): MonitorV2!
 }
 
 # Future placeholder for mutation in one go -- an optional definition can be added along with what type of mutation
@@ -125,4 +151,26 @@ type RenderedWebhook @goModel(model: "observe/meta/metatypes.RenderedWebhook") {
 
 type MonitorV2AlarmSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2AlarmSearchResult") {
     results: [MonitorV2Alarm!]!
+}
+
+"""
+MonitorV2ActionAndRelationInput allows for defining a relation and an optional action at the same
+time for the saveMonitorV2WithActions function. This emulates what the primitives
+do using MonitorV2ActionInput and MonitorV2ActionRuleInput.
+
+One of `action` or `actionID` is required. The `actionID` references an existing
+action (typically a shared action) or the `action` can be defined and created
+in this input.
+
+The remaining parameters (like `levels` and others) are to bind the
+relationship (see saveMonitorV2Relations) to the monitor.
+"""
+input MonitorV2ActionAndRelationInput @goModel(model: "observe/meta/metatypes.MonitorV2ActionAndRelationInput") {
+    action: MonitorV2ActionInput
+    actionID: ObjectId
+
+    levels: [MonitorV2AlarmLevel!]
+    conditions: MonitorV2ComparisonExpressionInput
+    sendEndNotifications: Boolean
+    sendRemindersInterval: Duration
 }
