@@ -4,15 +4,20 @@ page_title: "observe_resource_grants Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
   NOTE: This feature is still under development. It is not meant for customer use yet.
-  Authoritative. Manages the complete set of grants for a given resource, replacing
-  any existing ones. If no grants are specified, only admins will have access.
+  Authoritative. Should not be used together with any observe_grants targeting the
+  same resource as they will conflict.
+  Manages the complete set of grants for a given resource, replacing any existing ones.
+  If no grants are specified, only admins will have access.
 ---
 # observe_resource_grants
 
 NOTE: This feature is still under development. It is not meant for customer use yet.
 
-Authoritative. Manages the complete set of grants for a given resource, replacing
-any existing ones. If no grants are specified, only admins will have access.
+Authoritative. Should not be used together with any `observe_grant`s targeting the
+same resource as they will conflict.
+
+Manages the complete set of grants for a given resource, replacing any existing ones.
+If no grants are specified, only admins will have access.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
@@ -38,7 +43,7 @@ data "observe_dataset" "example2" {
 }
 
 // Allow group engineering to edit and Everyone to view dataset Engineering Logs.
-// Ensures there are no other statements targeting this dataset,
+// Ensures there are no other grants targeting this dataset,
 // so no one else (except admins) can view or edit it.
 resource "observe_resource_grants" "example" {
   oid = data.observe_dataset.example.oid
