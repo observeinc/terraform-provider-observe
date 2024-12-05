@@ -30,12 +30,6 @@ func DefaultDependencyHandling() *DependencyHandlingInput {
 	return &DependencyHandlingInput{SaveMode: &mode}
 }
 
-func DependencyHandlingSkipRematerialization() *DependencyHandlingInput {
-	saveMode := SaveModeUpdateDatasetAndDependenciesIgnoringAllErrors
-	rematMode := RematerializationModeSkiprematerialization
-	return &DependencyHandlingInput{SaveMode: &saveMode, RematerializationMode: &rematMode}
-}
-
 // SaveDataset creates and updates datasets
 func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, dependencyHandling *DependencyHandlingInput) (*Dataset, error) {
 	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)

@@ -151,7 +151,6 @@ func resourceDataset() *schema.Resource {
 			"rematerialization_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "rematerialize",
 				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
@@ -362,15 +361,13 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	rematerializationMode := gql.RematerializationMode(toCamel(data.Get("rematerialization_mode").(string)))
-	switch rematerializationMode {
-	case gql.RematerializationModeRematerialize:
-	case gql.RematerializationModeSkiprematerialization:
-		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	if mode, ok := data.GetOk("rematerialization_mode"); ok {
+		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
+		dependencyHandling.RematerializationMode = &rematerializationMode
 
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "Skipping rematerialization on a new dataset is a no-op",
+			Summary:  "rematerialization_mode on a new dataset is a no-op",
 		})
 	}
 
@@ -404,14 +401,6 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	// Since rematerialization_mode is not an actual property of the dataset, we don't have a value
-	// for it in the `result` from the API. So we set it to "rematerialize" (the default value)
-	// if it's not set, to prevent unnecessary diffs for existing dataset resources.
-	rematerializationMode := data.Get("rematerialization_mode").(string)
-	if rematerializationMode == "" {
-		data.Set("rematerialization_mode", toSnake(string(gql.RematerializationModeRematerialize)))
-	}
-
 	return datasetToResourceData(result, data)
 }
 
@@ -427,11 +416,9 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	rematerializationMode := gql.RematerializationMode(toCamel(data.Get("rematerialization_mode").(string)))
-	switch rematerializationMode {
-	case gql.RematerializationModeRematerialize:
-	case gql.RematerializationModeSkiprematerialization:
-		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	if mode, ok := data.GetOk("rematerialization_mode"); ok {
+		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
+		dependencyHandling.RematerializationMode = &rematerializationMode
 	}
 
 	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
