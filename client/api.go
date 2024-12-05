@@ -1308,6 +1308,20 @@ func (c *Client) DeleteRbacStatement(ctx context.Context, id string) error {
 	return c.Meta.DeleteRbacStatement(ctx, id)
 }
 
+// MutateRbacStatements
+func (c *Client) MutateRbacStatements(ctx context.Context, toCreate []meta.RbacStatementInput, toUpdate []meta.UpdateRbacStatementInput, toDelete []string) (*meta.MutateRbacStatementsResponse, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.MutateRbacStatements(ctx, toCreate, toUpdate, toDelete)
+}
+
+// GetRbacResourceStatements gets all statements for the given objects
+func (c *Client) GetRbacResourceStatements(ctx context.Context, ids []string) ([]meta.RbacStatement, error) {
+	return c.Meta.GetRbacResourceStatements(ctx, ids)
+}
+
 // GetRbacStatement by ID
 func (c *Client) GetRbacStatement(ctx context.Context, id string) (*meta.RbacStatement, error) {
 	return c.Meta.GetRbacStatement(ctx, id)

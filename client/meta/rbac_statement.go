@@ -38,6 +38,22 @@ func (client *Client) DeleteRbacStatement(ctx context.Context, id string) error 
 	return resultStatusError(resp, err)
 }
 
+func (client *Client) MutateRbacStatements(ctx context.Context, toCreate []RbacStatementInput, toUpdate []UpdateRbacStatementInput, toDelete []string) (*MutateRbacStatementsResponse, error) {
+	resp, err := mutateRbacStatements(ctx, client.Gql, toCreate, toUpdate, toDelete)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.MutateRbacStatements, err
+}
+
+func (client *Client) GetRbacResourceStatements(ctx context.Context, ids []string) ([]RbacStatement, error) {
+	resp, err := getRbacResourceStatements(ctx, client.Gql, ids)
+	if err != nil {
+		return nil, err
+	}
+	return resp.RbacResourceStatements, err
+}
+
 func (r *RbacStatement) Oid() *oid.OID {
 	rbacStatementOid := oid.RbacStatementOid(r.Id)
 	return &rbacStatementOid
