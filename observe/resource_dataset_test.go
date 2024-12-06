@@ -112,7 +112,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "rematerialize"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
 			},
 			{

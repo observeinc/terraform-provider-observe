@@ -21,9 +21,6 @@ const (
 	schemaDatasetDescriptionDescription = "Dataset description."
 	schemaDatasetIconDescription        = "Icon image."
 	schemaDatasetOIDDescription         = "The Observe ID for dataset."
-
-	rematerializationModeRematerialize         = "rematerialize"
-	rematerializationModeSkipRematerialization = "skip_rematerialization"
 )
 
 func resourceDataset() *schema.Resource {
@@ -154,7 +151,6 @@ func resourceDataset() *schema.Resource {
 			"rematerialization_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "rematerialize",
 				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
@@ -365,14 +361,13 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	switch data.Get("rematerialization_mode").(string) {
-	case rematerializationModeRematerialize:
-	case rematerializationModeSkipRematerialization:
-		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	if mode, ok := data.GetOk("rematerialization_mode"); ok {
+		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
+		dependencyHandling.RematerializationMode = &rematerializationMode
 
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "Skipping rematerialization on a new dataset is a no-op",
+			Summary:  "rematerialization_mode on a new dataset is a no-op",
 		})
 	}
 
@@ -421,10 +416,9 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	switch data.Get("rematerialization_mode").(string) {
-	case rematerializationModeRematerialize:
-	case rematerializationModeSkipRematerialization:
-		dependencyHandling = gql.DependencyHandlingSkipRematerialization()
+	if mode, ok := data.GetOk("rematerialization_mode"); ok {
+		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
+		dependencyHandling.RematerializationMode = &rematerializationMode
 	}
 
 	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
