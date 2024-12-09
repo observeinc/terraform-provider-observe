@@ -354,7 +354,6 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
-# @genqlient(for: "MonitorV2ActionInput.inline", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
