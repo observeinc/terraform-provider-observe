@@ -299,6 +299,41 @@ func resourceMonitorV2() *schema.Resource {
 							},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
 						},
+						"conditions": { // MonitorV2ComparisonExpression
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// note: subExpressions will be interesting to support. The UI currently does
+									// not support it, so we don't here either.
+									"compare_terms": { // [MonitorV2ComparisonTerm!]
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"comparison": { // [MonitorV2Comparison!]!
+													Type:        schema.TypeList,
+													Required:    true,
+													MinItems:    1,
+													Elem:        monitorV2ComparisonResource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
+												},
+												"column": { // [MonitorV2Column!]!
+													Type:        schema.TypeList,
+													Required:    true,
+													MinItems:    1,
+													Elem:        monitorV2ColumnResource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
+												},
+											},
+										},
+									},
+									// note: operator is an implied AND for now until the UI supports OR
+								},
+							},
+						},
 						"send_end_notifications": { // Boolean
 							Type:        schema.TypeBool,
 							Optional:    true,
@@ -681,7 +716,32 @@ func monitorV2FlattenActionRule(ctx context.Context, client *observe.Client, gql
 	if gqlActionRule.SendRemindersInterval != nil {
 		rules["send_reminders_interval"] = gqlActionRule.SendRemindersInterval.String()
 	}
+	if gqlActionRule.Conditions != nil && len(gqlActionRule.Conditions.CompareTerms) != 0 {
+		rules["conditions"] = []any{monitorV2FlattenComparisonExpression(gqlActionRule.Conditions)}
+	}
 	return rules
+}
+func monitorV2FlattenComparisonExpression(expr *gql.MonitorV2ComparisonExpression) map[string]interface{} {
+	// For now, we only support a single level expression with terms. Sub-expressions and operator are not yet
+	// supported because our UI doesn't yet support them.
+	if len(expr.CompareTerms) == 0 {
+		return nil
+	}
+
+	terms := make([]interface{}, len(expr.CompareTerms))
+
+	for i, term := range expr.CompareTerms {
+		terms[i] = monitorV2FlattenComparisonTerm(term)
+	}
+
+	return map[string]interface{}{"compare_terms": terms}
+}
+
+func monitorV2FlattenComparisonTerm(term gql.MonitorV2ComparisonTerm) map[string]interface{} {
+	return map[string]interface{}{
+		"comparison": []any{monitorV2FlattenComparison(term.Comparison)},
+		"column":     monitorV2FlattenColumn(term.Column),
+	}
 }
 
 func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
@@ -1281,6 +1341,8 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 	var result gql.MonitorV2ActionAndRelationInput
 
 	actionPath := fmt.Sprintf("%saction.0", path)
+	conditionsPath := fmt.Sprintf("%sconditions.0", path)
+
 	if _, ok := data.GetOk(actionPath); ok {
 		if actInput, err := newMonitorV2ActionInput(fmt.Sprintf("%s.", actionPath), data); err != nil {
 			return nil, err
@@ -1312,6 +1374,14 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 		stringVal := v.(string)
 		interval, _ := types.ParseDurationScalar(stringVal)
 		result.SendRemindersInterval = interval
+	}
+
+	if _, ok := data.GetOk(conditionsPath); ok {
+		if exprInput, err := newMonitorV2ComparisonExpressionInput(fmt.Sprintf("%s.", conditionsPath), data); err != nil {
+			return nil, err
+		} else {
+			result.Conditions = exprInput
+		}
 	}
 
 	return &result, nil

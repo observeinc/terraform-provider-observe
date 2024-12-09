@@ -3,7 +3,6 @@
 page_title: "observe_monitor_v2 Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  NOTE: This feature is still in development. It is not meant for customer use yet.
   Monitors provide a configurable way to alert when conditions about incoming data
   are matched. These alerts can optionally also be forwarded to notification receivers
   like email and webhooks using shared or single-monitor actions to configure the
@@ -11,8 +10,6 @@ description: |-
 ---
 
 # observe_monitor_v2 (Data Source)
-
-NOTE: This feature is still in development. It is not meant for customer use yet.
 
 Monitors provide a configurable way to alert when conditions about incoming data
 are matched. These alerts can optionally also be forwarded to notification receivers
