@@ -1,6 +1,4 @@
 description: |
-  NOTE: This feature is still in development. It is not meant for customer use yet.
-
   Monitors provide a configurable way to alert when conditions about incoming data
   are matched. These alerts can optionally also be forwarded to notification receivers
   like email and webhooks using shared or single-monitor actions to configure the
@@ -105,6 +103,16 @@ schema:
       This value should be used for creating inline private actions.
     levels: |
       The alarm level(s) at which this monitor should trigger this shared action.
+    conditions:
+      description: |
+        Optional conditions that can be AND'd with levels to match the action.
+      compare_terms:
+        description: |
+          The column and value expression to consider (implied AND)
+        comparison:
+          The comparison operation and right-side value to evaluate
+        column:
+          The column (left-side) value to evaluate
     send_end_notifications: |
       If true, notifications will be sent if the monitor stops triggering.
     send_reminders_interval: |

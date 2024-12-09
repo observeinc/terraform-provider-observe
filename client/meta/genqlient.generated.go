@@ -4663,6 +4663,8 @@ type MonitorV2ActionRule struct {
 	// Dispatch this action when the alarm matches any of the provided levels
 	// AND'd with any of the optional conditions.
 	Levels []MonitorV2AlarmLevel `json:"levels"`
+	// Conditions are additional comparisons to apply (AND'd with levels) to decide if an alert applies.
+	Conditions *MonitorV2ComparisonExpression `json:"conditions"`
 	// Send notifications when the condition ends.
 	// note: At this time, this only happens on the AlarmEnded event.
 	SendEndNotifications *bool `json:"sendEndNotifications"`
@@ -4678,6 +4680,9 @@ func (v *MonitorV2ActionRule) GetActionID() string { return v.ActionID }
 
 // GetLevels returns MonitorV2ActionRule.Levels, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRule) GetLevels() []MonitorV2AlarmLevel { return v.Levels }
+
+// GetConditions returns MonitorV2ActionRule.Conditions, and is useful for accessing the field via an interface.
+func (v *MonitorV2ActionRule) GetConditions() *MonitorV2ComparisonExpression { return v.Conditions }
 
 // GetSendEndNotifications returns MonitorV2ActionRule.SendEndNotifications, and is useful for accessing the field via an interface.
 func (v *MonitorV2ActionRule) GetSendEndNotifications() *bool { return v.SendEndNotifications }
@@ -4845,6 +4850,16 @@ func (v *MonitorV2Comparison) GetCompareFn() MonitorV2ComparisonFunction { retur
 // GetCompareValue returns MonitorV2Comparison.CompareValue, and is useful for accessing the field via an interface.
 func (v *MonitorV2Comparison) GetCompareValue() PrimitiveValue { return v.CompareValue }
 
+// MonitorV2ComparisonExpression includes the GraphQL fields of MonitorV2ComparisonExpression requested by the fragment MonitorV2ComparisonExpression.
+type MonitorV2ComparisonExpression struct {
+	CompareTerms []MonitorV2ComparisonTerm `json:"compareTerms"`
+}
+
+// GetCompareTerms returns MonitorV2ComparisonExpression.CompareTerms, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonExpression) GetCompareTerms() []MonitorV2ComparisonTerm {
+	return v.CompareTerms
+}
+
 type MonitorV2ComparisonExpressionInput struct {
 	CompareTerms   []MonitorV2ComparisonTermInput       `json:"compareTerms"`
 	SubExpressions []MonitorV2ComparisonExpressionInput `json:"subExpressions"`
@@ -4891,6 +4906,20 @@ func (v *MonitorV2ComparisonInput) GetCompareFn() MonitorV2ComparisonFunction { 
 
 // GetCompareValue returns MonitorV2ComparisonInput.CompareValue, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonInput) GetCompareValue() PrimitiveValueInput { return v.CompareValue }
+
+// MonitorV2ComparisonTerm includes the GraphQL fields of MonitorV2ComparisonTerm requested by the fragment MonitorV2ComparisonTerm.
+type MonitorV2ComparisonTerm struct {
+	// Comparison describes the binary operator and the right-side value to compare.
+	Comparison MonitorV2Comparison `json:"comparison"`
+	// Column indicates the comparison left-side value comes from the column indicated here.
+	Column MonitorV2Column `json:"column"`
+}
+
+// GetComparison returns MonitorV2ComparisonTerm.Comparison, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonTerm) GetComparison() MonitorV2Comparison { return v.Comparison }
+
+// GetColumn returns MonitorV2ComparisonTerm.Column, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonTerm) GetColumn() MonitorV2Column { return v.Column }
 
 type MonitorV2ComparisonTermInput struct {
 	Comparison MonitorV2ComparisonInput `json:"comparison"`
@@ -13339,6 +13368,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -13384,6 +13416,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -13435,6 +13472,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -16812,6 +16857,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -16857,6 +16905,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -16908,6 +16961,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -18512,6 +18573,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -18557,6 +18621,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -18608,6 +18677,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -19183,6 +19260,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -19228,6 +19308,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -19279,6 +19364,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -19408,6 +19501,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -19453,6 +19549,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -19504,6 +19605,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
@@ -21101,6 +21210,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
 	levels
+	conditions {
+		... MonitorV2ComparisonExpression
+	}
 	sendEndNotifications
 	sendRemindersInterval
 	definition {
@@ -21146,6 +21258,11 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	transform {
 		... MonitorV2TransformSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
 	}
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
@@ -21197,6 +21314,14 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
 }
 fragment MonitorV2EmailAction on MonitorV2EmailAction {
 	users
