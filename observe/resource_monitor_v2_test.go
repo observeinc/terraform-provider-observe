@@ -316,6 +316,7 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "10m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "20m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.value_string.0", "test"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.column.0.column_path.0.name", "description"),
 				),
 			},

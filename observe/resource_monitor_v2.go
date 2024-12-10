@@ -308,9 +308,11 @@ func resourceMonitorV2() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									// note: subExpressions will be interesting to support. The UI currently does
 									// not support it, so we don't here either.
+									// When we add support for sub_expressions, it compare_terms will be ExactlyOneOf with that.
 									"compare_terms": { // [MonitorV2ComparisonTerm!]
 										Type:     schema.TypeList,
-										Optional: true,
+										Required: true,
+										MinItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"comparison": { // [MonitorV2Comparison!]!
@@ -1385,4 +1387,31 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 	}
 
 	return &result, nil
+}
+
+func newMonitorV2ComparisonExpressionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ComparisonExpressionInput, diags diag.Diagnostics) {
+	input = &gql.MonitorV2ComparisonExpressionInput{
+		// AND is implied until the UI supports OR
+		Operator: gql.MonitorV2BooleanOperatorAnd,
+	}
+
+	for i := range data.Get(fmt.Sprintf("%scompare_terms", path)).([]interface{}) {
+		condPath := fmt.Sprintf("%scompare_terms.%d.", path, i)
+
+		term := gql.MonitorV2ComparisonTermInput{}
+		if c, d := newMonitorV2ComparisonInput(fmt.Sprintf("%scomparison.0.", condPath), data); d.HasError() {
+			return nil, d
+		} else {
+			term.Comparison = *c
+		}
+		if c, d := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.0.", condPath), data); d.HasError() {
+			return nil, d
+		} else {
+			term.Column = *c
+		}
+
+		input.CompareTerms = append(input.CompareTerms, term)
+	}
+
+	return
 }

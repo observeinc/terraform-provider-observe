@@ -306,33 +306,6 @@ func monitorV2FlattenWebhookHeader(gqlHeader gql.MonitorV2WebhookHeader) interfa
 	return header
 }
 
-func newMonitorV2ComparisonExpressionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ComparisonExpressionInput, diags diag.Diagnostics) {
-	input = &gql.MonitorV2ComparisonExpressionInput{
-		// AND is implied until the UI supports OR
-		Operator: gql.MonitorV2BooleanOperatorAnd,
-	}
-
-	for i := range data.Get(fmt.Sprintf("%scompare_terms", path)).([]interface{}) {
-		condPath := fmt.Sprintf("%scompare_terms.%d.", path, i)
-
-		term := gql.MonitorV2ComparisonTermInput{}
-		if c, d := newMonitorV2ComparisonInput(fmt.Sprintf("%scomparison.0.", condPath), data); d.HasError() {
-			return nil, d
-		} else {
-			term.Comparison = *c
-		}
-		if c, d := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.0.", condPath), data); d.HasError() {
-			return nil, d
-		} else {
-			term.Column = *c
-		}
-
-		input.CompareTerms = append(input.CompareTerms, term)
-	}
-
-	return
-}
-
 func newMonitorV2ActionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ActionInput, diags diag.Diagnostics) {
 	// required
 	actionType := toCamel(data.Get(fmt.Sprintf("%stype", path)).(string))
