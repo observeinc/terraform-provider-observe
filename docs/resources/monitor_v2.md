@@ -3,15 +3,12 @@
 page_title: "observe_monitor_v2 Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  NOTE: This feature is still in development. It is not meant for customer use yet.
   Monitors provide a configurable way to alert when conditions about incoming data
   are matched. These alerts can optionally also be forwarded to notification receivers
   like email and webhooks using shared or single-monitor actions to configure the
   template and destinations to configure the receiver.
 ---
 # observe_monitor_v2
-
-NOTE: This feature is still in development. It is not meant for customer use yet.
 
 Monitors provide a configurable way to alert when conditions about incoming data
 are matched. These alerts can optionally also be forwarded to notification receivers
@@ -319,6 +316,7 @@ a stage preceding the last stage. The last stage is an output stage by default.
 Optional:
 
 - `action` (Block List, Max: 1) This value should be used for creating inline private actions. (see [below for nested schema](#nestedblock--actions--action))
+- `conditions` (Block List, Max: 1) Optional conditions that can be AND'd with levels to match the action. (see [below for nested schema](#nestedblock--actions--conditions))
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
 - `oid` (String) The OID of this shared action. This should be used for existing shared actions.
 - `send_end_notifications` (Boolean) If true, notifications will be sent if the monitor stops triggering.
@@ -373,6 +371,69 @@ Required:
 
 - `header` (String)
 - `value` (String)
+
+
+
+
+<a id="nestedblock--actions--conditions"></a>
+### Nested Schema for `actions.conditions`
+
+Required:
+
+- `compare_terms` (Block List, Min: 1) (see [below for nested schema](#nestedblock--actions--conditions--compare_terms))
+
+<a id="nestedblock--actions--conditions--compare_terms"></a>
+### Nested Schema for `actions.conditions.compare_terms`
+
+Required:
+
+- `column` (Block List, Min: 1) The column (left-side) value to evaluate (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column))
+- `comparison` (Block List, Min: 1) The comparison operation and right-side value to evaluate (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--comparison))
+
+<a id="nestedblock--actions--conditions--compare_terms--column"></a>
+### Nested Schema for `actions.conditions.compare_terms.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column--column_path))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column--link_column))
+
+<a id="nestedblock--actions--conditions--compare_terms--column--column_path"></a>
+### Nested Schema for `actions.conditions.compare_terms.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--actions--conditions--compare_terms--column--link_column"></a>
+### Nested Schema for `actions.conditions.compare_terms.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--actions--conditions--compare_terms--comparison"></a>
+### Nested Schema for `actions.conditions.compare_terms.comparison`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of Number) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
 
 

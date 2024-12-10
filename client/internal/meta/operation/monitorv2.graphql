@@ -154,6 +154,10 @@ fragment MonitorV2SearchResult on MonitorV2SearchResult {
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
     actionID
     levels
+    # @genqlient(flatten: true)
+    conditions {
+        ...MonitorV2ComparisonExpression
+    }
     sendEndNotifications
     sendRemindersInterval
     # @genqlient(flatten: true)
@@ -172,6 +176,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
     # @genqlient(flatten: true)
     webhook {
         ...MonitorV2WebhookAction
+    }
+}
+
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+    # @genqlient(flatten: true)
+    compareTerms {
+        ...MonitorV2ComparisonTerm
+    }
+    # subExpressions/operator are not used by the UI so we won't support them here yet either
+}
+
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+    # @genqlient(flatten: true)
+    comparison {
+        ...MonitorV2Comparison
+    }
+    # @genqlient(flatten: true)
+    column {
+        ...MonitorV2Column
     }
 }
 

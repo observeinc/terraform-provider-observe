@@ -299,6 +299,43 @@ func resourceMonitorV2() *schema.Resource {
 							},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
 						},
+						"conditions": { // MonitorV2ComparisonExpression
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// note: subExpressions will be interesting to support. The UI currently does
+									// not support it, so we don't here either.
+									// When we add support for sub_expressions, it compare_terms will be ExactlyOneOf with that.
+									"compare_terms": { // [MonitorV2ComparisonTerm!]
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"comparison": { // [MonitorV2Comparison!]!
+													Type:        schema.TypeList,
+													Required:    true,
+													MinItems:    1,
+													Elem:        monitorV2ComparisonResource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
+												},
+												"column": { // [MonitorV2Column!]!
+													Type:        schema.TypeList,
+													Required:    true,
+													MinItems:    1,
+													Elem:        monitorV2ColumnResource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
+												},
+											},
+										},
+									},
+									// note: operator is an implied AND for now until the UI supports OR
+								},
+							},
+						},
 						"send_end_notifications": { // Boolean
 							Type:        schema.TypeBool,
 							Optional:    true,
@@ -681,7 +718,32 @@ func monitorV2FlattenActionRule(ctx context.Context, client *observe.Client, gql
 	if gqlActionRule.SendRemindersInterval != nil {
 		rules["send_reminders_interval"] = gqlActionRule.SendRemindersInterval.String()
 	}
+	if gqlActionRule.Conditions != nil && len(gqlActionRule.Conditions.CompareTerms) != 0 {
+		rules["conditions"] = []any{monitorV2FlattenComparisonExpression(gqlActionRule.Conditions)}
+	}
 	return rules
+}
+func monitorV2FlattenComparisonExpression(expr *gql.MonitorV2ComparisonExpression) map[string]interface{} {
+	// For now, we only support a single level expression with terms. Sub-expressions and operator are not yet
+	// supported because our UI doesn't yet support them.
+	if len(expr.CompareTerms) == 0 {
+		return nil
+	}
+
+	terms := make([]interface{}, len(expr.CompareTerms))
+
+	for i, term := range expr.CompareTerms {
+		terms[i] = monitorV2FlattenComparisonTerm(term)
+	}
+
+	return map[string]interface{}{"compare_terms": terms}
+}
+
+func monitorV2FlattenComparisonTerm(term gql.MonitorV2ComparisonTerm) map[string]interface{} {
+	return map[string]interface{}{
+		"comparison": []any{monitorV2FlattenComparison(term.Comparison)},
+		"column":     monitorV2FlattenColumn(term.Column),
+	}
 }
 
 func monitorV2FlattenCountRule(gqlCount gql.MonitorV2CountRule) []interface{} {
@@ -1281,6 +1343,8 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 	var result gql.MonitorV2ActionAndRelationInput
 
 	actionPath := fmt.Sprintf("%saction.0", path)
+	conditionsPath := fmt.Sprintf("%sconditions.0", path)
+
 	if _, ok := data.GetOk(actionPath); ok {
 		if actInput, err := newMonitorV2ActionInput(fmt.Sprintf("%s.", actionPath), data); err != nil {
 			return nil, err
@@ -1314,5 +1378,40 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 		result.SendRemindersInterval = interval
 	}
 
+	if _, ok := data.GetOk(conditionsPath); ok {
+		if exprInput, err := newMonitorV2ComparisonExpressionInput(fmt.Sprintf("%s.", conditionsPath), data); err != nil {
+			return nil, err
+		} else {
+			result.Conditions = exprInput
+		}
+	}
+
 	return &result, nil
+}
+
+func newMonitorV2ComparisonExpressionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ComparisonExpressionInput, diags diag.Diagnostics) {
+	input = &gql.MonitorV2ComparisonExpressionInput{
+		// AND is implied until the UI supports OR
+		Operator: gql.MonitorV2BooleanOperatorAnd,
+	}
+
+	for i := range data.Get(fmt.Sprintf("%scompare_terms", path)).([]interface{}) {
+		condPath := fmt.Sprintf("%scompare_terms.%d.", path, i)
+
+		term := gql.MonitorV2ComparisonTermInput{}
+		if c, d := newMonitorV2ComparisonInput(fmt.Sprintf("%scomparison.0.", condPath), data); d.HasError() {
+			return nil, d
+		} else {
+			term.Comparison = *c
+		}
+		if c, d := newMonitorV2ColumnInput(fmt.Sprintf("%scolumn.0.", condPath), data); d.HasError() {
+			return nil, d
+		} else {
+			term.Column = *c
+		}
+
+		input.CompareTerms = append(input.CompareTerms, term)
+	}
+
+	return
 }
