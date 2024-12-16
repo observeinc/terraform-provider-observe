@@ -23,21 +23,21 @@ template and destinations to configure the receiver.
 
 ### Optional
 
-- `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `id` (String) Resource ID for this object.
-- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `name` (String) Monitor name.
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
 
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
+- `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
 stage pipelines.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
@@ -51,10 +51,113 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 Read-Only:
 
+- `action` (Block List) This value should be used for creating inline private actions. (see [below for nested schema](#nestedblock--actions--action))
+- `conditions` (List of Object) Optional conditions that can be AND'd with levels to match the action. (see [below for nested schema](#nestedatt--actions--conditions))
 - `levels` (List of String) The alarm level(s) at which this monitor should trigger this shared action.
 - `oid` (String) The OID of this shared action. This should be used for existing shared actions.
 - `send_end_notifications` (Boolean)
 - `send_reminders_interval` (String)
+
+<a id="nestedblock--actions--action"></a>
+### Nested Schema for `actions.action`
+
+Read-Only:
+
+- `description` (String)
+- `email` (List of Object) (see [below for nested schema](#nestedatt--actions--action--email))
+- `type` (String)
+- `webhook` (List of Object) (see [below for nested schema](#nestedatt--actions--action--webhook))
+
+<a id="nestedatt--actions--action--email"></a>
+### Nested Schema for `actions.action.email`
+
+Read-Only:
+
+- `addresses` (List of String)
+- `body` (String)
+- `fragments` (String)
+- `subject` (String)
+- `users` (List of String)
+
+
+<a id="nestedatt--actions--action--webhook"></a>
+### Nested Schema for `actions.action.webhook`
+
+Read-Only:
+
+- `body` (String)
+- `fragments` (String)
+- `headers` (List of Object) (see [below for nested schema](#nestedobjatt--actions--action--webhook--headers))
+- `method` (String)
+- `url` (String)
+
+<a id="nestedobjatt--actions--action--webhook--headers"></a>
+### Nested Schema for `actions.action.webhook.headers`
+
+Read-Only:
+
+- `header` (String)
+- `value` (String)
+
+
+
+
+<a id="nestedatt--actions--conditions"></a>
+### Nested Schema for `actions.conditions`
+
+Read-Only:
+
+- `compare_terms` (List of Object) (see [below for nested schema](#nestedobjatt--actions--conditions--compare_terms))
+
+<a id="nestedobjatt--actions--conditions--compare_terms"></a>
+### Nested Schema for `actions.conditions.compare_terms`
+
+Read-Only:
+
+- `column` (List of Object) (see [below for nested schema](#nestedobjatt--actions--conditions--compare_terms--column))
+- `comparison` (List of Object) (see [below for nested schema](#nestedobjatt--actions--conditions--compare_terms--comparison))
+
+<a id="nestedobjatt--actions--conditions--compare_terms--column"></a>
+### Nested Schema for `actions.conditions.compare_terms.comparison`
+
+Read-Only:
+
+- `column_path` (List of Object) (see [below for nested schema](#nestedobjatt--actions--conditions--compare_terms--comparison--column_path))
+- `link_column` (List of Object) (see [below for nested schema](#nestedobjatt--actions--conditions--compare_terms--comparison--link_column))
+
+<a id="nestedobjatt--actions--conditions--compare_terms--comparison--column_path"></a>
+### Nested Schema for `actions.conditions.compare_terms.comparison.column_path`
+
+Read-Only:
+
+- `name` (String)
+- `path` (String)
+
+
+<a id="nestedobjatt--actions--conditions--compare_terms--comparison--link_column"></a>
+### Nested Schema for `actions.conditions.compare_terms.comparison.link_column`
+
+Read-Only:
+
+- `name` (String)
+
+
+
+<a id="nestedobjatt--actions--conditions--compare_terms--comparison"></a>
+### Nested Schema for `actions.conditions.compare_terms.comparison`
+
+Read-Only:
+
+- `compare_fn` (String)
+- `value_bool` (List of Boolean)
+- `value_duration` (List of Boolean)
+- `value_float64` (List of Number)
+- `value_int64` (List of Number)
+- `value_string` (List of String)
+- `value_timestamp` (List of String)
+
+
+
 
 
 <a id="nestedblock--groupings"></a>
