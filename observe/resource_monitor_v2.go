@@ -35,17 +35,17 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
 			},
+			"name": { // String!
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitorv2", "schema", "name"),
+			},
 			// fields of MonitorV2Input excluding the components of MonitorV2DefinitionInput
 			"rule_kind": { // MonitorV2RuleKind!
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RuleKinds),
 				Description:      descriptions.Get("monitorv2", "schema", "rule_kind"),
-			},
-			"name": { // String!
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: descriptions.Get("monitorv2", "schema", "name"),
 			},
 			"icon_url": { // String
 				Type:        schema.TypeString,

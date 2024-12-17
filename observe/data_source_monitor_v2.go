@@ -189,13 +189,11 @@ func dataSourceMonitorV2() *schema.Resource {
 			"data_stabilization_delay": { // Int64
 				Type:        schema.TypeString,
 				Computed:    true,
-				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
 			},
 			"max_alerts_per_hour": { //Int64
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
 			},
 			"groupings": { // [MonitorV2ColumnInput!]
@@ -246,11 +244,70 @@ func dataSourceMonitorV2() *schema.Resource {
 							Computed:    true,
 							Description: descriptions.Get("monitorv2", "schema", "actions", "oid"),
 						},
+						"action": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "action"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// fields of MonitorV2ActionInput
+									"type": { // MonitorV2ActionType!
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"email": { // MonitorV2EmailDestinationInput
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     monitorV2EmailActionDatasource(),
+									},
+									"webhook": { // MonitorV2WebhookDestinationInput
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     monitorV2WebhookActionDatasource(),
+									},
+									"description": { // String
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 						"levels": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
+						},
+						"conditions": { // MonitorV2ComparisonExpression
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_terms": { // [MonitorV2ComparisonTerm!]
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"comparison": { // [MonitorV2Comparison!]!
+													Type:        schema.TypeList,
+													Computed:    true,
+													Elem:        monitorV2ComparisonDatasource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
+												},
+												"column": { // [MonitorV2Column!]!
+													Type:        schema.TypeList,
+													Computed:    true,
+													Elem:        monitorV2ColumnDatasource(),
+													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
+												},
+											},
+										},
+									},
+									// note: operator is an implied AND for now until the UI supports OR
+								},
+							},
 						},
 						"send_end_notifications": { // Boolean
 							Type:     schema.TypeBool,
