@@ -258,11 +258,13 @@ func dataSourceMonitorV2() *schema.Resource {
 									},
 									"email": { // MonitorV2EmailDestinationInput
 										Type:     schema.TypeList,
+										Optional: true,
 										Computed: true,
 										Elem:     monitorV2EmailActionDatasource(),
 									},
 									"webhook": { // MonitorV2WebhookDestinationInput
 										Type:     schema.TypeList,
+										Optional: true,
 										Computed: true,
 										Elem:     monitorV2WebhookActionDatasource(),
 									},
@@ -282,23 +284,27 @@ func dataSourceMonitorV2() *schema.Resource {
 						"conditions": { // MonitorV2ComparisonExpression
 							Type:        schema.TypeList,
 							Computed:    true,
+							Optional:    true,
 							Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"compare_terms": { // [MonitorV2ComparisonTerm!]
 										Type:     schema.TypeList,
 										Computed: true,
+										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"comparison": { // [MonitorV2Comparison!]!
 													Type:        schema.TypeList,
 													Computed:    true,
+													Optional:    true,
 													Elem:        monitorV2ComparisonDatasource(),
 													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
 												},
 												"column": { // [MonitorV2Column!]!
 													Type:        schema.TypeList,
 													Computed:    true,
+													Optional:    true,
 													Elem:        monitorV2ColumnDatasource(),
 													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
 												},
