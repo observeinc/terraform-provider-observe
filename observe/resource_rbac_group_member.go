@@ -33,9 +33,9 @@ func resourceRbacGroupmember() *schema.Resource {
 				ValidateDiagFunc: validateOID(oid.TypeRbacGroup),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressAlways,
 			},
 			"member": {
 				Type:     schema.TypeList,
