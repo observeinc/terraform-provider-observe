@@ -60,7 +60,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					}
 					field {
 						name = "TAG"
-						type = "any"
+						type = "variant"
 						sql_type = "VARIANT"
 					}
 				}`, randomPrefix, randomTablePrefix, randomTablePrefix),
@@ -127,7 +127,7 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 					}
 					field {
 						name = "TAG"
-						type = "any"
+						type = "variant"
 						sql_type = "VARIANT"
 					}
 					field {
@@ -227,7 +227,7 @@ func TestInvalidValidFromFieldErrors(t *testing.T) {
 					}
 					field {
 						name = "TAG"
-						type = "any"
+						type = "variant"
 						sql_type = "VARIANT"
 					}
 				}`, randomPrefix, randomTablePrefix, randomTablePrefix),

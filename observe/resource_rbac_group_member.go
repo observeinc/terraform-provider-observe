@@ -35,6 +35,7 @@ func resourceRbacGroupmember() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"member": {
 				Type:     schema.TypeList,
