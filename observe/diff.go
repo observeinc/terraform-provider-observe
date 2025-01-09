@@ -11,3 +11,7 @@ func diffSuppressDuration(k, old, new string, d *schema.ResourceData) bool {
 	n, _ := time.ParseDuration(new)
 	return o == n
 }
+
+func diffSuppressAlways(_, _, _ string, _ *schema.ResourceData) bool {
+	return true
+}
