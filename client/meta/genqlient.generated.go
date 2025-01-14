@@ -5000,6 +5000,14 @@ type MonitorV2Definition struct {
 	// not specify this field is a real-time transform monitor with a default freshness goal that
 	// you cannot control.
 	Scheduling *MonitorV2Scheduling `json:"scheduling"`
+	// The custom variables allow the Monitor definition to convey desired variables to the
+	// notification templates. The values in this object should be strings that can contain
+	// simple mustache templates that will be rendered prior to the action rendering
+	// and will be made available to the action as {{monitor.variables.key}} where
+	// 'key' is the key in this object.
+	// note: These are distinctly different than the action fragments, which are treated as
+	// mustache partials.
+	CustomVariables *types.JsonObject `json:"customVariables"`
 }
 
 // GetInputQuery returns MonitorV2Definition.InputQuery, and is useful for accessing the field via an interface.
@@ -5027,6 +5035,9 @@ func (v *MonitorV2Definition) GetGroupings() []MonitorV2Column { return v.Groupi
 // GetScheduling returns MonitorV2Definition.Scheduling, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Scheduling }
 
+// GetCustomVariables returns MonitorV2Definition.CustomVariables, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
+
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
@@ -5035,6 +5046,7 @@ type MonitorV2DefinitionInput struct {
 	MaxAlertsPerHour       *types.Int64Scalar        `json:"maxAlertsPerHour,omitempty"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
+	CustomVariables        *types.JsonObject         `json:"customVariables"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
@@ -5061,6 +5073,9 @@ func (v *MonitorV2DefinitionInput) GetGroupings() []MonitorV2ColumnInput { retur
 
 // GetScheduling returns MonitorV2DefinitionInput.Scheduling, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetScheduling() *MonitorV2SchedulingInput { return v.Scheduling }
+
+// GetCustomVariables returns MonitorV2DefinitionInput.CustomVariables, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
 
 // MonitorV2DefinitionInputQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorV2DefinitionInputQueryMultiStageQuery struct {
@@ -13364,6 +13379,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -16853,6 +16869,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -18569,6 +18586,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -19256,6 +19274,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -19497,6 +19516,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -21206,6 +21226,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	customVariables
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID

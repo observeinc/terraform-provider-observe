@@ -122,6 +122,7 @@ fragment MonitorV2Definition on MonitorV2Definition{
     scheduling {
         ...MonitorV2Scheduling
     }
+    customVariables
 }
 
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {

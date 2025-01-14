@@ -240,6 +240,12 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"custom_variables": { // JsonObject
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateStringIsJSON,
+				DiffSuppressFunc: diffSuppressJSON,
+				Optional:         true,
+			},
 			// end of fields of MonitorV2DefinitionInput
 			// the following field describes how monitorv2 is connected to shared actions.
 			"actions": { // [MonitorV2ActionRuleInput]
@@ -622,6 +628,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		if err := data.Set("scheduling", monitorV2FlattenScheduling(*monitor.Definition.Scheduling)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if monitor.Definition.CustomVariables != nil {
+		data.Set("custom_variables", monitor.Definition.CustomVariables.String())
 	}
 
 	if len(monitor.ActionRules) > 0 {
