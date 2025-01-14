@@ -413,6 +413,16 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     you cannot control.
     """
     scheduling: MonitorV2Scheduling
+    """
+    The notification fragments allow the Monitor definition itself to convey desired
+    fields to the notification rendering logic. For example, a key of 'headline' defined
+    here would make itself available to all notification actions attached to this monitor
+    in the expansion syntax '{{>headline}}'. This is especially useful in shared actions
+    to let the monitor definition control the contents of a subject-like
+    text value, while still controlling the placement and usage of that value.
+    note: This value overrides any values with the same name in the action definition.
+    """
+    notificationFragments: JsonObject
 }
 
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
@@ -424,6 +434,7 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     maxAlertsPerHour: Int64
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput
+    notificationFragments: JsonObject
 }
 
 

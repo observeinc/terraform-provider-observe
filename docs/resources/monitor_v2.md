@@ -39,6 +39,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+- `notificationFragments` (String)
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only

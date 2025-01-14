@@ -5000,6 +5000,14 @@ type MonitorV2Definition struct {
 	// not specify this field is a real-time transform monitor with a default freshness goal that
 	// you cannot control.
 	Scheduling *MonitorV2Scheduling `json:"scheduling"`
+	// The notification fragments allow the Monitor definition itself to convey desired
+	// fields to the notification rendering logic. For example, a key of 'headline' defined
+	// here would make itself available to all notification actions attached to this monitor
+	// in the expansion syntax '{{>headline}}'. This is especially useful in shared actions
+	// to let the monitor definition control the contents of a subject-like
+	// text value, while still controlling the placement and usage of that value.
+	// note: This value overrides any values with the same name in the action definition.
+	NotificationFragments *types.JsonObject `json:"notificationFragments"`
 }
 
 // GetInputQuery returns MonitorV2Definition.InputQuery, and is useful for accessing the field via an interface.
@@ -5027,6 +5035,11 @@ func (v *MonitorV2Definition) GetGroupings() []MonitorV2Column { return v.Groupi
 // GetScheduling returns MonitorV2Definition.Scheduling, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Scheduling }
 
+// GetNotificationFragments returns MonitorV2Definition.NotificationFragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetNotificationFragments() *types.JsonObject {
+	return v.NotificationFragments
+}
+
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
 	Rules                  []MonitorV2RuleInput      `json:"rules"`
@@ -5035,6 +5048,7 @@ type MonitorV2DefinitionInput struct {
 	MaxAlertsPerHour       *types.Int64Scalar        `json:"maxAlertsPerHour,omitempty"`
 	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
 	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
+	NotificationFragments  *types.JsonObject         `json:"notificationFragments"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
@@ -5061,6 +5075,11 @@ func (v *MonitorV2DefinitionInput) GetGroupings() []MonitorV2ColumnInput { retur
 
 // GetScheduling returns MonitorV2DefinitionInput.Scheduling, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetScheduling() *MonitorV2SchedulingInput { return v.Scheduling }
+
+// GetNotificationFragments returns MonitorV2DefinitionInput.NotificationFragments, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetNotificationFragments() *types.JsonObject {
+	return v.NotificationFragments
+}
 
 // MonitorV2DefinitionInputQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorV2DefinitionInputQueryMultiStageQuery struct {
@@ -13364,6 +13383,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -16853,6 +16873,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -18569,6 +18590,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -19256,6 +19278,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -19497,6 +19520,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -21206,6 +21230,7 @@ fragment MonitorV2Definition on MonitorV2Definition {
 	scheduling {
 		... MonitorV2Scheduling
 	}
+	notificationFragments
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID

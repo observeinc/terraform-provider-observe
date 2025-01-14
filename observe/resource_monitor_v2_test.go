@@ -356,6 +356,9 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 								freshness_goal = "15m"
 							}
 						}
+						notification_fragments = jsonencode({
+							fizz = "buzz"
+						})
 						max_alerts_per_hour = 99
 						actions {
 							action {
@@ -382,7 +385,7 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 									subject = "never gonna give you up"
 									body = "never gonna let you down"
 									fragments = jsonencode({
-										fizz = "buzz"
+										fizz = "boo"
 									})
 									addresses = ["test@observeinc.com"]
 									users = [data.observe_user.system.oid]

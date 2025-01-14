@@ -228,6 +228,10 @@ func dataSourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"notification_fragments": { // JsonObject
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
