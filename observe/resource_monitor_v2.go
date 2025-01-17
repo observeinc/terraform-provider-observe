@@ -193,7 +193,7 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				DiffSuppressFunc: diffSuppressDuration, // Since this is optional:true and nullable:false in GraphQL, null and "0" are the same
 				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
@@ -398,12 +398,12 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
-			"value_duration": { // Int64
+			"value_duration": { // String
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Schema{
-					Type:             schema.TypeInt,
+					Type:             schema.TypeString,
 					ValidateDiagFunc: validateTimeDuration,
 					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
