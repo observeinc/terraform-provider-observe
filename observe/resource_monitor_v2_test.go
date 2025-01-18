@@ -226,7 +226,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 								compare_columns {
 									compare_values {
 										compare_fn = "greater"
-										value_duration = ["1m"]
+										value_duration = [60000000000]
 									}
 									column {
 										column_path {
