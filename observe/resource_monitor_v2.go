@@ -399,14 +399,10 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
 			"value_duration": { // Integer
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Schema{
-					Type:             schema.TypeInt,
-					ValidateDiagFunc: validateTimeDuration,
-					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
-				},
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeInt},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_duration"),
 			},
 			"value_timestamp": { // Time
