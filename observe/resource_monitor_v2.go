@@ -193,7 +193,7 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressDuration, // Since this is optional:true and nullable:false in GraphQL, null and "0" are the same
+				DiffSuppressFunc: diffSuppressDuration, // Since this is optional:true and nullable:false in gmodelgen, null and "0" are the same
 				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
