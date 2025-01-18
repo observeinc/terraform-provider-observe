@@ -398,12 +398,12 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
-			"value_duration": { // String
+			"value_duration": { // Integer
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Schema{
-					Type:             schema.TypeString,
+					Type:             schema.TypeInt,
 					ValidateDiagFunc: validateTimeDuration,
 					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
