@@ -145,6 +145,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 							pipeline = <<-EOF
 								colmake temp_number:14
 								colmake temp_string:"test"
+								colmake temp_duration:5m
 							EOF
 						}
 						rules {
@@ -200,6 +201,68 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.1.promote.0.compare_columns.0.compare_values.0.value_string.0", "test"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.1.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_string"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
+				),
+			},
+			// now test update
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "promote"
+						name = "%[1]s"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								colmake temp_number:14
+								colmake temp_string:"test"
+								colmake temp_duration:5m
+							EOF
+						}
+						rules {
+							level = "informational"
+							promote {
+								compare_columns {
+									compare_values {
+										compare_fn = "greater"
+										value_duration = ["1m"]
+									}
+									column {
+										column_path {
+											name = "temp_duration"
+										}
+									}
+								}
+							}
+						}
+						rules {
+							level = "error"
+							promote {
+								compare_columns {
+									compare_values {
+										compare_fn = "not_contains"
+										value_string = ["test"]
+									}
+									column {
+										column_path {
+											name = "temp_string"
+										}
+									}
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal= "15m"
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.value_duration.0", "1m"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_duration"),
 				),
 			},
 		},
