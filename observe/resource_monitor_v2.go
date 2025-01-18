@@ -193,7 +193,7 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				DiffSuppressFunc: diffSuppressDuration, // Since this is optional:true and nullable:false in gmodelgen, null and "0" are the same
 				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
@@ -398,15 +398,11 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
-			"value_duration": { // Int64
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Schema{
-					Type:             schema.TypeInt,
-					ValidateDiagFunc: validateTimeDuration,
-					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
-				},
+			"value_duration": { // Integer
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        &schema.Schema{Type: schema.TypeInt},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_duration"),
 			},
 			"value_timestamp": { // Time
