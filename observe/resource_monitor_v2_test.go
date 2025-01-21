@@ -226,7 +226,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 								compare_columns {
 									compare_values {
 										compare_fn = "greater"
-										value_duration = [60000000000]
+										value_duration = ["1m"]
 									}
 									column {
 										column_path {
@@ -261,7 +261,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.value_duration.0", "60000000000"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.0.value_duration.0", "1m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_duration"),
 				),
 			},
