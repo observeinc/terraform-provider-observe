@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/client/meta"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -193,7 +192,7 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				DiffSuppressFunc: diffSuppressDuration, // Since this is optional:true and nullable:false in gmodelgen, null and "0" are the same
 				Description:      descriptions.Get("monitorv2", "schema", "lookback_time"),
 			},
 			"data_stabilization_delay": { // Duration
@@ -398,12 +397,12 @@ func monitorV2ComparisonResource() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
-			"value_duration": { // Int64
+			"value_duration": { // String
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Schema{
-					Type:             schema.TypeInt,
+					Type:             schema.TypeString,
 					ValidateDiagFunc: validateTimeDuration,
 					DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				},
@@ -841,7 +840,8 @@ func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue, primit
 		primitiveValue["value_timestamp"] = []interface{}{gqlPrimitiveValue.Timestamp.String()}
 	}
 	if gqlPrimitiveValue.Duration != nil {
-		primitiveValue["value_duration"] = []interface{}{gqlPrimitiveValue.Duration.String()}
+		dur := time.Duration(int64(*gqlPrimitiveValue.Duration))
+		primitiveValue["value_duration"] = []interface{}{dur.String()}
 	}
 }
 
@@ -858,14 +858,6 @@ func monitorV2FlattenGroupings(gqlGroupings []gql.MonitorV2Column) []interface{}
 		groupings = append(groupings, grouping)
 	}
 	return groupings
-}
-
-func monitorV2FlattenColumnPaths(gqlColumnPaths []gql.MonitorV2ColumnPath) []interface{} {
-	var columnPaths []interface{}
-	for _, gqlColumnPath := range gqlColumnPaths {
-		columnPaths = append(columnPaths, monitorV2FlattenColumnPath(gqlColumnPath))
-	}
-	return columnPaths
 }
 
 func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) []interface{} {
@@ -939,7 +931,7 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	// instantiation
 	input = &gql.MonitorV2Input{
 		Definition: *definitionInput,
-		RuleKind:   meta.MonitorV2RuleKind(ruleKind),
+		RuleKind:   gql.MonitorV2RuleKind(ruleKind),
 		Name:       name,
 	}
 
