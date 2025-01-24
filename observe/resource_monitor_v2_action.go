@@ -329,7 +329,7 @@ func newMonitorV2ActionInput(path string, data *schema.ResourceData) (input *gql
 		}
 		input.Email = email
 	}
-	if _, ok := data.GetOk("webhook"); ok {
+	if _, ok := data.GetOk(fmt.Sprintf("%swebhook", path)); ok {
 		webhook, diags := newMonitorV2WebhookActionInput(data, fmt.Sprintf("%swebhook.0.", path))
 		if diags.HasError() {
 			return nil, diags
