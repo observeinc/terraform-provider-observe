@@ -269,7 +269,7 @@ func TestAccObserveMonitorV2Promote(t *testing.T) {
 	})
 }
 
-func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
+func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -361,6 +361,20 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 							send_end_notifications = false
 							send_reminders_interval = "20m"
 						}
+						actions {
+							action {
+								type = "webhook"
+								webhook {
+									url = "https://example.com"
+									method = "post"
+									body = "test"
+								}
+								description = "an interesting description 3"
+							}
+							levels = ["error"]
+							send_end_notifications = false
+							send_reminders_interval = "30m"
+						}
 					}
 
 					data "observe_user" "system" {
@@ -372,15 +386,22 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "max_alerts_per_hour", "99"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.description", "an interesting description 1"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.description", "an interesting description 2"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "10m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.description", "an interesting description 2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "20m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.compare_fn", "equal"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.value_string.0", "test"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.column.0.column_path.0.name", "description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.type", "webhook"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.description", "an interesting description 3"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.webhook.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.webhook.0.method", "post"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.webhook.0.body", "test"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.send_reminders_interval", "30m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
 				),
 			},
 			// now test update
@@ -443,6 +464,20 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 						}
 						actions {
 							action {
+								type = "webhook"
+								webhook {
+									url = "https://example.com"
+									method = "post"
+									body = "test"
+								}
+								description = "an interesting description 3 - reordered"
+							}
+							levels = ["error"]
+							send_end_notifications = false
+							send_reminders_interval = "33m"
+						}
+						actions {
+							action {
 								type = "email"
 								email {
 									subject = "never gonna give you up"
@@ -480,8 +515,15 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "15m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.description", "an interesting description 1"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "11m0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "22m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.type", "webhook"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.description", "an interesting description 3 - reordered"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "33m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.description", "an interesting description 2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.send_reminders_interval", "22m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "custom_variables", `{"fizz":"buzz"}`),
 				),
 			},
