@@ -482,6 +482,7 @@ func TestAccObserveMonitorV2MultipleActionsEmailViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "15m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "11m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "22m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "custom_variables", `{"fizz":"buzz"}`),
 				),
 			},
 		},

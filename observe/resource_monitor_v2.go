@@ -1019,6 +1019,10 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		defnInput.LookbackTime = lookbackTime
 	}
 
+	if v, ok := data.GetOk("custom_variables"); ok {
+		defnInput.CustomVariables = types.JsonObject(v.(string)).Ptr()
+	}
+
 	return defnInput, diags
 }
 
