@@ -4888,6 +4888,8 @@ const (
 	MonitorV2ComparisonFunctionEqual          MonitorV2ComparisonFunction = "Equal"
 	MonitorV2ComparisonFunctionGreater        MonitorV2ComparisonFunction = "Greater"
 	MonitorV2ComparisonFunctionGreaterorequal MonitorV2ComparisonFunction = "GreaterOrEqual"
+	MonitorV2ComparisonFunctionIsnotnull      MonitorV2ComparisonFunction = "IsNotNull"
+	MonitorV2ComparisonFunctionIsnull         MonitorV2ComparisonFunction = "IsNull"
 	MonitorV2ComparisonFunctionLess           MonitorV2ComparisonFunction = "Less"
 	MonitorV2ComparisonFunctionLessorequal    MonitorV2ComparisonFunction = "LessOrEqual"
 	MonitorV2ComparisonFunctionNotcontains    MonitorV2ComparisonFunction = "NotContains"

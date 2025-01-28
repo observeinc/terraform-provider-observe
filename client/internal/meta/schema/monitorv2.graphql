@@ -75,6 +75,8 @@ enum MonitorV2ComparisonFunction @goModel(model: "observe/meta/metatypes.Monitor
   Equal
   Greater
   GreaterOrEqual
+  IsNotNull
+  IsNull
   Less
   LessOrEqual
   NotContains
