@@ -440,6 +440,9 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 								freshness_goal = "15m"
 							}
 						}
+						custom_variables = jsonencode({
+							fizz = "buzz"
+						})
 						max_alerts_per_hour = 99
 						actions {
 							action {
@@ -480,7 +483,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 									subject = "never gonna give you up"
 									body = "never gonna let you down"
 									fragments = jsonencode({
-										fizz = "buzz"
+										fizz = "boo"
 									})
 									addresses = ["test@observeinc.com"]
 									users = [data.observe_user.system.oid]
@@ -521,6 +524,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.description", "an interesting description 2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.send_reminders_interval", "22m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "custom_variables", `{"fizz":"buzz"}`),
 				),
 			},
 		},

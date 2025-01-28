@@ -413,6 +413,16 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     you cannot control.
     """
     scheduling: MonitorV2Scheduling
+    """
+    The custom variables allow the Monitor definition to convey desired variables to the
+    notification templates. The values in this object should be strings that can contain
+    simple mustache templates that will be rendered prior to the action rendering
+    and will be made available to the action as {{monitor.variables.key}} where
+    'key' is the key in this object.
+    note: These are distinctly different than the action fragments, which are treated as
+    mustache partials.
+    """
+    customVariables: JsonObject
 }
 
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
@@ -424,6 +434,7 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     maxAlertsPerHour: Int64
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput
+    customVariables: JsonObject
 }
 
 
