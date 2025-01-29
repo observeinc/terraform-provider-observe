@@ -51,7 +51,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 - `acceleration_disabled` (Boolean) Disables periodic materialization of the dataset
 - `acceleration_disabled_source` (String) Source of disabled materialization
-- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
+- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.

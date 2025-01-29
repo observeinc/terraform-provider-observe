@@ -13,7 +13,7 @@ import (
 
 func resourceChannel() *schema.Resource {
 	return &schema.Resource{
-		Description:        "Manages a channel, which specifies a set of monitors for which notifications will be delivered.",
+		Description:        "Deprecated. Use `observe_monitor_action_attachment` instead.\n\nManages a channel, which specifies a set of monitors for which notifications will be delivered.",
 		DeprecationMessage: "Channels are deprecated in favor of attaching Monitor Actions to Monitors. See `observe_monitor_action_attachment`.",
 		CreateContext:      resourceChannelCreate,
 		ReadContext:        resourceChannelRead,

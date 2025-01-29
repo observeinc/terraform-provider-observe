@@ -3,15 +3,12 @@
 page_title: "observe_resource_grants Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  NOTE: This feature is still under development. It is not meant for customer use yet.
   Authoritative. Should not be used together with any observe_grants targeting the
   same resource as they will conflict.
   Manages the complete set of grants for a given resource, replacing any existing ones.
   If no grants are specified, only admins will have access.
 ---
 # observe_resource_grants
-
-NOTE: This feature is still under development. It is not meant for customer use yet.
 
 Authoritative. Should not be used together with any `observe_grant`s targeting the
 same resource as they will conflict.

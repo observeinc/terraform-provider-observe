@@ -3,9 +3,12 @@
 page_title: "observe_channel Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Use observe_monitor_action_attachment instead.
   Manages a channel, which specifies a set of monitors for which notifications will be delivered.
 ---
 # observe_channel
+
+Deprecated. Use `observe_monitor_action_attachment` instead.
 
 Manages a channel, which specifies a set of monitors for which notifications will be delivered.
 

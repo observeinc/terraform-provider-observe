@@ -3,10 +3,13 @@
 page_title: "observe_board Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Use observe_dashboard instead.
   Fetches data for an existing Observe board.
 ---
 
 # observe_board (Data Source)
+
+Deprecated. Use `observe_dashboard` instead.
 
 Fetches data for an existing Observe board.
 

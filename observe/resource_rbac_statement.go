@@ -36,11 +36,12 @@ var rbacStatementObjectTypes = []string{
 
 func resourceRbacStatement() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a RBAC Statement.",
-		CreateContext: resourceRbacStatementCreate,
-		UpdateContext: resourceRbacStatementUpdate,
-		ReadContext:   resourceRbacStatementRead,
-		DeleteContext: resourceRbacStatementDelete,
+		Description:        "Deprecated. Only for use with RBAC v1. For v2, use `observe_grant`.\n\nManages a RBAC Statement.",
+		DeprecationMessage: "RBAC Statements are deprecated and only for use with RBAC v1. For v2, see `observe_grant`.",
+		CreateContext:      resourceRbacStatementCreate,
+		UpdateContext:      resourceRbacStatementUpdate,
+		ReadContext:        resourceRbacStatementRead,
+		DeleteContext:      resourceRbacStatementDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
