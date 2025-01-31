@@ -3,9 +3,12 @@
 page_title: "observe_board Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Use observe_dashboard instead.
   Manages an Observe board.
 ---
 # observe_board
+
+Deprecated. Use `observe_dashboard` instead.
 
 Manages an Observe board.
 

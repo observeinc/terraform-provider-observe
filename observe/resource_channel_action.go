@@ -14,7 +14,7 @@ import (
 
 func resourceChannelAction() *schema.Resource {
 	return &schema.Resource{
-		Description:        "Manages a channel action, which adds a notification template to the specified channel. Channel actions are used to configure delivery for monitor alerts.",
+		Description:        "Deprecated. Use `observe_monitor_action` instead.\n\nManages a channel action, which adds a notification template to the specified channel. Channel actions are used to configure delivery for monitor alerts.",
 		DeprecationMessage: "Channel Actions are deprecated in favor of Monitor Actions.",
 		CreateContext:      resourceChannelActionCreate,
 		ReadContext:        resourceChannelActionRead,

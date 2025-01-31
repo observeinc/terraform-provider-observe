@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	schemaBoardDescription        = "Manages an Observe board."
 	schemaBoardOIDDescription     = "Observe ID of Board."
 	schemaBoardDatasetDescription = "OID of Dataset for which board is defined."
 	schemaBoardTypeDescription    = "Type of board."
@@ -23,7 +24,7 @@ const (
 
 func resourceBoard() *schema.Resource {
 	return &schema.Resource{
-		Description:        "Manages an Observe board.",
+		Description:        "Deprecated. Use `observe_dashboard` instead.\n\nManages an Observe board.",
 		DeprecationMessage: "Boards have been deprecated in favor of dashboards, which can define their own stages for futher processing of datasets.",
 		CreateContext:      resourceBoardCreate,
 		ReadContext:        resourceBoardRead,

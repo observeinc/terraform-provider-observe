@@ -16,7 +16,7 @@ schema:
   acceleration_disabled_source: |
     Source of disabled materialization
   data_table_view_state: |
-    JSON representation of state used for dataset formatting in the UI
+    JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
   correlation_tag:
     description: |
       Correlation tags associated with this dataset.

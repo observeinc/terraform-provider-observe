@@ -1,6 +1,4 @@
 description: |
-  NOTE: This feature is still under development. It is not meant for customer use yet.
-  
   Authoritative. Should not be used together with any `observe_grant`s targeting the
   same resource as they will conflict.
   

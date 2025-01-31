@@ -39,7 +39,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 - `acceleration_disabled` (Boolean)
 - `acceleration_disabled_source` (String)
 - `correlation_tag` (Block List) Correlation tags associated with this dataset. (see [below for nested schema](#nestedblock--correlation_tag))
-- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
+- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
