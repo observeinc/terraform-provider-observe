@@ -14,3 +14,25 @@ schema:
     is 10m. For webhook actions the minimum is 1s.
   notify_on_close: |
     Enables a final update when a monitor action notification is closed (no longer triggered).
+  email:
+    description: |
+      Send an email as the alert action.
+    target_addresses: |
+      Email address(es) to send alert to.
+    subject_template: |
+      Template string used to build subject line.
+    body_template: |
+      Template string used to fill body of the email.
+    is_html: |
+      send the email as html allowing rich formatting in the body.
+  webhook:
+    description: |
+      Make a request to a URL as the alert action.
+    url_template: |
+      Template string used to generate the request URL.
+    method: |
+      HTTP method to use for the request.
+    body_template: |
+      Template string used to fill body of request sent to URL.
+    headers: |
+      Extra headers to send along with the request.

@@ -50,19 +50,21 @@ resource "observe_bookmark" "dashboard" {
 
 ### Required
 
-- `group` (String)
-- `name` (String)
-- `target` (String) The OID of the resource to bookmark. Datasets and dashboards are currently supported.
+- `group` (String) OID of the bookmark group used to organize the bookmark
+- `name` (String) Name of the bookmark
+- `target` (String) The OID of the resource to bookmark. Datasets and dashboards are currently supported
 
 ### Optional
 
-- `bookmark_kind` (String) The target page for your bookmark. An appropriate default will be used if not set. Accepted values: dataset, dashboard, log_explorer, metric_explorer
-- `icon_url` (String)
+- `bookmark_kind` (String) The target page for your bookmark. An appropriate default will be used if not set.
+ Accepted values: dataset, dashboard, log_explorer, metric_explorer
+- `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `oid` (String)
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 ## Import
 Import is supported using the following syntax:
 ```shell

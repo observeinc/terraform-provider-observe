@@ -10,11 +10,12 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceApp() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Installs an Observe App. Each app can only be installed once per workspace.",
+		Description:   descriptions.Get("app", "description"),
 		CreateContext: resourceAppCreate,
 		UpdateContext: resourceAppUpdate,
 		ReadContext:   resourceAppRead,
@@ -27,28 +28,34 @@ func resourceApp() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
+				Description:      descriptions.Get("common", "schema", "folder"),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "name"),
 			},
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"module_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("app", "schema", "module_id"),
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "version"),
 			},
 			"variables": {
 				Type:             schema.TypeMap,
 				Optional:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
+				Description:      descriptions.Get("app", "schema", "variables"),
 			},
 			"outputs": {
 				Type:     schema.TypeString,

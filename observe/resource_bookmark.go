@@ -11,11 +11,12 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceBookmark() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Bookmark an Observe resource for easy access.",
+		Description:   descriptions.Get("bookmark", "description"),
 		CreateContext: resourceBookmarkCreate,
 		ReadContext:   resourceBookmarkRead,
 		UpdateContext: resourceBookmarkUpdate,
@@ -25,8 +26,9 @@ func resourceBookmark() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"group": {
 				Type: schema.TypeString,
@@ -35,26 +37,29 @@ func resourceBookmark() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeBookmarkGroup),
+				Description:      descriptions.Get("bookmark", "schema", "group"),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("bookmark", "schema", "name"),
 			},
 			"icon_url": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
 			"target": {
 				Type:             schema.TypeString,
 				Required:         true,
-				Description:      "The OID of the resource to bookmark. Datasets and dashboards are currently supported.",
+				Description:      descriptions.Get("bookmark", "schema", "target"),
 				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeDashboard),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 			"bookmark_kind": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Description:      describeEnums(gql.AllBookmarkKindTypes, "The target page for your bookmark. An appropriate default will be used if not set."),
+				Description:      describeEnums(gql.AllBookmarkKindTypes, descriptions.Get("bookmark", "schema", "bookmark_kind")),
 				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
 			},
 		},

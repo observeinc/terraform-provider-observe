@@ -217,6 +217,8 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 
 	if v, ok := data.GetOk("data_table_view_state"); ok {
 		input.DataTableViewState = types.JsonObject(v.(string)).Ptr()
+	} else {
+		input.DataTableViewState = types.JsonObject("null").Ptr()
 	}
 
 	return input, query, diags
@@ -275,6 +277,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if d.DataTableViewState != nil {
+		fmt.Println(d.DataTableViewState.String())
 		if err := data.Set("data_table_view_state", d.DataTableViewState.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

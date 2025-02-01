@@ -1,0 +1,5 @@
+schema:
+  dataset: >
+    The OID of the dataset that the default dashboard is being set for.
+  dashboard: >
+    The associated default dashboard.

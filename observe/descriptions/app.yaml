@@ -1,0 +1,20 @@
+description: >
+  Installs an Observe App. Each app can only be installed once per workspace.
+
+schema:
+  folder: >
+    Folder that the app is in. Required if looking up by name.
+  id: >
+    ID of the app. If looking up app, one of name or id must be specified.
+  name: >
+    Generated display name of app.
+  module_id: >
+    Underlying module id for the specific app. Each module_id corresponds with one app.
+  version: >
+    The version of the app to install.
+  variables: >
+    Additional settings to pass to the app.
+  description: >
+    The description of the app. Packaged with the app module.
+  outputs: >
+    Resources outputted by the app for user consumption

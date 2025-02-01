@@ -9,6 +9,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceAppDataSource() *schema.Resource {
@@ -20,37 +21,45 @@ func resourceAppDataSource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Description: descriptions.Get("app_datasource", "description"),
 		Schema: map[string]*schema.Schema{
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("app_datasource", "schema", "name"),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("app_datasource", "schema", "description"),
 			},
 			"source_url": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("app_datasource", "schema", "source_url"),
 			},
 			//TODO: api requires it currently. But this should be optionally inferred via the app than a mandatory input.
 			"instructions": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("app_datasource", "schema", "instructions"),
 			},
 			"app": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeApp),
+				Description:      descriptions.Get("app_datasource", "schema", "app"),
 			},
 			"variables": {
 				Type:             schema.TypeMap,
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateIsString()),
+				Description:      descriptions.Get("app_datasource", "schema", "variables"),
 			},
 		},
 	}

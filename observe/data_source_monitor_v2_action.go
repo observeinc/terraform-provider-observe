@@ -8,6 +8,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceMonitorV2Action() *schema.Resource {
@@ -20,42 +21,50 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Optional:         true,
 				ExactlyOneOf:     []string{"name", "id"},
 				ValidateDiagFunc: validateID(),
+				Description:      descriptions.Get("common", "schema", "id") + " One of either `id` or `name` must be provided.",
 			},
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("common", "schema", "workspace") + " Must be specified if looking up by name",
 			},
 			"name": { // String!
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description:  descriptions.Get("monitor_v2_action", "schema", "name") + " One of either `id` or `name` must be provided.",
 			},
 			// fields of MonitorV2ActionInput
 			"type": { // MonitorV2ActionType!
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "type"),
 			},
 			"email": { // MonitorV2EmailDestinationInput
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     monitorV2EmailActionDatasource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2EmailActionDatasource(),
+				Description: descriptions.Get("monitor_v2_action", "schema", "email"),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     monitorV2WebhookActionDatasource(),
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2WebhookActionDatasource(),
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook"),
 			},
 			"description": { // String
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "description"),
 			},
 			// end of monitorV2ActionInput
 			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"destination": { // ObjectId!
 				Type:     schema.TypeString,
