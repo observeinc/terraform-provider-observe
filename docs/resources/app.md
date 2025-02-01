@@ -35,19 +35,20 @@ resource "observe_app" "example" {
 
 ### Required
 
-- `folder` (String)
-- `module_id` (String)
+- `folder` (String) Observe folder OID for this object.
+- `module_id` (String) Underlying module id for the specific app. Each module_id corresponds with one app.
 
 ### Optional
 
-- `variables` (Map of String)
-- `version` (String)
+- `variables` (Map of String) Additional settings to pass to the app.
+- `version` (String) The version of the app to install.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `name` (String)
-- `oid` (String)
+- `name` (String) Generated display name of app.
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
 - `outputs` (String)
 ## Import
 Import is supported using the following syntax:

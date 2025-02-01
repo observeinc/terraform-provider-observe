@@ -1,0 +1,11 @@
+schema:
+  target: >
+    The OID of the target object, for which Terraform configuration will be generated. This can be a dataset, monitor, or dashboard.
+  resource: >
+    Terraform resource representation of the specified Observe resource.
+  data_source: >
+    Terraform data_source representation of the specified Observe resource.
+  import_id: >
+    Observe ID that can be used with terraform import to bring the Observe resource under terraform management.
+  import_name: >
+    Name of the specified resource  that can be used with terraform import to bring the Observe resource under terraform management.

@@ -13,3 +13,5 @@ schema:
     should be used when referring to this object in terraform manifests.
   icon_url:
     Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+  folder: |
+   Observe folder OID for this object.

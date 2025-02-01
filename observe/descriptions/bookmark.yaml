@@ -1,0 +1,11 @@
+description: >
+  Bookmark an Observe resource for easy access.
+schema:
+  group: >
+    OID of the bookmark group used to organize the bookmark
+  name: >
+    Name of the bookmark
+  target: >
+    The OID of the resource to bookmark. Datasets and dashboards are currently supported
+  bookmark_kind: >
+    The target page for your bookmark. An appropriate default will be used if not set.
