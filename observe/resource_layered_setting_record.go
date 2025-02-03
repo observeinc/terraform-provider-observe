@@ -228,6 +228,9 @@ var layeredSettingTargetFuncs = map[oid.Type]layeredSettingTargetFunc{
 	oid.TypeDatastream: func(t *gql.LayeredSettingRecordTargetInput, o *oid.OID) {
 		t.DatastreamId = &o.Id
 	},
+	oid.TypeRbacGroup: func(t *gql.LayeredSettingRecordTargetInput, o *oid.OID) {
+		t.RbacGroupId = &o.Id
+	},
 	oid.TypeUser: func(t *gql.LayeredSettingRecordTargetInput, o *oid.OID) {
 		t.UserId = oid.OidToUserId(*o)
 	},
@@ -271,6 +274,8 @@ func targetEncode(data *schema.ResourceData, target *gql.LayeredSettingRecordTar
 		value = oid.DatasetOid(*target.DatasetId).String()
 	case target.DatastreamId != nil:
 		value = oid.DatastreamOid(*target.DatastreamId).String()
+	case target.RbacGroupId != nil:
+		value = oid.RbacGroupOid(*target.RbacGroupId).String()
 	case target.UserId != nil:
 		value = oid.UserOid(*target.UserId).String()
 	default:

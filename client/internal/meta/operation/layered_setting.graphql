@@ -37,6 +37,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
     dashboardId
     datasetId
     datastreamId
+    rbacGroupId
     userId
 }
 
@@ -58,6 +59,7 @@ fragment PrimitiveValue on PrimitiveValue {
 # @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.rbacGroupId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
@@ -91,6 +93,7 @@ query getLayeredSettingRecord($id: ObjectId!) {
 # @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
+# @genqlient(for: "LayeredSettingRecordTargetInput.rbacGroupId", omitempty: true)
 # @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
