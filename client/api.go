@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/observeinc/terraform-provider-observe/client/internal/customer"
 	"github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
@@ -1470,4 +1471,36 @@ func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
 
 func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
 	return c.Meta.GetCloudInfo(ctx)
+}
+
+func (c *Client) UpdateReferenceTable(ctx context.Context, id string, input *customer.ReferenceTableInput) (*customer.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	result, err := c.Customer.UpdateReferenceTable(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) DeleteReferenceTable(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Customer.DeleteReferenceTable(ctx, id)
+}
+
+func (c *Client) GetReferenceTable(ctx context.Context, id string) (*customer.ReferenceTable, error) {
+	return c.Customer.GetReferenceTable(ctx, id)
+}
+
+func (c *Client) LookupReferenceTable(ctx context.Context, workspaceId *string, nameExact *string) (*customer.ReferenceTable, error) {
+	return c.Customer.LookupReferenceTable(ctx, workspaceId, nameExact)
 }
