@@ -16,6 +16,7 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/internal/collect"
 	"github.com/observeinc/terraform-provider-observe/client/internal/customer"
 	"github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
 // RoundTripperFunc implements http.RoundTripper
@@ -35,6 +36,7 @@ type Client struct {
 	Meta     *meta.Client
 	Customer *customer.Client
 	Collect  *collect.Client
+	Rest     *rest.Client
 }
 
 // login to retrieve a valid token, only need to do this once
@@ -173,11 +175,17 @@ func New(c *Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to configure meta API: %w", err)
 	}
 
+	restAPI, err := rest.New(customerURL, httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure rest API: %w", err)
+	}
+
 	client := &Client{
 		Config:   c,
 		Meta:     metaAPI,
 		Customer: customer.New(customerURL, httpClient),
 		Collect:  collectAPI,
+		Rest:     restAPI,
 	}
 
 	httpClient.Transport = client.withMiddleware(transport)
