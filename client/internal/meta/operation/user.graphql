@@ -20,3 +20,10 @@ query listUsers {
 		}
 	}
 }
+
+query currentUser {
+	# @genqlient(flatten: true)
+	user: currentUser {
+		...User
+	}
+}

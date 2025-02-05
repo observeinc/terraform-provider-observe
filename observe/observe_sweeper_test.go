@@ -651,11 +651,18 @@ func rbacStatementSweeperFunc(pattern string) error {
 
 	ctx := context.Background()
 
+	// rbac statements don't have a name/description, so delete all statements created by this user
+	currentUser, err := client.Meta.GetCurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	// rbac resource statements are automatically deleted when the resource is deleted
 	result, err := client.Meta.Run(ctx, `
-	query rbacStatements {
-		rbacStatements {
+	query rbacRoleStatements {
+		rbacRoleStatements {
 			id
-   			description
+			createdBy
 		}
 	}`, nil)
 
@@ -663,14 +670,14 @@ func rbacStatementSweeperFunc(pattern string) error {
 		return fmt.Errorf("failed to lookup rbac statements: %w", err)
 	}
 
-	for _, i := range result["rbacStatements"].([]interface{}) {
+	for _, i := range result["rbacRoleStatements"].([]interface{}) {
 		var (
-			item        = i.(map[string]interface{})
-			id          = item["id"].(string)
-			description = item["description"].(string)
+			item      = i.(map[string]interface{})
+			id        = item["id"].(string)
+			createdBy = item["createdBy"].(string)
 		)
 
-		if client.MatchName(description) {
+		if createdBy == currentUser.Id.String() {
 			log.Printf("[WARN] Deleting rbac statement [id=%s]\n", id)
 			if err := client.DeleteRbacStatement(ctx, id); err != nil {
 				return err
