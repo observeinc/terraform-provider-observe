@@ -10672,6 +10672,14 @@ type createWorkspaceResponse struct {
 // GetWorkspace returns createWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *createWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 
+// currentUserResponse is returned by currentUser on success.
+type currentUserResponse struct {
+	User *User `json:"user"`
+}
+
+// GetUser returns currentUserResponse.User, and is useful for accessing the field via an interface.
+func (v *currentUserResponse) GetUser() *User { return v.User }
+
 // deleteAppDataSourceResponse is returned by deleteAppDataSource on success.
 type deleteAppDataSourceResponse struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -14161,6 +14169,43 @@ func createWorkspace(
 	var err error
 
 	var data createWorkspaceResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by currentUser.
+const currentUser_Operation = `
+query currentUser {
+	user: currentUser {
+		... User
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+	label
+}
+`
+
+func currentUser(
+	ctx context.Context,
+	client graphql.Client,
+) (*currentUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "currentUser",
+		Query:  currentUser_Operation,
+	}
+	var err error
+
+	var data currentUserResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
