@@ -60,7 +60,7 @@ func (r *ReferenceTableInput) RequestBody() (body *bytes.Buffer, contentType str
 		return nil, "", err
 	}
 	defer file.Close()
-	_, err = io.Copy(uploadPart, file) // TODO: can we upload in chunks instead of loading the whole file into memory at once?
+	_, err = io.Copy(uploadPart, file)
 	if err != nil {
 		return nil, "", err
 	}
