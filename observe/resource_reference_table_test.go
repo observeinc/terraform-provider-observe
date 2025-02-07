@@ -53,6 +53,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.0", "col1"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.1", "col2"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "label_field", "col3"),
+					resource.TestCheckResourceAttr("observe_reference_table.example", "checksum", "891217caed9a1c2b325f23f418afbde5"),
 				),
 			},
 			// Changing just metadata will use PATCH
