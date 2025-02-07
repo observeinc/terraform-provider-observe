@@ -136,6 +136,8 @@ func referenceTableToResourceData(d *rest.ReferenceTable, data *schema.ResourceD
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// TODO: add "primary_key" and "label_field" once supported
+
 	return diags
 }
 
