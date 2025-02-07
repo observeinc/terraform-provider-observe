@@ -73,6 +73,7 @@ func resourceReferenceTable() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("common", "schema", "oid"),
 			},
+			// TODO: support "schema"
 		},
 	}
 }
@@ -182,12 +183,9 @@ func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData
 		return nil
 	}
 
-	// If any non-metadata fields (or "source", which can be ignored) have changed,
-	// need to use the PUT method to fully replace the reference table.
-	// Otherwise, we can use the PATCH method to only update the metadata.
-	// TODO: reverse condition, and check for checksum change instead?
-	metadataFields := []string{"label", "description", "primary_key", "source"} // TODO: add label_field once supported
-	if data.HasChangesExcept(metadataFields...) {
+	// If the file has been modified (i.e. the checksum), need to use the PUT method to fully
+	// replace the reference table. Otherwise, we can use PATCH to only update the metadata.
+	if data.HasChanges("checksum", "label_field") { // TODO: remove label_field here once PATCH supported
 		config, diags := newReferenceTableConfig(data)
 		if diags.HasError() {
 			return diags

@@ -13,7 +13,7 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-// TODO: generate?
+// TODO: generate types from OpenAPI spec
 type ReferenceTableInput struct {
 	Metadata       ReferenceTableMetadataInput `json:"metadata"`
 	SourceFilePath string                      `json:"-"`
