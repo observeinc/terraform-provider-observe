@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/observeinc/terraform-provider-observe/client/internal/collect"
-	"github.com/observeinc/terraform-provider-observe/client/internal/customer"
 	"github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
 // RoundTripperFunc implements http.RoundTripper
@@ -32,9 +32,9 @@ type Client struct {
 	// our API does not allow concurrent FK creation, so we use a lock as a workaround
 	obs2110 sync.Mutex
 
-	Meta     *meta.Client
-	Customer *customer.Client
-	Collect  *collect.Client
+	Meta    *meta.Client
+	Rest    *rest.Client
+	Collect *collect.Client
 }
 
 // login to retrieve a valid token, only need to do this once
@@ -44,7 +44,7 @@ func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
 			ctx = setSensitive(ctx, true)
 			ctx = requireAuth(ctx, false)
 
-			token, err := c.Customer.Login(ctx, *c.UserEmail, *c.UserPassword)
+			token, err := c.Rest.Login(ctx, *c.UserEmail, *c.UserPassword)
 			if err != nil {
 				loginErr = fmt.Errorf("failed to retrieve token: %w", err)
 			} else {
@@ -174,10 +174,10 @@ func New(c *Config) (*Client, error) {
 	}
 
 	client := &Client{
-		Config:   c,
-		Meta:     metaAPI,
-		Customer: customer.New(customerURL, httpClient),
-		Collect:  collectAPI,
+		Config:  c,
+		Meta:    metaAPI,
+		Rest:    rest.New(customerURL, httpClient),
+		Collect: collectAPI,
 	}
 
 	httpClient.Transport = client.withMiddleware(transport)
