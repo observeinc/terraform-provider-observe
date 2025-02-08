@@ -31,9 +31,9 @@ func resourceReferenceTable() *schema.Resource {
 				Description:      descriptions.Get("reference_table", "schema", "label"),
 				ValidateDiagFunc: validateReferenceTableName(),
 			},
-			"source": {
+			"source_file": {
 				Type:             schema.TypeString,
-				Description:      descriptions.Get("reference_table", "schema", "source"),
+				Description:      descriptions.Get("reference_table", "schema", "source_file"),
 				Required:         true,
 				ValidateDiagFunc: validateFilePath(stringPtr(".csv")),
 			},
@@ -41,9 +41,10 @@ func resourceReferenceTable() *schema.Resource {
 			// entire file every time to compare against for detecting changes.
 			// See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object
 			"checksum": { // MD5 hash of source file contents
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: descriptions.Get("reference_table", "schema", "checksum"),
+				Type:     schema.TypeString,
+				Required: true,
+				Description: descriptions.Get("reference_table", "schema", "checksum") +
+					"Can be computed using `filemd5(\"<source_file>\")`.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -86,7 +87,7 @@ func newReferenceTableConfig(data *schema.ResourceData) (input *rest.ReferenceTa
 
 	input = &rest.ReferenceTableInput{
 		Metadata:       *metadataInput,
-		SourceFilePath: data.Get("source").(string),
+		SourceFilePath: data.Get("source_file").(string),
 	}
 
 	return input, diags
@@ -136,7 +137,8 @@ func referenceTableToResourceData(d *rest.ReferenceTable, data *schema.ResourceD
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO: add "primary_key" and "label_field" once supported
+	// TODO: add "primary_key" and "label_field" once API supports them in response.
+	// Until then, we're unable to detect changes to those fields made outside of Terraform.
 
 	return diags
 }
@@ -179,15 +181,17 @@ func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData
 	client := meta.(*observe.Client)
 	var err error
 
-	// If only the source field changed, i.e. the file was moved or renamed, we can ignore it.
+	// If only the source_file field changed, i.e. the file was moved or renamed, we can ignore it.
 	// If the actual file contents have changed, the checksum would also be different.
-	if !data.HasChangeExcept("source") {
+	if !data.HasChangeExcept("source_file") {
 		return nil
 	}
 
 	// If the file has been modified (i.e. the checksum), need to use the PUT method to fully
 	// replace the reference table. Otherwise, we can use PATCH to only update the metadata.
-	if data.HasChanges("checksum", "label_field") { // TODO: remove label_field here once PATCH supported
+	// TODO: remove primary_key and label_field below, API will support PATCHing them soon
+	fieldsRequiringPut := []string{"checksum", "primary_key", "label_field"}
+	if data.HasChanges(fieldsRequiringPut...) {
 		config, diags := newReferenceTableConfig(data)
 		if diags.HasError() {
 			return diags
@@ -216,6 +220,10 @@ func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData
 func resourceReferenceTableDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteReferenceTable(ctx, data.Id()); err != nil {
+		if rest.HasStatusCode(err, http.StatusNotFound) {
+			// reference table has already been deleted, ignore error
+			return diags
+		}
 		return diag.Errorf("failed to delete reference table: %s", err)
 	}
 	return diags

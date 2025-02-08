@@ -12,8 +12,8 @@ A reference table represents a source of non-temporal data being ingested into O
 ```terraform
 resource "observe_reference_table" "example" {
   label       = "Example"
-  source      = "path/to/reference_table.csv"
-  checksum    = filemd5("path/to/reference_table.csv") // must always be filemd5(source)
+  source_file = "path/to/reference_table.csv"
+  checksum    = filemd5("path/to/reference_table.csv") // must always be filemd5(source_file)
   description = "State Populations"
   primary_key = ["state_code"]
   label_field = "state_name"
@@ -24,9 +24,10 @@ resource "observe_reference_table" "example" {
 
 ### Required
 
-- `checksum` (String) MD5 checksum of the source file. Can be computed using `filemd5("<path_to_source_file>")`
+- `checksum` (String) MD5 checksum of the source file.
+Can be computed using `filemd5("<source_file>")`.
 - `label` (String) The name of the reference table name. Must be unique within workspace.
-- `source` (String) The path to a CSV file containing the reference table data.
+- `source_file` (String) The path to a CSV file containing the reference table data.
 
 ### Optional
 

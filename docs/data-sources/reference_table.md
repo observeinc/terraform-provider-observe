@@ -18,11 +18,13 @@ A reference table represents a source of non-temporal data being ingested into O
 ### Optional
 
 - `id` (String) Resource ID for this object.
+One of `label` or `id` must be set.
 - `label` (String) The name of the reference table name. Must be unique within workspace.
+One of `label` or `id` must be set.
 
 ### Read-Only
 
-- `checksum` (String) MD5 checksum of the source file. Can be computed using `filemd5("<path_to_source_file>")`
+- `checksum` (String) MD5 checksum of the source file.
 - `dataset` (String) The Observe ID for the dataset managed by the reference table.
 - `description` (String) Description for the reference table.
 - `label_field` (String) The field that should be used for the OPAL label.

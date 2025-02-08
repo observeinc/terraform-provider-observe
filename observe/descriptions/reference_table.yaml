@@ -2,10 +2,10 @@ description: |
   A reference table represents a source of non-temporal data being ingested into Observe.
 
 schema:
-  source: |
+  source_file: |
     The path to a CSV file containing the reference table data.
   checksum: |
-    MD5 checksum of the source file. Can be computed using `filemd5("<path_to_source_file>")`
+    MD5 checksum of the source file.
   label: |
     The name of the reference table name. Must be unique within workspace.
   description: |
