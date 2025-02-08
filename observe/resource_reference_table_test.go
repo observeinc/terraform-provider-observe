@@ -20,7 +20,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_reference_table" "example" {
 					label      = "%s"
-					source = "testdata/reference_table.csv"
+					source_file = "testdata/reference_table.csv"
 					checksum = filemd5("testdata/reference_table.csv")
 					description = "test"
 					primary_key = ["state_code"]
@@ -40,7 +40,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_reference_table" "example" {
 					label      = "%s"
-					source = "testdata/reference_table2.csv"
+					source_file = "testdata/reference_table2.csv"
 					checksum = filemd5("testdata/reference_table2.csv")
 					description = "hello world!"
 					primary_key = ["col1", "col2"]
@@ -61,7 +61,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_reference_table" "example" {
 					label      = "%s"
-					source = "testdata/reference_table2.csv"
+					source_file = "testdata/reference_table2.csv"
 					checksum = filemd5("testdata/reference_table2.csv")
 					description = "updated description"
 					primary_key = ["col2"]
@@ -80,7 +80,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_reference_table" "example" {
 					label      = "%s"
-					source = "testdata/reference_table2.csv"
+					source_file = "testdata/reference_table2.csv"
 					checksum = filemd5("testdata/reference_table2.csv")
 					label_field = "col3"
 				}
