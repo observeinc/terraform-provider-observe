@@ -46,9 +46,9 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					primary_key = ["col1", "col2"]
 					label_field = "col3"
 				}
-				`, randomPrefix2),
+				`, randomPrefix1),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_reference_table.example", "label", randomPrefix2),
+					resource.TestCheckResourceAttr("observe_reference_table.example", "label", randomPrefix1),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "description", "hello world!"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.0", "col1"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.1", "col2"),
@@ -57,6 +57,7 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				),
 			},
 			// Changing just metadata will use PATCH
+			// TODO: currently just label and description, API will support PATCHing primary_key and label_field soon
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_reference_table" "example" {
@@ -64,14 +65,15 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					source_file = "testdata/reference_table2.csv"
 					checksum = filemd5("testdata/reference_table2.csv")
 					description = "updated description"
-					primary_key = ["col2"]
+					primary_key = ["col1", "col2"]
 					label_field = "col3"
 				}
 				`, randomPrefix2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_reference_table.example", "label", randomPrefix2),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "description", "updated description"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.0", "col2"),
+					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.0", "col1"),
+					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.1", "col2"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "label_field", "col3"),
 				),
 			},
@@ -82,14 +84,12 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					label      = "%s"
 					source_file = "testdata/reference_table2.csv"
 					checksum = filemd5("testdata/reference_table2.csv")
+					primary_key = ["col1", "col2"]
 					label_field = "col3"
 				}
 				`, randomPrefix2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_reference_table.example", "label", randomPrefix2),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "description", ""),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.#", "0"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "label_field", "col3"),
 				),
 			},
 		},

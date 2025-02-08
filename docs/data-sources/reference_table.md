@@ -27,7 +27,5 @@ One of `label` or `id` must be set.
 - `checksum` (String) MD5 checksum of the source file.
 - `dataset` (String) The Observe ID for the dataset managed by the reference table.
 - `description` (String) Description for the reference table.
-- `label_field` (String) The field that should be used for the OPAL label.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
-- `primary_key` (List of String) The primary key of the reference table.

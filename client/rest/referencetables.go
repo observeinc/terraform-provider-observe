@@ -82,7 +82,7 @@ func (client *Client) CreateReferenceTable(ctx context.Context, input *Reference
 		return nil, err
 	}
 
-	resp, err := client.Post("/v1/referencetables/", contentType, body)
+	resp, err := client.Post("/v1/referencetables", contentType, body)
 	if err != nil {
 		return nil, err
 	}
