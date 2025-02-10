@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -63,6 +65,25 @@ func validatePath(i interface{}, path cty.Path) (diags diag.Diagnostics) {
 	}
 
 	return nil
+}
+
+func validateFilePath(extension *string) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, _ cty.Path) diag.Diagnostics {
+		v := i.(string)
+		_, err := filepath.Abs(v)
+		if err != nil {
+			return diag.Errorf("failed to parse as file path: %s", err)
+		}
+		if _, err := os.Stat(v); os.IsNotExist(err) {
+			return diag.Errorf("file does not exist")
+		}
+		if extension != nil {
+			if !strings.EqualFold(filepath.Ext(v), *extension) {
+				return diag.Errorf("file must have extension %q", *extension)
+			}
+		}
+		return nil
+	}
 }
 
 func validateIsString() schema.SchemaValidateDiagFunc {
@@ -481,6 +502,10 @@ func validateDatasetName() schema.SchemaValidateDiagFunc {
 }
 
 func validateDatastreamName() schema.SchemaValidateDiagFunc {
+	return validateDatasetName()
+}
+
+func validateReferenceTableName() schema.SchemaValidateDiagFunc {
 	return validateDatasetName()
 }
 

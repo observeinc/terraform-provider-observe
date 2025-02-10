@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
 var (
@@ -1470,4 +1471,59 @@ func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
 
 func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
 	return c.Meta.GetCloudInfo(ctx)
+}
+
+func (c *Client) CreateReferenceTable(ctx context.Context, input *rest.ReferenceTableInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.CreateReferenceTable(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) UpdateReferenceTable(ctx context.Context, id string, input *rest.ReferenceTableInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.UpdateReferenceTable(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) UpdateReferenceTableMetadata(ctx context.Context, id string, input *rest.ReferenceTableMetadataInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.UpdateReferenceTableMetadata(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) DeleteReferenceTable(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Rest.DeleteReferenceTable(ctx, id)
+}
+
+func (c *Client) GetReferenceTable(ctx context.Context, id string) (*rest.ReferenceTable, error) {
+	return c.Rest.GetReferenceTable(ctx, id)
+}
+
+func (c *Client) LookupReferenceTable(ctx context.Context, label string) (*rest.ReferenceTable, error) {
+	return c.Rest.LookupReferenceTable(ctx, label)
 }
