@@ -29,12 +29,3 @@ One of `label` or `id` must be set.
 - `description` (String) Description for the reference table.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
-- `schema` (Block List) The schema of the reference table. (see [below for nested schema](#nestedblock--schema))
-
-<a id="nestedblock--schema"></a>
-### Nested Schema for `schema`
-
-Read-Only:
-
-- `name` (String)
-- `type` (String)

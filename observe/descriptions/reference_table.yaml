@@ -16,6 +16,4 @@ schema:
     The primary key of the reference table.
   label_field: |
     The field that should be used for the OPAL label.
-  schema: |
-    The schema of the reference table.
   

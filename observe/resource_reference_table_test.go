@@ -33,19 +33,6 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_reference_table.example", "primary_key.0", "state_code"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "label_field", "state"),
 					resource.TestCheckResourceAttr("observe_reference_table.example", "checksum", "93dc3e9f2c6e30cd956eb062c18112eb"),
-					resource.TestCheckResourceAttrSet("observe_reference_table.example", "dataset"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.#", "5"),
-					// implicit all string schema when no schema is provided
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.0.name", "rank"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.0.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.1.name", "state"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.1.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.2.name", "state_code"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.2.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.3.name", "2020_census"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.3.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.4.name", "percent_of_total"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.4.type", "string"),
 				),
 			},
 			// Changing the file will use PUT
@@ -103,93 +90,6 @@ func TestAccObserveReferenceTable(t *testing.T) {
 				`, randomPrefix2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_reference_table.example", "description", ""),
-				),
-			},
-		},
-	})
-}
-
-func TestAccObserveReferenceTableSchema(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(configPreamble+`
-				resource "observe_reference_table" "example" {
-					label      = "%s"
-					source_file = "testdata/reference_table.csv"
-					checksum = filemd5("testdata/reference_table.csv")
-
-					schema {
-						name = "rank"
-						type = "int64"
-					}
-					schema {
-						name = "state"
-						type = "string"
-					}
-					schema {
-						name = "state_code"
-						type = "string"
-					}
-					schema {
-						name = "2020_census"
-						type = "int64"
-					}
-					schema {
-						name = "percent_of_total"
-						type = "float64"
-					}
-				}
-				`, randomPrefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.#", "5"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.0.name", "rank"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.0.type", "int64"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.1.name", "state"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.1.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.2.name", "state_code"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.2.type", "string"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.3.name", "2020_census"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.3.type", "int64"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.4.name", "percent_of_total"),
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.4.type", "float64"),
-				),
-			},
-			{
-				Config: fmt.Sprintf(configPreamble+`
-				resource "observe_reference_table" "example" {
-					label      = "%s"
-					source_file = "testdata/reference_table.csv"
-					checksum = filemd5("testdata/reference_table.csv")
-
-					schema {
-						name = "rank"
-						type = "string"
-					}
-					schema {
-						name = "state"
-						type = "string"
-					}
-					schema {
-						name = "state_code"
-						type = "string"
-					}
-					schema {
-						name = "2020_census"
-						type = "int64"
-					}
-					schema {
-						name = "percent_of_total"
-						type = "float64"
-					}
-				}
-				`, randomPrefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_reference_table.example", "schema.0.type", "string"),
 				),
 			},
 		},
