@@ -34,6 +34,7 @@ Can be computed using `filemd5("<source_file>")`.
 - `description` (String) Description for the reference table.
 - `label_field` (String) The field that should be used for the OPAL label.
 - `primary_key` (List of String) The primary key of the reference table.
+- `schema` (Block List) The schema of the reference table. (see [below for nested schema](#nestedblock--schema))
 
 ### Read-Only
 
@@ -41,4 +42,12 @@ Can be computed using `filemd5("<source_file>")`.
 - `id` (String) The ID of this resource.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
+
+<a id="nestedblock--schema"></a>
+### Nested Schema for `schema`
+
+Required:
+
+- `name` (String)
+- `type` (String)
 
