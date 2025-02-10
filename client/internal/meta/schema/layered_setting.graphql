@@ -6,7 +6,7 @@ extend type Query {
     # read some particular override record
     layeredSettingRecord(id: ObjectId!): LayeredSettingRecord!
     # given a setting and a scope of some sort, figure out what the actual value is
-    layeredSettingValue(name:String!, target: LayeredSettingRecordTargetInput): TargetedLayeredSettingValue!
+    layeredSettingValue(name:String!, target: LayeredSettingContextInput): TargetedLayeredSettingValue!
 }
 
 """
@@ -58,7 +58,7 @@ When configuring a particular target, a single object ID should be non-null
 in the LayeredSettingRecordTarget. If you want to affect "everything in this folder,
 and also this particular dataset," then create two LayeredSettingRecords.
 """
-type LayeredSettingRecordTarget @goModel(model: "observe/lsetting.LayeredSettingRecordTarget") {
+type LayeredSettingRecordTarget @goModel(model: "observe/lsetting.SettingTarget") {
     customerId: CustomerId
     workspaceId: ObjectId
     folderId: ObjectId
@@ -68,6 +68,7 @@ type LayeredSettingRecordTarget @goModel(model: "observe/lsetting.LayeredSetting
     dashboardId: ObjectId
     datastreamId: ObjectId
     datasetId: ObjectId
+    rbacGroupId: ORN
     userId: UserId
 }
 
@@ -99,7 +100,7 @@ type SearchLayeredSettingRecordsResult @goModel(model: "observe/lsetting.SearchL
 
 input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredSettingRecordsQueryInput") {
     setting: String
-    target: LayeredSettingRecordTargetInput
+    target: LayeredSettingContextInput
     """
     This is for "the record lives in this workspace," NOT for "the record affects this workspace."
     """
@@ -114,8 +115,23 @@ input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredS
     managedById: ObjectId
 }
 
+# Context used when fetching a layered setting value, all relevant scopes must be set.
+input LayeredSettingContextInput @goModel(model: "observe/lsetting.SettingContextInput") {
+    customerId: CustomerId
+    workspaceId: ObjectId
+    folderId: ObjectId
+    appId: ObjectId
+    monitorId: ObjectId
+    worksheetId: ObjectId
+    dashboardId: ObjectId
+    datastreamId: ObjectId
+    datasetId: ObjectId
+    # providing a userId will automatically load the user's groups if applicable
+    userId: UserId
+}
+
 # The scope is determined by which one field is defined and non-null
-input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.LayeredSettingRecordTargetInput") {
+input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.SettingTargetInput") {
     customerId: CustomerId
     workspaceId: ObjectId
     folderId: ObjectId
@@ -125,6 +141,7 @@ input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.LayeredS
     datastreamId: ObjectId
     monitorId: ObjectId
     datasetId: ObjectId
+    rbacGroupId: ORN
     userId: UserId
 }
 
@@ -138,6 +155,7 @@ enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
     Datastream
     Monitor
     Dataset
+    RbacGroup
     User
 }
 

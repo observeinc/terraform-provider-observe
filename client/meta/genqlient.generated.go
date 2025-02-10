@@ -3006,6 +3006,7 @@ type LayeredSettingRecordTarget struct {
 	DashboardId  *string             `json:"dashboardId"`
 	DatasetId    *string             `json:"datasetId"`
 	DatastreamId *string             `json:"datastreamId"`
+	RbacGroupId  *string             `json:"rbacGroupId"`
 	UserId       *types.UserIdScalar `json:"userId"`
 }
 
@@ -3036,6 +3037,9 @@ func (v *LayeredSettingRecordTarget) GetDatasetId() *string { return v.DatasetId
 // GetDatastreamId returns LayeredSettingRecordTarget.DatastreamId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetDatastreamId() *string { return v.DatastreamId }
 
+// GetRbacGroupId returns LayeredSettingRecordTarget.RbacGroupId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTarget) GetRbacGroupId() *string { return v.RbacGroupId }
+
 // GetUserId returns LayeredSettingRecordTarget.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetUserId() *types.UserIdScalar { return v.UserId }
 
@@ -3049,6 +3053,7 @@ type LayeredSettingRecordTargetInput struct {
 	DatastreamId *string             `json:"datastreamId"`
 	MonitorId    *string             `json:"monitorId,omitempty"`
 	DatasetId    *string             `json:"datasetId,omitempty"`
+	RbacGroupId  *string             `json:"rbacGroupId,omitempty"`
 	UserId       *types.UserIdScalar `json:"userId,omitempty"`
 }
 
@@ -3078,6 +3083,9 @@ func (v *LayeredSettingRecordTargetInput) GetMonitorId() *string { return v.Moni
 
 // GetDatasetId returns LayeredSettingRecordTargetInput.DatasetId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetDatasetId() *string { return v.DatasetId }
+
+// GetRbacGroupId returns LayeredSettingRecordTargetInput.RbacGroupId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTargetInput) GetRbacGroupId() *string { return v.RbacGroupId }
 
 // GetUserId returns LayeredSettingRecordTargetInput.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { return v.UserId }
@@ -13080,6 +13088,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
@@ -16612,6 +16621,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
@@ -20960,6 +20970,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
