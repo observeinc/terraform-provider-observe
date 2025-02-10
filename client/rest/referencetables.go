@@ -17,6 +17,12 @@ import (
 type ReferenceTableInput struct {
 	Metadata       ReferenceTableMetadataInput `json:"metadata"`
 	SourceFilePath string                      `json:"-"`
+	Schema         []ReferenceTableSchemaInput `json:"schema"`
+}
+
+type ReferenceTableSchemaInput struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 // All fields are nullable + omitempty to support PATCH semantics (excluding field means leave as is)
@@ -64,6 +70,16 @@ func (r *ReferenceTableInput) RequestBody() (body *bytes.Buffer, contentType str
 	if err != nil {
 		return nil, "", err
 	}
+
+	schemaPart, err := writer.CreateFormFile("schema", "schema.json")
+	if err != nil {
+		return nil, "", err
+	}
+	schema, err := json.Marshal(r.Schema)
+	if err != nil {
+		return nil, "", err
+	}
+	_, err = schemaPart.Write(schema)
 
 	metadata, err := json.Marshal(r.Metadata)
 	if err != nil {

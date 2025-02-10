@@ -51,6 +51,24 @@ func dataSourceReferenceTable() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("reference_table", "schema", "checksum"),
 			},
+			"schema": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Description: descriptions.Get("reference_table", "schema", "schema"),
+			},
 			// TODO: add primary_key and label_field after API includes them in response
 			// "primary_key": {
 			// 	Type:        schema.TypeList,
