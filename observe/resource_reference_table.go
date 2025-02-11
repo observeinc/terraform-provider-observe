@@ -141,13 +141,25 @@ func newReferenceTableMetadataConfig(data *schema.ResourceData, patch bool) (inp
 }
 
 func newReferenceTableSchemaConfig(data *schema.ResourceData) (input []rest.ReferenceTableSchemaInput, diags diag.Diagnostics) {
-	schema := data.Get("schema").([]interface{})
-	for _, v := range schema {
-		s := v.(map[string]interface{})
-		input = append(input, rest.ReferenceTableSchemaInput{
-			Name: s["name"].(string),
-			Type: s["type"].(string),
-		})
+	// We're using GetRawConfig() here instead of Get() or GetOk() because we only want to include
+	// the schema in the request if the user explicitly sets it in the configuration file. Get() and
+	// GetOk() will return whatever's in the state file if there's no value in the config file.
+	// This causes issues because "schema" is also a computed field, so the following fails:
+	//    - User defines a reference table with CSV file containing 1 column (no explicit schema)
+	//        - Schema is computed and set in the state file during a read.
+	//    - User changes the CSV file to contain 2 columns (still no explicit schema)
+	//    - The update fails since we call the API with the new 2-column file and the old 1-column schema.
+	//        - We instead want to provide no schema allowing the API to re-compute it, but
+	//			Get() and GetOk() will return the 1-column schema from the state file.
+	rawConfig := data.GetRawConfig().AsValueMap()
+	if schema, ok := rawConfig["schema"]; ok {
+		for _, v := range schema.AsValueSlice() {
+			s := v.AsValueMap()
+			input = append(input, rest.ReferenceTableSchemaInput{
+				Name: s["name"].AsString(),
+				Type: s["type"].AsString(),
+			})
+		}
 	}
 	return input, diags
 
