@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceDefaultDashboard() *schema.Resource {
@@ -20,11 +21,13 @@ func dataSourceDefaultDashboard() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
+				Description:      descriptions.Get("default_dashboard", "schema", "dataset"),
 			},
 			// computed values
 			"dashboard": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("default_dashboard", "schema", "dashboard"),
 			},
 		},
 	}
