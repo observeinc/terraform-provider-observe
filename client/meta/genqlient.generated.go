@@ -7692,12 +7692,17 @@ func (v *RbacObjectInput) GetAll() *bool { return v.All }
 type RbacRole string
 
 const (
-	RbacRoleManager           RbacRole = "Manager"
-	RbacRoleEditor            RbacRole = "Editor"
-	RbacRoleViewer            RbacRole = "Viewer"
-	RbacRoleIngester          RbacRole = "Ingester"
-	RbacRoleLister            RbacRole = "Lister"
-	RbacRoleMonitorglobalmute RbacRole = "MonitorGlobalMute"
+	RbacRoleApitokencreate     RbacRole = "ApitokenCreate"
+	RbacRoleBookmarkmanager    RbacRole = "BookmarkManager"
+	RbacRoleEditor             RbacRole = "Editor"
+	RbacRoleIngester           RbacRole = "Ingester"
+	RbacRoleInvestigatorglobal RbacRole = "InvestigatorGlobal"
+	RbacRoleLister             RbacRole = "Lister"
+	RbacRoleManager            RbacRole = "Manager"
+	RbacRoleMonitorglobalmute  RbacRole = "MonitorGlobalMute"
+	RbacRoleUserdelete         RbacRole = "UserDelete"
+	RbacRoleUserinvite         RbacRole = "UserInvite"
+	RbacRoleViewer             RbacRole = "Viewer"
 )
 
 // RbacStatement includes the GraphQL fields of RbacStatement requested by the fragment RbacStatement.

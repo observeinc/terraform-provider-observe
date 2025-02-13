@@ -191,8 +191,8 @@ func flattenRoleAndObject(stmtRole gql.RbacRole, stmtObject gql.RbacStatementObj
 	qualifier = make(map[string]interface{})
 	if stmtRole == gql.RbacRoleManager && stmtObject.All != nil && *stmtObject.All {
 		role = toSnake(string(Administrator))
-	} else if stmtRole == gql.RbacRoleMonitorglobalmute {
-		role = toSnake(string(MonitorGlobalMuter))
+	} else if rbacRole, ok := reverseRoleMapping[stmtRole]; ok {
+		role = toSnake(string(rbacRole))
 	} else if stmtObject.Type != nil {
 		objType := oid.Type(*stmtObject.Type)
 		if !sliceContains(validRbacV2Types, objType) {
@@ -265,49 +265,58 @@ func resourceGrantDelete(ctx context.Context, data *schema.ResourceData, meta in
 
 type GrantRole string
 
-const (
-	Administrator      GrantRole = "Administrator"
-	DashboardCreator   GrantRole = "DashboardCreator"
-	DashboardEditor    GrantRole = "DashboardEditor"
-	DashboardViewer    GrantRole = "DashboardViewer"
-	DatasetCreator     GrantRole = "DatasetCreator"
-	DatasetEditor      GrantRole = "DatasetEditor"
-	DatasetViewer      GrantRole = "DatasetViewer"
-	DatastreamCreator  GrantRole = "DatastreamCreator"
-	DatastreamEditor   GrantRole = "DatastreamEditor"
-	DatastreamViewer   GrantRole = "DatastreamViewer"
-	MonitorCreator     GrantRole = "MonitorCreator"
-	MonitorEditor      GrantRole = "MonitorEditor"
-	MonitorViewer      GrantRole = "MonitorViewer"
-	MonitorGlobalMuter GrantRole = "MonitorGlobalMuter"
-	WorksheetCreator   GrantRole = "WorksheetCreator"
-	WorksheetEditor    GrantRole = "WorksheetEditor"
-	WorksheetViewer    GrantRole = "WorksheetViewer"
+var validGrantRoles []GrantRole
+
+var (
+	Administrator      GrantRole = createGrantRole("Administrator")
+	ApitokenCreator    GrantRole = createGrantRole("ApitokenCreator")
+	BookmarkManager    GrantRole = createGrantRole("BookmarkManager")
+	DashboardCreator   GrantRole = createGrantRole("DashboardCreator")
+	DashboardEditor    GrantRole = createGrantRole("DashboardEditor")
+	DashboardViewer    GrantRole = createGrantRole("DashboardViewer")
+	DatasetCreator     GrantRole = createGrantRole("DatasetCreator")
+	DatasetEditor      GrantRole = createGrantRole("DatasetEditor")
+	DatasetViewer      GrantRole = createGrantRole("DatasetViewer")
+	DatastreamCreator  GrantRole = createGrantRole("DatastreamCreator")
+	DatastreamEditor   GrantRole = createGrantRole("DatastreamEditor")
+	DatastreamViewer   GrantRole = createGrantRole("DatastreamViewer")
+	InvestigatorGlobal GrantRole = createGrantRole("InvestigatorGlobal")
+	MonitorCreator     GrantRole = createGrantRole("MonitorCreator")
+	MonitorEditor      GrantRole = createGrantRole("MonitorEditor")
+	MonitorViewer      GrantRole = createGrantRole("MonitorViewer")
+	MonitorGlobalMuter GrantRole = createGrantRole("MonitorGlobalMuter")
+	UserDeleter        GrantRole = createGrantRole("UserDeleter")
+	UserInviter        GrantRole = createGrantRole("UserInviter")
+	WorksheetCreator   GrantRole = createGrantRole("WorksheetCreator")
+	WorksheetEditor    GrantRole = createGrantRole("WorksheetEditor")
+	WorksheetViewer    GrantRole = createGrantRole("WorksheetViewer")
 )
 
-var validGrantRoles = []GrantRole{
-	Administrator,
-	DashboardCreator,
-	DashboardEditor,
-	DashboardViewer,
-	DatasetCreator,
-	DatasetEditor,
-	DatasetViewer,
-	DatastreamCreator,
-	DatastreamEditor,
-	DatastreamViewer,
-	MonitorCreator,
-	MonitorEditor,
-	MonitorViewer,
-	MonitorGlobalMuter,
-	WorksheetCreator,
-	WorksheetEditor,
-	WorksheetViewer,
+func createGrantRole(role GrantRole) GrantRole {
+	validGrantRoles = append(validGrantRoles, role)
+	return role
 }
 
 var createGrantRoles = []GrantRole{DashboardCreator, DatasetCreator, DatastreamCreator, MonitorCreator, WorksheetCreator}
 var editGrantRoles = []GrantRole{DashboardEditor, DatasetEditor, DatastreamEditor, MonitorEditor, WorksheetEditor}
 var viewGrantRoles = []GrantRole{DashboardViewer, DatasetViewer, DatastreamViewer, MonitorViewer, WorksheetViewer}
+
+// The following GrantRoles directly map to an RbacRole 1:1
+var roleMapping = map[GrantRole]gql.RbacRole{
+	ApitokenCreator:    gql.RbacRoleApitokencreate,
+	BookmarkManager:    gql.RbacRoleBookmarkmanager,
+	InvestigatorGlobal: gql.RbacRoleInvestigatorglobal,
+	MonitorGlobalMuter: gql.RbacRoleMonitorglobalmute,
+	UserDeleter:        gql.RbacRoleUserdelete,
+	UserInviter:        gql.RbacRoleUserinvite,
+}
+var reverseRoleMapping = func() map[gql.RbacRole]GrantRole {
+	m := make(map[gql.RbacRole]GrantRole)
+	for k, v := range roleMapping {
+		m[v] = k
+	}
+	return m
+}()
 
 var validRbacV2Types = []oid.Type{oid.TypeDashboard, oid.TypeDataset, oid.TypeDatastream, oid.TypeMonitor, oid.TypeWorksheet}
 
@@ -338,8 +347,8 @@ var viewGrantRoleForType = map[oid.Type]GrantRole{
 func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
 	if r == Administrator {
 		return gql.RbacRoleManager, nil
-	} else if r == MonitorGlobalMuter {
-		return gql.RbacRoleMonitorglobalmute, nil
+	} else if rbacRole, ok := roleMapping[r]; ok {
+		return rbacRole, nil
 	} else if sliceContains(createGrantRoles, r) || sliceContains(editGrantRoles, r) {
 		return gql.RbacRoleEditor, nil
 	} else if sliceContains(viewGrantRoles, r) {
