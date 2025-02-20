@@ -56,6 +56,11 @@ func resourceMonitorV2() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "description"),
 			},
+			"disabled": { // Boolean
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "disabled"),
+			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type:        schema.TypeList,
@@ -119,7 +124,7 @@ func resourceMonitorV2() *schema.Resource {
 							Description: descriptions.Get("monitorv2", "schema", "rules", "count"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"compare_values": { // [MonitorV2ComparisonInput!]!
+									"g": { // [MonitorV2ComparisonInput!]!
 										Type:        schema.TypeList,
 										Required:    true,
 										MinItems:    1,
@@ -585,6 +590,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("disabled", monitor.Disabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("oid", monitor.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -951,6 +960,9 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	}
 	if v, ok := data.GetOk("description"); ok {
 		input.Description = stringPtr(v.(string))
+	}
+	if v, ok := data.GetOk("disabled"); ok {
+		input.Disabled = boolPtr(v.(bool))
 	}
 
 	return input, diags

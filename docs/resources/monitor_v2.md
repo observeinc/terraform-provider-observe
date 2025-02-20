@@ -36,6 +36,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `custom_variables` (String)
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.
+- `disabled` (Boolean) Enable/Disable the monitor (and any underlying transforms).
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
@@ -66,14 +67,14 @@ If multiple compareColumns are specified in one promote rule, it will act as an 
 
 Required:
 
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_values))
+- `g` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--g))
 
 Optional:
 
 - `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--count--compare_groups))
 
-<a id="nestedblock--rules--count--compare_values"></a>
-### Nested Schema for `rules.count.compare_values`
+<a id="nestedblock--rules--count--g"></a>
+### Nested Schema for `rules.count.g`
 
 Required:
 
