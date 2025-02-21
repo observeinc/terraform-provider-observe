@@ -124,7 +124,7 @@ func resourceMonitorV2() *schema.Resource {
 							Description: descriptions.Get("monitorv2", "schema", "rules", "count"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"g": { // [MonitorV2ComparisonInput!]!
+									"compare_values": { // [MonitorV2ComparisonInput!]!
 										Type:        schema.TypeList,
 										Required:    true,
 										MinItems:    1,
