@@ -1120,7 +1120,7 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 	return rule, diags
 }
 
-func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2CountRuleInput, diags diag.Diagnostics) {
+func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (count *gql.MonitorV2CountRuleInput, diags diag.Diagnostics) {
 	// required
 	comparisonInputs := make([]gql.MonitorV2ComparisonInput, 0)
 	for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
@@ -1132,7 +1132,7 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 	}
 
 	// instantiation
-	comparison = &gql.MonitorV2CountRuleInput{
+	count = &gql.MonitorV2CountRuleInput{
 		CompareValues: comparisonInputs,
 	}
 
@@ -1146,10 +1146,10 @@ func newMonitorV2CountRuleInput(path string, data *schema.ResourceData) (compari
 			}
 			compareGroups = append(compareGroups, *columnComparison)
 		}
-		comparison.CompareGroups = compareGroups
+		count.CompareGroups = compareGroups
 	}
 
-	return comparison, diags
+	return count, diags
 }
 
 func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ComparisonInput, diags diag.Diagnostics) {
@@ -1189,6 +1189,19 @@ func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (thr
 		CompareValues:   compareValues,
 		ValueColumnName: valueColumnName,
 		Aggregation:     aggregation,
+	}
+
+	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%scompare_groups", path)); ok {
+		compareGroups := make([]gql.MonitorV2ColumnComparisonInput, 0)
+		for i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
+			columnComparison, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%scompare_groups.%d.", path, i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			compareGroups = append(compareGroups, *columnComparison)
+		}
+		threshold.CompareGroups = compareGroups
 	}
 
 	return threshold, diags
