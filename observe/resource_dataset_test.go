@@ -424,7 +424,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 					stage {
 					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
+					  	colmake test:object(EXTRA.tags)
 					  EOF
 					}
 				}`, randomPrefix),
@@ -453,7 +453,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 					stage {
 					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
+					  	colmake test:object(EXTRA.tags)
 					  EOF
 					}
 				}`, randomPrefix),
@@ -487,7 +487,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 					stage {
 					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
+					  	colmake test:object(EXTRA.tags)
 					  EOF
 					}
 				}`, randomPrefix),
