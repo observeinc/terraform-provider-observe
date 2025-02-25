@@ -232,6 +232,7 @@ fragment MonitorV2 on MonitorV2 {
     name
     iconUrl
     description
+    disabled
     managedById
     folderId
     rollupStatus

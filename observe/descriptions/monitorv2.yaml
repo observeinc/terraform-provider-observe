@@ -17,6 +17,8 @@ schema:
     URL of the monitor icon.
   description: |
     A brief description of the monitor.
+  disabled: |
+    Enable/Disable the monitor (and any underlying transforms).
   rules:
     description: |
       All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational.

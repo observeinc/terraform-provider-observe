@@ -154,9 +154,12 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     # payload
     # not in output: sharingRules: [MonitorSharingRule!]
     """
-    Indicates if the monitor is enabled or disabled. Use setMonitorV2Enabled to flip this flag.
+    Indicates if the monitor is enabled or disabled. Use setMonitorV2Enabled to flip this flag
+    one way or the other by itself.
+    note: This was previously not supported as an input flag, but it was added as an input
+    flag to support TF and REST.
     """
-    disabled: Boolean!
+    disabled: Boolean
     """
     A longer description of the monitor.
     This can include details like how to resolve the issue, links to runbooks, etc.
@@ -226,7 +229,7 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
 }
 
 input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
-    # not in input: disabled: Boolean!
+    disabled: Boolean
     comment: String
     # resolver: meta: MonitorV2MetaInput
     # resolver: rollupStatus: MonitorV2RollupStatus!
