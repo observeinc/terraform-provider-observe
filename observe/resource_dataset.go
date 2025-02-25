@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -419,6 +420,35 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	if mode, ok := data.GetOk("rematerialization_mode"); ok {
 		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
 		dependencyHandling.RematerializationMode = &rematerializationMode
+	}
+
+	// If skipping rematerialization, do a dry-run to ensure it
+	if dependencyHandling.RematerializationMode != nil &&
+		*dependencyHandling.RematerializationMode == gql.RematerializationModeSkiprematerialization {
+		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
+				Detail:   err.Error(),
+			})
+			return diags
+		} else if len(result) > 0 {
+			var sb strings.Builder
+			sb.WriteString("The following dataset(s) will be rematerialized: ")
+			for idx, dematerializedDataset := range result {
+				if idx > 0 {
+					sb.WriteString(", ")
+				}
+				fmt.Fprintf(&sb, "%s (%s)", dematerializedDataset.GetDataset().Id, dematerializedDataset.GetDataset().Name)
+			}
+
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
+				Detail:   sb.String(),
+			})
+			return diags
+		}
 	}
 
 	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
