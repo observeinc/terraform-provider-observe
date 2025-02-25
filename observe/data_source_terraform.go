@@ -8,6 +8,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceTerraform() *schema.Resource {
@@ -19,23 +20,27 @@ func dataSourceTerraform() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset, oid.TypeMonitor, oid.TypeDashboard),
-				Description:      "The OID of the target object, for which Terraform configuration will be generated. This can be a dataset, monitor, or dashboard.",
+				Description:      descriptions.Get("terraform", "schema", "target"),
 			},
 			"resource": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("terraform", "schema", "resource"),
 			},
 			"data_source": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("terraform", "schema", "data_source"),
 			},
 			"import_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("terraform", "schema", "import_id"),
 			},
 			"import_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("terraform", "schema", "import_name"),
 			},
 		},
 	}
