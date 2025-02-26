@@ -14,6 +14,11 @@ const (
 	SaveModePreflightDatasetAndDependencies               = SaveMode("PreflightDatasetAndDependencies")
 )
 
+const (
+	RematerializationModeSkipRematerialization    = RematerializationModeSkiprematerialization
+	RematerializationModeTrySkipRematerialization = RematerializationMode("TrySkipRematerialization")
+)
+
 type datasetResponse interface {
 	GetDataset() *Dataset
 }
@@ -36,7 +41,7 @@ func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input
 	return datasetOrError(resp.Dataset, err)
 }
 
-// SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful for
+// SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful when rematerialization_mode is set to "skip_rematerialization"
 func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) ([]DatasetMaterialization, error) {
 	saveMode := SaveModePreflightDatasetAndDependencies
 	rematerializationMode := RematerializationModeSkiprematerialization

@@ -149,7 +149,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "true"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "data_table_view_state", "{\"viewType\":\"Auto\"}"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
 				),
 			},
 			{
@@ -646,6 +645,73 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 					}
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(`The following dataset\(s\) will be rematerialized`),
+			},
+		},
+	})
+}
+
+// Test that a change rematerializes when incompatible with edit-forward
+func TestAccObserveDatasetEditForwardTryAvoid(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-1"
+
+					inputs = {
+					  "test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col x: 1
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+					  "test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "try_skip_rematerialization"
+					stage {
+					  	pipeline = <<-EOF
+							make_col x: 1, y: 2
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "try_skip_rematerialization"),
+				),
 			},
 		},
 	})

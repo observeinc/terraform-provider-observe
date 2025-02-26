@@ -424,7 +424,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 
 	// If skipping rematerialization, do a dry-run to ensure it
 	if dependencyHandling.RematerializationMode != nil &&
-		*dependencyHandling.RematerializationMode == gql.RematerializationModeSkiprematerialization {
+		*dependencyHandling.RematerializationMode == gql.RematerializationModeSkipRematerialization {
 		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -441,6 +441,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 				}
 				fmt.Fprintf(&sb, "%s (%s)", dematerializedDataset.GetDataset().Id, dematerializedDataset.GetDataset().Name)
 			}
+			sb.WriteString(`. If rematerialization is acceptable, remove rematerialization_mode and try again`)
 
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -449,6 +450,14 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 			})
 			return diags
 		}
+	}
+
+	// If rematerialization_mode is try_skip_rematerialization, set it to skip_rematerialization - try_skip_rematerialization
+	// is a Terraform-only concept
+	if dependencyHandling.RematerializationMode != nil &&
+		*dependencyHandling.RematerializationMode == gql.RematerializationModeTrySkipRematerialization {
+		skipRematerialization := gql.RematerializationModeSkipRematerialization
+		dependencyHandling.RematerializationMode = &skipRematerialization
 	}
 
 	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
