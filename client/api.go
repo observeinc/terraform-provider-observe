@@ -50,6 +50,22 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 }
 
+func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) ([]meta.DatasetMaterialization, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	if c.Config.Source != nil {
+		input.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.SaveDatasetDryRun(ctx, wsid, input, queryInput)
+}
+
 // DeleteDataset by ID
 func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
