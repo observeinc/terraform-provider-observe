@@ -174,8 +174,7 @@ var AllAccelerationDisabledSource = []AccelerationDisabledSource{
 
 var AllRematerializationModes = []RematerializationMode{
 	RematerializationModeRematerialize,
-	RematerializationModeSkipRematerialization,
-	RematerializationModeTrySkipRematerialization,
+	RematerializationModeSkiprematerialization,
 }
 
 const (

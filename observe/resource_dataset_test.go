@@ -651,7 +651,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 }
 
 // Test that a change rematerializes when incompatible with edit-forward
-func TestAccObserveDatasetEditForwardTryAvoid(t *testing.T) {
+func TestAccObserveDatasetEditForwardTrySkip(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -14,11 +14,6 @@ const (
 	SaveModePreflightDatasetAndDependencies               = SaveMode("PreflightDatasetAndDependencies")
 )
 
-const (
-	RematerializationModeSkipRematerialization    = RematerializationModeSkiprematerialization
-	RematerializationModeTrySkipRematerialization = RematerializationMode("TrySkipRematerialization")
-)
-
 type datasetResponse interface {
 	GetDataset() *Dataset
 }

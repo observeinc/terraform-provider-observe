@@ -24,6 +24,22 @@ const (
 	schemaDatasetOIDDescription         = "The Observe ID for dataset."
 )
 
+// Terraform-level options for rematerialization mode. This is because Terraform exposes
+// some options the API doesn't have and we shouldn't mix them up
+type TerraformRematerializationMode string
+
+const (
+	RematerializationModeRematerialize            = TerraformRematerializationMode(gql.RematerializationModeRematerialize)
+	RematerializationModeSkipRematerialization    = TerraformRematerializationMode(gql.RematerializationModeSkiprematerialization)
+	RematerializationModeTrySkipRematerialization = TerraformRematerializationMode("TrySkipRematerialization")
+)
+
+var AllRematerializationModes = []TerraformRematerializationMode{
+	RematerializationModeRematerialize,
+	RematerializationModeSkipRematerialization,
+	RematerializationModeTrySkipRematerialization,
+}
+
 func resourceDataset() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("dataset", "description"),
@@ -152,7 +168,7 @@ func resourceDataset() *schema.Resource {
 			"rematerialization_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateEnums(gql.AllRematerializationModes),
+				ValidateDiagFunc: validateEnums(AllRematerializationModes),
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
 		},
@@ -416,15 +432,13 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	input.Id = &id
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
-	dependencyHandling := gql.DefaultDependencyHandling()
+	rematerializationMode := RematerializationModeRematerialize
 	if mode, ok := data.GetOk("rematerialization_mode"); ok {
-		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
-		dependencyHandling.RematerializationMode = &rematerializationMode
+		rematerializationMode = TerraformRematerializationMode(toCamel(mode.(string)))
 	}
 
-	// If skipping rematerialization, do a dry-run to ensure it
-	if dependencyHandling.RematerializationMode != nil &&
-		*dependencyHandling.RematerializationMode == gql.RematerializationModeSkipRematerialization {
+	// If skipping rematerialization, do a dry-run to ensure it skips rematerialization
+	if rematerializationMode == RematerializationModeSkipRematerialization {
 		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -452,12 +466,15 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
-	// If rematerialization_mode is try_skip_rematerialization, set it to skip_rematerialization - try_skip_rematerialization
-	// is a Terraform-only concept
-	if dependencyHandling.RematerializationMode != nil &&
-		*dependencyHandling.RematerializationMode == gql.RematerializationModeTrySkipRematerialization {
-		skipRematerialization := gql.RematerializationModeSkipRematerialization
-		dependencyHandling.RematerializationMode = &skipRematerialization
+	dependencyHandling := gql.DefaultDependencyHandling()
+	// Map the Terraform version of skip_rematerialization to GQL (do this
+	// because try_skip_rematerialization doesn't exist at the API level)
+	// Default dependency handling results in rematerialization, don't need to
+	// map that case.
+	switch rematerializationMode {
+	case RematerializationModeSkipRematerialization, RematerializationModeTrySkipRematerialization:
+		mode := gql.RematerializationModeSkiprematerialization
+		dependencyHandling.RematerializationMode = &mode
 	}
 
 	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
