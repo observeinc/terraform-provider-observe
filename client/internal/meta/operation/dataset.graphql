@@ -77,6 +77,13 @@ fragment DatasetIdName on Dataset {
 	id
 }
 
+fragment DatasetMaterialization on DatasetMaterialization {
+	# @genqlient(flatten: true)
+	dataset {
+		...DatasetIdName
+	}
+}
+
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
@@ -101,6 +108,10 @@ mutation saveDataset(
 		# @genqlient(flatten: true)
 		dataset {
 			...Dataset
+		}
+		# @genqlient(flatten: true)
+		dematerializedDatasets {
+			...DatasetMaterialization
 		}
 	}
 }
