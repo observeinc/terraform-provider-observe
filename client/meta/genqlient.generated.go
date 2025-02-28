@@ -1598,6 +1598,18 @@ func (v *DatasetLinkSchemaInput) GetSrcFields() []string { return v.SrcFields }
 // GetDstFields returns DatasetLinkSchemaInput.DstFields, and is useful for accessing the field via an interface.
 func (v *DatasetLinkSchemaInput) GetDstFields() []string { return v.DstFields }
 
+// DatasetMaterialization includes the GraphQL fields of DatasetMaterialization requested by the fragment DatasetMaterialization.
+// The GraphQL type's documentation follows.
+//
+// Information about a materialized dataset.
+type DatasetMaterialization struct {
+	// Metadata about the dataset.
+	Dataset *DatasetIdName `json:"dataset"`
+}
+
+// GetDataset returns DatasetMaterialization.Dataset, and is useful for accessing the field via an interface.
+func (v *DatasetMaterialization) GetDataset() *DatasetIdName { return v.Dataset }
+
 // DatasetOutboundShare includes the GraphQL fields of DatasetOutboundShare requested by the fragment DatasetOutboundShare.
 type DatasetOutboundShare struct {
 	Id              string  `json:"id"`
@@ -11768,10 +11780,26 @@ func (v *saveDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
 type saveDatasetDatasetDatasetSaveResult struct {
 	// this is what you got out when saving
 	Dataset *Dataset `json:"dataset"`
+	// Changing a dataset definition might make currently materialized data obsolete,
+	// in which case we dematerialize (throw away) this data and recompute new data.
+	// This is the list of datasets that would get dematerialized.
+	//
+	// Data is dematerialized when the change to the dataset is significant,
+	// that is, when it alters transform logic. Minor changes like whitespace and
+	// comments do not cause dematerialization.
+	//
+	// Note that changing a dataset might cause downstream datasets to get
+	// dematerialized also.
+	DematerializedDatasets []DatasetMaterialization `json:"dematerializedDatasets"`
 }
 
 // GetDataset returns saveDatasetDatasetDatasetSaveResult.Dataset, and is useful for accessing the field via an interface.
 func (v *saveDatasetDatasetDatasetSaveResult) GetDataset() *Dataset { return v.Dataset }
+
+// GetDematerializedDatasets returns saveDatasetDatasetDatasetSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
+func (v *saveDatasetDatasetDatasetSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
+	return v.DematerializedDatasets
+}
 
 // saveDatasetResponse is returned by saveDataset on success.
 type saveDatasetResponse struct {
@@ -19170,6 +19198,9 @@ mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: 
 		dataset {
 			... Dataset
 		}
+		dematerializedDatasets {
+			... DatasetMaterialization
+		}
 	}
 }
 fragment Dataset on Dataset {
@@ -19244,6 +19275,11 @@ fragment Dataset on Dataset {
 		}
 	}
 }
+fragment DatasetMaterialization on DatasetMaterialization {
+	dataset {
+		... DatasetIdName
+	}
+}
 fragment StageQuery on StageQuery {
 	id
 	pipeline
@@ -19256,6 +19292,10 @@ fragment StageQuery on StageQuery {
 		datasetPath
 		stageId
 	}
+}
+fragment DatasetIdName on Dataset {
+	name
+	id
 }
 `
 
