@@ -17,7 +17,10 @@ const (
 
 func resourceRbacDefaultGroup() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a RBAC default group.",
+		Description: "Deprecated. Only for use with RBAC v1.\n\nManages a RBAC default group.",
+		DeprecationMessage: "RBAC Default Groups are deprecated and only for use with RBAC v1." +
+			" For v2, configure permissions on the Everyone group instead, which always includes all users." +
+			" See `observe_rbac_group` and `observe_grant`.",
 		CreateContext: resourceRbacDefaultGroupSet,
 		UpdateContext: resourceRbacDefaultGroupSet,
 		ReadContext:   resourceRbacDefaultGroupRead,
