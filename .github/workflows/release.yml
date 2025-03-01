@@ -30,7 +30,7 @@ jobs:
       version: ${{ steps.semver.outputs.version }}
     steps:
       - id: semver
-        uses: matt-usurp/validate-semver@v1
+        uses: matt-usurp/validate-semver@v2
         with:
           version: ${{ env.tag }}
       - name: Validate tag prefix (v)
