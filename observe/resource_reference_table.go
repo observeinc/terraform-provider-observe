@@ -59,16 +59,18 @@ func resourceReferenceTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: descriptions.Get("reference_table", "schema", "schema", "name"),
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: descriptions.Get("reference_table", "schema", "schema", "type"),
 						},
 					},
 				},
-				Description: descriptions.Get("reference_table", "schema", "schema"),
+				Description: descriptions.Get("reference_table", "schema", "schema", "description"),
 			},
 			"primary_key": {
 				Type:     schema.TypeList,

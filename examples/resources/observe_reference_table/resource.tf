@@ -5,4 +5,19 @@ resource "observe_reference_table" "example" {
   description = "State Populations"
   primary_key = ["state_code"]
   label_field = "state_name"
+
+  schema {
+    name = "state_code"
+    type = "string"
+  }
+
+  schema {
+    name = "state_name"
+    type = "string"
+  }
+
+  schema {
+    name = "population"
+    type = "int64"
+  }
 }
