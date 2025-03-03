@@ -67,14 +67,14 @@ If multiple compareColumns are specified in one promote rule, it will act as an 
 
 Required:
 
-- `g` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--g))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_values))
 
 Optional:
 
 - `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--count--compare_groups))
 
-<a id="nestedblock--rules--count--g"></a>
-### Nested Schema for `rules.count.g`
+<a id="nestedblock--rules--count--compare_values"></a>
+### Nested Schema for `rules.count.compare_values`
 
 Required:
 
