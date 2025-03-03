@@ -4,6 +4,7 @@ type QueryDocument struct {
 	Operations OperationList
 	Fragments  FragmentDefinitionList
 	Position   *Position `dump:"-"`
+	Comment    *CommentGroup
 }
 
 type SchemaDocument struct {
@@ -13,6 +14,7 @@ type SchemaDocument struct {
 	Definitions     DefinitionList
 	Extensions      DefinitionList
 	Position        *Position `dump:"-"`
+	Comment         *CommentGroup
 }
 
 func (d *SchemaDocument) Merge(other *SchemaDocument) {
@@ -24,9 +26,10 @@ func (d *SchemaDocument) Merge(other *SchemaDocument) {
 }
 
 type Schema struct {
-	Query        *Definition
-	Mutation     *Definition
-	Subscription *Definition
+	Query            *Definition
+	Mutation         *Definition
+	Subscription     *Definition
+	SchemaDirectives DirectiveList
 
 	Types      map[string]*Definition
 	Directives map[string]*DirectiveDefinition
@@ -35,6 +38,8 @@ type Schema struct {
 	Implements    map[string][]*Definition
 
 	Description string
+
+	Comment *CommentGroup
 }
 
 // AddTypes is the helper to add types definition to the schema
@@ -70,10 +75,15 @@ type SchemaDefinition struct {
 	Directives     DirectiveList
 	OperationTypes OperationTypeDefinitionList
 	Position       *Position `dump:"-"`
+
+	BeforeDescriptionComment *CommentGroup
+	AfterDescriptionComment  *CommentGroup
+	EndOfDefinitionComment   *CommentGroup
 }
 
 type OperationTypeDefinition struct {
 	Operation Operation
 	Type      string
 	Position  *Position `dump:"-"`
+	Comment   *CommentGroup
 }
