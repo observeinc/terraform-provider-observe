@@ -59,6 +59,7 @@ func resourceMonitorV2() *schema.Resource {
 			"disabled": { // Boolean
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: descriptions.Get("monitorv2", "schema", "disabled"),
 			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput

@@ -5169,7 +5169,7 @@ const (
 )
 
 type MonitorV2Input struct {
-	Disabled          *bool                            `json:"disabled"`
+	Disabled          *bool                            `json:"disabled,omitempty"`
 	Comment           *string                          `json:"comment"`
 	Definition        MonitorV2DefinitionInput         `json:"definition"`
 	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
