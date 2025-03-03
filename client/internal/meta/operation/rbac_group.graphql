@@ -38,3 +38,22 @@ mutation deleteRbacGroup($id: ORN!) {
         ...ResultStatus
     }
 }
+
+fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
+    groupId
+    allowEdit
+}
+
+query getRbacDefaultSharingGroups {
+    # @genqlient(flatten: true)
+    rbacDefaultSharingGroups: rbacDefaultSharingGroups {
+        ...RbacDefaultSharingGroup
+    }
+}
+
+mutation setRbacDefaultSharingGroups($shares: [RbacDefaultSharingGroupInput!]!) {
+    # @genqlient(flatten: true)
+    resultStatus: setRbacDefaultSharingGroups(shares: $shares) {
+        ...ResultStatus
+    }
+}

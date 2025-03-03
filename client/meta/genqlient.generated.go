@@ -7600,6 +7600,29 @@ const (
 	RateLimitOptionBypassratelimit RateLimitOption = "BypassRateLimit"
 )
 
+// RbacDefaultSharingGroup includes the GraphQL fields of RbacDefaultSharingGroup requested by the fragment RbacDefaultSharingGroup.
+type RbacDefaultSharingGroup struct {
+	GroupId   string `json:"groupId"`
+	AllowEdit bool   `json:"allowEdit"`
+}
+
+// GetGroupId returns RbacDefaultSharingGroup.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetGroupId() string { return v.GroupId }
+
+// GetAllowEdit returns RbacDefaultSharingGroup.AllowEdit, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetAllowEdit() bool { return v.AllowEdit }
+
+type RbacDefaultSharingGroupInput struct {
+	GroupId   string `json:"groupId"`
+	AllowEdit bool   `json:"allowEdit"`
+}
+
+// GetGroupId returns RbacDefaultSharingGroupInput.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetGroupId() string { return v.GroupId }
+
+// GetAllowEdit returns RbacDefaultSharingGroupInput.AllowEdit, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetAllowEdit() bool { return v.AllowEdit }
+
 // RbacGroup includes the GraphQL fields of RbacGroup requested by the fragment RbacGroup.
 type RbacGroup struct {
 	Id          string `json:"id"`
@@ -9996,6 +10019,16 @@ type __setRbacDefaultGroupInput struct {
 // GetId returns __setRbacDefaultGroupInput.Id, and is useful for accessing the field via an interface.
 func (v *__setRbacDefaultGroupInput) GetId() string { return v.Id }
 
+// __setRbacDefaultSharingGroupsInput is used internally by genqlient
+type __setRbacDefaultSharingGroupsInput struct {
+	Shares []RbacDefaultSharingGroupInput `json:"shares"`
+}
+
+// GetShares returns __setRbacDefaultSharingGroupsInput.Shares, and is useful for accessing the field via an interface.
+func (v *__setRbacDefaultSharingGroupsInput) GetShares() []RbacDefaultSharingGroupInput {
+	return v.Shares
+}
+
 // __updateAppDataSourceInput is used internally by genqlient
 type __updateAppDataSourceInput struct {
 	Id     string             `json:"id"`
@@ -11426,6 +11459,17 @@ type getRbacDefaultGroupResponse struct {
 // GetRbacDefaultGroup returns getRbacDefaultGroupResponse.RbacDefaultGroup, and is useful for accessing the field via an interface.
 func (v *getRbacDefaultGroupResponse) GetRbacDefaultGroup() RbacGroup { return v.RbacDefaultGroup }
 
+// getRbacDefaultSharingGroupsResponse is returned by getRbacDefaultSharingGroups on success.
+type getRbacDefaultSharingGroupsResponse struct {
+	// Get the group users will be assigned to by default
+	RbacDefaultSharingGroups []RbacDefaultSharingGroup `json:"rbacDefaultSharingGroups"`
+}
+
+// GetRbacDefaultSharingGroups returns getRbacDefaultSharingGroupsResponse.RbacDefaultSharingGroups, and is useful for accessing the field via an interface.
+func (v *getRbacDefaultSharingGroupsResponse) GetRbacDefaultSharingGroups() []RbacDefaultSharingGroup {
+	return v.RbacDefaultSharingGroups
+}
+
 // getRbacGroupResponse is returned by getRbacGroup on success.
 type getRbacGroupResponse struct {
 	// Read an individual group
@@ -12000,6 +12044,14 @@ type setRbacDefaultGroupResponse struct {
 
 // GetResultStatus returns setRbacDefaultGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setRbacDefaultGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// setRbacDefaultSharingGroupsResponse is returned by setRbacDefaultSharingGroups on success.
+type setRbacDefaultSharingGroupsResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns setRbacDefaultSharingGroupsResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *setRbacDefaultSharingGroupsResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // unsetRbacDefaultGroupResponse is returned by unsetRbacDefaultGroup on success.
 type unsetRbacDefaultGroupResponse struct {
@@ -17458,6 +17510,41 @@ func getRbacDefaultGroup(
 	return &data, err
 }
 
+// The query or mutation executed by getRbacDefaultSharingGroups.
+const getRbacDefaultSharingGroups_Operation = `
+query getRbacDefaultSharingGroups {
+	rbacDefaultSharingGroups {
+		... RbacDefaultSharingGroup
+	}
+}
+fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
+	groupId
+	allowEdit
+}
+`
+
+func getRbacDefaultSharingGroups(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacDefaultSharingGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacDefaultSharingGroups",
+		Query:  getRbacDefaultSharingGroups_Operation,
+	}
+	var err error
+
+	var data getRbacDefaultSharingGroupsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getRbacGroup.
 const getRbacGroup_Operation = `
 query getRbacGroup ($id: ORN!) {
@@ -20307,6 +20394,46 @@ func setRbacDefaultGroup(
 	var err error
 
 	var data setRbacDefaultGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by setRbacDefaultSharingGroups.
+const setRbacDefaultSharingGroups_Operation = `
+mutation setRbacDefaultSharingGroups ($shares: [RbacDefaultSharingGroupInput!]!) {
+	resultStatus: setRbacDefaultSharingGroups(shares: $shares) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func setRbacDefaultSharingGroups(
+	ctx context.Context,
+	client graphql.Client,
+	shares []RbacDefaultSharingGroupInput,
+) (*setRbacDefaultSharingGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "setRbacDefaultSharingGroups",
+		Query:  setRbacDefaultSharingGroups_Operation,
+		Variables: &__setRbacDefaultSharingGroupsInput{
+			Shares: shares,
+		},
+	}
+	var err error
+
+	var data setRbacDefaultSharingGroupsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

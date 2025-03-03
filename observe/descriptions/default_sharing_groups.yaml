@@ -1,0 +1,9 @@
+description: |
+  Manages the default sharing groups for newly created resources.
+
+schema:
+  group:
+    oid: |
+      The Observe ID for the group to grant access to.
+    permission: |
+      The permission to grant. Must be one of `view` or `edit`.

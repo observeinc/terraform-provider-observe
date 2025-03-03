@@ -179,6 +179,7 @@ func Provider() *schema.Provider {
 			"observe_correlation_tag":           resourceCorrelationTag(),
 			"observe_dashboard_link":            resourceDashboardLink(),
 			"observe_rbac_group":                resourceRbacGroup(),
+			"observe_default_sharing_groups":    resourceDefaultSharingGroups(),
 			"observe_rbac_default_group":        resourceRbacDefaultGroup(),
 			"observe_rbac_group_member":         resourceRbacGroupmember(),
 			"observe_rbac_statement":            resourceRbacStatement(),
