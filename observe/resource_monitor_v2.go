@@ -962,9 +962,7 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	if v, ok := data.GetOk("description"); ok {
 		input.Description = stringPtr(v.(string))
 	}
-	if v, ok := data.GetOk("disabled"); ok {
-		input.Disabled = boolPtr(v.(bool))
-	}
+	input.Disabled = boolPtr(data.Get("disabled").(bool))
 
 	return input, diags
 }
