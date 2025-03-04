@@ -203,6 +203,7 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2Input.disabled", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
@@ -232,6 +233,7 @@ fragment MonitorV2 on MonitorV2 {
     name
     iconUrl
     description
+    disabled
     managedById
     folderId
     rollupStatus
@@ -252,6 +254,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2Input.disabled", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
@@ -287,6 +290,7 @@ mutation createMonitorV2(
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2Input.disabled", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)
 # @genqlient(for: "MonitorV2RuleInput.count", omitempty: true)
@@ -357,6 +361,7 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "MonitorV2Input.description", omitempty: true)
 # @genqlient(for: "MonitorV2Input.managedById", omitempty: true)
 # @genqlient(for: "MonitorV2Input.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2Input.disabled", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.groupings", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.dataStabilizationDelay", omitempty: true)
 # @genqlient(for: "MonitorV2DefinitionInput.maxAlertsPerHour", omitempty: true)

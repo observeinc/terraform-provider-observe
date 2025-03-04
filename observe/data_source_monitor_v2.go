@@ -54,6 +54,11 @@ func dataSourceMonitorV2() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "description"),
 			},
+			"disabled": { // Boolean
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: descriptions.Get("monitorv2", "schema", "disabled"),
+			},
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type: schema.TypeList,
 				// we need to declare optional, otherwise we won't get block

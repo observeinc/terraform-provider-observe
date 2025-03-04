@@ -56,6 +56,12 @@ func resourceMonitorV2() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "description"),
 			},
+			"disabled": { // Boolean
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: descriptions.Get("monitorv2", "schema", "disabled"),
+			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type:        schema.TypeList,
@@ -585,6 +591,10 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("disabled", monitor.Disabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("oid", monitor.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -952,6 +962,7 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	if v, ok := data.GetOk("description"); ok {
 		input.Description = stringPtr(v.(string))
 	}
+	input.Disabled = boolPtr(data.Get("disabled").(bool))
 
 	return input, diags
 }

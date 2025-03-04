@@ -33,6 +33,7 @@ template and destinations to configure the receiver.
 - `custom_variables` (String)
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.
+- `disabled` (Boolean) Enable/Disable the monitor (and any underlying transforms).
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
