@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccObserveDefaultSharingGroups(t *testing.T) {
+func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 	randomPrefix1 := acctest.RandomWithPrefix("tf")
 	randomPrefix2 := acctest.RandomWithPrefix("tf")
 
@@ -26,7 +26,7 @@ func TestAccObserveDefaultSharingGroups(t *testing.T) {
 				  name = "%[2]s"
 				}
 
-				resource "observe_default_sharing_groups" "test" {
+				resource "observe_workspace_default_grants" "test" {
 				  group {
 					oid        = observe_rbac_group.engineering.oid
 					permission = "edit"
@@ -39,11 +39,11 @@ func TestAccObserveDefaultSharingGroups(t *testing.T) {
 				}
 				`, randomPrefix1, randomPrefix2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.#", "2"),
-					resource.TestCheckResourceAttrSet("observe_default_sharing_groups.test", "group.0.oid"),
-					resource.TestCheckResourceAttrSet("observe_default_sharing_groups.test", "group.1.oid"),
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.0.permission", "edit"),
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.1.permission", "view"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "2"),
+					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.0.oid"),
+					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.1.oid"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.permission", "edit"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.permission", "view"),
 				),
 			},
 			{
@@ -52,7 +52,7 @@ func TestAccObserveDefaultSharingGroups(t *testing.T) {
 				  name = "Everyone"
 				}
 
-				resource "observe_default_sharing_groups" "test" {
+				resource "observe_workspace_default_grants" "test" {
 				  group {
 					oid        = data.observe_rbac_group.everyone.oid
 					permission = "edit"
@@ -60,16 +60,16 @@ func TestAccObserveDefaultSharingGroups(t *testing.T) {
 				}
 				`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.#", "1"),
-					resource.TestCheckResourceAttrSet("observe_default_sharing_groups.test", "group.0.oid"),
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.0.permission", "edit"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "1"),
+					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.0.oid"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.permission", "edit"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccObserveDefaultSharingGroupsEmpty(t *testing.T) {
+func TestAccObserveWorkspaceDefaultGrantsEmpty(t *testing.T) {
 	// need to be able to set "only creator gets edit access by default"
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -77,11 +77,11 @@ func TestAccObserveDefaultSharingGroupsEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble + `
-				resource "observe_default_sharing_groups" "test" {
+				resource "observe_workspace_default_grants" "test" {
 				}
 				`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_default_sharing_groups.test", "group.#", "0"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "0"),
 				),
 			},
 		},

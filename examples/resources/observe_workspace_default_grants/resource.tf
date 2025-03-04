@@ -7,8 +7,7 @@ data "observe_rbac_group" "readonly" {
 }
 
 // Allow group "engineering" to edit and group "readonly" to view newly created resources by default.
-// Only one of this resource can exist in a given tenant.
-resource "observe_default_sharing_groups" "example" {
+resource "observe_workspace_default_grants" "example" {
   group {
     oid        = data.observe_rbac_group.engineering.oid
     permission = "edit"
@@ -21,4 +20,4 @@ resource "observe_default_sharing_groups" "example" {
 }
 
 // Only the creating user (and admins) can edit newly created resources by default.
-resource "observe_default_sharing_groups" "empty" {}
+resource "observe_workspace_default_grants" "empty" {}

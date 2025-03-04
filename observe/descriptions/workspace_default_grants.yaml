@@ -1,5 +1,6 @@
 description: |
-  Manages the default sharing groups for newly created resources.
+  Manages the workspace default grants for newly created resources.
+  Only one of this resource can exist in a given tenant.
 
 schema:
   group:
