@@ -29,15 +29,15 @@ const (
 type TerraformRematerializationMode string
 
 const (
-	RematerializationModeRematerialize            = TerraformRematerializationMode(gql.RematerializationModeRematerialize)
-	RematerializationModeSkipRematerialization    = TerraformRematerializationMode(gql.RematerializationModeSkiprematerialization)
-	RematerializationModeTrySkipRematerialization = TerraformRematerializationMode("TrySkipRematerialization")
+	RematerializationModeRematerialize             = TerraformRematerializationMode(gql.RematerializationModeRematerialize)
+	RematerializationModeSkipRematerialization     = TerraformRematerializationMode(gql.RematerializationModeSkiprematerialization)
+	RematerializationModeMustSkipRematerialization = TerraformRematerializationMode("MustSkipRematerialization")
 )
 
 var AllRematerializationModes = []TerraformRematerializationMode{
 	RematerializationModeRematerialize,
 	RematerializationModeSkipRematerialization,
-	RematerializationModeTrySkipRematerialization,
+	RematerializationModeMustSkipRematerialization,
 }
 
 func resourceDataset() *schema.Resource {
@@ -437,8 +437,8 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		rematerializationMode = TerraformRematerializationMode(toCamel(mode.(string)))
 	}
 
-	// If skipping rematerialization, do a dry-run to ensure it skips rematerialization
-	if rematerializationMode == RematerializationModeSkipRematerialization {
+	// If must_skip_rematerialization is set, do a dry-run to ensure it skips rematerialization
+	if rematerializationMode == RematerializationModeMustSkipRematerialization {
 		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -467,12 +467,12 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	// Map the Terraform version of skip_rematerialization to GQL (do this
-	// because try_skip_rematerialization doesn't exist at the API level)
+	// Map the Terraform version of must_skip_rematerialization to GQL (do this
+	// because must_skip_rematerialization doesn't exist at the API level)
 	// Default dependency handling results in rematerialization, don't need to
 	// map that case.
 	switch rematerializationMode {
-	case RematerializationModeSkipRematerialization, RematerializationModeTrySkipRematerialization:
+	case RematerializationModeSkipRematerialization, RematerializationModeMustSkipRematerialization:
 		mode := gql.RematerializationModeSkiprematerialization
 		dependencyHandling.RematerializationMode = &mode
 	}

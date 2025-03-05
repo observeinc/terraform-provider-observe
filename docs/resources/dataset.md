@@ -61,10 +61,9 @@ frequency with which queries are run, which incurs higher transform costs.
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.
 - `rematerialization_mode` (String) Specifies rematerialization mode when updating a dataset. Options include
-"rematerialize", "skip_rematerialization", and "try_skip_rematerialization" - if no option is used, "rematerialize"
-is used by default. "skip_rematerialization" will skip rematerialization if certain conditions
-are met, will rematerialize otherwise. "try_skip_rematerialization" is similar to "skip_rematerialization" but will
-rematerialize if rematerialization cannot be skipped.
+"rematerialize" (default), "skip_rematerialization", and "must_skip_rematerialization".
+"skip_rematerialization" will skip rematerialization if certain conditions are met, will rematerialize otherwise.
+"must_skip_rematerialization" will never rematerialize, update will fail if skipping rematerialization is not possible.
 
 ### Read-Only
 
