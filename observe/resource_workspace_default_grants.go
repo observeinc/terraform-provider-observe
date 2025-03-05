@@ -23,6 +23,12 @@ var validWorkspaceDefaultGrantPermissions = []WorkspaceDefaultGrantPermission{
 	WorkspaceDefaultGrantPermissionEdit,
 }
 
+var validWorkspaceDefaultGrantObjectTypes = []gql.ORType{
+	gql.ORTypeDashboard,
+	gql.ORTypeDatastream,
+	gql.ORTypeWorksheet,
+}
+
 func resourceWorkspaceDefaultGrants() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("workspace_default_grants", "description"),
@@ -56,6 +62,15 @@ func resourceWorkspaceDefaultGrantsGroup() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validWorkspaceDefaultGrantPermissions),
 				Description:      descriptions.Get("workspace_default_grants", "schema", "group", "permission"),
+			},
+			"object_types": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: descriptions.Get("workspace_default_grants", "schema", "group", "object_types"),
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateEnums(validWorkspaceDefaultGrantObjectTypes),
+				},
 			},
 		},
 	}
@@ -108,9 +123,14 @@ func workspaceDefaultGrantsToResourceData(sharingGroups []gql.RbacDefaultSharing
 		if g.AllowEdit {
 			permission = WorkspaceDefaultGrantPermissionEdit
 		}
+		objectTypes := make([]interface{}, 0, len(g.ObjectTypes))
+		for _, t := range g.ObjectTypes {
+			objectTypes = append(objectTypes, toSnake(string(t)))
+		}
 		groups.Add(map[string]interface{}{
-			"oid":        oid.RbacGroupOid(g.GroupId).String(),
-			"permission": toSnake(string(permission)),
+			"oid":          oid.RbacGroupOid(g.GroupId).String(),
+			"permission":   toSnake(string(permission)),
+			"object_types": objectTypes,
 		})
 	}
 	if err := data.Set("group", groups); err != nil {
@@ -129,9 +149,14 @@ func newWorkspaceDefaultGrantsInput(data *schema.ResourceData) (input []gql.Rbac
 			return nil, diag.Errorf("error parsing group oid: %s", err.Error())
 		}
 		permission := WorkspaceDefaultGrantPermission(toCamel(group["permission"].(string)))
+		objectTypes := []gql.ORType{}
+		for _, t := range group["object_types"].([]interface{}) {
+			objectTypes = append(objectTypes, gql.ORType(toCamel(t.(string))))
+		}
 		input = append(input, gql.RbacDefaultSharingGroupInput{
-			GroupId:   groupOid.Id,
-			AllowEdit: permission == WorkspaceDefaultGrantPermissionEdit,
+			GroupId:     groupOid.Id,
+			AllowEdit:   permission == WorkspaceDefaultGrantPermissionEdit,
+			ObjectTypes: objectTypes,
 		})
 	}
 	return input, diags

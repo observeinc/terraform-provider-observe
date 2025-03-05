@@ -30,6 +30,13 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 				  group {
 					oid        = observe_rbac_group.engineering.oid
 					permission = "edit"
+					object_types = ["dashboard", "worksheet"]
+				  }
+
+				  group {
+					oid        = observe_rbac_group.engineering.oid
+					permission = "view"
+					object_types = ["datastream"]
 				  }
 
 				  group {
@@ -39,11 +46,19 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 				}
 				`, randomPrefix1, randomPrefix2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "2"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "3"),
 					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.0.oid"),
 					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.1.oid"),
+					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.2.oid"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.permission", "edit"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.permission", "view"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.2.permission", "view"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.#", "2"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.0", "dashboard"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.1", "worksheet"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.object_types.#", "1"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.object_types.0", "datastream"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.2.object_types.#", "0"),
 				),
 			},
 			{
@@ -63,6 +78,7 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.0.oid"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.permission", "edit"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.#", "0"),
 				),
 			},
 		},

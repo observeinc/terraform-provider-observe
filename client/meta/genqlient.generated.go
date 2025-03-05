@@ -5919,6 +5919,17 @@ const (
 	NullOrderingLast    NullOrdering = "Last"
 )
 
+type ORType string
+
+const (
+	ORTypeCustomer   ORType = "Customer"
+	ORTypeDashboard  ORType = "Dashboard"
+	ORTypeDataset    ORType = "Dataset"
+	ORTypeDatastream ORType = "Datastream"
+	ORTypeMonitor    ORType = "Monitor"
+	ORTypeWorksheet  ORType = "Worksheet"
+)
+
 // At some point in the future, we may have Segments as business objects,
 // and be able to bookmark them. Technically, we can bookmark bookmark groups, but
 // there is no current UI using that feature.
@@ -7602,8 +7613,9 @@ const (
 
 // RbacDefaultSharingGroup includes the GraphQL fields of RbacDefaultSharingGroup requested by the fragment RbacDefaultSharingGroup.
 type RbacDefaultSharingGroup struct {
-	GroupId   string `json:"groupId"`
-	AllowEdit bool   `json:"allowEdit"`
+	GroupId     string   `json:"groupId"`
+	AllowEdit   bool     `json:"allowEdit"`
+	ObjectTypes []ORType `json:"objectTypes"`
 }
 
 // GetGroupId returns RbacDefaultSharingGroup.GroupId, and is useful for accessing the field via an interface.
@@ -7612,9 +7624,13 @@ func (v *RbacDefaultSharingGroup) GetGroupId() string { return v.GroupId }
 // GetAllowEdit returns RbacDefaultSharingGroup.AllowEdit, and is useful for accessing the field via an interface.
 func (v *RbacDefaultSharingGroup) GetAllowEdit() bool { return v.AllowEdit }
 
+// GetObjectTypes returns RbacDefaultSharingGroup.ObjectTypes, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetObjectTypes() []ORType { return v.ObjectTypes }
+
 type RbacDefaultSharingGroupInput struct {
-	GroupId   string `json:"groupId"`
-	AllowEdit bool   `json:"allowEdit"`
+	GroupId     string   `json:"groupId"`
+	AllowEdit   bool     `json:"allowEdit"`
+	ObjectTypes []ORType `json:"objectTypes"`
 }
 
 // GetGroupId returns RbacDefaultSharingGroupInput.GroupId, and is useful for accessing the field via an interface.
@@ -7622,6 +7638,9 @@ func (v *RbacDefaultSharingGroupInput) GetGroupId() string { return v.GroupId }
 
 // GetAllowEdit returns RbacDefaultSharingGroupInput.AllowEdit, and is useful for accessing the field via an interface.
 func (v *RbacDefaultSharingGroupInput) GetAllowEdit() bool { return v.AllowEdit }
+
+// GetObjectTypes returns RbacDefaultSharingGroupInput.ObjectTypes, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetObjectTypes() []ORType { return v.ObjectTypes }
 
 // RbacGroup includes the GraphQL fields of RbacGroup requested by the fragment RbacGroup.
 type RbacGroup struct {
@@ -17520,6 +17539,7 @@ query getRbacDefaultSharingGroups {
 fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
 	groupId
 	allowEdit
+	objectTypes
 }
 `
 

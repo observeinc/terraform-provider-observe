@@ -42,6 +42,7 @@ mutation deleteRbacGroup($id: ORN!) {
 fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
     groupId
     allowEdit
+    objectTypes
 }
 
 query getRbacDefaultSharingGroups {
