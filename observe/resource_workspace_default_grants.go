@@ -53,9 +53,10 @@ func resourceWorkspaceDefaultGrantsGroup() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"oid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: descriptions.Get("workspace_default_grants", "schema", "group", "oid"),
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(oid.TypeRbacGroup),
+				Description:      descriptions.Get("workspace_default_grants", "schema", "group", "oid"),
 			},
 			"permission": {
 				Type:             schema.TypeString,

@@ -6,6 +6,10 @@ data "observe_rbac_group" "readonly" {
   name = "readonly"
 }
 
+// Note: Below there are 3 different examples of how policies could be configured using
+// observe_workspace_default_grants as a demonstration, but only one resource of this type
+// is allowed in a given tenant.
+
 // Allow group "engineering" to edit and group "readonly" to view newly created resources by default.
 resource "observe_workspace_default_grants" "example" {
   group {
