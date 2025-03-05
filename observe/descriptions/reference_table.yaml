@@ -16,6 +16,10 @@ schema:
     The primary key of the reference table.
   label_field: |
     The field that should be used for the OPAL label.
-  schema: |
-    The schema of the reference table.
-  
+  schema:
+    description: |
+      The schema of the reference table. Must match the columns in the source file.
+    name: |
+      The name of the column.
+    type: |
+      The type of the column. See https://docs.observeinc.com/en/latest/content/query-language-reference/OPALUserGuideTypesOperators.html for options.

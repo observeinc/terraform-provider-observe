@@ -4466,13 +4466,18 @@ func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.Ex
 
 // @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 type MonitorV2 struct {
-	Id           string                `json:"id"`
-	WorkspaceId  string                `json:"workspaceId"`
-	CreatedBy    types.UserIdScalar    `json:"createdBy"`
-	CreatedDate  types.TimeScalar      `json:"createdDate"`
-	Name         string                `json:"name"`
-	IconUrl      *string               `json:"iconUrl"`
-	Description  *string               `json:"description"`
+	Id          string             `json:"id"`
+	WorkspaceId string             `json:"workspaceId"`
+	CreatedBy   types.UserIdScalar `json:"createdBy"`
+	CreatedDate types.TimeScalar   `json:"createdDate"`
+	Name        string             `json:"name"`
+	IconUrl     *string            `json:"iconUrl"`
+	Description *string            `json:"description"`
+	// Indicates if the monitor is enabled or disabled. Use setMonitorV2Enabled to flip this flag
+	// one way or the other by itself.
+	// note: This was previously not supported as an input flag, but it was added as an input
+	// flag to support TF and REST.
+	Disabled     *bool                 `json:"disabled"`
 	ManagedById  *string               `json:"managedById"`
 	FolderId     string                `json:"folderId"`
 	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
@@ -4505,6 +4510,9 @@ func (v *MonitorV2) GetIconUrl() *string { return v.IconUrl }
 
 // GetDescription returns MonitorV2.Description, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetDescription() *string { return v.Description }
+
+// GetDisabled returns MonitorV2.Disabled, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetDisabled() *bool { return v.Disabled }
 
 // GetManagedById returns MonitorV2.ManagedById, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
@@ -5173,6 +5181,7 @@ const (
 )
 
 type MonitorV2Input struct {
+	Disabled          *bool                            `json:"disabled,omitempty"`
 	Comment           *string                          `json:"comment"`
 	Definition        MonitorV2DefinitionInput         `json:"definition"`
 	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
@@ -5183,6 +5192,9 @@ type MonitorV2Input struct {
 	ManagedById       *string                          `json:"managedById,omitempty"`
 	FolderId          *string                          `json:"folderId,omitempty"`
 }
+
+// GetDisabled returns MonitorV2Input.Disabled, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetDisabled() *bool { return v.Disabled }
 
 // GetComment returns MonitorV2Input.Comment, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetComment() *string { return v.Comment }
@@ -13472,6 +13484,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -17000,6 +17013,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -18753,6 +18767,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -19453,6 +19468,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -19695,6 +19711,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -21446,6 +21463,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
