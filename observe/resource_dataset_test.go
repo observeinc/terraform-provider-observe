@@ -570,7 +570,7 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					  "test" = observe_datastream.test.dataset
 					}
 
-					rematerialization_mode = "skip_rematerialization"
+					rematerialization_mode = "must_skip_rematerialization"
 					stage {
 					  	pipeline = <<-EOF
 							make_col x: 2
@@ -585,7 +585,7 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
-					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "must_skip_rematerialization"),
 				),
 			},
 		},
@@ -637,7 +637,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 					  "test" = observe_datastream.test.dataset
 					}
 
-					rematerialization_mode = "skip_rematerialization"
+					rematerialization_mode = "must_skip_rematerialization"
 					stage {
 					  	pipeline = <<-EOF
 							make_col x: 1, y: 2
@@ -651,7 +651,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 }
 
 // Test that a change rematerializes when incompatible with edit-forward
-func TestAccObserveDatasetEditForwardTrySkip(t *testing.T) {
+func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -695,7 +695,7 @@ func TestAccObserveDatasetEditForwardTrySkip(t *testing.T) {
 					  "test" = observe_datastream.test.dataset
 					}
 
-					rematerialization_mode = "try_skip_rematerialization"
+					rematerialization_mode = "skip_rematerialization"
 					stage {
 					  	pipeline = <<-EOF
 							make_col x: 1, y: 2
@@ -710,7 +710,7 @@ func TestAccObserveDatasetEditForwardTrySkip(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
-					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "try_skip_rematerialization"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
 				),
 			},
 		},
