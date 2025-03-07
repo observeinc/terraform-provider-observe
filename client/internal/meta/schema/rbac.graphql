@@ -260,11 +260,13 @@ type MutateRbacStatementsResponse @goModel(model: "observe/meta/metatypes.Mutate
 type RbacDefaultSharingGroup  @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
     groupId: ORN!
     allowEdit: Boolean!
+    objectTypes: [ORType!]
 }
 
 input RbacDefaultSharingGroupInput @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
     groupId: ORN!
     allowEdit: Boolean!
+    objectTypes: [ORType!]
 }
 
 """

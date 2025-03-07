@@ -1543,3 +1543,11 @@ func (c *Client) GetReferenceTable(ctx context.Context, id string) (*rest.Refere
 func (c *Client) LookupReferenceTable(ctx context.Context, label string) (*rest.ReferenceTable, error) {
 	return c.Rest.LookupReferenceTable(ctx, label)
 }
+
+func (c *Client) GetRbacDefaultSharingGroups(ctx context.Context) ([]meta.RbacDefaultSharingGroup, error) {
+	return c.Meta.GetRbacDefaultSharingGroups(ctx)
+}
+
+func (c *Client) SetRbacDefaultSharingGroups(ctx context.Context, input []meta.RbacDefaultSharingGroupInput) error {
+	return c.Meta.SetRbacDefaultSharingGroups(ctx, input)
+}
