@@ -21,17 +21,17 @@ func TestAccObserveResourceGrantsDataset(t *testing.T) {
 					workspace = data.observe_workspace.default.oid
 					name      = "%[1]s-1"
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 					stage {}
 				}
 
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				data "observe_rbac_group" "everyone" {
-				  name = "Everyone"
+					name = "Everyone"
 				}
 
 				resource "observe_resource_grants" "test" {
@@ -59,17 +59,17 @@ func TestAccObserveResourceGrantsDataset(t *testing.T) {
 					workspace = data.observe_workspace.default.oid
 					name      = "%[1]s-1"
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 					stage {}
 				}
 
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				data "observe_rbac_group" "everyone" {
-				  name = "Everyone"
+					name = "Everyone"
 				}
 
 				resource "observe_resource_grants" "test" {

@@ -19,18 +19,18 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    group = observe_rbac_group.example.oid
-				  }
-				  object {
-				    workspace = data.observe_workspace.default.id
-				  }
-				  role = "Lister"
+					description = "%[1]s"
+					subject {
+						group = observe_rbac_group.example.oid
+					}
+					object {
+						workspace = data.observe_workspace.default.id
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -45,23 +45,23 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    group = observe_rbac_group.example.oid
-				  }
-				  object {
-				    id = observe_folder.example.id
-				  }
-				  role = "Lister"
+					description = "%[1]s"
+					subject {
+						group = observe_rbac_group.example.oid
+					}
+					object {
+						id = observe_folder.example.id
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -76,23 +76,23 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    group = observe_rbac_group.example.oid
-				  }
-				  object {
-				    folder = observe_folder.example.id
-				  }
-				  role = "Lister"
+					description = "%[1]s"
+					subject {
+						group = observe_rbac_group.example.oid
+					}
+					object {
+						folder = observe_folder.example.id
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -120,14 +120,14 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
                 }
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[2]s"
-				  subject {
-				    user = data.observe_user.system.oid
-				  }
-				  object {
-				    workspace = data.observe_workspace.default.id
-				  }
-				  role = "Lister"
+					description = "%[2]s"
+					subject {
+						user = data.observe_user.system.oid
+					}
+					object {
+						workspace = data.observe_workspace.default.id
+					}
+					role = "Lister"
 				}
 				`, systemUser(), randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -146,19 +146,19 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
                 }
 
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[2]s"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[2]s"
 				}
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[2]s"
-				  subject {
-				    user = data.observe_user.system.oid
-				  }
-				  object {
-				    id = observe_folder.example.id
-				  }
-				  role = "Lister"
+					description = "%[2]s"
+					subject {
+						user = data.observe_user.system.oid
+					}
+					object {
+						id = observe_folder.example.id
+					}
+					role = "Lister"
 				}
 				`, systemUser(), randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -186,14 +186,14 @@ func TestAccObserveRbacStatementAllCreate(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    all = true
-				  }
-				  object {
-				    all = true
-				  }
-				  role = "Lister"
+					description = "%[1]s"
+					subject {
+						all = true
+					}
+					object {
+						all = true
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -221,14 +221,14 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    all = true
-				  }
-				  object {
-				    type = "dataset"
-				  }
-				  role = "Lister"
+					description = "%[1]s"
+					subject {
+						all = true
+					}
+					object {
+						type = "dataset"
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -244,15 +244,15 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    all = true
-				  }
-				  object {
-				    type = "dataset"
+					description = "%[1]s"
+					subject {
+						all = true
+					}
+					object {
+						type = "dataset"
 					name = "test"
-				  }
-				  role = "Lister"
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -269,15 +269,15 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+`
 
 				resource "observe_rbac_statement" "example" {
-				  description = "%[1]s"
-				  subject {
-				    all = true
-				  }
-				  object {
-				    type = "dataset"
+					description = "%[1]s"
+					subject {
+						all = true
+					}
+					object {
+						type = "dataset"
 					owner = true
-				  }
-				  role = "Lister"
+					}
+					role = "Lister"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

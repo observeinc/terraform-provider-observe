@@ -18,11 +18,11 @@ func TestAccObserveUser(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				data "observe_user" "system" {
-				  email = "%s"
+					email = "%s"
 				}
 
 				data "observe_user" "system_by_id" {
-				  id = data.observe_user.system.id
+					id = data.observe_user.system.id
 				}
 
 				`, systemUser()),

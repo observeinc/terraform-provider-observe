@@ -18,17 +18,17 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				resource "observe_workspace" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "Hello"
+					workspace = observe_workspace.example.oid
+					name      = "Hello"
 				}
 
 				resource "observe_datastream_token" "example" {
-				  datastream = observe_datastream.example.oid
-				  name      = "World"
+					datastream = observe_datastream.example.oid
+					name      = "World"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -40,17 +40,17 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				resource "observe_workspace" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "Hello"
+					workspace = observe_workspace.example.oid
+					name      = "Hello"
 				}
 
 				resource "observe_datastream_token" "example" {
-				  datastream = observe_datastream.example.oid
-				  name      = "Worlds"
+					datastream = observe_datastream.example.oid
+					name      = "Worlds"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -62,18 +62,18 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				resource "observe_workspace" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "Hello"
+					workspace = observe_workspace.example.oid
+					name      = "Hello"
 				}
 
 				resource "observe_datastream_token" "example" {
-				  datastream = observe_datastream.example.oid
-				  name      = "SecretWorlds"
-				  password	= "Very-Very-Secret-Long-Hidden-Password"
+					datastream = observe_datastream.example.oid
+					name      = "SecretWorlds"
+					password	= "Very-Very-Secret-Long-Hidden-Password"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

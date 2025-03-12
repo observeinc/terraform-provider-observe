@@ -18,7 +18,7 @@ func TestAccObserveRbacGroupCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -29,8 +29,8 @@ func TestAccObserveRbacGroupCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name         = "%[1]s-1"
-				  description  = "a description"
+					name         = "%[1]s-1"
+					description  = "a description"
 				}
 				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

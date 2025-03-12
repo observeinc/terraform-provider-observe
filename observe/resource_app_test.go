@@ -23,25 +23,25 @@ func TestAccObserveApp(t *testing.T) {
 				}
 
 				resource "observe_folder" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "%[1]s"
+					workspace = observe_workspace.example.oid
+					name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-				  workspace = observe_workspace.example.oid
-				  name      = "%[1]s"
+					workspace = observe_workspace.example.oid
+					name      = "%[1]s"
 				}
 
 				resource "observe_app" "example" {
-				  folder    = observe_folder.example.oid
+					folder    = observe_folder.example.oid
 
-				  module_id = "observeinc/openweather/observe"
-				  version   = "0.2.1"
+					module_id = "observeinc/openweather/observe"
+					version   = "0.2.1"
 
-				  variables = {
+					variables = {
 					datastream = observe_datastream.example.id
 					api_key    = "00000000000000000000000000000000"
-				  }
+					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_app.example", "module_id", "observeinc/openweather/observe"),

@@ -17,12 +17,12 @@ func TestAccObserveSourceWorkspace(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				data "observe_workspace" "default" {
-				  name = "%s"
+					name = "%s"
 				}
 
 
 				data "observe_workspace" "default_by_id" {
-				  id = data.observe_workspace.default.id
+					id = data.observe_workspace.default.id
 				}
 
 				`, defaultWorkspaceName),
@@ -47,7 +47,7 @@ func TestAccObserveSourceWorkspaceNotFound(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				data "observe_workspace" "default" {
-				  name = "%s"
+					name = "%s"
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(randomPrefix),
 			},

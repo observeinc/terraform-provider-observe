@@ -18,18 +18,18 @@ func TestAccObserveRbacGroupmemberWithUserCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				data "observe_user" "system" {
-                  email = "%[1]s"
-                }
+					email = "%[1]s"
+				}
 
 				resource "observe_rbac_group" "example" {
-				  name      = "%[2]s"
+					name      = "%[2]s"
 				}
 
 				resource "observe_rbac_group_member" "example" {
-				  group = observe_rbac_group.example.oid
-				  member {
-				    user= data.observe_user.system.oid
-				  }
+					group = observe_rbac_group.example.oid
+					member {
+						user= data.observe_user.system.oid
+					}
 				}
 				`, systemUser(), randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
