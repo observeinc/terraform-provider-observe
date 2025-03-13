@@ -26,6 +26,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     filedrop
     folder
     incident
+    ingestfilter
     ingesttoken
     investigationnotebook
     layeredsetting
@@ -89,4 +90,13 @@ enum RbacRole @goModel(model: "observe/access/permission.Role") {
     UserDelete
     UserInvite
     Viewer
+}
+
+enum ORType @goModel(model: "observe/access/permission.ORType") {
+    Customer
+    Dashboard
+    Dataset
+    Datastream
+    Monitor
+    Worksheet
 }

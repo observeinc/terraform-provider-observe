@@ -1558,6 +1558,18 @@ func (c *Client) LookupReferenceTable(ctx context.Context, label string) (*rest.
 }
 
 /**
+ * DefaultSharingGroups
+ */
+
+func (c *Client) GetRbacDefaultSharingGroups(ctx context.Context) ([]meta.RbacDefaultSharingGroup, error) {
+	return c.Meta.GetRbacDefaultSharingGroups(ctx)
+}
+
+func (c *Client) SetRbacDefaultSharingGroups(ctx context.Context, input []meta.RbacDefaultSharingGroupInput) error {
+	return c.Meta.SetRbacDefaultSharingGroups(ctx, input)
+}
+
+/**
  * Reports
  */
 func (c *Client) CreateReport(ctx context.Context, input *rest.ReportsDefinition) (result *rest.ReportsResource, err error) {
