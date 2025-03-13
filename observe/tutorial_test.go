@@ -24,7 +24,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  	"test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
@@ -89,7 +89,7 @@ func TestAccObserveDatasetBasic(t *testing.T) {
 					freshness = "2m"
 
 					inputs = {
-					  	"test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {

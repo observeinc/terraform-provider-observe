@@ -1,0 +1,78 @@
+description: |
+  A report is a scheduled query on a dashboard that is executed on a given scheduled. The dashboard is rendered as a PDF and sent to a list of recipients via e-mail.
+
+schema:
+  description: |
+    The description of a report
+  created_by:
+    description: |
+      The user that created the report.
+    id: |
+      The ID of the user that created the report.
+    label: |
+      The name of the user that created the report.
+  created_at: |
+      The time when the report was created.
+  updated_by:
+    description: |
+      The user that last updated the report.
+    id: |
+      The ID of the user that last updated the report.
+    label: |
+      The name of the user that last updated the report.
+  updated_at: |
+      The time when the report was last updated.
+  label: |
+    The name of the report.
+  enabled: |
+    Whether the report is enabled or not. A disabled report will not run on the defined schedule.
+  dashboard:
+    description: |
+      The dashboard that will be used for the report.
+    id: |
+      The ID of the dashboard to be used for the report.
+    label: |
+      The name of the dashboard to be used for the report.
+    parameters:
+      description: |
+        A list of dashboard parameters and their values that are used in the dashboard.
+        This field can be omitted if the dashboard does not have any parameters, or if the report does not need this field.
+        The list contains of key-value pairs.
+      key: |
+        The name of the parameter.
+      value: |
+        The value of the parameter.
+    query_window_duration_minutes: |
+      The query window duration that will be used in the dashboard query in minutes.
+      E.g., if we want the report to contain the last day of data, this needs to be set to 1440.
+  schedule:
+    description: |
+      The schedule of the report.
+    frequency: |
+      The frequency of the report. This can be "Daily", "Weekly", or "Monthly".
+    every: |
+      Every how many days, weeks, or months (based on frequency) should the report run.
+    time_of_day: |
+      The time of day to run this report in {HH:MM} format
+    timezone: |
+      The IANA timezone to run this report in.
+    day_of_the_week: |
+      The day of the week to run this report. Can be "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", or "Sunday".
+      This is only used if the frequency is "Weekly".
+    day_of_the_month: |
+      The day of the month to run this report. Can be either 1 or 15.
+      This is only used if the frequency is "Monthly".
+  email_subject: |
+    The subject of the e-mail that will be sent every time the report runs.
+  email_body: |
+    The body of the e-mail that will be sent every time the report runs. This is used to add some context to the email.
+  email_recipients: |
+    A list of e-mail addresses that will receive the report.
+  next_scheduled_time: |
+    The next time the report will run.
+  last_run_time: |
+    The last time the report ran.
+  last_run_status: |
+    The status of the last run of the report.
+  last_run_error: |
+    The error of the last run of the report.

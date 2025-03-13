@@ -117,8 +117,8 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				data "observe_dataset" "missing" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(randomPrefix),
 			},
@@ -134,8 +134,8 @@ func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble + `
 				data "observe_dataset" "missing" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = ""
+					workspace = data.observe_workspace.default.oid
+					name      = ""
 				}`),
 				ExpectError: regexp.MustCompile("not be an empty string"),
 			},
@@ -151,8 +151,8 @@ func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble + `
 				data "observe_dataset" "missing" {
-				  workspace = data.observe_workspace.default.oid
-				  id        = "xyz"
+					workspace = data.observe_workspace.default.oid
+					id        = "xyz"
 				}`),
 				ExpectError: regexp.MustCompile("expected ID to be valid integer"),
 			},

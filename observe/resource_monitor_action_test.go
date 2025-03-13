@@ -2,9 +2,10 @@ package observe
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"testing"
 )
 
 func TestAccObserveMonitorAction_Webhook(t *testing.T) {
@@ -17,17 +18,17 @@ func TestAccObserveMonitorAction_Webhook(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor_action" "webhook_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 
-				  webhook {
-				  	url_template 	= "https://example.com"
-					body_template 	= "{}"
-					headers 		= {
-						"test" = "hello"
+					webhook {
+						url_template 	= "https://example.com"
+						body_template 	= "{}"
+						headers 		= {
+							"test" = "hello"
+						}
 					}
-				  }
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -52,15 +53,15 @@ func TestAccObserveMonitorAction_Email(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor_action" "email_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 
-				  email {
-				  	target_addresses = [ "test@observeinc.com" ]
+					email {
+						target_addresses = [ "test@observeinc.com" ]
 					subject_template = "Hello"
 					body_template    = "Nope"
-				  }
+					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

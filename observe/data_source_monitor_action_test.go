@@ -18,17 +18,17 @@ func TestAccObserveSourceMonitorAction_Webhook(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor_action" "webhook_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 
-				  webhook {
-				  	url_template 	= "https://example.com"
-					body_template 	= "{}"
-					headers 		= {
-						"test" = "hello"
+					webhook {
+						url_template 	= "https://example.com"
+						body_template 	= "{}"
+						headers 		= {
+							"test" = "hello"
+						}
 					}
-				  }
 				}
 
 				data "observe_monitor_action" "lookup" {
@@ -68,15 +68,15 @@ func TestAccObserveSourceMonitorAction_Email(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_monitor_action" "email_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 
-				  email {
-				  	target_addresses = [ "test@observeinc.com" ]
-					subject_template = "Hello"
-					body_template    = "Nope"
-				  }
+					email {
+						target_addresses = [ "test@observeinc.com" ]
+						subject_template = "Hello"
+						body_template    = "Nope"
+					}
 				}
 
 				data "observe_monitor_action" "lookup" {

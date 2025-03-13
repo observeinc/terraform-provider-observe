@@ -7,9 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
-
 	"net/http"
+	"strings"
 )
 
 // Client implements our RESTful customer API
@@ -49,7 +48,7 @@ func (c *Client) do(ctx context.Context, method string, path string, body map[st
 	switch resp.StatusCode {
 	case http.StatusOK:
 	default:
-		return fmt.Errorf(strings.ToLower(http.StatusText(resp.StatusCode)))
+		return errors.New(strings.ToLower(http.StatusText(resp.StatusCode)))
 	}
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&result); err != nil {
@@ -77,38 +76,40 @@ func responseWrapper(resp *http.Response, err error) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c *Client) Post(path string, contentType string, body io.Reader) (*http.Response, error) {
-	return responseWrapper(c.httpClient.Post(c.endpoint+path, contentType, body))
+func (c *Client) request(
+	method, path, contentType string,
+	body io.Reader,
+) (*http.Response, error) {
+	req, err := http.NewRequest(method, c.endpoint+path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(contentType) > 0 {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	return responseWrapper(c.httpClient.Do(req))
+}
+
+func (c *Client) Post(path, contentType string, body io.Reader) (*http.Response, error) {
+	return c.request(http.MethodPost, path, contentType, body)
 }
 
 func (c *Client) Get(path string) (*http.Response, error) {
-	return responseWrapper(c.httpClient.Get(c.endpoint + path))
+	return c.request(http.MethodGet, path, "", nil)
 }
 
 func (c *Client) Put(path string, contentType string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest("PUT", c.endpoint+path, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", contentType)
-	return responseWrapper(c.httpClient.Do(req))
+	return c.request(http.MethodPut, path, contentType, body)
 }
 
 func (c *Client) Patch(path string, contentType string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest("PATCH", c.endpoint+path, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", contentType)
-	return responseWrapper(c.httpClient.Do(req))
+	return c.request(http.MethodPatch, path, contentType, body)
 }
 
 func (c *Client) Delete(path string) (*http.Response, error) {
-	req, err := http.NewRequest("DELETE", c.endpoint+path, nil)
-	if err != nil {
-		return nil, err
-	}
-	return responseWrapper(c.httpClient.Do(req))
+	return c.request(http.MethodDelete, path, "", nil)
 }
 
 // New returns client to customer API

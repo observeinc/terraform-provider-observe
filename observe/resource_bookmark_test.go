@@ -34,9 +34,9 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group  = observe_bookmark_group.a.oid
-				  target = observe_datastream.test.dataset
-				  name   = "Test"
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "Test"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -46,10 +46,10 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group    = observe_bookmark_group.a.oid
-				  target   = observe_datastream.test.dataset
-				  name     = "Test"
-				  icon_url = "star"
+					group    = observe_bookmark_group.a.oid
+					target   = observe_datastream.test.dataset
+					name     = "Test"
+					icon_url = "star"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -70,18 +70,18 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group  = observe_bookmark_group.a.oid
-				  target = observe_datastream.test.dataset
-				  name   = "Test"
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "Test"
 				}
 				`, randomPrefix),
 			},
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group  = observe_bookmark_group.b.oid
-				  target = observe_datastream.test.dataset
-				  name   = "Test"
+					group  = observe_bookmark_group.b.oid
+					target = observe_datastream.test.dataset
+					name   = "Test"
 				}
 				`, randomPrefix),
 			},
@@ -99,9 +99,9 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkDashboardConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group  = observe_bookmark_group.a.oid
-				  target = observe_dashboard.first.oid
-				  name   = "Test"
+					group  = observe_bookmark_group.a.oid
+					target = observe_dashboard.first.oid
+					name   = "Test"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -112,10 +112,10 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkDashboardConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group    = observe_bookmark_group.a.oid
-				  target   = observe_dashboard.first.oid
-				  name     = "Test"
-				  icon_url = "star"
+					group    = observe_bookmark_group.a.oid
+					target   = observe_dashboard.first.oid
+					name     = "Test"
+					icon_url = "star"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -137,9 +137,9 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group  = observe_bookmark_group.a.oid
-				  target = observe_datastream.test.dataset
-				  name   = "Test"
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "Test"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -150,10 +150,10 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group         = observe_bookmark_group.a.oid
-				  target        = observe_datastream.test.dataset
-				  name          = "Test"
-				  bookmark_kind = "log_explorer"
+					group         = observe_bookmark_group.a.oid
+					target        = observe_datastream.test.dataset
+					name          = "Test"
+					bookmark_kind = "log_explorer"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -164,10 +164,10 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
-				  group         = observe_bookmark_group.a.oid
-				  target        = observe_datastream.test.dataset
-				  name          = "Test"
-				  bookmark_kind = "metric_explorer"
+					group         = observe_bookmark_group.a.oid
+					target        = observe_datastream.test.dataset
+					name          = "Test"
+					bookmark_kind = "metric_explorer"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

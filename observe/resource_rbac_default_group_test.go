@@ -15,11 +15,11 @@ func TestAccObserveRbacDefaultGroupSet(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble + `
 				data "observe_rbac_group" "writer" {
-				  name      = "writer"
+					name      = "writer"
 				}
 
 				resource "observe_rbac_default_group" "writer" {
-				  group = data.observe_rbac_group.writer.oid
+					group = data.observe_rbac_group.writer.oid
 				}
 				`),
 				Check: resource.ComposeTestCheckFunc(

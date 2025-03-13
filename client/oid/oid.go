@@ -36,11 +36,11 @@ const (
 	TypeLayeredSettingRecord    Type = "layeredsettingrecord"
 	TypeLink                    Type = "link"
 	TypeMonitor                 Type = "monitor"
+	TypeMonitorAction           Type = "monitoraction"
+	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypeMonitorV2               Type = "monitorv2"
 	TypeMonitorV2Action         Type = "monitorv2action"
 	TypeMonitorV2Destination    Type = "monitorv2destination"
-	TypeMonitorAction           Type = "monitoraction"
-	TypeMonitorActionAttachment Type = "monitoractionattachment"
 	TypePoller                  Type = "poller"
 	TypePreferredPath           Type = "preferredpath"
 	TypeUser                    Type = "user"
@@ -52,6 +52,7 @@ const (
 	TypeSnowflakeOutboundShare  Type = "snowflakeoutboundshare"
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
 	TypeReferenceTable          Type = "referencetable"
+	TypeReport                  Type = "report"
 )
 
 func (t Type) IsValid() bool {
@@ -68,6 +69,7 @@ func (t Type) IsValid() bool {
 	case TypeDataset:
 	case TypeDatastream:
 	case TypeDatastreamToken:
+	case TypeFiledrop:
 	case TypeFolder:
 	case TypeLayeredSettingRecord:
 	case TypeLink:
@@ -87,6 +89,8 @@ func (t Type) IsValid() bool {
 	case TypeRbacStatement:
 	case TypeSnowflakeOutboundShare:
 	case TypeDatasetOutboundShare:
+	case TypeReferenceTable:
+	case TypeReport:
 	default:
 		return false
 	}
