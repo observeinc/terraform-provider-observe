@@ -18,9 +18,9 @@ func TestAccObserveFolderCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_folder" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+					icon_url  = "test"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -32,10 +32,10 @@ func TestAccObserveFolderCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_folder" "example" {
-				  workspace    = data.observe_workspace.default.oid
-				  name         = "%[1]s-1"
-				  icon_url     = "test"
-				  description  = "a description"
+					workspace    = data.observe_workspace.default.oid
+					name         = "%[1]s-1"
+					icon_url     = "test"
+					description  = "a description"
 				}
 				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

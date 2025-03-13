@@ -31,7 +31,7 @@ func TestAccObservePoller(t *testing.T) {
 					skip_external_validation = true
 
 					chunk {
-					    enabled = true
+							enabled = true
 						size = 1024
 					}
 					tags = {
@@ -41,10 +41,10 @@ func TestAccObservePoller(t *testing.T) {
 					http {
 						method   = "POST"
 						body   = jsonencode({ "hello" = "world" })
-					    endpoint = "https://test.com"
+							endpoint = "https://test.com"
 						content_type = "application/json"
 						headers = {
-						    "token" = "test-token"
+								"token" = "test-token"
 						}
 					}
 				}`, randomPrefix, "pollers", randomPrefix, "http"),
@@ -127,26 +127,26 @@ func TestAccObservePoller(t *testing.T) {
                 resource "observe_poller" "first" {
 					workspace = data.observe_workspace.default.oid
 					name      = "%s-%s"
-				    retries   = 5
-				    datastream = observe_datastream.example.oid
+						retries   = 5
+						datastream = observe_datastream.example.oid
 					skip_external_validation = true
 
-				    chunk {
-					    enabled = true
+						chunk {
+							enabled = true
 						size = 1024
-				    }
-				    tags = {
+						}
+						tags = {
 						"k1"   = "v1"
 						"k2"   = "v2"
-				    }
-				    pubsub {
-					    project_id = "gcp-test"
-					    subscription_id = "sub-test"
+						}
+						pubsub {
+							project_id = "gcp-test"
+							subscription_id = "sub-test"
 						json_key = jsonencode({
 							type: "service_account",
 							project_id: "gcp-test"
-					    })
-				    }
+							})
+						}
                 }`, randomPrefix, "pollers", randomPrefix, "pubsub"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_poller.first", "name", randomPrefix+"-pubsub"),

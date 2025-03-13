@@ -7,11 +7,10 @@ import (
 	"sync"
 	"time"
 
-	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/version"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/version"
 )
 
 var (
@@ -148,6 +147,7 @@ func Provider() *schema.Provider {
 			"observe_monitor_v2":        dataSourceMonitorV2(),
 			"observe_monitor_v2_action": dataSourceMonitorV2Action(),
 			"observe_reference_table":   dataSourceReferenceTable(),
+			"observe_report":            dataSourceReport(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
@@ -189,6 +189,7 @@ func Provider() *schema.Provider {
 			"observe_snowflake_outbound_share":  resourceSnowflakeOutboundShare(),
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
 			"observe_reference_table":           resourceReferenceTable(),
+			"observe_report":                    resourceReport(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

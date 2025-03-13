@@ -11,73 +11,73 @@ import (
 var (
 	monitorActionAttachmentConfigPreamble = monitorConfigPreamble + `
 				resource "observe_monitor" "first" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-first"
-				  freshness = "4m"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-first"
+					freshness = "4m"
 
-				  comment = "a descriptive comment"
+					comment = "a descriptive comment"
 
-				  inputs = {
-				  	"test" = observe_datastream.test.dataset
-				  }
-
-				  stage {}
-
-				  rule {
-					count {
-					  compare_function   = "less_or_equal"
-					  compare_values     = [1]
-					  lookback_time      = "1m"
+					inputs = {
+						"test" = observe_datastream.test.dataset
 					}
-				  }
+
+					stage {}
+
+					rule {
+						count {
+							compare_function   = "less_or_equal"
+							compare_values     = [1]
+							lookback_time      = "1m"
+						}
+					}
 				}
 
 				resource "observe_monitor" "second" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-second"
-				  freshness = "4m"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-second"
+					freshness = "4m"
 
-				  comment = "a descriptive comment"
+					comment = "a descriptive comment"
 
-				  inputs = {
-				  	"test" = observe_datastream.test.dataset
-				  }
-
-				  stage {}
-
-				  rule {
-					count {
-					  compare_function   = "less_or_equal"
-					  compare_values     = [1]
-					  lookback_time      = "1m"
+					inputs = {
+						"test" = observe_datastream.test.dataset
 					}
-				  }
+
+					stage {}
+
+					rule {
+					count {
+						compare_function   = "less_or_equal"
+						compare_values     = [1]
+						lookback_time      = "1m"
+					}
+					}
 				}
 
 				resource "observe_monitor_action" "webhook_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-wa"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-wa"
+					icon_url  = "test"
 
-				  webhook {
-				  	url_template 	= "https://example.com"
+					webhook {
+						url_template 	= "https://example.com"
 					body_template 	= "{}"
 					headers 		= {
 						"test" = "hello"
 					}
-				  }
+					}
 				}
 				
 				resource "observe_monitor_action" "email_action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-ea"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-ea"
+					icon_url  = "test"
 
-				  email {
-				  	target_addresses = [ "test@observeinc.com" ]
+					email {
+						target_addresses = [ "test@observeinc.com" ]
 					subject_template = "Hello"
 					body_template    = "Nope"
-				  }
+					}
 				}
 				`
 )
@@ -92,9 +92,9 @@ func TestAccObserveMonitorActionAttachment_OneToOne(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "one_to_one" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.first.oid
-				  action = observe_monitor_action.webhook_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.first.oid
+					action = observe_monitor_action.webhook_action.oid
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -116,10 +116,10 @@ func TestAccObserveMonitorActionAttachment_Named(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "one_to_one" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.first.oid
-				  action = observe_monitor_action.webhook_action.oid
-				  name = "%[1]s"
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.first.oid
+					action = observe_monitor_action.webhook_action.oid
+					name = "%[1]s"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -142,27 +142,27 @@ func TestAccObserveMonitorActionAttachment_ManyToMany(t *testing.T) {
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "first_and_webhook" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.first.oid
-				  action = observe_monitor_action.webhook_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.first.oid
+					action = observe_monitor_action.webhook_action.oid
 				}
 				
 				resource "observe_monitor_action_attachment" "first_and_email" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.first.oid
-				  action = observe_monitor_action.email_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.first.oid
+					action = observe_monitor_action.email_action.oid
 				}
 				
 				resource "observe_monitor_action_attachment" "second_and_webhook" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.second.oid
-				  action = observe_monitor_action.webhook_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.second.oid
+					action = observe_monitor_action.webhook_action.oid
 				}
 				
 				resource "observe_monitor_action_attachment" "second_and_email" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.second.oid
-				  action = observe_monitor_action.email_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.second.oid
+					action = observe_monitor_action.email_action.oid
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -190,9 +190,9 @@ func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *test
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "one_to_one" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.first.oid
-				  action = observe_monitor_action.webhook_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.first.oid
+					action = observe_monitor_action.webhook_action.oid
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -203,9 +203,9 @@ func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *test
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "one_to_one" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.second.oid
-				  action = observe_monitor_action.webhook_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.second.oid
+					action = observe_monitor_action.webhook_action.oid
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -216,9 +216,9 @@ func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *test
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor_action_attachment" "one_to_one" {
-				  workspace = data.observe_workspace.default.oid
-				  monitor = observe_monitor.second.oid
-				  action = observe_monitor_action.email_action.oid
+					workspace = data.observe_workspace.default.oid
+					monitor = observe_monitor.second.oid
+					action = observe_monitor_action.email_action.oid
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -240,37 +240,37 @@ func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor" "sample_one" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "owengoebel-sample-monitor"
-				  freshness = "4m"
+					workspace = data.observe_workspace.default.oid
+					name      = "owengoebel-sample-monitor"
+					freshness = "4m"
 
-				  comment = "a descriptive comment"
+					comment = "a descriptive comment"
 
-				  inputs = {
-				  	"test" = observe_datastream.test.dataset
-				  }
-
-				  stage {}
-
-				  rule {
-					count {
-					  compare_function   = "less_or_equal"
-					  compare_values     = [1]
-					  lookback_time      = "1m"
+					inputs = {
+						"test" = observe_datastream.test.dataset
 					}
-				  }
+
+					stage {}
+
+					rule {
+					count {
+						compare_function   = "less_or_equal"
+						compare_values     = [1]
+						lookback_time      = "1m"
+					}
+					}
 				}
 
 				resource "observe_monitor_action" "sample" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-ea"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-ea"
+					icon_url  = "test"
 
-				  email {
-				  	target_addresses = [ "test@observeinc.com" ]
+					email {
+						target_addresses = [ "test@observeinc.com" ]
 					subject_template = "Hello"
 					body_template    = "Nope"
-				  }
+					}
 				}
 
 				resource "observe_monitor_action_attachment" "sample" {
@@ -287,37 +287,37 @@ func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.
 			{
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor" "sample_two" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "owengoebel-sample-monitor"
-				  freshness = "4m"
+					workspace = data.observe_workspace.default.oid
+					name      = "owengoebel-sample-monitor"
+					freshness = "4m"
 
-				  comment = "a descriptive comment"
+					comment = "a descriptive comment"
 
-				  inputs = {
-				  	"test" = observe_datastream.test.dataset
-				  }
-
-				  stage {}
-
-				  rule {
-					count {
-					  compare_function   = "less_or_equal"
-					  compare_values     = [1]
-					  lookback_time      = "1m"
+					inputs = {
+						"test" = observe_datastream.test.dataset
 					}
-				  }
+
+					stage {}
+
+					rule {
+					count {
+						compare_function   = "less_or_equal"
+						compare_values     = [1]
+						lookback_time      = "1m"
+					}
+					}
 				}
 
 				resource "observe_monitor_action" "sample" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s-ea"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-ea"
+					icon_url  = "test"
 
-				  email {
-				  	target_addresses = [ "test@observeinc.com" ]
+					email {
+						target_addresses = [ "test@observeinc.com" ]
 					subject_template = "Hello"
 					body_template    = "Nope"
-				  }
+					}
 				}
 
 				resource "observe_monitor_action_attachment" "sample" {

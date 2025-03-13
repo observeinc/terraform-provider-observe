@@ -22,15 +22,15 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 					data "observe_query" "%[1]s" {
-					  start = timestamp()
+						start = timestamp()
 
-					  inputs = { "test" = observe_datastream.test.dataset }
+						inputs = { "test" = observe_datastream.test.dataset }
 
-					  stage {
+						stage {
 						pipeline = <<-EOF
-						  error
+							error
 						EOF
-					  }
+						}
 					}
 				`, randomPrefix),
 				ExpectError: regexp.MustCompile("unknown verb \"error\""),
@@ -53,12 +53,12 @@ func TestAccObserveSourceQuery(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble + `
 					data "observe_query" "test" {
-					  start = timeadd(timestamp(), "-10m")
+						start = timeadd(timestamp(), "-10m")
 
-					  inputs = { "observation" = data.observe_dataset.observation.oid }
+						inputs = { "observation" = data.observe_dataset.observation.oid }
 
-					  stage {}
-				  }
+						stage {}
+					}
 				`,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -80,25 +80,25 @@ func TestAccObserveSourceQueryPoll(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_http_post" "test" {
-					  data   = jsonencode({ hello = "world" })
-					  tags = {
+						data   = jsonencode({ hello = "world" })
+						tags = {
 						"tf_test_id" = "%[1]s"
-					  }
+						}
 					}
 
 					data "observe_query" "query" {
-					  start = timeadd(timestamp(), "-10m")
+						start = timeadd(timestamp(), "-10m")
 
-					  inputs = { "observation" = data.observe_dataset.observation.oid }
+						inputs = { "observation" = data.observe_dataset.observation.oid }
 
-					  stage {
+						stage {
 						pipeline = <<-EOF
-						  filter string(EXTRA.tf_test_id) = "%[1]s"
+							filter string(EXTRA.tf_test_id) = "%[1]s"
 						EOF
-					  }
+						}
 
-					  poll {}
-				  }
+						poll {}
+					}
 				`,
 					randomPrefix,
 				),
@@ -130,30 +130,30 @@ func TestAccObserveSourceQueryAssert(t *testing.T) {
 	*/
 	tf_plan := fmt.Sprintf(configPreamble+`
 		resource "observe_http_post" "test" {
-		  data   = jsonencode({ hello = "world" })
-		  tags = {
+			data   = jsonencode({ hello = "world" })
+			tags = {
 			"tf_test_id" = "%[1]s"
-		  }
+			}
 		}
 
 		data "observe_query" "query" {
-		  start = timeadd(timestamp(), "-10m")
+			start = timeadd(timestamp(), "-10m")
 
-		  inputs = { "observation" = data.observe_dataset.observation.oid }
+			inputs = { "observation" = data.observe_dataset.observation.oid }
 
-		  stage {
+			stage {
 			pipeline = <<-EOF
-			  filter string(EXTRA.tf_test_id) = "%[1]s"
+				filter string(EXTRA.tf_test_id) = "%[1]s"
 			EOF
-		  }
+			}
 
-		  poll {}
+			poll {}
 
-		  assert {
-			update      = %%s		# Test will toggle this
-			golden_file = "%[2]s"
-		  }
-	  }`, randomPrefix, golden_file.Name())
+			assert {
+				update      = %%s		# Test will toggle this
+				golden_file = "%[2]s"
+			}
+		}`, randomPrefix, golden_file.Name())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -189,28 +189,28 @@ func TestAccObserveSourceQueryResult(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_http_post" "test" {
-					  data = jsonencode({ hello = "world %[1]s" })
-					  tags = {
+						data = jsonencode({ hello = "world %[1]s" })
+						tags = {
 						"tf_test_id" = "%[1]s"
-					  }
+						}
 					}
 
 					data "observe_query" "test" {
-					  start = timeadd(timestamp(), "-10m")
+						start = timeadd(timestamp(), "-10m")
 
-					  inputs = { "observation" = data.observe_dataset.observation.oid }
+						inputs = { "observation" = data.observe_dataset.observation.oid }
 
-					  poll {}
+						poll {}
 
-					  stage {
-						pipeline = <<-EOF
-						  filter string(EXTRA.tf_test_id) = "%[1]s"
-						EOF
-					  }
-				    }
+						stage {
+							pipeline = <<-EOF
+								filter string(EXTRA.tf_test_id) = "%[1]s"
+							EOF
+						}
+					}
 
 					output "result" {
-					  value = data.observe_query.test.result
+						value = data.observe_query.test.result
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

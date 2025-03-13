@@ -28,9 +28,9 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 						[{
 							"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 							"input": [{
-							  "inputName": "kubernetes/metrics/Container Metrics",
-							  "inputRole": "Data",
-							  "datasetId": "41042989"
+								"inputName": "kubernetes/metrics/Container Metrics",
+								"inputRole": "Data",
+								"datasetId": "41042989"
 							}]
 						}]
 						EOF
@@ -70,9 +70,9 @@ func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 						[{
 							"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 							"input": [{
-							  "inputName": "kubernetes/metrics/Container Metrics",
-							  "inputRole": "Data",
-							  "datasetId": "${data.observe_oid.dataset.id}"
+								"inputName": "kubernetes/metrics/Container Metrics",
+								"inputRole": "Data",
+								"datasetId": "${data.observe_oid.dataset.id}"
 							}]
 						}]
 						EOF
@@ -147,9 +147,9 @@ func TestAccObserveSourceDashboard_ExportWithBindings(t *testing.T) {
 						[{
 							"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 							"input": [{
-							  "inputName": "kubernetes/metrics/Container Metrics",
-							  "inputRole": "Data",
-							  "datasetId": "${data.observe_oid.dataset.id}"
+								"inputName": "kubernetes/metrics/Container Metrics",
+								"inputRole": "Data",
+								"datasetId": "${data.observe_oid.dataset.id}"
 							}]
 						}]
 						EOF
@@ -263,9 +263,9 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 						[{
 							"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
 							"input": [{
-							  "inputName": "kubernetes/metrics/Container Metrics",
-							  "inputRole": "Data",
-							  "datasetId": "${data.observe_oid.dataset.id}"
+								"inputName": "kubernetes/metrics/Container Metrics",
+								"inputRole": "Data",
+								"datasetId": "${data.observe_oid.dataset.id}"
 							}]
 						}]
 						EOF

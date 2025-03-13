@@ -20,7 +20,7 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				resource "observe_http_post" "test" {
-				  data   = jsonencode({"hello"="%s"})
+					data   = jsonencode({"hello"="%s"})
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_http_post.test", "acked"),
@@ -30,7 +30,7 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 				// no change when re-applying
 				Config: fmt.Sprintf(`
 				resource "observe_http_post" "test" {
-				  data   = jsonencode({"hello"="%s"})
+					data   = jsonencode({"hello"="%s"})
 				}`, randomPrefix),
 				PlanOnly: true,
 			},
@@ -40,7 +40,7 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 				Config: fmt.Sprintf(`
 				resource "observe_http_post" "test" {
-				  data   = jsonencode({"data_change"="%s"})
+					data   = jsonencode({"data_change"="%s"})
 				}`, randomPrefix),
 			},
 			{
@@ -49,8 +49,8 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 				Config: fmt.Sprintf(`
 				resource "observe_http_post" "test" {
-				  data   = jsonencode({"hello"="%s"})
-				  tags   = {"key" = "value"}
+					data   = jsonencode({"hello"="%s"})
+					tags   = {"key" = "value"}
 				}`, randomPrefix),
 			},
 			{
@@ -59,8 +59,8 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 				Config: fmt.Sprintf(`
 				resource "observe_http_post" "test" {
-				  path   = "/hello"
-				  data   = jsonencode({"hello"="%s"})
+					path   = "/hello"
+					data   = jsonencode({"hello"="%s"})
 				}`, randomPrefix),
 			},
 		},
@@ -76,15 +76,15 @@ func TestAccObserveHTTPPostCreateContentType(t *testing.T) {
 			{
 				Config: `
 				resource "observe_http_post" "test" {
-				  data         = "nota\n1-json"
+					data         = "nota\n1-json"
 				}`,
 				ExpectError: regexp.MustCompile("failed to submit observations: bad request"),
 			},
 			{
 				Config: `
 				resource "observe_http_post" "test" {
-				  data         = "a,b,c\n1,2,3\n4,5,6"
-				  content_type = "text/csv"
+					data         = "a,b,c\n1,2,3\n4,5,6"
+					content_type = "text/csv"
 				}`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_http_post.test", "acked"),

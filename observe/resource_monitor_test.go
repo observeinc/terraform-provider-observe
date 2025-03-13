@@ -585,14 +585,14 @@ func TestAccObserveMonitorLog(t *testing.T) {
 					name 	                         = "%[1]s-first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
+						pipeline = <<-EOF
 						make_col vt:BUNDLE_TIMESTAMP
 						make_interval vt
-					  EOF
+						EOF
 					}
 				}
 
@@ -646,14 +646,14 @@ func TestAccObserveMonitorLog(t *testing.T) {
 					name 	                         = "%[1]s-first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
+						pipeline = <<-EOF
 						make_col vt:BUNDLE_TIMESTAMP
 						make_interval vt
-					  EOF
+						EOF
 					}
 				}
 
@@ -709,14 +709,14 @@ func TestAccObserveMonitorLog(t *testing.T) {
 					name 	                         = "%[1]s-first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
+						pipeline = <<-EOF
 						make_col vt:BUNDLE_TIMESTAMP
 						make_interval vt
-					  EOF
+						EOF
 					}
 				}
 
@@ -851,7 +851,7 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 						promote {
 							primary_key       = []
-							kind_field		  = "OBSERVATION_KIND"
+							kind_field			= "OBSERVATION_KIND"
 						}
 					}
 
@@ -896,7 +896,7 @@ func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
 
 						promote {
 							primary_key       = []
-							kind_field		  = "OBSERVATION_KIND"
+							kind_field			= "OBSERVATION_KIND"
 						}
 					}
 

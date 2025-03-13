@@ -29,9 +29,9 @@ func TestAccObserveDatastreamNameValidationTooLong(t *testing.T) {
 				PlanOnly: true,
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s%s"  # exceeds MaxNameLength
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s%s"  # exceeds MaxNameLength
+					icon_url  = "test"
 				}
 				`, randomPrefix, strings.Repeat("a", MaxNameLength)),
 				ExpectError: regexp.MustCompile("expected length of name to be.*"),
@@ -51,9 +51,9 @@ func TestAccObserveDatastreamNameValidationInvalidCharacter(t *testing.T) {
 				PlanOnly: true,
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s with colon :"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s with colon :"
+					icon_url  = "test"
 				}
 				`, randomPrefix),
 				ExpectError: regexp.MustCompile("expected value of name to not contain.*"),
@@ -72,9 +72,9 @@ func TestAccObserveDatastreamCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -86,9 +86,9 @@ func TestAccObserveDatastreamCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s-bis"
-				  icon_url  = "changed"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-bis"
+					icon_url  = "changed"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

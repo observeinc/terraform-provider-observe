@@ -195,13 +195,13 @@ func datasetSweeperFunc(pattern string) error {
 	for _, workspace := range workspaces {
 		result, err := client.Meta.Run(ctx, `
 		query getDatasetsInWorkspace($workspaceId: ObjectId!) {
-		    workspace(id: $workspaceId) {
-			    datasets {
-			        id
-			        label
-			        managedById
-			    }
-		    }
+				workspace(id: $workspaceId) {
+					datasets {
+						id
+						label
+						managedById
+						}
+				}
 		}`, map[string]interface{}{
 			"workspaceId": workspace.Id,
 		})

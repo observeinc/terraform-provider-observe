@@ -198,14 +198,14 @@ func TestAccObserveSourceMonitorLog(t *testing.T) {
 					name 	                         = "%[1]s-first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
+						pipeline = <<-EOF
 						make_col vt:BUNDLE_TIMESTAMP
 						make_interval vt
-					  EOF
+						EOF
 					}
 				}
 

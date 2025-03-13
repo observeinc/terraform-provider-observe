@@ -17,12 +17,12 @@ func TestAccObserveGrantGroupDatasetCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_grant" "example" {
-				  subject = observe_rbac_group.example.oid
-				  role    = "dataset_creator"
+					subject = observe_rbac_group.example.oid
+					role    = "dataset_creator"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -43,15 +43,15 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				data "observe_user" "system" {
-				  email = "%[2]s"
+					email = "%[2]s"
 				}
 
 				resource "observe_grant" "example" {
-				  subject = data.observe_user.system.oid
-				  role    = "datastream_editor"
-				  qualifier {
-				    oid = observe_datastream.test.oid
-				  }
+					subject = data.observe_user.system.oid
+					role    = "datastream_editor"
+					qualifier {
+						oid = observe_datastream.test.oid
+					}
 				}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
@@ -64,15 +64,15 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				data "observe_user" "system" {
-				  email = "%[2]s"
+					email = "%[2]s"
 				}
 
 				resource "observe_grant" "example" {
-				  subject = data.observe_user.system.oid
-				  role    = "datastream_viewer"
-				  qualifier {
-				    oid = observe_datastream.test.oid
-				  }
+					subject = data.observe_user.system.oid
+					role    = "datastream_viewer"
+					qualifier {
+						oid = observe_datastream.test.oid
+					}
 				}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
@@ -92,34 +92,34 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				data "observe_rbac_group" "everyone" {
-				  name = "Everyone"
+					name = "Everyone"
 				}
 
 				data "observe_oid" "dataset" {
-				  oid = observe_datastream.test.dataset
+					oid = observe_datastream.test.dataset
 				}
 
 				resource "observe_worksheet" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s"
-				  queries   = <<-EOF
-				  [{
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+					queries   = <<-EOF
+					[{
 					"id": "stage1",
 					"input": [{
-					  "inputName": "kubernetes/Container Logs",
-					  "inputRole": "Data",
-					  "datasetId": "${data.observe_oid.dataset.id}"
-				    }]
-				  }]
-				  EOF
+						"inputName": "kubernetes/Container Logs",
+						"inputRole": "Data",
+						"datasetId": "${data.observe_oid.dataset.id}"
+						}]
+					}]
+					EOF
 				}
 
 				resource "observe_grant" "example" {
-				  subject = data.observe_rbac_group.everyone.oid
-				  role    = "worksheet_viewer"
-				  qualifier {
-				    oid = observe_worksheet.example.oid
-				  }
+					subject = data.observe_rbac_group.everyone.oid
+					role    = "worksheet_viewer"
+					qualifier {
+						oid = observe_worksheet.example.oid
+					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -142,12 +142,12 @@ func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_grant" "example" {
-				  subject = observe_rbac_group.example.oid
-				  role    = "administrator"
+					subject = observe_rbac_group.example.oid
+					role    = "administrator"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -168,12 +168,12 @@ func TestAccObserveGrantGroupMonitorGlobalMuter(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_rbac_group" "example" {
-				  name      = "%[1]s"
+					name      = "%[1]s"
 				}
 
 				resource "observe_grant" "example" {
-				  subject = observe_rbac_group.example.oid
-				  role    = "monitor_global_muter"
+					subject = observe_rbac_group.example.oid
+					role    = "monitor_global_muter"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
