@@ -16,13 +16,9 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-				resource "observe_workspace" "example" {
-					name      = "%[1]s"
-				}
-
+				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-					workspace = observe_workspace.example.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "Hello"
 				}
 
@@ -38,13 +34,9 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(`
-				resource "observe_workspace" "example" {
-					name      = "%[1]s"
-				}
-
+				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-					workspace = observe_workspace.example.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "Hello"
 				}
 
@@ -60,13 +52,9 @@ func TestAccObserveDatastreamTokenCreate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(`
-				resource "observe_workspace" "example" {
-					name      = "%[1]s"
-				}
-
+				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_datastream" "example" {
-					workspace = observe_workspace.example.oid
+					workspace = data.observe_workspace.default.oid
 					name      = "Hello"
 				}
 

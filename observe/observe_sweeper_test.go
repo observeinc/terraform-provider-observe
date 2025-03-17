@@ -13,22 +13,6 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("observe_workspace", &resource.Sweeper{
-		Name: "observe_workspace",
-		F:    workspaceSweeperFunc,
-		Dependencies: []string{
-			"observe_dataset",
-			"observe_monitor",
-			"observe_poller",
-			"observe_datastream",
-			"observe_folder",
-			"observe_preferred_path",
-			"observe_bookmark_group",
-			"observe_worksheet",
-			"observe_app",
-			"observe_rbac_statement",
-		},
-	})
 	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
 		Name: "observe_dataset",
 		F:    datasetSweeperFunc,
@@ -153,30 +137,6 @@ func sharedClient(pattern string) (*client, error) {
 			return patternRe.MatchString(s)
 		},
 	}, nil
-}
-
-func workspaceSweeperFunc(pattern string) error {
-	client, err := sharedClient(pattern)
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
-
-	workspaces, err := client.ListWorkspaces(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, workspace := range workspaces {
-		if client.MatchName(workspace.Label) {
-			log.Printf("[WARN] Deleting %s [id=%s]\n", workspace.Label, workspace.Id)
-			if err := client.DeleteWorkspace(ctx, workspace.Id); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func datasetSweeperFunc(pattern string) error {

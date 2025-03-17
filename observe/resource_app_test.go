@@ -17,18 +17,14 @@ func TestAccObserveApp(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
-				resource "observe_workspace" "example" {
-					name = "%[1]s"
-				}
-
+				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_folder" "example" {
-					workspace = observe_workspace.example.oid
+					workspace = data.observe_workspace.example.oid
 					name      = "%[1]s"
 				}
 
 				resource "observe_datastream" "example" {
-					workspace = observe_workspace.example.oid
+					workspace = data.observe_workspace.example.oid
 					name      = "%[1]s"
 				}
 
