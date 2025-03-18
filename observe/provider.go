@@ -153,7 +153,6 @@ func Provider() *schema.Provider {
 			"observe_dataset":                   resourceDataset(),
 			"observe_source_dataset":            resourceSourceDataset(),
 			"observe_link":                      resourceLink(),
-			"observe_workspace":                 resourceWorkspace(),
 			"observe_bookmark_group":            resourceBookmarkGroup(),
 			"observe_bookmark":                  resourceBookmark(),
 			"observe_http_post":                 resourceHTTPPost(),
