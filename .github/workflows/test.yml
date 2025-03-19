@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
   schedule:
-    - cron: '45 21 * * *'
+    - cron: '45 4 * * *' # 9:45pm PT
 
 jobs:
   acceptance:
