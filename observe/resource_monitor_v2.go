@@ -105,6 +105,55 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
+			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"expiration": { // Duration
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateTimeDuration,
+							Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "expiration"),
+						},
+						"threshold": { // MonitorV2ThresholdRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_values": { // [MonitorV2ComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_values"),
+									},
+									"value_column_name": { // String!
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "value_column_name"),
+									},
+									"aggregation": { // MonitorV2ValueAggregation!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
+										Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"rules": { // [MonitorV2RuleInput!]!
 				Type:        schema.TypeList,
 				Required:    true,
@@ -148,10 +197,9 @@ func resourceMonitorV2() *schema.Resource {
 							Description: descriptions.Get("monitorv2", "schema", "rules", "threshold", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"compare_values": { // [MonitorV2ComparisonInput!]!
+									"compare_values": { // [MonitorV2ComparisonInput!]
 										Type:        schema.TypeList,
-										Required:    true,
-										MinItems:    1,
+										Optional:    true,
 										Elem:        monitorV2ComparisonResource(),
 										Description: descriptions.Get("monitorv2", "schema", "compare_values"),
 									},
@@ -608,6 +656,12 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if monitor.Definition.NoDataRules != nil {
+		if err := data.Set("no_data_rules", monitorV2FlattenNoDataRules(monitor.Definition.NoDataRules)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	if err := data.Set("rules", monitorV2FlattenRules(monitor.Definition.Rules)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -659,6 +713,25 @@ func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to delete monitor: %s", err.Error())
 	}
 	return diags
+}
+
+func monitorV2FlattenNoDataRules(gqlNoDataRules []gql.MonitorV2NoDataRule) []interface{} {
+	var noDataRules []interface{}
+	for _, gqlNoDataRule := range gqlNoDataRules {
+		noDataRules = append(noDataRules, monitorV2FlattenNoDataRule(gqlNoDataRule))
+	}
+	return noDataRules
+}
+
+func monitorV2FlattenNoDataRule(gqlNoDataRule gql.MonitorV2NoDataRule) interface{} {
+	noDataRule := map[string]interface{}{}
+	if gqlNoDataRule.Expiration != nil {
+		noDataRule["expiration"] = gqlNoDataRule.Expiration.String()
+	}
+	if gqlNoDataRule.Threshold != nil {
+		noDataRule["threshold"] = monitorV2FlattenThresholdRule(*gqlNoDataRule.Threshold)
+	}
+	return noDataRule
 }
 
 func monitorV2FlattenRules(gqlRules []gql.MonitorV2Rule) []interface{} {
@@ -997,6 +1070,18 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	}
 
 	// optionals
+	if _, ok := data.GetOk("no_data_rules"); ok {
+		noDataRules := make([]gql.MonitorV2NoDataRuleInput, 0)
+		for i := range data.Get("no_data_rules").([]interface{}) {
+			noDataRule, diags := newMonitorV2NoDataRuleInput(fmt.Sprintf("no_data_rules.%d.", i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			noDataRules = append(noDataRules, *noDataRule)
+		}
+		defnInput.NoDataRules = noDataRules
+	}
+
 	if v, ok := data.GetOk("data_stabilization_delay"); ok {
 		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
@@ -1035,6 +1120,26 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	}
 
 	return defnInput, diags
+}
+
+func newMonitorV2NoDataRuleInput(path string, data *schema.ResourceData) (noDataRule *gql.MonitorV2NoDataRuleInput, diags diag.Diagnostics) {
+	// instantiation
+	noDataRule = &gql.MonitorV2NoDataRuleInput{}
+
+	// optionals
+	if v, ok := data.GetOk(fmt.Sprintf("%sexpiration", path)); ok {
+		expiration, _ := types.ParseDurationScalar(v.(string))
+		noDataRule.Expiration = expiration
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%sthreshold", path)); ok {
+		threshold, diags := newMonitorV2ThresholdRuleInput(fmt.Sprintf("%sthreshold.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		noDataRule.Threshold = threshold
+	}
+
+	return noDataRule, diags
 }
 
 func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (scheduling *gql.MonitorV2SchedulingInput, diags diag.Diagnostics) {

@@ -94,6 +94,13 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 								name = "groupme"
 							}
 						}
+						no_data_rules {
+							expiration = "30m"
+							threshold {
+								value_column_name = "temp_number"
+								aggregation = "all_of"
+							}
+						}
 						rules {
 							level = "informational"
 							threshold {
@@ -128,6 +135,9 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.value_column_name", "temp_number"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "all_of"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),

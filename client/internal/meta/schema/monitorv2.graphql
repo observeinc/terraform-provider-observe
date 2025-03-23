@@ -32,10 +32,15 @@ enum MonitorV2ActionType @goModel(model: "observe/meta/metatypes.MonitorV2Action
   Webhook
 }
 
+"""
+MonitorV2AlarmLevel presents the severity level a user can choose for their monitor.
+The NoData severity is a special placeholder for the no data rule.
+"""
 enum MonitorV2AlarmLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmLevel") {
   Critical
   Error
   Informational
+  NoData
   None
   Warning
 }
@@ -229,6 +234,8 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
 }
 
 input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
+    # payload
+    # sharingRules: [MonitorSharingRuleInput!]
     disabled: Boolean
     comment: String
     # resolver: meta: MonitorV2MetaInput
@@ -381,6 +388,12 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     """
     inputQuery: MultiStageQuery!
     """
+    NoDataRules allows a user to be alerted on missing data for the specified lookback window. When provided,
+    the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created
+    is 1 for the threshold monitor kind.
+    """
+    noDataRules: [MonitorV2NoDataRule!]
+    """
     Rules are one or more instances of a MonitorV2Rule, which all must be of the same MonitorRuleKind
     as specified in `ruleKind`.
     Rules should be constructed logically such that a state transition from null->Warning implies a
@@ -433,6 +446,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
     # payload
     inputQuery: MultiStageQueryInput!
+    noDataRules: [MonitorV2NoDataRuleInput!]
     rules: [MonitorV2RuleInput!]!
     lookbackTime: Duration
     dataStabilizationDelay: Duration
@@ -478,18 +492,19 @@ input MonitorV2TransformScheduleInput @goModel(model: "observe/meta/metatypes.Mo
 
 
 # MonitorV2Scheduling holds information about when monitors should evaluate. The
-# types of scheduling are exclusive, but at least one is required.
-# Specifying the transform field gives you more explicit control over the transform
-# freshness.
+# types of scheduling are exclusive. If none of these are specified, the
+# service will choose the most appropriate continuous monitoring type
+# (interval or transform) with most appropriate default parameters.
+# Specifying one of the types is a way to explicitly dictate the behavior you want.
 type MonitorV2Scheduling @goModel(model: "observe/meta/metatypes.MonitorV2Scheduling") {
     # payload
     """
-    Interval should be used to run explicit ad-hoc queries.
+    Interval should be used to run explicit ad-hoc queries to provide continuous
+    monitoring, but using ad-hoc queries instead of transform.
     """
-    interval: MonitorV2IntervalSchedule @deprecated(reason:"ad-hoc scheduling is no longer supported")
+    interval: MonitorV2IntervalSchedule
     """
-    Transform should be used to defer scheduling to the transformer and evaluate when data becomes
-    available.
+    Transform should be specified as an explicit transform evaluation style.
     """
     transform: MonitorV2TransformSchedule
 }
@@ -546,6 +561,7 @@ type MonitorV2Column @goModel(model: "observe/meta/metatypes.MonitorV2Column") {
     columnPath: MonitorV2ColumnPath
     # not in output: xIsInGroupings: Boolean!
     # not in output: xIsAggregation: Boolean!
+    # not in output: xLevels: Int64!
 }
 
 input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnInput") {
@@ -555,6 +571,7 @@ input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2Colu
     columnPath: MonitorV2ColumnPathInput
     # not in input: xIsInGroupings: Boolean!
     # not in input: xIsAggregation: Boolean!
+    # not in input: xLevels: Int64!
 }
 
 
@@ -640,6 +657,9 @@ type MonitorV2Rule @goModel(model: "observe/meta/metatypes.MonitorV2Rule") {
     """
     level: MonitorV2AlarmLevel!
     count: MonitorV2CountRule
+    """
+    The aggregation and value column provided must be identical across all rules.
+    """
     threshold: MonitorV2ThresholdRule
     promote: MonitorV2PromoteRule
 }
@@ -690,8 +710,10 @@ type MonitorV2ThresholdRule @goModel(model: "observe/meta/metatypes.MonitorV2Thr
     for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
     If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
     (one rule for < 80 and one rule for > 90).
+    CompareValues can only be left empty when the NoDataOption is provided as there's no values to compare against
+    when we want to alert on the data itself missing.
     """
-    compareValues: [MonitorV2Comparison!]!
+    compareValues: [MonitorV2Comparison!]
     """
     ValueColumnName indicates which of the columns in the input query has the value to apply to the aggregation.
     """
@@ -708,10 +730,35 @@ type MonitorV2ThresholdRule @goModel(model: "observe/meta/metatypes.MonitorV2Thr
 
 input MonitorV2ThresholdRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2ThresholdRuleInput") {
     # payload
-    compareValues: [MonitorV2ComparisonInput!]!
+    compareValues: [MonitorV2ComparisonInput!]
     valueColumnName: String!
     aggregation: MonitorV2ValueAggregation!
     compareGroups: [MonitorV2ColumnComparisonInput!]
+}
+
+
+# MonitorV2NoDataRule adds the ability to make a special no data rule for monitors.
+type MonitorV2NoDataRule @goModel(model: "observe/meta/metatypes.MonitorV2NoDataRule") {
+    # payload
+    """
+    Allows for the user to specify how long they'd like the missing data alert to persist for before
+    it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The
+    expiration must be identical across all rules.
+    """
+    expiration: Duration
+    """
+    Adds the ability for threshold monitor to have a no data rule. When this input is provided here,
+    you must provide the aggregation and valueColumnName, while the compareGroups is optional. The
+    compareValues should be left empty. The aggregation and value column provided must be identical
+    across all rules.
+    """
+    threshold: MonitorV2ThresholdRule
+}
+
+input MonitorV2NoDataRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2NoDataRuleInput") {
+    # payload
+    expiration: Duration
+    threshold: MonitorV2ThresholdRuleInput
 }
 
 
@@ -1211,7 +1258,8 @@ type MonitorV2EmailAction @goModel(model: "observe/meta/metatypes.MonitorV2Email
     """
     body: String
     """
-    Fragments allow users to bring in additional monitor or alarm metadata.
+    Fragments allow additional partial templates to be made available to the
+    main action template using the {{>partial}} syntax.
     """
     fragments: JsonObject
 }
@@ -1245,7 +1293,8 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
     """
     body: String!
     """
-    Fragments allow users to bring in additional monitor or alarm metadata.
+    Fragments allow additional partial templates to be made available to the
+    main action template using the {{>partial}} syntax.
     """
     fragments: JsonObject
 }

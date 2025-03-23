@@ -90,6 +90,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+- `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
@@ -264,29 +265,12 @@ Optional:
 Required:
 
 - `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
 - `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
 
 Optional:
 
 - `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups))
-
-<a id="nestedblock--rules--threshold--compare_values"></a>
-### Nested Schema for `rules.threshold.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
 
 <a id="nestedblock--rules--threshold--compare_groups"></a>
 ### Nested Schema for `rules.threshold.compare_groups`
@@ -341,6 +325,23 @@ Optional:
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
+
+
+<a id="nestedblock--rules--threshold--compare_values"></a>
+### Nested Schema for `rules.threshold.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
 
 
@@ -516,6 +517,101 @@ Optional:
 Required:
 
 - `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--no_data_rules"></a>
+### Nested Schema for `no_data_rules`
+
+Optional:
+
+- `expiration` (String) Allows for the user to specify how long they'd like the missing data alert to persist for before it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The expiration must be identical across all rules.
+- `threshold` (Block List, Max: 1) Adds the ability for threshold monitor to have a no data rule. When this input is provided here, you must provide the aggregation and valueColumnName, while the compareGroups is optional. The compareValues should be left empty. The aggregation and value column provided must be identical across all rules. (see [below for nested schema](#nestedblock--no_data_rules--threshold))
+
+<a id="nestedblock--no_data_rules--threshold"></a>
+### Nested Schema for `no_data_rules.threshold`
+
+Required:
+
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
+
+Optional:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_values))
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--compare_values))
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--column_path))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--link_column))
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column--column_path"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column--link_column"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--compare_values"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_values"></a>
+### Nested Schema for `no_data_rules.threshold.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
 
 
 
