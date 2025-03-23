@@ -4769,12 +4769,15 @@ const (
 	MonitorV2ActionTypeWebhook   MonitorV2ActionType = "Webhook"
 )
 
+// MonitorV2AlarmLevel presents the severity level a user can choose for their monitor.
+// The NoData severity is a special placeholder for the no data rule.
 type MonitorV2AlarmLevel string
 
 const (
 	MonitorV2AlarmLevelCritical      MonitorV2AlarmLevel = "Critical"
 	MonitorV2AlarmLevelError         MonitorV2AlarmLevel = "Error"
 	MonitorV2AlarmLevelInformational MonitorV2AlarmLevel = "Informational"
+	MonitorV2AlarmLevelNodata        MonitorV2AlarmLevel = "NoData"
 	MonitorV2AlarmLevelNone          MonitorV2AlarmLevel = "None"
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
 )
@@ -5004,6 +5007,10 @@ type MonitorV2Definition struct {
 	// InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the
 	// original dataset(s) and other transform information that the user selected to create "Create Monitor".
 	InputQuery MonitorV2DefinitionInputQueryMultiStageQuery `json:"inputQuery"`
+	// NoDataRules allows a user to be alerted on missing data for the specified lookback window. When provided,
+	// the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created
+	// is 1 for the threshold monitor kind.
+	NoDataRules []MonitorV2NoDataRule `json:"noDataRules"`
 	// Rules are one or more instances of a MonitorV2Rule, which all must be of the same MonitorRuleKind
 	// as specified in `ruleKind`.
 	// Rules should be constructed logically such that a state transition from null->Warning implies a
@@ -5045,6 +5052,9 @@ func (v *MonitorV2Definition) GetInputQuery() MonitorV2DefinitionInputQueryMulti
 	return v.InputQuery
 }
 
+// GetNoDataRules returns MonitorV2Definition.NoDataRules, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetNoDataRules() []MonitorV2NoDataRule { return v.NoDataRules }
+
 // GetRules returns MonitorV2Definition.Rules, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetRules() []MonitorV2Rule { return v.Rules }
 
@@ -5069,18 +5079,22 @@ func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Sc
 func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
 
 type MonitorV2DefinitionInput struct {
-	InputQuery             MultiStageQueryInput      `json:"inputQuery"`
-	Rules                  []MonitorV2RuleInput      `json:"rules"`
-	LookbackTime           *types.DurationScalar     `json:"lookbackTime"`
-	DataStabilizationDelay *types.DurationScalar     `json:"dataStabilizationDelay,omitempty"`
-	MaxAlertsPerHour       *types.Int64Scalar        `json:"maxAlertsPerHour,omitempty"`
-	Groupings              []MonitorV2ColumnInput    `json:"groupings"`
-	Scheduling             *MonitorV2SchedulingInput `json:"scheduling"`
-	CustomVariables        *types.JsonObject         `json:"customVariables"`
+	InputQuery             MultiStageQueryInput       `json:"inputQuery"`
+	NoDataRules            []MonitorV2NoDataRuleInput `json:"noDataRules"`
+	Rules                  []MonitorV2RuleInput       `json:"rules"`
+	LookbackTime           *types.DurationScalar      `json:"lookbackTime"`
+	DataStabilizationDelay *types.DurationScalar      `json:"dataStabilizationDelay,omitempty"`
+	MaxAlertsPerHour       *types.Int64Scalar         `json:"maxAlertsPerHour,omitempty"`
+	Groupings              []MonitorV2ColumnInput     `json:"groupings"`
+	Scheduling             *MonitorV2SchedulingInput  `json:"scheduling"`
+	CustomVariables        *types.JsonObject          `json:"customVariables"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetInputQuery() MultiStageQueryInput { return v.InputQuery }
+
+// GetNoDataRules returns MonitorV2DefinitionInput.NoDataRules, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetNoDataRules() []MonitorV2NoDataRuleInput { return v.NoDataRules }
 
 // GetRules returns MonitorV2DefinitionInput.Rules, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetRules() []MonitorV2RuleInput { return v.Rules }
@@ -5129,7 +5143,8 @@ type MonitorV2EmailAction struct {
 	Subject string `json:"subject"`
 	// The email body template.
 	Body *string `json:"body"`
-	// Fragments allow users to bring in additional monitor or alarm metadata.
+	// Fragments allow additional partial templates to be made available to the
+	// main action template using the {{>partial}} syntax.
 	Fragments *types.JsonObject `json:"fragments"`
 }
 
@@ -5325,6 +5340,36 @@ func (v *MonitorV2LinkColumnMetaInput) GetDstFields() []string { return v.DstFie
 // GetTargetDataset returns MonitorV2LinkColumnMetaInput.TargetDataset, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnMetaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
 
+// MonitorV2NoDataRule includes the GraphQL fields of MonitorV2NoDataRule requested by the fragment MonitorV2NoDataRule.
+type MonitorV2NoDataRule struct {
+	// Allows for the user to specify how long they'd like the missing data alert to persist for before
+	// it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The
+	// expiration must be identical across all rules.
+	Expiration *types.DurationScalar `json:"expiration"`
+	// Adds the ability for threshold monitor to have a no data rule. When this input is provided here,
+	// you must provide the aggregation and valueColumnName, while the compareGroups is optional. The
+	// compareValues should be left empty. The aggregation and value column provided must be identical
+	// across all rules.
+	Threshold *MonitorV2ThresholdRule `json:"threshold"`
+}
+
+// GetExpiration returns MonitorV2NoDataRule.Expiration, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRule) GetExpiration() *types.DurationScalar { return v.Expiration }
+
+// GetThreshold returns MonitorV2NoDataRule.Threshold, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRule) GetThreshold() *MonitorV2ThresholdRule { return v.Threshold }
+
+type MonitorV2NoDataRuleInput struct {
+	Expiration *types.DurationScalar        `json:"expiration"`
+	Threshold  *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
+}
+
+// GetExpiration returns MonitorV2NoDataRuleInput.Expiration, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRuleInput) GetExpiration() *types.DurationScalar { return v.Expiration }
+
+// GetThreshold returns MonitorV2NoDataRuleInput.Threshold, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRuleInput) GetThreshold() *MonitorV2ThresholdRuleInput { return v.Threshold }
+
 // MonitorV2PromoteRule includes the GraphQL fields of MonitorV2PromoteRule requested by the fragment MonitorV2PromoteRule.
 type MonitorV2PromoteRule struct {
 	// If this field has been specified, it means there are values in the columns that we want to assign severity by.
@@ -5376,8 +5421,9 @@ const (
 // MonitorV2Rule includes the GraphQL fields of MonitorV2Rule requested by the fragment MonitorV2Rule.
 type MonitorV2Rule struct {
 	// Level is the severity level to assign to a rule's conditions being matched.
-	Level     MonitorV2AlarmLevel     `json:"level"`
-	Count     *MonitorV2CountRule     `json:"count"`
+	Level MonitorV2AlarmLevel `json:"level"`
+	Count *MonitorV2CountRule `json:"count"`
+	// The aggregation and value column provided must be identical across all rules.
 	Threshold *MonitorV2ThresholdRule `json:"threshold"`
 	Promote   *MonitorV2PromoteRule   `json:"promote"`
 }
@@ -5428,10 +5474,10 @@ const (
 
 // MonitorV2Scheduling includes the GraphQL fields of MonitorV2Scheduling requested by the fragment MonitorV2Scheduling.
 type MonitorV2Scheduling struct {
-	// Interval should be used to run explicit ad-hoc queries.
+	// Interval should be used to run explicit ad-hoc queries to provide continuous
+	// monitoring, but using ad-hoc queries instead of transform.
 	Interval *MonitorV2IntervalSchedule `json:"interval"`
-	// Transform should be used to defer scheduling to the transformer and evaluate when data becomes
-	// available.
+	// Transform should be specified as an explicit transform evaluation style.
 	Transform *MonitorV2TransformSchedule `json:"transform"`
 }
 
@@ -5469,6 +5515,8 @@ type MonitorV2ThresholdRule struct {
 	// for ranges of validity. If you want to trigger inside a range, give two compares here (like > 80 and < 90).
 	// If you want to trigger outside a valid range, use two rules with a single compare to get the implied OR
 	// (one rule for < 80 and one rule for > 90).
+	// CompareValues can only be left empty when the NoDataOption is provided as there's no values to compare against
+	// when we want to alert on the data itself missing.
 	CompareValues []MonitorV2Comparison `json:"compareValues"`
 	// ValueColumnName indicates which of the columns in the input query has the value to apply to the aggregation.
 	ValueColumnName string                    `json:"valueColumnName"`
@@ -5558,7 +5606,8 @@ type MonitorV2WebhookAction struct {
 	Headers []MonitorV2WebhookHeader `json:"headers"`
 	// The webhook body template.
 	Body string `json:"body"`
-	// Fragments allow users to bring in additional monitor or alarm metadata.
+	// Fragments allow additional partial templates to be made available to the
+	// main action template using the {{>partial}} syntax.
 	Fragments *types.JsonObject `json:"fragments"`
 	// A webhook URL template to a destination that can be rendered.
 	Url string `json:"url"`
@@ -13503,6 +13552,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -13540,6 +13592,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -13585,20 +13643,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -17032,6 +17090,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -17069,6 +17130,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -17114,20 +17181,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -18786,6 +18853,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -18823,6 +18893,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -18868,20 +18944,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -19487,6 +19563,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -19524,6 +19603,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -19569,20 +19654,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -19730,6 +19815,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -19767,6 +19855,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -19812,20 +19906,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -21482,6 +21576,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	noDataRules {
+		... MonitorV2NoDataRule
+	}
 	rules {
 		... MonitorV2Rule
 	}
@@ -21519,6 +21616,12 @@ fragment StageQuery on StageQuery {
 		datasetId
 		datasetPath
 		stageId
+	}
+}
+fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
+	expiration
+	threshold {
+		... MonitorV2ThresholdRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -21564,20 +21667,20 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
-fragment MonitorV2CountRule on MonitorV2CountRule {
-	compareValues {
-		... MonitorV2Comparison
-	}
-	compareGroups {
-		... MonitorV2ColumnComparison
-	}
-}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2CountRule on MonitorV2CountRule {
+	compareValues {
+		... MonitorV2Comparison
+	}
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
