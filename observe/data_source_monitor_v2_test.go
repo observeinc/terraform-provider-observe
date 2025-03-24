@@ -125,7 +125,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "threshold"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.expiration", "30m"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.expiration", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.threshold.0.aggregation", "all_of"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),

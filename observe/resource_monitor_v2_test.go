@@ -135,7 +135,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "all_of"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
