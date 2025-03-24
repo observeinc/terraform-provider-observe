@@ -1288,26 +1288,27 @@ func newMonitorV2ComparisonInput(path string, data *schema.ResourceData) (compar
 
 func newMonitorV2ThresholdRuleInput(path string, data *schema.ResourceData) (threshold *gql.MonitorV2ThresholdRuleInput, diags diag.Diagnostics) {
 	// required
-	compareValues := []gql.MonitorV2ComparisonInput{}
-	for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
-		comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%scompare_values.%d.", path, i), data)
-		if diags.HasError() {
-			return threshold, diags
-		}
-		compareValues = append(compareValues, *comparisonInput)
-	}
-
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	aggregation := gql.MonitorV2ValueAggregation(toCamel(data.Get(fmt.Sprintf("%saggregation", path)).(string)))
 
 	// instantiation
 	threshold = &gql.MonitorV2ThresholdRuleInput{
-		CompareValues:   compareValues,
 		ValueColumnName: valueColumnName,
 		Aggregation:     aggregation,
 	}
 
 	// optionals
+	if _, ok := data.GetOk(fmt.Sprintf("%scompare_values", path)); ok {
+		compareValues := []gql.MonitorV2ComparisonInput{}
+		for i := range data.Get(fmt.Sprintf("%scompare_values", path)).([]interface{}) {
+			comparisonInput, diags := newMonitorV2ComparisonInput(fmt.Sprintf("%scompare_values.%d.", path, i), data)
+			if diags.HasError() {
+				return threshold, diags
+			}
+			compareValues = append(compareValues, *comparisonInput)
+		}
+		threshold.CompareValues = compareValues
+	}
 	if _, ok := data.GetOk(fmt.Sprintf("%scompare_groups", path)); ok {
 		compareGroups := make([]gql.MonitorV2ColumnComparisonInput, 0)
 		for i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
