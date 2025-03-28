@@ -8,6 +8,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceApp() *schema.Resource {
@@ -19,44 +20,52 @@ func dataSourceApp() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
-				Description:      schemaDatasetWorkspaceDescription,
+				Description:      descriptions.Get("app", "schema", "folder"),
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 				RequiredWith: []string{"folder"},
+				Description:  descriptions.Get("app", "schema", "name"),
 			},
 			"id": {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				ValidateDiagFunc: validateID(),
 				Optional:         true,
+				Description:      descriptions.Get("app", "schema", "id"),
 			},
 			// computed values
 			"oid": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"module_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "module_id"),
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "version"),
 			},
 			"variables": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "variables"),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "description"),
 			},
 			"outputs": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("app", "schema", "outputs"),
 			},
 		},
 	}
