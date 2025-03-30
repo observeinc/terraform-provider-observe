@@ -7,11 +7,10 @@ import (
 	"sync"
 	"time"
 
-	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/version"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/version"
 )
 
 var (
@@ -147,12 +146,13 @@ func Provider() *schema.Provider {
 			"observe_cloud_info":        dataSourceCloudInfo(),
 			"observe_monitor_v2":        dataSourceMonitorV2(),
 			"observe_monitor_v2_action": dataSourceMonitorV2Action(),
+			"observe_reference_table":   dataSourceReferenceTable(),
+			"observe_report":            dataSourceReport(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
 			"observe_source_dataset":            resourceSourceDataset(),
 			"observe_link":                      resourceLink(),
-			"observe_workspace":                 resourceWorkspace(),
 			"observe_bookmark_group":            resourceBookmarkGroup(),
 			"observe_bookmark":                  resourceBookmark(),
 			"observe_http_post":                 resourceHTTPPost(),
@@ -178,6 +178,7 @@ func Provider() *schema.Provider {
 			"observe_correlation_tag":           resourceCorrelationTag(),
 			"observe_dashboard_link":            resourceDashboardLink(),
 			"observe_rbac_group":                resourceRbacGroup(),
+			"observe_workspace_default_grants":  resourceWorkspaceDefaultGrants(),
 			"observe_rbac_default_group":        resourceRbacDefaultGroup(),
 			"observe_rbac_group_member":         resourceRbacGroupmember(),
 			"observe_rbac_statement":            resourceRbacStatement(),
@@ -186,6 +187,8 @@ func Provider() *schema.Provider {
 			"observe_filedrop":                  resourceFiledrop(),
 			"observe_snowflake_outbound_share":  resourceSnowflakeOutboundShare(),
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
+			"observe_reference_table":           resourceReferenceTable(),
+			"observe_report":                    resourceReport(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

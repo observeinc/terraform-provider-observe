@@ -15,12 +15,12 @@ func TestDeserializeBindingsObject(t *testing.T) {
 	  ],
 	  "mappings": {
 		"dataset:Observe Dashboard": {
-		  "tf_local_binding_var": "binding__dashboard_bindings_test_dashboard__dataset_observe_dashboard",
-		  "tf_name":              "observe_dashboard"
+			"tf_local_binding_var": "binding__dashboard_bindings_test_dashboard__dataset_observe_dashboard",
+			"tf_name":              "observe_dashboard"
 		},
 		"dataset:usage/Monitor Messages": {
-		  "tf_local_binding_var": "binding__dashboard_bindings_test_dashboard__dataset_monitor_messages",
-		  "tf_name":              "monitor_messages"
+			"tf_local_binding_var": "binding__dashboard_bindings_test_dashboard__dataset_monitor_messages",
+			"tf_name":              "monitor_messages"
 		}
 	  },
 	  "workspace": {

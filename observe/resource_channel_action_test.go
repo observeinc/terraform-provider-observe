@@ -12,15 +12,15 @@ var (
 	// setup a couple of actions and monitors for use with channels
 	channelActionConfigPreamble = configPreamble + `
 				resource "observe_channel" "a" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s/a"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s/a"
+					icon_url  = "test"
 				}
 
 				resource "observe_channel" "b" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s/b"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s/b"
+					icon_url  = "test"
 				}
 				`
 )
@@ -35,17 +35,17 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 
-				  webhook {
-				  	url 	= "https://example.com"
-					body 	= "{}"
-					headers = {
-						"test" = "hello"
+					webhook {
+						url 	= "https://example.com"
+						body 	= "{}"
+						headers = {
+							"test" = "hello"
+						}
 					}
-				  }
 				}
 				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -60,14 +60,14 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace  = data.observe_workspace.default.oid
-				  name       = "%s"
-				  icon_url   = "test"
+					workspace  = data.observe_workspace.default.oid
+					name       = "%s"
+					icon_url   = "test"
 
-				  webhook {
-				  	url 	= "https://observeinc.com"
-					body 	= "nope"
-				  }
+					webhook {
+						url 	= "https://observeinc.com"
+						body 	= "nope"
+					}
 				}
 				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -83,22 +83,22 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace  = data.observe_workspace.default.oid
-				  name       = "%s"
-				  icon_url   = "test"
-				  rate_limit = "11m"
+					workspace  = data.observe_workspace.default.oid
+					name       = "%s"
+					icon_url   = "test"
+					rate_limit = "11m"
 
-				  notify_on_close = true
+					notify_on_close = true
 
-				  channels  = [
-				    observe_channel.a.oid,
-				  ]
+					channels  = [
+						observe_channel.a.oid,
+					]
 
-				  email {
-				  	to 		= [ "test@observeinc.com" ]
-					subject = "Hello"
-					body 	= "Nope"
-				  }
+					email {
+						to 		= [ "test@observeinc.com" ]
+						subject = "Hello"
+						body 	= "Nope"
+					}
 				}
 				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -116,21 +116,21 @@ func TestAccObserveChannelActionCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelActionConfigPreamble+`
 				resource "observe_channel_action" "action" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "filing-cabinet"
-				  rate_limit = "10m"
-				  channels  = [
-				    observe_channel.a.oid,
-				    observe_channel.b.oid,
-				  ]
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "filing-cabinet"
+					rate_limit = "10m"
+					channels  = [
+						observe_channel.a.oid,
+						observe_channel.b.oid,
+					]
 
-				  email {
-				  	to 		= [ "debug@observeinc.com", "test@observeinc.com" ]
-					subject = "Nope"
-					body 	= "Hello"
-					is_html = true
-				  }
+					email {
+						to 		= [ "debug@observeinc.com", "test@observeinc.com" ]
+						subject = "Nope"
+						body 	= "Hello"
+						is_html = true
+					}
 				}
 				`, randomPrefix, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

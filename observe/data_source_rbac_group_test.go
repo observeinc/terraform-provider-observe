@@ -19,11 +19,11 @@ func TestAccObserveSourceRbacGroup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				data "observe_rbac_group" "reader" {
-				  name = "%s"
+					name = "%s"
 				}
 
 				data "observe_rbac_group" "reader_by_id" {
-				  id = data.observe_rbac_group.reader.id
+					id = data.observe_rbac_group.reader.id
 				}
 
 				`, defaultRbacGroupReaderName),

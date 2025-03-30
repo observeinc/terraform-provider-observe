@@ -3,9 +3,12 @@
 page_title: "observe_rbac_default_group Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Only for use with RBAC v1.
   Manages a RBAC default group.
 ---
 # observe_rbac_default_group
+
+Deprecated. Only for use with RBAC v1.
 
 Manages a RBAC default group.
 

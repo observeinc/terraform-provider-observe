@@ -17,6 +17,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     dashboard
     dashboardlink
     dataconnection
+    dataexportjob
     dataset
     datasetoutboundshare
     datasource
@@ -25,6 +26,8 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     filedrop
     folder
     incident
+    ingestfilter
+    ingesttoken
     investigationnotebook
     layeredsetting
     link
@@ -42,9 +45,58 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     rbacgroupmember
     rbacstatement
     referencetable
+    report
     serviceaccount
     snowflakeshareoutbound
     user
     worksheet
     workspace
+}
+
+enum AccessAction @goModel(model: "observe/access/permission.Action") {
+    AdminWorkspace
+    ApitokenCreate
+    BookmarkManage
+    DashboardCreate
+    DashboardEdit
+    DashboardView
+    DatasetCreate
+    DatasetEdit
+    DatasetView
+    DatastreamCreate
+    DatastreamEdit
+    DatastreamView
+    InvestigatorGlobal
+    MonitorCreate
+    MonitorEdit
+    MonitorGlobalMute
+    MonitorView
+    UserDelete
+    UserInvite
+    WorksheetCreate
+    WorksheetEdit
+    WorksheetView
+}
+
+enum RbacRole @goModel(model: "observe/access/permission.Role") {
+    ApitokenCreate
+    BookmarkManager
+    Editor
+    Ingester
+    InvestigatorGlobal
+    Lister
+    Manager
+    MonitorGlobalMute
+    UserDelete
+    UserInvite
+    Viewer
+}
+
+enum ORType @goModel(model: "observe/access/permission.ORType") {
+    Customer
+    Dashboard
+    Dataset
+    Datastream
+    Monitor
+    Worksheet
 }

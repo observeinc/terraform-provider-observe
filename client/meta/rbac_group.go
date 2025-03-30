@@ -71,3 +71,16 @@ func (r *RbacGroup) Oid() *oid.OID {
 	rbacGroupOid := oid.RbacGroupOid(r.Id)
 	return &rbacGroupOid
 }
+
+func (client *Client) GetRbacDefaultSharingGroups(ctx context.Context) ([]RbacDefaultSharingGroup, error) {
+	resp, err := getRbacDefaultSharingGroups(ctx, client.Gql)
+	if err != nil {
+		return nil, err
+	}
+	return resp.RbacDefaultSharingGroups, nil
+}
+
+func (client *Client) SetRbacDefaultSharingGroups(ctx context.Context, input []RbacDefaultSharingGroupInput) error {
+	resp, err := setRbacDefaultSharingGroups(ctx, client.Gql, input)
+	return resultStatusError(resp, err)
+}

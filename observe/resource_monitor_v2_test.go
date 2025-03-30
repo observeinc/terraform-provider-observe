@@ -87,7 +87,12 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 							"test" = observe_datastream.test.dataset
 						}
 						stage {
-							pipeline = "colmake temp_number:14"
+							pipeline = "colmake temp_number:14, groupme:12"
+						}
+						groupings {
+							column_path {
+								name = "groupme"
+							}
 						}
 						rules {
 							level = "informational"
@@ -98,6 +103,17 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 								}
 								value_column_name = "temp_number"
 								aggregation = "all_of"
+								compare_groups {
+									column {
+										column_path {
+											name = "groupme"
+										}
+									}
+									compare_values {
+										compare_fn = "not_equal"
+										value_int64 = [12]
+									}
+								}
 							}
 						}
 						scheduling {
@@ -117,7 +133,11 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.column.0.column_path.0.name", "groupme"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.compare_fn", "not_equal"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.value_int64.0", "12"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "groupings.0.column_path.0.name", "groupme"),
 				),
 			},
 		},

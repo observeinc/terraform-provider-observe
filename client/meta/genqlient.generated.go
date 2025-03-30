@@ -1598,6 +1598,18 @@ func (v *DatasetLinkSchemaInput) GetSrcFields() []string { return v.SrcFields }
 // GetDstFields returns DatasetLinkSchemaInput.DstFields, and is useful for accessing the field via an interface.
 func (v *DatasetLinkSchemaInput) GetDstFields() []string { return v.DstFields }
 
+// DatasetMaterialization includes the GraphQL fields of DatasetMaterialization requested by the fragment DatasetMaterialization.
+// The GraphQL type's documentation follows.
+//
+// Information about a materialized dataset.
+type DatasetMaterialization struct {
+	// Metadata about the dataset.
+	Dataset *DatasetIdName `json:"dataset"`
+}
+
+// GetDataset returns DatasetMaterialization.Dataset, and is useful for accessing the field via an interface.
+func (v *DatasetMaterialization) GetDataset() *DatasetIdName { return v.Dataset }
+
 // DatasetOutboundShare includes the GraphQL fields of DatasetOutboundShare requested by the fragment DatasetOutboundShare.
 type DatasetOutboundShare struct {
 	Id              string  `json:"id"`
@@ -3006,6 +3018,7 @@ type LayeredSettingRecordTarget struct {
 	DashboardId  *string             `json:"dashboardId"`
 	DatasetId    *string             `json:"datasetId"`
 	DatastreamId *string             `json:"datastreamId"`
+	RbacGroupId  *string             `json:"rbacGroupId"`
 	UserId       *types.UserIdScalar `json:"userId"`
 }
 
@@ -3036,6 +3049,9 @@ func (v *LayeredSettingRecordTarget) GetDatasetId() *string { return v.DatasetId
 // GetDatastreamId returns LayeredSettingRecordTarget.DatastreamId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetDatastreamId() *string { return v.DatastreamId }
 
+// GetRbacGroupId returns LayeredSettingRecordTarget.RbacGroupId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTarget) GetRbacGroupId() *string { return v.RbacGroupId }
+
 // GetUserId returns LayeredSettingRecordTarget.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTarget) GetUserId() *types.UserIdScalar { return v.UserId }
 
@@ -3049,6 +3065,7 @@ type LayeredSettingRecordTargetInput struct {
 	DatastreamId *string             `json:"datastreamId"`
 	MonitorId    *string             `json:"monitorId,omitempty"`
 	DatasetId    *string             `json:"datasetId,omitempty"`
+	RbacGroupId  *string             `json:"rbacGroupId,omitempty"`
 	UserId       *types.UserIdScalar `json:"userId,omitempty"`
 }
 
@@ -3078,6 +3095,9 @@ func (v *LayeredSettingRecordTargetInput) GetMonitorId() *string { return v.Moni
 
 // GetDatasetId returns LayeredSettingRecordTargetInput.DatasetId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetDatasetId() *string { return v.DatasetId }
+
+// GetRbacGroupId returns LayeredSettingRecordTargetInput.RbacGroupId, and is useful for accessing the field via an interface.
+func (v *LayeredSettingRecordTargetInput) GetRbacGroupId() *string { return v.RbacGroupId }
 
 // GetUserId returns LayeredSettingRecordTargetInput.UserId, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { return v.UserId }
@@ -4446,13 +4466,18 @@ func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.Ex
 
 // @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 type MonitorV2 struct {
-	Id           string                `json:"id"`
-	WorkspaceId  string                `json:"workspaceId"`
-	CreatedBy    types.UserIdScalar    `json:"createdBy"`
-	CreatedDate  types.TimeScalar      `json:"createdDate"`
-	Name         string                `json:"name"`
-	IconUrl      *string               `json:"iconUrl"`
-	Description  *string               `json:"description"`
+	Id          string             `json:"id"`
+	WorkspaceId string             `json:"workspaceId"`
+	CreatedBy   types.UserIdScalar `json:"createdBy"`
+	CreatedDate types.TimeScalar   `json:"createdDate"`
+	Name        string             `json:"name"`
+	IconUrl     *string            `json:"iconUrl"`
+	Description *string            `json:"description"`
+	// Indicates if the monitor is enabled or disabled. Use setMonitorV2Enabled to flip this flag
+	// one way or the other by itself.
+	// note: This was previously not supported as an input flag, but it was added as an input
+	// flag to support TF and REST.
+	Disabled     *bool                 `json:"disabled"`
 	ManagedById  *string               `json:"managedById"`
 	FolderId     string                `json:"folderId"`
 	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
@@ -4485,6 +4510,9 @@ func (v *MonitorV2) GetIconUrl() *string { return v.IconUrl }
 
 // GetDescription returns MonitorV2.Description, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetDescription() *string { return v.Description }
+
+// GetDisabled returns MonitorV2.Disabled, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetDisabled() *bool { return v.Disabled }
 
 // GetManagedById returns MonitorV2.ManagedById, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
@@ -5153,6 +5181,7 @@ const (
 )
 
 type MonitorV2Input struct {
+	Disabled          *bool                            `json:"disabled,omitempty"`
 	Comment           *string                          `json:"comment"`
 	Definition        MonitorV2DefinitionInput         `json:"definition"`
 	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
@@ -5163,6 +5192,9 @@ type MonitorV2Input struct {
 	ManagedById       *string                          `json:"managedById,omitempty"`
 	FolderId          *string                          `json:"folderId,omitempty"`
 }
+
+// GetDisabled returns MonitorV2Input.Disabled, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetDisabled() *bool { return v.Disabled }
 
 // GetComment returns MonitorV2Input.Comment, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetComment() *string { return v.Comment }
@@ -5897,6 +5929,17 @@ const (
 	NullOrderingDefault NullOrdering = "Default"
 	NullOrderingFirst   NullOrdering = "First"
 	NullOrderingLast    NullOrdering = "Last"
+)
+
+type ORType string
+
+const (
+	ORTypeCustomer   ORType = "Customer"
+	ORTypeDashboard  ORType = "Dashboard"
+	ORTypeDataset    ORType = "Dataset"
+	ORTypeDatastream ORType = "Datastream"
+	ORTypeMonitor    ORType = "Monitor"
+	ORTypeWorksheet  ORType = "Worksheet"
 )
 
 // At some point in the future, we may have Segments as business objects,
@@ -7580,6 +7623,37 @@ const (
 	RateLimitOptionBypassratelimit RateLimitOption = "BypassRateLimit"
 )
 
+// RbacDefaultSharingGroup includes the GraphQL fields of RbacDefaultSharingGroup requested by the fragment RbacDefaultSharingGroup.
+type RbacDefaultSharingGroup struct {
+	GroupId     string   `json:"groupId"`
+	AllowEdit   bool     `json:"allowEdit"`
+	ObjectTypes []ORType `json:"objectTypes"`
+}
+
+// GetGroupId returns RbacDefaultSharingGroup.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetGroupId() string { return v.GroupId }
+
+// GetAllowEdit returns RbacDefaultSharingGroup.AllowEdit, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetAllowEdit() bool { return v.AllowEdit }
+
+// GetObjectTypes returns RbacDefaultSharingGroup.ObjectTypes, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroup) GetObjectTypes() []ORType { return v.ObjectTypes }
+
+type RbacDefaultSharingGroupInput struct {
+	GroupId     string   `json:"groupId"`
+	AllowEdit   bool     `json:"allowEdit"`
+	ObjectTypes []ORType `json:"objectTypes"`
+}
+
+// GetGroupId returns RbacDefaultSharingGroupInput.GroupId, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetGroupId() string { return v.GroupId }
+
+// GetAllowEdit returns RbacDefaultSharingGroupInput.AllowEdit, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetAllowEdit() bool { return v.AllowEdit }
+
+// GetObjectTypes returns RbacDefaultSharingGroupInput.ObjectTypes, and is useful for accessing the field via an interface.
+func (v *RbacDefaultSharingGroupInput) GetObjectTypes() []ORType { return v.ObjectTypes }
+
 // RbacGroup includes the GraphQL fields of RbacGroup requested by the fragment RbacGroup.
 type RbacGroup struct {
 	Id          string `json:"id"`
@@ -7684,12 +7758,17 @@ func (v *RbacObjectInput) GetAll() *bool { return v.All }
 type RbacRole string
 
 const (
-	RbacRoleManager           RbacRole = "Manager"
-	RbacRoleEditor            RbacRole = "Editor"
-	RbacRoleViewer            RbacRole = "Viewer"
-	RbacRoleIngester          RbacRole = "Ingester"
-	RbacRoleLister            RbacRole = "Lister"
-	RbacRoleMonitorglobalmute RbacRole = "MonitorGlobalMute"
+	RbacRoleApitokencreate     RbacRole = "ApitokenCreate"
+	RbacRoleBookmarkmanager    RbacRole = "BookmarkManager"
+	RbacRoleEditor             RbacRole = "Editor"
+	RbacRoleIngester           RbacRole = "Ingester"
+	RbacRoleInvestigatorglobal RbacRole = "InvestigatorGlobal"
+	RbacRoleLister             RbacRole = "Lister"
+	RbacRoleManager            RbacRole = "Manager"
+	RbacRoleMonitorglobalmute  RbacRole = "MonitorGlobalMute"
+	RbacRoleUserdelete         RbacRole = "UserDelete"
+	RbacRoleUserinvite         RbacRole = "UserInvite"
+	RbacRoleViewer             RbacRole = "Viewer"
 )
 
 // RbacStatement includes the GraphQL fields of RbacStatement requested by the fragment RbacStatement.
@@ -9971,6 +10050,16 @@ type __setRbacDefaultGroupInput struct {
 // GetId returns __setRbacDefaultGroupInput.Id, and is useful for accessing the field via an interface.
 func (v *__setRbacDefaultGroupInput) GetId() string { return v.Id }
 
+// __setRbacDefaultSharingGroupsInput is used internally by genqlient
+type __setRbacDefaultSharingGroupsInput struct {
+	Shares []RbacDefaultSharingGroupInput `json:"shares"`
+}
+
+// GetShares returns __setRbacDefaultSharingGroupsInput.Shares, and is useful for accessing the field via an interface.
+func (v *__setRbacDefaultSharingGroupsInput) GetShares() []RbacDefaultSharingGroupInput {
+	return v.Shares
+}
+
 // __updateAppDataSourceInput is used internally by genqlient
 type __updateAppDataSourceInput struct {
 	Id     string             `json:"id"`
@@ -10671,6 +10760,14 @@ type createWorkspaceResponse struct {
 
 // GetWorkspace returns createWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *createWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
+
+// currentUserResponse is returned by currentUser on success.
+type currentUserResponse struct {
+	User *User `json:"user"`
+}
+
+// GetUser returns currentUserResponse.User, and is useful for accessing the field via an interface.
+func (v *currentUserResponse) GetUser() *User { return v.User }
 
 // deleteAppDataSourceResponse is returned by deleteAppDataSource on success.
 type deleteAppDataSourceResponse struct {
@@ -11393,6 +11490,17 @@ type getRbacDefaultGroupResponse struct {
 // GetRbacDefaultGroup returns getRbacDefaultGroupResponse.RbacDefaultGroup, and is useful for accessing the field via an interface.
 func (v *getRbacDefaultGroupResponse) GetRbacDefaultGroup() RbacGroup { return v.RbacDefaultGroup }
 
+// getRbacDefaultSharingGroupsResponse is returned by getRbacDefaultSharingGroups on success.
+type getRbacDefaultSharingGroupsResponse struct {
+	// Get the group users will be assigned to by default
+	RbacDefaultSharingGroups []RbacDefaultSharingGroup `json:"rbacDefaultSharingGroups"`
+}
+
+// GetRbacDefaultSharingGroups returns getRbacDefaultSharingGroupsResponse.RbacDefaultSharingGroups, and is useful for accessing the field via an interface.
+func (v *getRbacDefaultSharingGroupsResponse) GetRbacDefaultSharingGroups() []RbacDefaultSharingGroup {
+	return v.RbacDefaultSharingGroups
+}
+
 // getRbacGroupResponse is returned by getRbacGroup on success.
 type getRbacGroupResponse struct {
 	// Read an individual group
@@ -11747,10 +11855,26 @@ func (v *saveDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
 type saveDatasetDatasetDatasetSaveResult struct {
 	// this is what you got out when saving
 	Dataset *Dataset `json:"dataset"`
+	// Changing a dataset definition might make currently materialized data obsolete,
+	// in which case we dematerialize (throw away) this data and recompute new data.
+	// This is the list of datasets that would get dematerialized.
+	//
+	// Data is dematerialized when the change to the dataset is significant,
+	// that is, when it alters transform logic. Minor changes like whitespace and
+	// comments do not cause dematerialization.
+	//
+	// Note that changing a dataset might cause downstream datasets to get
+	// dematerialized also.
+	DematerializedDatasets []DatasetMaterialization `json:"dematerializedDatasets"`
 }
 
 // GetDataset returns saveDatasetDatasetDatasetSaveResult.Dataset, and is useful for accessing the field via an interface.
 func (v *saveDatasetDatasetDatasetSaveResult) GetDataset() *Dataset { return v.Dataset }
+
+// GetDematerializedDatasets returns saveDatasetDatasetDatasetSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
+func (v *saveDatasetDatasetDatasetSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
+	return v.DematerializedDatasets
+}
 
 // saveDatasetResponse is returned by saveDataset on success.
 type saveDatasetResponse struct {
@@ -11951,6 +12075,14 @@ type setRbacDefaultGroupResponse struct {
 
 // GetResultStatus returns setRbacDefaultGroupResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setRbacDefaultGroupResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// setRbacDefaultSharingGroupsResponse is returned by setRbacDefaultSharingGroups on success.
+type setRbacDefaultSharingGroupsResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns setRbacDefaultSharingGroupsResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *setRbacDefaultSharingGroupsResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // unsetRbacDefaultGroupResponse is returned by unsetRbacDefaultGroup on success.
 type unsetRbacDefaultGroupResponse struct {
@@ -13072,6 +13204,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
@@ -13351,6 +13484,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -14161,6 +14295,43 @@ func createWorkspace(
 	var err error
 
 	var data createWorkspaceResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by currentUser.
+const currentUser_Operation = `
+query currentUser {
+	user: currentUser {
+		... User
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+	label
+}
+`
+
+func currentUser(
+	ctx context.Context,
+	client graphql.Client,
+) (*currentUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "currentUser",
+		Query:  currentUser_Operation,
+	}
+	var err error
+
+	var data currentUserResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -16567,6 +16738,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
@@ -16841,6 +17013,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -17359,6 +17532,42 @@ func getRbacDefaultGroup(
 	var err error
 
 	var data getRbacDefaultGroupResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getRbacDefaultSharingGroups.
+const getRbacDefaultSharingGroups_Operation = `
+query getRbacDefaultSharingGroups {
+	rbacDefaultSharingGroups {
+		... RbacDefaultSharingGroup
+	}
+}
+fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
+	groupId
+	allowEdit
+	objectTypes
+}
+`
+
+func getRbacDefaultSharingGroups(
+	ctx context.Context,
+	client graphql.Client,
+) (*getRbacDefaultSharingGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "getRbacDefaultSharingGroups",
+		Query:  getRbacDefaultSharingGroups_Operation,
+	}
+	var err error
+
+	var data getRbacDefaultSharingGroupsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -18558,6 +18767,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -19110,6 +19320,9 @@ mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: 
 		dataset {
 			... Dataset
 		}
+		dematerializedDatasets {
+			... DatasetMaterialization
+		}
 	}
 }
 fragment Dataset on Dataset {
@@ -19184,6 +19397,11 @@ fragment Dataset on Dataset {
 		}
 	}
 }
+fragment DatasetMaterialization on DatasetMaterialization {
+	dataset {
+		... DatasetIdName
+	}
+}
 fragment StageQuery on StageQuery {
 	id
 	pipeline
@@ -19196,6 +19414,10 @@ fragment StageQuery on StageQuery {
 		datasetPath
 		stageId
 	}
+}
+fragment DatasetIdName on Dataset {
+	name
+	id
 }
 `
 
@@ -19246,6 +19468,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -19488,6 +19711,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus
@@ -20218,6 +20442,46 @@ func setRbacDefaultGroup(
 	return &data, err
 }
 
+// The query or mutation executed by setRbacDefaultSharingGroups.
+const setRbacDefaultSharingGroups_Operation = `
+mutation setRbacDefaultSharingGroups ($shares: [RbacDefaultSharingGroupInput!]!) {
+	resultStatus: setRbacDefaultSharingGroups(shares: $shares) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func setRbacDefaultSharingGroups(
+	ctx context.Context,
+	client graphql.Client,
+	shares []RbacDefaultSharingGroupInput,
+) (*setRbacDefaultSharingGroupsResponse, error) {
+	req := &graphql.Request{
+		OpName: "setRbacDefaultSharingGroups",
+		Query:  setRbacDefaultSharingGroups_Operation,
+		Variables: &__setRbacDefaultSharingGroupsInput{
+			Shares: shares,
+		},
+	}
+	var err error
+
+	var data setRbacDefaultSharingGroupsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by unsetRbacDefaultGroup.
 const unsetRbacDefaultGroup_Operation = `
 mutation unsetRbacDefaultGroup {
@@ -20915,6 +21179,7 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 	dashboardId
 	datasetId
 	datastreamId
+	rbacGroupId
 	userId
 }
 `
@@ -21198,6 +21463,7 @@ fragment MonitorV2 on MonitorV2 {
 	name
 	iconUrl
 	description
+	disabled
 	managedById
 	folderId
 	rollupStatus

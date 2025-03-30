@@ -42,7 +42,7 @@ func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
 					name      = "%s%s"  # exceeds MaxNameLength
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {}
@@ -68,7 +68,7 @@ func TestAccObserveDatasetNameValidationInvalidCharacter(t *testing.T) {
 					name      = "%s with colon :"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {}
@@ -94,7 +94,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 					
 					acceleration_disabled = true
@@ -125,18 +125,17 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					path_cost                        = "1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					data_table_view_state = jsonencode({viewType = "Auto"})
-					rematerialization_mode = "skip_rematerialization"
 					acceleration_disabled = true
 					acceleration_disabled_source = "view"
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -150,7 +149,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "true"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "data_table_view_state", "{\"viewType\":\"Auto\"}"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
 				),
 			},
 			{
@@ -163,17 +161,17 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					path_cost                        = 1
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 					
 					acceleration_disabled = true
 					acceleration_disabled_source = "view"
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
+						pipeline = <<-EOF
+							filter true
 
-					  EOF
+						EOF
 					}
 				}`, randomPrefix),
 			},
@@ -196,13 +194,13 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -219,13 +217,13 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -254,25 +252,25 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -291,27 +289,27 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  alias    = "first"
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						alias    = "first"
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  input    = "test"
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						input    = "test"
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	union @first
-					  EOF
+						pipeline = <<-EOF
+							union @first
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -330,25 +328,25 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 					name 	  = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -381,9 +379,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}
 
@@ -394,9 +392,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "first" = observe_dataset.first.oid }
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 			},
@@ -410,9 +408,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
-					  pipeline = <<-EOF
-					  	coldrop FIELDS
-					  EOF
+						pipeline = <<-EOF
+							coldrop FIELDS
+						EOF
 					}
 				}
 
@@ -423,9 +421,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "first" = observe_dataset.first.oid }
 
 					stage {
-					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
-					  EOF
+						pipeline = <<-EOF
+							colmake test:object(EXTRA.tags)
+						EOF
 					}
 				}`, randomPrefix),
 			},
@@ -439,9 +437,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
-					  pipeline = <<-EOF
-					  	coldrop EXTRA
-					  EOF
+						pipeline = <<-EOF
+							coldrop EXTRA
+						EOF
 					}
 				}
 
@@ -452,9 +450,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "first" = observe_dataset.first.oid }
 
 					stage {
-					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
-					  EOF
+						pipeline = <<-EOF
+							colmake test:object(EXTRA.tags)
+						EOF
 					}
 				}`, randomPrefix),
 				ExpectError: newMultilineErrorRegexp(`field "EXTRA" does not exist`),
@@ -473,9 +471,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "test" = observe_datastream.test.dataset }
 
 					stage {
-					  pipeline = <<-EOF
-					  	coldrop EXTRA
-					  EOF
+						pipeline = <<-EOF
+							coldrop EXTRA
+						EOF
 					}
 				}
 
@@ -486,9 +484,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 					inputs = { "first" = observe_dataset.first.oid }
 
 					stage {
-					  pipeline = <<-EOF
-					  	colmake test:EXTRA.tags
-					  EOF
+						pipeline = <<-EOF
+							colmake test:object(EXTRA.tags)
+						EOF
 					}
 				}`, randomPrefix),
 			},
@@ -516,12 +514,204 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}`, randomPrefix),
 				ExpectError: regexp.MustCompile(`stage-0: input missing`),
+			},
+		},
+	})
+}
+
+// Test edit-forward works when change is compatible
+func TestAccObserveDatasetEditForward(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col x: 1
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "must_skip_rematerialization"
+					stage {
+							pipeline = <<-EOF
+							make_col x: 2
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "must_skip_rematerialization"),
+				),
+			},
+		},
+	})
+}
+
+// Test that a change fails if rematerialization would occur under edit-forward
+func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col x: 1
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "must_skip_rematerialization"
+					stage {
+							pipeline = <<-EOF
+							make_col x: 1, y: 2
+						EOF
+					}
+				}`, randomPrefix),
+				ExpectError: regexp.MustCompile(`The following dataset\(s\) will be rematerialized`),
+			},
+		},
+	})
+}
+
+// Test that a change rematerializes when incompatible with edit-forward
+func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col x: 1
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "skip_rematerialization"
+					stage {
+							pipeline = <<-EOF
+							make_col x: 1, y: 2
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
+				),
 			},
 		},
 	})
@@ -545,13 +735,13 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 					description = "test description"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					    filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}
 
@@ -575,13 +765,13 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 					description = "updated"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					    filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}
 
@@ -604,13 +794,13 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 					name 	    = "%[1]s-1"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					    filter true
-					  EOF
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 				}
 
@@ -644,13 +834,13 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 					name 	  = "%[1]s first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
-					  EOF
+						pipeline = <<-EOF
+							pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+						EOF
 					}
 				}
 
@@ -659,24 +849,24 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 					name 	  = "%[1]s second"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
-					  "first" = observe_dataset.first.oid
+						"test" = observe_datastream.test.dataset
+						"first" = observe_dataset.first.oid
 					}
 
 					stage {
-					  alias    = "from_first"
-					  input    = "first"
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						alias    = "from_first"
+						input    = "first"
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  input    = "test"
-					  pipeline = <<-EOF
-					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
-					    union @from_first
-					  EOF
+						input    = "test"
+						pipeline = <<-EOF
+							pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+							union @from_first
+						EOF
 					}
 				}
 				`, randomPrefix),
@@ -702,13 +892,13 @@ func TestAccObserveDatasetQuotedInputReference(t *testing.T) {
 					name 	  = "%[1]s first"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
+						"test" = observe_datastream.test.dataset
 					}
 
 					stage {
-					  pipeline = <<-EOF
-					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
-					  EOF
+						pipeline = <<-EOF
+							pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+						EOF
 					}
 				}
 
@@ -717,24 +907,24 @@ func TestAccObserveDatasetQuotedInputReference(t *testing.T) {
 					name 	  = "%[1]s second"
 
 					inputs = {
-					  "test" = observe_datastream.test.dataset
-					  "first" = observe_dataset.first.oid
+						"test" = observe_datastream.test.dataset
+						"first" = observe_dataset.first.oid
 					}
 
 					stage {
-					  alias    = "from_first-123"
-					  input    = "first"
-					  pipeline = <<-EOF
-					  	filter true
-					  EOF
+						alias    = "from_first-123"
+						input    = "first"
+						pipeline = <<-EOF
+							filter true
+						EOF
 					}
 
 					stage {
-					  input    = "test"
-					  pipeline = <<-EOF
-					    pick_col BUNDLE_TIMESTAMP, tags:FIELDS
-					    union @"from_first-123"
-					  EOF
+						input    = "test"
+						pipeline = <<-EOF
+							pick_col BUNDLE_TIMESTAMP, tags:FIELDS
+							union @"from_first-123"
+						EOF
 					}
 				}
 				`, randomPrefix),

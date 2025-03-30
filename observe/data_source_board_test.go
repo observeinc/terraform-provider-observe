@@ -25,7 +25,7 @@ func TestAccObserveSourceBoard(t *testing.T) {
 				}
 
 				data "observe_board" "first" {
-				  id = observe_board.first.id
+					id = observe_board.first.id
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_board.first", "id"),

@@ -42,7 +42,7 @@ func TestAccObserveDatasetOutboundShare(t *testing.T) {
 					resource "observe_dataset_outbound_share" "test" {
 						workspace      = data.observe_workspace.default.oid
 						description    = "test description"
-						name 				   = "%[1]s"
+						name           = "%[1]s"
 						dataset        = observe_dataset.test.oid
 						outbound_share = observe_snowflake_outbound_share.test.oid
 						schema_name    = "%[1]s"

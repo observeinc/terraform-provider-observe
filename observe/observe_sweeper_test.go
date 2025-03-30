@@ -13,22 +13,6 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("observe_workspace", &resource.Sweeper{
-		Name: "observe_workspace",
-		F:    workspaceSweeperFunc,
-		Dependencies: []string{
-			"observe_dataset",
-			"observe_monitor",
-			"observe_poller",
-			"observe_datastream",
-			"observe_folder",
-			"observe_preferred_path",
-			"observe_bookmark_group",
-			"observe_worksheet",
-			"observe_app",
-			"observe_rbac_statement",
-		},
-	})
 	resource.AddTestSweepers("observe_dataset", &resource.Sweeper{
 		Name: "observe_dataset",
 		F:    datasetSweeperFunc,
@@ -155,30 +139,6 @@ func sharedClient(pattern string) (*client, error) {
 	}, nil
 }
 
-func workspaceSweeperFunc(pattern string) error {
-	client, err := sharedClient(pattern)
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
-
-	workspaces, err := client.ListWorkspaces(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, workspace := range workspaces {
-		if client.MatchName(workspace.Label) {
-			log.Printf("[WARN] Deleting %s [id=%s]\n", workspace.Label, workspace.Id)
-			if err := client.DeleteWorkspace(ctx, workspace.Id); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func datasetSweeperFunc(pattern string) error {
 	client, err := sharedClient(pattern)
 	if err != nil {
@@ -195,13 +155,13 @@ func datasetSweeperFunc(pattern string) error {
 	for _, workspace := range workspaces {
 		result, err := client.Meta.Run(ctx, `
 		query getDatasetsInWorkspace($workspaceId: ObjectId!) {
-		    workspace(id: $workspaceId) {
-			    datasets {
-			        id
-			        label
-			        managedById
-			    }
-		    }
+				workspace(id: $workspaceId) {
+					datasets {
+						id
+						label
+						managedById
+						}
+				}
 		}`, map[string]interface{}{
 			"workspaceId": workspace.Id,
 		})
@@ -651,11 +611,18 @@ func rbacStatementSweeperFunc(pattern string) error {
 
 	ctx := context.Background()
 
+	// rbac statements don't have a name/description, so delete all statements created by this user
+	currentUser, err := client.Meta.GetCurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	// rbac resource statements are automatically deleted when the resource is deleted
 	result, err := client.Meta.Run(ctx, `
-	query rbacStatements {
-		rbacStatements {
+	query rbacRoleStatements {
+		rbacRoleStatements {
 			id
-   			description
+			createdBy
 		}
 	}`, nil)
 
@@ -663,14 +630,14 @@ func rbacStatementSweeperFunc(pattern string) error {
 		return fmt.Errorf("failed to lookup rbac statements: %w", err)
 	}
 
-	for _, i := range result["rbacStatements"].([]interface{}) {
+	for _, i := range result["rbacRoleStatements"].([]interface{}) {
 		var (
-			item        = i.(map[string]interface{})
-			id          = item["id"].(string)
-			description = item["description"].(string)
+			item      = i.(map[string]interface{})
+			id        = item["id"].(string)
+			createdBy = item["createdBy"].(string)
 		)
 
-		if client.MatchName(description) {
+		if createdBy == currentUser.Id.String() {
 			log.Printf("[WARN] Deleting rbac statement [id=%s]\n", id)
 			if err := client.DeleteRbacStatement(ctx, id); err != nil {
 				return err

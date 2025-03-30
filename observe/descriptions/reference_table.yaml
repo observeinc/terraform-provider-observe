@@ -1,0 +1,25 @@
+description: |
+  A reference table represents a source of non-temporal data being ingested into Observe.
+
+schema:
+  source_file: |
+    The path to a CSV file containing the reference table data.
+  checksum: |
+    MD5 checksum of the source file.
+  label: |
+    The name of the reference table name. Must be unique within workspace.
+  description: |
+    Description for the reference table.
+  dataset: |
+    The Observe ID for the dataset managed by the reference table.
+  primary_key: |
+    The primary key of the reference table.
+  label_field: |
+    The field that should be used for the OPAL label.
+  schema:
+    description: |
+      The schema of the reference table. Must match the columns in the source file.
+    name: |
+      The name of the column.
+    type: |
+      The type of the column. See https://docs.observeinc.com/en/latest/content/query-language-reference/OPALUserGuideTypesOperators.html for options.

@@ -39,6 +39,17 @@ func TestAccLayeredSettingRecord(t *testing.T) {
 					value_bool  = false
 					target      = observe_datastream.test.dataset
 				}
+				
+				resource "observe_rbac_group" "limit_power" {
+					name = "limit_power"
+				}
+				resource "observe_layered_setting_record" "group_int64" {
+					workspace   = data.observe_workspace.default.oid
+					name        = "%[1]s-group-int64"
+					setting     = "Scanner.powerLevel"
+					value_int64 = 75
+					target      = observe_rbac_group.limit_power.oid
+				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_int64", "name", randomPrefix+"-dataset-int64"),
@@ -52,6 +63,11 @@ func TestAccLayeredSettingRecord(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "name", randomPrefix+"-dataset-bool"),
 					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "value_bool", "false"),
 					resource.TestCheckResourceAttr("observe_layered_setting_record.datasource_bool", "setting", "Dataset.periodicReclusteringDisabled"),
+
+					resource.TestCheckResourceAttr("observe_layered_setting_record.group_int64", "name", randomPrefix+"-group-int64"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.group_int64", "value_int64", "75"),
+					resource.TestCheckResourceAttr("observe_layered_setting_record.group_int64", "setting", "Scanner.powerLevel"),
+					resource.TestCheckResourceAttrSet("observe_layered_setting_record.group_int64", "target"),
 				),
 			},
 		},

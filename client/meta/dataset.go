@@ -36,6 +36,22 @@ func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input
 	return datasetOrError(resp.Dataset, err)
 }
 
+// SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful when rematerialization_mode is set to "skip_rematerialization"
+func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) ([]DatasetMaterialization, error) {
+	saveMode := SaveModePreflightDatasetAndDependencies
+	rematerializationMode := RematerializationModeSkiprematerialization
+	dependencyHandling := &DependencyHandlingInput{
+		SaveMode:              &saveMode,
+		RematerializationMode: &rematerializationMode,
+	}
+
+	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Dataset.GetDematerializedDatasets(), nil
+}
+
 // GetDataset retrieves dataset.
 func (client *Client) GetDataset(ctx context.Context, id string) (*Dataset, error) {
 	resp, err := getDataset(ctx, client.Gql, id)

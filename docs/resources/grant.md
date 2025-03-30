@@ -3,18 +3,15 @@
 page_title: "observe_grant Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  NOTE: This feature is still under development. It is not meant for customer use yet.
   Manages an Observe grant. Grants allow configuring permissions for users and groups by
-  assigning roles. A grant may also optionally be qualified by an object id. Replaces
-  rbac_statement. Reach out to Observe to enable this feature.
+  assigning roles. A grant may also optionally be qualified by an object id. Also see
+  observe_resource_grants for an authoritative way to manage grants for a resource.
 ---
 # observe_grant
 
-NOTE: This feature is still under development. It is not meant for customer use yet.
-
 Manages an Observe grant. Grants allow configuring permissions for users and groups by
-assigning roles. A grant may also optionally be qualified by an object id. Replaces
-rbac_statement. Reach out to Observe to enable this feature.
+assigning roles. A grant may also optionally be qualified by an object id. Also see
+`observe_resource_grants` for an authoritative way to manage grants for a resource.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {

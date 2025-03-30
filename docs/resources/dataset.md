@@ -51,7 +51,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 - `acceleration_disabled` (Boolean) Disables periodic materialization of the dataset
 - `acceleration_disabled_source` (String) Source of disabled materialization
-- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI
+- `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
 - `description` (String) Dataset description.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
@@ -61,9 +61,9 @@ frequency with which queries are run, which incurs higher transform costs.
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.
 - `rematerialization_mode` (String) Specifies rematerialization mode when updating a dataset. Options include
-"rematerialize" and "skip_rematerialization" - if no option is used, "rematerialize"
-is used by default. "skip_rematerialization" will skip rematerialization if certain conditions
-are met, will rematerialize otherwise.
+"rematerialize" (default), "skip_rematerialization", and "must_skip_rematerialization".
+"skip_rematerialization" will skip rematerialization if certain conditions are met, will rematerialize otherwise.
+"must_skip_rematerialization" will never rematerialize, update will fail if skipping rematerialization is not possible.
 
 ### Read-Only
 

@@ -78,10 +78,12 @@ extend type Query {
     """
     rbacDefaultGroup: RbacGroup!
 
-        """
+    """
     Get the group users will be assigned to by default
     """
     rbacDefaultSharingGroups: [RbacDefaultSharingGroup!]!
+
+    accessCheck(checks: [AccessCheckInput!]!): [AccessCheckResult!]!
 }
 
 extend type User {
@@ -138,15 +140,6 @@ extend type Mutation {
 
 scalar ORN @goModel(model: "observe/authorization/id.ORN")
 scalar ORNType @goModel(model: "observe/authorization/id.ORNType")
-
-enum RbacRole @goModel(model: "observe/rbac/policy.Role") {
-    Manager
-    Editor
-    Viewer
-    Ingester
-    Lister
-    MonitorGlobalMute
-}
 
 type RbacGroup implements AuditedObject @goModel(model: "observe/rbac/policy.Group") {
     id: ORN!
@@ -267,11 +260,13 @@ type MutateRbacStatementsResponse @goModel(model: "observe/meta/metatypes.Mutate
 type RbacDefaultSharingGroup  @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
     groupId: ORN!
     allowEdit: Boolean!
+    objectTypes: [ORType!]
 }
 
 input RbacDefaultSharingGroupInput @goModel(model: "observe/meta/metatypes.RbacDefaultSharingGroup") {
     groupId: ORN!
     allowEdit: Boolean!
+    objectTypes: [ORType!]
 }
 
 """
@@ -318,3 +313,13 @@ type RbacTestRequestResult @goModel(model: "observe/meta/metatypes.RbacTestReque
     matching: RbacStatement
 }
 
+input AccessCheckInput @goModel(model: "observe/meta/metatypes.AccessCheckInput") {
+    action: AccessAction!
+    resourceId: ObjectId
+}
+
+type AccessCheckResult @goModel(model: "observe/meta/metatypes.AccessCheckResult") {
+    action: AccessAction!
+    resourceId: ObjectId
+    allowed: Boolean!
+}

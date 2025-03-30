@@ -12,24 +12,24 @@ var (
 	// setup a couple of actions and monitors for use with channels
 	channelConfigPreamble = configPreamble + datastreamConfigPreamble + `
 				resource "observe_monitor" "a" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%[1]s/a"
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s/a"
 
-				  inputs = {
-				    "test" = observe_datastream.test.dataset
-				  }
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
 
-				  stage {
-				    pipeline = "filter true"
-				  }
+					stage {
+						pipeline = "filter true"
+					}
 
-				  rule {
-				    count {
-				      compare_function   = "greater_or_equal"
-				      compare_values     = [100]
-					  lookback_time      = "1m"
-				    }
-				  }
+					rule {
+						count {
+							compare_function   = "greater_or_equal"
+							compare_values     = [100]
+							lookback_time      = "1m"
+						}
+					}
 				}
 				`
 )
@@ -44,9 +44,9 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
 				}
 				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -58,12 +58,12 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
-				  icon_url  = "test"
-				  monitors = [
-				    observe_monitor.a.oid,
-				  ]
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
+					monitors = [
+						observe_monitor.a.oid,
+					]
 				}
 				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
@@ -75,8 +75,8 @@ func TestAccObserveChannelCreate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(channelConfigPreamble+`
 				resource "observe_channel" "example" {
-				  workspace = data.observe_workspace.default.oid
-				  name      = "%s"
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
 				}
 				`, randomPrefix, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(

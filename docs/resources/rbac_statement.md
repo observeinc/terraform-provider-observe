@@ -3,9 +3,12 @@
 page_title: "observe_rbac_statement Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Only for use with RBAC v1. For v2, use observe_grant.
   Manages a RBAC Statement.
 ---
 # observe_rbac_statement
+
+Deprecated. Only for use with RBAC v1. For v2, use `observe_grant`.
 
 Manages a RBAC Statement.
 ## Example Usage

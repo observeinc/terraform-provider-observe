@@ -51,6 +51,11 @@ func (client *Client) ListUsers(ctx context.Context) ([]User, error) {
 	return resp.Users.Users, nil
 }
 
+func (client *Client) GetCurrentUser(ctx context.Context) (*User, error) {
+	resp, err := currentUser(ctx, client.Gql)
+	return userOrError(resp, err)
+}
+
 func (u *User) Oid() *oid.OID {
 	userOid := oid.UserOid(u.Id)
 	return &userOid

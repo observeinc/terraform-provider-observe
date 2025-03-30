@@ -1,0 +1,15 @@
+description: |
+  Manages the workspace default grants for newly created resources.
+  Only one of this resource can exist in a given tenant.
+
+schema:
+  group:
+    oid: |
+      The Observe ID for the group to grant access to.
+    permission: |
+      The permission to grant. Must be one of `view` or `edit`.
+    object_types: |
+      Limits which object types this default grant applies to. Must be one of
+      `dashboard`, `datastream` or `worksheet`. If not set, this default grant applies
+      to all object types. Note: Datasets and monitors are not represented here as
+      they inherit default grants based on their input datasets instead.

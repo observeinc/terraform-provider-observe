@@ -3,9 +3,12 @@
 page_title: "observe_channel_action Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
+  Deprecated. Use observe_monitor_action instead.
   Manages a channel action, which adds a notification template to the specified channel. Channel actions are used to configure delivery for monitor alerts.
 ---
 # observe_channel_action
+
+Deprecated. Use `observe_monitor_action` instead.
 
 Manages a channel action, which adds a notification template to the specified channel. Channel actions are used to configure delivery for monitor alerts.
 

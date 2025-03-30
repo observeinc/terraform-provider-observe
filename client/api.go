@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
 var (
@@ -22,6 +23,16 @@ var (
 	syncRetryFactor   = 2.0
 	syncRetryCap      = 5 * time.Second
 )
+
+func (c *Client) maybeRunConcurrently(cb func()) {
+	if c.Flags[flagObs2110] {
+		cb()
+	} else {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+		cb()
+	}
+}
 
 // GetDataset returns dataset by ID
 func (c *Client) GetDataset(ctx context.Context, id string) (*meta.Dataset, error) {
@@ -47,6 +58,22 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 	}
 
 	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+}
+
+func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) ([]meta.DatasetMaterialization, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	if c.Config.Source != nil {
+		input.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.SaveDatasetDryRun(ctx, wsid, input, queryInput)
 }
 
 // DeleteDataset by ID
@@ -1470,4 +1497,102 @@ func (c *Client) GetIngestInfo(ctx context.Context) (*meta.IngestInfo, error) {
 
 func (c *Client) GetCloudInfo(ctx context.Context) (*meta.CloudInfo, error) {
 	return c.Meta.GetCloudInfo(ctx)
+}
+
+/**
+ * ReferenceTable
+ */
+func (c *Client) CreateReferenceTable(ctx context.Context, input *rest.ReferenceTableInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.CreateReferenceTable(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) UpdateReferenceTable(ctx context.Context, id string, input *rest.ReferenceTableInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.UpdateReferenceTable(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) UpdateReferenceTableMetadata(ctx context.Context, id string, input *rest.ReferenceTableMetadataInput) (*rest.ReferenceTable, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	result, err := c.Rest.UpdateReferenceTableMetadata(ctx, id, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) DeleteReferenceTable(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Rest.DeleteReferenceTable(ctx, id)
+}
+
+func (c *Client) GetReferenceTable(ctx context.Context, id string) (*rest.ReferenceTable, error) {
+	return c.Rest.GetReferenceTable(ctx, id)
+}
+
+func (c *Client) LookupReferenceTable(ctx context.Context, label string) (*rest.ReferenceTable, error) {
+	return c.Rest.LookupReferenceTable(ctx, label)
+}
+
+/**
+ * DefaultSharingGroups
+ */
+
+func (c *Client) GetRbacDefaultSharingGroups(ctx context.Context) ([]meta.RbacDefaultSharingGroup, error) {
+	return c.Meta.GetRbacDefaultSharingGroups(ctx)
+}
+
+func (c *Client) SetRbacDefaultSharingGroups(ctx context.Context, input []meta.RbacDefaultSharingGroupInput) error {
+	return c.Meta.SetRbacDefaultSharingGroups(ctx, input)
+}
+
+/**
+ * Reports
+ */
+func (c *Client) CreateReport(ctx context.Context, input *rest.ReportsDefinition) (result *rest.ReportsResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateReport(ctx, input)
+	})
+	return
+}
+
+func (c *Client) UpdateReport(ctx context.Context, id string, input *rest.ReportsDefinition) (result *rest.ReportsResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateReport(ctx, id, input)
+	})
+	return
+}
+
+func (c *Client) DeleteReport(ctx context.Context, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteReport(ctx, id)
+	})
+	return
+}
+
+func (c *Client) GetReport(ctx context.Context, id string) (*rest.ReportsResource, error) {
+	return c.Rest.GetReport(ctx, id)
 }
