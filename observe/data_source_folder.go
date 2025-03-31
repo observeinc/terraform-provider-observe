@@ -9,6 +9,7 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceFolder() *schema.Resource {
@@ -22,34 +23,36 @@ func dataSourceFolder() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Description:  descriptions.Get("folder", "schema", "name"),
 			},
 			"id": {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
 				ValidateDiagFunc: validateID(),
-				Description:      "Folder ID. Either `name` or `id` must be provided.",
+				Description:      descriptions.Get("folder", "schema", "id"),
 			},
 			// computed values
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetOIDDescription,
+				Description: descriptions.Get("common", "schema", "oid"),
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetDescriptionDescription,
+				Description: descriptions.Get("folder", "schema", "description"),
 			},
 			"icon_url": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: schemaDatasetIconDescription,
+				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
 		},
 	}

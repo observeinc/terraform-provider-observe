@@ -92,7 +92,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 	})
 }
 
-func TestAccObserveMonitorv2ActionEmailEmptyBody(t *testing.T) {
+func TestAccObserveMonitorV2ActionEmailEmptyBody(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -20,7 +20,7 @@ Manages an Observe board.
 - `dataset` (String) OID of Dataset for which board is defined.
 - `json` (String) JSON representation of board contents.
 - `name` (String) Board name.
-- `type` (String) Type of board. Accepted values: set, singleton
+- `type` (String) Type of board. Accepted values: `set`, `singleton`
 
 ### Read-Only
 

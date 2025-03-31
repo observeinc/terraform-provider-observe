@@ -48,12 +48,12 @@ Optional:
 
 - `change` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--change))
 - `count` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--count))
-- `facet` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--facet))
+- `facet` (Block List, Max: 1) Send an alert whenever a value appears in a field. (see [below for nested schema](#nestedblock--rule--facet))
 - `group_by_group` (Block List) (see [below for nested schema](#nestedblock--rule--group_by_group))
-- `log` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--log))
-- `promote` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--promote))
+- `log` (Block List, Max: 1) Send an alert when a log’s count crosses a threshold over a period of time. (see [below for nested schema](#nestedblock--rule--log))
+- `promote` (Block List, Max: 1) Send an alert whenever there's a new resource, event, or interval in a dataset. (see [below for nested schema](#nestedblock--rule--promote))
 - `source_column` (String)
-- `threshold` (Block List, Max: 1) (see [below for nested schema](#nestedblock--rule--threshold))
+- `threshold` (Block List, Max: 1) Send an alert when a value crosses a threshold over a period of time. (see [below for nested schema](#nestedblock--rule--threshold))
 
 <a id="nestedblock--rule--change"></a>
 ### Nested Schema for `rule.change`
@@ -91,10 +91,10 @@ Optional:
 
 Required:
 
-- `facet_function` (String)
-- `facet_values` (List of String)
-- `lookback_time` (String)
-- `time_function` (String)
+- `facet_function` (String) Comparison function to use when comparing the field against the desired value(s)
+- `facet_values` (List of String) The values to compare the field against.
+- `lookback_time` (String) Time window to evalute time_function over.
+- `time_function` (String) Temporal condition to evaluate the matches against (e.g. "at least once in window")
 
 Optional:
 
@@ -115,12 +115,12 @@ Optional:
 
 Required:
 
-- `compare_function` (String)
-- `lookback_time` (String)
+- `compare_function` (String) Comparison function used to compare the query result against the compare_values.
+- `lookback_time` (String) Amount of time to evaluate query and comparison over.
 
 Optional:
 
-- `compare_values` (List of Number)
+- `compare_values` (List of Number) Value(s) to compare the query(ies) against.
 - `expression_summary` (String) Short summary or comment of how the data for monitor is queried.
 - `log_stage_id` (String) An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
 - `source_log_dataset` (String) ID of the dataset that contains logs for preview.
@@ -131,12 +131,12 @@ Optional:
 
 Required:
 
-- `primary_key` (List of String)
+- `primary_key` (List of String) Key used to deduplicate and and uniquely identitify each event.
 
 Optional:
 
-- `description_field` (String)
-- `kind_field` (String)
+- `description_field` (String) Dataset field used to set the description for this monitor's events.
+- `kind_field` (String) The dataset field used to group notifications for this monitor.
 
 
 <a id="nestedblock--rule--threshold"></a>
@@ -144,13 +144,13 @@ Optional:
 
 Required:
 
-- `compare_function` (String)
-- `lookback_time` (String)
+- `compare_function` (String) Comparison function used to compare the query result against the compare_values.
+- `lookback_time` (String) Amount of time to evaluate query and comparison over.
 
 Optional:
 
-- `compare_values` (List of Number)
-- `threshold_agg_function` (String)
+- `compare_values` (List of Number) Value(s) to compare the query(ies) against.
+- `threshold_agg_function` (String) Function used to aggregate threshold events to determine when an alert should be triggered.
 
 
 

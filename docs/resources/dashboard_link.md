@@ -14,17 +14,17 @@ Manages a link between two dashboards, optionally for a specific card. This feat
 
 ### Required
 
-- `description` (String)
-- `from_dashboard` (String)
-- `link_label` (String)
-- `name` (String)
-- `to_dashboard` (String)
+- `description` (String) A description for the link.
+- `from_dashboard` (String) OID of dashboard to link from.
+- `link_label` (String) The label for the link.
+- `name` (String) Link name.
+- `to_dashboard` (String) OID of dashboard to link to.
 
 ### Optional
 
-- `folder` (String)
-- `from_card` (String)
-- `workspace` (String)
+- `folder` (String) Observe folder OID for this object.
+- `from_card` (String) Name of card to link in originating dashboard.
+- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
 

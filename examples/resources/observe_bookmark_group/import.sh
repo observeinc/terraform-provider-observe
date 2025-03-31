@@ -1,1 +1,1 @@
-terraform import observe_boomark_group.example 1414010
+terraform import observe_bookmark_group.example 1414010

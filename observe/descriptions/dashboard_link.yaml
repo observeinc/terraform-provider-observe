@@ -1,0 +1,15 @@
+description: >
+  Manages a link between two dashboards, optionally for a specific card. This feature is in development and dashboard links are not yet displayed in the UI.
+schema:
+  name: >
+    Link name.
+  from_dashboard: >
+    OID of dashboard to link from.
+  to_dashboard: >
+    OID of dashboard to link to.
+  from_card: >
+    Name of card to link in originating dashboard.
+  link_label: >
+    The label for the link.
+  description: >
+    A description for the link.

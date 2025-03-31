@@ -23,20 +23,23 @@ func dataSourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateID(),
-				Description:      descriptions.Get("common", "schema", "id"),
 				ExactlyOneOf:     []string{"name", "id"},
+				Description: descriptions.Get("common", "schema", "id") +
+					"One of `name` or `id` must be set.",
 			},
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
+				Description:      descriptions.Get("monitorv2", "schema", "workspace"),
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  descriptions.Get("monitorv2", "schema", "name"),
 				ExactlyOneOf: []string{"name", "id"},
+				RequiredWith: []string{"workspace"},
+				Description: descriptions.Get("monitorv2", "schema", "name") +
+					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2Definition
 			"rule_kind": { // MonitorV2RuleKind!

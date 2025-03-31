@@ -27,7 +27,46 @@ schema:
     notify_on_close: |
       Enables a final update when a monitor notification is closed (no longer triggered).
   rule:
+    facet:
+      description: |
+        Send an alert whenever a value appears in a field.
+      facet_function: |
+        Comparison function to use when comparing the field against the desired value(s)
+      facet_values: |
+        The values to compare the field against.
+      time_function: |
+        Temporal condition to evaluate the matches against (e.g. "at least once in window")
+      lookback_time: |
+        Time window to evalute time_function over.
+    threshold:
+      description: |
+        Send an alert when a value crosses a threshold over a period of time.
+      compare_function: |
+        Comparison function used to compare the query result against the compare_values.
+      compare_values: |
+        Value(s) to compare the query(ies) against.
+      lookback_time: |
+        Amount of time to evaluate query and comparison over.
+      threshold_agg_function: |
+        Function used to aggregate threshold events to determine when an alert should be triggered.
+    promotion:
+      description: |
+        Send an alert whenever there's a new resource, event, or interval in a dataset.
+      primary_key: |
+        Key used to deduplicate and and uniquely identitify each event.
+      kind_field: |
+        The dataset field used to group notifications for this monitor.
+      description_field: |
+        Dataset field used to set the description for this monitor's events.
     log:
+      description: |
+        Send an alert when a log’s count crosses a threshold over a period of time.
+      compare_function: |
+        Comparison function used to compare the query result against the compare_values.
+      compare_values: |
+        Value(s) to compare the query(ies) against.
+      lookback_time: |
+        Amount of time to evaluate query and comparison over.
       expression_summary: |
         Short summary or comment of how the data for monitor is queried.
       log_stage_id: |

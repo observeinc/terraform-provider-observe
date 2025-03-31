@@ -441,7 +441,11 @@ func diffSuppressEnums(k, prv, nxt string, d *schema.ResourceData) bool {
 }
 
 func describeEnums(stringerSlice interface{}, desc string) string {
-	return fmt.Sprintf("%s Accepted values: %s", desc, strings.Join(snakeCased(stringerSlice), ", "))
+	enums := snakeCased(stringerSlice)
+	for i, e := range enums {
+		enums[i] = fmt.Sprintf("`%s`", e)
+	}
+	return fmt.Sprintf("%s Accepted values: %s", desc, strings.Join(enums, ", "))
 }
 
 // convert to snake case

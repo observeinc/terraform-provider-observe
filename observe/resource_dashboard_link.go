@@ -9,11 +9,12 @@ import (
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceDashboardLink() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages a link between two dashboards, optionally for a specific card. This feature is in development and dashboard links are not yet displayed in the UI.",
+		Description:   descriptions.Get("dashboard_link", "description"),
 		CreateContext: resourceDashboardLinkCreate,
 		ReadContext:   resourceDashboardLinkRead,
 		UpdateContext: resourceDashboardLinkUpdate,
@@ -29,6 +30,7 @@ func resourceDashboardLink() *schema.Resource {
 				Computed:         true,
 				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"folder": {
 				Type:             schema.TypeString,
@@ -36,32 +38,39 @@ func resourceDashboardLink() *schema.Resource {
 				Computed:         true,
 				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
+				Description:      descriptions.Get("common", "schema", "folder"),
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("dashboard_link", "schema", "name"),
 			},
 			"from_dashboard": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDashboard),
+				Description:      descriptions.Get("dashboard_link", "schema", "from_dashboard"),
 			},
 			"to_dashboard": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDashboard),
+				Description:      descriptions.Get("dashboard_link", "schema", "to_dashboard"),
 			},
 			"from_card": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("dashboard_link", "schema", "from_card"),
 			},
 			"link_label": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("dashboard_link", "schema", "link_label"),
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("dashboard_link", "schema", "description"),
 			},
 		},
 	}

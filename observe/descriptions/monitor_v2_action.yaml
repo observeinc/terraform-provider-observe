@@ -1,0 +1,11 @@
+schema:
+  name: >
+    Name of the monitor v2 action.
+  type: >
+    Type of action to take when the associated monitor triggers.
+  email: >
+    Configuration settings for email type actions.
+  webhook: >
+    Configuration settings for webhook type actions.
+  description: >
+    description for this monitor v2 action.

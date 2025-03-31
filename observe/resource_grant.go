@@ -34,7 +34,7 @@ func resourceGrant() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
-				Description:      descriptions.Get("grant", "schema", "role"),
+				Description:      describeEnums(validGrantRoles, descriptions.Get("grant", "schema", "role")),
 				ForceNew:         true,
 			},
 			"qualifier": {

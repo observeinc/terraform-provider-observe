@@ -1,0 +1,7 @@
+schema:
+  name: >
+    Folder Name. For lookup, either name or id must be specified
+  id: >
+    Folder ID. For lookup, either name or id must be specified
+  description:
+    Description for the folder.

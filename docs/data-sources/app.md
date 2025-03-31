@@ -29,15 +29,16 @@ data "observe_app" "example" {
 
 ### Optional
 
-- `folder` (String) OID of workspace dataset is contained in.
-- `name` (String)
+- `folder` (String) Folder that the app is in. Required if looking up by name.
+- `id` (String) ID of the app. If looking up app, one of name or id must be specified.
+- `name` (String) Name of the app.
 
 ### Read-Only
 
-- `description` (String)
-- `id` (String) The ID of this resource.
-- `module_id` (String)
-- `oid` (String)
-- `outputs` (String)
-- `variables` (Map of String)
-- `version` (String)
+- `description` (String) The description of the app. Packaged with the app module.
+- `module_id` (String) Underlying module id for the specific app. Each module_id corresponds with one app.
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
+- `outputs` (String) Resources outputted by the app for user consumption
+- `variables` (Map of String) Additional settings to pass to the app.
+- `version` (String) The version of the app to install.
