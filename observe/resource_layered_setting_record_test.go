@@ -41,7 +41,7 @@ func TestAccLayeredSettingRecord(t *testing.T) {
 				}
 				
 				resource "observe_rbac_group" "limit_power" {
-					name = "limit_power"
+					name = "$[1]s-limit_power"
 				}
 				resource "observe_layered_setting_record" "group_int64" {
 					workspace   = data.observe_workspace.default.oid
