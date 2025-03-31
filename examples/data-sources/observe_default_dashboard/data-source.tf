@@ -1,5 +1,5 @@
 data "observe_workspace" "default" {
-    name = "Default"
+  name = "Default"
 }
 
 data "observe_dataset" "example" {
@@ -8,5 +8,5 @@ data "observe_dataset" "example" {
 }
 
 data "observe_default_dashboard" "example" {
-    dataset = data.observe_dataset.example.oid
+  dataset = data.observe_dataset.example.oid
 }

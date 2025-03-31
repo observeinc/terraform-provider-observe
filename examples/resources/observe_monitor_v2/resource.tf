@@ -11,13 +11,13 @@ data "observe_dataset" "usage_metrics" {
 resource "observe_monitor_v2" "example" {
   data_stabilization_delay = "0s"
   description              = "Credit usage monitor"
-  inputs                   = {
+  inputs = {
     "credits_adhoc_query_from_usage/Observe Usage Metrics" = data.observe_dataset.usage_metrics.oid
   }
-  lookback_time            = "10m0s"
-  name                     = "example"
-  rule_kind                = "threshold"
-  workspace                = data.observe_workspace.default.oid
+  lookback_time = "10m0s"
+  name          = "example"
+  rule_kind     = "threshold"
+  workspace     = data.observe_workspace.default.oid
   groupings {
     link_column {
       name = "Dashboard"
@@ -30,8 +30,8 @@ resource "observe_monitor_v2" "example" {
       value_column_name = "A_credits_adhoc_query_sum"
 
       compare_values {
-        compare_fn      = "greater"
-        value_float64   = [
+        compare_fn = "greater"
+        value_float64 = [
           100,
         ]
       }

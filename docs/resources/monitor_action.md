@@ -22,7 +22,7 @@ resource "observe_monitor_action" "webhook_action" {
   icon_url  = "test"
 
   webhook {
-    url_template = "https://example.com"
+    url_template  = "https://example.com"
     body_template = "{}"
     headers = {
       "test" = "hello"
@@ -37,7 +37,7 @@ resource "observe_monitor_action" "email_action" {
   icon_url  = "test"
 
   email {
-    target_addresses = [ "test@observeinc.com" ]
+    target_addresses = ["test@observeinc.com"]
     subject_template = "Hello"
     body_template    = "Nope"
   }

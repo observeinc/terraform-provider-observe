@@ -25,8 +25,8 @@ data "observe_oid" "from_oid" {
 
 # construct an OID from components
 data "observe_oid" "from_components" {
-  id = data.observe_workspace.default.id
-  type = "workspace"
+  id      = data.observe_workspace.default.id
+  type    = "workspace"
   version = "1"
 }
 ```

@@ -26,7 +26,7 @@ resource "observe_snowflake_outbound_share" "example" {
   description = "Example description"
 
   account {
-    account = "my_sf_acct"
+    account      = "my_sf_acct"
     organization = "my_sf_org"
   }
 }

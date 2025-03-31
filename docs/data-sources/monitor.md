@@ -25,7 +25,7 @@ data "observe_monitor" "id_lookup" {
 # lookup by name
 data "observe_monitor" "name_lookup" {
   workspace = data.observe_workspace.default.oid
-  name = "name of the monitor"
+  name      = "name of the monitor"
 }
 ```
 

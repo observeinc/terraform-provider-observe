@@ -14,7 +14,7 @@ Generates Terraform configuration for a given resource in Observe. Datasets, mon
 
 ```terraform
 data "observe_workspace" "default" {
-    name = "Default"
+  name = "Default"
 }
 
 data "observe_dataset" "kubernetes_container" {
@@ -23,7 +23,7 @@ data "observe_dataset" "kubernetes_container" {
 }
 
 data "observe_terraform" "Example" {
-    target  = data.observe_dataset.kubernetes_container.oid
+  target = data.observe_dataset.kubernetes_container.oid
 }
 ```
 

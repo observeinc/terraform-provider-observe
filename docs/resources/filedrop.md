@@ -31,7 +31,7 @@ resource "observe_filedrop" "example" {
   config {
     provider {
       aws {
-        region  = "us-west-2"
+        region   = "us-west-2"
         role_arn = "arn:aws:iam:<account>:role/<myrole>"
       }
     }

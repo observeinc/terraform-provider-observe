@@ -4,5 +4,5 @@ data "observe_workspace" "default" {
 
 data "observe_worksheet" "lookup" {
   workspace = data.observe_workspace.default.oid
-  id = "41000100"
+  id        = "41000100"
 }

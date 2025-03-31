@@ -20,12 +20,12 @@ data "observe_dataset" "span_event" {
 }
 
 resource "observe_dashboard" "example" {
-  name      = "example"
-  stages    = jsonencode(
+  name = "example"
+  stages = jsonencode(
     [
       {
-        id       = "stage-nkeju1il"
-        input    = [
+        id = "stage-nkeju1il"
+        input = [
           {
             datasetId   = data.observe_dataset.span_event.id
             datasetPath = null
