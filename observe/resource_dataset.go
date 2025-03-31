@@ -294,7 +294,6 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if d.DataTableViewState != nil {
-		fmt.Println(d.DataTableViewState.String())
 		if err := data.Set("data_table_view_state", d.DataTableViewState.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

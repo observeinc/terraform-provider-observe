@@ -7,7 +7,7 @@ data "observe_dataset" "observation" {
   name      = "Observation"
 }
 
-# outbound shares currently need a valid backing snowflake outbound to work correctly
+# dataset outbound shares need a valid backing snowflake outbound
 resource "observe_snowflake_outbound_share" "example" {
   workspace   = data.observe_workspace.default.oid
   name        = "Example SF Outbound"
@@ -28,3 +28,4 @@ resource "observe_dataset_outbound_share" "example" {
   schema_name    = "example_schema"
   view_name      = "example_view"
   freshness_goal = "15m"
+}

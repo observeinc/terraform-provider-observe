@@ -41,7 +41,9 @@ data "observe_monitor_v2" "name_lookup" {
 ### Optional
 
 - `id` (String) Resource ID for this object.
+One of `name` or `id` must be set.
 - `name` (String) Monitor name.
+One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only

@@ -13,8 +13,17 @@ Fetches the default dashboard OID for the specified dataset.
 ## Example Usage
 
 ```terraform
+data "observe_workspace" "default" {
+    name = "Default"
+}
+
+data "observe_dataset" "example" {
+  workspace = data.observe_workspace.default.oid
+  name      = "My Dataset"
+}
+
 data "observe_default_dashboard" "example" {
-    dataset = "41000100"
+    dataset = data.observe_dataset.example.oid
 }
 ```
 

@@ -8,8 +8,8 @@ data "observe_dataset" "a" {
 }
 
 resource "observe_correlation_tag" "example" {
-  name = "%[1]s-key.name"
+  name = "service.name"
   dataset = observe_dataset.a.oid
-  # tag the dataset for correlation using its "key" column
-  column = "key"
+  # tag the dataset for correlation using its "service" column
+  column = "service"
 }

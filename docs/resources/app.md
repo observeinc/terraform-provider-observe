@@ -46,7 +46,7 @@ resource "observe_app" "example" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `name` (String) Generated display name of app.
+- `name` (String) Name of the app.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
 - `outputs` (String)

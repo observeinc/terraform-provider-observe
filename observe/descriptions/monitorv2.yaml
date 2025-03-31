@@ -5,7 +5,7 @@ description: |
   template and destinations to configure the receiver.
 
 schema:
-  workspace_id: |
+  workspace: |
     OID of the workspace this object is contained in.
   comment: |
     A longer description of the monitor. This can include details like how to resolve the issue, links to runbooks, etc.

@@ -1,3 +1,12 @@
+data "observe_workspace" "default" {
+  name = "Default"
+}
+
+data "observe_dataset" "span_event" {
+  workspace = data.observe_workspace.default.oid
+  name      = "OpenTelemetry/Span Event"
+}
+
 resource "observe_dashboard" "example" {
   name      = "example"
   stages    = jsonencode(
@@ -6,7 +15,7 @@ resource "observe_dashboard" "example" {
         id       = "stage-nkeju1il"
         input    = [
           {
-            datasetId   = "41000014"
+            datasetId   = data.observe_dataset.span_event.id
             datasetPath = null
             inputName   = "OpenTelemetry/Span Event"
             inputRole   = "Data"

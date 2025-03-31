@@ -32,7 +32,7 @@ func resourceMonitorV2() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      descriptions.Get("monitorv2", "schema", "workspace_id"),
+				Description:      descriptions.Get("monitorv2", "schema", "workspace"),
 			},
 			"name": { // String!
 				Type:        schema.TypeString,

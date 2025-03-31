@@ -27,12 +27,13 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      descriptions.Get("common", "schema", "workspace") + " Must be specified if looking up by name",
+				Description:      descriptions.Get("common", "schema", "workspace") + " Must be specified if looking up by name.",
 			},
 			"name": { // String!
 				Type:         schema.TypeString,
-				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				ExactlyOneOf: []string{"name", "id"},
+				RequiredWith: []string{"workspace"},
 				Description:  descriptions.Get("monitor_v2_action", "schema", "name") + " One of either `id` or `name` must be provided.",
 			},
 			// fields of MonitorV2ActionInput

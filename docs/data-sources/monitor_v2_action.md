@@ -39,7 +39,7 @@ data "observe_monitor_v2_action" "name_lookup" {
 - `name` (String) Name of the monitor v2 action.
  One of either `id` or `name` must be provided.
 - `workspace` (String) OID of the workspace this object is contained in.
- Must be specified if looking up by name
+ Must be specified if looking up by name.
 
 ### Read-Only
 

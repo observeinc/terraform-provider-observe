@@ -7,7 +7,7 @@ schema:
   id: >
     ID of the app. If looking up app, one of name or id must be specified.
   name: >
-    Generated display name of app.
+    Name of the app.
   module_id: >
     Underlying module id for the specific app. Each module_id corresponds with one app.
   version: >

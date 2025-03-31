@@ -31,7 +31,7 @@ data "observe_app" "example" {
 
 - `folder` (String) Folder that the app is in. Required if looking up by name.
 - `id` (String) ID of the app. If looking up app, one of name or id must be specified.
-- `name` (String) Generated display name of app.
+- `name` (String) Name of the app.
 
 ### Read-Only
 
