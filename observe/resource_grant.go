@@ -238,15 +238,36 @@ func resourceGrantCreate(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	data.SetId(result.Id)
-	return append(diags, resourceGrantRead(ctx, data, meta)...)
+	return append(diags, resourceGrantReadInternal(ctx, data, meta, true)...)
 }
 
 func resourceGrantRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	return resourceGrantReadInternal(ctx, data, meta, false)
+}
+
+func resourceGrantReadInternal(ctx context.Context, data *schema.ResourceData, meta interface{}, afterCreate bool) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
 	stmt, err := client.GetRbacStatement(ctx, data.Id())
 	if err != nil {
 		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			// If a grant is no longer found after a successful create, it means the grant was removed due to
+			// de-duplication by the server. In which case, we want to indicate that to the user as an error.
+			if afterCreate {
+				subject := data.Get("subject").(string)
+				if subjectOid, err := oid.NewOID(subject); err == nil && subjectOid.Type == oid.TypeRbacGroup {
+					subject = subjectOid.Id
+				}
+				object := data.Get("qualifier.0.oid").(string)
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "failed to create grant due to conflict with existing grant",
+					Detail:   fmt.Sprintf("Subject %s may only have a single grant allowing Viewer or Editor access to resource %s, and there already exists one. Please remove the conflicting grant and try again. Alternatively, use `observe_resource_grants` to manage the complete set of grants for this resource, overriding any existing grants.", subject, object),
+				})
+				return diags
+			}
+
+			// Otherwise just mark it as deleted in the terraform state
 			data.SetId("")
 			return nil
 		}
