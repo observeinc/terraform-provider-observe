@@ -930,7 +930,6 @@ type Dashboard struct {
 	IconUrl         *string                                    `json:"iconUrl"`
 	WorkspaceId     string                                     `json:"workspaceId"`
 	ManagedById     *string                                    `json:"managedById"`
-	FolderId        string                                     `json:"folderId"`
 	Layout          *types.JsonObject                          `json:"layout"`
 	Stages          []DashboardStagesStageQuery                `json:"stages"`
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
@@ -951,9 +950,6 @@ func (v *Dashboard) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetManagedById returns Dashboard.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetManagedById() *string { return v.ManagedById }
-
-// GetFolderId returns Dashboard.FolderId, and is useful for accessing the field via an interface.
-func (v *Dashboard) GetFolderId() string { return v.FolderId }
 
 // GetLayout returns Dashboard.Layout, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetLayout() *types.JsonObject { return v.Layout }
@@ -4479,7 +4475,6 @@ type MonitorV2 struct {
 	// flag to support TF and REST.
 	Disabled     *bool                 `json:"disabled"`
 	ManagedById  *string               `json:"managedById"`
-	FolderId     string                `json:"folderId"`
 	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
@@ -4516,9 +4511,6 @@ func (v *MonitorV2) GetDisabled() *bool { return v.Disabled }
 
 // GetManagedById returns MonitorV2.ManagedById, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
-
-// GetFolderId returns MonitorV2.FolderId, and is useful for accessing the field via an interface.
-func (v *MonitorV2) GetFolderId() string { return v.FolderId }
 
 // GetRollupStatus returns MonitorV2.RollupStatus, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetRollupStatus() MonitorV2RollupStatus { return v.RollupStatus }
@@ -13486,7 +13478,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
@@ -15973,7 +15964,6 @@ fragment Dashboard on Dashboard {
 	iconUrl
 	workspaceId
 	managedById
-	folderId
 	layout
 	stages {
 		id
@@ -17015,7 +17005,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
@@ -18769,7 +18758,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
@@ -19216,7 +19204,6 @@ fragment Dashboard on Dashboard {
 	iconUrl
 	workspaceId
 	managedById
-	folderId
 	layout
 	stages {
 		id
@@ -19470,7 +19457,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
@@ -19713,7 +19699,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
@@ -21465,7 +21450,6 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	managedById
-	folderId
 	rollupStatus
 	ruleKind
 	definition {
