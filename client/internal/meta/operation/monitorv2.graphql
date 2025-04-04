@@ -235,7 +235,6 @@ fragment MonitorV2 on MonitorV2 {
     description
     disabled
     managedById
-    folderId
     rollupStatus
     ruleKind
     # @genqlient(flatten: true)
