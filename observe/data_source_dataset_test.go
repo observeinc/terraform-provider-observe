@@ -191,7 +191,7 @@ func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
 						resource "observe_correlation_tag" "ctag_1" {
 							column = "key"
 							dataset = observe_dataset.b.oid
-							name = "first_correlation_tag"
+							name = "%[1]s-tag"
 						}
 
 						data "observe_dataset" "lookup_by_id" {
@@ -203,7 +203,7 @@ func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.observe_dataset.lookup_by_id", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "name", randomPrefix+"-b"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\ncolmake key:\"test\"\n"),
-					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.name", "first_correlation_tag"),
+					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.name", randomPrefix+"-tag"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.column", "key"),
 				),
 			},
