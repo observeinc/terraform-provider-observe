@@ -10304,18 +10304,6 @@ func (v *__updateRbacGroupInput) GetId() string { return v.Id }
 // GetConfig returns __updateRbacGroupInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateRbacGroupInput) GetConfig() RbacGroupInput { return v.Config }
 
-// __updateRbacGroupmemberInput is used internally by genqlient
-type __updateRbacGroupmemberInput struct {
-	Id     string               `json:"id"`
-	Config RbacGroupmemberInput `json:"config"`
-}
-
-// GetId returns __updateRbacGroupmemberInput.Id, and is useful for accessing the field via an interface.
-func (v *__updateRbacGroupmemberInput) GetId() string { return v.Id }
-
-// GetConfig returns __updateRbacGroupmemberInput.Config, and is useful for accessing the field via an interface.
-func (v *__updateRbacGroupmemberInput) GetConfig() RbacGroupmemberInput { return v.Config }
-
 // __updateRbacStatementInput is used internally by genqlient
 type __updateRbacStatementInput struct {
 	Id     string             `json:"id"`
@@ -12410,16 +12398,6 @@ type updateRbacGroupResponse struct {
 
 // GetRbacGroup returns updateRbacGroupResponse.RbacGroup, and is useful for accessing the field via an interface.
 func (v *updateRbacGroupResponse) GetRbacGroup() RbacGroup { return v.RbacGroup }
-
-// updateRbacGroupmemberResponse is returned by updateRbacGroupmember on success.
-type updateRbacGroupmemberResponse struct {
-	RbacGroupmember RbacGroupmember `json:"rbacGroupmember"`
-}
-
-// GetRbacGroupmember returns updateRbacGroupmemberResponse.RbacGroupmember, and is useful for accessing the field via an interface.
-func (v *updateRbacGroupmemberResponse) GetRbacGroupmember() RbacGroupmember {
-	return v.RbacGroupmember
-}
 
 // updateRbacStatementResponse is returned by updateRbacStatement on success.
 type updateRbacStatementResponse struct {
@@ -21982,50 +21960,6 @@ func updateRbacGroup(
 	var err error
 
 	var data updateRbacGroupResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-// The query or mutation executed by updateRbacGroupmember.
-const updateRbacGroupmember_Operation = `
-mutation updateRbacGroupmember ($id: ORN!, $config: RbacGroupmemberInput!) {
-	rbacGroupmember: updateRbacGroupmember(id: $id, input: $config) {
-		... RbacGroupmember
-	}
-}
-fragment RbacGroupmember on RbacGroupmember {
-	id
-	description
-	groupId
-	memberUserId
-	memberGroupId
-}
-`
-
-func updateRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config RbacGroupmemberInput,
-) (*updateRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateRbacGroupmember",
-		Query:  updateRbacGroupmember_Operation,
-		Variables: &__updateRbacGroupmemberInput{
-			Id:     id,
-			Config: config,
-		},
-	}
-	var err error
-
-	var data updateRbacGroupmemberResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

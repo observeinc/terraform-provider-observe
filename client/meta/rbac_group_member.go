@@ -28,11 +28,6 @@ func (client *Client) GetRbacGroupmember(ctx context.Context, id string) (*RbacG
 	return rbacGroupmemberOrError(resp, err)
 }
 
-func (client *Client) UpdateRbacGroupmember(ctx context.Context, id string, input *RbacGroupmemberInput) (*RbacGroupmember, error) {
-	resp, err := updateRbacGroupmember(ctx, client.Gql, id, *input)
-	return rbacGroupmemberOrError(resp, err)
-}
-
 func (client *Client) DeleteRbacGroupmember(ctx context.Context, id string) error {
 	resp, err := deleteRbacGroupmember(ctx, client.Gql, id)
 	return resultStatusError(resp, err)
