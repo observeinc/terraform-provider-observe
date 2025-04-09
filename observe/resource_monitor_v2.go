@@ -115,6 +115,7 @@ func resourceMonitorV2() *schema.Resource {
 						"expiration": { // Duration
 							Type:             schema.TypeString,
 							Optional:         true,
+							DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 							ValidateDiagFunc: validateTimeDuration,
 							Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "expiration"),
 						},
@@ -404,7 +405,7 @@ func resourceMonitorV2() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ValidateDiagFunc: validateTimeDuration,
-							DiffSuppressFunc: diffSuppressTimeDuration,
+							DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 							Description:      descriptions.Get("monitorv2", "schema", "actions", "send_reminders_interval"),
 						},
 					},
