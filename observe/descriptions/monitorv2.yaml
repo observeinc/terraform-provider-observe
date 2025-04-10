@@ -19,6 +19,18 @@ schema:
     A brief description of the monitor.
   disabled: |
     Enable/Disable the monitor (and any underlying transforms).
+  no_data_rules:
+    description: |
+      No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind.
+    expiration: |
+      Allows for the user to specify how long they'd like the missing data alert to persist for before it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The expiration must be identical across all rules.
+    threshold:
+      description: |
+        Adds the ability for threshold monitor to have a no data rule. When this input is provided here, you must provide the aggregation and valueColumnName, while the compareGroups is optional. The compareValues should be left empty. The aggregation and value column provided must be identical across all rules.
+      aggregation: |
+        The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+      value_column_name: |
+        Indicates which column in the input query has the value to apply the aggregation.
   rules:
     description: |
       All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational.

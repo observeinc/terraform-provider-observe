@@ -99,6 +99,55 @@ func dataSourceMonitorV2() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
+			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
+				Type:        schema.TypeList,
+				Computed:    true,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"expiration": { // Duration
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "expiration"),
+						},
+						"threshold": { // MonitorV2ThresholdRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_values": { // [MonitorV2ComparisonInput!]!
+										Type:        schema.TypeList,
+										Optional:    true,
+										Computed:    true,
+										Elem:        monitorV2ComparisonDatasource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_values"),
+									},
+									"value_column_name": { // String!
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "value_column_name"),
+									},
+									"aggregation": { // MonitorV2ValueAggregation!
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Computed:    true,
+										Elem:        monitorV2ColumnComparisonDatasource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"rules": { // [MonitorV2RuleInput!]!
 				Type:        schema.TypeList,
 				Computed:    true,
