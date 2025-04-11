@@ -12,15 +12,10 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-const (
-	schemaRbacGroupmemberResourceNameDescription = "RbacGroupmember name. Must be unique per account."
-)
-
 func resourceRbacGroupmember() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Manages a RBAC Groupmember.",
 		CreateContext: resourceRbacGroupmemberCreate,
-		UpdateContext: resourceRbacGroupmemberUpdate,
 		ReadContext:   resourceRbacGroupmemberRead,
 		DeleteContext: resourceRbacGroupmemberDelete,
 		Importer: &schema.ResourceImporter{
@@ -31,11 +26,14 @@ func resourceRbacGroupmember() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeRbacGroup),
+				ForceNew:         true,
 			},
 			"description": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: diffSuppressAlways,
+				ForceNew:         true,
+				Deprecated:       "Descriptions for group memberships are no longer supported.",
 			},
 			"member": {
 				Type:     schema.TypeList,
@@ -54,9 +52,11 @@ func resourceRbacGroupmember() *schema.Resource {
 							ExactlyOneOf:     []string{"member.0.user", "member.0.group"},
 							Optional:         true,
 							ValidateDiagFunc: validateOID(oid.TypeRbacGroup),
+							Deprecated:       "Groups may no longer be members of other groups.",
 						},
 					},
 				},
+				ForceNew: true,
 			},
 			"oid": {
 				Type:     schema.TypeString,
@@ -105,21 +105,6 @@ func resourceRbacGroupmemberCreate(ctx context.Context, data *schema.ResourceDat
 	}
 
 	data.SetId(result.Id)
-	return append(diags, resourceRbacGroupmemberRead(ctx, data, meta)...)
-}
-
-func resourceRbacGroupmemberUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	config, diags := newRbacGroupmemberConfig(data)
-	if diags.HasError() {
-		return diags
-	}
-
-	_, err := client.UpdateRbacGroupmember(ctx, data.Id(), config)
-	if err != nil {
-		return diag.Errorf("failed to update rbacgroupmember: %s", err.Error())
-	}
 	return append(diags, resourceRbacGroupmemberRead(ctx, data, meta)...)
 }
 

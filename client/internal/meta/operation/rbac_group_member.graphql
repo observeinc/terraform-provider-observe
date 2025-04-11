@@ -1,35 +1,28 @@
 fragment RbacGroupmember on RbacGroupmember {
-	id
-        description
-        groupId
-        memberUserId
-        memberGroupId
+  id
+  description
+  groupId
+  memberUserId
+  memberGroupId
 }
 
 mutation createRbacGroupmember($config: RbacGroupmemberInput!) {
-    # @genqlient(flatten: true)
-    rbacGroupmember: createRbacGroupmember(input: $config) {
-        ...RbacGroupmember
-    }
+  # @genqlient(flatten: true)
+  rbacGroupmember: createRbacGroupmember(input: $config) {
+    ...RbacGroupmember
+  }
 }
 
 query getRbacGroupmember($id: ORN!) {
-	# @genqlient(flatten: true)
-	rbacGroupmember: rbacGroupmember(id: $id) {
-		...RbacGroupmember
-	}
-}
-
-mutation updateRbacGroupmember($id: ORN!, $config: RbacGroupmemberInput!) {
-    # @genqlient(flatten: true)
-    rbacGroupmember: updateRbacGroupmember(id:$id, input: $config) {
-        ...RbacGroupmember
-    }
+  # @genqlient(flatten: true)
+  rbacGroupmember: rbacGroupmember(id: $id) {
+    ...RbacGroupmember
+  }
 }
 
 mutation deleteRbacGroupmember($id: ORN!) {
-    # @genqlient(flatten: true)
-    resultStatus: deleteRbacGroupmember(id: $id) {
-        ...ResultStatus
-    }
+  # @genqlient(flatten: true)
+  resultStatus: deleteRbacGroupmember(id: $id) {
+    ...ResultStatus
+  }
 }
