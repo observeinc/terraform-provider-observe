@@ -2,10 +2,11 @@ package validator
 
 import (
 	_ "embed"
+
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-//go:embed prelude.graphql
+//go:embed imported/prelude.graphql
 var preludeGraphql string
 
 var Prelude = &ast.Source{
