@@ -1285,15 +1285,6 @@ func (c *Client) CreateRbacGroupmember(ctx context.Context, input *meta.RbacGrou
 	return c.Meta.CreateRbacGroupmember(ctx, input)
 }
 
-// UpdateRbacGroupmember updates an rbacgroupmember
-func (c *Client) UpdateRbacGroupmember(ctx context.Context, id string, input *meta.RbacGroupmemberInput) (*meta.RbacGroupmember, error) {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	return c.Meta.UpdateRbacGroupmember(ctx, id, input)
-}
-
 // DeleteRbacGroupmember
 func (c *Client) DeleteRbacGroupmember(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {

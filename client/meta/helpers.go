@@ -223,7 +223,8 @@ func HasErrorCode(err error, code string) bool {
 	if err == nil {
 		return false
 	}
-	if errList, ok := err.(gqlerror.List); ok {
+	var errList gqlerror.List
+	if errors.As(err, &errList) {
 		for _, err := range errList {
 			if err.Extensions["code"] == code {
 				return true

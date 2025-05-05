@@ -59,6 +59,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 stage pipelines.
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+- `no_data_rules` (Block List) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
@@ -204,6 +205,89 @@ Read-Only:
 Read-Only:
 
 - `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--no_data_rules"></a>
+### Nested Schema for `no_data_rules`
+
+Read-Only:
+
+- `expiration` (String) Allows for the user to specify how long they'd like the missing data alert to persist for before it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The expiration must be identical across all rules.
+- `threshold` (Block List) Adds the ability for threshold monitor to have a no data rule. When this input is provided here, you must provide the aggregation and valueColumnName, while the compareGroups is optional. The compareValues should be left empty. The aggregation and value column provided must be identical across all rules. (see [below for nested schema](#nestedblock--no_data_rules--threshold))
+
+<a id="nestedblock--no_data_rules--threshold"></a>
+### Nested Schema for `no_data_rules.threshold`
+
+Read-Only:
+
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_values))
+- `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups`
+
+Read-Only:
+
+- `column` (Block List) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--compare_values))
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column`
+
+Read-Only:
+
+- `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--column_path))
+- `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--link_column))
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column--column_path"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column.column_path`
+
+Read-Only:
+
+- `name` (String) The name of the column.
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column--link_column"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column.link_column`
+
+Read-Only:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--compare_values"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.compare_values`
+
+Read-Only:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_values"></a>
+### Nested Schema for `no_data_rules.threshold.compare_values`
+
+Read-Only:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of Boolean) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
 
 
 

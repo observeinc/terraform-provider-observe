@@ -118,6 +118,13 @@ func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta int
 
 	_, err := client.UpdateForeignKey(ctx, data.Id(), config)
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			diags = resourceLinkCreate(ctx, data, meta)
+			if diags.HasError() {
+				return diags
+			}
+			return nil
+		}
 		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
 
