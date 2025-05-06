@@ -78,7 +78,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     WorksheetView
 }
 
-enum RbacRole @goModel(model: "observe/access/permission.Role") {
+enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     ApitokenCreate
     BookmarkManager
     Editor
@@ -87,6 +87,7 @@ enum RbacRole @goModel(model: "observe/access/permission.Role") {
     Lister
     Manager
     MonitorGlobalMute
+    ReportManager
     UserDelete
     UserInvite
     Viewer
