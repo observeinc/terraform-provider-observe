@@ -7807,6 +7807,7 @@ const (
 	RbacRoleLister             RbacRole = "Lister"
 	RbacRoleManager            RbacRole = "Manager"
 	RbacRoleMonitorglobalmute  RbacRole = "MonitorGlobalMute"
+	RbacRoleReportmanager      RbacRole = "ReportManager"
 	RbacRoleUserdelete         RbacRole = "UserDelete"
 	RbacRoleUserinvite         RbacRole = "UserInvite"
 	RbacRoleViewer             RbacRole = "Viewer"

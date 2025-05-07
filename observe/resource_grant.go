@@ -306,6 +306,7 @@ var (
 	MonitorEditor      GrantRole = createGrantRole("MonitorEditor")
 	MonitorViewer      GrantRole = createGrantRole("MonitorViewer")
 	MonitorGlobalMuter GrantRole = createGrantRole("MonitorGlobalMuter")
+	ReportManager      GrantRole = createGrantRole("ReportManager")
 	UserDeleter        GrantRole = createGrantRole("UserDeleter")
 	UserInviter        GrantRole = createGrantRole("UserInviter")
 	WorksheetCreator   GrantRole = createGrantRole("WorksheetCreator")
@@ -330,6 +331,7 @@ var roleMapping = map[GrantRole]gql.RbacRole{
 	MonitorGlobalMuter: gql.RbacRoleMonitorglobalmute,
 	UserDeleter:        gql.RbacRoleUserdelete,
 	UserInviter:        gql.RbacRoleUserinvite,
+	ReportManager:      gql.RbacRoleReportmanager,
 }
 var reverseRoleMapping = func() map[gql.RbacRole]GrantRole {
 	m := make(map[gql.RbacRole]GrantRole)
