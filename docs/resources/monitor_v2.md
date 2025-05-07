@@ -620,7 +620,31 @@ Optional:
 
 Optional:
 
+- `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. (see [below for nested schema](#nestedblock--scheduling--scheduled))
 - `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
+
+<a id="nestedblock--scheduling--interval"></a>
+### Nested Schema for `scheduling.interval`
+
+Required:
+
+- `interval` (String) How often the monitor should attempt to run.
+- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
+
+
+<a id="nestedblock--scheduling--scheduled"></a>
+### Nested Schema for `scheduling.scheduled`
+
+Required:
+
+- `timezone` (String) A timezone is required to ensure that interpretation of scheduling on the wall-clock
+is done relative to the desired timezone.
+
+Optional:
+
+- `raw_cron` (String) If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+
 
 <a id="nestedblock--scheduling--transform"></a>
 ### Nested Schema for `scheduling.transform`

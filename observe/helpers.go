@@ -249,6 +249,19 @@ func validateFlags(i interface{}, path cty.Path) diag.Diagnostics {
 	return nil
 }
 
+func validateStringIsTimezone(i interface{}, path cty.Path) diag.Diagnostics {
+	v, ok := i.(string)
+	if !ok {
+		return diag.Errorf("expected type of %s to be string", i)
+	}
+
+	_, err := time.LoadLocation(v)
+	if err != nil {
+		return diag.Errorf("%q is not a valid timezone specifier: %s", v, err)
+	}
+	return nil
+}
+
 func validateStringIsJSON(i interface{}, path cty.Path) diag.Diagnostics {
 	v, ok := i.(string)
 	if !ok {

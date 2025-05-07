@@ -71,6 +71,14 @@ schema:
         Should be used to defer scheduling to the transformer and evaluate when data becomes available.
       freshness_goal: |
         The freshness goal.
+    scheduled:
+      description: |
+        Should be specified to get wall-clock scheduled evaluation.
+      raw_cron: |
+        If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+      timezone: |
+        A timezone is required to ensure that interpretation of scheduling on the wall-clock
+        is done relative to the desired timezone.
   compare_values: |
     list of comparisons that provide an implicit AND where all comparisons must match.
   compare_groups: |

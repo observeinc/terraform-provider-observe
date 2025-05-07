@@ -282,6 +282,46 @@ func dataSourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
+						"interval": { // MonitorV2IntervalScheduleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"interval": { // Duration!
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "interval"),
+									},
+									"randomize": { // Duration!
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "randomize"),
+									},
+								},
+							},
+						},
+						"scheduled": { // MonitorV2CronScheduleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							Computed:    true,
+							Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"raw_cron": { // String
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "raw_cron"),
+									},
+									"timezone": { // String!
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "timezone"),
+									},
+								},
+							},
+						},
 					},
 				},
 			},

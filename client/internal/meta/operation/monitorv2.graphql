@@ -146,14 +146,23 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
     freshnessGoal
 }
 
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+    rawCron
+    timezone
+}
+
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
     # @genqlient(flatten: true)
     interval {
         ...MonitorV2IntervalSchedule
     }
     # @genqlient(flatten: true)
-    transform { 
+    transform {
         ...MonitorV2TransformSchedule
+    }
+    # @genqlient(flatten: true)
+    scheduled {
+        ...MonitorV2CronSchedule
     }
 }
 

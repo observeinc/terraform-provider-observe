@@ -292,6 +292,51 @@ func resourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
+						"interval": { // MonitorV2IntervalScheduleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"interval": { // Duration!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "interval"),
+									},
+									"randomize": { // Duration!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "interval", "randomize"),
+									},
+								},
+							},
+						},
+						"scheduled": { // MonitorV2CronScheduleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"raw_cron": { // String
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "raw_cron"),
+									},
+									"timezone": { // String!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateStringIsTimezone,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "timezone"),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -979,6 +1024,9 @@ func monitorV2FlattenScheduling(gqlScheduling gql.MonitorV2Scheduling) []interfa
 	if gqlScheduling.Transform != nil {
 		scheduling["transform"] = monitorV2FlattenTransformSchedule(*gqlScheduling.Transform)
 	}
+	if gqlScheduling.Scheduled != nil {
+		scheduling["scheduled"] = monitorV2FlattenScheduledSchedule(*gqlScheduling.Scheduled)
+	}
 	return []interface{}{scheduling}
 }
 
@@ -995,6 +1043,16 @@ func monitorV2FlattenTransformSchedule(gqlTransformSchedule gql.MonitorV2Transfo
 		"freshness_goal": gqlTransformSchedule.FreshnessGoal.String(),
 	}
 	return []interface{}{transformSchedule}
+}
+
+func monitorV2FlattenScheduledSchedule(gqlCronSchedule gql.MonitorV2CronSchedule) []any {
+	cronSchedule := map[string]any{
+		"timezone": gqlCronSchedule.Timezone,
+	}
+	if gqlCronSchedule.RawCron != nil {
+		cronSchedule["raw_cron"] = *gqlCronSchedule.RawCron
+	}
+	return []any{cronSchedule}
 }
 
 func newMonitorV2ActionAndRelationInputs(data *schema.ResourceData) (actions []gql.MonitorV2ActionAndRelationInput, diags diag.Diagnostics) {
@@ -1162,8 +1220,14 @@ func newMonitorV2SchedulingInput(path string, data *schema.ResourceData) (schedu
 		}
 		scheduling.Transform = transform
 	}
-
-	if scheduling.Interval == nil && scheduling.Transform == nil {
+	if _, ok := data.GetOk(fmt.Sprintf("%sscheduled", path)); ok {
+		sched, diags := newMonitorV2ScheduledScheduleInput(fmt.Sprintf("%sscheduled.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		scheduling.Scheduled = sched
+	}
+	if scheduling.Interval == nil && scheduling.Transform == nil && scheduling.Scheduled == nil {
 		return nil, diags
 	}
 
@@ -1195,6 +1259,23 @@ func newMonitorV2TransformScheduleInput(path string, data *schema.ResourceData) 
 	transform = &gql.MonitorV2TransformScheduleInput{FreshnessGoal: *transformDuration}
 
 	return transform, diags
+}
+
+func newMonitorV2ScheduledScheduleInput(path string, data *schema.ResourceData) (cron *gql.MonitorV2CronScheduleInput, diags diag.Diagnostics) {
+	// required
+	timezoneField := data.Get(fmt.Sprintf("%stimezone", path)).(string)
+
+	cron = &gql.MonitorV2CronScheduleInput{
+		Timezone: timezoneField,
+	}
+
+	// optionals
+	if rawCron, ok := data.GetOk(fmt.Sprintf("%sraw_cron", path)); ok {
+		rawCronStr, _ := rawCron.(string)
+		cron.RawCron = &rawCronStr
+	}
+
+	return cron, nil
 }
 
 func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.MonitorV2RuleInput, diags diag.Diagnostics) {

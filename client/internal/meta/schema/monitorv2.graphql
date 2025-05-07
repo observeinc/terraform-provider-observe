@@ -490,6 +490,30 @@ input MonitorV2TransformScheduleInput @goModel(model: "observe/meta/metatypes.Mo
     freshnessGoal: Duration!
 }
 
+# MonitorV2CronSchedule describes explicit scheduling of a monitor in a potentially non-continuous
+# mode. It supports configuration for advanced users with raw cron syntax, but also
+# (will eventually) support structured configuration as well. The intention to supply
+# information about running more tied to the wall-clock than arbitrary interval scheduling
+# and, more importantly, to support non-continuous querying where the query window is driven by
+# the lookback.
+type MonitorV2CronSchedule @goModel(model: "observe/meta/metatypes.MonitorV2CronSchedule") {
+    # payload
+    """
+    If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+    """
+    rawCron: String
+    """
+    A timezone is required to ensure that interpretation of scheduling on the wall-clock
+    is done relative to the desired timezone.
+    """
+    timezone: String!
+}
+
+input MonitorV2CronScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2CronScheduleInput") {
+    # payload
+    rawCron: String
+    timezone: String!
+}
 
 # MonitorV2Scheduling holds information about when monitors should evaluate. The
 # types of scheduling are exclusive. If none of these are specified, the
@@ -507,12 +531,17 @@ type MonitorV2Scheduling @goModel(model: "observe/meta/metatypes.MonitorV2Schedu
     Transform should be specified as an explicit transform evaluation style.
     """
     transform: MonitorV2TransformSchedule
+    """
+    Cron should be specified to get wall-clock scheduled evaluation.
+    """
+    scheduled: MonitorV2CronSchedule
 }
 
 input MonitorV2SchedulingInput @goModel(model: "observe/meta/metatypes.MonitorV2SchedulingInput") {
     # payload
     interval: MonitorV2IntervalScheduleInput
     transform: MonitorV2TransformScheduleInput
+    scheduled: MonitorV2CronScheduleInput
 }
 
 
