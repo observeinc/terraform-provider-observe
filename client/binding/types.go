@@ -6,8 +6,8 @@ import (
 )
 
 type Ref struct {
-	kind Kind
-	key  string
+	Kind Kind
+	Key  string
 }
 
 type Target struct {
@@ -28,11 +28,12 @@ type BindingsObject struct {
 	WorkspaceName string  `json:"workspace_name"`
 }
 
-const (
-	KindDataset   Kind = "dataset"
-	KindWorksheet Kind = "worksheet"
-	KindWorkspace Kind = "workspace"
-	KindUser      Kind = "user"
+var (
+	// must match the data source names, see DataSourcesMap in observe/provider.go
+	KindDataset   = addKind("dataset")
+	KindWorksheet = addKind("worksheet")
+	KindWorkspace = addKind("workspace")
+	KindUser      = addKind("user")
 )
 
 const (
@@ -41,15 +42,15 @@ const (
 
 var bindingRefParseRegex = regexp.MustCompile(`(.*):(.*)`)
 
-var allKinds = NewKindSet(
-	KindDataset,
-	KindWorksheet,
-	KindWorkspace,
-	KindUser,
-)
+var allKinds = NewKindSet()
+
+func addKind(k Kind) Kind {
+	allKinds[k] = struct{}{}
+	return k
+}
 
 func (r *Ref) String() string {
-	return fmt.Sprintf("%s:%s", r.kind, r.key)
+	return fmt.Sprintf("%s:%s", r.Kind, r.Key)
 }
 
 func (r Ref) MarshalText() (text []byte, err error) {
@@ -74,7 +75,7 @@ func NewRefFromString(s string) (Ref, bool) {
 	if _, ok := allKinds[maybeKind]; !ok {
 		return Ref{}, false
 	}
-	return Ref{kind: maybeKind, key: matches[2]}, true
+	return Ref{Kind: maybeKind, Key: matches[2]}, true
 }
 
 func NewMapping() Mapping {
