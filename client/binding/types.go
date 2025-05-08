@@ -17,12 +17,16 @@ type Target struct {
 	TfName            string `json:"tf_name"`
 }
 
+// A binding, i.e. mapping of resource kind + label -> terraform local variable name (which the ids have been replaced with)
 type Mapping map[Ref]Target
 
 type Kind oid.Type
 
 type KindSet map[Kind]struct{}
 
+// BindingsObject contains all the information necessary to generate terraform
+// data sources and local variable definitions to support the local variable
+// references replacing the raw ids in the resource data.
 type BindingsObject struct {
 	Mappings      Mapping `json:"mappings"`
 	Kinds         []Kind  `json:"kinds"`
