@@ -250,7 +250,7 @@ func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
 					}
 					object {
 						type = "dataset"
-					name = "test"
+						name = "test"
 					}
 					role = "Lister"
 				}

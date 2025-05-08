@@ -19,7 +19,7 @@ func TestAccObserveSourceBoard(t *testing.T) {
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_board" "first" {
 					dataset  = observe_datastream.test.dataset
-					name     = "Test"
+					name     = "%[1]s"
 					type     = "set"
 					json     = "{}"
 				}
@@ -30,7 +30,7 @@ func TestAccObserveSourceBoard(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_board.first", "id"),
 					resource.TestCheckResourceAttrSet("data.observe_board.first", "oid"),
-					resource.TestCheckResourceAttr("data.observe_board.first", "name", "Test"),
+					resource.TestCheckResourceAttr("data.observe_board.first", "name", randomPrefix),
 				),
 			},
 		},
