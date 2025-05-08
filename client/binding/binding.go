@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
-	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -27,11 +26,12 @@ type ResourceCache struct {
 	idToLabel       map[Ref]ResourceCacheEntry
 	workspaceOid    *oid.OID
 	workspaceEntry  *ResourceCacheEntry
-	forResourceKind string
+	forResourceKind Kind
 	forResourceName string
 }
 
-func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client, forResourceKind string, forResourceName string) (ResourceCache, error) {
+// NewResourceCache loads all resources of the given kinds and creates a cache of id -> label mappings
+func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client, forResourceKind Kind, forResourceName string) (ResourceCache, error) {
 	var cache = ResourceCache{
 		idToLabel:       make(map[Ref]ResourceCacheEntry),
 		forResourceKind: forResourceKind,
@@ -110,27 +110,24 @@ func (c *ResourceCache) LookupId(kind Kind, id string) *ResourceCacheEntry {
 }
 
 type Generator struct {
-	Enabled         bool
-	resourceType    string
+	resourceType    Kind
 	resourceName    string
 	enabledBindings KindSet
 	bindings        Mapping
 	cache           ResourceCache
 }
 
-func NewGenerator(ctx context.Context, enabled bool, resourceType string, resourceName string,
+// NewGenerator creates a new binding generator for the given resource type and name,
+// which keeps track of all the bindings generated for raw ids found through later
+// calls to Generate and TryBind.
+func NewGenerator(ctx context.Context, resourceType Kind, resourceName string,
 	client *observe.Client, enabledBindings KindSet) (Generator, error) {
-	enabled = enabled && client.Config.ExportObjectBindings
-	if !enabled {
-		return Generator{Enabled: false}, nil
-	}
 	rc, err := NewResourceCache(ctx, enabledBindings, client, resourceType, resourceName)
 	if err != nil {
 		return Generator{}, err
 	}
 	bindings := NewMapping()
 	return Generator{
-		Enabled:         true,
 		resourceType:    resourceType,
 		resourceName:    resourceName,
 		enabledBindings: enabledBindings,
@@ -139,12 +136,9 @@ func NewGenerator(ctx context.Context, enabled bool, resourceType string, resour
 	}, nil
 }
 
-// lookup by kind and id, if valid and enabled then return a local variable reference,
+// lookup by kind and id, if valid then return a local variable reference,
 // otherwise return the id (no-op)
 func (g *Generator) TryBind(kind Kind, id string) string {
-	if !g.Enabled {
-		return id
-	}
 	var e *ResourceCacheEntry
 	if kind == KindWorkspace && id == g.cache.workspaceOid.Id {
 		// workspaces are special since there should only be one primary one
@@ -166,6 +160,8 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 	return g.fmtTfLocalVarRef(terraformLocal)
 }
 
+// Generate walks the provided data structure and for all ids encountered,
+// generates a binding for it, and replaces the id with a local variable reference
 func (g *Generator) Generate(data interface{}) {
 	mapOverJsonStringKeys(data, func(key string, value string, jsonMapNode map[string]interface{}) {
 		var id string
@@ -195,21 +191,16 @@ func (g *Generator) Generate(data interface{}) {
 	})
 }
 
+// GenerateJson does the same as Generate, but accepts a raw json string
 func (g *Generator) GenerateJson(jsonStr []byte) ([]byte, error) {
-	if !g.Enabled {
-		return jsonStr, nil
-	}
-	serialized, err := transformJson(jsonStr, func(dataPtr *interface{}) error {
+	return transformJson(jsonStr, func(dataPtr *interface{}) error {
 		g.Generate(*dataPtr)
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return serialized, nil
 }
 
-func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
+// GetBindings returns the bindings generated so far
+func (g *Generator) GetBindings() (BindingsObject, error) {
 	enabledList := make([]Kind, 0)
 	for binding := range g.enabledBindings {
 		enabledList = append(enabledList, binding)
@@ -221,9 +212,10 @@ func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 
 	workspaceTarget := g.cache.workspaceEntry
 	if workspaceTarget == nil {
-		return fmt.Errorf("Internal error: workspace was not resolved correctly.")
+		return BindingsObject{}, fmt.Errorf("Internal error: workspace was not resolved correctly.")
 	}
-	bindingsObject := BindingsObject{
+
+	return BindingsObject{
 		Mappings: g.bindings,
 		Kinds:    enabledList,
 		Workspace: Target{
@@ -231,22 +223,24 @@ func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 			TfName:            workspaceTarget.TfName,
 		},
 		WorkspaceName: g.cache.workspaceEntry.Label,
+	}, nil
+}
+
+// InsertBindingsObject inserts the bindings object into the provided map
+func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
+	bindingsObject, err := g.GetBindings()
+	if err != nil {
+		return err
 	}
 	data[bindingsKey] = bindingsObject
 	return nil
 }
 
-func (g *Generator) InsertBindingsObjectJson(jsonData *types.JsonObject) (*types.JsonObject, error) {
-	if !g.Enabled {
-		return jsonData, nil
-	}
-	serialized, err := transformJson([]byte(jsonData.String()), func(dataPtr *interface{}) error {
+// InsertBindingsObjectJson inserts the bindings object into the provided json data, root must be a map
+func (g *Generator) InsertBindingsObjectJson(jsonData []byte) ([]byte, error) {
+	return transformJson(jsonData, func(dataPtr *interface{}) error {
 		return g.InsertBindingsObject((*dataPtr).(map[string]interface{}))
 	})
-	if err != nil {
-		return nil, err
-	}
-	return types.JsonObject(serialized).Ptr(), nil
 }
 
 func (g *Generator) fmtTfLocalVar(kind Kind, e *ResourceCacheEntry, insertPrefix bool) string {

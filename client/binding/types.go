@@ -7,7 +7,7 @@ import (
 
 type Ref struct {
 	Kind Kind
-	Key  string
+	Key  string // id when used in ResourceCache, label when used in Mapping
 }
 
 type Target struct {
@@ -15,12 +15,16 @@ type Target struct {
 	TfName            string `json:"tf_name"`
 }
 
+// A binding, i.e. mapping of resource kind + label -> terraform local variable name (which the ids have been replaced with)
 type Mapping map[Ref]Target
 
 type Kind string
 
 type KindSet map[Kind]struct{}
 
+// BindingsObject contains all the information necessary to generate terraform
+// data sources and local variable definitions to support the local variable
+// references replacing the raw ids in the resource data.
 type BindingsObject struct {
 	Mappings      Mapping `json:"mappings"`
 	Kinds         []Kind  `json:"kinds"`
@@ -34,6 +38,7 @@ var (
 	KindWorksheet = addKind("worksheet")
 	KindWorkspace = addKind("workspace")
 	KindUser      = addKind("user")
+	KindDashboard = addKind("dashboard")
 )
 
 const (

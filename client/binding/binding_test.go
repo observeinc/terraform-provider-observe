@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -70,7 +69,6 @@ func prepareResourceCacheFixture() ResourceCache {
 
 func prepareGeneratorFixture() Generator {
 	return Generator{
-		Enabled:         true,
 		resourceName:    "name",
 		resourceType:    "type",
 		enabledBindings: NewKindSet(KindWorksheet, KindDataset, KindWorkspace, KindUser),
@@ -161,11 +159,12 @@ func TestInsertBindingsObjectJson(t *testing.T) {
 			"workspace_name": "Test wks",
 		},
 	}
-	outputJson, err := g.InsertBindingsObjectJson((*types.JsonObject)(&jsonData))
+	outputJson, err := g.InsertBindingsObjectJson([]byte(jsonData))
 	if err != nil {
 		t.Fatal(err)
 	}
-	output, err := outputJson.Map()
+	var output map[string]interface{}
+	err = json.Unmarshal(outputJson, &output)
 	if err != nil {
 		t.Fatal(err)
 	}
