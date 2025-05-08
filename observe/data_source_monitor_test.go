@@ -1,11 +1,15 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 )
 
 func TestAccObserveSourceMonitor(t *testing.T) {
@@ -258,4 +262,78 @@ func TestAccObserveSourceMonitorLog(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccObserveMonitorExportWithBindings(t *testing.T) {
+	randomPrefixMonitor := acctest.RandomWithPrefix("tf")
+	randomPrefixDataset := acctest.RandomWithPrefix("tf")
+
+	// see TestAccObserveSourceDashboard_ExportWithBindings for context
+	providerPreamble := `
+ 		terraform {} # trick the testing framework into not mangling our config
+ 		provider "observe" {
+ 			export_object_bindings = true
+ 		}
+	`
+
+	workspaceTfName := fmt.Sprintf("workspace_%s", strings.ToLower(defaultWorkspaceName))
+	workspaceTfLocalBindingVar := fmt.Sprintf("binding__monitor_%s__%s", randomPrefixMonitor, workspaceTfName)
+	datasetTfName := fmt.Sprintf("monitor_%s__dataset_%s", randomPrefixMonitor, randomPrefixDataset)
+	datasetTfLocalBindingVar := fmt.Sprintf("binding__%s", datasetTfName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(providerPreamble+monitorConfigPreamble+`
+					resource "observe_monitor" "first" {
+						workspace = data.observe_workspace.default.oid
+						name      = "%[2]s"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "filter true"
+						}
+						rule {
+							count {
+								compare_function   = "less_or_equal"
+								compare_values     = [1]
+								lookback_time      = "1m"
+							}
+						}
+					}
+
+					data "observe_monitor" "lookup" {
+						id = observe_monitor.first.id
+					}
+				`, randomPrefixDataset, randomPrefixMonitor),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefixMonitor),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "workspace", fmt.Sprintf("${local.%s}", workspaceTfLocalBindingVar)),
+					resource.TestCheckResourceAttr("data.observe_monitor.lookup", "inputs.test", fmt.Sprintf("${local.%s}", datasetTfLocalBindingVar)),
+					resource.TestCheckResourceAttrWith("data.observe_monitor.lookup", "_bindings", func(val string) error {
+						var bindings binding.BindingsObject
+						if err := json.Unmarshal([]byte(val), &bindings); err != nil {
+							return err
+						}
+						expectedKinds := []binding.Kind{binding.KindDataset, binding.KindWorkspace}
+						if !reflect.DeepEqual(bindings.Kinds, expectedKinds) {
+							return fmt.Errorf("bindings.Kind does not match: Expected %#v, got %#v", expectedKinds, bindings.Kinds)
+						}
+						expectedWorkspaceBinding := binding.Target{TfLocalBindingVar: workspaceTfLocalBindingVar, TfName: workspaceTfName}
+						if bindings.Workspace != expectedWorkspaceBinding {
+							return fmt.Errorf("bindings.Workspace does not match: Expected %#v, got %#v", expectedWorkspaceBinding, bindings.Workspace)
+						}
+						expectedDatasetBinding := binding.Target{TfLocalBindingVar: datasetTfLocalBindingVar, TfName: datasetTfName}
+						if binding, ok := bindings.Mappings[binding.Ref{Kind: binding.KindDataset, Key: randomPrefixDataset}]; !ok || binding != expectedDatasetBinding {
+							return fmt.Errorf("bindings.Mappings does contain expected binding %#v for dataset %s, found bindings: %#v", expectedDatasetBinding, randomPrefixDataset, bindings.Mappings)
+						}
+						return nil
+					}),
+				),
+			},
+		},
+	})
+
 }

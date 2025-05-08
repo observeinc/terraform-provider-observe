@@ -41,6 +41,7 @@ var (
 	KindDashboard       = addKind("dashboard")
 	KindMonitorV2       = addKind("monitor_v2")
 	KindMonitorV2Action = addKind("monitor_v2_action")
+	KindMonitor         = addKind("monitor")
 )
 
 const (
