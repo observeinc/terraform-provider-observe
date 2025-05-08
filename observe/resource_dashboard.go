@@ -150,7 +150,7 @@ func dashboardToResourceData(ctx context.Context, d *gql.Dashboard, data *schema
 		return diag.Errorf("Failed to initialize binding generator: %s", err.Error())
 	}
 
-	if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, oid.WorkspaceOid(d.WorkspaceId).String())); err != nil {
+	if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, d.WorkspaceId)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

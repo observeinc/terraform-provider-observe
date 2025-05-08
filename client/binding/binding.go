@@ -95,14 +95,14 @@ func (c *ResourceCache) addEntry(kind Kind, label string, id string, addPrefix b
 	} else {
 		tfName = fmt.Sprintf("%s_%s", kind, resourceName)
 	}
-	c.idToLabel[Ref{kind: kind, key: id}] = ResourceCacheEntry{
+	c.idToLabel[Ref{Kind: kind, Key: id}] = ResourceCacheEntry{
 		TfName: tfName,
 		Label:  label,
 	}
 }
 
 func (c *ResourceCache) LookupId(kind Kind, id string) *ResourceCacheEntry {
-	maybeEnt, ok := c.idToLabel[Ref{kind: kind, key: id}]
+	maybeEnt, ok := c.idToLabel[Ref{Kind: kind, Key: id}]
 	if !ok {
 		return nil
 	}
@@ -146,7 +146,7 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 		return id
 	}
 	var e *ResourceCacheEntry
-	if kind == KindWorkspace && id == g.cache.workspaceOid.String() {
+	if kind == KindWorkspace && id == g.cache.workspaceOid.Id {
 		// workspaces are special since there should only be one primary one
 		e = g.cache.workspaceEntry
 	} else {
@@ -159,7 +159,7 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 	// process into local var ref
 	insertPrefix := kind == KindWorkspace
 	terraformLocal := g.fmtTfLocalVar(kind, e, insertPrefix)
-	g.bindings[Ref{kind: kind, key: e.Label}] = Target{
+	g.bindings[Ref{Kind: kind, Key: e.Label}] = Target{
 		TfName:            e.TfName,
 		TfLocalBindingVar: terraformLocal,
 	}
@@ -168,14 +168,23 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 
 func (g *Generator) Generate(data interface{}) {
 	mapOverJsonStringKeys(data, func(key string, value string, jsonMapNode map[string]interface{}) {
-		kinds := resolveKeyToKinds(key)
+		var id string
+		var kinds []Kind
+		if valueOid, err := oid.NewOID(value); err == nil {
+			id = valueOid.Id
+			kinds = resolveOidToKinds(valueOid)
+		} else {
+			id = value
+			kinds = resolveKeyToKinds(key)
+		}
+
 		for _, kind := range kinds {
 			// if not enabled, skip
 			if _, found := g.enabledBindings[kind]; !found {
 				continue
 			}
 			// try bind the name
-			maybeRef := g.TryBind(kind, value)
+			maybeRef := g.TryBind(kind, id)
 			// if lookup succeeded, then the returned value should be a lv ref and not the
 			// input id
 			if maybeRef != value {
@@ -249,6 +258,14 @@ func (g *Generator) fmtTfLocalVar(kind Kind, e *ResourceCacheEntry, insertPrefix
 
 func (g *Generator) fmtTfLocalVarRef(tfLocalVar string) string {
 	return fmt.Sprintf("${local.%s}", tfLocalVar)
+}
+
+func resolveOidToKinds(oidObj *oid.OID) []Kind {
+	kind := Kind(oidObj.Type)
+	if kind.Valid() {
+		return []Kind{kind}
+	}
+	return []Kind{}
 }
 
 func resolveKeyToKinds(key string) []Kind {

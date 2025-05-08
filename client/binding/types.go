@@ -3,11 +3,13 @@ package binding
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 type Ref struct {
-	kind Kind
-	key  string
+	Kind Kind
+	Key  string
 }
 
 type Target struct {
@@ -17,7 +19,7 @@ type Target struct {
 
 type Mapping map[Ref]Target
 
-type Kind string
+type Kind oid.Type
 
 type KindSet map[Kind]struct{}
 
@@ -28,11 +30,12 @@ type BindingsObject struct {
 	WorkspaceName string  `json:"workspace_name"`
 }
 
-const (
-	KindDataset   Kind = "dataset"
-	KindWorksheet Kind = "worksheet"
-	KindWorkspace Kind = "workspace"
-	KindUser      Kind = "user"
+var (
+	KindDataset         = addKind(oid.TypeDataset)
+	KindWorksheet       = addKind(oid.TypeWorksheet)
+	KindWorkspace       = addKind(oid.TypeWorkspace)
+	KindUser            = addKind(oid.TypeUser)
+	KindMonitorV2Action = addKind(oid.TypeMonitorV2Action)
 )
 
 const (
@@ -41,15 +44,21 @@ const (
 
 var bindingRefParseRegex = regexp.MustCompile(`(.*):(.*)`)
 
-var allKinds = NewKindSet(
-	KindDataset,
-	KindWorksheet,
-	KindWorkspace,
-	KindUser,
-)
+var allKinds = NewKindSet()
+
+func addKind(oidType oid.Type) Kind {
+	k := Kind(oidType)
+	allKinds[k] = struct{}{}
+	return k
+}
+
+func (k Kind) Valid() bool {
+	_, ok := allKinds[k]
+	return ok
+}
 
 func (r *Ref) String() string {
-	return fmt.Sprintf("%s:%s", r.kind, r.key)
+	return fmt.Sprintf("%s:%s", r.Kind, r.Key)
 }
 
 func (r Ref) MarshalText() (text []byte, err error) {
@@ -74,7 +83,7 @@ func NewRefFromString(s string) (Ref, bool) {
 	if _, ok := allKinds[maybeKind]; !ok {
 		return Ref{}, false
 	}
-	return Ref{kind: maybeKind, key: matches[2]}, true
+	return Ref{Kind: maybeKind, Key: matches[2]}, true
 }
 
 func NewMapping() Mapping {
