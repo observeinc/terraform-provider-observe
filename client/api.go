@@ -618,7 +618,7 @@ func (c *Client) LookupMonitorV2(ctx context.Context, workspaceId *string, nameE
 	return c.Meta.LookupMonitorV2(ctx, workspaceId, nameExact)
 }
 
-func (c *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) (*meta.MonitorV2Action, error) {
+func (c *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) ([]meta.MonitorV2Action, error) {
 	return c.Meta.SearchMonitorV2Action(ctx, workspaceId, nameExact)
 }
 

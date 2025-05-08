@@ -34,11 +34,13 @@ type BindingsObject struct {
 
 var (
 	// must match the data source names, see DataSourcesMap in observe/provider.go
-	KindDataset   = addKind("dataset")
-	KindWorksheet = addKind("worksheet")
-	KindWorkspace = addKind("workspace")
-	KindUser      = addKind("user")
-	KindDashboard = addKind("dashboard")
+	KindDataset         = addKind("dataset")
+	KindWorksheet       = addKind("worksheet")
+	KindWorkspace       = addKind("workspace")
+	KindUser            = addKind("user")
+	KindDashboard       = addKind("dashboard")
+	KindMonitorV2       = addKind("monitor_v2")
+	KindMonitorV2Action = addKind("monitor_v2_action")
 )
 
 const (

@@ -75,6 +75,14 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 			for _, user := range users {
 				cache.addEntry(KindUser, user.Label, user.Id.String(), true, &disambiguator, existingResourceNames)
 			}
+		case KindMonitorV2Action:
+			actions, err := client.SearchMonitorV2Action(ctx, &cache.workspaceOid.Id, nil)
+			if err != nil {
+				return cache, err
+			}
+			for _, action := range actions {
+				cache.addEntry(KindMonitorV2Action, action.Name, action.Id, true, &disambiguator, existingResourceNames)
+			}
 		}
 	}
 	return cache, nil
@@ -264,6 +272,8 @@ func resolveOidToKinds(oidObj *oid.OID) []Kind {
 		return []Kind{KindWorkspace}
 	case oid.TypeUser:
 		return []Kind{KindUser}
+	case oid.TypeMonitorV2Action:
+		return []Kind{KindMonitorV2Action}
 	default:
 		return []Kind{}
 	}
