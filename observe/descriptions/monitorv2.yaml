@@ -73,7 +73,7 @@ schema:
         The freshness goal.
     scheduled:
       description: |
-        Should be specified to get wall-clock scheduled evaluation.
+        Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental.
       raw_cron: |
         If specified, the raw cron is a crontab configuration to use to drive the scheduling.
       timezone: |

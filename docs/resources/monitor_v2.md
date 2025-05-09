@@ -621,7 +621,7 @@ Optional:
 Optional:
 
 - `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
-- `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. (see [below for nested schema](#nestedblock--scheduling--scheduled))
+- `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))
 - `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
 
 <a id="nestedblock--scheduling--interval"></a>

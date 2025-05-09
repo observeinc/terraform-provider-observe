@@ -73,7 +73,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 Optional:
 
-- `scheduled` (Block List) Should be specified to get wall-clock scheduled evaluation. (see [below for nested schema](#nestedblock--scheduling--scheduled))
+- `scheduled` (Block List) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))
 
 Read-Only:
 
