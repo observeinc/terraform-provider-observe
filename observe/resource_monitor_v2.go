@@ -276,10 +276,11 @@ func resourceMonitorV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"transform": { // MonitorV2TransformScheduleInput
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "scheduling", "transform", "description"),
+							Type:          schema.TypeList,
+							Optional:      true,
+							MaxItems:      1,
+							Description:   descriptions.Get("monitorv2", "schema", "scheduling", "transform", "description"),
+							ConflictsWith: []string{"scheduling.0.scheduled", "scheduling.0.interval"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"freshness_goal": { // Duration!
@@ -293,10 +294,11 @@ func resourceMonitorV2() *schema.Resource {
 							},
 						},
 						"interval": { // MonitorV2IntervalScheduleInput
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
+							Type:          schema.TypeList,
+							Optional:      true,
+							MaxItems:      1,
+							Description:   descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
+							ConflictsWith: []string{"scheduling.0.transform", "scheduling.0.scheduled"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interval": { // Duration!
@@ -317,10 +319,11 @@ func resourceMonitorV2() *schema.Resource {
 							},
 						},
 						"scheduled": { // MonitorV2CronScheduleInput
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "description"),
+							Type:          schema.TypeList,
+							Optional:      true,
+							MaxItems:      1,
+							Description:   descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "description"),
+							ConflictsWith: []string{"scheduling.0.transform", "scheduling.0.interval"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"raw_cron": { // String
