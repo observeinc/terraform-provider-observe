@@ -6,8 +6,8 @@ import (
 )
 
 type Ref struct {
-	kind Kind
-	key  string
+	Kind Kind
+	Key  string // id when used in ResourceCache, label when used in Mapping
 }
 
 type Target struct {
@@ -15,12 +15,16 @@ type Target struct {
 	TfName            string `json:"tf_name"`
 }
 
+// A binding, i.e. mapping of resource kind + label -> terraform local variable name (which the ids have been replaced with)
 type Mapping map[Ref]Target
 
 type Kind string
 
 type KindSet map[Kind]struct{}
 
+// BindingsObject contains all the information necessary to generate terraform
+// data sources and local variable definitions to support the local variable
+// references replacing the raw ids in the resource data.
 type BindingsObject struct {
 	Mappings      Mapping `json:"mappings"`
 	Kinds         []Kind  `json:"kinds"`
@@ -28,11 +32,16 @@ type BindingsObject struct {
 	WorkspaceName string  `json:"workspace_name"`
 }
 
-const (
-	KindDataset   Kind = "dataset"
-	KindWorksheet Kind = "worksheet"
-	KindWorkspace Kind = "workspace"
-	KindUser      Kind = "user"
+var (
+	// must match the data source names, see DataSourcesMap in observe/provider.go
+	KindDataset         = addKind("dataset")
+	KindWorksheet       = addKind("worksheet")
+	KindWorkspace       = addKind("workspace")
+	KindUser            = addKind("user")
+	KindDashboard       = addKind("dashboard")
+	KindMonitorV2       = addKind("monitor_v2")
+	KindMonitorV2Action = addKind("monitor_v2_action")
+	KindMonitor         = addKind("monitor")
 )
 
 const (
@@ -41,15 +50,15 @@ const (
 
 var bindingRefParseRegex = regexp.MustCompile(`(.*):(.*)`)
 
-var allKinds = NewKindSet(
-	KindDataset,
-	KindWorksheet,
-	KindWorkspace,
-	KindUser,
-)
+var allKinds = NewKindSet()
+
+func addKind(k Kind) Kind {
+	allKinds[k] = struct{}{}
+	return k
+}
 
 func (r *Ref) String() string {
-	return fmt.Sprintf("%s:%s", r.kind, r.key)
+	return fmt.Sprintf("%s:%s", r.Kind, r.Key)
 }
 
 func (r Ref) MarshalText() (text []byte, err error) {
@@ -74,7 +83,7 @@ func NewRefFromString(s string) (Ref, bool) {
 	if _, ok := allKinds[maybeKind]; !ok {
 		return Ref{}, false
 	}
-	return Ref{kind: maybeKind, key: matches[2]}, true
+	return Ref{Kind: maybeKind, Key: matches[2]}, true
 }
 
 func NewMapping() Mapping {

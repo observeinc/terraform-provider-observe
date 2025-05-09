@@ -1,11 +1,15 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 )
 
 func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
@@ -197,6 +201,113 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.promote.0.compare_columns.0.compare_values.0.value_int64.0", "1"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.promote.0.compare_columns.0.column.0.column_path.0.name", "temp_number"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorV2ExportWithBindings(t *testing.T) {
+	randomPrefixMonitor := acctest.RandomWithPrefix("tf")
+	randomPrefixMonitorAction := acctest.RandomWithPrefix("tf")
+	randomPrefixDataset := acctest.RandomWithPrefix("tf")
+
+	// see TestAccObserveSourceDashboard_ExportWithBindings for context
+	providerPreamble := `
+ 		terraform {} # trick the testing framework into not mangling our config
+ 		provider "observe" {
+ 			export_object_bindings = true
+ 		}
+	`
+
+	workspaceTfName := fmt.Sprintf("workspace_%s", strings.ToLower(defaultWorkspaceName))
+	workspaceTfLocalBindingVar := fmt.Sprintf("binding__monitor_v2_%s__%s", randomPrefixMonitor, workspaceTfName)
+	datasetTfName := fmt.Sprintf("monitor_v2_%s__dataset_%s", randomPrefixMonitor, randomPrefixDataset)
+	datasetTfLocalBindingVar := fmt.Sprintf("binding__%s", datasetTfName)
+	actionTfName := fmt.Sprintf("monitor_v2_%s__monitor_v2_action_%s", randomPrefixMonitor, randomPrefixMonitorAction)
+	actionTfLocalBindingVar := fmt.Sprintf("binding__%s", actionTfName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(providerPreamble+monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2_action" "action" {
+						workspace = data.observe_workspace.default.oid
+						type = "email"
+						email {
+							subject = "export"
+							body = "bindings"
+							addresses = ["test@observeinc.com"]
+						}
+						name = "%[2]s"
+					}
+
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[3]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+							"test2" = observe_datastream.test.dataset
+						}
+						stage {
+							input = "test"
+							pipeline = "filter true"
+						}
+						stage {
+							input = "test2"
+							pipeline = "filter true"
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						actions {
+							oid = observe_monitor_v2_action.action.oid
+						}
+					}
+					
+					data "observe_monitor_v2" "lookup" {
+						id = observe_monitor_v2.first.id
+					}
+				`, randomPrefixDataset, randomPrefixMonitorAction, randomPrefixMonitor),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefixMonitor),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "workspace", fmt.Sprintf("${local.%s}", workspaceTfLocalBindingVar)),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "inputs.test", fmt.Sprintf("${local.%s}", datasetTfLocalBindingVar)),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "inputs.test2", fmt.Sprintf("${local.%s}", datasetTfLocalBindingVar)),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.oid", fmt.Sprintf("${local.%s}", actionTfLocalBindingVar)),
+					resource.TestCheckResourceAttrWith("data.observe_monitor_v2.lookup", "_bindings", func(value string) error {
+						var bindings binding.BindingsObject
+						if err := json.Unmarshal([]byte(value), &bindings); err != nil {
+							return err
+						}
+						expectedKinds := []binding.Kind{binding.KindDataset, binding.KindMonitorV2Action, binding.KindWorkspace}
+						if !reflect.DeepEqual(bindings.Kinds, expectedKinds) {
+							return fmt.Errorf("bindings.Kind does not match: Expected %#v, got %#v", expectedKinds, bindings.Kinds)
+						}
+						expectedWorkspaceBinding := binding.Target{TfLocalBindingVar: workspaceTfLocalBindingVar, TfName: workspaceTfName}
+						if bindings.Workspace != expectedWorkspaceBinding {
+							return fmt.Errorf("bindings.Workspace does not match: Expected %#v, got %#v", expectedWorkspaceBinding, bindings.Workspace)
+						}
+						expectedDatasetBinding := binding.Target{TfLocalBindingVar: datasetTfLocalBindingVar, TfName: datasetTfName}
+						if binding, ok := bindings.Mappings[binding.Ref{Kind: binding.KindDataset, Key: randomPrefixDataset}]; !ok || binding != expectedDatasetBinding {
+							return fmt.Errorf("bindings.Mappings does contain expected binding %#v for dataset %s, found bindings: %#v", expectedDatasetBinding, randomPrefixDataset, bindings.Mappings)
+						}
+						expectedActionBinding := binding.Target{TfLocalBindingVar: actionTfLocalBindingVar, TfName: actionTfName}
+						if binding, ok := bindings.Mappings[binding.Ref{Kind: binding.KindMonitorV2Action, Key: randomPrefixMonitorAction}]; !ok || binding != expectedActionBinding {
+							return fmt.Errorf("bindings.Mappings does contain expected binding %#v for action %s, found bindings: %#v", expectedActionBinding, randomPrefixMonitorAction, bindings.Mappings)
+						}
+						return nil
+					}),
 				),
 			},
 		},

@@ -43,6 +43,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 
 ### Read-Only
 
+- `_bindings` (String) Internal field. Do not use.
 - `comment` (String) A long-form comment describing the content of the monitor.
 - `definition` (String) Monitor definition in JSON format.
 - `description` (String) A brief description of the monitor.

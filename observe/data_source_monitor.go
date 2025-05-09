@@ -2,10 +2,12 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
@@ -354,6 +356,11 @@ func dataSourceMonitor() *schema.Resource {
 					},
 				},
 			},
+			"_bindings": { // internal, used for generating bindings for cross-tenant export
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor", "schema", "_bindings"),
+			},
 		},
 	}
 }
@@ -384,5 +391,41 @@ func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta 
 		return
 	}
 	data.SetId(m.Id)
-	return resourceMonitorRead(ctx, data, meta)
+	diags = monitorToResourceData(data, m)
+	if diags.HasError() {
+		return diags
+	}
+
+	if client.ExportObjectBindings {
+		bindFor := binding.NewKindSet(binding.KindWorkspace, binding.KindDataset)
+		gen, err := binding.NewGenerator(ctx, binding.KindMonitor, m.Name, client, bindFor)
+		if err != nil {
+			return diag.Errorf("Failed to initialize binding generator: %s", err.Error())
+		}
+
+		// generate bindings for the workspace and inputs, replacing the original ids with locals
+		if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, m.WorkspaceId)); err != nil {
+			return diag.FromErr(err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		gen.Generate(inputs)
+		if err := data.Set("inputs", inputs); err != nil {
+			return diag.FromErr(err)
+		}
+
+		// save the bindings to the _bindings field for later use
+		bindings, err := gen.GetBindings()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		bindingsJson, err := json.Marshal(bindings)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if err := data.Set("_bindings", string(bindingsJson)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	return
 }
