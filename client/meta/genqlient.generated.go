@@ -4994,6 +4994,32 @@ func (v *MonitorV2CountRuleInput) GetCompareGroups() []MonitorV2ColumnComparison
 	return v.CompareGroups
 }
 
+// MonitorV2CronSchedule includes the GraphQL fields of MonitorV2CronSchedule requested by the fragment MonitorV2CronSchedule.
+type MonitorV2CronSchedule struct {
+	// If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+	RawCron *string `json:"rawCron"`
+	// A timezone is required to ensure that interpretation of scheduling on the wall-clock
+	// is done relative to the desired timezone.
+	Timezone string `json:"timezone"`
+}
+
+// GetRawCron returns MonitorV2CronSchedule.RawCron, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronSchedule) GetRawCron() *string { return v.RawCron }
+
+// GetTimezone returns MonitorV2CronSchedule.Timezone, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronSchedule) GetTimezone() string { return v.Timezone }
+
+type MonitorV2CronScheduleInput struct {
+	RawCron  *string `json:"rawCron"`
+	Timezone string  `json:"timezone"`
+}
+
+// GetRawCron returns MonitorV2CronScheduleInput.RawCron, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronScheduleInput) GetRawCron() *string { return v.RawCron }
+
+// GetTimezone returns MonitorV2CronScheduleInput.Timezone, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronScheduleInput) GetTimezone() string { return v.Timezone }
+
 // MonitorV2Definition includes the GraphQL fields of MonitorV2Definition requested by the fragment MonitorV2Definition.
 type MonitorV2Definition struct {
 	// InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the
@@ -5471,6 +5497,8 @@ type MonitorV2Scheduling struct {
 	Interval *MonitorV2IntervalSchedule `json:"interval"`
 	// Transform should be specified as an explicit transform evaluation style.
 	Transform *MonitorV2TransformSchedule `json:"transform"`
+	// Cron should be specified to get wall-clock scheduled evaluation.
+	Scheduled *MonitorV2CronSchedule `json:"scheduled"`
 }
 
 // GetInterval returns MonitorV2Scheduling.Interval, and is useful for accessing the field via an interface.
@@ -5479,9 +5507,13 @@ func (v *MonitorV2Scheduling) GetInterval() *MonitorV2IntervalSchedule { return 
 // GetTransform returns MonitorV2Scheduling.Transform, and is useful for accessing the field via an interface.
 func (v *MonitorV2Scheduling) GetTransform() *MonitorV2TransformSchedule { return v.Transform }
 
+// GetScheduled returns MonitorV2Scheduling.Scheduled, and is useful for accessing the field via an interface.
+func (v *MonitorV2Scheduling) GetScheduled() *MonitorV2CronSchedule { return v.Scheduled }
+
 type MonitorV2SchedulingInput struct {
 	Interval  *MonitorV2IntervalScheduleInput  `json:"interval"`
 	Transform *MonitorV2TransformScheduleInput `json:"transform"`
+	Scheduled *MonitorV2CronScheduleInput      `json:"scheduled"`
 }
 
 // GetInterval returns MonitorV2SchedulingInput.Interval, and is useful for accessing the field via an interface.
@@ -5491,6 +5523,9 @@ func (v *MonitorV2SchedulingInput) GetInterval() *MonitorV2IntervalScheduleInput
 func (v *MonitorV2SchedulingInput) GetTransform() *MonitorV2TransformScheduleInput {
 	return v.Transform
 }
+
+// GetScheduled returns MonitorV2SchedulingInput.Scheduled, and is useful for accessing the field via an interface.
+func (v *MonitorV2SchedulingInput) GetScheduled() *MonitorV2CronScheduleInput { return v.Scheduled }
 
 // MonitorV2SearchResult includes the GraphQL fields of MonitorV2SearchResult requested by the fragment MonitorV2SearchResult.
 type MonitorV2SearchResult struct {
@@ -13597,6 +13632,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -13652,6 +13690,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -17133,6 +17175,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -17188,6 +17233,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -18895,6 +18944,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -18950,6 +19002,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -19603,6 +19659,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -19658,6 +19717,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -19854,6 +19917,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -19909,6 +19975,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -21614,6 +21684,9 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	transform {
 		... MonitorV2TransformSchedule
 	}
+	scheduled {
+		... MonitorV2CronSchedule
+	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
@@ -21669,6 +21742,10 @@ fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 }
 fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 	freshnessGoal
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {

@@ -91,7 +91,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
-- `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
+- `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
 
@@ -620,7 +620,31 @@ Optional:
 
 Optional:
 
+- `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))
 - `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
+
+<a id="nestedblock--scheduling--interval"></a>
+### Nested Schema for `scheduling.interval`
+
+Required:
+
+- `interval` (String) How often the monitor should attempt to run.
+- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
+
+
+<a id="nestedblock--scheduling--scheduled"></a>
+### Nested Schema for `scheduling.scheduled`
+
+Required:
+
+- `timezone` (String) A timezone is required to ensure that interpretation of scheduling on the wall-clock
+is done relative to the desired timezone.
+
+Optional:
+
+- `raw_cron` (String) If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+
 
 <a id="nestedblock--scheduling--transform"></a>
 ### Nested Schema for `scheduling.transform`

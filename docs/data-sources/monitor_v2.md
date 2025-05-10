@@ -44,6 +44,7 @@ data "observe_monitor_v2" "name_lookup" {
 One of `name` or `id` must be set.
 - `name` (String) Monitor name.
 One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
+- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
@@ -63,10 +64,52 @@ stage pipelines.
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
-- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
+
+<a id="nestedblock--scheduling"></a>
+### Nested Schema for `scheduling`
+
+Optional:
+
+- `scheduled` (Block List) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))
+
+Read-Only:
+
+- `interval` (Block List) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `transform` (Block List) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
+
+<a id="nestedblock--scheduling--scheduled"></a>
+### Nested Schema for `scheduling.scheduled`
+
+Required:
+
+- `timezone` (String) A timezone is required to ensure that interpretation of scheduling on the wall-clock
+is done relative to the desired timezone.
+
+Read-Only:
+
+- `raw_cron` (String) If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+
+
+<a id="nestedblock--scheduling--interval"></a>
+### Nested Schema for `scheduling.interval`
+
+Read-Only:
+
+- `interval` (String) How often the monitor should attempt to run.
+- `randomize` (String) A maximum +/- to apply to the interval to avoid things like harmonics and work stacking up in parallel.
+
+
+<a id="nestedblock--scheduling--transform"></a>
+### Nested Schema for `scheduling.transform`
+
+Read-Only:
+
+- `freshness_goal` (String) The freshness goal.
+
+
 
 <a id="nestedblock--actions"></a>
 ### Nested Schema for `actions`
@@ -503,22 +546,6 @@ Read-Only:
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
-
-
-
-<a id="nestedblock--scheduling"></a>
-### Nested Schema for `scheduling`
-
-Read-Only:
-
-- `transform` (Block List) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
-
-<a id="nestedblock--scheduling--transform"></a>
-### Nested Schema for `scheduling.transform`
-
-Read-Only:
-
-- `freshness_goal` (String) The freshness goal.
 
 
 

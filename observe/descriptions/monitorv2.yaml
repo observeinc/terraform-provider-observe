@@ -58,7 +58,7 @@ schema:
     Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
   scheduling:
     description: |
-      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform) are exclusive. If ommitted, defaults to transform.
+      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform.
     interval:
       description: |
         Should be used to run explicit ad-hoc queries.
@@ -71,6 +71,14 @@ schema:
         Should be used to defer scheduling to the transformer and evaluate when data becomes available.
       freshness_goal: |
         The freshness goal.
+    scheduled:
+      description: |
+        Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental.
+      raw_cron: |
+        If specified, the raw cron is a crontab configuration to use to drive the scheduling.
+      timezone: |
+        A timezone is required to ensure that interpretation of scheduling on the wall-clock
+        is done relative to the desired timezone.
   compare_values: |
     list of comparisons that provide an implicit AND where all comparisons must match.
   compare_groups: |

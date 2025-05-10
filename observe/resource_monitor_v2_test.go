@@ -560,3 +560,115 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorIntervals(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "threshold"
+						name = "%[1]s"
+						lookback_time = "10m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14, groupme:12"
+						}
+						rules {
+							level = "informational"
+							threshold {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+								value_column_name = "temp_number"
+								aggregation = "all_of"
+							}
+						}
+						scheduling {
+							interval {
+								interval = "5m"
+								randomize = "1m"
+							}
+						}
+					}
+
+					data "observe_monitor_v2" "lookup" {
+						id = observe_monitor_v2.first.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.interval.0.randomize", "1m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.interval", "5m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.interval.0.randomize", "1m0s"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorRawCron(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "threshold"
+						name = "%[1]s"
+						lookback_time = "10m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14, groupme:12"
+						}
+						rules {
+							level = "informational"
+							threshold {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+								value_column_name = "temp_number"
+								aggregation = "all_of"
+							}
+						}
+						scheduling {
+							scheduled {
+								raw_cron = "0 0 * * *"
+								timezone = "America/New_York"
+							}
+						}
+					}
+
+					data "observe_monitor_v2" "lookup" {
+						id = observe_monitor_v2.first.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.raw_cron", "0 0 * * *"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.timezone", "America/New_York"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.raw_cron", "0 0 * * *"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.timezone", "America/New_York"),
+				),
+			},
+		},
+	})
+}
