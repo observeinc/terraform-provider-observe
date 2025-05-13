@@ -321,11 +321,11 @@ func TestAccObserveMonitorExportWithBindings(t *testing.T) {
 						if !reflect.DeepEqual(bindings.Kinds, expectedKinds) {
 							return fmt.Errorf("bindings.Kind does not match: Expected %#v, got %#v", expectedKinds, bindings.Kinds)
 						}
-						expectedWorkspaceBinding := binding.Target{TfLocalBindingVar: workspaceTfLocalBindingVar, TfName: workspaceTfName}
+						expectedWorkspaceBinding := binding.Target{TfLocalBindingVar: workspaceTfLocalBindingVar, TfName: workspaceTfName, IsOid: true}
 						if bindings.Workspace != expectedWorkspaceBinding {
 							return fmt.Errorf("bindings.Workspace does not match: Expected %#v, got %#v", expectedWorkspaceBinding, bindings.Workspace)
 						}
-						expectedDatasetBinding := binding.Target{TfLocalBindingVar: datasetTfLocalBindingVar, TfName: datasetTfName}
+						expectedDatasetBinding := binding.Target{TfLocalBindingVar: datasetTfLocalBindingVar, TfName: datasetTfName, IsOid: true}
 						if binding, ok := bindings.Mappings[binding.Ref{Kind: binding.KindDataset, Key: randomPrefixDataset}]; !ok || binding != expectedDatasetBinding {
 							return fmt.Errorf("bindings.Mappings does contain expected binding %#v for dataset %s, found bindings: %#v", expectedDatasetBinding, randomPrefixDataset, bindings.Mappings)
 						}

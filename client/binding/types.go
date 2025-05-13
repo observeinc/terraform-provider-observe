@@ -13,6 +13,8 @@ type Ref struct {
 type Target struct {
 	TfLocalBindingVar string `json:"tf_local_binding_var"`
 	TfName            string `json:"tf_name"`
+	// when generating locals, used to determine whether we should do ${data_source}.id or ${data_source}.oid
+	IsOid bool `json:"is_oid"`
 }
 
 // A binding, i.e. mapping of resource kind + label -> terraform local variable name (which the ids have been replaced with)

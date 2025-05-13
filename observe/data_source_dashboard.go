@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/binding"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func dataSourceDashboard() *schema.Resource {
@@ -96,11 +97,12 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 		}
 
 		// generate binding for workspace
-		if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, dashboard.WorkspaceId)); err != nil {
+		workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
+		if err := data.Set("workspace", workspaceRef); err != nil {
 			return diag.FromErr(err)
 		}
 
-		// generate bindings for workspace, stages, parameters, parameter_values, and layout,
+		// generate bindings for stages, parameters, parameter_values, and layout,
 		// replacing the original ids in the json data with local variable references
 		for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
 			jsonWithRawIds := data.Get(field).(string)

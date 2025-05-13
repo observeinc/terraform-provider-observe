@@ -404,7 +404,8 @@ func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta 
 		}
 
 		// generate bindings for the workspace and inputs, replacing the original ids with locals
-		if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, m.WorkspaceId)); err != nil {
+		workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(m.WorkspaceId))
+		if err := data.Set("workspace", workspaceRef); err != nil {
 			return diag.FromErr(err)
 		}
 		inputs := data.Get("inputs").(map[string]interface{})

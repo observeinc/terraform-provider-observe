@@ -563,7 +563,8 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 
 		// generate bindings for the workspace, inputs, and actions, replacing the original ids
 		// with local variable references
-		if err := data.Set("workspace", gen.TryBind(binding.KindWorkspace, m.WorkspaceId)); err != nil {
+		workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(m.WorkspaceId))
+		if err := data.Set("workspace", workspaceRef); err != nil {
 			return diag.FromErr(err)
 		}
 		for _, field := range []string{"inputs", "actions"} {

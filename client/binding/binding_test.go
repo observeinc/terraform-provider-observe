@@ -77,14 +77,14 @@ func prepareGeneratorFixture() Generator {
 	}
 }
 
-func TestTryBind(t *testing.T) {
+func TestTryBindId(t *testing.T) {
 	g := prepareGeneratorFixture()
-	binding := g.TryBind(KindDataset, "41000123")
+	binding, _ := g.TryBindId(KindDataset, "41000123")
 	expectedBinding := "${local.binding__type_name__dataset_dataset_1}"
 	if binding != expectedBinding {
 		t.Fatalf("expected binding %s, got actual binding %s", expectedBinding, binding)
 	}
-	binding = g.TryBind(KindDataset, "not_a_dataset_id")
+	binding, _ = g.TryBindId(KindDataset, "not_a_dataset_id")
 	expectedBinding = "not_a_dataset_id"
 	if binding != expectedBinding {
 		t.Fatalf("Expected no binding '%s', got binding %s", expectedBinding, binding)
@@ -128,7 +128,7 @@ func TestGenerateJson(t *testing.T) {
 
 func TestInsertBindingsObjectJson(t *testing.T) {
 	g := prepareGeneratorFixture()
-	g.TryBind(KindDataset, dataset1Id)
+	g.TryBindId(KindDataset, dataset1Id)
 	// g.bindings[Ref{kind: KindDataset, key: "dataset_1"}] = Target{
 	// 	TfLocalBindingVar: g.fmtTfLocalVar(KindDataset, &, false),
 	// 	TfName:            "dataset_1",
@@ -146,6 +146,7 @@ func TestInsertBindingsObjectJson(t *testing.T) {
 				"dataset:dataset_1": map[string]interface{}{
 					"tf_local_binding_var": "binding__type_name__dataset_dataset_1",
 					"tf_name":              "type_name__dataset_dataset_1",
+					"is_oid":               false,
 				},
 			},
 			"kinds": []interface{}{
@@ -155,6 +156,7 @@ func TestInsertBindingsObjectJson(t *testing.T) {
 			"workspace": map[string]interface{}{
 				"tf_local_binding_var": "binding__type_name__workspace_test_wks",
 				"tf_name":              "workspace_test_wks",
+				"is_oid":               true,
 			},
 			"workspace_name": "Test wks",
 		},

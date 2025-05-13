@@ -146,16 +146,39 @@ func NewGenerator(ctx context.Context, resourceType Kind, resourceName string,
 
 // lookup by kind and id, if valid then return a local variable reference,
 // otherwise return the id (no-op)
-func (g *Generator) TryBind(kind Kind, id string) string {
+func (g *Generator) TryBindId(kind Kind, id string) (maybeRef string, didBind bool) {
+	return g.tryBind(kind, id, false)
+}
+
+// infer the kind from the oid and lookup, if valid then return a local variable reference,
+// otherwise return the oid as a string (no-op)
+func (g *Generator) TryBindOid(oidObj oid.OID) (maybeRef string, didBind bool) {
+	kind, ok := resolveOidToKind(oidObj)
+	if !ok {
+		return oidObj.String(), false
+	}
+	maybeRef, didBind = g.tryBind(kind, oidObj.Id, true)
+	if !didBind {
+		return oidObj.String(), false
+	}
+	return maybeRef, true
+}
+
+func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, didBind bool) {
+
 	var e *ResourceCacheEntry
 	if kind == KindWorkspace && id == g.cache.workspaceOid.Id {
 		// workspaces are special since there should only be one primary one
 		e = g.cache.workspaceEntry
 	} else {
+		// if not enabled, skip
+		if _, found := g.enabledBindings[kind]; !found {
+			return id, false
+		}
 		// lookup
 		e = g.cache.LookupId(kind, id)
 		if e == nil {
-			return id
+			return id, false
 		}
 	}
 	// process into local var ref
@@ -164,36 +187,26 @@ func (g *Generator) TryBind(kind Kind, id string) string {
 	g.bindings[Ref{Kind: kind, Key: e.Label}] = Target{
 		TfName:            e.TfName,
 		TfLocalBindingVar: terraformLocal,
+		IsOid:             isOid,
 	}
-	return g.fmtTfLocalVarRef(terraformLocal)
+	return g.fmtTfLocalVarRef(terraformLocal), true
 }
 
 // Generate walks the provided data structure and for all ids encountered,
 // generates a binding for it, and replaces the id with a local variable reference
 func (g *Generator) Generate(data interface{}) {
 	mapOverJsonStringKeys(data, func(key string, value string, jsonMapNode map[string]interface{}) {
-		var id string
-		var kinds []Kind
 		if valueOid, err := oid.NewOID(value); err == nil {
-			id = valueOid.Id
-			kinds = resolveOidToKinds(valueOid)
+			jsonMapNode[key], _ = g.TryBindOid(*valueOid)
 		} else {
-			id = value
-			kinds = resolveKeyToKinds(key)
-		}
-
-		for _, kind := range kinds {
-			// if not enabled, skip
-			if _, found := g.enabledBindings[kind]; !found {
-				continue
-			}
-			// try bind the name
-			maybeRef := g.TryBind(kind, id)
-			// if lookup succeeded, then the returned value should be a lv ref and not the
-			// input id
-			if maybeRef != value {
-				jsonMapNode[key] = maybeRef
-				break
+			kinds := guessKindFromKey(key)
+			for _, kind := range kinds {
+				// try bind the name
+				maybeRef, didBind := g.TryBindId(kind, value)
+				if didBind {
+					jsonMapNode[key] = maybeRef
+					break
+				}
 			}
 		}
 	})
@@ -229,6 +242,7 @@ func (g *Generator) GetBindings() (BindingsObject, error) {
 		Workspace: Target{
 			TfLocalBindingVar: g.fmtTfLocalVar(KindWorkspace, workspaceTarget, true),
 			TfName:            workspaceTarget.TfName,
+			IsOid:             true,
 		},
 		WorkspaceName: g.cache.workspaceEntry.Label,
 	}, nil
@@ -262,24 +276,24 @@ func (g *Generator) fmtTfLocalVarRef(tfLocalVar string) string {
 	return fmt.Sprintf("${local.%s}", tfLocalVar)
 }
 
-func resolveOidToKinds(oidObj *oid.OID) []Kind {
+func resolveOidToKind(oidObj oid.OID) (Kind, bool) {
 	switch oidObj.Type {
 	case oid.TypeDataset:
-		return []Kind{KindDataset}
+		return KindDataset, true
 	case oid.TypeWorksheet:
-		return []Kind{KindWorksheet}
+		return KindWorksheet, true
 	case oid.TypeWorkspace:
-		return []Kind{KindWorkspace}
+		return KindWorkspace, true
 	case oid.TypeUser:
-		return []Kind{KindUser}
+		return KindUser, true
 	case oid.TypeMonitorV2Action:
-		return []Kind{KindMonitorV2Action}
+		return KindMonitorV2Action, true
 	default:
-		return []Kind{}
+		return "", false
 	}
 }
 
-func resolveKeyToKinds(key string) []Kind {
+func guessKindFromKey(key string) []Kind {
 	switch key {
 	case "id":
 		return []Kind{KindDataset, KindWorksheet}
