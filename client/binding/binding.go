@@ -248,6 +248,14 @@ func (g *Generator) GetBindings() (BindingsObject, error) {
 	}, nil
 }
 
+func (g *Generator) GetBindingsJson() ([]byte, error) {
+	bindings, err := g.GetBindings()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(bindings)
+}
+
 // InsertBindingsObject inserts the bindings object into the provided map
 func (g *Generator) InsertBindingsObject(data map[string]interface{}) error {
 	bindingsObject, err := g.GetBindings()

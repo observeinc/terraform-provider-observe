@@ -2,11 +2,13 @@ package observe
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/binding"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -79,8 +81,7 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 
 	dashboard, err := client.GetDashboard(ctx, id)
 	if err != nil {
-		diags = diag.FromErr(err)
-		return
+		return diag.FromErr(err)
 	}
 	data.SetId(dashboard.Id)
 
@@ -90,47 +91,55 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	if client.ExportObjectBindings {
-		bindFor := binding.NewKindSet(binding.KindDataset, binding.KindWorkspace)
-		gen, err := binding.NewGenerator(ctx, binding.KindDashboard, dashboard.Name, client, bindFor)
-		if err != nil {
-			return diag.Errorf("Failed to initialize binding generator: %s", err.Error())
-		}
-
-		// generate binding for workspace
-		workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
-		if err := data.Set("workspace", workspaceRef); err != nil {
-			return diag.FromErr(err)
-		}
-
-		// generate bindings for stages, parameters, parameter_values, and layout,
-		// replacing the original ids in the json data with local variable references
-		for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
-			jsonWithRawIds := data.Get(field).(string)
-			if jsonWithRawIds == "" {
-				continue
-			}
-			jsonWithReferences, err := gen.GenerateJson([]byte(jsonWithRawIds))
-			if err != nil {
-				return diag.Errorf("failed to generate bindings for field '%s': %s", field, err.Error())
-			}
-			if err := data.Set(field, string(jsonWithReferences)); err != nil {
-				return diag.FromErr(err)
-			}
-		}
-
-		// insert the bindings into the layout field to be used to generate data sources
-		// and local variable definitions at a later point
-		layout := data.Get("layout").(string)
-		if layout == "" {
-			layout = "{}"
-		}
-		layoutWithBindings, err := gen.InsertBindingsObjectJson([]byte(layout))
+		err := generateDashboardBindings(ctx, dashboard, data, client)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		if err := data.Set("layout", string(layoutWithBindings)); err != nil {
-			return diag.FromErr(err)
+	}
+	return nil
+}
+
+func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, data *schema.ResourceData, client *observe.Client) error {
+	bindFor := binding.NewKindSet(binding.KindDataset, binding.KindWorkspace)
+	gen, err := binding.NewGenerator(ctx, binding.KindDashboard, dashboard.Name, client, bindFor)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize binding generator: %w", err)
+	}
+
+	// generate binding for workspace
+	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
+	if err := data.Set("workspace", workspaceRef); err != nil {
+		return err
+	}
+
+	// generate bindings for stages, parameters, parameter_values, and layout,
+	// replacing the original ids in the json data with local variable references
+	for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
+		jsonWithRawIds := data.Get(field).(string)
+		if jsonWithRawIds == "" {
+			continue
 		}
+		jsonWithReferences, err := gen.GenerateJson([]byte(jsonWithRawIds))
+		if err != nil {
+			return fmt.Errorf("failed to generate bindings for field '%s': %w", field, err)
+		}
+		if err := data.Set(field, string(jsonWithReferences)); err != nil {
+			return err
+		}
+	}
+
+	// insert the bindings into the layout field to be used to generate data sources
+	// and local variable definitions at a later point
+	layout := data.Get("layout").(string)
+	if layout == "" {
+		layout = "{}"
+	}
+	layoutWithBindings, err := gen.InsertBindingsObjectJson([]byte(layout))
+	if err != nil {
+		return err
+	}
+	if err := data.Set("layout", string(layoutWithBindings)); err != nil {
+		return err
 	}
 	return nil
 }
