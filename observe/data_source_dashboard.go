@@ -99,11 +99,12 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 	return nil
 }
 
+// Generates bindings for use in cross-tenant exports of dashboards. See binding.go for details.
 func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, data *schema.ResourceData, client *observe.Client) error {
 	bindFor := binding.NewKindSet(binding.KindDataset, binding.KindWorkspace)
 	gen, err := binding.NewGenerator(ctx, binding.KindDashboard, dashboard.Name, client, bindFor)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize binding generator: %w", err)
+		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
 	// generate binding for workspace

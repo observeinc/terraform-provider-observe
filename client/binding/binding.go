@@ -1,3 +1,21 @@
+// Package binding provides utilities for generating bindings for cross-tenant exports.
+// Essentially we want to replace all raw object ids in the resource definition with references
+// instead, created by looking up the objects by name using data sources.
+// Overall, the process works like so:
+//	1. The Observe backend adds a data source with the `export_object_bindings` flag set.
+//  2. When the data source is read, a Generator is created, which iterates through all fields
+//     that could contain ids, and for each id found:
+//      a. The Generator looks up the corresponding resource name and generates a local variable reference
+//      b. The id is replaced with that reference.
+//      c. In addition, the Generator adds a "binding" entry to its internal state. This binding
+//         includes all the information necessary for later generating a data source that fetches
+//         the resource by name, and the local variable definition for the above reference.
+//  3. Finally, we aggregate all the bindings from above and insert it somewhere into the data
+//     source state (typically an internal "_bindings" field).
+//  4. The Observe backend then extracts those bindings from the data source state, and uses
+//     them to generate data sources + locals in addition to the main resource export
+//     (in which the ids have already been replaced with local variable references).
+
 package binding
 
 import (

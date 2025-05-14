@@ -11,9 +11,11 @@ type Ref struct {
 }
 
 type Target struct {
+	// Name of the local variable that will be generated for this target, used in place of the raw ids
 	TfLocalBindingVar string `json:"tf_local_binding_var"`
-	TfName            string `json:"tf_name"`
-	// when generating locals, used to determine whether we should do ${data_source}.id or ${data_source}.oid
+	// Name of the terraform data source that will be generated for this target
+	TfName string `json:"tf_name"`
+	// When generating locals, used to determine whether we should do ${data_source}.id or ${data_source}.oid
 	IsOid bool `json:"is_oid"`
 }
 

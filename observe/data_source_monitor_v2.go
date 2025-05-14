@@ -564,11 +564,12 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 	return
 }
 
+// Generates bindings for use in cross-tenant exports of monitor v2. See binding.go for details.
 func generateMonitorV2Bindings(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client) error {
 	bindFor := binding.NewKindSet(binding.KindDataset, binding.KindWorkspace, binding.KindMonitorV2Action)
 	gen, err := binding.NewGenerator(ctx, binding.KindMonitorV2, monitor.Name, client, bindFor)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize binding generator: %w", err)
+		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
 	// generate bindings for the workspace, inputs, and actions, replacing the original ids

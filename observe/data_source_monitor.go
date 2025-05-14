@@ -365,6 +365,7 @@ func dataSourceMonitor() *schema.Resource {
 	}
 }
 
+// Generates bindings for use in cross-tenant exports of monitor. See binding.go for details.
 func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
 		client     = meta.(*observe.Client)
