@@ -189,6 +189,7 @@ func Provider() *schema.Provider {
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
 			"observe_reference_table":           resourceReferenceTable(),
 			"observe_report":                    resourceReport(),
+			"observe_drop_filter":               resourceDropFilter(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

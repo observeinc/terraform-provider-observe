@@ -1587,3 +1587,17 @@ func (c *Client) DeleteReport(ctx context.Context, id string) (err error) {
 func (c *Client) GetReport(ctx context.Context, id string) (*rest.ReportsResource, error) {
 	return c.Rest.GetReport(ctx, id)
 }
+
+func (c *Client) CreateIngestFilter(ctx context.Context, workspace string, input *meta.IngestFilterInput) (*meta.IngestFilter, error) {
+	return c.Meta.CreateIngestFilter(ctx, workspace, input)
+}
+
+func (c *Client) GetIngestFilter(ctx context.Context, filterId string) (*meta.IngestFilter, error) {
+	return c.Meta.GetIngestFilter(ctx, filterId)
+}
+func (c *Client) UpdateIngestFilter(ctx context.Context, filterId string, input *meta.IngestFilterInput) (*meta.IngestFilter, error) {
+	return c.Meta.UpdateIngestFilter(ctx, filterId, input)
+}
+func (c *Client) DeleteIngestFilter(ctx context.Context, filterId string) error {
+	return c.Meta.DeleteIngestFilter(ctx, filterId)
+}

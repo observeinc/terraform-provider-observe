@@ -2799,6 +2799,1630 @@ func (v *HttpRequestConfig) GetHeaders() *types.JsonObject { return v.Headers }
 // GetParams returns HttpRequestConfig.Params, and is useful for accessing the field via an interface.
 func (v *HttpRequestConfig) GetParams() *types.JsonObject { return v.Params }
 
+// IngestFilter includes the GraphQL fields of IngestFilter requested by the fragment IngestFilter.
+type IngestFilter struct {
+	Name string `json:"name"`
+	// Json blob for frontend to store layout information.
+	Layout *types.JsonObject `json:"layout"`
+	// Enabled indicates if the filter should be applied or not.
+	Enabled bool `json:"enabled"`
+	// The source dataset ID that this filter is applied to.
+	SourceDatasetID string `json:"sourceDatasetID"`
+	Id              string `json:"id"`
+	// The drop rate is a double precision floating point value between 0 and 1 that specifies what percentage of matching
+	// observations to drop.
+	DropRate float64 `json:"dropRate"`
+	// Raw opal that defines the filter predicate.
+	Pipeline    string                                `json:"pipeline"`
+	WorkspaceId string                                `json:"workspaceId"`
+	IconUrl     *string                               `json:"iconUrl"`
+	Description *string                               `json:"description"`
+	ManagedById *string                               `json:"managedById"`
+	ManagedBy   *IngestFilterManagedByWorkspaceObject `json:"-"`
+	FolderId    string                                `json:"folderId"`
+	CreatedBy   types.UserIdScalar                    `json:"createdBy"`
+	CreatedDate types.TimeScalar                      `json:"createdDate"`
+	UpdatedBy   types.UserIdScalar                    `json:"updatedBy"`
+	UpdatedDate types.TimeScalar                      `json:"updatedDate"`
+	// Error message. Will return errors about incorrect filter definitions.
+	Errors []IngestFilterErrorsTaskResultError `json:"-"`
+}
+
+// GetName returns IngestFilter.Name, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetName() string { return v.Name }
+
+// GetLayout returns IngestFilter.Layout, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetLayout() *types.JsonObject { return v.Layout }
+
+// GetEnabled returns IngestFilter.Enabled, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetEnabled() bool { return v.Enabled }
+
+// GetSourceDatasetID returns IngestFilter.SourceDatasetID, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetSourceDatasetID() string { return v.SourceDatasetID }
+
+// GetId returns IngestFilter.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetId() string { return v.Id }
+
+// GetDropRate returns IngestFilter.DropRate, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetDropRate() float64 { return v.DropRate }
+
+// GetPipeline returns IngestFilter.Pipeline, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetPipeline() string { return v.Pipeline }
+
+// GetWorkspaceId returns IngestFilter.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetIconUrl returns IngestFilter.IconUrl, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns IngestFilter.Description, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetDescription() *string { return v.Description }
+
+// GetManagedById returns IngestFilter.ManagedById, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetManagedById() *string { return v.ManagedById }
+
+// GetManagedBy returns IngestFilter.ManagedBy, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetManagedBy() *IngestFilterManagedByWorkspaceObject { return v.ManagedBy }
+
+// GetFolderId returns IngestFilter.FolderId, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetFolderId() string { return v.FolderId }
+
+// GetCreatedBy returns IngestFilter.CreatedBy, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetCreatedBy() types.UserIdScalar { return v.CreatedBy }
+
+// GetCreatedDate returns IngestFilter.CreatedDate, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetCreatedDate() types.TimeScalar { return v.CreatedDate }
+
+// GetUpdatedBy returns IngestFilter.UpdatedBy, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetUpdatedBy() types.UserIdScalar { return v.UpdatedBy }
+
+// GetUpdatedDate returns IngestFilter.UpdatedDate, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetUpdatedDate() types.TimeScalar { return v.UpdatedDate }
+
+// GetErrors returns IngestFilter.Errors, and is useful for accessing the field via an interface.
+func (v *IngestFilter) GetErrors() []IngestFilterErrorsTaskResultError { return v.Errors }
+
+func (v *IngestFilter) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilter
+		ManagedBy json.RawMessage   `json:"managedBy"`
+		Errors    []json.RawMessage `json:"errors"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilter = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.ManagedBy
+		src := firstPass.ManagedBy
+		if len(src) != 0 && string(src) != "null" {
+			*dst = new(IngestFilterManagedByWorkspaceObject)
+			err = __unmarshalIngestFilterManagedByWorkspaceObject(
+				src, *dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal IngestFilter.ManagedBy: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Errors
+		src := firstPass.Errors
+		*dst = make(
+			[]IngestFilterErrorsTaskResultError,
+			len(src))
+		for i, src := range src {
+			dst := &(*dst)[i]
+			if len(src) != 0 && string(src) != "null" {
+				err = __unmarshalIngestFilterErrorsTaskResultError(
+					src, dst)
+				if err != nil {
+					return fmt.Errorf(
+						"unable to unmarshal IngestFilter.Errors: %w", err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalIngestFilter struct {
+	Name string `json:"name"`
+
+	Layout *types.JsonObject `json:"layout"`
+
+	Enabled bool `json:"enabled"`
+
+	SourceDatasetID string `json:"sourceDatasetID"`
+
+	Id string `json:"id"`
+
+	DropRate float64 `json:"dropRate"`
+
+	Pipeline string `json:"pipeline"`
+
+	WorkspaceId string `json:"workspaceId"`
+
+	IconUrl *string `json:"iconUrl"`
+
+	Description *string `json:"description"`
+
+	ManagedById *string `json:"managedById"`
+
+	ManagedBy json.RawMessage `json:"managedBy"`
+
+	FolderId string `json:"folderId"`
+
+	CreatedBy types.UserIdScalar `json:"createdBy"`
+
+	CreatedDate types.TimeScalar `json:"createdDate"`
+
+	UpdatedBy types.UserIdScalar `json:"updatedBy"`
+
+	UpdatedDate types.TimeScalar `json:"updatedDate"`
+
+	Errors []json.RawMessage `json:"errors"`
+}
+
+func (v *IngestFilter) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilter) __premarshalJSON() (*__premarshalIngestFilter, error) {
+	var retval __premarshalIngestFilter
+
+	retval.Name = v.Name
+	retval.Layout = v.Layout
+	retval.Enabled = v.Enabled
+	retval.SourceDatasetID = v.SourceDatasetID
+	retval.Id = v.Id
+	retval.DropRate = v.DropRate
+	retval.Pipeline = v.Pipeline
+	retval.WorkspaceId = v.WorkspaceId
+	retval.IconUrl = v.IconUrl
+	retval.Description = v.Description
+	retval.ManagedById = v.ManagedById
+	{
+
+		dst := &retval.ManagedBy
+		src := v.ManagedBy
+		if src != nil {
+			var err error
+			*dst, err = __marshalIngestFilterManagedByWorkspaceObject(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal IngestFilter.ManagedBy: %w", err)
+			}
+		}
+	}
+	retval.FolderId = v.FolderId
+	retval.CreatedBy = v.CreatedBy
+	retval.CreatedDate = v.CreatedDate
+	retval.UpdatedBy = v.UpdatedBy
+	retval.UpdatedDate = v.UpdatedDate
+	{
+
+		dst := &retval.Errors
+		src := v.Errors
+		*dst = make(
+			[]json.RawMessage,
+			len(src))
+		for i, src := range src {
+			dst := &(*dst)[i]
+			var err error
+			*dst, err = __marshalIngestFilterErrorsTaskResultError(
+				&src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal IngestFilter.Errors: %w", err)
+			}
+		}
+	}
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultError includes the requested fields of the GraphQL interface TaskResultError.
+//
+// IngestFilterErrorsTaskResultError is implemented by the following types:
+// IngestFilterErrorsTaskResultErrorBinding
+// IngestFilterErrorsTaskResultErrorGeneric
+// IngestFilterErrorsTaskResultErrorRateLimit
+// IngestFilterErrorsTaskResultErrorStageDependencyLoop
+// IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type IngestFilterErrorsTaskResultError interface {
+	implementsGraphQLInterfaceIngestFilterErrorsTaskResultError()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+	errorFields
+}
+
+func (v *IngestFilterErrorsTaskResultErrorBinding) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+func (v *IngestFilterErrorsTaskResultErrorGeneric) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+
+func __unmarshalIngestFilterErrorsTaskResultError(b []byte, v *IngestFilterErrorsTaskResultError) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "TaskResultErrorBinding":
+		*v = new(IngestFilterErrorsTaskResultErrorBinding)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorGeneric":
+		*v = new(IngestFilterErrorsTaskResultErrorGeneric)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorRateLimit":
+		*v = new(IngestFilterErrorsTaskResultErrorRateLimit)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorStageDependencyLoop":
+		*v = new(IngestFilterErrorsTaskResultErrorStageDependencyLoop)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorStageHasDependenciesWithErrors":
+		*v = new(IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing TaskResultError.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for IngestFilterErrorsTaskResultError: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalIngestFilterErrorsTaskResultError(v *IngestFilterErrorsTaskResultError) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *IngestFilterErrorsTaskResultErrorBinding:
+		typename = "TaskResultErrorBinding"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorBinding
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case *IngestFilterErrorsTaskResultErrorGeneric:
+		typename = "TaskResultErrorGeneric"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorGeneric
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case *IngestFilterErrorsTaskResultErrorRateLimit:
+		typename = "TaskResultErrorRateLimit"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorRateLimit
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case *IngestFilterErrorsTaskResultErrorStageDependencyLoop:
+		typename = "TaskResultErrorStageDependencyLoop"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorStageDependencyLoop
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors:
+		typename = "TaskResultErrorStageHasDependenciesWithErrors"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for IngestFilterErrorsTaskResultError: "%T"`, v)
+	}
+}
+
+// IngestFilterErrorsTaskResultErrorBinding includes the requested fields of the GraphQL type TaskResultErrorBinding.
+// The GraphQL type's documentation follows.
+//
+// Error that a stage fails to bind the dataset to the physical table (i.e., fail
+// to inline or use best effort binding).
+type IngestFilterErrorsTaskResultErrorBinding struct {
+	Typename                          *string `json:"__typename"`
+	errorFieldsTaskResultErrorBinding `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorBinding.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorBinding) GetTypename() *string { return v.Typename }
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorBinding.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorBinding) GetMessage() string {
+	return v.errorFieldsTaskResultErrorBinding.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorBinding.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorBinding) GetText() string {
+	return v.errorFieldsTaskResultErrorBinding.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorBinding.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorBinding) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorBinding.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorBinding) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorBinding
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorBinding = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorBinding)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorBinding struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorBinding) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorBinding) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorBinding, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorBinding
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorBinding.Message
+	retval.Text = v.errorFieldsTaskResultErrorBinding.Text
+	retval.Span = v.errorFieldsTaskResultErrorBinding.Span
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultErrorGeneric includes the requested fields of the GraphQL type TaskResultErrorGeneric.
+// The GraphQL type's documentation follows.
+//
+// A generic error type to return legacy errors in that do not have more specific types yet
+type IngestFilterErrorsTaskResultErrorGeneric struct {
+	Typename                          *string `json:"__typename"`
+	errorFieldsTaskResultErrorGeneric `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorGeneric.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorGeneric) GetTypename() *string { return v.Typename }
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorGeneric.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorGeneric) GetMessage() string {
+	return v.errorFieldsTaskResultErrorGeneric.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorGeneric.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorGeneric) GetText() string {
+	return v.errorFieldsTaskResultErrorGeneric.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorGeneric.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorGeneric) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorGeneric.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorGeneric) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorGeneric
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorGeneric = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorGeneric)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorGeneric struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorGeneric) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorGeneric) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorGeneric, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorGeneric
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorGeneric.Message
+	retval.Text = v.errorFieldsTaskResultErrorGeneric.Text
+	retval.Span = v.errorFieldsTaskResultErrorGeneric.Span
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultErrorRateLimit includes the requested fields of the GraphQL type TaskResultErrorRateLimit.
+// The GraphQL type's documentation follows.
+//
+// Error that the query was blocked or throttled due to the query rate limit set for this customer
+type IngestFilterErrorsTaskResultErrorRateLimit struct {
+	Typename                            *string `json:"__typename"`
+	errorFieldsTaskResultErrorRateLimit `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorRateLimit.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) GetTypename() *string { return v.Typename }
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorRateLimit.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) GetMessage() string {
+	return v.errorFieldsTaskResultErrorRateLimit.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorRateLimit.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) GetText() string {
+	return v.errorFieldsTaskResultErrorRateLimit.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorRateLimit.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorRateLimit.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorRateLimit
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorRateLimit = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorRateLimit)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorRateLimit struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorRateLimit) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorRateLimit, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorRateLimit
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorRateLimit.Message
+	retval.Text = v.errorFieldsTaskResultErrorRateLimit.Text
+	retval.Span = v.errorFieldsTaskResultErrorRateLimit.Span
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultErrorStageDependencyLoop includes the requested fields of the GraphQL type TaskResultErrorStageDependencyLoop.
+// The GraphQL type's documentation follows.
+//
+// An error returned when a stage cannot be compiled because it forms a dependency loop with some of its inputs
+type IngestFilterErrorsTaskResultErrorStageDependencyLoop struct {
+	Typename                                      *string `json:"__typename"`
+	errorFieldsTaskResultErrorStageDependencyLoop `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorStageDependencyLoop.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) GetTypename() *string {
+	return v.Typename
+}
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorStageDependencyLoop.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) GetMessage() string {
+	return v.errorFieldsTaskResultErrorStageDependencyLoop.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorStageDependencyLoop.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) GetText() string {
+	return v.errorFieldsTaskResultErrorStageDependencyLoop.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorStageDependencyLoop.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorStageDependencyLoop.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorStageDependencyLoop
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorStageDependencyLoop = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorStageDependencyLoop)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorStageDependencyLoop struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageDependencyLoop) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorStageDependencyLoop, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorStageDependencyLoop
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorStageDependencyLoop.Message
+	retval.Text = v.errorFieldsTaskResultErrorStageDependencyLoop.Text
+	retval.Span = v.errorFieldsTaskResultErrorStageDependencyLoop.Span
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors includes the requested fields of the GraphQL type TaskResultErrorStageHasDependenciesWithErrors.
+// The GraphQL type's documentation follows.
+//
+// An error returned when a stage cannot be compiled because input stages have errors
+type IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors struct {
+	Typename                                                 *string `json:"__typename"`
+	errorFieldsTaskResultErrorStageHasDependenciesWithErrors `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) GetTypename() *string {
+	return v.Typename
+}
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) GetMessage() string {
+	return v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) GetText() string {
+	return v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Message
+	retval.Text = v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Text
+	retval.Span = v.errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Span
+	return &retval, nil
+}
+
+type IngestFilterInput struct {
+	Pipeline        string            `json:"pipeline"`
+	Layout          *types.JsonObject `json:"layout"`
+	Enabled         bool              `json:"enabled"`
+	SourceDatasetID string            `json:"sourceDatasetID"`
+	DropRate        float64           `json:"dropRate"`
+	Name            string            `json:"name"`
+	IconUrl         *string           `json:"iconUrl"`
+	Description     *string           `json:"description"`
+	ManagedById     *string           `json:"managedById"`
+	FolderId        *string           `json:"folderId"`
+}
+
+// GetPipeline returns IngestFilterInput.Pipeline, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetPipeline() string { return v.Pipeline }
+
+// GetLayout returns IngestFilterInput.Layout, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetLayout() *types.JsonObject { return v.Layout }
+
+// GetEnabled returns IngestFilterInput.Enabled, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetEnabled() bool { return v.Enabled }
+
+// GetSourceDatasetID returns IngestFilterInput.SourceDatasetID, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetSourceDatasetID() string { return v.SourceDatasetID }
+
+// GetDropRate returns IngestFilterInput.DropRate, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetDropRate() float64 { return v.DropRate }
+
+// GetName returns IngestFilterInput.Name, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetName() string { return v.Name }
+
+// GetIconUrl returns IngestFilterInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns IngestFilterInput.Description, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns IngestFilterInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns IngestFilterInput.FolderId, and is useful for accessing the field via an interface.
+func (v *IngestFilterInput) GetFolderId() *string { return v.FolderId }
+
+// IngestFilterManagedByApp includes the requested fields of the GraphQL type App.
+// The GraphQL type's documentation follows.
+//
+// App represents an installed instance of an AppModule
+type IngestFilterManagedByApp struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByApp.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByApp) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByApp.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByApp) GetId() string { return v.Id }
+
+// IngestFilterManagedByAppDataSource includes the requested fields of the GraphQL type AppDataSource.
+type IngestFilterManagedByAppDataSource struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByAppDataSource.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByAppDataSource) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByAppDataSource.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByAppDataSource) GetId() string { return v.Id }
+
+// IngestFilterManagedByBookmarkGroup includes the requested fields of the GraphQL type BookmarkGroup.
+type IngestFilterManagedByBookmarkGroup struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByBookmarkGroup.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByBookmarkGroup) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByBookmarkGroup.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByBookmarkGroup) GetId() string { return v.Id }
+
+// IngestFilterManagedByDashboard includes the requested fields of the GraphQL type Dashboard.
+type IngestFilterManagedByDashboard struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDashboard.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboard) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDashboard.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboard) GetId() string { return v.Id }
+
+// IngestFilterManagedByDashboardLink includes the requested fields of the GraphQL type DashboardLink.
+type IngestFilterManagedByDashboardLink struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDashboardLink.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboardLink) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDashboardLink.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboardLink) GetId() string { return v.Id }
+
+// IngestFilterManagedByDashboardRef includes the requested fields of the GraphQL type DashboardRef.
+type IngestFilterManagedByDashboardRef struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDashboardRef.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboardRef) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDashboardRef.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDashboardRef) GetId() string { return v.Id }
+
+// IngestFilterManagedByDataConnection includes the requested fields of the GraphQL type DataConnection.
+type IngestFilterManagedByDataConnection struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDataConnection.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataConnection) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDataConnection.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataConnection) GetId() string { return v.Id }
+
+// IngestFilterManagedByDataset includes the requested fields of the GraphQL type Dataset.
+type IngestFilterManagedByDataset struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDataset.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataset) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDataset.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataset) GetId() string { return v.Id }
+
+// IngestFilterManagedByDatasetOutboundShare includes the requested fields of the GraphQL type DatasetOutboundShare.
+type IngestFilterManagedByDatasetOutboundShare struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDatasetOutboundShare.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatasetOutboundShare) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDatasetOutboundShare.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatasetOutboundShare) GetId() string { return v.Id }
+
+// IngestFilterManagedByDatasource includes the requested fields of the GraphQL type Datasource.
+type IngestFilterManagedByDatasource struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDatasource.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatasource) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDatasource.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatasource) GetId() string { return v.Id }
+
+// IngestFilterManagedByDatastream includes the requested fields of the GraphQL type Datastream.
+type IngestFilterManagedByDatastream struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDatastream.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatastream) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDatastream.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDatastream) GetId() string { return v.Id }
+
+// IngestFilterManagedByFiledrop includes the requested fields of the GraphQL type Filedrop.
+type IngestFilterManagedByFiledrop struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByFiledrop.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByFiledrop) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByFiledrop.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByFiledrop) GetId() string { return v.Id }
+
+// IngestFilterManagedByFolder includes the requested fields of the GraphQL type Folder.
+type IngestFilterManagedByFolder struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByFolder.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByFolder) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByFolder.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByFolder) GetId() string { return v.Id }
+
+// IngestFilterManagedByIncident includes the requested fields of the GraphQL type Incident.
+type IngestFilterManagedByIncident struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByIncident.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIncident) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByIncident.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIncident) GetId() string { return v.Id }
+
+// IngestFilterManagedByIngestFilter includes the requested fields of the GraphQL type IngestFilter.
+type IngestFilterManagedByIngestFilter struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByIngestFilter.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIngestFilter) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByIngestFilter.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIngestFilter) GetId() string { return v.Id }
+
+// IngestFilterManagedByInvestigationNotebook includes the requested fields of the GraphQL type InvestigationNotebook.
+type IngestFilterManagedByInvestigationNotebook struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByInvestigationNotebook.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByInvestigationNotebook) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByInvestigationNotebook.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByInvestigationNotebook) GetId() string { return v.Id }
+
+// IngestFilterManagedByLayeredSettingRecord includes the requested fields of the GraphQL type LayeredSettingRecord.
+// The GraphQL type's documentation follows.
+//
+// A Layered Setting is like a feature flag that can be controlled by customers.
+// It allows control on a per-scope basis, where scope could be entire customer,
+// workspace, folder, app, dataset, monitor, or similar, with a broad-to-detailed
+// inheritance hierarchy.
+//
+// A Layered Setting Record is a record setting the value of a Layered Setting at
+// a particular scope.  When the value of a Layered Setting is read from a
+// particular scope, we merge the Layered Setting Records at each scope that
+// contains the requested scope to determine the return value.
+type IngestFilterManagedByLayeredSettingRecord struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByLayeredSettingRecord.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByLayeredSettingRecord) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByLayeredSettingRecord.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByLayeredSettingRecord) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitor includes the requested fields of the GraphQL type Monitor.
+type IngestFilterManagedByMonitor struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitor.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitor) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitor.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitor) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitorActionAttachment includes the requested fields of the GraphQL type MonitorActionAttachment.
+type IngestFilterManagedByMonitorActionAttachment struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitorActionAttachment.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorActionAttachment) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitorActionAttachment.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorActionAttachment) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitorMuteRule includes the requested fields of the GraphQL type MonitorMuteRule.
+type IngestFilterManagedByMonitorMuteRule struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitorMuteRule.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorMuteRule) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitorMuteRule.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorMuteRule) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitorV2 includes the requested fields of the GraphQL type MonitorV2.
+type IngestFilterManagedByMonitorV2 struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitorV2.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitorV2.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitorV2Action includes the requested fields of the GraphQL type MonitorV2Action.
+type IngestFilterManagedByMonitorV2Action struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitorV2Action.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2Action) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitorV2Action.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2Action) GetId() string { return v.Id }
+
+// IngestFilterManagedByMonitorV2MuteRule includes the requested fields of the GraphQL type MonitorV2MuteRule.
+type IngestFilterManagedByMonitorV2MuteRule struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByMonitorV2MuteRule.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2MuteRule) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByMonitorV2MuteRule.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByMonitorV2MuteRule) GetId() string { return v.Id }
+
+// IngestFilterManagedByPoller includes the requested fields of the GraphQL type Poller.
+type IngestFilterManagedByPoller struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByPoller.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByPoller) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByPoller.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByPoller) GetId() string { return v.Id }
+
+// IngestFilterManagedByPreferredPath includes the requested fields of the GraphQL type PreferredPath.
+// The GraphQL type's documentation follows.
+//
+// Properties that are expensive, and should not be requested as part of
+// "list all paths" type operations:
+// - destinationDataset
+// - resolvedPath
+// - managedBy
+// It's OK to make these part of "list paths for given source dataset" though, as
+// that's only one, and presumably you're likely to actually use it.
+type IngestFilterManagedByPreferredPath struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByPreferredPath.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByPreferredPath) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByPreferredPath.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByPreferredPath) GetId() string { return v.Id }
+
+// IngestFilterManagedByReferenceTable includes the requested fields of the GraphQL type ReferenceTable.
+type IngestFilterManagedByReferenceTable struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByReferenceTable.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByReferenceTable) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByReferenceTable.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByReferenceTable) GetId() string { return v.Id }
+
+// IngestFilterManagedBySnowflakeOutboundShare includes the requested fields of the GraphQL type SnowflakeOutboundShare.
+type IngestFilterManagedBySnowflakeOutboundShare struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedBySnowflakeOutboundShare.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedBySnowflakeOutboundShare) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedBySnowflakeOutboundShare.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedBySnowflakeOutboundShare) GetId() string { return v.Id }
+
+// IngestFilterManagedByWorksheet includes the requested fields of the GraphQL type Worksheet.
+type IngestFilterManagedByWorksheet struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByWorksheet.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByWorksheet) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByWorksheet.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByWorksheet) GetId() string { return v.Id }
+
+// IngestFilterManagedByWorkspaceObject includes the requested fields of the GraphQL interface WorkspaceObject.
+//
+// IngestFilterManagedByWorkspaceObject is implemented by the following types:
+// IngestFilterManagedByApp
+// IngestFilterManagedByAppDataSource
+// IngestFilterManagedByBookmarkGroup
+// IngestFilterManagedByDashboard
+// IngestFilterManagedByDashboardLink
+// IngestFilterManagedByDashboardRef
+// IngestFilterManagedByDataConnection
+// IngestFilterManagedByDataset
+// IngestFilterManagedByDatasetOutboundShare
+// IngestFilterManagedByDatasource
+// IngestFilterManagedByDatastream
+// IngestFilterManagedByFiledrop
+// IngestFilterManagedByFolder
+// IngestFilterManagedByIncident
+// IngestFilterManagedByIngestFilter
+// IngestFilterManagedByInvestigationNotebook
+// IngestFilterManagedByLayeredSettingRecord
+// IngestFilterManagedByMonitor
+// IngestFilterManagedByMonitorActionAttachment
+// IngestFilterManagedByMonitorMuteRule
+// IngestFilterManagedByMonitorV2
+// IngestFilterManagedByMonitorV2Action
+// IngestFilterManagedByMonitorV2MuteRule
+// IngestFilterManagedByPoller
+// IngestFilterManagedByPreferredPath
+// IngestFilterManagedByReferenceTable
+// IngestFilterManagedBySnowflakeOutboundShare
+// IngestFilterManagedByWorksheet
+// The GraphQL type's documentation follows.
+//
+// WorkspaceObject encompasses all objects within a workspace
+type IngestFilterManagedByWorkspaceObject interface {
+	implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+	// GetId returns the interface-field "id" from its implementation.
+	GetId() string
+}
+
+func (v *IngestFilterManagedByApp) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {}
+func (v *IngestFilterManagedByAppDataSource) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByBookmarkGroup) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDashboard) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDashboardLink) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDashboardRef) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDataConnection) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDataset) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDatasetOutboundShare) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDatasource) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDatastream) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByFiledrop) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByFolder) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByIncident) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByIngestFilter) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByInvestigationNotebook) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByLayeredSettingRecord) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitor) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitorActionAttachment) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitorMuteRule) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitorV2) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitorV2Action) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByMonitorV2MuteRule) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByPoller) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByPreferredPath) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByReferenceTable) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedBySnowflakeOutboundShare) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByWorksheet) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+
+func __unmarshalIngestFilterManagedByWorkspaceObject(b []byte, v *IngestFilterManagedByWorkspaceObject) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "App":
+		*v = new(IngestFilterManagedByApp)
+		return json.Unmarshal(b, *v)
+	case "AppDataSource":
+		*v = new(IngestFilterManagedByAppDataSource)
+		return json.Unmarshal(b, *v)
+	case "BookmarkGroup":
+		*v = new(IngestFilterManagedByBookmarkGroup)
+		return json.Unmarshal(b, *v)
+	case "Dashboard":
+		*v = new(IngestFilterManagedByDashboard)
+		return json.Unmarshal(b, *v)
+	case "DashboardLink":
+		*v = new(IngestFilterManagedByDashboardLink)
+		return json.Unmarshal(b, *v)
+	case "DashboardRef":
+		*v = new(IngestFilterManagedByDashboardRef)
+		return json.Unmarshal(b, *v)
+	case "DataConnection":
+		*v = new(IngestFilterManagedByDataConnection)
+		return json.Unmarshal(b, *v)
+	case "Dataset":
+		*v = new(IngestFilterManagedByDataset)
+		return json.Unmarshal(b, *v)
+	case "DatasetOutboundShare":
+		*v = new(IngestFilterManagedByDatasetOutboundShare)
+		return json.Unmarshal(b, *v)
+	case "Datasource":
+		*v = new(IngestFilterManagedByDatasource)
+		return json.Unmarshal(b, *v)
+	case "Datastream":
+		*v = new(IngestFilterManagedByDatastream)
+		return json.Unmarshal(b, *v)
+	case "Filedrop":
+		*v = new(IngestFilterManagedByFiledrop)
+		return json.Unmarshal(b, *v)
+	case "Folder":
+		*v = new(IngestFilterManagedByFolder)
+		return json.Unmarshal(b, *v)
+	case "Incident":
+		*v = new(IngestFilterManagedByIncident)
+		return json.Unmarshal(b, *v)
+	case "IngestFilter":
+		*v = new(IngestFilterManagedByIngestFilter)
+		return json.Unmarshal(b, *v)
+	case "InvestigationNotebook":
+		*v = new(IngestFilterManagedByInvestigationNotebook)
+		return json.Unmarshal(b, *v)
+	case "LayeredSettingRecord":
+		*v = new(IngestFilterManagedByLayeredSettingRecord)
+		return json.Unmarshal(b, *v)
+	case "Monitor":
+		*v = new(IngestFilterManagedByMonitor)
+		return json.Unmarshal(b, *v)
+	case "MonitorActionAttachment":
+		*v = new(IngestFilterManagedByMonitorActionAttachment)
+		return json.Unmarshal(b, *v)
+	case "MonitorMuteRule":
+		*v = new(IngestFilterManagedByMonitorMuteRule)
+		return json.Unmarshal(b, *v)
+	case "MonitorV2":
+		*v = new(IngestFilterManagedByMonitorV2)
+		return json.Unmarshal(b, *v)
+	case "MonitorV2Action":
+		*v = new(IngestFilterManagedByMonitorV2Action)
+		return json.Unmarshal(b, *v)
+	case "MonitorV2MuteRule":
+		*v = new(IngestFilterManagedByMonitorV2MuteRule)
+		return json.Unmarshal(b, *v)
+	case "Poller":
+		*v = new(IngestFilterManagedByPoller)
+		return json.Unmarshal(b, *v)
+	case "PreferredPath":
+		*v = new(IngestFilterManagedByPreferredPath)
+		return json.Unmarshal(b, *v)
+	case "ReferenceTable":
+		*v = new(IngestFilterManagedByReferenceTable)
+		return json.Unmarshal(b, *v)
+	case "SnowflakeOutboundShare":
+		*v = new(IngestFilterManagedBySnowflakeOutboundShare)
+		return json.Unmarshal(b, *v)
+	case "Worksheet":
+		*v = new(IngestFilterManagedByWorksheet)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing WorkspaceObject.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for IngestFilterManagedByWorkspaceObject: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalIngestFilterManagedByWorkspaceObject(v *IngestFilterManagedByWorkspaceObject) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *IngestFilterManagedByApp:
+		typename = "App"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByApp
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByAppDataSource:
+		typename = "AppDataSource"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByAppDataSource
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByBookmarkGroup:
+		typename = "BookmarkGroup"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByBookmarkGroup
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDashboard:
+		typename = "Dashboard"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDashboard
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDashboardLink:
+		typename = "DashboardLink"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDashboardLink
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDashboardRef:
+		typename = "DashboardRef"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDashboardRef
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDataConnection:
+		typename = "DataConnection"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDataConnection
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDataset:
+		typename = "Dataset"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDataset
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDatasetOutboundShare:
+		typename = "DatasetOutboundShare"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDatasetOutboundShare
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDatasource:
+		typename = "Datasource"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDatasource
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDatastream:
+		typename = "Datastream"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDatastream
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByFiledrop:
+		typename = "Filedrop"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByFiledrop
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByFolder:
+		typename = "Folder"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByFolder
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByIncident:
+		typename = "Incident"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByIncident
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByIngestFilter:
+		typename = "IngestFilter"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByIngestFilter
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByInvestigationNotebook:
+		typename = "InvestigationNotebook"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByInvestigationNotebook
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByLayeredSettingRecord:
+		typename = "LayeredSettingRecord"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByLayeredSettingRecord
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitor:
+		typename = "Monitor"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitor
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitorActionAttachment:
+		typename = "MonitorActionAttachment"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitorActionAttachment
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitorMuteRule:
+		typename = "MonitorMuteRule"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitorMuteRule
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitorV2:
+		typename = "MonitorV2"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitorV2
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitorV2Action:
+		typename = "MonitorV2Action"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitorV2Action
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByMonitorV2MuteRule:
+		typename = "MonitorV2MuteRule"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByMonitorV2MuteRule
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByPoller:
+		typename = "Poller"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByPoller
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByPreferredPath:
+		typename = "PreferredPath"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByPreferredPath
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByReferenceTable:
+		typename = "ReferenceTable"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByReferenceTable
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedBySnowflakeOutboundShare:
+		typename = "SnowflakeOutboundShare"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedBySnowflakeOutboundShare
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByWorksheet:
+		typename = "Worksheet"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByWorksheet
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for IngestFilterManagedByWorkspaceObject: "%T"`, v)
+	}
+}
+
 // IngestInfo includes the GraphQL fields of IngestInfo requested by the fragment IngestInfo.
 // The GraphQL type's documentation follows.
 //
@@ -9113,6 +10737,18 @@ func (v *__createFolderInput) GetWorkspaceId() string { return v.WorkspaceId }
 // GetConfig returns __createFolderInput.Config, and is useful for accessing the field via an interface.
 func (v *__createFolderInput) GetConfig() FolderInput { return v.Config }
 
+// __createIngestFilterInput is used internally by genqlient
+type __createIngestFilterInput struct {
+	Workspace string            `json:"workspace"`
+	Input     IngestFilterInput `json:"input"`
+}
+
+// GetWorkspace returns __createIngestFilterInput.Workspace, and is useful for accessing the field via an interface.
+func (v *__createIngestFilterInput) GetWorkspace() string { return v.Workspace }
+
+// GetInput returns __createIngestFilterInput.Input, and is useful for accessing the field via an interface.
+func (v *__createIngestFilterInput) GetInput() IngestFilterInput { return v.Input }
+
 // __createLayeredSettingRecordInput is used internally by genqlient
 type __createLayeredSettingRecordInput struct {
 	SettingRecord LayeredSettingRecordInput `json:"settingRecord"`
@@ -9401,6 +11037,14 @@ type __deleteFolderInput struct {
 // GetId returns __deleteFolderInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteFolderInput) GetId() string { return v.Id }
 
+// __deleteIngestFilterInput is used internally by genqlient
+type __deleteIngestFilterInput struct {
+	FilterId string `json:"filterId"`
+}
+
+// GetFilterId returns __deleteIngestFilterInput.FilterId, and is useful for accessing the field via an interface.
+func (v *__deleteIngestFilterInput) GetFilterId() string { return v.FilterId }
+
 // __deleteLayeredSettingRecordInput is used internally by genqlient
 type __deleteLayeredSettingRecordInput struct {
 	Id string `json:"id"`
@@ -9668,6 +11312,22 @@ type __getFolderInput struct {
 
 // GetId returns __getFolderInput.Id, and is useful for accessing the field via an interface.
 func (v *__getFolderInput) GetId() string { return v.Id }
+
+// __getIngestFilterInput is used internally by genqlient
+type __getIngestFilterInput struct {
+	FilterId string `json:"filterId"`
+}
+
+// GetFilterId returns __getIngestFilterInput.FilterId, and is useful for accessing the field via an interface.
+func (v *__getIngestFilterInput) GetFilterId() string { return v.FilterId }
+
+// __getIngestFiltersInput is used internally by genqlient
+type __getIngestFiltersInput struct {
+	WorkspaceId string `json:"workspaceId"`
+}
+
+// GetWorkspaceId returns __getIngestFiltersInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__getIngestFiltersInput) GetWorkspaceId() string { return v.WorkspaceId }
 
 // __getLayeredSettingRecordInput is used internally by genqlient
 type __getLayeredSettingRecordInput struct {
@@ -10107,6 +11767,18 @@ func (v *__setDefaultDashboardInput) GetDsid() string { return v.Dsid }
 // GetDashid returns __setDefaultDashboardInput.Dashid, and is useful for accessing the field via an interface.
 func (v *__setDefaultDashboardInput) GetDashid() string { return v.Dashid }
 
+// __setIngestFilterEnabledInput is used internally by genqlient
+type __setIngestFilterEnabledInput struct {
+	FilterId string `json:"filterId"`
+	Enabled  bool   `json:"enabled"`
+}
+
+// GetFilterId returns __setIngestFilterEnabledInput.FilterId, and is useful for accessing the field via an interface.
+func (v *__setIngestFilterEnabledInput) GetFilterId() string { return v.FilterId }
+
+// GetEnabled returns __setIngestFilterEnabledInput.Enabled, and is useful for accessing the field via an interface.
+func (v *__setIngestFilterEnabledInput) GetEnabled() bool { return v.Enabled }
+
 // __setMonitorsForChannelInput is used internally by genqlient
 type __setMonitorsForChannelInput struct {
 	ChannelId  string   `json:"channelId"`
@@ -10280,6 +11952,18 @@ func (v *__updateFolderInput) GetId() string { return v.Id }
 
 // GetConfig returns __updateFolderInput.Config, and is useful for accessing the field via an interface.
 func (v *__updateFolderInput) GetConfig() FolderInput { return v.Config }
+
+// __updateIngestFilterInput is used internally by genqlient
+type __updateIngestFilterInput struct {
+	FilterId string            `json:"filterId"`
+	Input    IngestFilterInput `json:"input"`
+}
+
+// GetFilterId returns __updateIngestFilterInput.FilterId, and is useful for accessing the field via an interface.
+func (v *__updateIngestFilterInput) GetFilterId() string { return v.FilterId }
+
+// GetInput returns __updateIngestFilterInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateIngestFilterInput) GetInput() IngestFilterInput { return v.Input }
 
 // __updateLayeredSettingRecordInput is used internally by genqlient
 type __updateLayeredSettingRecordInput struct {
@@ -10610,6 +12294,14 @@ type createFolderResponse struct {
 
 // GetFolder returns createFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *createFolderResponse) GetFolder() Folder { return v.Folder }
+
+// createIngestFilterResponse is returned by createIngestFilter on success.
+type createIngestFilterResponse struct {
+	IngestFilter IngestFilter `json:"ingestFilter"`
+}
+
+// GetIngestFilter returns createIngestFilterResponse.IngestFilter, and is useful for accessing the field via an interface.
+func (v *createIngestFilterResponse) GetIngestFilter() IngestFilter { return v.IngestFilter }
 
 // createLayeredSettingRecordResponse is returned by createLayeredSettingRecord on success.
 type createLayeredSettingRecordResponse struct {
@@ -10965,6 +12657,14 @@ type deleteFolderResponse struct {
 // GetResultStatus returns deleteFolderResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteFolderResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
+// deleteIngestFilterResponse is returned by deleteIngestFilter on success.
+type deleteIngestFilterResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteIngestFilterResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteIngestFilterResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
 // deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult includes the requested fields of the GraphQL type DeletedLayeredSettingRecordsResult.
 type deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -11088,6 +12788,287 @@ type deleteWorkspaceResponse struct {
 
 // GetResultStatus returns deleteWorkspaceResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// errorFields includes the GraphQL fields of TaskResultError requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+//
+// errorFields is implemented by the following types:
+// errorFieldsTaskResultErrorGeneric
+// errorFieldsTaskResultErrorStageDependencyLoop
+// errorFieldsTaskResultErrorStageHasDependenciesWithErrors
+// errorFieldsTaskResultErrorRateLimit
+// errorFieldsTaskResultErrorBinding
+type errorFields interface {
+	implementsGraphQLInterfaceerrorFields()
+	// GetMessage returns the interface-field "message" from its implementation.
+	// The GraphQL interface field's documentation follows.
+	//
+	// Error message, can be decorated with message type ID, source location and other bits
+	GetMessage() string
+	// GetText returns the interface-field "text" from its implementation.
+	// The GraphQL interface field's documentation follows.
+	//
+	// Error text, returned without any decorations like message type ID
+	GetText() string
+	// GetSpan returns the interface-field "span" from its implementation.
+	// The GraphQL interface field's documentation follows.
+	//
+	// Error location in the pipeline
+	GetSpan() *errorFieldsSpanSourceSpan
+}
+
+func (v *errorFieldsTaskResultErrorGeneric) implementsGraphQLInterfaceerrorFields()             {}
+func (v *errorFieldsTaskResultErrorStageDependencyLoop) implementsGraphQLInterfaceerrorFields() {}
+func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) implementsGraphQLInterfaceerrorFields() {
+}
+func (v *errorFieldsTaskResultErrorRateLimit) implementsGraphQLInterfaceerrorFields() {}
+func (v *errorFieldsTaskResultErrorBinding) implementsGraphQLInterfaceerrorFields()   {}
+
+func __unmarshalerrorFields(b []byte, v *errorFields) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "TaskResultErrorGeneric":
+		*v = new(errorFieldsTaskResultErrorGeneric)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorStageDependencyLoop":
+		*v = new(errorFieldsTaskResultErrorStageDependencyLoop)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorStageHasDependenciesWithErrors":
+		*v = new(errorFieldsTaskResultErrorStageHasDependenciesWithErrors)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorRateLimit":
+		*v = new(errorFieldsTaskResultErrorRateLimit)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorBinding":
+		*v = new(errorFieldsTaskResultErrorBinding)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing TaskResultError.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for errorFields: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalerrorFields(v *errorFields) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *errorFieldsTaskResultErrorGeneric:
+		typename = "TaskResultErrorGeneric"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorGeneric
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorStageDependencyLoop:
+		typename = "TaskResultErrorStageDependencyLoop"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorStageDependencyLoop
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorStageHasDependenciesWithErrors:
+		typename = "TaskResultErrorStageHasDependenciesWithErrors"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorStageHasDependenciesWithErrors
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorRateLimit:
+		typename = "TaskResultErrorRateLimit"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorRateLimit
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorBinding:
+		typename = "TaskResultErrorBinding"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorBinding
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for errorFields: "%T"`, v)
+	}
+}
+
+// errorFieldsSpanSourceSpan includes the requested fields of the GraphQL type SourceSpan.
+type errorFieldsSpanSourceSpan struct {
+	Start errorFieldsSpanSourceSpanStartSourceLoc `json:"start"`
+	End   errorFieldsSpanSourceSpanEndSourceLoc   `json:"end"`
+}
+
+// GetStart returns errorFieldsSpanSourceSpan.Start, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpan) GetStart() errorFieldsSpanSourceSpanStartSourceLoc {
+	return v.Start
+}
+
+// GetEnd returns errorFieldsSpanSourceSpan.End, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpan) GetEnd() errorFieldsSpanSourceSpanEndSourceLoc { return v.End }
+
+// errorFieldsSpanSourceSpanEndSourceLoc includes the requested fields of the GraphQL type SourceLoc.
+type errorFieldsSpanSourceSpanEndSourceLoc struct {
+	Row types.Int64Scalar `json:"row"`
+	Col types.Int64Scalar `json:"col"`
+}
+
+// GetRow returns errorFieldsSpanSourceSpanEndSourceLoc.Row, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpanEndSourceLoc) GetRow() types.Int64Scalar { return v.Row }
+
+// GetCol returns errorFieldsSpanSourceSpanEndSourceLoc.Col, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpanEndSourceLoc) GetCol() types.Int64Scalar { return v.Col }
+
+// errorFieldsSpanSourceSpanStartSourceLoc includes the requested fields of the GraphQL type SourceLoc.
+type errorFieldsSpanSourceSpanStartSourceLoc struct {
+	Row types.Int64Scalar `json:"row"`
+	Col types.Int64Scalar `json:"col"`
+}
+
+// GetRow returns errorFieldsSpanSourceSpanStartSourceLoc.Row, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpanStartSourceLoc) GetRow() types.Int64Scalar { return v.Row }
+
+// GetCol returns errorFieldsSpanSourceSpanStartSourceLoc.Col, and is useful for accessing the field via an interface.
+func (v *errorFieldsSpanSourceSpanStartSourceLoc) GetCol() types.Int64Scalar { return v.Col }
+
+// errorFields includes the GraphQL fields of TaskResultErrorBinding requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorBinding struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorBinding.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorBinding) GetMessage() string { return v.Message }
+
+// GetText returns errorFieldsTaskResultErrorBinding.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorBinding) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorBinding.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorBinding) GetSpan() *errorFieldsSpanSourceSpan { return v.Span }
+
+// errorFields includes the GraphQL fields of TaskResultErrorGeneric requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorGeneric struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorGeneric.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorGeneric) GetMessage() string { return v.Message }
+
+// GetText returns errorFieldsTaskResultErrorGeneric.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorGeneric) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorGeneric.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorGeneric) GetSpan() *errorFieldsSpanSourceSpan { return v.Span }
+
+// errorFields includes the GraphQL fields of TaskResultErrorRateLimit requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorRateLimit struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorRateLimit.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorRateLimit) GetMessage() string { return v.Message }
+
+// GetText returns errorFieldsTaskResultErrorRateLimit.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorRateLimit) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorRateLimit.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorRateLimit) GetSpan() *errorFieldsSpanSourceSpan { return v.Span }
+
+// errorFields includes the GraphQL fields of TaskResultErrorStageDependencyLoop requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorStageDependencyLoop struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorStageDependencyLoop.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageDependencyLoop) GetMessage() string { return v.Message }
+
+// GetText returns errorFieldsTaskResultErrorStageDependencyLoop.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageDependencyLoop) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorStageDependencyLoop.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageDependencyLoop) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.Span
+}
+
+// errorFields includes the GraphQL fields of TaskResultErrorStageHasDependenciesWithErrors requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorStageHasDependenciesWithErrors struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) GetMessage() string {
+	return v.Message
+}
+
+// GetText returns errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorStageHasDependenciesWithErrors.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.Span
+}
 
 // getAppDataSourceResponse is returned by getAppDataSource on success.
 type getAppDataSourceResponse struct {
@@ -11393,6 +13374,34 @@ type getFolderResponse struct {
 
 // GetFolder returns getFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *getFolderResponse) GetFolder() Folder { return v.Folder }
+
+// getIngestFilterResponse is returned by getIngestFilter on success.
+type getIngestFilterResponse struct {
+	IngestFilter IngestFilter `json:"ingestFilter"`
+}
+
+// GetIngestFilter returns getIngestFilterResponse.IngestFilter, and is useful for accessing the field via an interface.
+func (v *getIngestFilterResponse) GetIngestFilter() IngestFilter { return v.IngestFilter }
+
+// getIngestFiltersIngestFilterIngestFilterSearchResult includes the requested fields of the GraphQL type IngestFilterSearchResult.
+type getIngestFiltersIngestFilterIngestFilterSearchResult struct {
+	Results []IngestFilter `json:"results"`
+}
+
+// GetResults returns getIngestFiltersIngestFilterIngestFilterSearchResult.Results, and is useful for accessing the field via an interface.
+func (v *getIngestFiltersIngestFilterIngestFilterSearchResult) GetResults() []IngestFilter {
+	return v.Results
+}
+
+// getIngestFiltersResponse is returned by getIngestFilters on success.
+type getIngestFiltersResponse struct {
+	IngestFilter getIngestFiltersIngestFilterIngestFilterSearchResult `json:"ingestFilter"`
+}
+
+// GetIngestFilter returns getIngestFiltersResponse.IngestFilter, and is useful for accessing the field via an interface.
+func (v *getIngestFiltersResponse) GetIngestFilter() getIngestFiltersIngestFilterIngestFilterSearchResult {
+	return v.IngestFilter
+}
 
 // getIngestInfoIngestCustomer includes the requested fields of the GraphQL type Customer.
 type getIngestInfoIngestCustomer struct {
@@ -12123,6 +14132,237 @@ type setDefaultDashboardResponse struct {
 // GetResultStatus returns setDefaultDashboardResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setDefaultDashboardResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
+// setIngestFilterEnabledResponse is returned by setIngestFilterEnabled on success.
+type setIngestFilterEnabledResponse struct {
+	// Enable or disable an ingest filter.
+	SetIngestFilterEnabled *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter `json:"setIngestFilterEnabled"`
+}
+
+// GetSetIngestFilterEnabled returns setIngestFilterEnabledResponse.SetIngestFilterEnabled, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledResponse) GetSetIngestFilterEnabled() *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter {
+	return v.SetIngestFilterEnabled
+}
+
+// setIngestFilterEnabledSetIngestFilterEnabledIngestFilter includes the requested fields of the GraphQL type IngestFilter.
+type setIngestFilterEnabledSetIngestFilterEnabledIngestFilter struct {
+	IngestFilter `json:"-"`
+}
+
+// GetName returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Name, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetName() string {
+	return v.IngestFilter.Name
+}
+
+// GetLayout returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Layout, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetLayout() *types.JsonObject {
+	return v.IngestFilter.Layout
+}
+
+// GetEnabled returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Enabled, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetEnabled() bool {
+	return v.IngestFilter.Enabled
+}
+
+// GetSourceDatasetID returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.SourceDatasetID, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetSourceDatasetID() string {
+	return v.IngestFilter.SourceDatasetID
+}
+
+// GetId returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Id, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetId() string {
+	return v.IngestFilter.Id
+}
+
+// GetDropRate returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.DropRate, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetDropRate() float64 {
+	return v.IngestFilter.DropRate
+}
+
+// GetPipeline returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Pipeline, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetPipeline() string {
+	return v.IngestFilter.Pipeline
+}
+
+// GetWorkspaceId returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetWorkspaceId() string {
+	return v.IngestFilter.WorkspaceId
+}
+
+// GetIconUrl returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.IconUrl, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetIconUrl() *string {
+	return v.IngestFilter.IconUrl
+}
+
+// GetDescription returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Description, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetDescription() *string {
+	return v.IngestFilter.Description
+}
+
+// GetManagedById returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.ManagedById, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetManagedById() *string {
+	return v.IngestFilter.ManagedById
+}
+
+// GetManagedBy returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.ManagedBy, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetManagedBy() *IngestFilterManagedByWorkspaceObject {
+	return v.IngestFilter.ManagedBy
+}
+
+// GetFolderId returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.FolderId, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetFolderId() string {
+	return v.IngestFilter.FolderId
+}
+
+// GetCreatedBy returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.CreatedBy, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetCreatedBy() types.UserIdScalar {
+	return v.IngestFilter.CreatedBy
+}
+
+// GetCreatedDate returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.CreatedDate, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetCreatedDate() types.TimeScalar {
+	return v.IngestFilter.CreatedDate
+}
+
+// GetUpdatedBy returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.UpdatedBy, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetUpdatedBy() types.UserIdScalar {
+	return v.IngestFilter.UpdatedBy
+}
+
+// GetUpdatedDate returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.UpdatedDate, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetUpdatedDate() types.TimeScalar {
+	return v.IngestFilter.UpdatedDate
+}
+
+// GetErrors returns setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.Errors, and is useful for accessing the field via an interface.
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) GetErrors() []IngestFilterErrorsTaskResultError {
+	return v.IngestFilter.Errors
+}
+
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*setIngestFilterEnabledSetIngestFilterEnabledIngestFilter
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.setIngestFilterEnabledSetIngestFilterEnabledIngestFilter = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.IngestFilter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalsetIngestFilterEnabledSetIngestFilterEnabledIngestFilter struct {
+	Name string `json:"name"`
+
+	Layout *types.JsonObject `json:"layout"`
+
+	Enabled bool `json:"enabled"`
+
+	SourceDatasetID string `json:"sourceDatasetID"`
+
+	Id string `json:"id"`
+
+	DropRate float64 `json:"dropRate"`
+
+	Pipeline string `json:"pipeline"`
+
+	WorkspaceId string `json:"workspaceId"`
+
+	IconUrl *string `json:"iconUrl"`
+
+	Description *string `json:"description"`
+
+	ManagedById *string `json:"managedById"`
+
+	ManagedBy json.RawMessage `json:"managedBy"`
+
+	FolderId string `json:"folderId"`
+
+	CreatedBy types.UserIdScalar `json:"createdBy"`
+
+	CreatedDate types.TimeScalar `json:"createdDate"`
+
+	UpdatedBy types.UserIdScalar `json:"updatedBy"`
+
+	UpdatedDate types.TimeScalar `json:"updatedDate"`
+
+	Errors []json.RawMessage `json:"errors"`
+}
+
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *setIngestFilterEnabledSetIngestFilterEnabledIngestFilter) __premarshalJSON() (*__premarshalsetIngestFilterEnabledSetIngestFilterEnabledIngestFilter, error) {
+	var retval __premarshalsetIngestFilterEnabledSetIngestFilterEnabledIngestFilter
+
+	retval.Name = v.IngestFilter.Name
+	retval.Layout = v.IngestFilter.Layout
+	retval.Enabled = v.IngestFilter.Enabled
+	retval.SourceDatasetID = v.IngestFilter.SourceDatasetID
+	retval.Id = v.IngestFilter.Id
+	retval.DropRate = v.IngestFilter.DropRate
+	retval.Pipeline = v.IngestFilter.Pipeline
+	retval.WorkspaceId = v.IngestFilter.WorkspaceId
+	retval.IconUrl = v.IngestFilter.IconUrl
+	retval.Description = v.IngestFilter.Description
+	retval.ManagedById = v.IngestFilter.ManagedById
+	{
+
+		dst := &retval.ManagedBy
+		src := v.IngestFilter.ManagedBy
+		if src != nil {
+			var err error
+			*dst, err = __marshalIngestFilterManagedByWorkspaceObject(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.IngestFilter.ManagedBy: %w", err)
+			}
+		}
+	}
+	retval.FolderId = v.IngestFilter.FolderId
+	retval.CreatedBy = v.IngestFilter.CreatedBy
+	retval.CreatedDate = v.IngestFilter.CreatedDate
+	retval.UpdatedBy = v.IngestFilter.UpdatedBy
+	retval.UpdatedDate = v.IngestFilter.UpdatedDate
+	{
+
+		dst := &retval.Errors
+		src := v.IngestFilter.Errors
+		*dst = make(
+			[]json.RawMessage,
+			len(src))
+		for i, src := range src {
+			dst := &(*dst)[i]
+			var err error
+			*dst, err = __marshalIngestFilterErrorsTaskResultError(
+				&src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal setIngestFilterEnabledSetIngestFilterEnabledIngestFilter.IngestFilter.Errors: %w", err)
+			}
+		}
+	}
+	return &retval, nil
+}
+
 // setMonitorsForChannelResponse is returned by setMonitorsForChannel on success.
 type setMonitorsForChannelResponse struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -12324,6 +14564,14 @@ type updateFolderResponse struct {
 
 // GetFolder returns updateFolderResponse.Folder, and is useful for accessing the field via an interface.
 func (v *updateFolderResponse) GetFolder() Folder { return v.Folder }
+
+// updateIngestFilterResponse is returned by updateIngestFilter on success.
+type updateIngestFilterResponse struct {
+	IngestFilter IngestFilter `json:"ingestFilter"`
+}
+
+// GetIngestFilter returns updateIngestFilterResponse.IngestFilter, and is useful for accessing the field via an interface.
+func (v *updateIngestFilterResponse) GetIngestFilter() IngestFilter { return v.IngestFilter }
 
 // updateLayeredSettingRecordResponse is returned by updateLayeredSettingRecord on success.
 type updateLayeredSettingRecordResponse struct {
@@ -13202,6 +15450,83 @@ func createFolder(
 	var err error
 
 	var data createFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by createIngestFilter.
+const createIngestFilter_Operation = `
+mutation createIngestFilter ($workspace: ObjectId!, $input: IngestFilterInput!) {
+	ingestFilter: createIngestFilter(workspaceId: $workspace, input: $input) {
+		... IngestFilter
+	}
+}
+fragment IngestFilter on IngestFilter {
+	name
+	layout
+	enabled
+	sourceDatasetID
+	id
+	dropRate
+	pipeline
+	workspaceId
+	iconUrl
+	description
+	managedById
+	managedBy {
+		__typename
+		id
+	}
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	errors {
+		__typename
+		... errorFields
+	}
+}
+fragment errorFields on TaskResultError {
+	message
+	text
+	span {
+		start {
+			row
+			col
+		}
+		end {
+			row
+			col
+		}
+	}
+}
+`
+
+func createIngestFilter(
+	ctx context.Context,
+	client graphql.Client,
+	workspace string,
+	input IngestFilterInput,
+) (*createIngestFilterResponse, error) {
+	req := &graphql.Request{
+		OpName: "createIngestFilter",
+		Query:  createIngestFilter_Operation,
+		Variables: &__createIngestFilterInput{
+			Workspace: workspace,
+			Input:     input,
+		},
+	}
+	var err error
+
+	var data createIngestFilterResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -15055,6 +17380,46 @@ func deleteFolder(
 	return &data, err
 }
 
+// The query or mutation executed by deleteIngestFilter.
+const deleteIngestFilter_Operation = `
+mutation deleteIngestFilter ($filterId: ObjectId!) {
+	resultStatus: deleteIngestFilter(id: $filterId) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func deleteIngestFilter(
+	ctx context.Context,
+	client graphql.Client,
+	filterId string,
+) (*deleteIngestFilterResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteIngestFilter",
+		Query:  deleteIngestFilter_Operation,
+		Variables: &__deleteIngestFilterInput{
+			FilterId: filterId,
+		},
+	}
+	var err error
+
+	var data deleteIngestFilterResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by deleteLayeredSettingRecord.
 const deleteLayeredSettingRecord_Operation = `
 mutation deleteLayeredSettingRecord ($id: ObjectId!) {
@@ -16711,6 +19076,158 @@ func getFolder(
 	var err error
 
 	var data getFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getIngestFilter.
+const getIngestFilter_Operation = `
+query getIngestFilter ($filterId: ObjectId!) {
+	ingestFilter(id: $filterId) {
+		... IngestFilter
+	}
+}
+fragment IngestFilter on IngestFilter {
+	name
+	layout
+	enabled
+	sourceDatasetID
+	id
+	dropRate
+	pipeline
+	workspaceId
+	iconUrl
+	description
+	managedById
+	managedBy {
+		__typename
+		id
+	}
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	errors {
+		__typename
+		... errorFields
+	}
+}
+fragment errorFields on TaskResultError {
+	message
+	text
+	span {
+		start {
+			row
+			col
+		}
+		end {
+			row
+			col
+		}
+	}
+}
+`
+
+func getIngestFilter(
+	ctx context.Context,
+	client graphql.Client,
+	filterId string,
+) (*getIngestFilterResponse, error) {
+	req := &graphql.Request{
+		OpName: "getIngestFilter",
+		Query:  getIngestFilter_Operation,
+		Variables: &__getIngestFilterInput{
+			FilterId: filterId,
+		},
+	}
+	var err error
+
+	var data getIngestFilterResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getIngestFilters.
+const getIngestFilters_Operation = `
+query getIngestFilters ($workspaceId: ObjectId!) {
+	ingestFilter: searchIngestFilter(workspaceId: $workspaceId) {
+		results {
+			... IngestFilter
+		}
+	}
+}
+fragment IngestFilter on IngestFilter {
+	name
+	layout
+	enabled
+	sourceDatasetID
+	id
+	dropRate
+	pipeline
+	workspaceId
+	iconUrl
+	description
+	managedById
+	managedBy {
+		__typename
+		id
+	}
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	errors {
+		__typename
+		... errorFields
+	}
+}
+fragment errorFields on TaskResultError {
+	message
+	text
+	span {
+		start {
+			row
+			col
+		}
+		end {
+			row
+			col
+		}
+	}
+}
+`
+
+func getIngestFilters(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+) (*getIngestFiltersResponse, error) {
+	req := &graphql.Request{
+		OpName: "getIngestFilters",
+		Query:  getIngestFilters_Operation,
+		Variables: &__getIngestFiltersInput{
+			WorkspaceId: workspaceId,
+		},
+	}
+	var err error
+
+	var data getIngestFiltersResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -20488,6 +23005,83 @@ func setDefaultDashboard(
 	return &data, err
 }
 
+// The query or mutation executed by setIngestFilterEnabled.
+const setIngestFilterEnabled_Operation = `
+mutation setIngestFilterEnabled ($filterId: ObjectId!, $enabled: Boolean!) {
+	setIngestFilterEnabled(id: $filterId, enabled: $enabled) {
+		... IngestFilter
+	}
+}
+fragment IngestFilter on IngestFilter {
+	name
+	layout
+	enabled
+	sourceDatasetID
+	id
+	dropRate
+	pipeline
+	workspaceId
+	iconUrl
+	description
+	managedById
+	managedBy {
+		__typename
+		id
+	}
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	errors {
+		__typename
+		... errorFields
+	}
+}
+fragment errorFields on TaskResultError {
+	message
+	text
+	span {
+		start {
+			row
+			col
+		}
+		end {
+			row
+			col
+		}
+	}
+}
+`
+
+func setIngestFilterEnabled(
+	ctx context.Context,
+	client graphql.Client,
+	filterId string,
+	enabled bool,
+) (*setIngestFilterEnabledResponse, error) {
+	req := &graphql.Request{
+		OpName: "setIngestFilterEnabled",
+		Query:  setIngestFilterEnabled_Operation,
+		Variables: &__setIngestFilterEnabledInput{
+			FilterId: filterId,
+			Enabled:  enabled,
+		},
+	}
+	var err error
+
+	var data setIngestFilterEnabledResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by setMonitorsForChannel.
 const setMonitorsForChannel_Operation = `
 mutation setMonitorsForChannel ($channelId: ObjectId!, $monitorIds: [ObjectId!]!) {
@@ -21250,6 +23844,83 @@ func updateFolder(
 	var err error
 
 	var data updateFolderResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by updateIngestFilter.
+const updateIngestFilter_Operation = `
+mutation updateIngestFilter ($filterId: ObjectId!, $input: IngestFilterInput!) {
+	ingestFilter: updateIngestFilter(id: $filterId, input: $input) {
+		... IngestFilter
+	}
+}
+fragment IngestFilter on IngestFilter {
+	name
+	layout
+	enabled
+	sourceDatasetID
+	id
+	dropRate
+	pipeline
+	workspaceId
+	iconUrl
+	description
+	managedById
+	managedBy {
+		__typename
+		id
+	}
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	errors {
+		__typename
+		... errorFields
+	}
+}
+fragment errorFields on TaskResultError {
+	message
+	text
+	span {
+		start {
+			row
+			col
+		}
+		end {
+			row
+			col
+		}
+	}
+}
+`
+
+func updateIngestFilter(
+	ctx context.Context,
+	client graphql.Client,
+	filterId string,
+	input IngestFilterInput,
+) (*updateIngestFilterResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateIngestFilter",
+		Query:  updateIngestFilter_Operation,
+		Variables: &__updateIngestFilterInput{
+			FilterId: filterId,
+			Input:    input,
+		},
+	}
+	var err error
+
+	var data updateIngestFilterResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
