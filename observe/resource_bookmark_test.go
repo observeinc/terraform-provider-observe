@@ -36,11 +36,11 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
 					target = observe_datastream.test.dataset
-					name   = "Test"
+					name   = "%[1]s"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
 				),
 			},
 			{
@@ -48,7 +48,7 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group    = observe_bookmark_group.a.oid
 					target   = observe_datastream.test.dataset
-					name     = "Test"
+					name     = "%[1]s"
 					icon_url = "star"
 				}
 				`, randomPrefix),
@@ -72,7 +72,7 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
 					target = observe_datastream.test.dataset
-					name   = "Test"
+					name   = "%[1]s"
 				}
 				`, randomPrefix),
 			},
@@ -81,7 +81,7 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.b.oid
 					target = observe_datastream.test.dataset
-					name   = "Test"
+					name   = "%[1]s"
 				}
 				`, randomPrefix),
 			},
@@ -101,11 +101,11 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
 					target = observe_dashboard.first.oid
-					name   = "Test"
+					name   = "%[1]s"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
 					resource.TestCheckResourceAttrPair("observe_bookmark.bm", "target", "observe_dashboard.first", "oid"),
 				),
 			},
@@ -114,7 +114,7 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group    = observe_bookmark_group.a.oid
 					target   = observe_dashboard.first.oid
-					name     = "Test"
+					name     = "%[1]s"
 					icon_url = "star"
 				}
 				`, randomPrefix),
@@ -139,11 +139,11 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
 					target = observe_datastream.test.dataset
-					name   = "Test"
+					name   = "%[1]s"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", ""),
 				),
 			},
@@ -152,12 +152,12 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group         = observe_bookmark_group.a.oid
 					target        = observe_datastream.test.dataset
-					name          = "Test"
+					name          = "%[1]s"
 					bookmark_kind = "log_explorer"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", "log_explorer"),
 				),
 			},
@@ -166,12 +166,12 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 				resource "observe_bookmark" "bm" {
 					group         = observe_bookmark_group.a.oid
 					target        = observe_datastream.test.dataset
-					name          = "Test"
+					name          = "%[1]s"
 					bookmark_kind = "metric_explorer"
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", "Test"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_bookmark.bm", "bookmark_kind", "metric_explorer"),
 				),
 			},

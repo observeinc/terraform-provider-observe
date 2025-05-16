@@ -241,7 +241,7 @@ func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor" "sample_one" {
 					workspace = data.observe_workspace.default.oid
-					name      = "owengoebel-sample-monitor"
+					name      = "%[1]s-owengoebel-sample-monitor"
 					freshness = "4m"
 
 					comment = "a descriptive comment"
@@ -288,7 +288,7 @@ func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.
 				Config: fmt.Sprintf(monitorActionAttachmentConfigPreamble+`
 				resource "observe_monitor" "sample_two" {
 					workspace = data.observe_workspace.default.oid
-					name      = "owengoebel-sample-monitor"
+					name      = "%[1]s-owengoebel-sample-monitor"
 					freshness = "4m"
 
 					comment = "a descriptive comment"
