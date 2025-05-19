@@ -53,6 +53,7 @@ const (
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
 	TypeReferenceTable          Type = "referencetable"
 	TypeReport                  Type = "report"
+	TypeIngestFilter            Type = "ingestfilter"
 )
 
 func (t Type) IsValid() bool {
@@ -91,6 +92,7 @@ func (t Type) IsValid() bool {
 	case TypeDatasetOutboundShare:
 	case TypeReferenceTable:
 	case TypeReport:
+	case TypeIngestFilter:
 	default:
 		return false
 	}
@@ -295,4 +297,8 @@ func RbacStatementOid(id string) OID {
 
 func SnowflakeOutboundShareOid(id string) OID {
 	return OID{Id: id, Type: TypeSnowflakeOutboundShare}
+}
+
+func IngestFilterOid(id string) OID {
+	return OID{Id: id, Type: TypeIngestFilter}
 }

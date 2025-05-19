@@ -1,0 +1,92 @@
+fragment errorFields on TaskResultError{
+    message
+    text
+    span{
+        start{
+            row
+            col
+        }
+        end{
+            row
+            col
+        }
+    }
+}
+
+fragment IngestFilter on IngestFilter{
+    name
+    layout
+    enabled
+    sourceDatasetID
+    id
+    dropRate
+    pipeline
+    workspaceId
+    iconUrl
+    description
+    managedById
+    managedBy{
+        id
+    }
+    folderId
+    createdBy
+    createdDate
+    updatedBy
+    updatedDate
+    errors {
+        ...errorFields
+    }
+}
+
+mutation createIngestFilter($workspace: ObjectId!, $input: IngestFilterInput!){
+  # @genqlient(flatten: true)
+  ingestFilter: createIngestFilter(
+    workspaceId:$workspace
+    input: $input
+  ){
+    ...IngestFilter
+  }
+}
+
+mutation setIngestFilterEnabled($filterId: ObjectId!, $enabled: Boolean!){
+  setIngestFilterEnabled(
+    id:$filterId
+    enabled:$enabled
+  ){
+  	...IngestFilter
+  }
+}
+
+mutation updateIngestFilter($filterId: ObjectId!, $input: IngestFilterInput!){
+  # @genqlient(flatten: true)
+  ingestFilter: updateIngestFilter(
+    id: $filterId
+    input: $input
+  ){
+    ...IngestFilter
+  }
+}
+
+mutation deleteIngestFilter($filterId: ObjectId!){
+  # @genqlient(flatten: true)
+  resultStatus: deleteIngestFilter(id:$filterId){
+    ...ResultStatus
+  }
+}
+
+query getIngestFilter($filterId:ObjectId!){
+  # @genqlient(flatten: true)
+  ingestFilter: ingestFilter(id:$filterId){
+    ...IngestFilter
+  }
+}
+
+query getIngestFilters($workspaceId:ObjectId!){
+  ingestFilter: searchIngestFilter(workspaceId:$workspaceId){
+    # @genqlient(flatten: true)
+    results{
+      ...IngestFilter
+    }
+  }
+}
+    

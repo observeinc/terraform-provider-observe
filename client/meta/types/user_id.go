@@ -19,7 +19,7 @@ func (u *UserIdScalar) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("could not parse userId as JSON string: %w", err)
 	}
 	uid, err := strconv.ParseInt(s, 10, 64)
-	if err != nil || uid < 1 {
+	if err != nil {
 		return fmt.Errorf("invalid userId %q: %w", s, err)
 	}
 	*u = UserIdScalar(uid)
