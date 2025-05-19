@@ -1588,6 +1588,25 @@ func (c *Client) GetReport(ctx context.Context, id string) (*rest.ReportsResourc
 	return c.Rest.GetReport(ctx, id)
 }
 
+/**
+ * Ingest tokens
+ */
+func (c *Client) CreateIngestToken(ctx context.Context, workspace string, input meta.IngestTokenInput) (*meta.IngestToken, error) {
+	return c.Meta.CreateIngestToken(ctx, workspace, input)
+}
+
+func (c *Client) GetIngestToken(ctx context.Context, id string) (*meta.IngestToken, error) {
+	return c.Meta.GetIngestToken(ctx, id)
+}
+
+func (c *Client) UpdateIngestToken(ctx context.Context, id string, input meta.IngestTokenInput) (*meta.IngestToken, error) {
+	return c.Meta.UpdateIngestToken(ctx, id, input)
+}
+
+func (c *Client) DeleteIngestToken(ctx context.Context, id string) error {
+	return c.Meta.DeleteIngestToken(ctx, id)
+}
+
 func (c *Client) CreateIngestFilter(ctx context.Context, workspace string, input *meta.IngestFilterInput) (*meta.IngestFilter, error) {
 	return c.Meta.CreateIngestFilter(ctx, workspace, input)
 }

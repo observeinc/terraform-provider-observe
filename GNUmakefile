@@ -98,7 +98,7 @@ testacc:
 		--rerun-fails=3 \
 		-- \
 		-parallel=5 \
-		-timeout 30m \
+		-timeout 45m \
 		$(TESTARGS)
 vet:
 	@echo "go vet ."

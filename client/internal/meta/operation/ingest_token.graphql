@@ -1,0 +1,46 @@
+fragment IngestToken on IngestToken {
+  id
+  workspaceId
+  name
+  description
+  disabled
+  secret
+}
+
+mutation createIngestToken($workspaceId: ObjectId!, $input: IngestTokenInput!) {
+  # @genqlient(flatten: true)
+  ingestToken: createIngestToken(
+    workspaceId: $workspaceId,
+    input: $input
+  ) {
+    ...IngestToken
+  }
+}
+
+query getIngestToken($id: ObjectId!) {
+  # @genqlient(flatten: true)
+  ingestToken: ingestToken(
+    id: $id
+  ) {
+    ...IngestToken
+  }
+}
+
+mutation updateIngestToken($id: ObjectId!, $input: IngestTokenInput!) {
+  # @genqlient(flatten: true)
+  ingestToken: updateIngestToken(
+    id: $id,
+    input: $input
+  ) {
+    ...IngestToken
+  }
+}
+
+mutation deleteIngestToken($id: ObjectId!) {
+  # @genqlient(flatten: true)
+  resultStatus: deleteIngestToken(
+    id: $id,
+  ) {
+    ...ResultStatus
+  }
+}

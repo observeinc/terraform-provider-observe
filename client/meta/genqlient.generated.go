@@ -3806,6 +3806,18 @@ func (v *IngestFilterManagedByIngestFilter) GetTypename() *string { return v.Typ
 // GetId returns IngestFilterManagedByIngestFilter.Id, and is useful for accessing the field via an interface.
 func (v *IngestFilterManagedByIngestFilter) GetId() string { return v.Id }
 
+// IngestFilterManagedByIngestToken includes the requested fields of the GraphQL type IngestToken.
+type IngestFilterManagedByIngestToken struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByIngestToken.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIngestToken) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByIngestToken.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByIngestToken) GetId() string { return v.Id }
+
 // IngestFilterManagedByInvestigationNotebook includes the requested fields of the GraphQL type InvestigationNotebook.
 type IngestFilterManagedByInvestigationNotebook struct {
 	Typename *string `json:"__typename"`
@@ -4000,6 +4012,7 @@ func (v *IngestFilterManagedByWorksheet) GetId() string { return v.Id }
 // IngestFilterManagedByFolder
 // IngestFilterManagedByIncident
 // IngestFilterManagedByIngestFilter
+// IngestFilterManagedByIngestToken
 // IngestFilterManagedByInvestigationNotebook
 // IngestFilterManagedByLayeredSettingRecord
 // IngestFilterManagedByMonitor
@@ -4052,6 +4065,8 @@ func (v *IngestFilterManagedByFolder) implementsGraphQLInterfaceIngestFilterMana
 func (v *IngestFilterManagedByIncident) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
 func (v *IngestFilterManagedByIngestFilter) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByIngestToken) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
 func (v *IngestFilterManagedByInvestigationNotebook) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
@@ -4138,6 +4153,9 @@ func __unmarshalIngestFilterManagedByWorkspaceObject(b []byte, v *IngestFilterMa
 		return json.Unmarshal(b, *v)
 	case "IngestFilter":
 		*v = new(IngestFilterManagedByIngestFilter)
+		return json.Unmarshal(b, *v)
+	case "IngestToken":
+		*v = new(IngestFilterManagedByIngestToken)
 		return json.Unmarshal(b, *v)
 	case "InvestigationNotebook":
 		*v = new(IngestFilterManagedByInvestigationNotebook)
@@ -4311,6 +4329,14 @@ func __marshalIngestFilterManagedByWorkspaceObject(v *IngestFilterManagedByWorks
 			*IngestFilterManagedByIngestFilter
 		}{typename, v}
 		return json.Marshal(result)
+	case *IngestFilterManagedByIngestToken:
+		typename = "IngestToken"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByIngestToken
+		}{typename, v}
+		return json.Marshal(result)
 	case *IngestFilterManagedByInvestigationNotebook:
 		typename = "InvestigationNotebook"
 
@@ -4446,6 +4472,62 @@ func (v *IngestInfo) GetScheme() string { return v.Scheme }
 
 // GetPort returns IngestInfo.Port, and is useful for accessing the field via an interface.
 func (v *IngestInfo) GetPort() string { return v.Port }
+
+// IngestToken includes the GraphQL fields of IngestToken requested by the fragment IngestToken.
+type IngestToken struct {
+	Id          string  `json:"id"`
+	WorkspaceId string  `json:"workspaceId"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Disabled    *bool   `json:"disabled"`
+	// Authtoken secret associated with this ingest token, only populated for creates
+	Secret *string `json:"secret"`
+}
+
+// GetId returns IngestToken.Id, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetId() string { return v.Id }
+
+// GetWorkspaceId returns IngestToken.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns IngestToken.Name, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetName() string { return v.Name }
+
+// GetDescription returns IngestToken.Description, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetDescription() *string { return v.Description }
+
+// GetDisabled returns IngestToken.Disabled, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetDisabled() *bool { return v.Disabled }
+
+// GetSecret returns IngestToken.Secret, and is useful for accessing the field via an interface.
+func (v *IngestToken) GetSecret() *string { return v.Secret }
+
+type IngestTokenInput struct {
+	Disabled    *bool   `json:"disabled"`
+	Name        *string `json:"name"`
+	IconUrl     *string `json:"iconUrl"`
+	Description *string `json:"description"`
+	ManagedById *string `json:"managedById"`
+	FolderId    *string `json:"folderId"`
+}
+
+// GetDisabled returns IngestTokenInput.Disabled, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetDisabled() *bool { return v.Disabled }
+
+// GetName returns IngestTokenInput.Name, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetName() *string { return v.Name }
+
+// GetIconUrl returns IngestTokenInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns IngestTokenInput.Description, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns IngestTokenInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns IngestTokenInput.FolderId, and is useful for accessing the field via an interface.
+func (v *IngestTokenInput) GetFolderId() *string { return v.FolderId }
 
 type InputDefinitionInput struct {
 	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
@@ -10749,6 +10831,18 @@ func (v *__createIngestFilterInput) GetWorkspace() string { return v.Workspace }
 // GetInput returns __createIngestFilterInput.Input, and is useful for accessing the field via an interface.
 func (v *__createIngestFilterInput) GetInput() IngestFilterInput { return v.Input }
 
+// __createIngestTokenInput is used internally by genqlient
+type __createIngestTokenInput struct {
+	WorkspaceId string           `json:"workspaceId"`
+	Input       IngestTokenInput `json:"input"`
+}
+
+// GetWorkspaceId returns __createIngestTokenInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__createIngestTokenInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetInput returns __createIngestTokenInput.Input, and is useful for accessing the field via an interface.
+func (v *__createIngestTokenInput) GetInput() IngestTokenInput { return v.Input }
+
 // __createLayeredSettingRecordInput is used internally by genqlient
 type __createLayeredSettingRecordInput struct {
 	SettingRecord LayeredSettingRecordInput `json:"settingRecord"`
@@ -11045,6 +11139,14 @@ type __deleteIngestFilterInput struct {
 // GetFilterId returns __deleteIngestFilterInput.FilterId, and is useful for accessing the field via an interface.
 func (v *__deleteIngestFilterInput) GetFilterId() string { return v.FilterId }
 
+// __deleteIngestTokenInput is used internally by genqlient
+type __deleteIngestTokenInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteIngestTokenInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteIngestTokenInput) GetId() string { return v.Id }
+
 // __deleteLayeredSettingRecordInput is used internally by genqlient
 type __deleteLayeredSettingRecordInput struct {
 	Id string `json:"id"`
@@ -11328,6 +11430,14 @@ type __getIngestFiltersInput struct {
 
 // GetWorkspaceId returns __getIngestFiltersInput.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *__getIngestFiltersInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// __getIngestTokenInput is used internally by genqlient
+type __getIngestTokenInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getIngestTokenInput.Id, and is useful for accessing the field via an interface.
+func (v *__getIngestTokenInput) GetId() string { return v.Id }
 
 // __getLayeredSettingRecordInput is used internally by genqlient
 type __getLayeredSettingRecordInput struct {
@@ -11965,6 +12075,18 @@ func (v *__updateIngestFilterInput) GetFilterId() string { return v.FilterId }
 // GetInput returns __updateIngestFilterInput.Input, and is useful for accessing the field via an interface.
 func (v *__updateIngestFilterInput) GetInput() IngestFilterInput { return v.Input }
 
+// __updateIngestTokenInput is used internally by genqlient
+type __updateIngestTokenInput struct {
+	Id    string           `json:"id"`
+	Input IngestTokenInput `json:"input"`
+}
+
+// GetId returns __updateIngestTokenInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateIngestTokenInput) GetId() string { return v.Id }
+
+// GetInput returns __updateIngestTokenInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateIngestTokenInput) GetInput() IngestTokenInput { return v.Input }
+
 // __updateLayeredSettingRecordInput is used internally by genqlient
 type __updateLayeredSettingRecordInput struct {
 	SettingRecord LayeredSettingRecordInput `json:"settingRecord"`
@@ -12302,6 +12424,14 @@ type createIngestFilterResponse struct {
 
 // GetIngestFilter returns createIngestFilterResponse.IngestFilter, and is useful for accessing the field via an interface.
 func (v *createIngestFilterResponse) GetIngestFilter() IngestFilter { return v.IngestFilter }
+
+// createIngestTokenResponse is returned by createIngestToken on success.
+type createIngestTokenResponse struct {
+	IngestToken IngestToken `json:"ingestToken"`
+}
+
+// GetIngestToken returns createIngestTokenResponse.IngestToken, and is useful for accessing the field via an interface.
+func (v *createIngestTokenResponse) GetIngestToken() IngestToken { return v.IngestToken }
 
 // createLayeredSettingRecordResponse is returned by createLayeredSettingRecord on success.
 type createLayeredSettingRecordResponse struct {
@@ -12664,6 +12794,14 @@ type deleteIngestFilterResponse struct {
 
 // GetResultStatus returns deleteIngestFilterResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteIngestFilterResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteIngestTokenResponse is returned by deleteIngestToken on success.
+type deleteIngestTokenResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteIngestTokenResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteIngestTokenResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult includes the requested fields of the GraphQL type DeletedLayeredSettingRecordsResult.
 type deleteLayeredSettingRecordDeleteLayeredSettingRecordDeletedLayeredSettingRecordsResult struct {
@@ -13418,6 +13556,14 @@ type getIngestInfoResponse struct {
 
 // GetIngest returns getIngestInfoResponse.Ingest, and is useful for accessing the field via an interface.
 func (v *getIngestInfoResponse) GetIngest() *getIngestInfoIngestCustomer { return v.Ingest }
+
+// getIngestTokenResponse is returned by getIngestToken on success.
+type getIngestTokenResponse struct {
+	IngestToken IngestToken `json:"ingestToken"`
+}
+
+// GetIngestToken returns getIngestTokenResponse.IngestToken, and is useful for accessing the field via an interface.
+func (v *getIngestTokenResponse) GetIngestToken() IngestToken { return v.IngestToken }
 
 // getLayeredSettingRecordResponse is returned by getLayeredSettingRecord on success.
 type getLayeredSettingRecordResponse struct {
@@ -14573,6 +14719,14 @@ type updateIngestFilterResponse struct {
 // GetIngestFilter returns updateIngestFilterResponse.IngestFilter, and is useful for accessing the field via an interface.
 func (v *updateIngestFilterResponse) GetIngestFilter() IngestFilter { return v.IngestFilter }
 
+// updateIngestTokenResponse is returned by updateIngestToken on success.
+type updateIngestTokenResponse struct {
+	IngestToken IngestToken `json:"ingestToken"`
+}
+
+// GetIngestToken returns updateIngestTokenResponse.IngestToken, and is useful for accessing the field via an interface.
+func (v *updateIngestTokenResponse) GetIngestToken() IngestToken { return v.IngestToken }
+
 // updateLayeredSettingRecordResponse is returned by updateLayeredSettingRecord on success.
 type updateLayeredSettingRecordResponse struct {
 	LayeredSettingRecord LayeredSettingRecord `json:"layeredSettingRecord"`
@@ -15527,6 +15681,51 @@ func createIngestFilter(
 	var err error
 
 	var data createIngestFilterResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by createIngestToken.
+const createIngestToken_Operation = `
+mutation createIngestToken ($workspaceId: ObjectId!, $input: IngestTokenInput!) {
+	ingestToken: createIngestToken(workspaceId: $workspaceId, input: $input) {
+		... IngestToken
+	}
+}
+fragment IngestToken on IngestToken {
+	id
+	workspaceId
+	name
+	description
+	disabled
+	secret
+}
+`
+
+func createIngestToken(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	input IngestTokenInput,
+) (*createIngestTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "createIngestToken",
+		Query:  createIngestToken_Operation,
+		Variables: &__createIngestTokenInput{
+			WorkspaceId: workspaceId,
+			Input:       input,
+		},
+	}
+	var err error
+
+	var data createIngestTokenResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -17420,6 +17619,46 @@ func deleteIngestFilter(
 	return &data, err
 }
 
+// The query or mutation executed by deleteIngestToken.
+const deleteIngestToken_Operation = `
+mutation deleteIngestToken ($id: ObjectId!) {
+	resultStatus: deleteIngestToken(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func deleteIngestToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteIngestTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteIngestToken",
+		Query:  deleteIngestToken_Operation,
+		Variables: &__deleteIngestTokenInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteIngestTokenResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by deleteLayeredSettingRecord.
 const deleteLayeredSettingRecord_Operation = `
 mutation deleteLayeredSettingRecord ($id: ObjectId!) {
@@ -19267,6 +19506,49 @@ func getIngestInfo(
 	var err error
 
 	var data getIngestInfoResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getIngestToken.
+const getIngestToken_Operation = `
+query getIngestToken ($id: ObjectId!) {
+	ingestToken(id: $id) {
+		... IngestToken
+	}
+}
+fragment IngestToken on IngestToken {
+	id
+	workspaceId
+	name
+	description
+	disabled
+	secret
+}
+`
+
+func getIngestToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getIngestTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "getIngestToken",
+		Query:  getIngestToken_Operation,
+		Variables: &__getIngestTokenInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getIngestTokenResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -23921,6 +24203,51 @@ func updateIngestFilter(
 	var err error
 
 	var data updateIngestFilterResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by updateIngestToken.
+const updateIngestToken_Operation = `
+mutation updateIngestToken ($id: ObjectId!, $input: IngestTokenInput!) {
+	ingestToken: updateIngestToken(id: $id, input: $input) {
+		... IngestToken
+	}
+}
+fragment IngestToken on IngestToken {
+	id
+	workspaceId
+	name
+	description
+	disabled
+	secret
+}
+`
+
+func updateIngestToken(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input IngestTokenInput,
+) (*updateIngestTokenResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateIngestToken",
+		Query:  updateIngestToken_Operation,
+		Variables: &__updateIngestTokenInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateIngestTokenResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
