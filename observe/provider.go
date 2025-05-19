@@ -190,6 +190,7 @@ func Provider() *schema.Provider {
 			"observe_reference_table":           resourceReferenceTable(),
 			"observe_report":                    resourceReport(),
 			"observe_drop_filter":               resourceDropFilter(),
+			"observe_ingest_token":              resourceIngestToken(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

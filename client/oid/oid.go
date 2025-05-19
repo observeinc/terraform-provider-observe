@@ -54,6 +54,7 @@ const (
 	TypeReferenceTable          Type = "referencetable"
 	TypeReport                  Type = "report"
 	TypeIngestFilter            Type = "ingestfilter"
+	TypeIngestToken             Type = "ingesttoken"
 )
 
 func (t Type) IsValid() bool {
@@ -301,4 +302,8 @@ func SnowflakeOutboundShareOid(id string) OID {
 
 func IngestFilterOid(id string) OID {
 	return OID{Id: id, Type: TypeIngestFilter}
+}
+
+func IngestTokenOid(id string) OID {
+	return OID{Id: id, Type: TypeIngestToken}
 }
