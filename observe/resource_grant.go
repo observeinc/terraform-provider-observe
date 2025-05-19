@@ -289,29 +289,30 @@ type GrantRole string
 var validGrantRoles []GrantRole
 
 var (
-	Administrator      GrantRole = createGrantRole("Administrator")
-	ApitokenCreator    GrantRole = createGrantRole("ApitokenCreator")
-	BookmarkManager    GrantRole = createGrantRole("BookmarkManager")
-	DashboardCreator   GrantRole = createGrantRole("DashboardCreator")
-	DashboardEditor    GrantRole = createGrantRole("DashboardEditor")
-	DashboardViewer    GrantRole = createGrantRole("DashboardViewer")
-	DatasetCreator     GrantRole = createGrantRole("DatasetCreator")
-	DatasetEditor      GrantRole = createGrantRole("DatasetEditor")
-	DatasetViewer      GrantRole = createGrantRole("DatasetViewer")
-	DatastreamCreator  GrantRole = createGrantRole("DatastreamCreator")
-	DatastreamEditor   GrantRole = createGrantRole("DatastreamEditor")
-	DatastreamViewer   GrantRole = createGrantRole("DatastreamViewer")
-	InvestigatorGlobal GrantRole = createGrantRole("InvestigatorGlobal")
-	MonitorCreator     GrantRole = createGrantRole("MonitorCreator")
-	MonitorEditor      GrantRole = createGrantRole("MonitorEditor")
-	MonitorViewer      GrantRole = createGrantRole("MonitorViewer")
-	MonitorGlobalMuter GrantRole = createGrantRole("MonitorGlobalMuter")
-	ReportManager      GrantRole = createGrantRole("ReportManager")
-	UserDeleter        GrantRole = createGrantRole("UserDeleter")
-	UserInviter        GrantRole = createGrantRole("UserInviter")
-	WorksheetCreator   GrantRole = createGrantRole("WorksheetCreator")
-	WorksheetEditor    GrantRole = createGrantRole("WorksheetEditor")
-	WorksheetViewer    GrantRole = createGrantRole("WorksheetViewer")
+	Administrator        GrantRole = createGrantRole("Administrator")
+	ApitokenCreator      GrantRole = createGrantRole("ApitokenCreator")
+	BookmarkManager      GrantRole = createGrantRole("BookmarkManager")
+	DashboardCreator     GrantRole = createGrantRole("DashboardCreator")
+	DashboardEditor      GrantRole = createGrantRole("DashboardEditor")
+	DashboardViewer      GrantRole = createGrantRole("DashboardViewer")
+	DatasetCreator       GrantRole = createGrantRole("DatasetCreator")
+	DatasetEditor        GrantRole = createGrantRole("DatasetEditor")
+	DatasetViewer        GrantRole = createGrantRole("DatasetViewer")
+	DatastreamCreator    GrantRole = createGrantRole("DatastreamCreator")
+	DatastreamEditor     GrantRole = createGrantRole("DatastreamEditor")
+	DatastreamViewer     GrantRole = createGrantRole("DatastreamViewer")
+	InvestigatorGlobal   GrantRole = createGrantRole("InvestigatorGlobal")
+	MonitorCreator       GrantRole = createGrantRole("MonitorCreator")
+	MonitorEditor        GrantRole = createGrantRole("MonitorEditor")
+	MonitorViewer        GrantRole = createGrantRole("MonitorViewer")
+	MonitorActionCreator GrantRole = createGrantRole("MonitorActionCreator")
+	MonitorGlobalMuter   GrantRole = createGrantRole("MonitorGlobalMuter")
+	ReportManager        GrantRole = createGrantRole("ReportManager")
+	UserDeleter          GrantRole = createGrantRole("UserDeleter")
+	UserInviter          GrantRole = createGrantRole("UserInviter")
+	WorksheetCreator     GrantRole = createGrantRole("WorksheetCreator")
+	WorksheetEditor      GrantRole = createGrantRole("WorksheetEditor")
+	WorksheetViewer      GrantRole = createGrantRole("WorksheetViewer")
 )
 
 func createGrantRole(role GrantRole) GrantRole {
@@ -325,13 +326,14 @@ var viewGrantRoles = []GrantRole{DashboardViewer, DatasetViewer, DatastreamViewe
 
 // The following GrantRoles directly map to an RbacRole 1:1
 var roleMapping = map[GrantRole]gql.RbacRole{
-	ApitokenCreator:    gql.RbacRoleApitokencreate,
-	BookmarkManager:    gql.RbacRoleBookmarkmanager,
-	InvestigatorGlobal: gql.RbacRoleInvestigatorglobal,
-	MonitorGlobalMuter: gql.RbacRoleMonitorglobalmute,
-	UserDeleter:        gql.RbacRoleUserdelete,
-	UserInviter:        gql.RbacRoleUserinvite,
-	ReportManager:      gql.RbacRoleReportmanager,
+	ApitokenCreator:      gql.RbacRoleApitokencreate,
+	BookmarkManager:      gql.RbacRoleBookmarkmanager,
+	InvestigatorGlobal:   gql.RbacRoleInvestigatorglobal,
+	MonitorActionCreator: gql.RbacRoleMonitoractioncreator,
+	MonitorGlobalMuter:   gql.RbacRoleMonitorglobalmute,
+	UserDeleter:          gql.RbacRoleUserdelete,
+	UserInviter:          gql.RbacRoleUserinvite,
+	ReportManager:        gql.RbacRoleReportmanager,
 }
 var reverseRoleMapping = func() map[gql.RbacRole]GrantRole {
 	m := make(map[gql.RbacRole]GrantRole)
