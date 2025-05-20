@@ -48,6 +48,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
   report
   serviceaccount
   snowflakeshareoutbound
+  storageintegration
   user
   worksheet
   workspace
@@ -71,6 +72,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
   MonitorEdit
   MonitorGlobalMute
   MonitorView
+  MonitoractionCreate
   ReportManage
   UserDelete
   UserInvite
@@ -87,6 +89,7 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
   InvestigatorGlobal
   Lister
   Manager
+  MonitorActionCreator
   MonitorGlobalMute
   ReportManager
   UserDelete
