@@ -110,6 +110,10 @@ func ingestFilterToResourceData(filter *gql.IngestFilter, data *schema.ResourceD
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := data.Set("enabled", filter.Enabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
 }
 
