@@ -160,17 +160,23 @@ func dataSourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceDat
 
 	if getID != "" {
 		act, err = client.GetMonitorV2Action(ctx, getID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	} else if name != "" {
 		workspaceID, _ := data.Get("workspace").(string)
 		if workspaceID != "" {
-			act, err = client.SearchMonitorV2Action(ctx, &workspaceID, &name)
+			actions, err := client.SearchMonitorV2Action(ctx, &workspaceID, &name)
+			if err != nil {
+				return diag.FromErr(err)
+			} else if len(actions) != 1 {
+				return diag.Errorf("found %d monitor actions with name %q", len(actions), name)
+			}
+			act = &actions[0]
 		}
 	}
 
-	if err != nil {
-		diags = diag.FromErr(err)
-		return
-	} else if act == nil {
+	if act == nil {
 		return diag.Errorf("failed to lookup monitor action from provided get/search parameters")
 	}
 

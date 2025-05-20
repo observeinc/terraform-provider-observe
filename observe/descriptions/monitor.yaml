@@ -73,3 +73,5 @@ schema:
         An id of the stage that is used to generate logs for preview. This is usually a stage before aggregation.
       source_log_dataset: |
         ID of the dataset that contains logs for preview.
+  _bindings: |
+    Internal field. Do not use.

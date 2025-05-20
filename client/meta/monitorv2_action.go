@@ -38,12 +38,12 @@ func (client *Client) DeleteMonitorV2Action(ctx context.Context, id string) erro
 	return resultStatusError(resp, err)
 }
 
-func (client *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) (*MonitorV2Action, error) {
+func (client *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string, nameExact *string) ([]MonitorV2Action, error) {
 	resp, err := searchMonitorV2Action(ctx, client.Gql, workspaceId, nil, nameExact, nil)
-	if err != nil || resp == nil || len(resp.MonitorV2Actions.Results) != 1 {
+	if err != nil || resp == nil {
 		return nil, err
 	}
-	return &resp.MonitorV2Actions.Results[0], nil
+	return resp.MonitorV2Actions.Results, nil
 }
 
 func (m *MonitorV2Action) Oid() *oid.OID {

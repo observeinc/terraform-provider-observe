@@ -40,11 +40,11 @@ func TestDeserializeBindingsObject(t *testing.T) {
 		t.Fatalf("Expected %#v, got %#v", expectedKinds, bindingsObj.Kinds)
 	}
 	expectedMappings := Mapping{
-		Ref{kind: KindDataset, key: "Observe Dashboard"}: Target{
+		Ref{Kind: KindDataset, Key: "Observe Dashboard"}: Target{
 			TfLocalBindingVar: "binding__dashboard_bindings_test_dashboard__dataset_observe_dashboard",
 			TfName:            "observe_dashboard",
 		},
-		Ref{kind: KindDataset, key: "usage/Monitor Messages"}: Target{
+		Ref{Kind: KindDataset, Key: "usage/Monitor Messages"}: Target{
 			TfLocalBindingVar: "binding__dashboard_bindings_test_dashboard__dataset_monitor_messages",
 			TfName:            "monitor_messages",
 		},
