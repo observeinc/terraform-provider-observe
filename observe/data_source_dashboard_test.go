@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -245,6 +246,10 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 			export_object_bindings = true
 		}
 	`
+	workspaceTfName := fmt.Sprintf("workspace_%s", strings.ToLower(defaultWorkspaceName))
+	workspaceTfLocalBindingVar := fmt.Sprintf("binding__dashboard_%s__%s", randomPrefix, workspaceTfName)
+	datasetTfName := fmt.Sprintf("dashboard_%s__dataset_%s", randomPrefix, randomPrefix)
+	datasetTfLocalBindingVar := fmt.Sprintf("binding__%s", datasetTfName)
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -304,6 +309,14 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 						if !reflect.DeepEqual(bindings.Bindings.Kinds, expectedKinds) {
 							return fmt.Errorf("bindings.Kind does not match: Expected %#v, got %#v", expectedKinds, bindings.Bindings.Kinds)
 						}
+						expectedWorkspaceBinding := binding.Target{TfLocalBindingVar: workspaceTfLocalBindingVar, TfName: workspaceTfName, IsOid: true}
+						if bindings.Bindings.Workspace != expectedWorkspaceBinding {
+							return fmt.Errorf("bindings.Workspace does not match: Expected %#v, got %#v", expectedWorkspaceBinding, bindings.Bindings.Workspace)
+						}
+						expectedDatasetBinding := binding.Target{TfLocalBindingVar: datasetTfLocalBindingVar, TfName: datasetTfName, IsOid: false}
+						if binding, ok := bindings.Bindings.Mappings[binding.Ref{Kind: binding.KindDataset, Key: randomPrefix}]; !ok || binding != expectedDatasetBinding {
+							return fmt.Errorf("bindings.Mappings does contain expected binding %#v for dataset %s, found bindings: %#v", expectedDatasetBinding, randomPrefix, bindings.Bindings.Mappings)
+						}
 						return nil
 					}),
 					resource.TestCheckResourceAttrWith("data.observe_dashboard.lookup", "stages", func(val string) error {
@@ -315,7 +328,7 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 						if err := json.Unmarshal([]byte(val), &stagesPartial); err != nil {
 							return err
 						}
-						expectedId := fmt.Sprintf("${local.binding__dashboard_%[1]s__dataset_%[1]s}", randomPrefix)
+						expectedId := fmt.Sprintf("${local.%s}", datasetTfLocalBindingVar)
 						actualId := stagesPartial[0].Input[0].DatasetId
 						if actualId != expectedId {
 							return fmt.Errorf("expected %#v, got %#v", expectedId, actualId)
@@ -331,7 +344,7 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 						if err := json.Unmarshal([]byte(val), &parametersPartial); err != nil {
 							return err
 						}
-						expected_id := fmt.Sprintf("${local.binding__dashboard_%[1]s__dataset_%[1]s}", randomPrefix)
+						expected_id := fmt.Sprintf("${local.%s}", datasetTfLocalBindingVar)
 						actual_id := parametersPartial[0].ValueKind.KeyForDatasetId
 						if actual_id != expected_id {
 							return fmt.Errorf("expected %#v, got %#v", expected_id, actual_id)

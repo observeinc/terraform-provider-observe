@@ -2,10 +2,12 @@ package observe
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
@@ -354,10 +356,16 @@ func dataSourceMonitor() *schema.Resource {
 					},
 				},
 			},
+			"_bindings": { // internal, used for generating bindings for cross-tenant export
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor", "schema", "_bindings"),
+			},
 		},
 	}
 }
 
+// Generates bindings for use in cross-tenant exports of monitor. See binding.go for details.
 func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	var (
 		client     = meta.(*observe.Client)
@@ -384,5 +392,46 @@ func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta 
 		return
 	}
 	data.SetId(m.Id)
-	return resourceMonitorRead(ctx, data, meta)
+	diags = monitorToResourceData(data, m)
+	if diags.HasError() {
+		return diags
+	}
+
+	if client.ExportObjectBindings {
+		err := generateMonitorBindings(ctx, m, data, client)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return
+}
+
+func generateMonitorBindings(ctx context.Context, monitor *gql.Monitor, data *schema.ResourceData, client *observe.Client) error {
+	bindFor := binding.NewKindSet(binding.KindWorkspace, binding.KindDataset)
+	gen, err := binding.NewGenerator(ctx, binding.KindMonitor, monitor.Name, client, bindFor)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize binding generator: %w", err)
+	}
+
+	// generate bindings for the workspace and inputs, replacing the original ids with local references
+	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(monitor.WorkspaceId))
+	if err := data.Set("workspace", workspaceRef); err != nil {
+		return err
+	}
+	inputs := data.Get("inputs").(map[string]interface{})
+	gen.Generate(inputs)
+	if err := data.Set("inputs", inputs); err != nil {
+		return err
+	}
+
+	// save the bindings to the _bindings field for later use in generating data sources + locals
+	bindingsJson, err := gen.GetBindingsJson()
+	if err != nil {
+		return err
+	}
+	if err := data.Set("_bindings", string(bindingsJson)); err != nil {
+		return err
+	}
+	return nil
 }

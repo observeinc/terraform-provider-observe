@@ -139,3 +139,5 @@ schema:
       If true, notifications will be sent if the monitor stops triggering.
     send_reminders_interval: |
       Determines how frequently you will be reminded of an ongoing alert.
+  _bindings: |
+    Internal field. Do not use.

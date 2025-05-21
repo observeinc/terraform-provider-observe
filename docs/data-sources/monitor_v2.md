@@ -49,6 +49,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 
 ### Read-Only
 
+- `_bindings` (String) Internal field. Do not use.
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
 - `custom_variables` (String)
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
