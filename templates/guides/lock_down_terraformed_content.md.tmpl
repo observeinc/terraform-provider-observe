@@ -1,0 +1,47 @@
+---
+subcategory: ""
+page_title: "How to lock down terraform-managed content"
+description: |-
+  How to lock down terraform-managed content
+---
+
+## How to lock down terraform-managed content
+
+### Prerequisites
+
+- Ensure there’s a separate user specifically for terraform that’s not tied to any real user.
+  - This also ensures that terraform doesn't stop working when an employee leaves.
+  - For easy identification of this user in the UI, name it "Terraform ..."
+- Ensure [audit logs](https://docs.observeinc.com/en/latest/content/reference/rbac/auditTrail.html) are enabled and Usage app version ≥0.24.0 is installed.
+
+### Restricting edit access through RBAC
+
+Let's lock down the following dashboard defined in terraform:
+
+{{ tffile "examples/guides/lock_down_terraformed_content/dashboard.tf" }}
+
+Use [`observe_resource_grants`](https://registry.terraform.io/providers/observeinc/observe/latest/docs/resources/resource_grants) to lock down permissions like so:
+
+{{ tffile "examples/guides/lock_down_terraformed_content/lock_down_one.tf" }}
+
+`observe_resource_grants` is authoritative and controls the entire set of grants for the resource. So the above will effectively delete all existing grants for the example dashboard and share it *only* with the specified subjects. This ensures that no one except the terraform user has permission to edit the dashboard. We also retain view access for the group Everyone, which can be replaced with the desired set of groups who should have view access.
+
+To lock down many resources, use the `for_each` meta-argument, for example:
+
+{{ tffile "examples/guides/lock_down_terraformed_content/lock_down_many.tf" }}
+
+~> **NOTE:** Users with administrator privileges will always be able to edit all resources.
+
+Not enough?
+- Want to ensure admins don't accidentally edit terraform-managed content?
+- Want to allow edits of terraform-managed content in the UI, but get notified of it to ensure those changes are persisted in terraform?
+
+Then read on!
+
+### Alerting on edits occurring outside of terraform
+
+Add the following to monitor non-terraform updates to resources that were last updated by terraform.
+
+{{ tffile "examples/guides/lock_down_terraformed_content/alert_on_non_terraform_updates.tf" }}
+
+We use `updated_by` here to ensure this works for resources that were created through the UI and imported into terraform. Can also use `created_by` if that’s not a concern.

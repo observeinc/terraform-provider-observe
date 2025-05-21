@@ -18,7 +18,7 @@ description: |-
 
 Let's lock down the following dashboard defined in terraform:
 
-```hcl
+```terraform
 resource "observe_dashboard" "example" {
   workspace = data.observe_workspace.default.oid
   name      = "Example"
@@ -28,7 +28,7 @@ resource "observe_dashboard" "example" {
 
 Use [`observe_resource_grants`](https://registry.terraform.io/providers/observeinc/observe/latest/docs/resources/resource_grants) to lock down permissions like so:
 
-```hcl
+```terraform
 data "observe_user" "terraform" {
   email = "<terraform_user_email_address>"
 }
@@ -49,11 +49,12 @@ resource "observe_resource_grants" "lock_down_dashboard_example" {
   }
 }
 ```
+
 `observe_resource_grants` is authoritative and controls the entire set of grants for the resource. So the above will effectively delete all existing grants for the example dashboard and share it *only* with the specified subjects. This ensures that no one except the terraform user has permission to edit the dashboard. We also retain view access for the group Everyone, which can be replaced with the desired set of groups who should have view access.
 
 To lock down many resources, use the `for_each` meta-argument, for example:
 
-```
+```terraform
 resource "observe_dashboard" "a" {
   workspace = data.observe_workspace.default.oid
   name      = "a"
@@ -105,10 +106,9 @@ Then read on!
 
 ### Alerting on edits occurring outside of terraform
 
-
 Add the following to monitor non-terraform updates to resources that were last updated by terraform.
 
-```hcl
+```terraform
 data "observe_workspace" "default" {
   name = "Default"
 }
