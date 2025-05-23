@@ -800,6 +800,10 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 
+	return monitorToResourceData(data, monitor)
+}
+
+func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

@@ -671,7 +671,18 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		return diag.Errorf("failed to read monitorv2: %s", err.Error())
 	}
 
-	// perform data.set on all the fields from this monitor
+	return monitorV2ToResourceData(ctx, monitor, data, client)
+}
+
+func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	client := meta.(*observe.Client)
+	if err := client.DeleteMonitorV2(ctx, data.Id()); err != nil {
+		return diag.Errorf("failed to delete monitor: %s", err.Error())
+	}
+	return diags
+}
+
+func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -700,7 +711,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	_, err = flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
+	_, err := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -753,14 +764,6 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		}
 	}
 
-	return diags
-}
-
-func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	if err := client.DeleteMonitorV2(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete monitor: %s", err.Error())
-	}
 	return diags
 }
 
