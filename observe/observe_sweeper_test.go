@@ -44,6 +44,7 @@ func init() {
 			"observe_poller",
 			"observe_app",
 			"observe_filedrop",
+			"observe_drop_filter",
 		},
 	})
 	resource.AddTestSweepers("observe_folder", &resource.Sweeper{
@@ -95,6 +96,10 @@ func init() {
 	resource.AddTestSweepers("observe_dataset_outbound_share", &resource.Sweeper{
 		Name: "observe_dataset_outbound_share",
 		F:    datasetOutboundShareSweeper,
+	})
+	resource.AddTestSweepers("observe_drop_filter", &resource.Sweeper{
+		Name: "observe_drop_filter",
+		F:    dropFilterSweeper,
 	})
 }
 
@@ -796,6 +801,55 @@ func datasetOutboundShareSweeper(pattern string) error {
 		}
 	}
 
+	return nil
+}
+
+func dropFilterSweeper(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	workspaces, err := client.ListWorkspaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces {
+		result, err := client.Meta.Run(
+			ctx,
+			`query dropFilters($workspaceId: ObjectId!) {
+				searchIngestFilter(workspaceId: $workspaceId) {
+					results {
+						id
+						name
+					}
+				}
+			}`,
+			map[string]interface{}{
+				"workspaceId": workspace.Id,
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to lookup drop filters: %w", err)
+		}
+
+		result = result["searchIngestFilter"].(map[string]interface{})
+		for _, i := range result["results"].([]interface{}) {
+			var (
+				item = i.(map[string]interface{})
+				id   = item["id"].(string)
+				name = item["name"].(string)
+			)
+			if client.MatchName(name) {
+				log.Printf("[WARN] Deleting drop filter %s [id=%s]\n", name, id)
+				if err := client.DeleteIngestFilter(ctx, id); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
