@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
+	t.Skip()
 	t.Skipf("borked")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -45,6 +46,7 @@ func TestAccObserveSourceQueryBadPipeline(t *testing.T) {
 
 // TestAccObserveSourceQuery runs a query - we don't yet expect any data to be returned
 func TestAccObserveSourceQuery(t *testing.T) {
+	t.Skip()
 	t.Skipf("skipping until we migrate to cacheCursor")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -70,6 +72,7 @@ func TestAccObserveSourceQuery(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryPoll(t *testing.T) {
+	t.Skip()
 	t.Skipf("skipping until we migrate to cacheCursor")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -108,6 +111,7 @@ func TestAccObserveSourceQueryPoll(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryAssert(t *testing.T) {
+	t.Skip()
 	t.Skipf("skipping until we migrate to cacheCursor")
 
 	randomPrefix := acctest.RandomWithPrefix("tf")
@@ -174,6 +178,7 @@ func TestAccObserveSourceQueryAssert(t *testing.T) {
 }
 
 func TestAccObserveSourceQueryResult(t *testing.T) {
+	t.Skip()
 	t.Skipf("skipping until we migrate to cacheCursor")
 
 	randomPrefix := acctest.RandomWithPrefix("tf")

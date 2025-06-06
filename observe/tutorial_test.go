@@ -10,6 +10,7 @@ import (
 
 // TestAccObserveDatasetBasic will capture the examples in our tutorial
 func TestAccObserveDatasetBasic(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

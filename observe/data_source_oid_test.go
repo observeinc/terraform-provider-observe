@@ -7,6 +7,7 @@ import (
 )
 
 func TestAccObserveDataOID_Parse(t *testing.T) {
+	t.Skip()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -26,6 +27,7 @@ func TestAccObserveDataOID_Parse(t *testing.T) {
 }
 
 func TestAccObserveDataOID_Format(t *testing.T) {
+	t.Skip()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

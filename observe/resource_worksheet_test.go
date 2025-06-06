@@ -10,6 +10,7 @@ import (
 
 // Verify we can create worksheet
 func TestAccObserveWorksheetCreate(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

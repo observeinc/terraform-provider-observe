@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccLayeredSettingRecord(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

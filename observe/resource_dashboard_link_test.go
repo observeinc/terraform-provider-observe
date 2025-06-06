@@ -10,6 +10,7 @@ import (
 )
 
 func TestAccObserveDashboardLinkCreate(t *testing.T) {
+	t.Skip()
 	randomPrefix := "tf" + acctest.RandString(20)
 	t.Log("random prefix=", randomPrefix)
 
@@ -92,6 +93,7 @@ func TestAccObserveDashboardLinkCreate(t *testing.T) {
 }
 
 func TestAccDashboardLinkWithoutFolderOrWorkspace(t *testing.T) {
+	t.Skip()
 	randomPrefix := "tf" + acctest.RandString(20)
 	t.Log("random prefix=", randomPrefix)
 

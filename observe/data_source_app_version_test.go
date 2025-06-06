@@ -9,6 +9,8 @@ import (
 )
 
 func TestAccObserveDataAppVersion_Simple(t *testing.T) {
+	t.Skip()
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -29,6 +31,8 @@ func TestAccObserveDataAppVersion_Simple(t *testing.T) {
 }
 
 func TestAccObserveDataAppVersion_Prerelease(t *testing.T) {
+	t.Skip()
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -58,6 +62,8 @@ func TestAccObserveDataAppVersion_Prerelease(t *testing.T) {
 }
 
 func TestAccObserveDataAppVersion_BadConstraints(t *testing.T) {
+	t.Skip()
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

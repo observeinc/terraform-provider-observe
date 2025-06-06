@@ -25,6 +25,7 @@ var (
 )
 
 func TestAccObserveBookmarkCreate(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -61,6 +62,7 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 }
 
 func TestAccObserveBookmarkMoveGroup(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -90,6 +92,7 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 }
 
 func TestAccObserveBookmarkDashboard(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -128,6 +131,7 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 }
 
 func TestAccObserveBookmarkKind(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

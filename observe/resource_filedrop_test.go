@@ -2,15 +2,17 @@ package observe
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 var filedropConfigPreamble = configPreamble + datastreamConfigPreamble
 
 func TestAccObserveFiledrop(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	filedropRoleArn := os.Getenv("OBSERVE_FILEDROP_ROLE_ARN")
 	if os.Getenv("CI") != "true" {

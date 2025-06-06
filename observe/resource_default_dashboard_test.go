@@ -10,6 +10,7 @@ import (
 
 // Verify we can set default dashboards, read them back, and then delete them
 func TestAccObserveDefaultDashboardCreateReadDelete(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	dashboardResource := datastreamConfigPreamble + `

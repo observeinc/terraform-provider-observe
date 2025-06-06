@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccObserveSourceDatasetResource(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
 

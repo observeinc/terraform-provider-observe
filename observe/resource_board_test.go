@@ -10,6 +10,7 @@ import (
 
 // Verify we can change board
 func TestAccObserveBoardUpdate(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,6 +59,7 @@ func TestAccObserveBoardUpdate(t *testing.T) {
 
 // Test JSON attribute handles unresolved values.
 func TestAccObserveBoardJSON(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

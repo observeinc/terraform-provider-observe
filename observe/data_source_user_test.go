@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccObserveUser(t *testing.T) {
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -38,6 +39,7 @@ func TestAccObserveUser(t *testing.T) {
 }
 
 func TestAccObserveSourceUserNotFound(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

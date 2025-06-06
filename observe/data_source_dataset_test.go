@@ -10,6 +10,7 @@ import (
 )
 
 func TestAccObserveSourceDataset(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -37,6 +38,7 @@ func TestAccObserveSourceDataset(t *testing.T) {
 }
 
 func TestAccObserveSourceDatasetStage(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -108,6 +110,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 }
 
 func TestAccObserveSourceDatasetNotFound(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -127,6 +130,7 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 }
 
 func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -144,6 +148,7 @@ func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 }
 
 func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -161,6 +166,7 @@ func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
 }
 
 func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

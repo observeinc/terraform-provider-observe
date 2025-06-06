@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccObservePoller(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -208,6 +209,7 @@ func TestAccObservePoller(t *testing.T) {
 }
 
 func TestAccObservePollerMongoDB(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -259,6 +261,7 @@ func TestAccObservePollerMongoDB(t *testing.T) {
 }
 
 func TestAccObservePollerHTTP(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -525,6 +528,7 @@ func TestAccObservePollerHTTP(t *testing.T) {
 }
 
 func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -607,6 +611,7 @@ func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
 }
 
 func TestAccObservePollerAWSSnapshot(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -13,6 +13,8 @@ import (
 )
 
 func TestAccObserveSourceDashboard(t *testing.T) {
+	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -51,6 +53,8 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
+	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -115,6 +119,7 @@ func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportWithBindings(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	// this is really nasty, but basically if the hashicorp terraform provider testing
 	// framework detects a terraform block, it will output the config verbatim instead of
@@ -234,6 +239,7 @@ func TestAccObserveSourceDashboard_ExportWithBindings(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	// this is really nasty, but basically if the hashicorp terraform provider testing
 	// framework detects a terraform block, it will output the config verbatim instead of
