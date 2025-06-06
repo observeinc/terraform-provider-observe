@@ -31,6 +31,7 @@ var (
 // Verify we can create dashboards
 func TestAccObserveDashboardCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -653,6 +654,7 @@ func TestAccObserveDashboardCreate(t *testing.T) {
 
 func TestAccObserveDashboardNullParameterDefaults(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1264,6 +1266,7 @@ func TestAccObserveDashboardNullParameterDefaults(t *testing.T) {
 }
 
 func TestAccObserveDashboarIgnoredNullParameterDefaults(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -1888,6 +1891,7 @@ func TestAccObserveDashboarIgnoredNullParameterDefaults(t *testing.T) {
 
 // https://observe.atlassian.net/browse/OB-16421
 func TestAccObserveDashboard_DefaultValuePrimaryKeyValue(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -2534,6 +2538,7 @@ func TestAccObserveDashboard_DefaultValuePrimaryKeyValue(t *testing.T) {
 
 // https://observe.atlassian.net/browse/OB-15881
 func TestAccObserveDashboard_DefaultValueInt64(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

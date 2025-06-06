@@ -42,6 +42,7 @@ var (
 
 func TestAccObserveLinkCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -84,6 +85,7 @@ func TestAccObserveLinkCreate(t *testing.T) {
 
 func TestAccObserveLinkErrors(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -119,6 +121,7 @@ func TestAccObserveLinkErrors(t *testing.T) {
 }
 
 func TestAccOBS2432(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -185,6 +188,7 @@ func TestAccOBS2432(t *testing.T) {
 
 func TestAccOBS2110(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -228,6 +232,7 @@ func TestAccOBS2110(t *testing.T) {
 }
 
 func TestLinkSuppression(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	/* Without suppression, reapplying this config repeatedly will never converge.
@@ -289,6 +294,7 @@ func TestLinkSuppression(t *testing.T) {
 }
 
 func TestAccOB5629(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

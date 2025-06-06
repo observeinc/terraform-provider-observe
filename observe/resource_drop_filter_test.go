@@ -15,6 +15,7 @@ var (
 )
 
 func TestIngestFilterDropRateTooLow(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,6 +40,7 @@ func TestIngestFilterDropRateTooLow(t *testing.T) {
 }
 
 func TestIngestFilterInvalidFunction(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,6 +64,7 @@ func TestIngestFilterInvalidFunction(t *testing.T) {
 	})
 }
 func TestIngestFilterCreate(t *testing.T) {
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

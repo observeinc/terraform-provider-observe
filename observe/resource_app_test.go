@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveApp(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	t.Skipf("Skipping until we sort out the cause of flakiness in deleting apps")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveDatasetOutboundShare(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

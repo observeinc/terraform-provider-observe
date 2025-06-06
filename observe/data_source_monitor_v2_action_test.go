@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,6 +60,7 @@ func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2ActionWebhookDatasource(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

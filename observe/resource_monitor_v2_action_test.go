@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -95,6 +96,7 @@ func TestAccObserveMonitorV2ActionEmail(t *testing.T) {
 
 func TestAccObserveMonitorV2ActionEmailEmptyBody(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -142,6 +144,7 @@ func TestAccObserveMonitorV2ActionEmailEmptyBody(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -227,6 +230,7 @@ func TestAccObserveMonitorV2ActionWebhook(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2MultipleActionsEmail(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	t.Skipf("skipping, cannot create rbac v1 statements after rbac v2 is enabled, to be removed")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -108,6 +109,7 @@ func TestAccObserveRbacStatementWithGroupCreate(t *testing.T) {
 
 func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	t.Skipf("skipping, cannot create rbac v1 statements after rbac v2 is enabled, to be removed")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
@@ -178,6 +180,7 @@ func TestAccObserveRbacStatementWithUserCreate(t *testing.T) {
 
 func TestAccObserveRbacStatementAllCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	t.Skipf("skipping, cannot create rbac v1 statements after rbac v2 is enabled, to be removed")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -213,6 +216,7 @@ func TestAccObserveRbacStatementAllCreate(t *testing.T) {
 }
 
 func TestAccObserveRbacStatementTypeCreate(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	t.Skipf("skipping, cannot create rbac v1 statements after rbac v2 is enabled, to be removed")
 	randomPrefix := acctest.RandomWithPrefix("tf")

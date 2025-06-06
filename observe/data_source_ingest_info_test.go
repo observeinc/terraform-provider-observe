@@ -8,6 +8,7 @@ import (
 
 func TestAccObserveIngestInfo(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

@@ -10,6 +10,7 @@ import (
 
 func TestAccObserveGrantGroupDatasetCreate(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -36,6 +37,7 @@ func TestAccObserveGrantGroupDatasetCreate(t *testing.T) {
 }
 
 func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
@@ -86,6 +88,7 @@ func TestAccObserveGrantUserDatastreamEdit(t *testing.T) {
 }
 
 func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
@@ -138,6 +141,7 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 
 func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -164,6 +168,7 @@ func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 }
 
 func TestAccObserveGrantGroupMonitorGlobalMuter(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{

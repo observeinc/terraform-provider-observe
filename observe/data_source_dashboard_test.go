@@ -15,6 +15,7 @@ import (
 func TestAccObserveSourceDashboard(t *testing.T) {
 	t.Skip()
 	t.Skip()
+	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -53,6 +54,7 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
@@ -119,6 +121,7 @@ func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportWithBindings(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	// this is really nasty, but basically if the hashicorp terraform provider testing
@@ -239,6 +242,7 @@ func TestAccObserveSourceDashboard_ExportWithBindings(t *testing.T) {
 }
 
 func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
+	t.Skip()
 	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	// this is really nasty, but basically if the hashicorp terraform provider testing
