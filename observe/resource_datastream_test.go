@@ -19,8 +19,6 @@ var (
 )
 
 func TestAccObserveDatastreamNameValidationTooLong(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,8 +41,6 @@ func TestAccObserveDatastreamNameValidationTooLong(t *testing.T) {
 }
 
 func TestAccObserveDatastreamNameValidationInvalidCharacter(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,8 +63,6 @@ func TestAccObserveDatastreamNameValidationInvalidCharacter(t *testing.T) {
 }
 
 func TestAccObserveDatastreamCreate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

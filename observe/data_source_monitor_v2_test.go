@@ -13,9 +13,6 @@ import (
 )
 
 func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -79,9 +76,6 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 }
 
 func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -151,9 +145,6 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 }
 
 func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -282,7 +273,7 @@ func TestAccObserveMonitorV2ExportWithBindings(t *testing.T) {
 							oid = observe_monitor_v2_action.action.oid
 						}
 					}
-
+					
 					data "observe_monitor_v2" "lookup" {
 						id = observe_monitor_v2.first.id
 					}

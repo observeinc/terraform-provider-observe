@@ -28,8 +28,6 @@ func getenv(key, fallback string) string {
 }
 
 func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -56,8 +54,6 @@ func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
 }
 
 func TestAccObserveDatasetNameValidationInvalidCharacter(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -85,8 +81,6 @@ func TestAccObserveDatasetNameValidationInvalidCharacter(t *testing.T) {
 
 // Verify we can change dataset properties: e.g. name and freshness
 func TestAccObserveDatasetUpdate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -187,8 +181,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 
 // Changing input name should not break implicit stage reference to input
 func TestAccObserveDatasetChangeInputName(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -247,8 +239,6 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 
 // Changing stage name from default should not break implicit stage reference to stage
 func TestAccObserveDatasetChangeStageName(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -374,8 +364,6 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 
 // Verify we can coldrop if no downstream affected
 func TestAccObserveDatasetSchemaChange(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -508,8 +496,6 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 // Verify configuration errors
 func TestAccObserveDatasetErrors(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -541,8 +527,6 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 
 // Test edit-forward works when change is compatible
 func TestAccObserveDatasetEditForward(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -610,8 +594,6 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 
 // Test that a change fails if rematerialization would occur under edit-forward
 func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -670,8 +652,6 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 
 // Test that a change rematerializes when incompatible with edit-forward
 func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -738,8 +718,6 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 }
 
 func TestAccObserveDatasetDescription(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -843,8 +821,6 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 }
 
 func TestAccObserveDatasetMultiInput(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -903,8 +879,6 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 }
 
 func TestAccObserveDatasetQuotedInputReference(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

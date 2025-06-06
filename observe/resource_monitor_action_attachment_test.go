@@ -83,8 +83,6 @@ var (
 )
 
 func TestAccObserveMonitorActionAttachment_OneToOne(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -109,8 +107,6 @@ func TestAccObserveMonitorActionAttachment_OneToOne(t *testing.T) {
 }
 
 func TestAccObserveMonitorActionAttachment_Named(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -137,8 +133,6 @@ func TestAccObserveMonitorActionAttachment_Named(t *testing.T) {
 }
 
 func TestAccObserveMonitorActionAttachment_ManyToMany(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -187,8 +181,6 @@ func TestAccObserveMonitorActionAttachment_ManyToMany(t *testing.T) {
 }
 
 func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -239,8 +231,6 @@ func TestAccObserveMonitorActionAttachment_UpdateMonitorActionAttachment(t *test
 }
 
 func TestAccObserveMonitorActionAttachment_ChangeMonitorResourceName(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

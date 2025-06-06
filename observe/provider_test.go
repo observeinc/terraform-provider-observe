@@ -18,7 +18,6 @@ func init() {
 }
 
 func TestProvider(t *testing.T) {
-	t.Skip()
 	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}

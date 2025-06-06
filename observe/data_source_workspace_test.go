@@ -10,8 +10,6 @@ import (
 )
 
 func TestAccObserveSourceWorkspace(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -40,8 +38,6 @@ func TestAccObserveSourceWorkspace(t *testing.T) {
 }
 
 func TestAccObserveSourceWorkspaceNotFound(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

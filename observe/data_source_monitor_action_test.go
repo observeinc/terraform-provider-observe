@@ -9,8 +9,6 @@ import (
 )
 
 func TestAccObserveSourceMonitorAction_Webhook(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -61,8 +59,6 @@ func TestAccObserveSourceMonitorAction_Webhook(t *testing.T) {
 }
 
 func TestAccObserveSourceMonitorAction_Email(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

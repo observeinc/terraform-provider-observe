@@ -13,9 +13,6 @@ import (
 )
 
 func TestAccObserveSourceMonitor(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -111,9 +108,6 @@ func TestAccObserveSourceMonitor(t *testing.T) {
 }
 
 func TestAccObserveSourceMonitorLookup(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -195,9 +189,6 @@ func TestAccObserveSourceMonitorLookup(t *testing.T) {
 }
 
 func TestAccObserveSourceMonitorLog(t *testing.T) {
-	t.Skip()
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

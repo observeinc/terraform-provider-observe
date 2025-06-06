@@ -9,8 +9,6 @@ import (
 )
 
 func TestAccObservePreferredPathCreate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
@@ -87,8 +85,6 @@ func TestAccObservePreferredPathCreate(t *testing.T) {
 }
 
 func TestAccObservePreferredPathUpdate_Reverse(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

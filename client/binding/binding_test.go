@@ -78,7 +78,6 @@ func prepareGeneratorFixture() Generator {
 }
 
 func TestTryBindId(t *testing.T) {
-	t.Skip()
 	g := prepareGeneratorFixture()
 	binding, _ := g.TryBindId(KindDataset, "41000123")
 	expectedBinding := "${local.binding__type_name__dataset_dataset_1}"
@@ -93,7 +92,6 @@ func TestTryBindId(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-	t.Skip()
 	var input map[string]interface{}
 	var expected map[string]interface{}
 	if err := json.Unmarshal([]byte(inputJson), &input); err != nil {
@@ -110,7 +108,6 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestGenerateJson(t *testing.T) {
-	t.Skip()
 	g := prepareGeneratorFixture()
 	outputJson, err := g.GenerateJson([]byte(inputJson))
 	if err != nil {
@@ -130,7 +127,6 @@ func TestGenerateJson(t *testing.T) {
 }
 
 func TestInsertBindingsObjectJson(t *testing.T) {
-	t.Skip()
 	g := prepareGeneratorFixture()
 	g.TryBindId(KindDataset, dataset1Id)
 	// g.bindings[Ref{kind: KindDataset, key: "dataset_1"}] = Target{

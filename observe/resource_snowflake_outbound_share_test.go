@@ -9,8 +9,6 @@ import (
 )
 
 func TestAccObserveSnowflakeOutboundShare(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

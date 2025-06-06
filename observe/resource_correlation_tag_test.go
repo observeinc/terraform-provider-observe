@@ -9,7 +9,6 @@ import (
 )
 
 func TestCorrelationTagCreation(t *testing.T) {
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

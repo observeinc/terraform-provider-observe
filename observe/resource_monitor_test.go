@@ -11,8 +11,6 @@ import (
 var monitorConfigPreamble = configPreamble + datastreamConfigPreamble
 
 func TestAccObserveMonitor(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -161,8 +159,6 @@ func TestAccObserveMonitor(t *testing.T) {
 }
 
 func TestAccObserveMonitorThreshold(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -304,8 +300,6 @@ func TestAccObserveMonitorThreshold(t *testing.T) {
 }
 
 func TestAccObserveMonitorThresholdFloat(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -360,8 +354,6 @@ func TestAccObserveMonitorThresholdFloat(t *testing.T) {
 }
 
 func TestAccObserveMonitorFacetUpdate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -446,8 +438,6 @@ func TestAccObserveMonitorFacetUpdate(t *testing.T) {
 }
 
 func TestAccObserveMonitorFacetCreate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -495,8 +485,6 @@ func TestAccObserveMonitorFacetCreate(t *testing.T) {
 }
 
 func TestAccObserveMonitorPromote(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -582,8 +570,6 @@ func TestAccObserveMonitorPromote(t *testing.T) {
 	})
 }
 func TestAccObserveMonitorLog(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	// TODO(OB-26540) Some optional monitor fields can't be updated to null
 
 	randomPrefix := acctest.RandomWithPrefix("tf")
@@ -783,8 +769,6 @@ func TestAccObserveMonitorLog(t *testing.T) {
 }
 
 func TestAccObserveMonitorGroupByGroup(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -837,8 +821,6 @@ func TestAccObserveMonitorGroupByGroup(t *testing.T) {
 }
 
 func TestAccObserveMonitorGroupByGroupEmpty(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{

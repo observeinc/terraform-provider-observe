@@ -9,8 +9,6 @@ import (
 )
 
 func TestAccObserveReferenceTable(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix1 := acctest.RandomWithPrefix("tf")
 	randomPrefix2 := acctest.RandomWithPrefix("tf")
 
@@ -112,8 +110,6 @@ func TestAccObserveReferenceTable(t *testing.T) {
 }
 
 func TestAccObserveReferenceTableSchema(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{

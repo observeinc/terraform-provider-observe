@@ -10,8 +10,6 @@ import (
 )
 
 func TestAccObserveHTTPPostCreate(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	t.Skip("OB-40979")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -70,8 +68,6 @@ func TestAccObserveHTTPPostCreate(t *testing.T) {
 }
 
 func TestAccObserveHTTPPostCreateContentType(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	t.Skip("OB-40979")
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

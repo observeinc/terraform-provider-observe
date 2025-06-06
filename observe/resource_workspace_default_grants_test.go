@@ -9,8 +9,6 @@ import (
 )
 
 func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	randomPrefix1 := acctest.RandomWithPrefix("tf")
 	randomPrefix2 := acctest.RandomWithPrefix("tf")
 
@@ -88,8 +86,6 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 }
 
 func TestAccObserveWorkspaceDefaultGrantsEmpty(t *testing.T) {
-	t.Skip()
-	t.Skip()
 	// need to be able to set "only creator gets edit access by default"
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
