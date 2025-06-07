@@ -1,0 +1,12 @@
+description:
+  An ingest token authenticates data coming into Observe. It can be flexibly routed using an HTTP
+  header, X-Observe-Target-Package.
+schema:
+  name:
+    The name of the ingest token, should be unique within a workspace.
+  description:
+    The description of the ingest token.
+  disabled:
+    Whether or not the ingest token is disabled.
+  secret:
+    Sensitive value used to authenticate payloads into Observe.
