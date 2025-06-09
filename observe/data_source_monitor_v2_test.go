@@ -226,7 +226,7 @@ func TestAccObserveMonitorV2ExportWithBindings(t *testing.T) {
 	datasetTfLocalBindingVar := fmt.Sprintf("binding__%s", datasetTfName)
 	actionTfName := fmt.Sprintf("monitor_v2_%s__monitor_v2_action_%s", randomPrefixMonitor, randomPrefixMonitorAction)
 	actionTfLocalBindingVar := fmt.Sprintf("binding__%s", actionTfName)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
