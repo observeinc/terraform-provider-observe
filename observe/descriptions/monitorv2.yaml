@@ -49,7 +49,7 @@ schema:
       The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
       If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition.
   lookback_time: |
-    optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+    optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
   data_stabilization_delay: |
     expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
   max_alerts_per_hour: |

@@ -93,7 +93,7 @@ Required:
 
 - `facet_function` (String) Comparison function to use when comparing the field against the desired value(s)
 - `facet_values` (List of String) The values to compare the field against.
-- `lookback_time` (String) Time window to evalute time_function over.
+- `lookback_time` (String) Time window to evaluate time_function over.
 - `time_function` (String) Temporal condition to evaluate the matches against (e.g. "at least once in window")
 
 Optional:
@@ -131,7 +131,7 @@ Optional:
 
 Required:
 
-- `primary_key` (List of String) Key used to deduplicate and and uniquely identitify each event.
+- `primary_key` (List of String) Key used to deduplicate and and uniquely identify each event.
 
 Optional:
 

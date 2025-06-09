@@ -59,7 +59,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 - `icon_url` (String) URL of the monitor icon.
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
 stage pipelines.
-- `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+- `lookback_time` (String) optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `no_data_rules` (Block List) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `oid` (String)
