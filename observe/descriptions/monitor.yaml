@@ -37,7 +37,7 @@ schema:
       time_function: |
         Temporal condition to evaluate the matches against (e.g. "at least once in window")
       lookback_time: |
-        Time window to evalute time_function over.
+        Time window to evaluate time_function over.
     threshold:
       description: |
         Send an alert when a value crosses a threshold over a period of time.
@@ -53,7 +53,7 @@ schema:
       description: |
         Send an alert whenever there's a new resource, event, or interval in a dataset.
       primary_key: |
-        Key used to deduplicate and and uniquely identitify each event.
+        Key used to deduplicate and and uniquely identify each event.
       kind_field: |
         The dataset field used to group notifications for this monitor.
       description_field: |

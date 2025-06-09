@@ -1,5 +1,5 @@
 description: |
-  A report is a scheduled query on a dashboard that is executed on a given scheduled. The dashboard is rendered as a PDF and sent to a list of recipients via e-mail.
+  A report is a scheduled query on a dashboard that is executed on a given schedule. The dashboard is rendered as a PDF and sent to a list of recipients via e-mail.
 
 schema:
   description: |
