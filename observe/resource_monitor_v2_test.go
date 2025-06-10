@@ -387,6 +387,17 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 										}
 									}
 								}
+								compare_terms {
+									comparison {
+										compare_fn = "equal"
+										value_string = ["test"]
+									}
+									column {
+										column_path  {
+											name = "kind"
+										}
+									}
+								}
 							}
 							send_end_notifications = false
 							send_reminders_interval = "20m"
@@ -422,9 +433,13 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.description", "an interesting description 2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "20m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.operator", "and"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.compare_fn", "equal"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.comparison.0.value_string.0", "test"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.0.column.0.column_path.0.name", "description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.1.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.1.comparison.0.value_string.0", "test"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.conditions.0.compare_terms.1.column.0.column_path.0.name", "kind"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.type", "webhook"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.description", "an interesting description 3"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.webhook.0.url", "https://example.com"),
@@ -522,14 +537,26 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 							}
 							levels = ["informational"]
 							conditions {
+								operator = "or"
 								compare_terms {
 									comparison {
 										compare_fn = "equal"
-										value_string = ["test"] 
+										value_string = ["test"]
 									}
 									column {
 										column_path  {
 											name = "description"
+										}
+									}
+								}
+								compare_terms {
+									comparison {
+										compare_fn = "equal"
+										value_string = ["test"]
+									}
+									column {
+										column_path  {
+											name = "kind"
 										}
 									}
 								}
@@ -554,6 +581,11 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.action.0.description", "an interesting description 2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.send_reminders_interval", "22m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.operator", "or"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.0.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.0.column.0.column_path.0.name", "description"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.1.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.1.column.0.column_path.0.name", "kind"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "custom_variables", `{"fizz":"buzz"}`),
 				),
 			},

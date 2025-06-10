@@ -414,7 +414,11 @@ func dataSourceMonitorV2() *schema.Resource {
 											},
 										},
 									},
-									// note: operator is an implied AND for now until the UI supports OR
+									"operator": { // MonitorV2BooleanOperator!
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "operator"),
+									},
 								},
 							},
 						},

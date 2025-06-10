@@ -54,12 +54,56 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 								freshness_goal = "15m"
 							}
 						}
+						actions {
+							action {
+								type = "email"
+								email {
+									subject = "test operator field"
+									body = "testing operator in data source"
+									addresses = ["test@observeinc.com"]
+									users = [data.observe_user.system.oid]
+								}
+								description = "test action with conditions"
+							}
+							levels = ["informational"]
+							conditions {
+								operator = "or"
+								compare_terms {
+									comparison {
+										compare_fn = "equal"
+										value_string = ["test"]
+									}
+									column {
+										column_path {
+											name = "description"
+										}
+									}
+								}
+								compare_terms {
+									comparison {
+										compare_fn = "equal"
+										value_string = ["test"]
+									}
+									column {
+										column_path {
+											name = "kind"
+										}
+									}
+								}
+							}
+							send_end_notifications = false
+							send_reminders_interval = "15m"
+						}
+					}
+
+					data "observe_user" "system" {
+						email = "%[2]s"
 					}
 
 					data "observe_monitor_v2" "lookup" {
 						id = observe_monitor_v2.first.id
 					}
-				`, randomPrefix),
+				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
@@ -69,6 +113,18 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.count.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.count.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.action.0.type", "email"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.action.0.description", "test action with conditions"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.levels.0", "informational"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.operator", "or"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.0.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.0.comparison.0.value_string.0", "test"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.0.column.0.column_path.0.name", "description"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.1.comparison.0.compare_fn", "equal"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.1.comparison.0.value_string.0", "test"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.1.column.0.column_path.0.name", "kind"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.send_end_notifications", "false"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.send_reminders_interval", "15m0s"),
 				),
 			},
 		},

@@ -434,6 +434,10 @@ Required:
 
 - `compare_terms` (Block List, Min: 1) (see [below for nested schema](#nestedblock--actions--conditions--compare_terms))
 
+Optional:
+
+- `operator` (String) Boolean operator to combine the list of compare terms. Can be "and" (default) or "or".
+
 <a id="nestedblock--actions--conditions--compare_terms"></a>
 ### Nested Schema for `actions.conditions.compare_terms`
 
