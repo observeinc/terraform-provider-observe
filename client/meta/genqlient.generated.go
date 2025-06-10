@@ -6582,12 +6582,16 @@ func (v *MonitorV2Comparison) GetCompareValue() PrimitiveValue { return v.Compar
 // MonitorV2ComparisonExpression includes the GraphQL fields of MonitorV2ComparisonExpression requested by the fragment MonitorV2ComparisonExpression.
 type MonitorV2ComparisonExpression struct {
 	CompareTerms []MonitorV2ComparisonTerm `json:"compareTerms"`
+	Operator     MonitorV2BooleanOperator  `json:"operator"`
 }
 
 // GetCompareTerms returns MonitorV2ComparisonExpression.CompareTerms, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonExpression) GetCompareTerms() []MonitorV2ComparisonTerm {
 	return v.CompareTerms
 }
+
+// GetOperator returns MonitorV2ComparisonExpression.Operator, and is useful for accessing the field via an interface.
+func (v *MonitorV2ComparisonExpression) GetOperator() MonitorV2BooleanOperator { return v.Operator }
 
 type MonitorV2ComparisonExpressionInput struct {
 	CompareTerms   []MonitorV2ComparisonTermInput       `json:"compareTerms"`
@@ -16165,6 +16169,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline
@@ -19983,6 +19988,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline
@@ -21752,6 +21758,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline
@@ -22467,6 +22474,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline
@@ -22725,6 +22733,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline
@@ -24691,6 +24700,7 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
 	compareTerms {
 		... MonitorV2ComparisonTerm
 	}
+	operator
 }
 fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 	inline

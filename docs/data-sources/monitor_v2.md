@@ -174,6 +174,7 @@ Read-Only:
 Read-Only:
 
 - `compare_terms` (Block List) (see [below for nested schema](#nestedblock--actions--conditions--compare_terms))
+- `operator` (String) Boolean operator to combine the list of compare terms. Can be "and" (default) or "or".
 
 <a id="nestedblock--actions--conditions--compare_terms"></a>
 ### Nested Schema for `actions.conditions.compare_terms`

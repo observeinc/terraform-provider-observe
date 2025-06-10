@@ -206,7 +206,8 @@ fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
     compareTerms {
         ...MonitorV2ComparisonTerm
     }
-    # subExpressions/operator are not used by the UI so we won't support them here yet either
+    operator
+    # subExpressions are not used by the UI so we won't support them here yet either
 }
 
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {

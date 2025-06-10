@@ -440,7 +440,13 @@ func resourceMonitorV2() *schema.Resource {
 											},
 										},
 									},
-									// note: operator is an implied AND for now until the UI supports OR
+									"operator": { // MonitorV2BooleanOperator!
+										Type:             schema.TypeString,
+										Optional:         true,
+										Default:          toSnake(string(gql.MonitorV2BooleanOperatorAnd)),
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2BooleanOperators),
+										Description:      descriptions.Get("monitorv2", "schema", "actions", "conditions", "operator"),
+									},
 								},
 							},
 						},
@@ -868,7 +874,7 @@ func monitorV2FlattenActionRule(ctx context.Context, client *observe.Client, gql
 	return rules
 }
 func monitorV2FlattenComparisonExpression(expr *gql.MonitorV2ComparisonExpression) map[string]interface{} {
-	// For now, we only support a single level expression with terms. Sub-expressions and operator are not yet
+	// For now, we only support a single level expression with terms. Sub-expressions are not yet
 	// supported because our UI doesn't yet support them.
 	if len(expr.CompareTerms) == 0 {
 		return nil
@@ -880,7 +886,10 @@ func monitorV2FlattenComparisonExpression(expr *gql.MonitorV2ComparisonExpressio
 		terms[i] = monitorV2FlattenComparisonTerm(term)
 	}
 
-	return map[string]interface{}{"compare_terms": terms}
+	return map[string]interface{}{
+		"compare_terms": terms,
+		"operator":      toSnake(string(expr.Operator)),
+	}
 }
 
 func monitorV2FlattenComparisonTerm(term gql.MonitorV2ComparisonTerm) map[string]interface{} {
@@ -1614,9 +1623,9 @@ func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql
 }
 
 func newMonitorV2ComparisonExpressionInput(path string, data *schema.ResourceData) (input *gql.MonitorV2ComparisonExpressionInput, diags diag.Diagnostics) {
+	operator := toCamel(data.Get(fmt.Sprintf("%soperator", path)).(string))
 	input = &gql.MonitorV2ComparisonExpressionInput{
-		// AND is implied until the UI supports OR
-		Operator: gql.MonitorV2BooleanOperatorAnd,
+		Operator: gql.MonitorV2BooleanOperator(operator),
 	}
 
 	for i := range data.Get(fmt.Sprintf("%scompare_terms", path)).([]interface{}) {
