@@ -53,7 +53,7 @@ resource "observe_drop_filter" "example2" {
 
 ### Required
 
-- `drop_rate` (Number) The percentage of matched obseravtions to drop specified as a floating point number between 0.0 and 1.0.
+- `drop_rate` (Number) The percentage of matched observations to drop specified as a floating point number between 0.0 and 1.0.
 - `name` (String) The name of the drop filter.
 - `pipeline` (String) The opal that defines the drop filter.
 - `source_dataset` (String) The source dataset that the drop filter should apply to.

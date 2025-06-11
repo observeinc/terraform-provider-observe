@@ -6,7 +6,7 @@ schema:
   pipeline:
     The opal that defines the drop filter.
   drop_rate:
-    The percentage of matched obseravtions to drop specified as a floating point number between 0.0 and 1.0.
+    The percentage of matched observations to drop specified as a floating point number between 0.0 and 1.0.
   source_dataset:
     The source dataset that the drop filter should apply to.
   enabled:

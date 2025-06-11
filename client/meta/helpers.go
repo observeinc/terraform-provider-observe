@@ -166,6 +166,11 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+var AllMonitorV2BooleanOperators = []MonitorV2BooleanOperator{
+	MonitorV2BooleanOperatorAnd,
+	MonitorV2BooleanOperatorOr,
+}
+
 var AllAccelerationDisabledSource = []AccelerationDisabledSource{
 	AccelerationDisabledSourceEmpty,
 	AccelerationDisabledSourceMonitor,

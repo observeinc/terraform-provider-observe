@@ -88,7 +88,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `disabled` (Boolean) Enable/Disable the monitor (and any underlying transforms).
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
-- `lookback_time` (String) optionally describes a duration that must be satisifed by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
+- `lookback_time` (String) optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
@@ -433,6 +433,10 @@ Required:
 Required:
 
 - `compare_terms` (Block List, Min: 1) (see [below for nested schema](#nestedblock--actions--conditions--compare_terms))
+
+Optional:
+
+- `operator` (String) Boolean operator to combine the list of compare terms. Can be "and" (default) or "or".
 
 <a id="nestedblock--actions--conditions--compare_terms"></a>
 ### Nested Schema for `actions.conditions.compare_terms`
