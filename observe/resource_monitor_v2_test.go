@@ -704,3 +704,99 @@ func TestAccObserveMonitorRawCron(t *testing.T) {
 		},
 	})
 }
+
+// Tests that converting an inline action to a shared action does not cause an error.
+// We've had issues with this in the past due to how the Terraform SDK handles
+// testing for existence of object types that previously had a value and now don't.
+// See newMonitorV2ActionAndRelation() for more details.
+func TestAccObserveMonitorInlineToSharedAction(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "10m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "filter true"
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [100000000]
+								}
+							}
+						}
+						actions {
+							action {
+								type = "email"
+								email {
+									subject = "inline action"
+									addresses = ["test@observeinc.com"]
+								}
+								description = "an interesting description 1"
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.description", "an interesting description 1"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2_action" "act" {
+						workspace = data.observe_workspace.default.oid
+						type = "email"
+						email {
+							subject = "shared action"
+							addresses = ["test@observeinc.com"]
+						}
+						name = "%[1]s"
+					}
+
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "10m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "filter true"
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [100000000]
+								}
+							}
+						}
+						actions {
+							oid = observe_monitor_v2_action.act.oid
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "actions.0.oid"),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type"),
+				),
+			},
+		},
+	})
+}

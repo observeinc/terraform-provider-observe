@@ -23,6 +23,14 @@ resource "observe_monitor_v2" "example" {
       name = "Dashboard"
     }
   }
+
+  no_data_rules {
+    threshold {
+      value_column_name = "A_credits_adhoc_query_sum"
+      aggregation       = "all_of"
+    }
+  }
+
   rules {
     level = "error"
     threshold {
@@ -37,6 +45,7 @@ resource "observe_monitor_v2" "example" {
       }
     }
   }
+
   stage {
     output_stage = false
     pipeline     = <<-EOT

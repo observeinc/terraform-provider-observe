@@ -361,6 +361,8 @@ func resourceMonitorV2() *schema.Resource {
 							Optional:         true,
 							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
 							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
+							// exactly one of `oid` or `action` is allowed, but can't specify that here
+							// due to Terraform limitations since `actions` is a list (without MaxItems=1)
 						},
 						"action": {
 							Type:        schema.TypeList,
@@ -1574,19 +1576,35 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 
 func newMonitorV2ActionAndRelation(path string, data *schema.ResourceData) (*gql.MonitorV2ActionAndRelationInput, diag.Diagnostics) {
 	var result gql.MonitorV2ActionAndRelationInput
-
-	actionPath := fmt.Sprintf("%saction.0", path)
+	actionPath := fmt.Sprintf("%saction.0.", path)
 	conditionsPath := fmt.Sprintf("%sconditions.0", path)
 
-	if _, ok := data.GetOk(actionPath); ok {
-		if actInput, err := newMonitorV2ActionInput(fmt.Sprintf("%s.", actionPath), data); err != nil {
+	// One of "action" or "oid" must be provided. If "action" is provided, then it's an inline action
+	// of this monitor. If "oid" is provided, then it's a reference to a shared action.
+
+	// Checking .type instead of just action.0 because the Terraform SDK isn't great at checking for
+	// existence of "object" types. More specifically, when an inline action is removed or replaced
+	// by a shared action, it still thinks action.0 exists. The reason for this is because it falls
+	// back to the "state" if the "diff" doesn't contain a value, and the state still contains the old
+	// value. It does end up replacing the result.Value with the new value (empty) for each map entry,
+	// but leaves result.Exists as true.
+	// (see https://github.com/hashicorp/terraform-plugin-sdk/blob/77f585e21b398feb244cbb1890cb3d1a29ffb083/helper/schema/field_reader_diff.go#L162)
+	_, actionExists := data.GetOk(fmt.Sprintf("%stype", actionPath))
+	_, oidExists := data.GetOk(fmt.Sprintf("%soid", path))
+	if actionExists == oidExists {
+		return nil, diag.Errorf("Exactly one of 'action' or 'oid' must be provided. Path = %s", path)
+	}
+
+	if actionExists {
+		actInput, err := newMonitorV2ActionInput(actionPath, data)
+		if err != nil {
 			return nil, err
-		} else {
-			// override default instantiation and force these to be private (inline) actions.
-			var inline = true
-			actInput.Inline = &inline
-			result.Action = actInput
 		}
+
+		// override default instantiation and force these to be private (inline) actions.
+		var inline = true
+		actInput.Inline = &inline
+		result.Action = actInput
 	} else {
 		actOID, _ := oid.NewOID(data.Get(fmt.Sprintf("%soid", path)).(string))
 		result.ActionID = &actOID.Id
