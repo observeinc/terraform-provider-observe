@@ -39,6 +39,7 @@ func TestAccObserveReport(t *testing.T) {
 						}
 						email_subject = "test"
 						email_recipients = ["test@example.com"]
+						email_bcc_recipients = ["testbcc@example.com"]
 						email_body = "test"
 					}
 				`, randomPrefix1, randomPrefix2, randomPrefix2),
@@ -56,6 +57,8 @@ func TestAccObserveReport(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_report.first", "email_subject", "test"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.#", "1"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.0", "test@example.com"),
+					resource.TestCheckResourceAttr("observe_report.first", "email_bcc_recipients.#", "1"),
+					resource.TestCheckResourceAttr("observe_report.first", "email_bcc_recipients.0", "testbcc@example.com"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_body", "test"),
 				),
 			},
@@ -78,9 +81,11 @@ func TestAccObserveReport(t *testing.T) {
 							time_of_day = "13:37"
 							timezone = "UTC"
 							day_of_the_month = 15
+							generation_delay_minutes = 10
 						}
 						email_subject = "test-updated"
 						email_recipients = ["test-updated@example.com", "test-updated2@example.com"]
+						email_bcc_recipients = ["test-updated-bcc@example.com", "test-updated2-bcc@example.com"]
 						email_body = "test-updated"
 					}
 				`, randomPrefix1, randomPrefix2, randomPrefix2),
@@ -97,10 +102,14 @@ func TestAccObserveReport(t *testing.T) {
 					// day_of_the_week should be empty because it's not used for Monthly
 					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.day_of_the_week", ""),
 					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.day_of_the_month", "15"),
+					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.generation_delay_minutes", "10"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_subject", "test-updated"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.#", "2"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.0", "test-updated@example.com"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.1", "test-updated2@example.com"),
+					resource.TestCheckResourceAttr("observe_report.first", "email_bcc_recipients.#", "2"),
+					resource.TestCheckResourceAttr("observe_report.first", "email_bcc_recipients.0", "test-updated-bcc@example.com"),
+					resource.TestCheckResourceAttr("observe_report.first", "email_bcc_recipients.1", "test-updated2-bcc@example.com"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_body", "test-updated"),
 				),
 			},

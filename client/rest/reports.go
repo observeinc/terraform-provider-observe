@@ -15,31 +15,33 @@ import (
 // TODO: generate from OpenAPI spec (maybe the "go" generator of openapi-generator?)
 
 type ReportsResource struct {
-	Id               string           `json:"id"` // backend sends this as string anyways
-	CreatedBy        ReportUser       `json:"createdBy"`
-	CreatedAt        string           `json:"createdAt"`
-	UpdatedBy        ReportUser       `json:"updatedBy"`
-	UpdatedAt        string           `json:"updatedAt"`
-	Enabled          bool             `json:"enabled"`
-	Label            string           `json:"label"`
-	Dashboard        ReportsDashboard `json:"dashboard"`
-	Schedule         ReportsSchedule  `json:"schedule"`
-	EmailSubject     string           `json:"emailSubject"`
-	EmailBody        string           `json:"emailBody"`
-	EmailRecipients  []string         `json:"emailRecipients"`
-	NextScheduleTime *string          `json:"nextScheduleTime,omitempty"`
-	LastRunTime      *string          `json:"lastRunTime,omitempty"`
-	LastRunStatus    *string          `json:"lastRunStatus,omitempty"`
-	LastRunError     *string          `json:"lastRunError,omitempty"`
+	Id                 string           `json:"id"` // backend sends this as string anyways
+	CreatedBy          ReportUser       `json:"createdBy"`
+	CreatedAt          string           `json:"createdAt"`
+	UpdatedBy          ReportUser       `json:"updatedBy"`
+	UpdatedAt          string           `json:"updatedAt"`
+	Enabled            bool             `json:"enabled"`
+	Label              string           `json:"label"`
+	Dashboard          ReportsDashboard `json:"dashboard"`
+	Schedule           ReportsSchedule  `json:"schedule"`
+	EmailSubject       string           `json:"emailSubject"`
+	EmailBody          string           `json:"emailBody"`
+	EmailRecipients    []string         `json:"emailRecipients"`
+	EmailBccRecipients []string         `json:"emailBccRecipients"`
+	NextScheduleTime   *string          `json:"nextScheduleTime,omitempty"`
+	LastRunTime        *string          `json:"lastRunTime,omitempty"`
+	LastRunStatus      *string          `json:"lastRunStatus,omitempty"`
+	LastRunError       *string          `json:"lastRunError,omitempty"`
 }
 type ReportsDefinition struct {
-	Label           string           `json:"label"`
-	Dashboard       ReportsDashboard `json:"dashboard"`
-	Enabled         bool             `json:"enabled"`
-	Schedule        ReportsSchedule  `json:"schedule"`
-	EmailSubject    string           `json:"emailSubject,omitempty"`
-	EmailBody       string           `json:"emailBody,omitempty"`
-	EmailRecipients []string         `json:"emailRecipients"`
+	Label              string           `json:"label"`
+	Dashboard          ReportsDashboard `json:"dashboard"`
+	Enabled            bool             `json:"enabled"`
+	Schedule           ReportsSchedule  `json:"schedule"`
+	EmailSubject       string           `json:"emailSubject,omitempty"`
+	EmailBody          string           `json:"emailBody,omitempty"`
+	EmailRecipients    []string         `json:"emailRecipients"`
+	EmailBccRecipients []string         `json:"emailBccRecipients"`
 }
 
 type ReportsDashboard struct {
@@ -55,12 +57,13 @@ type ReportUser struct {
 }
 
 type ReportsSchedule struct {
-	Frequency     string `json:"frequency"`
-	Every         int32  `json:"every"`
-	TimeOfDay     string `json:"timeOfDay"`
-	Timezone      string `json:"timezone"`
-	DayOfTheWeek  string `json:"dayOfTheWeek,omitempty"`
-	DayOfTheMonth int    `json:"dayOfTheMonth,omitempty"`
+	Frequency              string `json:"frequency"`
+	Every                  int32  `json:"every"`
+	TimeOfDay              string `json:"timeOfDay"`
+	Timezone               string `json:"timezone"`
+	DayOfTheWeek           string `json:"dayOfTheWeek,omitempty"`
+	DayOfTheMonth          int    `json:"dayOfTheMonth,omitempty"`
+	GenerationDelayMinutes int    `json:"generationDelayMinutes,omitempty"`
 }
 
 // End of reports models

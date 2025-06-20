@@ -49,7 +49,7 @@ schema:
     description: |
       The schedule of the report.
     frequency: |
-      The frequency of the report. This can be "Daily", "Weekly", or "Monthly".
+      The frequency of the report. This can be "Hourly", "Daily", "Weekly", or "Monthly".
     every: |
       Every how many days, weeks, or months (based on frequency) should the report run.
     time_of_day: |
@@ -62,12 +62,18 @@ schema:
     day_of_the_month: |
       The day of the month to run this report. Can be either 1 or 15.
       This is only used if the frequency is "Monthly".
+    generation_delay_minutes: |
+      The delay in minutes before the report is generated after the scheduled time.
+      This is useful if the data is not yet available at the scheduled time.
+      Can be between 0 and 30 minutes.
   email_subject: |
     The subject of the e-mail that will be sent every time the report runs.
   email_body: |
     The body of the e-mail that will be sent every time the report runs. This is used to add some context to the email.
   email_recipients: |
     A list of e-mail addresses that will receive the report.
+  email_bcc_recipients: |
+    A list of e-mail bcc addresses that will receive the report.
   next_scheduled_time: |
     The next time the report will run.
   last_run_time: |
