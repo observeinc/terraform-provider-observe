@@ -161,6 +161,11 @@ func dataSourceReport() *schema.Resource {
 							Computed:    true,
 							Description: descriptions.Get("report", "schema", "schedule", "day_of_the_month"),
 						},
+						"generation_delay_minutes": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: descriptions.Get("report", "schema", "schedule", "generation_delay_minutes"),
+						},
 					},
 				},
 			},
@@ -179,6 +184,15 @@ func dataSourceReport() *schema.Resource {
 				Computed:    true,
 				Optional:    true,
 				Description: descriptions.Get("report", "schema", "email_recipients"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"email_bcc_recipients": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Optional:    true,
+				Description: descriptions.Get("report", "schema", "email_bcc_recipients"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
