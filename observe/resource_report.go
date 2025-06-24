@@ -143,7 +143,7 @@ func resourceReport() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							Description:      descriptions.Get("report", "schema", "schedule", "frequency"),
-							ValidateDiagFunc: validateStringInSlice([]string{"Daily", "Weekly", "Monthly"}, false),
+							ValidateDiagFunc: validateStringInSlice([]string{"Hourly", "Daily", "Weekly", "Monthly"}, false),
 						},
 						"every": {
 							Type:        schema.TypeInt,
@@ -170,6 +170,11 @@ func resourceReport() *schema.Resource {
 							Optional:    true,
 							Description: descriptions.Get("report", "schema", "schedule", "day_of_the_month"),
 						},
+						"generation_delay_minutes": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: descriptions.Get("report", "schema", "schedule", "generation_delay_minutes"),
+						},
 					},
 				},
 			},
@@ -187,6 +192,14 @@ func resourceReport() *schema.Resource {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: descriptions.Get("report", "schema", "email_recipients"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"email_bcc_recipients": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: descriptions.Get("report", "schema", "email_bcc_recipients"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -262,11 +275,13 @@ func reportToResourceData(report *rest.ReportsResource, data *schema.ResourceDat
 	schedule["timezone"] = report.Schedule.Timezone
 	schedule["day_of_the_week"] = report.Schedule.DayOfTheWeek
 	schedule["day_of_the_month"] = report.Schedule.DayOfTheMonth
+	schedule["generation_delay_minutes"] = report.Schedule.GenerationDelayMinutes
 	setResourceData("schedule", []map[string]interface{}{schedule})
 
 	setResourceData("email_subject", report.EmailSubject)
 	setResourceData("email_body", report.EmailBody)
 	setResourceData("email_recipients", report.EmailRecipients)
+	setResourceData("email_bcc_recipients", report.EmailBccRecipients)
 
 	if report.NextScheduleTime != nil {
 		setResourceData("next_scheduled_time", *report.NextScheduleTime)
@@ -324,6 +339,11 @@ func reportDefinitionFromResourceData(data *schema.ResourceData) (req *rest.Repo
 		if v, ok := data.GetOk("schedule.0.day_of_the_month"); ok {
 			req.Schedule.DayOfTheMonth = v.(int)
 		}
+		if v, ok := data.GetOk("schedule.0.generation_delay_minutes"); ok {
+			req.Schedule.GenerationDelayMinutes = v.(int)
+		} else {
+			req.Schedule.GenerationDelayMinutes = 0
+		}
 	}
 
 	req.EmailSubject = data.Get("email_subject").(string)
@@ -333,7 +353,11 @@ func reportDefinitionFromResourceData(data *schema.ResourceData) (req *rest.Repo
 	for i := 0; i < numEmailRecipients; i++ {
 		req.EmailRecipients[i] = data.Get(fmt.Sprintf("email_recipients.%d", i)).(string)
 	}
-
+	numEmailBccRecipients := data.Get("email_bcc_recipients.#").(int)
+	req.EmailBccRecipients = make([]string, numEmailBccRecipients)
+	for i := 0; i < numEmailBccRecipients; i++ {
+		req.EmailBccRecipients[i] = data.Get(fmt.Sprintf("email_bcc_recipients.%d", i)).(string)
+	}
 	return
 }
 

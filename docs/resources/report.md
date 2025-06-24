@@ -23,6 +23,7 @@ A report is a scheduled query on a dashboard that is executed on a given schedul
 
 ### Optional
 
+- `email_bcc_recipients` (List of String) A list of e-mail bcc addresses that will receive the report.
 - `email_body` (String) The body of the e-mail that will be sent every time the report runs. This is used to add some context to the email.
 
 ### Read-Only
@@ -74,7 +75,7 @@ Required:
 Required:
 
 - `every` (Number) Every how many days, weeks, or months (based on frequency) should the report run.
-- `frequency` (String) The frequency of the report. This can be "Daily", "Weekly", or "Monthly".
+- `frequency` (String) The frequency of the report. This can be "Hourly", "Daily", "Weekly", or "Monthly".
 - `time_of_day` (String) The time of day to run this report in {HH:MM} format
 
 Optional:
@@ -83,6 +84,9 @@ Optional:
 This is only used if the frequency is "Monthly".
 - `day_of_the_week` (String) The day of the week to run this report. Can be "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", or "Sunday".
 This is only used if the frequency is "Weekly".
+- `generation_delay_minutes` (Number) The delay in minutes before the report is generated after the scheduled time.
+This is useful if the data is not yet available at the scheduled time.
+Can be between 0 and 30 minutes.
 - `timezone` (String) The IANA timezone to run this report in.
 
 
