@@ -61,6 +61,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
   DashboardCreate
   DashboardEdit
   DashboardView
+  DatasetAccelerate
   DatasetCreate
   DatasetEdit
   DatasetView
@@ -73,6 +74,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
   MonitorGlobalMute
   MonitorView
   MonitoractionCreate
+  ReferencetableCreate
   ReportManage
   UserDelete
   UserInvite
@@ -84,6 +86,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
 enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
   ApitokenCreate
   BookmarkManager
+  DatasetAccelerator
   Editor
   Ingester
   InvestigatorGlobal
@@ -91,6 +94,7 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
   Manager
   MonitorActionCreator
   MonitorGlobalMute
+  ReferenceTableCreator
   ReportManager
   UserDelete
   UserInvite
@@ -103,5 +107,6 @@ enum ORType @goModel(model: "observe/access/permission.ORType") {
   Dataset
   Datastream
   Monitor
+  Referencetable
   Worksheet
 }
