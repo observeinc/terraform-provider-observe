@@ -7720,12 +7720,13 @@ const (
 type ORType string
 
 const (
-	ORTypeCustomer   ORType = "Customer"
-	ORTypeDashboard  ORType = "Dashboard"
-	ORTypeDataset    ORType = "Dataset"
-	ORTypeDatastream ORType = "Datastream"
-	ORTypeMonitor    ORType = "Monitor"
-	ORTypeWorksheet  ORType = "Worksheet"
+	ORTypeCustomer       ORType = "Customer"
+	ORTypeDashboard      ORType = "Dashboard"
+	ORTypeDataset        ORType = "Dataset"
+	ORTypeDatastream     ORType = "Datastream"
+	ORTypeMonitor        ORType = "Monitor"
+	ORTypeReferencetable ORType = "Referencetable"
+	ORTypeWorksheet      ORType = "Worksheet"
 )
 
 // At some point in the future, we may have Segments as business objects,
@@ -9544,19 +9545,21 @@ func (v *RbacObjectInput) GetAll() *bool { return v.All }
 type RbacRole string
 
 const (
-	RbacRoleApitokencreate       RbacRole = "ApitokenCreate"
-	RbacRoleBookmarkmanager      RbacRole = "BookmarkManager"
-	RbacRoleEditor               RbacRole = "Editor"
-	RbacRoleIngester             RbacRole = "Ingester"
-	RbacRoleInvestigatorglobal   RbacRole = "InvestigatorGlobal"
-	RbacRoleLister               RbacRole = "Lister"
-	RbacRoleManager              RbacRole = "Manager"
-	RbacRoleMonitoractioncreator RbacRole = "MonitorActionCreator"
-	RbacRoleMonitorglobalmute    RbacRole = "MonitorGlobalMute"
-	RbacRoleReportmanager        RbacRole = "ReportManager"
-	RbacRoleUserdelete           RbacRole = "UserDelete"
-	RbacRoleUserinvite           RbacRole = "UserInvite"
-	RbacRoleViewer               RbacRole = "Viewer"
+	RbacRoleApitokencreate        RbacRole = "ApitokenCreate"
+	RbacRoleBookmarkmanager       RbacRole = "BookmarkManager"
+	RbacRoleDatasetaccelerator    RbacRole = "DatasetAccelerator"
+	RbacRoleEditor                RbacRole = "Editor"
+	RbacRoleIngester              RbacRole = "Ingester"
+	RbacRoleInvestigatorglobal    RbacRole = "InvestigatorGlobal"
+	RbacRoleLister                RbacRole = "Lister"
+	RbacRoleManager               RbacRole = "Manager"
+	RbacRoleMonitoractioncreator  RbacRole = "MonitorActionCreator"
+	RbacRoleMonitorglobalmute     RbacRole = "MonitorGlobalMute"
+	RbacRoleReferencetablecreator RbacRole = "ReferenceTableCreator"
+	RbacRoleReportmanager         RbacRole = "ReportManager"
+	RbacRoleUserdelete            RbacRole = "UserDelete"
+	RbacRoleUserinvite            RbacRole = "UserInvite"
+	RbacRoleViewer                RbacRole = "Viewer"
 )
 
 // RbacStatement includes the GraphQL fields of RbacStatement requested by the fragment RbacStatement.
