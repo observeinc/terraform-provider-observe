@@ -163,9 +163,10 @@ func resourceMonitorV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"level": { // MonitorV2AlarmLevel!
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
+							Type:     schema.TypeString,
+							Required: true,
+							// To create a NoData rule, must use no_data_rules block instead
+							ValidateDiagFunc: validateEnums(sliceExclude(gql.AllMonitorV2AlarmLevels, gql.MonitorV2AlarmLevelNodata)),
 							Description:      descriptions.Get("monitorv2", "schema", "rules", "level"),
 						},
 						"count": { // MonitorV2CountRuleInput
