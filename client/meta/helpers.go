@@ -137,6 +137,7 @@ var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
 	MonitorV2AlarmLevelInformational,
 	MonitorV2AlarmLevelNone,
 	MonitorV2AlarmLevelWarning,
+	MonitorV2AlarmLevelNodata,
 }
 
 var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{

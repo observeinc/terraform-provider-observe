@@ -538,3 +538,14 @@ func sliceContains[T comparable](slice []T, val T) bool {
 	}
 	return false
 }
+
+// sliceExclude returns a new slice with the specified elements filtered out
+func sliceExclude[T comparable](slice []T, exclude ...T) []T {
+	result := make([]T, 0, len(slice))
+	for _, v := range slice {
+		if !sliceContains(exclude, v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}

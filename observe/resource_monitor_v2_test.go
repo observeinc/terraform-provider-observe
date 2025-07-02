@@ -503,7 +503,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 								}
 								description = "an interesting description 1"
 							}
-							levels = ["informational"]
+							levels = ["no_data"]
 							send_end_notifications = true
 							send_reminders_interval = "11m"
 						}
@@ -575,6 +575,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.type", "email"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.action.0.description", "an interesting description 1"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.send_reminders_interval", "11m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.0.levels.0", "no_data"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.type", "webhook"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.action.0.description", "an interesting description 3 - reordered"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.1.send_reminders_interval", "33m0s"),
