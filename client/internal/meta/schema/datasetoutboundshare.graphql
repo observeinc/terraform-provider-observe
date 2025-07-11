@@ -12,10 +12,10 @@ extend type Mutation {
 }
 
 enum DatasetOutboundShareState @goModel(model: "observe/meta/metatypes.DatasetOutboundShareState") {
-  Error
-  Live
-  Pending
-  Unavailable
+    Error
+    Live
+    Pending
+    Unavailable
 }
 
 type DatasetOutboundShareStatus @goModel(model: "observe/meta/metatypes.DatasetOutboundShareStatus") {
@@ -42,6 +42,11 @@ type DatasetOutboundShare implements WorkspaceObject & AuditedObject & FolderObj
     The freshness goal for the outbound share, in nanoseconds. This determines the maximum staleness for the shared dataset. Newer data may not yet be accelerated (materialized) and will not be returned in Snowflake queries for the share. To avoid additional acceleration and minimize cost, set this to 1 hour (3600000000000), the maximum staleness of datasets when freshness decay is active.
     """
     freshnessGoal: Int64!
+    """
+    If set to true, the shared view will have change tracking enabled.
+    """
+    changeTracking: Boolean
+
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -71,6 +76,10 @@ input DatasetOutboundShareInput @goModel(model: "observe/meta/metatypes.DatasetO
     viewName: String!
     # resolver: status: DatasetOutboundShareStatusInput!
     freshnessGoal: Int64!
+    """
+    If set to true, the shared view will have change tracking enabled.
+    """
+    changeTracking: Boolean
     # WorkspaceObject
     name: String!
     iconUrl: String

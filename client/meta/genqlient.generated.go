@@ -1618,8 +1618,10 @@ type DatasetOutboundShare struct {
 	SchemaName      string  `json:"schemaName"`
 	ViewName        string  `json:"viewName"`
 	// The freshness goal for the outbound share, in nanoseconds. This determines the maximum staleness for the shared dataset. Newer data may not yet be accelerated (materialized) and will not be returned in Snowflake queries for the share. To avoid additional acceleration and minimize cost, set this to 1 hour (3600000000000), the maximum staleness of datasets when freshness decay is active.
-	FreshnessGoal types.Int64Scalar          `json:"freshnessGoal"`
-	Status        DatasetOutboundShareStatus `json:"status"`
+	FreshnessGoal types.Int64Scalar `json:"freshnessGoal"`
+	// If set to true, the shared view will have change tracking enabled.
+	ChangeTracking *bool                      `json:"changeTracking"`
+	Status         DatasetOutboundShareStatus `json:"status"`
 }
 
 // GetId returns DatasetOutboundShare.Id, and is useful for accessing the field via an interface.
@@ -1652,6 +1654,9 @@ func (v *DatasetOutboundShare) GetViewName() string { return v.ViewName }
 // GetFreshnessGoal returns DatasetOutboundShare.FreshnessGoal, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShare) GetFreshnessGoal() types.Int64Scalar { return v.FreshnessGoal }
 
+// GetChangeTracking returns DatasetOutboundShare.ChangeTracking, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShare) GetChangeTracking() *bool { return v.ChangeTracking }
+
 // GetStatus returns DatasetOutboundShare.Status, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShare) GetStatus() DatasetOutboundShareStatus { return v.Status }
 
@@ -1659,11 +1664,13 @@ type DatasetOutboundShareInput struct {
 	SchemaName    string            `json:"schemaName"`
 	ViewName      string            `json:"viewName"`
 	FreshnessGoal types.Int64Scalar `json:"freshnessGoal"`
-	Name          string            `json:"name"`
-	IconUrl       *string           `json:"iconUrl"`
-	Description   *string           `json:"description"`
-	ManagedById   *string           `json:"managedById"`
-	FolderId      *string           `json:"folderId"`
+	// If set to true, the shared view will have change tracking enabled.
+	ChangeTracking *bool   `json:"changeTracking"`
+	Name           string  `json:"name"`
+	IconUrl        *string `json:"iconUrl"`
+	Description    *string `json:"description"`
+	ManagedById    *string `json:"managedById"`
+	FolderId       *string `json:"folderId"`
 }
 
 // GetSchemaName returns DatasetOutboundShareInput.SchemaName, and is useful for accessing the field via an interface.
@@ -1674,6 +1681,9 @@ func (v *DatasetOutboundShareInput) GetViewName() string { return v.ViewName }
 
 // GetFreshnessGoal returns DatasetOutboundShareInput.FreshnessGoal, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShareInput) GetFreshnessGoal() types.Int64Scalar { return v.FreshnessGoal }
+
+// GetChangeTracking returns DatasetOutboundShareInput.ChangeTracking, and is useful for accessing the field via an interface.
+func (v *DatasetOutboundShareInput) GetChangeTracking() *bool { return v.ChangeTracking }
 
 // GetName returns DatasetOutboundShareInput.Name, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShareInput) GetName() string { return v.Name }
@@ -15326,6 +15336,7 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	schemaName
 	viewName
 	freshnessGoal
+	changeTracking
 	status {
 		state
 		error
@@ -18978,6 +18989,7 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	schemaName
 	viewName
 	freshnessGoal
+	changeTracking
 	status {
 		state
 		error
@@ -23861,6 +23873,7 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 	schemaName
 	viewName
 	freshnessGoal
+	changeTracking
 	status {
 		state
 		error
