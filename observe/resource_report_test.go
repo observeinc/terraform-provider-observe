@@ -13,9 +13,8 @@ func TestAccObserveReport(t *testing.T) {
 	randomPrefix2 := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:   func() { testAccPreCheck(t) },
-		Providers:  testAccProviders,
-		IsUnitTest: true,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+dashboardConfigPreamble+`
