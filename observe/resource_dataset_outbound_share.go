@@ -9,11 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
-
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
@@ -91,6 +89,11 @@ func resourceDatasetOutboundShare() *schema.Resource {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 			},
+			"change_tracking": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "If set to true, the shared view will have change tracking enabled.",
+			},
 		},
 	}
 }
@@ -102,10 +105,11 @@ func newDatasetOutboundShare(d *schema.ResourceData) (*gql.DatasetOutboundShareI
 	}
 
 	input := &gql.DatasetOutboundShareInput{
-		Name:          d.Get("name").(string),
-		SchemaName:    d.Get("schema_name").(string),
-		ViewName:      d.Get("view_name").(string),
-		FreshnessGoal: types.Int64Scalar(freshnessGoal),
+		Name:           d.Get("name").(string),
+		SchemaName:     d.Get("schema_name").(string),
+		ViewName:       d.Get("view_name").(string),
+		FreshnessGoal:  types.Int64Scalar(freshnessGoal),
+		ChangeTracking: boolPtr(d.Get("change_tracking").(bool)),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -244,6 +248,10 @@ func resourceDatasetOutboundShareRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	if err := d.Set("freshness_goal", types.DurationScalar(datasetShare.FreshnessGoal).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("change_tracking", datasetShare.ChangeTracking); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
