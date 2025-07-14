@@ -392,6 +392,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     folderId: ObjectId!
     indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
     dataTableViewState: JsonObject
+    storageIntegrationId: ObjectId
 
     """
     Optional custom configured override value of the on demand materialization
@@ -637,6 +638,7 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     layout: JsonObject
     pathCost: Int64
     dataTableViewState: JsonObject
+    storageIntegrationId: ObjectId
     """
     Max on-demand materialization length for the dataset (in nanoseconds). If not set
     will use the default value in transformer config.

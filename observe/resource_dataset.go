@@ -128,6 +128,12 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressJSON,
 				Description:      descriptions.Get("dataset", "schema", "data_table_view_state"),
 			},
+			"storage_integration": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateOID(oid.TypeStorageIntegration),
+				Description:      descriptions.Get("dataset", "schema", "storage_integration"),
+			},
 			"stage": {
 				Type:        schema.TypeList,
 				MinItems:    1,
@@ -238,6 +244,12 @@ func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiS
 		input.DataTableViewState = types.JsonObject("null").Ptr()
 	}
 
+	if v, ok := data.GetOk("storage_integration"); ok {
+		oidVal, _ := oid.NewOID(v.(string))
+		input.StorageIntegrationId = stringPtr(oidVal.Id)
+
+	}
+
 	return input, query, diags
 }
 
@@ -295,6 +307,13 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 
 	if d.DataTableViewState != nil {
 		if err := data.Set("data_table_view_state", d.DataTableViewState.String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.StorageIntegrationId != nil {
+		oid := oid.StorageIntegrationOid(*d.StorageIntegrationId)
+		if err := data.Set("storage_integration", oid.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

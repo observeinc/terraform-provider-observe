@@ -90,6 +90,11 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("dataset", "schema", "data_table_view_state"),
 			},
+			"storage_integration": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "storage_integration"),
+			},
 			"stage": {
 				Type:     schema.TypeList,
 				Computed: true,
