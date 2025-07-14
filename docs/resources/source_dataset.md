@@ -26,7 +26,7 @@ description: |-
 
 - `batch_seq_field` (String)
 - `description` (String)
-- `freshness` (String)
+- `freshness` (String, Deprecated)
 - `icon_url` (String)
 - `is_insert_only` (Boolean)
 

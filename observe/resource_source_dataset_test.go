@@ -99,7 +99,6 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 				resource "observe_source_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%s"
-					freshness = "1m"
 
 					schema = "EXTERNAL2"
 					table_name = "%s_TABLE_NAME2"
@@ -139,7 +138,6 @@ func TestAccObserveSourceDatasetResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_source_dataset.first", "workspace"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "name", randomPrefix+"-rename"),
-					resource.TestCheckResourceAttr("observe_source_dataset.first", "freshness", "1m0s"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "schema", "EXTERNAL2"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "table_name", randomTablePrefix+"_TABLE_NAME2"),
 					resource.TestCheckResourceAttr("observe_source_dataset.first", "source_update_table_name", randomTablePrefix+"_SOURCE_UPDATE_TABLE_NAME2"),
