@@ -126,6 +126,7 @@ func resourceSourceDataset() *schema.Resource {
 				Computed: true,
 			},
 			"freshness": {
+				Deprecated:       "Freshness is not meaningful for source datasets.",
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateTimeDuration,
