@@ -72,7 +72,6 @@ type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig
 
 interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
     # TODO: remove this field once the FE no longer uses it.
-    name: String @deprecated(reason:"use poller.name instead")
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig

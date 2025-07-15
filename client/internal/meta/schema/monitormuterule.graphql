@@ -125,7 +125,7 @@ type MonitorMuteRuleFilterPerResource implements MonitorMuteRuleFilterObject @go
     # payload
     filterType: MonitorMuteRuleFilterType!
     """
-    resourceIds expect datasetId and the primaryKeyValue.name to be the same across all provided resource ids objects.
+    ResourceIds expect datasetId and the primaryKeyValue.name to be the same across all provided resource ids objects.
     """
     resourceIds: [ResourceId!]!
 }

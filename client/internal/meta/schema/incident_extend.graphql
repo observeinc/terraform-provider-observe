@@ -2,7 +2,7 @@
 # manual extension to the incident graphql schema
 
 input IncidentQueryInput @goModel(model: "observe/meta/metatypes.IncidentQueryInput") {
-    Text: String!
+    text: String!
 }
 
 extend type Query {

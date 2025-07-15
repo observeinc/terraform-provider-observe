@@ -223,25 +223,27 @@ input LiveQueryParams @goModel(model: "observe/meta/metagql.LiveQueryParamsInput
     runImmediately: Boolean
 }
 
-# Scalar so we can use a custom marshaler for higher performance.
-#
-#type PaginatedResults {
-#    # ID identifying the cursor. Can be used to fetch more rows.
-#    cursorId: String
-#    # Snowflake Query ID. Only for debugging.
-#    sfQid: String
-#    # Total number of rows that the cursor holds.
-#    totalRows: Int64!
-#    # Offset into the cursor from which the rows below have been produced,
-#    # starting at 0.
-#    offset: Int64!
-#    # Number of rows in this result set.
-#    numRows: Int64!
-#    # Initial set of rows in column-major format. Each column contains exactly
-#    # numRows values.
-#    columns: [[String]]
-#}
-#
+"""
+PaginatedResults is a scalar so we can use a custom marshaler for higher performance.
+
+It contains these fields:
+type PaginatedResults {
+    # ID identifying the cursor. Can be used to fetch more rows.
+    cursorId: String
+    # Snowflake Query ID. Only for debugging.
+    sfQid: String
+    # Total number of rows that the cursor holds.
+    totalRows: Int64!
+    # Offset into the cursor from which the rows below have been produced,
+    # starting at 0.
+    offset: Int64!
+    # Number of rows in this result set.
+    numRows: Int64!
+    # Initial set of rows in column-major format. Each column contains exactly
+    # numRows values.
+    columns: [[String]]
+}
+"""
 scalar PaginatedResults @goModel(model: "observe/meta/metatypes.PaginatedResults")
 
 enum ExportFileFormat @goModel(model: "observe/meta/metatypes.ExportFileFormat") {
@@ -341,7 +343,7 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     endTime: Time @deprecated(reason: "not used anymore")
 
     """
-    if resultKind is resultKindProgress (which will only happen if it is one
+    If resultKind is resultKindProgress (which will only happen if it is one
     of the requested resultKinds for a stage), contains details on the task's
     progress
     """
@@ -356,13 +358,13 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     """
     paginatedResults: PaginatedResults
     """
-    if resultCursor is set, does it contain data or stats? Or if
+    If resultCursor is set, does it contain data or stats? Or if
     resultKindProgress, then resultProgress is set instead
     """
     resultKind: ResultKind
 
     """
-    how to understand the columns in the result from Snowflake --
+    How to understand the columns in the result from Snowflake --
     """
     resultSchema: TaskResultSchema
 
@@ -426,6 +428,12 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     in the StagePresentationInput.searchMatchKind
     """
     searchMatchMetadata: SearchMatchMetadata
+
+    """
+    Statistics about the Snowflake task execution (like warehouse size used
+    and time spent in Snowflake)
+    """
+    taskExecutionStats: TaskExecutionStats
 }
 
 type LiveQueryFreshnessUpdateResult implements LiveQueryResult @goModel(model: "observe/meta/metaparser.LiveQueryFreshnessUpdateResult") {
@@ -650,6 +658,16 @@ type TaskResultProgress @goModel(model: "observe/meta/metaparser.TaskResultProgr
     """
     scannedBytes: Int64
     totalScanBytes: Int64
+
+    """
+    How long has this task been waiting in the scheduler queue?
+    """
+    queuingDuration: Duration
+
+    """
+    How many times has this task been retried? (default / ideal is 0)
+    """
+    retries: Int
 }
 
 """
@@ -659,12 +677,12 @@ perfectly.
 """
 type TimeAlignment @goModel(model: "observe/meta/metatypes.TimeAlignment") {
     """
-    stepSize is the distance between every pair of adjacent points in the time grid.
+    Distance between every pair of adjacent points in the time grid.
     """
     stepSize: Duration!
     """
-    offset describes the offset of this periodic time grid compare to epoch.
-    It will be between [0, stepSize).
+    Offset of this periodic time grid compare to epoch.  It will be between [0,
+    stepSize).
     """
     offset: Duration!
 }
@@ -681,7 +699,7 @@ type AlignedTimeRange @goModel(model: "observe/meta/metatypes.AlignedTimeRange")
 
 type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema") {
     """
-    these fields are the same as for Dataset
+    These fields are the same as for Dataset
     """
     validFromField: String
     validToField: String
@@ -697,7 +715,7 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!]
     """
-    this is the same schema as Typedef.definition
+    This is the same schema as Typedef.definition
     """
     typedefDefinition: JsonObject @deprecated(reason: "use the strong typed \"typedef\" field instead")
     typedef: ObjectTypedef @deprecated(reason: "use fieldList instead")
@@ -708,10 +726,12 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
     metrics: [Metric!]! @goField(forceResolver:true)
     accelerable: Boolean!
+    # Enabled if Observe allows this dataset to be a view.
+    eligibleAsView: Boolean!
     streamable: Boolean! @deprecated(reason:"renamed to accelerable") @goField(name:accelerable)
     indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
     """
-    alignment and alignedTimeRange are set when the produced result is on an
+    Alignment and alignedTimeRange are set when the produced result is on an
     aligned time grid. Both event table and interval/resource table can be aligned.
     """
     alignment: TimeAlignment
@@ -914,6 +934,8 @@ enum StalenessReason @goModel(model: "observe/meta/metatypes.StalenessReason") {
     UnusedDatasetHibernating      # Staleness attributed to unused dataset freshness decay
     ConfiguredFreshnessGoal       # Staleness attributed to the set freshness goal
     SlowAcceleration              # Staleness attributed due to slow transform execution
+    ActiveBackfill                # Staleness attributed due to an active backfill
+    DatasetHibernated             # Staleness due to hibernation
 }
 
 
@@ -930,6 +952,20 @@ type TaskResultWarningStaleResults implements TaskResultWarning @goModel(model: 
     text: String!
     message: String!
     staleness: [DatasetStalenessInfo!]!
+}
+
+"""
+Warning that the query results are answered from the result cache and that the data is maybe stale.
+"""
+type TaskResultWarningCachedResults implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningCachedResults") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
 }
 
 """
@@ -1052,6 +1088,22 @@ type TaskResultErrorStageHasDependenciesWithErrors implements TaskResultError @g
     upstreamStageErrors: [StageErrors!]!
 }
 
+# """
+# An error returned when a stage cannot be compiled because a parameter is not
+# set
+# """
+type TaskResultErrorMissingParameter implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorMissingParameter") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of parameter that is not set or otherwise fails to compile
+    """
+    parameterId: String!
+}
+
 """
 Errors found in a given stage
 """
@@ -1112,7 +1164,7 @@ Base interface for all index types.
 """
 interface IndexDefinition @goModel(model: "observe/meta/metatypes.IndexDefinition") {
     column: String!
-} 
+}
 
 type TokenIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.TokenIndex") {
     column: String!
@@ -1123,6 +1175,10 @@ type SubstringIndex implements IndexDefinition @goModel(model: "observe/meta/met
 }
 
 type EqualityIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.EqualityIndex") {
+    column: String!
+}
+
+type AutoClusteringIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.AutoClusteringIndex") {
     column: String!
 }
 
@@ -1182,8 +1238,13 @@ type ResultMetadata @goModel(model: "observe/meta/metatypes.ResultMetadata") {
     """
     Information about the accessed indexes.
     """
-    accessedIndexes: [IndexDefinition!] 
-    }
+    accessedIndexes: [IndexDefinition!]
+
+    """
+    The number of slices that are answered using results from the result cache
+    """
+    resultCacheHits: Int
+}
 
 
 type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
@@ -1212,13 +1273,7 @@ type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
     unacceleratedWindows: [TimeRange!]
 
     """
-    True if this dataset is hibernated. In this case, the dataset will not
-    automatically accelerate new data. You can still query the dataset on the
-    accelerated range and issue manual acceleration jobs.
-    """
-    hibernated: Boolean!
-
-    """
+    If the dataset is not hibernated, this field is nil
     If the dataset is hibernated, this field will be set to the time when it was
     hibernated. The dataset will not automatically accelerate new data.
     You can still query the dataset on the accelerated range and issue manual
@@ -1262,7 +1317,7 @@ enum ExecutionMode @goModel(model: "observe/meta/metatypes.ExecutionMode") {
     """
     Same as ExecutionModeProgressive, but the execution will run multiple (depending on the query window)
     incrementally bigger queries that do not overlap, in order to cover the entire full query window.
-    This means that there will be more frequent updates to the result set. Each new result replaces 
+    This means that there will be more frequent updates to the result set. Each new result replaces
     the results that have been already delivered so far.
     """
     ExecutionModeIncremental
@@ -1371,7 +1426,7 @@ enum ValueType @goModel(model: "observe/compiler/comptypes.ValueType") {
     STRING
     TIMESTAMP
     DURATION
-    
+
     # compound types
 
     ARRAY       # used to be ParameterKindList
@@ -1526,7 +1581,7 @@ type ParameterSpec @goModel(model: "observe/meta/metatypes.ParameterSpec") {
     id: String!
     name: String!
     """
-    optional default value
+    Optional default value
     """
     defaultValue: Value
     valueKind: ValueTypeSpec!
@@ -1691,6 +1746,11 @@ input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePrese
     Terraform provider depends on it.
     """
     defaultStats: DefaultStatsInput @deprecated(reason:"Use columnStats and/or volumeStats")
+
+    """
+    Decide how we want to encode variant values. Default is `Json`.
+    """
+    variantEncodingMode: VariantEncodingMode
 }
 
 """
@@ -1771,6 +1831,18 @@ enum SearchMatchKind @goModel(model: "observe/meta/metatypes.SearchMatchKind") {
     Send back a list of columns that have contributed to resulting data matching the search
     """
     SearchMatchColumns
+}
+
+enum VariantEncodingMode @goModel(model: "observe/compiler/comptypes.VariantEncodingMode") {
+    """
+    JSON (default)
+    """
+    Json,
+    """
+    String, which is the same as the value cast to string. The main difference
+    is that for string value stored in variant, it is not quoted.
+    """
+    String
 }
 
 input RollupOptionInput @goModel(model: "observe/meta/metaparser.RollupOptionInput") {
@@ -2011,7 +2083,7 @@ type QueryRateLimitAndUsageDetails @goModel(model: "observe/meta/metatypes.Query
     creditLimit: Float
 
     """
-    Total credits available for the time horizon for the scope before throttling. 
+    Total credits available for the time horizon for the scope before throttling.
     Null if not limit is set.
     """
     throttledCreditLimit: Float
@@ -2034,7 +2106,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     Credits left in the _customer_ credit budget that can be used right now, or null if no
     rate limit is configured
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2045,7 +2117,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     no rate limit is configured. Note: In general, the QCM will be a in a particular state if
     maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either user or customer).
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2063,7 +2135,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     """
     Credits used in the past 24 hours until now for the _customer_.
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditsUsedPast24Hours where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2090,7 +2162,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
      """
     Total credits available for each day for the _customer_. Null if no limit is set.
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2104,7 +2176,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     """
     Total throttled credits available for each day. Null if not limit is set.
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].throttledCreditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2117,7 +2189,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     set. This is so that credit usage / billing information is returned.
     """
     limitAndUsageDetailsPerScope: [QueryRateLimitAndUsageDetails!]!
-    
+
 }
 
 type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryWeeklyCreditUtilization") {
@@ -2132,7 +2204,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     Credits left in the _customer_ credit budget that can be used right now, or null if no
     rate limit is configured
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2142,8 +2214,8 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     Maximum total number of customer credits in the credit budget, or null if
     no rate limit is configured. Note: In general, the QCM will be a in a particular state if
     maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either customer or user)
-    
-    This field is deprecated - and in future should be replaced with 
+
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2159,7 +2231,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     """
     Total credits used over the past 7 days for the customer
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditsUsedPast7Days where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2168,7 +2240,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     """
     Total credits available for each week for the customer. Zero if no limit is set.
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].creditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2182,7 +2254,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     """
     Total credits available for each week for the customer before throttling. Zero if not limit is set.
 
-    This field is deprecated - and in future should be replaced with 
+    This field is deprecated - and in future should be replaced with
     limitAndUsageDetailsPerScope[i].throttledCreditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
@@ -2214,6 +2286,34 @@ type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.Transfor
     dailyOngoingTransformCreditsUsedPast30Days: Float!
 }
 
+enum WarehouseSize @goModel(model: "observe/meta/metatypes.WarehouseSize") {
+    WHSZ_UNKNOWN
+    WHSZ_XSMALL
+    WHSZ_SMALL
+    WHSZ_MEDIUM
+    WHSZ_LARGE
+    WHSZ_XLARGE
+    WHSZ_XXLARGE
+    WHSZ_XXXLARGE
+    WHSZ_X4LARGE
+    WHSZ_X5LARGE
+    WHSZ_X6LARGE
+}
+
+type TaskExecutionStats @goModel(model: "observe/meta/metaparser.TaskExecutionStats") {
+    """
+    Total time spent executing in the scheduler overall (not just in Snowflake)
+    NOTE: this does not include time queueing - only the time from when the task is
+    scheduled on the warehouse.
+    """
+    schedulerTotalExecutionTime: Duration!
+
+    """
+    Warehouse size used in Snowflake
+    """
+    warehouseSize: WarehouseSize!
+}
+
 """
 Metadata a client can send together with an observe query. Should not change the
 behavior of the query, and should only provide some context around what this
@@ -2242,6 +2342,11 @@ input QueryMetadata @goModel(model: "observe/meta/metatypes.QueryMetadata") {
     tab the user is on.
     """
     pageTab: String
+
+    """
+    Indicates that the result cache can be used to answer this query.
+    """
+    useResultCache: Boolean
 
     """
     Extra stuff

@@ -22,17 +22,21 @@ extend type Query {
     any URLs with a workspaceId have the correct value.
     """
     monitorV2TemplateDictionary(
+        workspaceId: ObjectId,
+        monitorId: ObjectId,
         alertType: MonitorV2AlertType,
         monitorInput: MonitorV2Input!,
         alarmInput: MonitorV2AlarmInput!,
-        workspaceId: ObjectId,
     ): TemplateDictionary!
 
     """
     Receive an actionInput and sample data payload to render all the fields in the mustache template.
     SampleData is the json payload that contains all the fields to render the mustache template.
     """
-    monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): RenderedTemplate!
+    monitorV2RenderTemplate(
+        templateDict: JsonObject!, 
+        actionInput: MonitorV2ActionInput!,
+    ): RenderedTemplate!
 
     """
     Can be used to query alerts in the explorer using various optional filters.
@@ -101,7 +105,10 @@ extend type Mutation {
     the actionInput and destinationInputs object. Afterward, it sends a test alert to see whether the customer can
     receive an alert at their designated end point.
     """
-    testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): ResultStatus!
+    testMonitorV2Alert(
+        templateDict: JsonObject!, 
+        actionInput: MonitorV2ActionInput!,
+    ): ResultStatus!
 
     """
     SaveMonitorV2WithActions builds on the primitives of createMonitorV2, updateMonitorV2,

@@ -25,13 +25,32 @@ directive @eol on
     | FIELD_DEFINITION
     | ARGUMENT_DEFINITION
 
+enum Team @goModel(model: "observe/meta/apiowner.Team") {
+    Logs
+    Streaming
+    Enterprise
+    Intake
+    AI
+    APM
+    Query
+}
+
+"""
+Directive to specify the owner of an API endpoint, which includes the owner team
+and the lead engineer. For the lead engineer, please use their primary google
+email alias (can look it up using the Google contact directory).
+"""
+directive @owner(team: Team!, lead: String!) on
+    | FIELD_DEFINITION
+    | INPUT_FIELD_DEFINITION
+
 scalar Any @goModel(model: "observe/meta/metascalar.Any")
 scalar CustomerId @goModel(model: "observe/authorization/id.CustomerId")
 scalar Duration @goModel(model: "observe/compiler/comptypes.Duration")
 scalar Int64 @goModel(model: "observe/meta/metascalar.Int64")
 scalar JsonObject @goModel(model: "observe/meta/metascalar.ObjectScalar")
 scalar Number @goModel(model: "observe/meta/metascalar.Number")
-scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectId")
+scalar ObjectId @goModel(model: "observe/meta/metascalar.ObjectId")
 scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
 scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
 
@@ -96,7 +115,7 @@ interface Token @goModel(model: "observe/meta/metatypes.Token") {
     createdDate: Time!
     updatedDate: Time!
     """
-    optional stats
+    Optional stats
     """
     stats: TokenStats
     disabled: Boolean!
