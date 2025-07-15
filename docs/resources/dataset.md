@@ -64,6 +64,7 @@ paths between two datasets.
 "rematerialize" (default), "skip_rematerialization", and "must_skip_rematerialization".
 "skip_rematerialization" will skip rematerialization if certain conditions are met, will rematerialize otherwise.
 "must_skip_rematerialization" will never rematerialize, update will fail if skipping rematerialization is not possible.
+- `storage_integration` (String) The ID of the storage integration associated with this dataset.
 
 ### Read-Only
 

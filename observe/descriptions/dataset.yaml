@@ -17,6 +17,8 @@ schema:
     Source of disabled materialization
   data_table_view_state: |
     JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
+  storage_integration: |
+    The ID of the storage integration associated with this dataset.
   correlation_tag:
     description: |
       Correlation tags associated with this dataset.

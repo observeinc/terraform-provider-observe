@@ -935,3 +935,59 @@ func TestAccObserveDatasetQuotedInputReference(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveDatasetUseIcebergStorageIntegration(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	if os.Getenv("CI") != "true" {
+		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's Snowflake database.")
+	}
+
+	// ! do not edit !
+	// This ID is pre-created in the ENG terraform integration test tenant (127814973959).
+	// The acc test will only run successfully against that tenant, which is OK for now.
+	// It will be removed once we add support for storage integration as a terraform resource.
+	//
+	// This storage integration was created with the following aws config, for future reference:
+	//     "externalId": "0b8aadee-6ff7-4f94-bcb0-4e4b61656c99",
+	//     "iamRoleArn": "arn:aws:iam::723346149663:role/jyc-iceberg-test",
+	//     "s3BaseUrl": "s3://jyc-observeinc/iceberg/terraform-integration-test/"
+	storageIntegrationID := "42184117"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				data "observe_oid" "si" {
+					id   = "%[1]s"
+					type = "storageintegration"
+				}
+
+				resource "observe_dataset" "iceberg" {
+					workspace              = data.observe_workspace.default.oid
+					name                   = "%[2]s-iceberg"
+					storage_integration = data.observe_oid.si.oid
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							// do nothing
+						EOF
+					}
+				}`, storageIntegrationID, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.iceberg", "name", randomPrefix+"-iceberg"),
+					resource.TestCheckResourceAttrSet("observe_dataset.iceberg", "storage_integration"),
+					resource.TestCheckResourceAttr("observe_dataset.iceberg", "storage_integration", "o:::storageintegration:"+storageIntegrationID),
+					resource.TestCheckResourceAttrSet("observe_dataset.iceberg", "oid"),
+					resource.TestCheckResourceAttrSet("observe_dataset.iceberg", "inputs.test"),
+				),
+			},
+		},
+	})
+}

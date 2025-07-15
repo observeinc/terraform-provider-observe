@@ -1261,6 +1261,7 @@ type Dataset struct {
 	// range for the dataset.
 	OnDemandMaterializationLength *types.Int64Scalar                                   `json:"onDemandMaterializationLength"`
 	DataTableViewState            *types.JsonObject                                    `json:"dataTableViewState"`
+	StorageIntegrationId          *string                                              `json:"storageIntegrationId"`
 	ForeignKeys                   []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
 	Transform                     *DatasetTransform                                    `json:"transform"`
 	Typedef                       DatasetTypedef                                       `json:"typedef"`
@@ -1316,6 +1317,9 @@ func (v *Dataset) GetOnDemandMaterializationLength() *types.Int64Scalar {
 
 // GetDataTableViewState returns Dataset.DataTableViewState, and is useful for accessing the field via an interface.
 func (v *Dataset) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
+
+// GetStorageIntegrationId returns Dataset.StorageIntegrationId, and is useful for accessing the field via an interface.
+func (v *Dataset) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
 
 // GetForeignKeys returns Dataset.ForeignKeys, and is useful for accessing the field via an interface.
 func (v *Dataset) GetForeignKeys() []DatasetForeignKeysForeignKey { return v.ForeignKeys }
@@ -1508,6 +1512,7 @@ type DatasetInput struct {
 	Layout                     *types.JsonObject           `json:"layout"`
 	PathCost                   *types.Int64Scalar          `json:"pathCost"`
 	DataTableViewState         *types.JsonObject           `json:"dataTableViewState"`
+	StorageIntegrationId       *string                     `json:"storageIntegrationId"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
 	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
@@ -1558,6 +1563,9 @@ func (v *DatasetInput) GetPathCost() *types.Int64Scalar { return v.PathCost }
 
 // GetDataTableViewState returns DatasetInput.DataTableViewState, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
+
+// GetStorageIntegrationId returns DatasetInput.StorageIntegrationId, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
 
 // GetOnDemandMaterializationLength returns DatasetInput.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
@@ -18822,6 +18830,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	dataTableViewState
+	storageIntegrationId
 	foreignKeys {
 		label
 		targetDataset
@@ -20955,6 +20964,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	dataTableViewState
+	storageIntegrationId
 	foreignKeys {
 		label
 		targetDataset
@@ -21283,6 +21293,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	dataTableViewState
+	storageIntegrationId
 	foreignKeys {
 		label
 		targetDataset
@@ -22249,6 +22260,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	dataTableViewState
+	storageIntegrationId
 	foreignKeys {
 		label
 		targetDataset
@@ -22908,6 +22920,7 @@ fragment Dataset on Dataset {
 	managedById
 	onDemandMaterializationLength
 	dataTableViewState
+	storageIntegrationId
 	foreignKeys {
 		label
 		targetDataset

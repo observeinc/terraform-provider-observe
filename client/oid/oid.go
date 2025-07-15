@@ -55,6 +55,7 @@ const (
 	TypeReport                  Type = "report"
 	TypeIngestFilter            Type = "ingestfilter"
 	TypeIngestToken             Type = "ingesttoken"
+	TypeStorageIntegration      Type = "storageintegration"
 )
 
 func (t Type) IsValid() bool {
@@ -94,6 +95,8 @@ func (t Type) IsValid() bool {
 	case TypeReferenceTable:
 	case TypeReport:
 	case TypeIngestFilter:
+	case TypeIngestToken:
+	case TypeStorageIntegration:
 	default:
 		return false
 	}
@@ -306,4 +309,8 @@ func IngestFilterOid(id string) OID {
 
 func IngestTokenOid(id string) OID {
 	return OID{Id: id, Type: TypeIngestToken}
+}
+
+func StorageIntegrationOid(id string) OID {
+	return OID{Id: id, Type: TypeStorageIntegration}
 }
