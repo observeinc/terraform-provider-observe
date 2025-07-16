@@ -1,7 +1,7 @@
 extend type Query {
     checkQuery(query: StageInput!, parameterValues: [ParameterBindingInput!]): CompilationResult
     """
-    the QueryParams are optional -- some defaults will be used if you don't put them in
+    The QueryParams are optional -- some defaults will be used if you don't put them in
     """
     checkQueries(queries: MultiStageQueryInput!, params: QueryParams): [CompilationResult!]!
 
@@ -33,7 +33,7 @@ type PipelineSymbol @goModel(model: "observe/meta/metatypes.PipelineSymbol") {
     text: String! @deprecated(reason: "use span and query text")
     comment: String!
     """
-    yes a token can have more than one type
+    Yes a token can have more than one type
     """
     symbolTags: [PipelineSymbolType!]!
     type: [PipelineSymbolType!]! @deprecated(reason:"user symbolTags instead")
@@ -55,6 +55,10 @@ enum PipelineWarningKind @goModel(model: "observe/compiler/comptypes.PipelineWar
     Pipeline may not be accelerable if published.
     """
     NotAccelerable
+    """
+    It is not allowed to publish this pipeline as a dataset view.
+    """
+    NotAllowedInView
     """
     There was a collision with one of the column names, it may have been
     dropped or renamed

@@ -1131,7 +1131,7 @@ func (v *DashboardParameterValuesParameterBinding) GetValue() types.Value { retu
 type DashboardParametersParameterSpec struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
-	// optional default value
+	// Optional default value
 	DefaultValue *types.Value                                           `json:"defaultValue"`
 	ValueKind    DashboardParametersParameterSpecValueKindValueTypeSpec `json:"valueKind"`
 }
@@ -1458,14 +1458,14 @@ func (v *DatasetFieldTypeInput) GetNullable() *bool { return v.Nullable }
 
 // DatasetForeignKeysForeignKey includes the requested fields of the GraphQL type ForeignKey.
 type DatasetForeignKeysForeignKey struct {
-	Label         *string            `json:"label"`
+	Id            *string            `json:"id"`
 	TargetDataset *types.Int64Scalar `json:"targetDataset"`
 	SrcFields     []string           `json:"srcFields"`
 	DstFields     []string           `json:"dstFields"`
 }
 
-// GetLabel returns DatasetForeignKeysForeignKey.Label, and is useful for accessing the field via an interface.
-func (v *DatasetForeignKeysForeignKey) GetLabel() *string { return v.Label }
+// GetId returns DatasetForeignKeysForeignKey.Id, and is useful for accessing the field via an interface.
+func (v *DatasetForeignKeysForeignKey) GetId() *string { return v.Id }
 
 // GetTargetDataset returns DatasetForeignKeysForeignKey.TargetDataset, and is useful for accessing the field via an interface.
 func (v *DatasetForeignKeysForeignKey) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
@@ -1518,6 +1518,8 @@ type DatasetInput struct {
 	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
 	ManagedById *string `json:"managedById"`
+	// Optional list of rules to set the list of users and groups that can access the dataset
+	SharingRules []DatasetSharingRuleInput `json:"sharingRules"`
 }
 
 // GetId returns DatasetInput.Id, and is useful for accessing the field via an interface.
@@ -1574,6 +1576,9 @@ func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
 
 // GetManagedById returns DatasetInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
+
+// GetSharingRules returns DatasetInput.SharingRules, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetSharingRules() []DatasetSharingRuleInput { return v.SharingRules }
 
 type DatasetLinkSchemaInput struct {
 	TargetDataset    *types.Int64Scalar `json:"targetDataset"`
@@ -1719,6 +1724,24 @@ func (v *DatasetOutboundShareStatus) GetState() DatasetOutboundShareState { retu
 // GetError returns DatasetOutboundShareStatus.Error, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShareStatus) GetError() *string { return v.Error }
 
+type DatasetRole string
+
+const (
+	DatasetRoleEditor DatasetRole = "Editor"
+	DatasetRoleViewer DatasetRole = "Viewer"
+)
+
+type DatasetSharingRuleInput struct {
+	Subject RbacSubjectInput `json:"subject"`
+	Role    DatasetRole      `json:"role"`
+}
+
+// GetSubject returns DatasetSharingRuleInput.Subject, and is useful for accessing the field via an interface.
+func (v *DatasetSharingRuleInput) GetSubject() RbacSubjectInput { return v.Subject }
+
+// GetRole returns DatasetSharingRuleInput.Role, and is useful for accessing the field via an interface.
+func (v *DatasetSharingRuleInput) GetRole() DatasetRole { return v.Role }
+
 // DatasetSourceTableSourceTableDefinition includes the requested fields of the GraphQL type SourceTableDefinition.
 type DatasetSourceTableSourceTableDefinition struct {
 	Schema                string                                                                            `json:"schema"`
@@ -1795,11 +1818,11 @@ func (v *DatasetTransform) GetCurrent() *DatasetTransformCurrentTransformVersion
 
 // DatasetTransformCurrentTransformVersion includes the requested fields of the GraphQL type TransformVersion.
 type DatasetTransformCurrentTransformVersion struct {
-	Query DatasetTransformCurrentTransformVersionQueryMultiStageQuery `json:"query"`
+	Query *DatasetTransformCurrentTransformVersionQueryMultiStageQuery `json:"query"`
 }
 
 // GetQuery returns DatasetTransformCurrentTransformVersion.Query, and is useful for accessing the field via an interface.
-func (v *DatasetTransformCurrentTransformVersion) GetQuery() DatasetTransformCurrentTransformVersionQueryMultiStageQuery {
+func (v *DatasetTransformCurrentTransformVersion) GetQuery() *DatasetTransformCurrentTransformVersionQueryMultiStageQuery {
 	return v.Query
 }
 
@@ -1919,7 +1942,7 @@ type Datastream struct {
 	IconUrl     *string `json:"iconUrl"`
 	Description *string `json:"description"`
 	WorkspaceId string  `json:"workspaceId"`
-	DatasetId   string  `json:"datasetId"`
+	DatasetId   *string `json:"datasetId"`
 }
 
 // GetId returns Datastream.Id, and is useful for accessing the field via an interface.
@@ -1938,17 +1961,14 @@ func (v *Datastream) GetDescription() *string { return v.Description }
 func (v *Datastream) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetDatasetId returns Datastream.DatasetId, and is useful for accessing the field via an interface.
-func (v *Datastream) GetDatasetId() string { return v.DatasetId }
+func (v *Datastream) GetDatasetId() *string { return v.DatasetId }
 
 type DatastreamInput struct {
-	Name             string                     `json:"name"`
-	Description      *string                    `json:"description"`
-	IconUrl          *string                    `json:"iconUrl"`
-	Disabled         *bool                      `json:"disabled"`
-	ExternalSourceId *string                    `json:"externalSourceId"`
-	PrometheusInput  *DatastreamPrometheusInput `json:"prometheusInput"`
-	OtelLogsInput    *DatastreamOtelLogsInput   `json:"otelLogsInput"`
-	K8sEntityInput   *DatastreamK8sEntityInput  `json:"k8sEntityInput"`
+	Name             string  `json:"name"`
+	Description      *string `json:"description"`
+	IconUrl          *string `json:"iconUrl"`
+	Disabled         *bool   `json:"disabled"`
+	ExternalSourceId *string `json:"externalSourceId"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -1966,40 +1986,6 @@ func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
 // GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
 
-// GetPrometheusInput returns DatastreamInput.PrometheusInput, and is useful for accessing the field via an interface.
-func (v *DatastreamInput) GetPrometheusInput() *DatastreamPrometheusInput { return v.PrometheusInput }
-
-// GetOtelLogsInput returns DatastreamInput.OtelLogsInput, and is useful for accessing the field via an interface.
-func (v *DatastreamInput) GetOtelLogsInput() *DatastreamOtelLogsInput { return v.OtelLogsInput }
-
-// GetK8sEntityInput returns DatastreamInput.K8sEntityInput, and is useful for accessing the field via an interface.
-func (v *DatastreamInput) GetK8sEntityInput() *DatastreamK8sEntityInput { return v.K8sEntityInput }
-
-type DatastreamK8sEntityInput struct {
-	Enabled bool `json:"enabled"`
-}
-
-// GetEnabled returns DatastreamK8sEntityInput.Enabled, and is useful for accessing the field via an interface.
-func (v *DatastreamK8sEntityInput) GetEnabled() bool { return v.Enabled }
-
-type DatastreamOtelLogsInput struct {
-	Enabled bool `json:"enabled"`
-}
-
-// GetEnabled returns DatastreamOtelLogsInput.Enabled, and is useful for accessing the field via an interface.
-func (v *DatastreamOtelLogsInput) GetEnabled() bool { return v.Enabled }
-
-type DatastreamPrometheusInput struct {
-	Enabled      bool  `json:"enabled"`
-	UseTransform *bool `json:"useTransform"`
-}
-
-// GetEnabled returns DatastreamPrometheusInput.Enabled, and is useful for accessing the field via an interface.
-func (v *DatastreamPrometheusInput) GetEnabled() bool { return v.Enabled }
-
-// GetUseTransform returns DatastreamPrometheusInput.UseTransform, and is useful for accessing the field via an interface.
-func (v *DatastreamPrometheusInput) GetUseTransform() *bool { return v.UseTransform }
-
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
 	Id           string  `json:"id"`
@@ -2007,7 +1993,7 @@ type DatastreamToken struct {
 	Description  *string `json:"description"`
 	Disabled     bool    `json:"disabled"`
 	DatastreamId string  `json:"datastreamId"`
-	// only populated for creates
+	// Only populated for creates
 	Secret *string `json:"secret"`
 }
 
@@ -2311,7 +2297,7 @@ type Filedrop struct {
 	IconUrl     *string `json:"iconUrl"`
 	Description *string `json:"description"`
 	WorkspaceId string  `json:"workspaceId"`
-	// status of the filedrop
+	// Status of the filedrop
 	Status FiledropStatus `json:"status"`
 	// ID of the datastream associated with the filedrop
 	DatastreamID string           `json:"datastreamID"`
@@ -2661,7 +2647,7 @@ type FiledropEndpointFiledropS3Endpoint struct {
 	Arn string `json:"arn"`
 	// Bucket style alias of the S3 access point
 	Bucket string `json:"bucket"`
-	// filedrop's prefix path within the S3 access point
+	// Filedrop's prefix path within the S3 access point
 	Prefix string `json:"prefix"`
 }
 
@@ -3049,6 +3035,7 @@ func (v *IngestFilter) __premarshalJSON() (*__premarshalIngestFilter, error) {
 // IngestFilterErrorsTaskResultError is implemented by the following types:
 // IngestFilterErrorsTaskResultErrorBinding
 // IngestFilterErrorsTaskResultErrorGeneric
+// IngestFilterErrorsTaskResultErrorMissingParameter
 // IngestFilterErrorsTaskResultErrorRateLimit
 // IngestFilterErrorsTaskResultErrorStageDependencyLoop
 // IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors
@@ -3065,6 +3052,8 @@ type IngestFilterErrorsTaskResultError interface {
 func (v *IngestFilterErrorsTaskResultErrorBinding) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
 }
 func (v *IngestFilterErrorsTaskResultErrorGeneric) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
+}
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
 }
 func (v *IngestFilterErrorsTaskResultErrorRateLimit) implementsGraphQLInterfaceIngestFilterErrorsTaskResultError() {
 }
@@ -3092,6 +3081,9 @@ func __unmarshalIngestFilterErrorsTaskResultError(b []byte, v *IngestFilterError
 		return json.Unmarshal(b, *v)
 	case "TaskResultErrorGeneric":
 		*v = new(IngestFilterErrorsTaskResultErrorGeneric)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorMissingParameter":
+		*v = new(IngestFilterErrorsTaskResultErrorMissingParameter)
 		return json.Unmarshal(b, *v)
 	case "TaskResultErrorRateLimit":
 		*v = new(IngestFilterErrorsTaskResultErrorRateLimit)
@@ -3137,6 +3129,18 @@ func __marshalIngestFilterErrorsTaskResultError(v *IngestFilterErrorsTaskResultE
 		result := struct {
 			TypeName string `json:"__typename"`
 			*__premarshalIngestFilterErrorsTaskResultErrorGeneric
+		}{typename, premarshaled}
+		return json.Marshal(result)
+	case *IngestFilterErrorsTaskResultErrorMissingParameter:
+		typename = "TaskResultErrorMissingParameter"
+
+		premarshaled, err := v.__premarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		result := struct {
+			TypeName string `json:"__typename"`
+			*__premarshalIngestFilterErrorsTaskResultErrorMissingParameter
 		}{typename, premarshaled}
 		return json.Marshal(result)
 	case *IngestFilterErrorsTaskResultErrorRateLimit:
@@ -3341,6 +3345,83 @@ func (v *IngestFilterErrorsTaskResultErrorGeneric) __premarshalJSON() (*__premar
 	retval.Message = v.errorFieldsTaskResultErrorGeneric.Message
 	retval.Text = v.errorFieldsTaskResultErrorGeneric.Text
 	retval.Span = v.errorFieldsTaskResultErrorGeneric.Span
+	return &retval, nil
+}
+
+// IngestFilterErrorsTaskResultErrorMissingParameter includes the requested fields of the GraphQL type TaskResultErrorMissingParameter.
+type IngestFilterErrorsTaskResultErrorMissingParameter struct {
+	Typename                                   *string `json:"__typename"`
+	errorFieldsTaskResultErrorMissingParameter `json:"-"`
+}
+
+// GetTypename returns IngestFilterErrorsTaskResultErrorMissingParameter.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) GetTypename() *string { return v.Typename }
+
+// GetMessage returns IngestFilterErrorsTaskResultErrorMissingParameter.Message, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) GetMessage() string {
+	return v.errorFieldsTaskResultErrorMissingParameter.Message
+}
+
+// GetText returns IngestFilterErrorsTaskResultErrorMissingParameter.Text, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) GetText() string {
+	return v.errorFieldsTaskResultErrorMissingParameter.Text
+}
+
+// GetSpan returns IngestFilterErrorsTaskResultErrorMissingParameter.Span, and is useful for accessing the field via an interface.
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.errorFieldsTaskResultErrorMissingParameter.Span
+}
+
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IngestFilterErrorsTaskResultErrorMissingParameter
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IngestFilterErrorsTaskResultErrorMissingParameter = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.errorFieldsTaskResultErrorMissingParameter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIngestFilterErrorsTaskResultErrorMissingParameter struct {
+	Typename *string `json:"__typename"`
+
+	Message string `json:"message"`
+
+	Text string `json:"text"`
+
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IngestFilterErrorsTaskResultErrorMissingParameter) __premarshalJSON() (*__premarshalIngestFilterErrorsTaskResultErrorMissingParameter, error) {
+	var retval __premarshalIngestFilterErrorsTaskResultErrorMissingParameter
+
+	retval.Typename = v.Typename
+	retval.Message = v.errorFieldsTaskResultErrorMissingParameter.Message
+	retval.Text = v.errorFieldsTaskResultErrorMissingParameter.Text
+	retval.Span = v.errorFieldsTaskResultErrorMissingParameter.Span
 	return &retval, nil
 }
 
@@ -3718,6 +3799,18 @@ func (v *IngestFilterManagedByDataConnection) GetTypename() *string { return v.T
 // GetId returns IngestFilterManagedByDataConnection.Id, and is useful for accessing the field via an interface.
 func (v *IngestFilterManagedByDataConnection) GetId() string { return v.Id }
 
+// IngestFilterManagedByDataExportJob includes the requested fields of the GraphQL type DataExportJob.
+type IngestFilterManagedByDataExportJob struct {
+	Typename *string `json:"__typename"`
+	Id       string  `json:"id"`
+}
+
+// GetTypename returns IngestFilterManagedByDataExportJob.Typename, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataExportJob) GetTypename() *string { return v.Typename }
+
+// GetId returns IngestFilterManagedByDataExportJob.Id, and is useful for accessing the field via an interface.
+func (v *IngestFilterManagedByDataExportJob) GetId() string { return v.Id }
+
 // IngestFilterManagedByDataset includes the requested fields of the GraphQL type Dataset.
 type IngestFilterManagedByDataset struct {
 	Typename *string `json:"__typename"`
@@ -4012,6 +4105,7 @@ func (v *IngestFilterManagedByWorksheet) GetId() string { return v.Id }
 // IngestFilterManagedByDashboardLink
 // IngestFilterManagedByDashboardRef
 // IngestFilterManagedByDataConnection
+// IngestFilterManagedByDataExportJob
 // IngestFilterManagedByDataset
 // IngestFilterManagedByDatasetOutboundShare
 // IngestFilterManagedByDatasource
@@ -4057,6 +4151,8 @@ func (v *IngestFilterManagedByDashboardLink) implementsGraphQLInterfaceIngestFil
 func (v *IngestFilterManagedByDashboardRef) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
 func (v *IngestFilterManagedByDataConnection) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
+}
+func (v *IngestFilterManagedByDataExportJob) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
 func (v *IngestFilterManagedByDataset) implementsGraphQLInterfaceIngestFilterManagedByWorkspaceObject() {
 }
@@ -4137,6 +4233,9 @@ func __unmarshalIngestFilterManagedByWorkspaceObject(b []byte, v *IngestFilterMa
 		return json.Unmarshal(b, *v)
 	case "DataConnection":
 		*v = new(IngestFilterManagedByDataConnection)
+		return json.Unmarshal(b, *v)
+	case "DataExportJob":
+		*v = new(IngestFilterManagedByDataExportJob)
 		return json.Unmarshal(b, *v)
 	case "Dataset":
 		*v = new(IngestFilterManagedByDataset)
@@ -4271,6 +4370,14 @@ func __marshalIngestFilterManagedByWorkspaceObject(v *IngestFilterManagedByWorks
 		result := struct {
 			TypeName string `json:"__typename"`
 			*IngestFilterManagedByDataConnection
+		}{typename, v}
+		return json.Marshal(result)
+	case *IngestFilterManagedByDataExportJob:
+		typename = "DataExportJob"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*IngestFilterManagedByDataExportJob
 		}{typename, v}
 		return json.Marshal(result)
 	case *IngestFilterManagedByDataset:
@@ -5490,6 +5597,8 @@ type MonitorInput struct {
 	Rule                *MonitorRuleInput               `json:"rule"`
 	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec"`
 	Channels            []string                        `json:"channels"`
+	// Optional list of rules to set the list of users and groups that can access the monitor.
+	SharingRules []MonitorSharingRuleInput `json:"sharingRules"`
 }
 
 // GetName returns MonitorInput.Name, and is useful for accessing the field via an interface.
@@ -5545,9 +5654,12 @@ func (v *MonitorInput) GetNotificationSpec() *NotificationSpecificationInput {
 // GetChannels returns MonitorInput.Channels, and is useful for accessing the field via an interface.
 func (v *MonitorInput) GetChannels() []string { return v.Channels }
 
+// GetSharingRules returns MonitorInput.SharingRules, and is useful for accessing the field via an interface.
+func (v *MonitorInput) GetSharingRules() []MonitorSharingRuleInput { return v.SharingRules }
+
 // MonitorNotificationSpecNotificationSpecification includes the requested fields of the GraphQL type NotificationSpecification.
 type MonitorNotificationSpecNotificationSpecification struct {
-	// should these go in each applicable Rule instead?
+	// Should these go in each applicable Rule instead?
 	Merge             *NotificationMerge     `json:"merge"`
 	Importance        NotificationImportance `json:"importance"`
 	NotifyOnReminder  *bool                  `json:"notifyOnReminder"`
@@ -5591,6 +5703,13 @@ func (v *MonitorQueryMultiStageQuery) GetOutputStage() string { return v.OutputS
 
 // GetStages returns MonitorQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
 func (v *MonitorQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
+
+type MonitorRole string
+
+const (
+	MonitorRoleEditor MonitorRole = "Editor"
+	MonitorRoleViewer MonitorRole = "Viewer"
+)
 
 // MonitorRule includes the requested fields of the GraphQL interface MonitorRule.
 //
@@ -5989,7 +6108,7 @@ type MonitorRuleMonitorRuleFacet struct {
 	FacetFunction FacetFunction                              `json:"facetFunction"`
 	FacetValues   []string                                   `json:"facetValues"`
 	TimeFunction  TimeFunction                               `json:"timeFunction"`
-	// for example, "50" for "more than 50% of the time"
+	// For example, "50" for "more than 50% of the time"
 	TimeValue    *types.NumberScalar  `json:"timeValue"`
 	LookbackTime types.DurationScalar `json:"lookbackTime"`
 }
@@ -6173,6 +6292,17 @@ func (v *MonitorRuleThresholdInput) GetThresholdAggFunction() *ThresholdAggFunct
 
 // GetExpressionSummary returns MonitorRuleThresholdInput.ExpressionSummary, and is useful for accessing the field via an interface.
 func (v *MonitorRuleThresholdInput) GetExpressionSummary() *string { return v.ExpressionSummary }
+
+type MonitorSharingRuleInput struct {
+	Subject RbacSubjectInput `json:"subject"`
+	Role    MonitorRole      `json:"role"`
+}
+
+// GetSubject returns MonitorSharingRuleInput.Subject, and is useful for accessing the field via an interface.
+func (v *MonitorSharingRuleInput) GetSubject() RbacSubjectInput { return v.Subject }
+
+// GetRole returns MonitorSharingRuleInput.Role, and is useful for accessing the field via an interface.
+func (v *MonitorSharingRuleInput) GetRole() MonitorRole { return v.Role }
 
 // @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 type MonitorV2 struct {
@@ -6488,11 +6618,66 @@ const (
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
 )
 
+type MonitorV2AnomalyRuleInput struct {
+	ComparePercentage *types.Int64Scalar               `json:"comparePercentage"`
+	CompareGroups     []MonitorV2ColumnComparisonInput `json:"compareGroups"`
+}
+
+// GetComparePercentage returns MonitorV2AnomalyRuleInput.ComparePercentage, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleInput) GetComparePercentage() *types.Int64Scalar {
+	return v.ComparePercentage
+}
+
+// GetCompareGroups returns MonitorV2AnomalyRuleInput.CompareGroups, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleInput) GetCompareGroups() []MonitorV2ColumnComparisonInput {
+	return v.CompareGroups
+}
+
+type MonitorV2AnomalyRuleTemplateInput struct {
+	ComputationWindow     *types.DurationScalar            `json:"computationWindow"`
+	ValueColumnName       string                           `json:"valueColumnName"`
+	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
+	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
+	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
+}
+
+// GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetComputationWindow() *types.DurationScalar {
+	return v.ComputationWindow
+}
+
+// GetValueColumnName returns MonitorV2AnomalyRuleTemplateInput.ValueColumnName, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetValueColumnName() string { return v.ValueColumnName }
+
+// GetCompareFn returns MonitorV2AnomalyRuleTemplateInput.CompareFn, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetCompareFn() MonitorV2BoundComparisonFunction {
+	return v.CompareFn
+}
+
+// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplateInput.NumStandardDeviations, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetNumStandardDeviations() types.Int64Scalar {
+	return v.NumStandardDeviations
+}
+
+// GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplateInput.BasicAlgorithm, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetBasicAlgorithm() *types.JsonObject {
+	return v.BasicAlgorithm
+}
+
 type MonitorV2BooleanOperator string
 
 const (
 	MonitorV2BooleanOperatorAnd MonitorV2BooleanOperator = "And"
 	MonitorV2BooleanOperatorOr  MonitorV2BooleanOperator = "Or"
+)
+
+// These are functions meant to express comparison against standard deviation bounds.
+type MonitorV2BoundComparisonFunction string
+
+const (
+	MonitorV2BoundComparisonFunctionAbove        MonitorV2BoundComparisonFunction = "Above"
+	MonitorV2BoundComparisonFunctionAboveorbelow MonitorV2BoundComparisonFunction = "AboveOrBelow"
+	MonitorV2BoundComparisonFunctionBelow        MonitorV2BoundComparisonFunction = "Below"
 )
 
 // MonitorV2Column includes the GraphQL fields of MonitorV2Column requested by the fragment MonitorV2Column.
@@ -6530,6 +6715,7 @@ func (v *MonitorV2ColumnComparison) GetCompareValues() []MonitorV2Comparison { r
 type MonitorV2ColumnComparisonInput struct {
 	CompareValues []MonitorV2ComparisonInput `json:"compareValues"`
 	Column        MonitorV2ColumnInput       `json:"column"`
+	Operator      *MonitorV2BooleanOperator  `json:"operator"`
 }
 
 // GetCompareValues returns MonitorV2ColumnComparisonInput.CompareValues, and is useful for accessing the field via an interface.
@@ -6539,6 +6725,9 @@ func (v *MonitorV2ColumnComparisonInput) GetCompareValues() []MonitorV2Compariso
 
 // GetColumn returns MonitorV2ColumnComparisonInput.Column, and is useful for accessing the field via an interface.
 func (v *MonitorV2ColumnComparisonInput) GetColumn() MonitorV2ColumnInput { return v.Column }
+
+// GetOperator returns MonitorV2ColumnComparisonInput.Operator, and is useful for accessing the field via an interface.
+func (v *MonitorV2ColumnComparisonInput) GetOperator() *MonitorV2BooleanOperator { return v.Operator }
 
 type MonitorV2ColumnInput struct {
 	LinkColumn *MonitorV2LinkColumnInput `json:"linkColumn,omitempty"`
@@ -6815,19 +7004,25 @@ func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Sc
 func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
 
 type MonitorV2DefinitionInput struct {
-	InputQuery             MultiStageQueryInput       `json:"inputQuery"`
-	NoDataRules            []MonitorV2NoDataRuleInput `json:"noDataRules"`
-	Rules                  []MonitorV2RuleInput       `json:"rules"`
-	LookbackTime           *types.DurationScalar      `json:"lookbackTime"`
-	DataStabilizationDelay *types.DurationScalar      `json:"dataStabilizationDelay,omitempty"`
-	MaxAlertsPerHour       *types.Int64Scalar         `json:"maxAlertsPerHour,omitempty"`
-	Groupings              []MonitorV2ColumnInput     `json:"groupings"`
-	Scheduling             *MonitorV2SchedulingInput  `json:"scheduling"`
-	CustomVariables        *types.JsonObject          `json:"customVariables"`
+	InputQuery             MultiStageQueryInput        `json:"inputQuery"`
+	RuleTemplate           *MonitorV2RuleTemplateInput `json:"ruleTemplate"`
+	NoDataRules            []MonitorV2NoDataRuleInput  `json:"noDataRules"`
+	Rules                  []MonitorV2RuleInput        `json:"rules"`
+	LookbackTime           *types.DurationScalar       `json:"lookbackTime"`
+	DataStabilizationDelay *types.DurationScalar       `json:"dataStabilizationDelay,omitempty"`
+	MaxAlertsPerHour       *types.Int64Scalar          `json:"maxAlertsPerHour,omitempty"`
+	Groupings              []MonitorV2ColumnInput      `json:"groupings"`
+	Scheduling             *MonitorV2SchedulingInput   `json:"scheduling"`
+	CustomVariables        *types.JsonObject           `json:"customVariables"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetInputQuery() MultiStageQueryInput { return v.InputQuery }
+
+// GetRuleTemplate returns MonitorV2DefinitionInput.RuleTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetRuleTemplate() *MonitorV2RuleTemplateInput {
+	return v.RuleTemplate
+}
 
 // GetNoDataRules returns MonitorV2DefinitionInput.NoDataRules, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetNoDataRules() []MonitorV2NoDataRuleInput { return v.NoDataRules }
@@ -6932,6 +7127,7 @@ const (
 )
 
 type MonitorV2Input struct {
+	SharingRules      []MonitorSharingRuleInput        `json:"sharingRules"`
 	Disabled          *bool                            `json:"disabled,omitempty"`
 	Comment           *string                          `json:"comment"`
 	Definition        MonitorV2DefinitionInput         `json:"definition"`
@@ -6943,6 +7139,9 @@ type MonitorV2Input struct {
 	ManagedById       *string                          `json:"managedById,omitempty"`
 	FolderId          *string                          `json:"folderId,omitempty"`
 }
+
+// GetSharingRules returns MonitorV2Input.SharingRules, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetSharingRules() []MonitorSharingRuleInput { return v.SharingRules }
 
 // GetDisabled returns MonitorV2Input.Disabled, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetDisabled() *bool { return v.Disabled }
@@ -7098,6 +7297,7 @@ func (v *MonitorV2NoDataRule) GetThreshold() *MonitorV2ThresholdRule { return v.
 type MonitorV2NoDataRuleInput struct {
 	Expiration *types.DurationScalar        `json:"expiration"`
 	Threshold  *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
+	Anomaly    *MonitorV2AnomalyRuleInput   `json:"anomaly"`
 }
 
 // GetExpiration returns MonitorV2NoDataRuleInput.Expiration, and is useful for accessing the field via an interface.
@@ -7105,6 +7305,9 @@ func (v *MonitorV2NoDataRuleInput) GetExpiration() *types.DurationScalar { retur
 
 // GetThreshold returns MonitorV2NoDataRuleInput.Threshold, and is useful for accessing the field via an interface.
 func (v *MonitorV2NoDataRuleInput) GetThreshold() *MonitorV2ThresholdRuleInput { return v.Threshold }
+
+// GetAnomaly returns MonitorV2NoDataRuleInput.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRuleInput) GetAnomaly() *MonitorV2AnomalyRuleInput { return v.Anomaly }
 
 // MonitorV2PromoteRule includes the GraphQL fields of MonitorV2PromoteRule requested by the fragment MonitorV2PromoteRule.
 type MonitorV2PromoteRule struct {
@@ -7181,6 +7384,7 @@ type MonitorV2RuleInput struct {
 	Count     *MonitorV2CountRuleInput     `json:"count,omitempty"`
 	Threshold *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
 	Promote   *MonitorV2PromoteRuleInput   `json:"promote,omitempty"`
+	Anomaly   *MonitorV2AnomalyRuleInput   `json:"anomaly"`
 }
 
 // GetLevel returns MonitorV2RuleInput.Level, and is useful for accessing the field via an interface.
@@ -7195,25 +7399,44 @@ func (v *MonitorV2RuleInput) GetThreshold() *MonitorV2ThresholdRuleInput { retur
 // GetPromote returns MonitorV2RuleInput.Promote, and is useful for accessing the field via an interface.
 func (v *MonitorV2RuleInput) GetPromote() *MonitorV2PromoteRuleInput { return v.Promote }
 
+// GetAnomaly returns MonitorV2RuleInput.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2RuleInput) GetAnomaly() *MonitorV2AnomalyRuleInput { return v.Anomaly }
+
 // MonitorV2RuleKind describes the strategy used to inspect the input query.
 // - Count is used when what you care to inspect is the number of rows/instances
 // in the query result.
 // - Threshold is when you want to inspect a numerical value within the query
 // results, not the presence of the rows themselves.
+// - Promote is when you want to curate your own alerts using Observe's query
+// language without the monitor doing any additional data modeling behind the
+// scene.
+// - Anomaly is when you want alert based on any irregularity noticed in the new
+// set of data using the expected trend from modeling the data in the past.
 type MonitorV2RuleKind string
 
 const (
+	MonitorV2RuleKindAnomaly   MonitorV2RuleKind = "Anomaly"
 	MonitorV2RuleKindCount     MonitorV2RuleKind = "Count"
 	MonitorV2RuleKindPromote   MonitorV2RuleKind = "Promote"
 	MonitorV2RuleKindThreshold MonitorV2RuleKind = "Threshold"
 )
+
+type MonitorV2RuleTemplateInput struct {
+	Anomaly *MonitorV2AnomalyRuleTemplateInput `json:"anomaly"`
+}
+
+// GetAnomaly returns MonitorV2RuleTemplateInput.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2RuleTemplateInput) GetAnomaly() *MonitorV2AnomalyRuleTemplateInput {
+	return v.Anomaly
+}
 
 // MonitorV2Scheduling includes the GraphQL fields of MonitorV2Scheduling requested by the fragment MonitorV2Scheduling.
 type MonitorV2Scheduling struct {
 	// Interval should be used to run explicit ad-hoc queries to provide continuous
 	// monitoring, but using ad-hoc queries instead of transform.
 	Interval *MonitorV2IntervalSchedule `json:"interval"`
-	// Transform should be specified as an explicit transform evaluation style.
+	// Transform should be specified to explicitly set the style to transform or to configure
+	// the transform behavior.
 	Transform *MonitorV2TransformSchedule `json:"transform"`
 	// Cron should be specified to get wall-clock scheduled evaluation.
 	Scheduled *MonitorV2CronSchedule `json:"scheduled"`
@@ -7826,6 +8049,7 @@ func (v *ParameterSpecInput) GetValueKind() ValueTypeSpecInput { return v.ValueK
 // Poller includes the GraphQL fields of Poller requested by the fragment Poller.
 type Poller struct {
 	Id           string       `json:"id"`
+	Name         string       `json:"name"`
 	WorkspaceId  string       `json:"workspaceId"`
 	CustomerId   string       `json:"customerId"`
 	DatastreamId *string      `json:"datastreamId"`
@@ -7836,6 +8060,9 @@ type Poller struct {
 
 // GetId returns Poller.Id, and is useful for accessing the field via an interface.
 func (v *Poller) GetId() string { return v.Id }
+
+// GetName returns Poller.Name, and is useful for accessing the field via an interface.
+func (v *Poller) GetName() string { return v.Name }
 
 // GetWorkspaceId returns Poller.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *Poller) GetWorkspaceId() string { return v.WorkspaceId }
@@ -7891,6 +8118,8 @@ func (v *Poller) UnmarshalJSON(b []byte) error {
 type __premarshalPoller struct {
 	Id string `json:"id"`
 
+	Name string `json:"name"`
+
 	WorkspaceId string `json:"workspaceId"`
 
 	CustomerId string `json:"customerId"`
@@ -7916,6 +8145,7 @@ func (v *Poller) __premarshalJSON() (*__premarshalPoller, error) {
 	var retval __premarshalPoller
 
 	retval.Id = v.Id
+	retval.Name = v.Name
 	retval.WorkspaceId = v.WorkspaceId
 	retval.CustomerId = v.CustomerId
 	retval.DatastreamId = v.DatastreamId
@@ -8069,8 +8299,6 @@ type PollerConfig interface {
 	implementsGraphQLInterfacePollerConfig()
 	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
 	GetTypename() *string
-	// GetName returns the interface-field "name" from its implementation.
-	GetName() *string
 	// GetRetries returns the interface-field "retries" from its implementation.
 	GetRetries() *types.Int64Scalar
 	// GetInterval returns the interface-field "interval" from its implementation.
@@ -8216,7 +8444,6 @@ func (v *PollerConfigChunkPollerChunkConfig) GetSize() *types.Int64Scalar { retu
 // PollerConfigPollerAWSSnapshotConfig includes the requested fields of the GraphQL type PollerAWSSnapshotConfig.
 type PollerConfigPollerAWSSnapshotConfig struct {
 	Typename       *string                             `json:"__typename"`
-	Name           *string                             `json:"name"`
 	Retries        *types.Int64Scalar                  `json:"retries"`
 	Interval       *types.DurationScalar               `json:"interval"`
 	Tags           *types.JsonObject                   `json:"tags"`
@@ -8228,9 +8455,6 @@ type PollerConfigPollerAWSSnapshotConfig struct {
 
 // GetTypename returns PollerConfigPollerAWSSnapshotConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerAWSSnapshotConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerAWSSnapshotConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerAWSSnapshotConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerAWSSnapshotConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerAWSSnapshotConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8258,7 +8482,6 @@ func (v *PollerConfigPollerAWSSnapshotConfig) GetIncludeActions() []string { ret
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
 	Typename      *string                                                                              `json:"__typename"`
-	Name          *string                                                                              `json:"name"`
 	Retries       *types.Int64Scalar                                                                   `json:"retries"`
 	Interval      *types.DurationScalar                                                                `json:"interval"`
 	Tags          *types.JsonObject                                                                    `json:"tags"`
@@ -8272,9 +8495,6 @@ type PollerConfigPollerCloudWatchMetricsConfig struct {
 
 // GetTypename returns PollerConfigPollerCloudWatchMetricsConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerCloudWatchMetricsConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerCloudWatchMetricsConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerCloudWatchMetricsConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8400,7 +8620,6 @@ func (v *PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetrics
 // PollerConfigPollerConfluentCloudConfig includes the requested fields of the GraphQL type PollerConfluentCloudConfig.
 type PollerConfigPollerConfluentCloudConfig struct {
 	Typename *string                             `json:"__typename"`
-	Name     *string                             `json:"name"`
 	Retries  *types.Int64Scalar                  `json:"retries"`
 	Interval *types.DurationScalar               `json:"interval"`
 	Tags     *types.JsonObject                   `json:"tags"`
@@ -8409,9 +8628,6 @@ type PollerConfigPollerConfluentCloudConfig struct {
 
 // GetTypename returns PollerConfigPollerConfluentCloudConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerConfluentCloudConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerConfluentCloudConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerConfluentCloudConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerConfluentCloudConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerConfluentCloudConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8432,7 +8648,6 @@ func (v *PollerConfigPollerConfluentCloudConfig) GetChunk() *PollerConfigChunkPo
 // PollerConfigPollerGCPMonitoringConfig includes the requested fields of the GraphQL type PollerGCPMonitoringConfig.
 type PollerConfigPollerGCPMonitoringConfig struct {
 	Typename                  *string                             `json:"__typename"`
-	Name                      *string                             `json:"name"`
 	Retries                   *types.Int64Scalar                  `json:"retries"`
 	Interval                  *types.DurationScalar               `json:"interval"`
 	Tags                      *types.JsonObject                   `json:"tags"`
@@ -8447,9 +8662,6 @@ type PollerConfigPollerGCPMonitoringConfig struct {
 
 // GetTypename returns PollerConfigPollerGCPMonitoringConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerGCPMonitoringConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerGCPMonitoringConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerGCPMonitoringConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerGCPMonitoringConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerGCPMonitoringConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8494,7 +8706,6 @@ func (v *PollerConfigPollerGCPMonitoringConfig) GetTotalLimit() *types.Int64Scal
 // PollerConfigPollerHTTPConfig includes the requested fields of the GraphQL type PollerHTTPConfig.
 type PollerConfigPollerHTTPConfig struct {
 	Typename    *string                             `json:"__typename"`
-	Name        *string                             `json:"name"`
 	Retries     *types.Int64Scalar                  `json:"retries"`
 	Interval    *types.DurationScalar               `json:"interval"`
 	Tags        *types.JsonObject                   `json:"tags"`
@@ -8513,9 +8724,6 @@ type PollerConfigPollerHTTPConfig struct {
 
 // GetTypename returns PollerConfigPollerHTTPConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerHTTPConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerHTTPConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerHTTPConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerHTTPConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerHTTPConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8627,7 +8835,6 @@ func (v *PollerConfigPollerHTTPConfigTimestampsPollerHTTPTimestampConfig) GetTru
 // PollerConfigPollerMongoDBAtlasConfig includes the requested fields of the GraphQL type PollerMongoDBAtlasConfig.
 type PollerConfigPollerMongoDBAtlasConfig struct {
 	Typename      *string                             `json:"__typename"`
-	Name          *string                             `json:"name"`
 	Retries       *types.Int64Scalar                  `json:"retries"`
 	Interval      *types.DurationScalar               `json:"interval"`
 	Tags          *types.JsonObject                   `json:"tags"`
@@ -8640,9 +8847,6 @@ type PollerConfigPollerMongoDBAtlasConfig struct {
 
 // GetTypename returns PollerConfigPollerMongoDBAtlasConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerMongoDBAtlasConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerMongoDBAtlasConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerMongoDBAtlasConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerMongoDBAtlasConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerMongoDBAtlasConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -8673,7 +8877,6 @@ func (v *PollerConfigPollerMongoDBAtlasConfig) GetExcludeGroups() []string { ret
 // PollerConfigPollerPubSubConfig includes the requested fields of the GraphQL type PollerPubSubConfig.
 type PollerConfigPollerPubSubConfig struct {
 	Typename       *string                             `json:"__typename"`
-	Name           *string                             `json:"name"`
 	Retries        *types.Int64Scalar                  `json:"retries"`
 	Interval       *types.DurationScalar               `json:"interval"`
 	Tags           *types.JsonObject                   `json:"tags"`
@@ -8685,9 +8888,6 @@ type PollerConfigPollerPubSubConfig struct {
 
 // GetTypename returns PollerConfigPollerPubSubConfig.Typename, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerPubSubConfig) GetTypename() *string { return v.Typename }
-
-// GetName returns PollerConfigPollerPubSubConfig.Name, and is useful for accessing the field via an interface.
-func (v *PollerConfigPollerPubSubConfig) GetName() *string { return v.Name }
 
 // GetRetries returns PollerConfigPollerPubSubConfig.Retries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerPubSubConfig) GetRetries() *types.Int64Scalar { return v.Retries }
@@ -9938,13 +10138,14 @@ func (v *SourceLocInput) GetRow() types.Int64Scalar { return v.Row }
 func (v *SourceLocInput) GetCol() types.Int64Scalar { return v.Col }
 
 type SourceTableDefinitionInput struct {
-	Schema                string                            `json:"schema"`
-	TableName             string                            `json:"tableName"`
-	Fields                []SourceTableFieldDefinitionInput `json:"fields"`
-	ValidFromField        *string                           `json:"validFromField"`
-	BatchSeqField         *string                           `json:"batchSeqField"`
-	IsInsertOnly          *bool                             `json:"isInsertOnly,omitempty"`
-	SourceUpdateTableName *string                           `json:"sourceUpdateTableName"`
+	Schema                       string                            `json:"schema"`
+	TableName                    string                            `json:"tableName"`
+	Fields                       []SourceTableFieldDefinitionInput `json:"fields"`
+	ValidFromField               *string                           `json:"validFromField"`
+	BatchSeqField                *string                           `json:"batchSeqField"`
+	IsInsertOnly                 *bool                             `json:"isInsertOnly,omitempty"`
+	SourceUpdateTableName        *string                           `json:"sourceUpdateTableName"`
+	TableChangeTrackingMechanism *TableChangeTrackingMechanism     `json:"tableChangeTrackingMechanism"`
 }
 
 // GetSchema returns SourceTableDefinitionInput.Schema, and is useful for accessing the field via an interface.
@@ -9968,6 +10169,11 @@ func (v *SourceTableDefinitionInput) GetIsInsertOnly() *bool { return v.IsInsert
 // GetSourceUpdateTableName returns SourceTableDefinitionInput.SourceUpdateTableName, and is useful for accessing the field via an interface.
 func (v *SourceTableDefinitionInput) GetSourceUpdateTableName() *string {
 	return v.SourceUpdateTableName
+}
+
+// GetTableChangeTrackingMechanism returns SourceTableDefinitionInput.TableChangeTrackingMechanism, and is useful for accessing the field via an interface.
+func (v *SourceTableDefinitionInput) GetTableChangeTrackingMechanism() *TableChangeTrackingMechanism {
+	return v.TableChangeTrackingMechanism
 }
 
 type SourceTableFieldDefinitionInput struct {
@@ -10129,6 +10335,8 @@ type StagePresentationInput struct {
 	// This field is deprecated and will be ignored, but cannot be removed because
 	// Terraform provider depends on it.
 	DefaultStats *DefaultStatsInput `json:"defaultStats"`
+	// Decide how we want to encode variant values. Default is `Json`.
+	VariantEncodingMode *VariantEncodingMode `json:"variantEncodingMode"`
 }
 
 // GetLimit returns StagePresentationInput.Limit, and is useful for accessing the field via an interface.
@@ -10167,6 +10375,11 @@ func (v *StagePresentationInput) GetAggregationMode() *AggregationMode { return 
 // GetDefaultStats returns StagePresentationInput.DefaultStats, and is useful for accessing the field via an interface.
 func (v *StagePresentationInput) GetDefaultStats() *DefaultStatsInput { return v.DefaultStats }
 
+// GetVariantEncodingMode returns StagePresentationInput.VariantEncodingMode, and is useful for accessing the field via an interface.
+func (v *StagePresentationInput) GetVariantEncodingMode() *VariantEncodingMode {
+	return v.VariantEncodingMode
+}
+
 // StageQuery includes the GraphQL fields of StageQuery requested by the fragment StageQuery.
 type StageQuery struct {
 	Id       *string                          `json:"id"`
@@ -10192,8 +10405,6 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
-	StageID *string `json:"stageID,omitempty"`
-	StageId *string `json:"stageId,omitempty"`
 	// make id required when we've removed all deprecated use of stageId
 	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`
@@ -10202,12 +10413,6 @@ type StageQueryInput struct {
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
-
-// GetStageID returns StageQueryInput.StageID, and is useful for accessing the field via an interface.
-func (v *StageQueryInput) GetStageID() *string { return v.StageID }
-
-// GetStageId returns StageQueryInput.StageId, and is useful for accessing the field via an interface.
-func (v *StageQueryInput) GetStageId() *string { return v.StageId }
 
 // GetId returns StageQueryInput.Id, and is useful for accessing the field via an interface.
 func (v *StageQueryInput) GetId() *string { return v.Id }
@@ -10255,6 +10460,21 @@ func (v *StageQueryInputInputDefinition) GetDatasetPath() *string { return v.Dat
 // GetStageId returns StageQueryInputInputDefinition.StageId, and is useful for accessing the field via an interface.
 func (v *StageQueryInputInputDefinition) GetStageId() *string { return v.StageId }
 
+// Specifies the mechanism for how changes are tracked for a source table. None is specified for
+// non-source tables. Update specifies that and update table is used to track changes. CDC specifies that
+// Snowflake CDC is enabled for the datastream and is used to track changes.
+// NOTE: CDC is not widely available / is in development.
+type TableChangeTrackingMechanism string
+
+const (
+	// Not specified
+	TableChangeTrackingMechanismNone TableChangeTrackingMechanism = "None"
+	// Update table
+	TableChangeTrackingMechanismUpdatetable TableChangeTrackingMechanism = "UpdateTable"
+	// cdc
+	TableChangeTrackingMechanismCdc TableChangeTrackingMechanism = "CDC"
+)
+
 // TaskResult includes the GraphQL fields of TaskResult requested by the fragment TaskResult.
 // The GraphQL type's documentation follows.
 //
@@ -10273,7 +10493,7 @@ type TaskResult struct {
 	EndTime   *types.TimeScalar `json:"endTime"`
 	// You used to paginate the data yourself out of S3 -- not needed anymore
 	ResultCursor *interface{} `json:"resultCursor"`
-	// how to understand the columns in the result from Snowflake --
+	// How to understand the columns in the result from Snowflake --
 	ResultSchema *TaskResultResultSchemaTaskResultSchema `json:"resultSchema"`
 }
 
@@ -10297,7 +10517,7 @@ func (v *TaskResult) GetResultSchema() *TaskResultResultSchemaTaskResultSchema {
 
 // TaskResultResultSchemaTaskResultSchema includes the requested fields of the GraphQL type TaskResultSchema.
 type TaskResultResultSchemaTaskResultSchema struct {
-	// this is the same schema as Typedef.definition
+	// This is the same schema as Typedef.definition
 	TypedefDefinition *types.JsonObject `json:"typedefDefinition"`
 }
 
@@ -10329,10 +10549,12 @@ func (v *TerraformDefinition) GetImportName() *string { return v.ImportName }
 type TerraformObjectType string
 
 const (
-	TerraformObjectTypeDataset   TerraformObjectType = "Dataset"
-	TerraformObjectTypeBoard     TerraformObjectType = "Board"
-	TerraformObjectTypeMonitor   TerraformObjectType = "Monitor"
-	TerraformObjectTypeDashboard TerraformObjectType = "Dashboard"
+	TerraformObjectTypeDataset         TerraformObjectType = "Dataset"
+	TerraformObjectTypeBoard           TerraformObjectType = "Board"
+	TerraformObjectTypeMonitor         TerraformObjectType = "Monitor"
+	TerraformObjectTypeDashboard       TerraformObjectType = "Dashboard"
+	TerraformObjectTypeMonitorv2       TerraformObjectType = "MonitorV2"
+	TerraformObjectTypeMonitorv2action TerraformObjectType = "MonitorV2Action"
 )
 
 type ThresholdAggFunction string
@@ -10473,6 +10695,16 @@ func (v *ValueTypeSpecInput) GetArrayItemType() *ValueTypeSpecInput { return v.A
 // GetKeyForDatasetId returns ValueTypeSpecInput.KeyForDatasetId, and is useful for accessing the field via an interface.
 func (v *ValueTypeSpecInput) GetKeyForDatasetId() *string { return v.KeyForDatasetId }
 
+type VariantEncodingMode string
+
+const (
+	// JSON (default)
+	VariantEncodingModeJson VariantEncodingMode = "Json"
+	// String, which is the same as the value cast to string. The main difference
+	// is that for string value stored in variant, it is not quoted.
+	VariantEncodingModeString VariantEncodingMode = "String"
+)
+
 type VolumeStatsInput struct {
 	// Number of buckets to compute the volume over time.
 	// Set to 0 to disable volume over time stats.
@@ -10575,6 +10807,7 @@ type WorksheetInput struct {
 	// if id is not specified, a new worksheet is created
 	Id              *string                 `json:"id"`
 	Name            *string                 `json:"name"`
+	Description     *string                 `json:"description"`
 	WorkspaceId     string                  `json:"workspaceId"`
 	ManagedById     *string                 `json:"managedById"`
 	Layout          *types.JsonObject       `json:"layout"`
@@ -10591,6 +10824,9 @@ func (v *WorksheetInput) GetId() *string { return v.Id }
 
 // GetName returns WorksheetInput.Name, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetName() *string { return v.Name }
+
+// GetDescription returns WorksheetInput.Description, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetDescription() *string { return v.Description }
 
 // GetWorkspaceId returns WorksheetInput.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetWorkspaceId() string { return v.WorkspaceId }
@@ -10637,10 +10873,11 @@ func (v *Workspace) GetId() string { return v.Id }
 func (v *Workspace) GetLabel() string { return v.Label }
 
 type WorkspaceInput struct {
-	Label    *string           `json:"label"`
-	Timezone *string           `json:"timezone"`
-	Locale   *string           `json:"locale"`
-	Layout   *types.JsonObject `json:"layout"`
+	Label              *string           `json:"label"`
+	Timezone           *string           `json:"timezone"`
+	Locale             *string           `json:"locale"`
+	Layout             *types.JsonObject `json:"layout"`
+	DefaultDashboardId *string           `json:"defaultDashboardId"`
 }
 
 // GetLabel returns WorkspaceInput.Label, and is useful for accessing the field via an interface.
@@ -10654,6 +10891,9 @@ func (v *WorkspaceInput) GetLocale() *string { return v.Locale }
 
 // GetLayout returns WorkspaceInput.Layout, and is useful for accessing the field via an interface.
 func (v *WorkspaceInput) GetLayout() *types.JsonObject { return v.Layout }
+
+// GetDefaultDashboardId returns WorkspaceInput.DefaultDashboardId, and is useful for accessing the field via an interface.
+func (v *WorkspaceInput) GetDefaultDashboardId() *string { return v.DefaultDashboardId }
 
 // __addCorrelationTagInput is used internally by genqlient
 type __addCorrelationTagInput struct {
@@ -12952,6 +13192,7 @@ func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.Resu
 // errorFieldsTaskResultErrorGeneric
 // errorFieldsTaskResultErrorStageDependencyLoop
 // errorFieldsTaskResultErrorStageHasDependenciesWithErrors
+// errorFieldsTaskResultErrorMissingParameter
 // errorFieldsTaskResultErrorRateLimit
 // errorFieldsTaskResultErrorBinding
 type errorFields interface {
@@ -12977,8 +13218,9 @@ func (v *errorFieldsTaskResultErrorGeneric) implementsGraphQLInterfaceerrorField
 func (v *errorFieldsTaskResultErrorStageDependencyLoop) implementsGraphQLInterfaceerrorFields() {}
 func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) implementsGraphQLInterfaceerrorFields() {
 }
-func (v *errorFieldsTaskResultErrorRateLimit) implementsGraphQLInterfaceerrorFields() {}
-func (v *errorFieldsTaskResultErrorBinding) implementsGraphQLInterfaceerrorFields()   {}
+func (v *errorFieldsTaskResultErrorMissingParameter) implementsGraphQLInterfaceerrorFields() {}
+func (v *errorFieldsTaskResultErrorRateLimit) implementsGraphQLInterfaceerrorFields()        {}
+func (v *errorFieldsTaskResultErrorBinding) implementsGraphQLInterfaceerrorFields()          {}
 
 func __unmarshalerrorFields(b []byte, v *errorFields) error {
 	if string(b) == "null" {
@@ -13002,6 +13244,9 @@ func __unmarshalerrorFields(b []byte, v *errorFields) error {
 		return json.Unmarshal(b, *v)
 	case "TaskResultErrorStageHasDependenciesWithErrors":
 		*v = new(errorFieldsTaskResultErrorStageHasDependenciesWithErrors)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorMissingParameter":
+		*v = new(errorFieldsTaskResultErrorMissingParameter)
 		return json.Unmarshal(b, *v)
 	case "TaskResultErrorRateLimit":
 		*v = new(errorFieldsTaskResultErrorRateLimit)
@@ -13044,6 +13289,14 @@ func __marshalerrorFields(v *errorFields) ([]byte, error) {
 		result := struct {
 			TypeName string `json:"__typename"`
 			*errorFieldsTaskResultErrorStageHasDependenciesWithErrors
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorMissingParameter:
+		typename = "TaskResultErrorMissingParameter"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorMissingParameter
 		}{typename, v}
 		return json.Marshal(result)
 	case *errorFieldsTaskResultErrorRateLimit:
@@ -13151,6 +13404,30 @@ func (v *errorFieldsTaskResultErrorGeneric) GetText() string { return v.Text }
 
 // GetSpan returns errorFieldsTaskResultErrorGeneric.Span, and is useful for accessing the field via an interface.
 func (v *errorFieldsTaskResultErrorGeneric) GetSpan() *errorFieldsSpanSourceSpan { return v.Span }
+
+// errorFields includes the GraphQL fields of TaskResultErrorMissingParameter requested by the fragment errorFields.
+// The GraphQL type's documentation follows.
+//
+// Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+type errorFieldsTaskResultErrorMissingParameter struct {
+	// Error message, can be decorated with message type ID, source location and other bits
+	Message string `json:"message"`
+	// Error text, returned without any decorations like message type ID
+	Text string `json:"text"`
+	// Error location in the pipeline
+	Span *errorFieldsSpanSourceSpan `json:"span"`
+}
+
+// GetMessage returns errorFieldsTaskResultErrorMissingParameter.Message, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorMissingParameter) GetMessage() string { return v.Message }
+
+// GetText returns errorFieldsTaskResultErrorMissingParameter.Text, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorMissingParameter) GetText() string { return v.Text }
+
+// GetSpan returns errorFieldsTaskResultErrorMissingParameter.Span, and is useful for accessing the field via an interface.
+func (v *errorFieldsTaskResultErrorMissingParameter) GetSpan() *errorFieldsSpanSourceSpan {
+	return v.Span
+}
 
 // errorFields includes the GraphQL fields of TaskResultErrorRateLimit requested by the fragment errorFields.
 // The GraphQL type's documentation follows.
@@ -13794,6 +14071,7 @@ func (v *getSnowflakeOutboundShareResponse) GetShare() SnowflakeOutboundShare { 
 
 // getTerraformResponse is returned by getTerraform on success.
 type getTerraformResponse struct {
+	// Get a terraform resource representation of a supported observe object.
 	Terraform TerraformDefinition `json:"terraform"`
 }
 
@@ -13847,9 +14125,10 @@ func (v *listDatasetsIdNameOnlyDatasetsDatasetMatch) GetDataset() DatasetIdName 
 
 // listDatasetsIdNameOnlyResponse is returned by listDatasetsIdNameOnly on success.
 type listDatasetsIdNameOnlyResponse struct {
-	// searchMode defaults to InclusiveMode, which means "any matches, counts" sorted by better-scoring.
-	// If you pass in ExclusiveMode, then you get "must match each thing" behavior, which may end up
-	// returning no datasets at all quite easily.
+	// Parameter searchMode defaults to InclusiveMode, which means "any matches,
+	// counts" sorted by better-scoring.  If you pass in ExclusiveMode, then you
+	// get "must match each thing" behavior, which may end up returning no datasets
+	// at all quite easily.
 	Datasets []listDatasetsIdNameOnlyDatasetsDatasetMatch `json:"datasets"`
 }
 
@@ -14089,7 +14368,7 @@ func (v *saveDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
 
 // saveDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
 type saveDatasetDatasetDatasetSaveResult struct {
-	// this is what you got out when saving
+	// This is what you got out when saving
 	Dataset *Dataset `json:"dataset"`
 	// Changing a dataset definition might make currently materialized data obsolete,
 	// in which case we dematerialize (throw away) this data and recompute new data.
@@ -14114,11 +14393,11 @@ func (v *saveDatasetDatasetDatasetSaveResult) GetDematerializedDatasets() []Data
 
 // saveDatasetResponse is returned by saveDataset on success.
 type saveDatasetResponse struct {
-	// saveDataset will create a dataset if you don't provide an input id.
-	// It will also make sure that the provided transform is published with
-	// that dataset. This is the general "update the things" function to use.
-	// If dependencyHandling is not specified, then the default is to apply
-	// changes but ignore downstream datasets or errors therein.
+	// Create a dataset if you don't provide an input id.  It will also make sure
+	// that the provided transform is published with that dataset. This is the
+	// general "update the things" function to use.  If dependencyHandling is not
+	// specified, then the default is to apply changes but ignore downstream
+	// datasets or errors therein.
 	Dataset *saveDatasetDatasetDatasetSaveResult `json:"dataset"`
 }
 
@@ -14160,7 +14439,7 @@ func (v *saveMonitorV2WithActionsResponse) GetMonitorV2() MonitorV2 { return v.M
 
 // saveSourceDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
 type saveSourceDatasetDatasetDatasetSaveResult struct {
-	// this is what you got out when saving
+	// This is what you got out when saving
 	Dataset *Dataset `json:"dataset"`
 }
 
@@ -16498,6 +16777,7 @@ mutation createPoller ($workspaceId: ObjectId!, $poller: PollerInput!) {
 }
 fragment Poller on Poller {
 	id
+	name
 	workspaceId
 	customerId
 	datastreamId
@@ -16505,7 +16785,6 @@ fragment Poller on Poller {
 	kind
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags
@@ -18832,7 +19111,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -20222,6 +20501,7 @@ query getPoller ($id: ObjectId!) {
 }
 fragment Poller on Poller {
 	id
+	name
 	workspaceId
 	customerId
 	datastreamId
@@ -20229,7 +20509,6 @@ fragment Poller on Poller {
 	kind
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags
@@ -20966,7 +21245,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -21295,7 +21574,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -22262,7 +22541,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -22922,7 +23201,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -24943,6 +25222,7 @@ mutation updatePoller ($id: ObjectId!, $poller: PollerInput!) {
 }
 fragment Poller on Poller {
 	id
+	name
 	workspaceId
 	customerId
 	datastreamId
@@ -24950,7 +25230,6 @@ fragment Poller on Poller {
 	kind
 	config {
 		__typename
-		name
 		retries
 		interval
 		tags

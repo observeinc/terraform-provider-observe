@@ -196,11 +196,11 @@ enum PreferredPathErrorCode @goModel(model:"observe/meta/metatypes.PreferredPath
 
 extend type RelationshipPath {
     """
-    non-null if this path was taken from a pre-defined preferred path
+    Non-null if this path was taken from a pre-defined preferred path
     """
     preferredPathId: ObjectId
     """
-    non-null if this path was taken from a pre-defined preferred path
+    Non-null if this path was taken from a pre-defined preferred path
     """
     preferredPathName: String
 }

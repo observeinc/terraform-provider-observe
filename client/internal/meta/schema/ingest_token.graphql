@@ -26,6 +26,10 @@ type IngestToken implements WorkspaceObject & AuditedObject & FolderObject @goMo
     Authtoken secret associated with this ingest token, only populated for creates
     """
     secret: String
+    """
+    Token usage statistics
+    """
+    stats: DatastreamTokenStats @goField(forceResolver: true)
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -52,6 +56,7 @@ input IngestTokenInput @goModel(model: "observe/meta/metatypes.IngestTokenInput"
     # not in input: authtokenID: String!
     disabled: Boolean
     # not in input: secret: String
+    # resolver: stats: DatastreamTokenStats
     # WorkspaceObject
     name: String
     iconUrl: String

@@ -1,12 +1,12 @@
 extend type Query {
     """
-    by default, get bad auth tokens from the last day, for the requesting customer
+    By default, get bad auth tokens from the last day, for the requesting customer
     """
     badAuthTokens(fromTime: Time, toTime: Time, customerId: CustomerId): AuthtokenUsage!
 
 
     """
-    this lets the client generate an error message. Good for testing. Probably not good for long-term production.
+    This lets the client generate an error message. Good for testing. Probably not good for long-term production.
     """
     panic(text: String!): String!
 

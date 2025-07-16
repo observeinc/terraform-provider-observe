@@ -16,7 +16,7 @@ fragment Dataset on Dataset {
 	dataTableViewState
 	storageIntegrationId
 	foreignKeys {
-		label
+		id
 		targetDataset
 		srcFields
 		dstFields
@@ -90,8 +90,6 @@ fragment DatasetMaterialization on DatasetMaterialization {
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
@@ -164,8 +162,6 @@ query listDatasetsIdNameOnly {
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
-# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
 # @genqlient(for: "SourceTableDefinitionInput.isInsertOnly", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)

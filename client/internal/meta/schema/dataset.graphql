@@ -16,21 +16,32 @@ extend type Query {
     datasetDoctor(dsid: ObjectId!, upLevels: Int): DatasetDoctorReport
 
     """
-    you can get boards by some combination of "type" and "name"
+    You can get boards by some combination of "type" and "name"
     """
     getBoards(datasetId: ObjectId!, type: BoardType, name: String): [Board!]!
     getBoard(id: ObjectId!): Board!
+
+    """
+    Returns a list of datasets that would be rematerialized if the given dataset
+    is saved with the following definition and whether or not a dataset can skip
+    rematerialization. See DryRunDatasetSaveResult for more details.
+    """
+    getDatasetsAffectedByDatasetUpdate(
+      workspaceId: ObjectId!,
+      dataset: DatasetInput!
+      query: MultiStageQueryInput
+    ): DatasetsAffectedByDatasetUpdateResult
 
     datasetAndMonitorBillingInfo(workspaceId: ObjectId!, atTime: Time): DatasetAndMonitorBillingInfo!
 }
 
 extend type Mutation {
     """
-    saveDataset will create a dataset if you don't provide an input id.
-    It will also make sure that the provided transform is published with
-    that dataset. This is the general "update the things" function to use.
-    If dependencyHandling is not specified, then the default is to apply
-    changes but ignore downstream datasets or errors therein.
+    Create a dataset if you don't provide an input id.  It will also make sure
+    that the provided transform is published with that dataset. This is the
+    general "update the things" function to use.  If dependencyHandling is not
+    specified, then the default is to apply changes but ignore downstream
+    datasets or errors therein.
     """
     saveDataset(
         workspaceId: ObjectId!,
@@ -39,6 +50,20 @@ extend type Mutation {
         dependencyHandling: DependencyHandlingInput,
     ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
+
+    """
+    Create a dataset with a built-in transform, if you don't provide an input id.
+    It will also make sure that the provided transform is published with that dataset.
+    This is the general "update the things" function to use.
+    If dependencyHandling is not specified, then the default is to apply changes
+    but ignore downstream datasets or errors therein.
+    """
+    saveBuiltinDataset(
+        workspaceId: ObjectId!,
+        dataset: DatasetInput!,
+        dependencyHandling: DependencyHandlingInput,
+        transformInput: BuiltinTransformInput,
+    ): DatasetSaveResult
 
     saveSourceDataset(workspaceId: ObjectId!, datasetDefinition: DatasetDefinitionInput!, sourceTable: SourceTableDefinitionInput!, dependencyHandling: DependencyHandlingInput): DatasetSaveResult
 
@@ -85,30 +110,19 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     dataset: Dataset @goField(forceResolver:true)
 
     """
-    the transform id is always the same as the dataset id
+    The transform id is always the same as the dataset id
     """
     id: ObjectId!
 
-    """
-    currently, OPAL or SQL
-    """
-    queryLanguage: String!
     deleted: Boolean!
     current: TransformVersion
     currentVersion: Time!
-    version(version: Time!): TransformVersion
-}
-
-input TransformInput @goModel(model: "observe/meta/metatypes.TransformInput") {
+    version(version: Time!): TransformVersion @goField(forceResolver: true)
     """
-    Must be OPAL, or nothing
+    The transform kind indicates whether the transform is supposed to be OPAL-defined
+    or built-in.
     """
-    queryLanguage: String
-    outputStage: String @deprecated(reason:"Use query.outputStage instead")
-    stages: [StageQueryInput!] @deprecated(reason:"Use query.stages instead")
-    parameters: [ParameterSpecInput!]
-    parameterValues: [ParameterBindingInput!]
-    layout: JsonObject @deprecated(reason:"Use query.layout instead")
+    kind: TransformKind
 }
 
 input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQueryInput") {
@@ -127,6 +141,69 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     layout: JsonObject
 }
 
+"""
+The built-in transform kind indicates which kind of data transformation to apply
+over the input data to create a dataset. Built-in transforms are data transformation
+internal to Observe that we can implement data transformation that cannot be expressed
+in plain OPAL.
+"""
+enum BuiltinTransformKind @goModel(model: "observe/meta/metatypes.BuiltinTransformKind") {
+    """
+    Data transformation to infer canonical trace representation aka service invocation
+    graph out of a dataset containing rows with the span interface shape.
+    """
+    CanonicalTrace
+}
+
+"""
+The built-in transform input indicates the type of built-in transformation to apply
+over the data and its input definition.
+"""
+input BuiltinTransformInput @goModel(model: "observe/meta/metatypes.BuiltinTransformInput") {
+    """
+    Built-in transform kind. See #BuiltinTransformKind for the available built-in transforms.
+    """
+    kind: BuiltinTransformKind!
+    """
+    Array of Input definition entities for the dataset transform. Cannot be null. 
+    """
+    input: [InputDefinitionInput!]!
+    """
+    The configuration for the built-in transform. This is stored as opaque JSON in a string.
+    This field may evolve as more configuration options become known.
+    """
+    config: String
+}
+
+"""
+The built-in transform definition indicates the type of built-in transformation to apply
+over the data and its input definition.
+"""
+type BuiltinTransformDefinition @goModel(model: "observe/meta/metatypes.BuiltinTransformDefinition") {
+    """
+    Built-in transform kind. See #BuiltinTransformKind for the available built-in transforms.
+    """
+    kind: BuiltinTransformKind!
+    """
+    Array of Input definition entities for the dataset transform. Cannot be null. 
+    """
+    input: [InputDefinition!]!
+    """
+    The configuration for the built-in transform. This is stored as opaque JSON in a string.
+    This field may evolve as more configuration options become known.
+    """
+    config: String
+}
+
+"""
+The transform kind indicates the type of transformation to apply
+over the data, i.e., OPAL-defined or built-in.
+"""
+enum TransformKind @goModel(model: "observe/meta/metatypes.TransformKind") {
+    OPAL
+    Builtin
+}
+
 type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion") {
     transform: Transform
     savedDate: Time!
@@ -137,12 +214,13 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
     layout: JsonObject @deprecated(reason: "Use query.layout instead")
-    query: MultiStageQuery!
+    # when the library supports @anyOf, we should switch to it
+    query: MultiStageQuery
+    builtinTransform: BuiltinTransformDefinition
     # we need some kind of "backfill percent complete"
 }
 
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
-    stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
     input: [InputDefinition!]!
     params: JsonObject
@@ -153,8 +231,6 @@ type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
 }
 
 input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
-    stageID: String @deprecated(reason: "use id instead")
-    stageId: String @deprecated(reason: "use id instead") @goField(name:StageID)
     """
     make id required when we've removed all deprecated use of stageId
     """
@@ -168,19 +244,19 @@ input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput")
 
 type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResult") {
     """
-    this is what you got out when saving
+    This is what you got out when saving
     """
     dataset: Dataset
     """
-    of the stages provided, which ones were used?
+    Of the stages provided, which ones were used?
     """
     stageDisposition: StageDisposition
     """
-    datasets that are affected by this change
+    Datasets that are affected by this change
     """
     affectedDatasets: [ObjectId!]
     """
-    information about errors that occur in the affected, and/or downstream datasets
+    Information about errors that occur in the affected, and/or downstream datasets
     """
     errorDatasets: [DatasetError!]
     """
@@ -204,6 +280,36 @@ type DatasetSaveResult @goModel(model: "observe/meta/metaparser.DatasetSaveResul
     independently as much as possible.
     """
     rematerializationCosts: [DatasetCostEstimate!]
+}
+
+type DatasetsAffectedByDatasetUpdateResult @goModel(model: "observe/meta/metaparser.DatasetsAffectedByDatasetUpdateResult") {
+  """
+  Changing a dataset definition might make currently materialized data obsolete,
+  in which case we dematerialize (throw away) this data and recompute new data.
+  This is the list of datasets that would get dematerialized.
+
+  Data is dematerialized when the change to the dataset is significant,
+  that is, when it alters transform logic. Minor changes like whitespace and
+  comments do not cause dematerialization.
+
+  Note that changing a dataset might cause downstream datasets to get
+  dematerialized also.
+  """
+  dematerializedDatasets: [DatasetMaterialization!]
+  """
+  The Observe compute credit (OCC) cost of rematerializing affected datasets.
+  Note that the datasets in this list might differ from those in dematerializedDatasets
+  since this list might include some upstream datasets. In general, don't try
+  to correlate elements in this list with elements in other lists; treat them
+  independently as much as possible.
+  """
+  rematerializationCosts: [DatasetCostEstimate!]
+  """
+  Returns what datasets are dematerialized when edit-forward is used. If a
+  dataset is dematerialized normally but not under edit-forward, this means
+  historical data for the dataset may be incorrect/missing.
+  """
+  editForwardDematerializedDatasets: [DatasetMaterialization!]
 }
 
 """Information about a materialized dataset."""
@@ -279,12 +385,11 @@ input DependencyHandlingInput @goModel(model: "observe/meta/metatypes.Dependency
 type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     targetDataset: Int64
     targetStageLabel: String
-    label: String @deprecated(reason: "use id instead")
     targetLabelFieldName: String
     srcFields: [String!]! @deprecated(reason: "use src instead")
     # Since link sources are no longer plain column references, to cleanly model them,
     # I'm creating a new type that contains both column name and path (if any). Plan is to
-    # deprecate srcFields in future. 
+    # deprecate srcFields in future.
     src: [LinkField!]!
     dstFields: [String!]!
     id: String
@@ -352,7 +457,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     version: Time!
     workspaceId: ObjectId!
     kind: DatasetKind!
-    label: String! @deprecated(reason: "use name instead") @goField(forceResolver: true)
     name: String!
     path: String!
     description: String
@@ -374,7 +478,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     relatedKeys: [RelatedKey!]
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
-    latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time!
     isSourceDataset: Boolean
@@ -390,7 +493,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
-    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
@@ -400,14 +502,18 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     """
     onDemandMaterializationLength: Int64
 
-    defaultDashboardId: ObjectId
-    defaultInstanceDashboardId: ObjectId
+    defaultDashboardId: ObjectId @goField(forceResolver: true)
+    defaultInstanceDashboardId: ObjectId @goField(forceResolver: true)
 
     # AccelerableObject (or fields that should eventually move to that interface)
     accelerable: Boolean!
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
+    accelerationState: AccelerationState! @goField(forceResolver:true)
     accelerationDisabled: Boolean! @goField(name:materializationDisabled)
     accelerationDisabledSource: AccelerationDisabledSource! @goField(name:materializationDisabledSource)
+
+    # Enabled if Observe allows this dataset to be a view.
+    eligibleAsView: Boolean!
 
     """
     If the dataset is not hibernated, this field will be set to null.
@@ -435,9 +541,11 @@ enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
     gauge
     tdigest
     sample
+    histogram
+    exponentialHistogram
 }
 
-type MetricTag @goModel(model: "observe/compiler/comptypes.MetricTag") {
+type MetricTagPath @goModel(model: "observe/compiler/comptypes.MetricTag") {
     column: String!
     path: String!
 }
@@ -464,7 +572,7 @@ type MetricHeuristics @goModel(model: "observe/compiler/comptypes.MetricHeuristi
     In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
     """
     lastReported: Time
-    tags: [MetricTag!]
+    tags: [MetricTagPath!]
 }
 
 type Metric @goModel(model: "observe/meta/metatypes.Metric") {
@@ -473,10 +581,6 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     Format: <dataset-alias>.<metric-name>. If an alias is not defined for the dataset, the name is instead used as the alias
     """
     nameWithPath: String!
-    """
-    the short display name, not the list of metric labels
-    """
-    label: String! @deprecated(reason: "We should always use name. Using label causes too much confusion.")
     type: MetricType! @goField(name:MetricType)
     unit: String!
     description: String!
@@ -503,7 +607,7 @@ type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
 type DatasetEnumerationResult @goModel(model: "observe/meta/metatypes.DatasetEnumerationResult") {
     id: ObjectId!
     """
-    one of 'error' and 'dataset' are set
+    One of 'error' and 'dataset' are set
     """
     error: String
     dataset: Dataset
@@ -515,6 +619,29 @@ type SourceTablePartitionDefinition @goModel(model: "observe/meta/metatypes.Sour
   intervalEnd: Int64!
 }
 
+"""
+Specifies the mechanism for how changes are tracked for a source table. None is specified for
+non-source tables. Update specifies that and update table is used to track changes. CDC specifies that
+Snowflake CDC is enabled for the datastream and is used to track changes. 
+NOTE: CDC is not widely available / is in development.
+"""
+enum TableChangeTrackingMechanism @goModel(model: "observe/compiler/comptypes.TableChangeTrackingMechanism") {
+    """
+    Not specified
+    """
+    None
+
+    """
+    Update table
+    """
+    UpdateTable
+
+    """
+    cdc
+    """
+    CDC
+}
+
 type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDefinition") {
     schema: String!
     tableName: String! @deprecated(reason:"use partitions instead")
@@ -524,6 +651,10 @@ type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDe
     batchSeqField: String
     isInsertOnly: Boolean
     sourceUpdateTableName: String
+    """
+    Specifies the mechanism for how changes are tracked for a source table.
+    """
+    tableChangeTrackingMechanism: TableChangeTrackingMechanism
 }
 
 type SourceTableFieldDefinition @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinition") {
@@ -539,6 +670,7 @@ input SourceTableDefinitionInput @goModel(model: "observe/meta/metatypes.SourceT
     batchSeqField: String
     isInsertOnly: Boolean
     sourceUpdateTableName: String
+    tableChangeTrackingMechanism: TableChangeTrackingMechanism
 }
 
 input SourceTableFieldDefinitionInput @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinitionInput") {
@@ -557,13 +689,13 @@ type RelationshipPath @goModel(model: "observe/meta/metapath.RelationshipPath") 
 
 type RelationshipPathElement @goModel(model: "observe/meta/metapath.RelationshipPathElement") {
     """
-    it's moderately expensive to ask for the Dataset, so if you
+    It's moderately expensive to ask for the Dataset, so if you
     can get away with only using toDatasetId, that's better.
     """
     dataset:     Dataset @goField(forceResolver:true)
     toDatasetId: ObjectId!
     """
-    one of forwardKey or backwardKey will be used
+    One of forwardKey or backwardKey will be used
     """
     forwardKey:  ForeignKey
     reverseKey:  RelatedKey
@@ -649,6 +781,21 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.
     """
     managedById: ObjectId
+
+    """
+    Optional list of rules to set the list of users and groups that can access the dataset
+    """
+    sharingRules: [DatasetSharingRuleInput!]
+}
+
+input DatasetSharingRuleInput @goModel(model: "observe/meta/metatypes.DatasetSharingRule") {
+    subject: RbacSubjectInput!
+    role: DatasetRole!
+}
+
+enum DatasetRole @goModel(model: "observe/meta/metatypes.DatasetRole") {
+    Editor
+    Viewer
 }
 
 # Warning!
@@ -706,7 +853,6 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
 type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
     path: String!
     mapping: [InterfaceFieldMapping!]!
-    interface: InterfaceDefinition! @goField(forceResolver:true) @deprecated(reason:"already not used, see OB-32415")
 }
 
 type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {
@@ -720,11 +866,11 @@ TODO(OB-32415): this type is already not used and pending deprecation.
 type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefinition") {
     name: String!
     """
-    path is the same as name for platform-defined interfaces
+    Path is the same as name for platform-defined interfaces
     """
     path: String!
     """
-    null for platform-defined interfaces
+    Null for platform-defined interfaces
     """
     workspaceId: ObjectId
     interfaceFields: [InterfaceFieldDefinition!]!
@@ -787,18 +933,15 @@ type DatasetReport @goModel(model: "observe/meta/metatypes.DatasetReport") {
     doctorComments: [String!]!
 
     """
-    each stage may have errors and warnings
+    Each stage may have errors and warnings
     """
     stageNotes: [DatasetStageNote!]!
 
     """
-    inputDatasets are datasets bound as data inputs to this dataset
+    Datasets bound as data inputs to this dataset
     """
     inputDatasets: [ObjectId!]!
 
-    """
-    accelerationInfo is convenient
-    """
     accelerationInfo: AccelerationInfo @goField(forceResolver:true)
     ongoingErrorReason: ReportEventInfo @goField(forceResolver:true)
     backfillErrorReason: ReportEventInfo @goField(forceResolver:true)
