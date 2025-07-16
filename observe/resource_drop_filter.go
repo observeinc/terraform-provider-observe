@@ -62,6 +62,7 @@ func resourceDropFilter() *schema.Resource {
 				Required:         true,
 				Description:      descriptions.Get("drop_filter", "schema", "source_dataset"),
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
+				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 		},
 	}
