@@ -11,6 +11,7 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
   schemaName
   viewName
   freshnessGoal
+  changeTracking
 
   status {
     state
