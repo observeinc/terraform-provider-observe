@@ -7005,7 +7005,7 @@ func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.
 
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput        `json:"inputQuery"`
-	RuleTemplate           *MonitorV2RuleTemplateInput `json:"ruleTemplate"`
+	RuleTemplate           *MonitorV2RuleTemplateInput `json:"ruleTemplate,omitempty"`
 	NoDataRules            []MonitorV2NoDataRuleInput  `json:"noDataRules"`
 	Rules                  []MonitorV2RuleInput        `json:"rules"`
 	LookbackTime           *types.DurationScalar       `json:"lookbackTime"`
