@@ -57,6 +57,7 @@ resource "observe_dataset_outbound_share" "example" {
 
 ### Optional
 
+- `change_tracking` (Boolean) If set to true, the shared view will have change tracking enabled.
 - `description` (String) A description of the dataset sharing configuration.
 - `folder` (String)
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

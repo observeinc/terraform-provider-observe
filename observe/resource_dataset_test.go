@@ -134,7 +134,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 
 					stage {
 						pipeline = <<-EOF
-							filter true
+							make_col x:1
 						EOF
 					}
 				}`, randomPrefix),
@@ -146,6 +146,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "48h0m39s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", "make_col x:1\n"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled", "true"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "data_table_view_state", "{\"viewType\":\"Auto\"}"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
@@ -169,8 +170,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 
 					stage {
 						pipeline = <<-EOF
-							filter true
-
+							make_col x:1
 						EOF
 					}
 				}`, randomPrefix),
