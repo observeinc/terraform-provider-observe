@@ -39,7 +39,7 @@ input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
     expiration: Time!
 }
 
-enum AuthtokenKind @goModel(model: "observe/authorization.AuthtokenKind") {
+enum AuthtokenKind @goModel(model: "observe/authorization/authtypes.AuthtokenKind") {
     Datastream
     Login
     Api

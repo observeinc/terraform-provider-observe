@@ -3,14 +3,15 @@ extend type Query {
     worksheetSearch(terms: DWSearchInput!, maxCount: Int64): WorksheetSearchResultWrapper!
 
     """
-    searchMode defaults to InclusiveMode, which means "any matches, counts" sorted by better-scoring.
-    If you pass in ExclusiveMode, then you get "must match each thing" behavior, which may end up
-    returning no datasets at all quite easily.
+    Parameter searchMode defaults to InclusiveMode, which means "any matches,
+    counts" sorted by better-scoring.  If you pass in ExclusiveMode, then you
+    get "must match each thing" behavior, which may end up returning no datasets
+    at all quite easily.
     """
     datasetSearch(projects: [ObjectId!], labelMatches: [String!], columnMatches: [String!], keyMatchTypes: [String!], foreignKeyTargetMatches: [String!], correlationTagMatches: [String!], reachableFromDataset:ObjectId, implementsInterfaces: [String!], sourceMatches: [String!], searchMode: SearchMode): [DatasetMatch!]!
 
     """
-    metricSearch finds all matched metrics:
+    Finds all matched metrics:
     - inDatasets limits the candidates to only the metrics belonging to any of the provided metric datasets
     - linkToDatasets limits the candidates to only the metrics in the metric dataset that has link(s) to any of the provided resource datasets
     - match will be used to to match against (case ignored) metric name, label and description
@@ -19,10 +20,32 @@ extend type Query {
     metricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], linkToDatasets: [ObjectId!], correlationTagMatches: [String!], match: String!, heuristicsOptions: MetricHeuristicsOptions): MetricSearchResult!
 
     """
+    Finds all global metric and correlation tags
+    """
+    searchMetricTags(match: String, prefix: String, limit: Int64!, metrics: [String!], datasetIds: [ObjectId!]): MetricTagSearchResult!
+
+    """
+    Gets a specific metric/correlation tag  with all sources in the given metrics or datasets
+    """
+    getMetricTag(tag: String!, metrics: [String!], datasetIds: [ObjectId!]): MetricTag!
+
+    """
     Search for resource instances matching all of the given key fragments.
     The timeout defaults to 60 seconds if not specified
     """
     resourceInstanceSearch(keyFragments: [String!], datasetIds: [ObjectId!], startTime: Time, endTime: Time, perDatasetLimit: Int64, globalLimit: Int64, pagination: PaginationInput, timeoutSeconds: Int64): PaginatedResults
+
+    """
+    Finds all possible values for a given metric tag:
+     - tag is the tag to find the values for
+     - metrics, if provided, limits the values to those that are possible for one of the provided metrics
+     - datasetIds, if provided, limit the correlation tag values to those, contained in the given datasets
+     - prefix filters the tag values to those with that prefix (case insensitive). If you want all values, provide an empty string
+     - limit is the maximum number of tag values to return. Tag values are returned sorted alphabetically
+     - startTime and endTime are used to limit the search to the given time window. If only one of the two is provided, the other
+       defaults to have time window of 1hr. If neither is provided, endTime defaults to the current time and startTime defaults to 1hr before endTime
+    """
+    searchMetricTagValues(tag: String!, metrics: [String!], datasetIds: [ObjectId!], match: String, prefix: String, limit: Int64!, startTime: Time, endTime: Time): MetricTagValues!
 }
     
 
@@ -39,15 +62,67 @@ extend type Subscription {
     resourceSearch(input: ResourceSearchInput!): ResourceSearchResult!
 
     """
-    This API is still in development and not intended to be used in production yet.
-    Finds a list of metrics for one individual resource, sorted by 'usefulness'
+    Finds a list of metrics for given (tag, value) combinations., sorted by 'usefulness'
     - inDatasets, if provided, limits the candidates to only the metrics belonging to any of the provided metric datasets
       if not provided, we will search all metric datasets
     - match will be used to match against (case ignored) metric name, label and description
+    There are two ways to specify (tag, value) combinations:
     - resource identifies the resource to search for.
+    OR
+    - correlationTagInput specifies the (correlationTag, value) combinations
+
+    Metrics are searched in the query window "startTime (inclusive) to endTime (exclusive)". If this window is bigger than 1 hour, metrics are searched in
+    "endTime-1hour (inclusive) to endTime (exclusive)" instead.
+
     """
-    resourceMetricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], match: String!, resource: ResourceIdInput!, numReplies: Int!): MetricSearchResult!
+    metricSearchWithTagValues(workspaces: [ObjectId!], startTime: Time!, endTime: Time!, inDatasets: [ObjectId!], match: String!, resource: ResourceIdInput, correlationTagInput: MetricSearchCorrelationTagInput, searchConfig: MetricSearchConfig): MetricSearchResult!
 }
+
+input MetricSearchConfig @goModel(model: "observe/meta/metatypes.MetricSearchConfig") {
+    """
+    By default, the search uses metric index table wherever it can. If this is set to true,
+    the search will not use metric index table.
+    """
+    mode: MetricSearchMode
+    """
+    If passed in, limit to `numMetricsPerDataset` metrics per dataset
+    """
+    perDatasetLimit: Int
+    """
+    If passed in, limit the number of metrics to `globalLimit`
+    """
+    globalLimit: Int
+}
+
+enum MetricSearchMode @goModel(model: "observe/meta/metatypes.MetricSearchMode") {
+    """
+    Use metric index table if present. If not present, fallback to metadata. This is the default
+    """
+    UseMetricIndexTableIfPossible
+    """
+    Only use metric data table for all the datasets (even for the ones which have metric index table).
+    """
+    UseMetricTableOnly
+}
+
+enum TagValueMetricSearchMode @goModel(model: "observe/meta/metatypes.TagValueMetricSearchMode") {
+    Any
+    All
+}
+
+input MetricSearchCorrelationTagInput @goModel(model: "observe/meta/metatypes.MetricSearchCorrelationTagInput") {
+    filteringMatches: [CorrelationTagValueInput!]!
+    """
+    Auxiliary matches are used to sort the datasets. A dataset containing more of the
+    auxiliary matches is sorted before a dataset containing fewer of them.
+    """
+    orderingMatches: [CorrelationTagValueInput!]
+    """
+    Default mode is All
+    """
+    matchMode: TagValueMetricSearchMode
+}
+
 
 type DatasetMatchData @goModel(model: "observe/meta/metatypes.DatasetMatchData") {
     score: Float!
@@ -63,6 +138,11 @@ type DatasetMatchData @goModel(model: "observe/meta/metatypes.DatasetMatchData")
 type DatasetMatch @goModel(model: "observe/meta/metatypes.DatasetMatch") {
     dataset: Dataset!
     matchData: DatasetMatchData!
+}
+
+input CorrelationTagValueInput @goModel(model: "observe/meta/metatypes.CorrelationTagValueInput") {
+    tag: String!
+    value: PrimitiveValueInput!
 }
 
 """
@@ -178,18 +258,17 @@ input ResourceSearchInput @goModel(model: "observe/meta/metatypes.ResourceSearch
 
 type ResourceSearchResult @goModel(model: "observe/meta/metatypes.ResourceSearchResult") {
     """
-    instances is a list of Resources that match the ResourceSearchInput
+    A list of Resources that match the ResourceSearchInput
     """
     instances: [ResourceSearchInstance!]
 
     """
-    datasets contain metadata about the datasets that we found instances in
+    Metadata about the datasets that we found instances in
     """
     datasets: [ResourceSearchDataset!]
 
     """
-    progress contains info about how far from completion the
-    resource search query is.
+    How far from completion the resource search query is.
     
     TODO(luke): Implement progress tracking
     """
@@ -198,7 +277,7 @@ type ResourceSearchResult @goModel(model: "observe/meta/metatypes.ResourceSearch
     error: String
 
     """
-    debugQid exists to make it easier for backend/frontend to troubleshoot or file bugs.
+    Make it easier for backend/frontend to troubleshoot or file bugs.
     """
     debugQid: String
 }
@@ -237,7 +316,7 @@ type DatasetWatchUpdate @goModel(model: "observe/meta/metatypes.DatasetWatchUpda
     updated: [Dataset!]
     deleted: [ObjectId!]
     """
-    when only keys change, those datasets are put in `related` not `updated`
+    When only keys change, those datasets are put in `related` not `updated`
     """
     related: [Dataset!]
     error: String
@@ -314,4 +393,24 @@ enum MetricState @goModel(model: "observe/meta/metatypes.MetricState"){
     A metric in Error state is unusable because the metric dataset has errors in its definition
     """
     Error
+}
+
+type MetricTagSearchResult @goModel(model: "observe/meta/metatypes.MetricTagSearchResult") {
+    tags: [MetricTag!]!
+    total: Int64!
+}
+
+type MetricTag @goModel(model: "observe/meta/metatypes.MetricTag") {
+    tagName: String!
+    tagPaths: [DatasetTagPath!]!
+}
+
+type DatasetTagPath @goModel(model: "observe/meta/metatypes.DatasetTagPath") {
+    datasetId: ObjectId!
+    tagPath: MetricTagPath!
+}
+
+type MetricTagValues @goModel(model: "observe/meta/metatypes.MetricTagValues"){
+    tagValues: [String!]!
+    total: Int64!
 }

@@ -11,13 +11,13 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 
 fragment Poller on Poller {
 	id
+	name
 	workspaceId
 	customerId
 	datastreamId
 	disabled
 	kind
 	config {
-		name
 		retries
 		interval
 		tags
