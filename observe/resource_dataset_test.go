@@ -612,7 +612,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 
 					stage {
 						pipeline = <<-EOF
-							make_col x: 1
+							make_resource primary_key(OBSERVATION_KIND)
 						EOF
 					}
 				}`, randomPrefix),
@@ -640,7 +640,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 					rematerialization_mode = "must_skip_rematerialization"
 					stage {
 							pipeline = <<-EOF
-							make_col x: 1, y: 2
+							make_resource primary_key(OBSERVATION_KIND, BUNDLE_ID)
 						EOF
 					}
 				}`, randomPrefix),
@@ -670,7 +670,7 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 
 					stage {
 						pipeline = <<-EOF
-							make_col x: 1
+							make_resource primary_key(OBSERVATION_KIND)
 						EOF
 					}
 				}`, randomPrefix),
@@ -698,7 +698,7 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 					rematerialization_mode = "skip_rematerialization"
 					stage {
 							pipeline = <<-EOF
-							make_col x: 1, y: 2
+							make_resource primary_key(OBSERVATION_KIND, BUNDLE_ID)
 						EOF
 					}
 				}`, randomPrefix),
