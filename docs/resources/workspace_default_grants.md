@@ -83,7 +83,8 @@ Required:
 Optional:
 
 - `object_types` (List of String) Limits which object types this default grant applies to. Must be one of
-`dashboard`, `datastream` or `worksheet`. If not set, this default grant applies
-to all object types. Note: Datasets and monitors are not represented here as
-they inherit default grants based on their input datasets instead.
+`dashboard`, `datastream`, `monitor`, `referencetable`, or `worksheet`.
+If not set, this default grant applies to all object types.
+Note: Datasets are not represented here as they inherit default grants
+based on their input datasets instead.
 

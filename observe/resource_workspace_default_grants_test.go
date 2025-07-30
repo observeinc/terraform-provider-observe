@@ -30,13 +30,13 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 				  group {
 					oid        = observe_rbac_group.engineering.oid
 					permission = "edit"
-					object_types = ["dashboard", "worksheet"]
+					object_types = ["dashboard", "worksheet", "referencetable", "datastream"]
 				  }
 
 				  group {
 					oid        = observe_rbac_group.engineering.oid
 					permission = "view"
-					object_types = ["datastream"]
+					object_types = ["monitor"]
 				  }
 
 				  group {
@@ -53,11 +53,13 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.permission", "edit"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.permission", "view"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.2.permission", "view"),
-					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.#", "2"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.#", "4"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.0", "dashboard"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.1", "worksheet"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.2", "referencetable"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.0.object_types.3", "datastream"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.object_types.#", "1"),
-					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.object_types.0", "datastream"),
+					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.1.object_types.0", "monitor"),
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.2.object_types.#", "0"),
 				),
 			},
