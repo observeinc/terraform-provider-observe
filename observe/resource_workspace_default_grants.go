@@ -26,6 +26,8 @@ var validWorkspaceDefaultGrantPermissions = []WorkspaceDefaultGrantPermission{
 var validWorkspaceDefaultGrantObjectTypes = []gql.ORType{
 	gql.ORTypeDashboard,
 	gql.ORTypeDatastream,
+	gql.ORTypeMonitor,
+	gql.ORTypeReferencetable,
 	gql.ORTypeWorksheet,
 }
 
