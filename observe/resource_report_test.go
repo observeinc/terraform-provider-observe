@@ -53,6 +53,7 @@ func TestAccObserveReport(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.time_of_day", "12:00"),
 					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.timezone", "UTC"),
 					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.day_of_the_week", "Monday"),
+					resource.TestCheckResourceAttr("observe_report.first", "schedule.0.generation_delay_minutes", "30"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_subject", "test"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.#", "1"),
 					resource.TestCheckResourceAttr("observe_report.first", "email_recipients.0", "test@example.com"),

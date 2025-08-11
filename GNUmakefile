@@ -89,7 +89,7 @@ test: fmtcheck
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-testacc: 
+testacc:
 	TF_ACC=1 go run gotest.tools/gotestsum \
 		--packages './...' \
 		--format testname \

@@ -86,7 +86,7 @@ This is only used if the frequency is "Monthly".
 This is only used if the frequency is "Weekly".
 - `generation_delay_minutes` (Number) The delay in minutes before the report is generated after the scheduled time.
 This is useful if the data is not yet available at the scheduled time.
-Can be between 0 and 30 minutes.
+Can be between 0 and 120 minutes. The default value is 30 minutes.
 - `timezone` (String) The IANA timezone to run this report in.
 
 
