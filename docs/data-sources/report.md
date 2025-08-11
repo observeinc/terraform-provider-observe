@@ -86,7 +86,7 @@ This is only used if the frequency is "Weekly".
 - `frequency` (String) The frequency of the report. This can be "Hourly", "Daily", "Weekly", or "Monthly".
 - `generation_delay_minutes` (Number) The delay in minutes before the report is generated after the scheduled time.
 This is useful if the data is not yet available at the scheduled time.
-Can be between 0 and 30 minutes.
+Can be between 0 and 120 minutes. The default value is 30 minutes.
 - `time_of_day` (String) The time of day to run this report in {HH:MM} format
 - `timezone` (String) The IANA timezone to run this report in.
 

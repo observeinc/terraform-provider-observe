@@ -173,6 +173,7 @@ func resourceReport() *schema.Resource {
 						"generation_delay_minutes": {
 							Type:        schema.TypeInt,
 							Optional:    true,
+							Default:     30,
 							Description: descriptions.Get("report", "schema", "schedule", "generation_delay_minutes"),
 						},
 					},
@@ -342,7 +343,7 @@ func reportDefinitionFromResourceData(data *schema.ResourceData) (req *rest.Repo
 		if v, ok := data.GetOk("schedule.0.generation_delay_minutes"); ok {
 			req.Schedule.GenerationDelayMinutes = v.(int)
 		} else {
-			req.Schedule.GenerationDelayMinutes = 0
+			req.Schedule.GenerationDelayMinutes = 30 // Default
 		}
 	}
 
