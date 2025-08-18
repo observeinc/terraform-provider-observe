@@ -55,6 +55,9 @@ type Config struct {
 
 	// enable extra queries needed to export bindings
 	ExportObjectBindings bool `json:"export_object_bindings"`
+
+	// Allow setting default materialization mode for dataset resources
+	DefaultRematerializationMode *string `json:"default_rematerialization_mode"`
 }
 
 func (c *Config) Hash() uint64 {

@@ -454,6 +454,9 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
 	rematerializationMode := RematerializationModeRematerialize
+	if client.DefaultRematerializationMode != nil {
+		rematerializationMode = TerraformRematerializationMode(toCamel(*client.DefaultRematerializationMode))
+	}
 	if mode, ok := data.GetOk("rematerialization_mode"); ok {
 		rematerializationMode = TerraformRematerializationMode(toCamel(mode.(string)))
 	}
