@@ -55,6 +55,7 @@ const (
 	TypeReport                  Type = "report"
 	TypeIngestFilter            Type = "ingestfilter"
 	TypeIngestToken             Type = "ingesttoken"
+	TypeServiceAccount          Type = "serviceaccount"
 	TypeStorageIntegration      Type = "storageintegration"
 )
 
@@ -96,6 +97,7 @@ func (t Type) IsValid() bool {
 	case TypeReport:
 	case TypeIngestFilter:
 	case TypeIngestToken:
+	case TypeServiceAccount:
 	case TypeStorageIntegration:
 	default:
 		return false
@@ -309,6 +311,10 @@ func IngestFilterOid(id string) OID {
 
 func IngestTokenOid(id string) OID {
 	return OID{Id: id, Type: TypeIngestToken}
+}
+
+func ServiceAccountOid(id string) OID {
+	return OID{Id: id, Type: TypeServiceAccount}
 }
 
 func StorageIntegrationOid(id string) OID {

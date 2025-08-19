@@ -1620,3 +1620,35 @@ func (c *Client) UpdateIngestFilter(ctx context.Context, filterId string, input 
 func (c *Client) DeleteIngestFilter(ctx context.Context, filterId string) error {
 	return c.Meta.DeleteIngestFilter(ctx, filterId)
 }
+
+/**
+ * Service Accounts
+ */
+func (c *Client) CreateServiceAccount(ctx context.Context, input *rest.ServiceAccountDefinition) (result *rest.ServiceAccountResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateServiceAccount(ctx, input)
+	})
+	return
+}
+
+func (c *Client) UpdateServiceAccount(ctx context.Context, id string, input *rest.ServiceAccountDefinition) (result *rest.ServiceAccountResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateServiceAccount(ctx, id, input)
+	})
+	return
+}
+
+func (c *Client) DeleteServiceAccount(ctx context.Context, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteServiceAccount(ctx, id)
+	})
+	return
+}
+
+func (c *Client) GetServiceAccount(ctx context.Context, id string) (*rest.ServiceAccountResource, error) {
+	return c.Rest.GetServiceAccount(ctx, id)
+}
+
+func (c *Client) ListServiceAccounts(ctx context.Context) ([]rest.ServiceAccountResource, error) {
+	return c.Rest.ListServiceAccounts(ctx)
+}
