@@ -101,6 +101,10 @@ func init() {
 		Name: "observe_drop_filter",
 		F:    dropFilterSweeper,
 	})
+	resource.AddTestSweepers("observe_service_account", &resource.Sweeper{
+		Name: "observe_service_account",
+		F:    serviceAccountSweeper,
+	})
 }
 
 type client struct {
@@ -850,6 +854,31 @@ func dropFilterSweeper(pattern string) error {
 			}
 		}
 	}
+	return nil
+}
+
+func serviceAccountSweeper(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	serviceAccounts, err := client.ListServiceAccounts(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list service accounts: %w", err)
+	}
+
+	for _, serviceAccount := range serviceAccounts {
+		if client.MatchName(serviceAccount.Label) {
+			log.Printf("[WARN] Deleting service account %s [id=%s]\n", serviceAccount.Label, serviceAccount.Id)
+			if err := client.DeleteServiceAccount(ctx, serviceAccount.Id); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
