@@ -110,8 +110,10 @@ func datastreamToResourceData(d *gql.Datastream, data *schema.ResourceData) (dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("dataset", oid.DatasetOid(d.DatasetId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if d.DatasetId != nil {
+		if err := data.Set("dataset", oid.DatasetOid(*d.DatasetId).String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 	return diags
 }

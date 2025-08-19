@@ -162,6 +162,7 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     """
     id: ObjectId
     name: String # Will be required when label is deprecated
+    description: String
     workspaceId: ObjectId!
     managedById: ObjectId
     layout: JsonObject

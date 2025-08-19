@@ -1,4 +1,3 @@
-# this file is auto-generated, do not edit
 extend type Query {
     snowflakeOutboundShare(id: ObjectId!): SnowflakeOutboundShare!
     searchSnowflakeOutboundShare(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): SnowflakeOutboundShareSearchResult!
@@ -15,7 +14,6 @@ extend type Mutation {
 # By default, only administrators have this access for all workspace objects.
 # However, administrators can grant other users access to sharing mutations via RBAC.
 type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShare") {
-    # payload
     """
     The fully qualified name of the Snowflake share, for use in a consumer account.
     """
@@ -27,6 +25,7 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
     shareNameInternal: String!
     databaseName: String!
     schemaName: String!
+
     # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
@@ -50,11 +49,8 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
 
 input SnowflakeOutboundShareInput @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShareInput") {
     # payload
-    # not in input: shareName: String!
     accounts: [SnowflakeAccountInput!]!
-    # not in input: shareNameInternal: String!
-    # not in input: databaseName: String!
-    # not in input: schemaName: String!
+
     # WorkspaceObject
     name: String!
     iconUrl: String

@@ -62,6 +62,15 @@ enum MonitorV2BooleanOperator @goModel(model: "observe/meta/metatypes.MonitorV2B
 }
 
 """
+These are functions meant to express comparison against standard deviation bounds.
+"""
+enum MonitorV2BoundComparisonFunction @goModel(model: "observe/meta/metatypes.MonitorV2BoundComparisonFunction") {
+  Above
+  AboveOrBelow
+  Below
+}
+
+"""
 MonitorV2CapturedType describes the type of column that's captured in the dataset which the monitor observes over.
 There are 2 types:
   1. GroupBy:         If a monitor is grouped by this particular column, this will be one of the types that's tagged.
@@ -132,8 +141,14 @@ MonitorV2RuleKind describes the strategy used to inspect the input query.
    in the query result.
  - Threshold is when you want to inspect a numerical value within the query 
    results, not the presence of the rows themselves.
+ - Promote is when you want to curate your own alerts using Observe's query
+   language without the monitor doing any additional data modeling behind the
+   scene.
+ - Anomaly is when you want alert based on any irregularity noticed in the new 
+   set of data using the expected trend from modeling the data in the past.
 """
 enum MonitorV2RuleKind @goModel(model: "observe/meta/metatypes.MonitorV2RuleKind") {
+  Anomaly
   Count
   Promote
   Threshold
@@ -235,7 +250,7 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
 
 input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
     # payload
-    # sharingRules: [MonitorSharingRuleInput!]
+    sharingRules: [MonitorSharingRuleInput!]
     disabled: Boolean
     comment: String
     # resolver: meta: MonitorV2MetaInput
@@ -284,6 +299,7 @@ input MonitorV2ForAlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Fo
 # data written by the backend during the course of monitor execution.
 type MonitorV2Meta @goModel(model: "observe/meta/metatypes.MonitorV2Meta") {
     # payload
+    # not in output: customerID: ObjectId!
     """
     The last run statistics. This type is also what gets emitted into the datastream for
     historical purposes.
@@ -335,6 +351,7 @@ type MonitorV2Meta @goModel(model: "observe/meta/metatypes.MonitorV2Meta") {
 
 input MonitorV2MetaInput @goModel(model: "observe/meta/metatypes.MonitorV2MetaInput") {
     # payload
+    # not in input: customerID: ObjectId!
     lastRunStats: MonitorV2StatsInput
     isInactive: Boolean!
     lastErrorTime: Time
@@ -387,6 +404,12 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     original dataset(s) and other transform information that the user selected to create "Create Monitor".
     """
     inputQuery: MultiStageQuery!
+    """
+    RuleTemplate is the additional attributes for a monitor rule kind. Some monitor kinds like count and promote don't
+    have any common attributes, but for kinds like anomaly there are attributes shared amongst all rules such as the
+    detection algorithm, out of bound condition, and more.
+    """
+    ruleTemplate: MonitorV2RuleTemplate
     """
     NoDataRules allows a user to be alerted on missing data for the specified lookback window. When provided,
     the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created
@@ -446,6 +469,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
     # payload
     inputQuery: MultiStageQueryInput!
+    ruleTemplate: MonitorV2RuleTemplateInput
     noDataRules: [MonitorV2NoDataRuleInput!]
     rules: [MonitorV2RuleInput!]!
     lookbackTime: Duration
@@ -454,6 +478,61 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput
     customVariables: JsonObject
+}
+
+
+type MonitorV2RuleTemplate @goModel(model: "observe/meta/metatypes.MonitorV2RuleTemplate") {
+    # payload
+    anomaly: MonitorV2AnomalyRuleTemplate
+}
+
+input MonitorV2RuleTemplateInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleTemplateInput") {
+    # payload
+    anomaly: MonitorV2AnomalyRuleTemplateInput
+}
+
+
+# MonitorV2AnomalyRuleTemplate stores attributes that are special to the anomaly detection monitors to define
+# which data points are out of bounds and the algorithm the user would like to select.
+type MonitorV2AnomalyRuleTemplate @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRuleTemplate") {
+    # payload
+    """
+    ComputationWindow describes the length of the window used to compute the average and the deviation.
+    When not provided, the computation window will be dynamically chosen based on the lookbackTime provided.
+    """
+    computationWindow: Duration
+    """
+    ValueColumnName indicates which of the columns in the input query to apply the basic algorithm and create
+    bounds over.
+    """
+    valueColumnName: String!
+    """
+    CompareFn allows the user to select one of above, below, or above or below standard deviations to be
+    the bounds the data point has to be out.
+    """
+    compareFn: MonitorV2BoundComparisonFunction!
+    """
+    NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
+    be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
+    """
+    numStandardDeviations: Int64!
+    """
+    BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the 
+    computation window of data, it will calculate the average and standard deviations and then determine
+    whether the new point is out of bound. As of now, it will be of type JsonObject in anticipation to
+    introduce MonitorV2BasicAnomalyAlgorithm in the future only if the need for special fields appear.
+    To use the basic algorithm, set this value to an empty object.
+    """
+    basicAlgorithm: JsonObject
+}
+
+input MonitorV2AnomalyRuleTemplateInput @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRuleTemplateInput") {
+    # payload
+    computationWindow: Duration
+    valueColumnName: String!
+    compareFn: MonitorV2BoundComparisonFunction!
+    numStandardDeviations: Int64!
+    basicAlgorithm: JsonObject
 }
 
 
@@ -490,6 +569,7 @@ input MonitorV2TransformScheduleInput @goModel(model: "observe/meta/metatypes.Mo
     freshnessGoal: Duration!
 }
 
+
 # MonitorV2CronSchedule describes explicit scheduling of a monitor in a potentially non-continuous
 # mode. It supports configuration for advanced users with raw cron syntax, but also
 # (will eventually) support structured configuration as well. The intention to supply
@@ -515,6 +595,7 @@ input MonitorV2CronScheduleInput @goModel(model: "observe/meta/metatypes.Monitor
     timezone: String!
 }
 
+
 # MonitorV2Scheduling holds information about when monitors should evaluate. The
 # types of scheduling are exclusive. If none of these are specified, the
 # service will choose the most appropriate continuous monitoring type
@@ -528,7 +609,8 @@ type MonitorV2Scheduling @goModel(model: "observe/meta/metatypes.MonitorV2Schedu
     """
     interval: MonitorV2IntervalSchedule
     """
-    Transform should be specified as an explicit transform evaluation style.
+    Transform should be specified to explicitly set the style to transform or to configure
+    the transform behavior.
     """
     transform: MonitorV2TransformSchedule
     """
@@ -691,6 +773,7 @@ type MonitorV2Rule @goModel(model: "observe/meta/metatypes.MonitorV2Rule") {
     """
     threshold: MonitorV2ThresholdRule
     promote: MonitorV2PromoteRule
+    anomaly: MonitorV2AnomalyRule
 }
 
 input MonitorV2RuleInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleInput") {
@@ -699,6 +782,31 @@ input MonitorV2RuleInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleIn
     count: MonitorV2CountRuleInput
     threshold: MonitorV2ThresholdRuleInput
     promote: MonitorV2PromoteRuleInput
+    anomaly: MonitorV2AnomalyRuleInput
+}
+
+
+type MonitorV2AnomalyRule @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRule") {
+    # payload
+    """
+    ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
+    window for the monitor to trigger the anomaly rule. It will always do a greater than or equal to
+    evaluation of this following comparison. It accepts a range between 0 to 100.
+    """
+    comparePercentage: Int64
+    """
+    CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
+    This gives the option to add extra dimension to the existing rule by specifying which column of
+    the group the user looks forward to being alerted by. For example, this allows for rule expression
+    like (Count > 80 and Group = "Good Group") which would trigger a critical alert.
+    """
+    compareGroups: [MonitorV2ColumnComparison!]
+}
+
+input MonitorV2AnomalyRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRuleInput") {
+    # payload
+    comparePercentage: Int64
+    compareGroups: [MonitorV2ColumnComparisonInput!]
 }
 
 
@@ -782,12 +890,18 @@ type MonitorV2NoDataRule @goModel(model: "observe/meta/metatypes.MonitorV2NoData
     across all rules.
     """
     threshold: MonitorV2ThresholdRule
+    """
+    Adds the ability for anomaly monitor to have a no data rule. When this input is provided here,
+    nothing needs to be provided to its fields as they're made optional.
+    """
+    anomaly: MonitorV2AnomalyRule
 }
 
 input MonitorV2NoDataRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2NoDataRuleInput") {
     # payload
     expiration: Duration
     threshold: MonitorV2ThresholdRuleInput
+    anomaly: MonitorV2AnomalyRuleInput
 }
 
 
@@ -835,12 +949,19 @@ type MonitorV2ColumnComparison @goModel(model: "observe/meta/metatypes.MonitorV2
     The column user wants to compare against using the values inside compareValues.
     """
     column: MonitorV2Column!
+    """
+    Operator specifies the logical operator (AND/OR) used to combine multiple comparison clauses within this column comparison.
+    When multiple comparison values are provided in compareValues, they are combined using the OR operator by default when this
+    field is left empty. To use the AND operator, the user can specify the operator as "and".
+    """
+    operator: MonitorV2BooleanOperator
 }
 
 input MonitorV2ColumnComparisonInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnComparisonInput") {
     # payload
     compareValues: [MonitorV2ComparisonInput!]!
     column: MonitorV2ColumnInput!
+    operator: MonitorV2BooleanOperator
 }
 
 
@@ -1053,6 +1174,16 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     """
     end: Time
     """
+    DetectedStart is the timestamp that represents the time when the alarm first became active. This
+    means that this is equivalent to the time when the alarm was first created.
+    """
+    detectedStart: Time!
+    """
+    DetectedEnd is the timestamp that represents the time when the alarm last changed from active to an
+    inactive state.
+    """
+    detectedEnd: Time
+    """
     Captured values describe the value captured from the monitor output dataset. It can contain
     the groupBy columns, linkPrimaryKey coluns, aggregation columns, or the regular columns.
     """
@@ -1097,6 +1228,8 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     id: String!
     start: Time!
     end: Time
+    detectedStart: Time!
+    detectedEnd: Time
     capturedValues: [MonitorV2CapturedValueInput!]!
     isActive: Boolean!
     level: MonitorV2AlarmLevel!

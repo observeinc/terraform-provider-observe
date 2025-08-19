@@ -4,6 +4,12 @@ enum IncludePersonalsKind @goModel(model: "observe/meta/metatypes.IncludePersona
     All
 }
 
+enum ConnectionCategory @goModel(model: "observe/meta/metatypes.ConnectionCategory") {
+    Unknown
+    ObserveAgent
+    CloudProvider
+}
+
 extend type Query {
     folder(id: ObjectId!): Folder!
     folders(workspaceId: ObjectId!, name: String, includePersonals: IncludePersonalsKind): [Folder!]!
@@ -79,6 +85,8 @@ type Module @goModel(model: "observe/meta/metatypes.Module") {
     iconUrl: String
     registry: String
     defaultFolder: String!
+    connectionName: String!
+    connectionCategory: ConnectionCategory!
 
     apps(workspaceId: ObjectId!): [App!] @goField(forceResolver:true)
 }
@@ -292,7 +300,7 @@ type App implements WorkspaceObject & FolderObject &AuditedObject @goModel(model
     status: AppStatus!
     dataInfo: AppDataInfo! @goField(forceResolver:true)
     """
-    resources refer to datasets, monitors, datastreams and other objects the app creates
+    Resources refer to datasets, monitors, datastreams and other objects the app creates
     """
     resources: [WorkspaceObject!] @goField(forceResolver:true)
     versionsInfo: AppVersions @goField(forceResolver:true)
