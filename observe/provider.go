@@ -121,6 +121,13 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "Enable generating object ID-name bindings for cross-tenant export/import (internal use).",
 			},
+			"default_rematerialization_mode": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateEnums(AllRematerializationModes),
+				Description:      "Default rematerialization mode for datasets (internal use).",
+				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_REMATERIALIZATION_MODE", nil),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -282,6 +289,11 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		// refer https://www.w3.org/TR/trace-context/#traceparent-header
 		if traceparent := os.Getenv("TRACEPARENT"); traceparent != "" {
 			config.TraceParent = &traceparent
+		}
+
+		if v, ok := data.GetOk("default_rematerialization_mode"); ok {
+			s := v.(string)
+			config.DefaultRematerializationMode = &s
 		}
 
 		// by omission, cache client
