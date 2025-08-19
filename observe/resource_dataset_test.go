@@ -592,6 +592,99 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 	})
 }
 
+// Test that the provider's default rematerialization_mode is respected
+func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	// see TestAccObserveSourceDashboard_ExportWithBindings for context
+	providerPreamble := `
+		terraform {} # trick the testing framework into not mangling our config
+		provider "observe" {
+			default_rematerialization_mode = "must_skip_rematerialization"
+		}
+	`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_resource primary_key(OBSERVATION_KIND)
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+							pipeline = <<-EOF
+							make_resource primary_key(OBSERVATION_KIND, BUNDLE_ID)
+						EOF
+					}
+				}`, randomPrefix),
+				ExpectError: regexp.MustCompile(`The following dataset\(s\) will be rematerialized`),
+			},
+			{ // Check the provider-level rematerialization option can be overridden
+				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-1"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "rematerialize"
+					stage {
+							pipeline = <<-EOF
+							make_resource primary_key(OBSERVATION_KIND, BUNDLE_ID)
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "on_demand_materialization_length"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "rematerialize"),
+				),
+			},
+		},
+	})
+}
+
 // Test that a change fails if rematerialization would occur under edit-forward
 func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
