@@ -26,7 +26,7 @@ type ServiceAccountDefinition struct {
 func (sa *ServiceAccountResource) Oid() oid.OID {
 	return oid.OID{
 		Id:   sa.Id,
-		Type: oid.TypeServiceAccount,
+		Type: oid.TypeUser,
 	}
 }
 
