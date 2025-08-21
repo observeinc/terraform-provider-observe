@@ -155,6 +155,7 @@ func Provider() *schema.Provider {
 			"observe_monitor_v2_action": dataSourceMonitorV2Action(),
 			"observe_reference_table":   dataSourceReferenceTable(),
 			"observe_report":            dataSourceReport(),
+			"observe_service_account":   dataSourceServiceAccount(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
@@ -196,6 +197,7 @@ func Provider() *schema.Provider {
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
 			"observe_reference_table":           resourceReferenceTable(),
 			"observe_report":                    resourceReport(),
+			"observe_service_account":           resourceServiceAccount(),
 			"observe_drop_filter":               resourceDropFilter(),
 			"observe_ingest_token":              resourceIngestToken(),
 		},
