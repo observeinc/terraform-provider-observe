@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "time/tzdata" // Embed timezone database for environments without system tzdata
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/observeinc/terraform-provider-observe/observe"
 )
