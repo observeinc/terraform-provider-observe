@@ -64,11 +64,15 @@ docker-sign:
 			--output terraform-provider-observe_$(VERSION)_SHA256SUMS.sig \
 			--detach-sign terraform-provider-observe_$(VERSION)_SHA256SUMS"
 
+# Copy the GQL schema from the observe repo, make sure OBSERVE_ROOT is set correctly
 copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm -f client/internal/meta/schema/*.graphql
 	cp -pR "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
+	# Remove @eol fields
 	sed -i.bak '/@eol/ { /directive/!d; }' client/internal/meta/schema/*
+	# Strip out @owner directives
+	sed -i.bak '/^directive/!s/ @owner([^)]*)//g' client/internal/meta/schema/*.graphql
 	rm -rf client/internal/meta/schema/*.bak
 
 generate:
