@@ -310,6 +310,7 @@ var (
 	MonitorGlobalMuter    GrantRole = createGrantRole("MonitorGlobalMuter")
 	ReferenceTableCreator GrantRole = createGrantRole("ReferenceTableCreator")
 	ReportManager         GrantRole = createGrantRole("ReportManager")
+	ServiceAccountCreator GrantRole = createGrantRole("ServiceAccountCreator")
 	UserDeleter           GrantRole = createGrantRole("UserDeleter")
 	UserInviter           GrantRole = createGrantRole("UserInviter")
 	WorksheetCreator      GrantRole = createGrantRole("WorksheetCreator")
@@ -336,6 +337,7 @@ var roleMapping = map[GrantRole]gql.RbacRole{
 	MonitorGlobalMuter:    gql.RbacRoleMonitorglobalmute,
 	ReferenceTableCreator: gql.RbacRoleReferencetablecreator,
 	ReportManager:         gql.RbacRoleReportmanager,
+	ServiceAccountCreator: gql.RbacRoleServiceaccountcreator,
 	UserDeleter:           gql.RbacRoleUserdelete,
 	UserInviter:           gql.RbacRoleUserinvite,
 }

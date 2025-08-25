@@ -66,7 +66,7 @@ resource "observe_grant" "everyone_example" {
 ### Required
 
 - `role` (String) The role to grant.
- Accepted values: `administrator`, `apitoken_creator`, `bookmark_manager`, `dashboard_creator`, `dashboard_editor`, `dashboard_viewer`, `dataset_accelerator`, `dataset_creator`, `dataset_editor`, `dataset_viewer`, `datastream_creator`, `datastream_editor`, `datastream_viewer`, `investigator_global`, `monitor_creator`, `monitor_editor`, `monitor_viewer`, `monitor_action_creator`, `monitor_global_muter`, `reference_table_creator`, `report_manager`, `user_deleter`, `user_inviter`, `worksheet_creator`, `worksheet_editor`, `worksheet_viewer`
+ Accepted values: `administrator`, `apitoken_creator`, `bookmark_manager`, `dashboard_creator`, `dashboard_editor`, `dashboard_viewer`, `dataset_accelerator`, `dataset_creator`, `dataset_editor`, `dataset_viewer`, `datastream_creator`, `datastream_editor`, `datastream_viewer`, `investigator_global`, `monitor_creator`, `monitor_editor`, `monitor_viewer`, `monitor_action_creator`, `monitor_global_muter`, `reference_table_creator`, `report_manager`, `service_account_creator`, `user_deleter`, `user_inviter`, `worksheet_creator`, `worksheet_editor`, `worksheet_viewer`
 - `subject` (String) OID of the subject. Must be a user or a group.
 
 ### Optional

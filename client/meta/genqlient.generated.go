@@ -9575,6 +9575,7 @@ const (
 	RbacRoleMonitorglobalmute     RbacRole = "MonitorGlobalMute"
 	RbacRoleReferencetablecreator RbacRole = "ReferenceTableCreator"
 	RbacRoleReportmanager         RbacRole = "ReportManager"
+	RbacRoleServiceaccountcreator RbacRole = "ServiceAccountCreator"
 	RbacRoleUserdelete            RbacRole = "UserDelete"
 	RbacRoleUserinvite            RbacRole = "UserInvite"
 	RbacRoleViewer                RbacRole = "Viewer"
