@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -57,7 +58,7 @@ func (client *Client) CreateServiceAccount(ctx context.Context, req *ServiceAcco
 }
 
 func (client *Client) GetServiceAccount(ctx context.Context, id string) (*ServiceAccountResource, error) {
-	resp, err := client.Get("/v1/service-accounts/" + id)
+	resp, err := client.Get("/v1/service-accounts/" + url.PathEscape(id))
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func (client *Client) UpdateServiceAccount(ctx context.Context, id string, req *
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Patch("/v1/service-accounts/"+id, "application/json", bytes.NewReader(body))
+	resp, err := client.Patch("/v1/service-accounts/"+url.PathEscape(id), "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (client *Client) UpdateServiceAccount(ctx context.Context, id string, req *
 }
 
 func (client *Client) DeleteServiceAccount(ctx context.Context, id string) error {
-	resp, err := client.Delete("/v1/service-accounts/" + id)
+	resp, err := client.Delete("/v1/service-accounts/" + url.PathEscape(id))
 	if err != nil {
 		return err
 	}
