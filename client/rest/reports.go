@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -102,7 +103,7 @@ func (client *Client) CreateReport(ctx context.Context, req *ReportsDefinition) 
 }
 
 func (client *Client) GetReport(ctx context.Context, id string) (*ReportsResource, error) {
-	resp, err := client.Get("/v1/reports/" + id + "?expand=true")
+	resp, err := client.Get("/v1/reports/" + url.PathEscape(id) + "?expand=true")
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func (client *Client) UpdateReport(ctx context.Context, id string, req *ReportsD
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Patch("/v1/reports/"+id+"?expand=true", "application/json", bytes.NewReader(body))
+	resp, err := client.Patch("/v1/reports/"+url.PathEscape(id)+"?expand=true", "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (client *Client) UpdateReport(ctx context.Context, id string, req *ReportsD
 }
 
 func (client *Client) DeleteReport(ctx context.Context, id string) error {
-	resp, err := client.Delete("/v1/reports/" + id)
+	resp, err := client.Delete("/v1/reports/" + url.PathEscape(id))
 	if err != nil {
 		return err
 	}
