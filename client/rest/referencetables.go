@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -112,7 +113,7 @@ func (client *Client) CreateReferenceTable(ctx context.Context, input *Reference
 }
 
 func (client *Client) GetReferenceTable(ctx context.Context, id string) (*ReferenceTable, error) {
-	resp, err := client.Get("/v1/referencetables/" + id)
+	resp, err := client.Get("/v1/referencetables/" + url.PathEscape(id))
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (client *Client) UpdateReferenceTable(ctx context.Context, id string, input
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Put("/v1/referencetables/"+id, contentType, body)
+	resp, err := client.Put("/v1/referencetables/"+url.PathEscape(id), contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,7 @@ func (client *Client) UpdateReferenceTableMetadata(ctx context.Context, id strin
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Patch("/v1/referencetables/"+id, "application/json", bytes.NewReader(body))
+	resp, err := client.Patch("/v1/referencetables/"+url.PathEscape(id), "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +164,7 @@ func (client *Client) UpdateReferenceTableMetadata(ctx context.Context, id strin
 }
 
 func (client *Client) DeleteReferenceTable(ctx context.Context, id string) error {
-	resp, err := client.Delete("/v1/referencetables/" + id)
+	resp, err := client.Delete("/v1/referencetables/" + url.PathEscape(id))
 	if err != nil {
 		return err
 	}
@@ -172,7 +173,7 @@ func (client *Client) DeleteReferenceTable(ctx context.Context, id string) error
 }
 
 func (client *Client) LookupReferenceTable(ctx context.Context, label string) (*ReferenceTable, error) {
-	resp, err := client.Get("/v1/referencetables?label=" + label)
+	resp, err := client.Get("/v1/referencetables?label=" + url.QueryEscape(label))
 	if err != nil {
 		return nil, err
 	}
