@@ -44,7 +44,7 @@ data "observe_monitor_v2" "name_lookup" {
 One of `name` or `id` must be set.
 - `name` (String) Monitor name.
 One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
-- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
+- `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Read-Only
@@ -78,7 +78,9 @@ Optional:
 
 Read-Only:
 
-- `interval` (Block List) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `interval` (Block List, Deprecated) Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
+Was used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
 - `transform` (Block List) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
 
 <a id="nestedblock--scheduling--scheduled"></a>

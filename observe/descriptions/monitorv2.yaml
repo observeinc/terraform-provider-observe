@@ -58,10 +58,14 @@ schema:
     Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
   scheduling:
     description: |
-      Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform.
+      Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform.
     interval:
+      deprecation: |
+         Interval scheduling is deprecated. Creation of new interval monitors is no longer supported. Use transform or scheduled monitor instead.
       description: |
-        Should be used to run explicit ad-hoc queries.
+        Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+        Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
+        Was used to run explicit ad-hoc queries.
       interval: |
         How often the monitor should attempt to run.
       randomize: |

@@ -100,7 +100,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `lookback_time` (String) optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
 - `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
-- `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (interval, transform, and scheduled) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
+- `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
 ### Read-Only
 
@@ -633,7 +633,9 @@ Optional:
 
 Optional:
 
-- `interval` (Block List, Max: 1) Should be used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
+- `interval` (Block List, Max: 1, Deprecated) Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
+Was used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
 - `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))
 - `transform` (Block List, Max: 1) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))
 
