@@ -633,7 +633,7 @@ Optional:
 
 Optional:
 
-- `interval` (Block List, Max: 1, Deprecated) @DEPRECATED: Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+- `interval` (Block List, Max: 1, Deprecated) Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
 Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
 Was used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
 - `scheduled` (Block List, Max: 1) Should be specified to get wall-clock scheduled evaluation. Note: Support for scheduled monitors is currently experimental. (see [below for nested schema](#nestedblock--scheduling--scheduled))

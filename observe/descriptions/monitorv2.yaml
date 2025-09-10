@@ -63,7 +63,7 @@ schema:
       deprecation: |
          Interval scheduling is deprecated. Creation of new interval monitors is no longer supported. Use transform or scheduled monitor instead.
       description: |
-        @DEPRECATED: Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+        Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
         Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
         Was used to run explicit ad-hoc queries.
       interval: |

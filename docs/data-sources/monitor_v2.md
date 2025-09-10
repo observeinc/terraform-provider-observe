@@ -78,7 +78,7 @@ Optional:
 
 Read-Only:
 
-- `interval` (Block List) @DEPRECATED: Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
+- `interval` (Block List, Deprecated) Creation of new interval monitors is not supported, but existing interval monitors will continue to be supported. 
 Recommended to migrate to transform scheduling if the pre-existing interval monitor runs on an accelerable OPAL query.
 Was used to run explicit ad-hoc queries. (see [below for nested schema](#nestedblock--scheduling--interval))
 - `transform` (Block List) Should be used to defer scheduling to the transformer and evaluate when data becomes available. (see [below for nested schema](#nestedblock--scheduling--transform))

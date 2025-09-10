@@ -286,6 +286,7 @@ func dataSourceMonitorV2() *schema.Resource {
 						},
 						"interval": { // MonitorV2IntervalScheduleInput
 							Type:        schema.TypeList,
+							Deprecated:  descriptions.Get("monitorv2", "schema", "scheduling", "interval", "deprecation"),
 							Optional:    true,
 							Computed:    true,
 							Description: descriptions.Get("monitorv2", "schema", "scheduling", "interval", "description"),
