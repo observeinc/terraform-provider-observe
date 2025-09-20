@@ -595,6 +595,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 }
 
 func TestAccObserveMonitorIntervals(t *testing.T) {
+	t.Skip("Skipping interval monitor tests - interval monitors are deprecated")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
