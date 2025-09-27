@@ -1,0 +1,18 @@
+description: |
+  Query-time filter that can be applied to a specific dataset. Useful for quickly making sensitive data un-queryable
+  by users after noticing a leak, before preventing ingestion of that data at the source.
+
+schema:
+  dataset: |
+    The OID of the dataset this query filter applies to.
+  label: |
+    Human-readable name for the filter.
+  description: |
+    Long-form description of the filter.
+  filter: |
+    OPAL boolean expression string for the filter. For example, `body ~ "phoneNumber"`.
+    This is an exclusion filter, so all observations matching the filter will be filtered out.
+  disabled: |
+    Whether the filter is disabled by the user.
+  errors: |
+    List of error messages if the filter cannot be applied.

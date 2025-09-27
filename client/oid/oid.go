@@ -51,6 +51,7 @@ const (
 	TypeRbacStatement           Type = "rbacstatement"
 	TypeSnowflakeOutboundShare  Type = "snowflakeoutboundshare"
 	TypeDatasetOutboundShare    Type = "datasetoutboundshare"
+	TypeDatasetQueryFilter      Type = "datasetqueryfilter"
 	TypeReferenceTable          Type = "referencetable"
 	TypeReport                  Type = "report"
 	TypeIngestFilter            Type = "ingestfilter"
@@ -92,6 +93,7 @@ func (t Type) IsValid() bool {
 	case TypeRbacStatement:
 	case TypeSnowflakeOutboundShare:
 	case TypeDatasetOutboundShare:
+	case TypeDatasetQueryFilter:
 	case TypeReferenceTable:
 	case TypeReport:
 	case TypeIngestFilter:
