@@ -1589,6 +1589,34 @@ func (c *Client) GetReport(ctx context.Context, id string) (*rest.ReportsResourc
 }
 
 /**
+ * Dataset Query Filters
+ */
+func (c *Client) CreateDatasetQueryFilter(ctx context.Context, datasetId string, input *rest.DatasetQueryFilterDefinition) (result *rest.DatasetQueryFilterResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateDatasetQueryFilter(ctx, datasetId, input)
+	})
+	return
+}
+
+func (c *Client) GetDatasetQueryFilter(ctx context.Context, datasetId, id string) (*rest.DatasetQueryFilterResource, error) {
+	return c.Rest.GetDatasetQueryFilter(ctx, datasetId, id)
+}
+
+func (c *Client) UpdateDatasetQueryFilter(ctx context.Context, datasetId, id string, input *rest.DatasetQueryFilterDefinition) (result *rest.DatasetQueryFilterResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateDatasetQueryFilter(ctx, datasetId, id, input)
+	})
+	return
+}
+
+func (c *Client) DeleteDatasetQueryFilter(ctx context.Context, datasetId, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteDatasetQueryFilter(ctx, datasetId, id)
+	})
+	return
+}
+
+/**
  * Ingest tokens
  */
 func (c *Client) CreateIngestToken(ctx context.Context, workspace string, input meta.IngestTokenInput) (*meta.IngestToken, error) {

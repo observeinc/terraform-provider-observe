@@ -195,6 +195,7 @@ func Provider() *schema.Provider {
 			"observe_filedrop":                  resourceFiledrop(),
 			"observe_snowflake_outbound_share":  resourceSnowflakeOutboundShare(),
 			"observe_dataset_outbound_share":    resourceDatasetOutboundShare(),
+			"observe_dataset_query_filter":      resourceDatasetQueryFilter(),
 			"observe_reference_table":           resourceReferenceTable(),
 			"observe_report":                    resourceReport(),
 			"observe_service_account":           resourceServiceAccount(),
