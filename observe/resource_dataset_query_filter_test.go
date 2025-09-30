@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccObserveDatasetQueryFilter(t *testing.T) {
@@ -164,6 +165,93 @@ func TestAccObserveDatasetQueryFilterMinimal(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset_query_filter.minimal", "filter", "true"),
 					resource.TestCheckResourceAttr("observe_dataset_query_filter.minimal", "disabled", "false"),
 					resource.TestCheckResourceAttr("observe_dataset_query_filter.minimal", "description", ""),
+				),
+			},
+		},
+	})
+}
+
+// Test that changing the dataset ID results in a new query filter resource
+func TestAccObserveDatasetQueryFilterDatasetIDChange(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	queryFilterId := ""
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "test1" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset1"
+					inputs = { "test" = observe_datastream.test.dataset }
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}
+				resource "observe_dataset" "test2" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset2"
+					inputs = { "test" = observe_datastream.test.dataset }
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}
+				resource "observe_dataset_query_filter" "test" {
+					dataset     = observe_dataset.test1.oid
+					label       = "%[1]s-filter"
+					filter      = "true"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset_query_filter.test", "label", randomPrefix+"-filter"),
+					func(s *terraform.State) error {
+						queryFilterId = s.RootModule().Resources["observe_dataset_query_filter.test"].Primary.ID
+						return nil
+					},
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "test1" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset1"
+					inputs = { "test" = observe_datastream.test.dataset }
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}
+				resource "observe_dataset" "test2" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset2"
+					inputs = { "test" = observe_datastream.test.dataset }
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}
+				resource "observe_dataset_query_filter" "test" {
+					dataset     = observe_dataset.test2.oid
+					label       = "%[1]s-filter"
+					filter      = "true"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						if s.RootModule().Resources["observe_dataset_query_filter.test"].Primary.ID == queryFilterId {
+							return fmt.Errorf("dataset query filter ID did not change")
+						}
+						return nil
+					},
 				),
 			},
 		},
