@@ -22,16 +22,30 @@ func resourceDatasetQueryFilter() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			// If the dataset ID has changed, we need to recreate the resource. See comments on ForceNew below.
+			if d.HasChange("dataset") {
+				// Ignore version changes
+				oldVal, newVal := d.GetChange("dataset")
+				oldOid, oldErr := oid.NewOID(oldVal.(string))
+				newOid, newErr := oid.NewOID(newVal.(string))
+				if oldErr == nil && newErr == nil && oldOid.Id != newOid.Id {
+					d.ForceNew("dataset")
+				}
+			}
+			return nil
+		},
 
 		Schema: map[string]*schema.Schema{
 			"dataset": {
 				Type:     schema.TypeString,
 				Required: true,
-				// We should be enforcing ForceNew, but unfortunately because the dataset oids contain a version,
+				// We should be enforcing ForceNew here, but unfortunately because the dataset oids contain a version,
 				// the value of the oid is always "(known after apply)" when a dataset is updated. This means
 				// that even though we're diff suppressing the version, the dataset query filter will always
 				// be recreated when the dataset is updated, because terraform can't guarantee the new value of
-				// the oid during the plan stage. So not setting ForceNew for now.
+				// the oid during the plan stage. Instead doing it in the CustomizeDiff above, which does not
+				// consider "(known after apply)" changes.
 				// ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				DiffSuppressFunc: diffSuppressOIDVersion,
