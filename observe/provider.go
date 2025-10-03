@@ -199,6 +199,7 @@ func Provider() *schema.Provider {
 			"observe_reference_table":           resourceReferenceTable(),
 			"observe_report":                    resourceReport(),
 			"observe_service_account":           resourceServiceAccount(),
+			"observe_service_account_token":     resourceServiceAccountToken(),
 			"observe_drop_filter":               resourceDropFilter(),
 			"observe_ingest_token":              resourceIngestToken(),
 		},
