@@ -33,11 +33,11 @@ func DefaultDependencyHandling() *DependencyHandlingInput {
 // SaveDataset creates and updates datasets
 func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, dependencyHandling *DependencyHandlingInput) (*Dataset, error) {
 	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)
-	return datasetOrError(resp.Dataset, err)
+	return datasetOrError(resp.DatasetSaveResult, err)
 }
 
 // SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful when rematerialization_mode is set to "skip_rematerialization"
-func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) ([]DatasetMaterialization, error) {
+func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) (*DatasetSaveResult, error) {
 	saveMode := SaveModePreflightDatasetAndDependencies
 	rematerializationMode := RematerializationModeSkiprematerialization
 	dependencyHandling := &DependencyHandlingInput{
@@ -49,7 +49,7 @@ func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string,
 	if err != nil {
 		return nil, err
 	}
-	return resp.Dataset.GetDematerializedDatasets(), nil
+	return resp.DatasetSaveResult, nil
 }
 
 // GetDataset retrieves dataset.

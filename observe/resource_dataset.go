@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -14,14 +15,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
-)
-
-const (
-	schemaDatasetWorkspaceDescription   = "OID of workspace dataset is contained in."
-	schemaDatasetNameDescription        = "Dataset name. Must be unique within workspace."
-	schemaDatasetDescriptionDescription = "Dataset description."
-	schemaDatasetIconDescription        = "Icon image."
-	schemaDatasetOIDDescription         = "The Observe ID for dataset."
 )
 
 // Terraform-level options for rematerialization mode. This is because Terraform exposes
@@ -50,12 +43,7 @@ func resourceDataset() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			if datasetRecomputeOID(d) {
-				return d.SetNewComputed("oid")
-			}
-			return nil
-		},
+		CustomizeDiff: resourceDatasetCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
@@ -181,7 +169,65 @@ func resourceDataset() *schema.Resource {
 	}
 }
 
-func newDatasetConfig(data *schema.ResourceData) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
+// ResourceReader is satisfied by both schema.ResourceData and schema.ResourceDiff
+// (necessary so we can call newDatasetConfig from CustomizeDiff, which uses a schema.ResourceDiff)
+type ResourceReader interface {
+	Get(key string) interface{}
+	GetOk(key string) (interface{}, bool)
+}
+
+func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	client := meta.(*observe.Client)
+
+	if datasetRecomputeOID(d) {
+		err := d.SetNewComputed("oid")
+		if err != nil {
+			return err
+		}
+	}
+
+	// Fields that could use server-side validation ("name" because we enforce uniqueness)
+	if d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name") {
+		// We first need to check if the resource is fully known. For example, if inputs is
+		// referencing a dataset that's being created in the same terraform run, we don't know its
+		// ID during the plan stage and therefore can't do a dry-run save.
+		// If a value is not known, .Get() will return the zero value, so we could perhaps get
+		// away with not knowing the value for certain optional fields that wouldn't affect the
+		// validation. But if we get it wrong, it could prevent a valid dataset create/update.
+		// So for now, if all fields aren't fully known, we skip the dry-run validation.
+		if d.GetRawConfig().IsWhollyKnown() {
+			wsid, _ := oid.NewOID(d.Get("workspace").(string))
+			input, queryInput, diags := newDatasetConfig(d)
+			if diags.HasError() {
+				return fmt.Errorf("invalid dataset config: %s", concatenateDiagnosticsToStr(diags))
+			}
+			if id := d.Id(); id != "" {
+				input.Id = &id
+			}
+
+			result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput)
+			if err != nil {
+				return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
+			}
+
+			// Ideally in addition to erroring for "must_skip_rematerialization", we'd also emit warnings
+			// for "skip_rematerialization". But terraform doesn't let us do that here.
+			rematerializationMode := getRematerializationMode(client, d)
+			if rematerializationMode == RematerializationModeMustSkipRematerialization && len(result.DematerializedDatasets) > 0 {
+				return errors.New(rematerializationErrorStr(result.DematerializedDatasets))
+			}
+
+			// We could also check result.ErrorDatasets here for any downstream errors. But there
+			// may be cases when downstream dataset must be temporarily broken in order to make
+			// certain changes one dataset at a time. So not erroring here to allow such changes.
+			// Unfortunately, terraform won't let us emit a warning here. In the future, may
+			// consider erroring in such cases by default and having some field/flag to ignore them.
+		}
+	}
+	return nil
+}
+
+func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
 	query, diags := newQuery(data)
 	if diags.HasError() {
 		return nil, nil, diags
@@ -453,15 +499,11 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	input.Id = &id
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
-	rematerializationMode := RematerializationModeRematerialize
-	if client.DefaultRematerializationMode != nil {
-		rematerializationMode = TerraformRematerializationMode(toCamel(*client.DefaultRematerializationMode))
-	}
-	if mode, ok := data.GetOk("rematerialization_mode"); ok {
-		rematerializationMode = TerraformRematerializationMode(toCamel(mode.(string)))
-	}
-
-	// If must_skip_rematerialization is set, do a dry-run to ensure it skips rematerialization
+	// If must_skip_rematerialization is set, do a dry-run to ensure it skips rematerialization.
+	// We already do this in CustomizeDiff, but sometimes the plan is run beforehand (e.g. when a PR is created)
+	// and the apply (using that saved plan) is run much later (e.g. when the PR is merged).
+	// Something could have changed in the environment between them resulting in new dematerializations.
+	rematerializationMode := getRematerializationMode(client, data)
 	if rematerializationMode == RematerializationModeMustSkipRematerialization {
 		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
 			diags = append(diags, diag.Diagnostic{
@@ -470,21 +512,11 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 				Detail:   err.Error(),
 			})
 			return diags
-		} else if len(result) > 0 {
-			var sb strings.Builder
-			sb.WriteString("The following dataset(s) will be rematerialized: ")
-			for idx, dematerializedDataset := range result {
-				if idx > 0 {
-					sb.WriteString(", ")
-				}
-				fmt.Fprintf(&sb, "%s (%s)", dematerializedDataset.GetDataset().Id, dematerializedDataset.GetDataset().Name)
-			}
-			sb.WriteString(`. If rematerialization is acceptable, remove rematerialization_mode and try again`)
-
+		} else if len(result.DematerializedDatasets) > 0 {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
-				Detail:   sb.String(),
+				Detail:   rematerializationErrorStr(result.DematerializedDatasets),
 			})
 			return diags
 		}
@@ -545,4 +577,32 @@ func diffSuppressVersion(k, old, new string, d *schema.ResourceData) bool {
 
 	// ignore version
 	return oldOID.Type == newOID.Type && oldOID.Id == newOID.Id
+}
+
+func rematerializationErrorStr(dematerializedDatasets []gql.DatasetMaterialization) string {
+	if len(dematerializedDatasets) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("The following dataset(s) will be rematerialized: ")
+	for idx, dematerializedDataset := range dematerializedDatasets {
+		if idx > 0 {
+			sb.WriteString(", ")
+		}
+		fmt.Fprintf(&sb, "%s (%s)", dematerializedDataset.GetDataset().Id, dematerializedDataset.GetDataset().Name)
+	}
+	sb.WriteString(`. If rematerialization is acceptable, remove rematerialization_mode and try again`)
+	return sb.String()
+}
+
+func getRematerializationMode(client *observe.Client, data ResourceReader) TerraformRematerializationMode {
+	rematerializationMode := RematerializationModeRematerialize
+	if client.DefaultRematerializationMode != nil {
+		rematerializationMode = TerraformRematerializationMode(toCamel(*client.DefaultRematerializationMode))
+	}
+	if mode, ok := data.GetOk("rematerialization_mode"); ok {
+		rematerializationMode = TerraformRematerializationMode(toCamel(mode.(string)))
+	}
+	return rematerializationMode
 }
