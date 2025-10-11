@@ -85,6 +85,28 @@ fragment DatasetMaterialization on DatasetMaterialization {
 	}
 }
 
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
+}
+
+fragment DatasetSaveResult on DatasetSaveResult {
+	# @genqlient(flatten: true)
+	dataset {
+		...Dataset
+	}
+	# @genqlient(flatten: true)
+	dematerializedDatasets {
+		...DatasetMaterialization
+	}
+	# @genqlient(flatten: true)
+	errorDatasets {
+		...DatasetError
+	}
+}
+
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
@@ -105,15 +127,9 @@ mutation saveDataset(
 	$query: MultiStageQueryInput!,
 	$dep: DependencyHandlingInput
 ) {
-	dataset: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
-		# @genqlient(flatten: true)
-		dataset {
-			...Dataset
-		}
-		# @genqlient(flatten: true)
-		dematerializedDatasets {
-			...DatasetMaterialization
-		}
+	# @genqlient(flatten: true)
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
+		...DatasetSaveResult
 	}
 }
 
