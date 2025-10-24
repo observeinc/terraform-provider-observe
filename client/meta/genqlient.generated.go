@@ -1410,6 +1410,28 @@ func (v *DatasetDefinitionMetadataInput) GetPrimaryKey() []string { return v.Pri
 // GetKeys returns DatasetDefinitionMetadataInput.Keys, and is useful for accessing the field via an interface.
 func (v *DatasetDefinitionMetadataInput) GetKeys() [][]string { return v.Keys }
 
+// DatasetError includes the GraphQL fields of DatasetError requested by the fragment DatasetError.
+type DatasetError struct {
+	DatasetId   string `json:"datasetId"`
+	DatasetName string `json:"datasetName"`
+	Text        string `json:"text"`
+	// Indicates the dataset has a pre-existing error. The existing error may not
+	// be the same as this error.
+	HasExistingError bool `json:"hasExistingError"`
+}
+
+// GetDatasetId returns DatasetError.DatasetId, and is useful for accessing the field via an interface.
+func (v *DatasetError) GetDatasetId() string { return v.DatasetId }
+
+// GetDatasetName returns DatasetError.DatasetName, and is useful for accessing the field via an interface.
+func (v *DatasetError) GetDatasetName() string { return v.DatasetName }
+
+// GetText returns DatasetError.Text, and is useful for accessing the field via an interface.
+func (v *DatasetError) GetText() string { return v.Text }
+
+// GetHasExistingError returns DatasetError.HasExistingError, and is useful for accessing the field via an interface.
+func (v *DatasetError) GetHasExistingError() bool { return v.HasExistingError }
+
 type DatasetFieldDefInput struct {
 	Name         string                `json:"name"`
 	Type         DatasetFieldTypeInput `json:"type"`
@@ -1728,6 +1750,36 @@ func (v *DatasetOutboundShareStatus) GetState() DatasetOutboundShareState { retu
 
 // GetError returns DatasetOutboundShareStatus.Error, and is useful for accessing the field via an interface.
 func (v *DatasetOutboundShareStatus) GetError() *string { return v.Error }
+
+// DatasetSaveResult includes the GraphQL fields of DatasetSaveResult requested by the fragment DatasetSaveResult.
+type DatasetSaveResult struct {
+	// this is what you got out when saving
+	Dataset *Dataset `json:"dataset"`
+	// Changing a dataset definition might make currently materialized data obsolete,
+	// in which case we dematerialize (throw away) this data and recompute new data.
+	// This is the list of datasets that would get dematerialized.
+	//
+	// Data is dematerialized when the change to the dataset is significant,
+	// that is, when it alters transform logic. Minor changes like whitespace and
+	// comments do not cause dematerialization.
+	//
+	// Note that changing a dataset might cause downstream datasets to get
+	// dematerialized also.
+	DematerializedDatasets []DatasetMaterialization `json:"dematerializedDatasets"`
+	// information about errors that occur in the affected, and/or downstream datasets
+	ErrorDatasets []DatasetError `json:"errorDatasets"`
+}
+
+// GetDataset returns DatasetSaveResult.Dataset, and is useful for accessing the field via an interface.
+func (v *DatasetSaveResult) GetDataset() *Dataset { return v.Dataset }
+
+// GetDematerializedDatasets returns DatasetSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
+func (v *DatasetSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
+	return v.DematerializedDatasets
+}
+
+// GetErrorDatasets returns DatasetSaveResult.ErrorDatasets, and is useful for accessing the field via an interface.
+func (v *DatasetSaveResult) GetErrorDatasets() []DatasetError { return v.ErrorDatasets }
 
 // DatasetSourceTableSourceTableDefinition includes the requested fields of the GraphQL type SourceTableDefinition.
 type DatasetSourceTableSourceTableDefinition struct {
@@ -14098,31 +14150,6 @@ type saveDashboardResponse struct {
 // GetDashboard returns saveDashboardResponse.Dashboard, and is useful for accessing the field via an interface.
 func (v *saveDashboardResponse) GetDashboard() Dashboard { return v.Dashboard }
 
-// saveDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
-type saveDatasetDatasetDatasetSaveResult struct {
-	// this is what you got out when saving
-	Dataset *Dataset `json:"dataset"`
-	// Changing a dataset definition might make currently materialized data obsolete,
-	// in which case we dematerialize (throw away) this data and recompute new data.
-	// This is the list of datasets that would get dematerialized.
-	//
-	// Data is dematerialized when the change to the dataset is significant,
-	// that is, when it alters transform logic. Minor changes like whitespace and
-	// comments do not cause dematerialization.
-	//
-	// Note that changing a dataset might cause downstream datasets to get
-	// dematerialized also.
-	DematerializedDatasets []DatasetMaterialization `json:"dematerializedDatasets"`
-}
-
-// GetDataset returns saveDatasetDatasetDatasetSaveResult.Dataset, and is useful for accessing the field via an interface.
-func (v *saveDatasetDatasetDatasetSaveResult) GetDataset() *Dataset { return v.Dataset }
-
-// GetDematerializedDatasets returns saveDatasetDatasetDatasetSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
-func (v *saveDatasetDatasetDatasetSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
-	return v.DematerializedDatasets
-}
-
 // saveDatasetResponse is returned by saveDataset on success.
 type saveDatasetResponse struct {
 	// saveDataset will create a dataset if you don't provide an input id.
@@ -14130,11 +14157,11 @@ type saveDatasetResponse struct {
 	// that dataset. This is the general "update the things" function to use.
 	// If dependencyHandling is not specified, then the default is to apply
 	// changes but ignore downstream datasets or errors therein.
-	Dataset *saveDatasetDatasetDatasetSaveResult `json:"dataset"`
+	DatasetSaveResult *DatasetSaveResult `json:"datasetSaveResult"`
 }
 
-// GetDataset returns saveDatasetResponse.Dataset, and is useful for accessing the field via an interface.
-func (v *saveDatasetResponse) GetDataset() *saveDatasetDatasetDatasetSaveResult { return v.Dataset }
+// GetDatasetSaveResult returns saveDatasetResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
+func (v *saveDatasetResponse) GetDatasetSaveResult() *DatasetSaveResult { return v.DatasetSaveResult }
 
 // saveMonitorV2RelationsResponse is returned by saveMonitorV2Relations on success.
 type saveMonitorV2RelationsResponse struct {
@@ -22248,13 +22275,19 @@ func saveDashboard(
 // The query or mutation executed by saveDataset.
 const saveDataset_Operation = `
 mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
-	dataset: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
-		dataset {
-			... Dataset
-		}
-		dematerializedDatasets {
-			... DatasetMaterialization
-		}
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
+		... DatasetSaveResult
+	}
+}
+fragment DatasetSaveResult on DatasetSaveResult {
+	dataset {
+		... Dataset
+	}
+	dematerializedDatasets {
+		... DatasetMaterialization
+	}
+	errorDatasets {
+		... DatasetError
 	}
 }
 fragment Dataset on Dataset {
@@ -22334,6 +22367,12 @@ fragment DatasetMaterialization on DatasetMaterialization {
 	dataset {
 		... DatasetIdName
 	}
+}
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
 }
 fragment StageQuery on StageQuery {
 	id

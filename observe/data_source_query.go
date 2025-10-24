@@ -161,7 +161,7 @@ func getOutputStagesCount(stages []Stage) int {
 	return c
 }
 
-func newQuery(data *schema.ResourceData) (*gql.MultiStageQueryInput, diag.Diagnostics) {
+func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics) {
 	inputIds := make(map[string]string)
 	for k, v := range data.Get("inputs").(map[string]interface{}) {
 		is, _ := oid.NewOID(v.(string))
