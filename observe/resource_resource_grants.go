@@ -22,6 +22,7 @@ func resourceResourceGrants() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: resourceResourceGrantsCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"oid": {
 				Type:             schema.TypeString,
@@ -29,7 +30,6 @@ func resourceResourceGrants() *schema.Resource {
 				ValidateDiagFunc: validateOID(validRbacV2Types...),
 				DiffSuppressFunc: diffSuppressOIDVersion,
 				Description:      descriptions.Get("resource_grants", "schema", "oid"),
-				ForceNew:         true,
 			},
 			"grant": {
 				Type:     schema.TypeSet,
@@ -61,6 +61,23 @@ func resourceGrantsGrant() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceResourceGrantsCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	// ForceNew if the oid changed, excluding dataset version changes.
+	// (We can't use the normal ForceNew since even with the diff suppress, it still
+	// marks the resource for replacement when the dataset version changes)
+	if d.HasChange("oid") {
+		oldVal, newVal := d.GetChange("oid")
+		oldOid, oldErr := oid.NewOID(oldVal.(string))
+		newOid, newErr := oid.NewOID(newVal.(string))
+		if oldErr == nil && newErr == nil {
+			if oldOid.Type != newOid.Type || oldOid.Id != newOid.Id {
+				d.ForceNew("oid")
+			}
+		}
+	}
+	return nil
 }
 
 func resourceResourceGrantsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
