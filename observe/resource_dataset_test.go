@@ -1172,3 +1172,126 @@ func TestAccObserveDatasetBadOpalDuringPlan(t *testing.T) {
 		},
 	})
 }
+
+// Tests that we're able to update a currently broken dataset through terraform
+func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			// Create a parent dataset with column "key1" and a child that depends on that column.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key1:string("foo")
+						EOF
+					}
+				}
+					
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key1 = "foo"
+						EOF
+					}
+				}`, randomPrefix),
+			},
+			// Update the parent to replace column "key1" with "key2". This should break the child.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key2:string("bar")
+						EOF
+					}
+				}
+				
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key1 = "foo"
+						EOF
+					}
+				}`, randomPrefix),
+				// Because the version in the dataset oid triggers a SaveDataset call on child, we
+				// should see the parent get successfully updated, but the child should cause an error.
+				ExpectError: regexp.MustCompile("the field \"key1\" does not exist among fields"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.parent", "stage.0.pipeline", "make_col key2:string(\"bar\")\n"),
+				),
+			},
+			// Ensure it's possible to fix the child despite it currently being in a broken state.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key2:string("bar")
+						EOF
+					}
+				}
+					
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key2 = "bar"
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.child", "stage.0.pipeline", "filter key2 = \"bar\"\n"),
+				),
+			},
+		},
+	})
+}
