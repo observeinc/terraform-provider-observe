@@ -1176,7 +1176,11 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
 	}
 	// -1 is a sentinel value to indicate null, see comments above for max_alerts_per_hour
-	if v := data.Get("max_alerts_per_hour").(int); v != -1 {
+	// (don't want to use GetOk since 0 is a valid value here, and GetOk would return !ok for 0)
+	v := data.Get("max_alerts_per_hour").(int)
+	if v == -1 {
+		defnInput.MaxAlertsPerHour = nil // translate -1 to null (defaults to nil anyway but added for clarity)
+	} else {
 		defnInput.MaxAlertsPerHour = types.Int64Scalar(v).Ptr()
 	}
 
