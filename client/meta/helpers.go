@@ -28,6 +28,8 @@ var AllMonitorV2ComparisonFunctions = []MonitorV2ComparisonFunction{
 	MonitorV2ComparisonFunctionEqual,
 	MonitorV2ComparisonFunctionGreater,
 	MonitorV2ComparisonFunctionGreaterorequal,
+	MonitorV2ComparisonFunctionIsnotnull,
+	MonitorV2ComparisonFunctionIsnull,
 	MonitorV2ComparisonFunctionLess,
 	MonitorV2ComparisonFunctionLessorequal,
 	MonitorV2ComparisonFunctionNotcontains,

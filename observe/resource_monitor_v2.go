@@ -1548,7 +1548,13 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 		kinds = append(kinds, "value_float64")
 	}
 	if hasString && valueString != nil {
-		vstr := valueString.([]interface{})[0].(string)
+		// For some reason terraform parses [""] as [null] so we explicitly check for nil
+		// and treat it as an empty string. This only happens for strings.
+		v := valueString.([]interface{})[0]
+		var vstr string
+		if v != nil {
+			vstr = v.(string)
+		}
 		ret.String = &vstr
 		nvalue++
 		kinds = append(kinds, "value_string")
