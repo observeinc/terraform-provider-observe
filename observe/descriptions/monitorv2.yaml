@@ -53,7 +53,7 @@ schema:
   data_stabilization_delay: |
     expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
   max_alerts_per_hour: |
-    overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+    Overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety. A value of 0 means "no limit". If unset, defaults to 100 (note that we use -1 in the Terraform state to indicate null/unset due to Terraform limitations).
   groupings: |
     Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset.
   scheduling:
