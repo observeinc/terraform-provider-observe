@@ -63,6 +63,8 @@ func TestAccObserveMonitorV2Count(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.count.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.transform.0.freshness_goal", "15m0s"),
+					// -1 is the sentinel value for null, see comments in resource definition
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "max_alerts_per_hour", "-1"),
 				),
 			},
 		},
@@ -488,7 +490,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 						custom_variables = jsonencode({
 							fizz = "buzz"
 						})
-						max_alerts_per_hour = 99
+						max_alerts_per_hour = 0
 						actions {
 							action {
 								type = "email"
@@ -588,6 +590,7 @@ func TestAccObserveMonitorV2MultipleActionsViaOneShot(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.1.comparison.0.compare_fn", "equal"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "actions.2.conditions.0.compare_terms.1.column.0.column_path.0.name", "kind"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "custom_variables", `{"fizz":"buzz"}`),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "max_alerts_per_hour", "0"),
 				),
 			},
 		},

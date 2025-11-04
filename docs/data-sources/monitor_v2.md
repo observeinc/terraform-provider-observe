@@ -60,7 +60,7 @@ One of `name` or `id` must be set. If `name` is provided, `workspace` must be se
 - `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
 stage pipelines.
 - `lookback_time` (String) optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
-- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+- `max_alerts_per_hour` (Number) Overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety. A value of 0 means "no limit". If unset, defaults to 100 (note that we use -1 in the Terraform state to indicate null/unset due to Terraform limitations).
 - `no_data_rules` (Block List) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).

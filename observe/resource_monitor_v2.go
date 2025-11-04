@@ -258,10 +258,16 @@ func resourceMonitorV2() *schema.Resource {
 				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
 				Description:      descriptions.Get("monitorv2", "schema", "data_stabilization_delay"),
 			},
+			// The terraform sdk is unable to distinguish between an explicit 0 and an unset value,
+			// which is relevant here since unset means use the default (100 at time of writing),
+			// while 0 means "no limit". So we'll use -1 to indicate unset/null as a workaround.
+			// Should be mostly transparent to the user (may see -1 in terraform plan when changing
+			// from unset to some value or vice versa).
 			"max_alerts_per_hour": { //Int64
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
+				Default:     -1,
 			},
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:        schema.TypeList,
@@ -750,6 +756,11 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		if err := data.Set("max_alerts_per_hour", monitor.Definition.MaxAlertsPerHour); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	} else {
+		// -1 is a sentinel value to indicate null, see comments above for max_alerts_per_hour
+		if err := data.Set("max_alerts_per_hour", -1); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if monitor.Definition.Groupings != nil {
@@ -1164,8 +1175,13 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
 	}
-	if v, ok := data.GetOk("max_alerts_per_hour"); ok {
-		defnInput.MaxAlertsPerHour = types.Int64Scalar(v.(int)).Ptr()
+	// -1 is a sentinel value to indicate null, see comments above for max_alerts_per_hour
+	// (don't want to use GetOk since 0 is a valid value here, and GetOk would return !ok for 0)
+	v := data.Get("max_alerts_per_hour").(int)
+	if v == -1 {
+		defnInput.MaxAlertsPerHour = nil // translate -1 to null (defaults to nil anyway but added for clarity)
+	} else {
+		defnInput.MaxAlertsPerHour = types.Int64Scalar(v).Ptr()
 	}
 
 	if _, ok := data.GetOk("groupings"); ok {

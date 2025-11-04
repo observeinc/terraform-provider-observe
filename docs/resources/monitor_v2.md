@@ -98,7 +98,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `groupings` (Block List) Describes the groups that logically separate events/rows/etc from each other. If monitor dataset is resource type and monitor strategy is promote, this field should be either empty or only contain the primary keys of the dataset. (see [below for nested schema](#nestedblock--groupings))
 - `icon_url` (String) URL of the monitor icon.
 - `lookback_time` (String) optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
-- `max_alerts_per_hour` (Number) overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety
+- `max_alerts_per_hour` (Number) Overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety. A value of 0 means "no limit". If unset, defaults to 100 (note that we use -1 in the Terraform state to indicate null/unset due to Terraform limitations).
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 
