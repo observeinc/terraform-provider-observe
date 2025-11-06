@@ -489,6 +489,9 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 						EOF
 					}
 				}`, randomPrefix),
+				// Since we do server-side validation (dry-run saveDataset) during the plan stage now,
+				// the plan for observe_dataset.second will fail.
+				ExpectError: newMultilineErrorRegexp(`field "EXTRA" does not exist`),
 			},
 		},
 	})
@@ -810,6 +813,56 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 	})
 }
 
+// Ensures that with rematerialization_mode = must_skip_rematerialization, if any datasets
+// would be rematerialized due to the change, we fail during the plan stage.
+func TestAccObserveDatasetRematerializedDatasetsDuringPlan(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "test-rematerialize" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-test-rematerialize"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_resource primary_key(OBSERVATION_KIND)
+						EOF
+					}
+				}`, randomPrefix),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "test-rematerialize" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-test-rematerialize"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					rematerialization_mode = "must_skip_rematerialization"
+					stage {
+						pipeline = <<-EOF
+							make_resource primary_key(OBSERVATION_KIND, BUNDLE_ID)
+						EOF
+					}
+				}`, randomPrefix),
+				PlanOnly:    true, // we only want to test the plan stage here
+				ExpectError: regexp.MustCompile(`The following dataset\(s\) will be rematerialized`),
+			},
+		},
+	})
+}
+
 func TestAccObserveDatasetDescription(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -1079,6 +1132,164 @@ func TestAccObserveDatasetUseIcebergStorageIntegration(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.iceberg", "storage_integration", "o:::storageintegration:"+storageIntegrationID),
 					resource.TestCheckResourceAttrSet("observe_dataset.iceberg", "oid"),
 					resource.TestCheckResourceAttrSet("observe_dataset.iceberg", "inputs.test"),
+				),
+			},
+		},
+	})
+}
+
+// Ensures that invalid opal is caught during the plan stage.
+func TestAccObserveDatasetBadOpalDuringPlan(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// need to create the datastream beforehand, so that the inputs are known at plan time below
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble, randomPrefix),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "bad_opal" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-bad-opal"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter nonexistent_column = "foo"
+						EOF
+					}
+				}`, randomPrefix),
+				PlanOnly:    true, // we only want to test the plan stage here
+				ExpectError: regexp.MustCompile("the field \"nonexistent_column\" does not exist among fields"),
+			},
+		},
+	})
+}
+
+// Tests that we're able to update a currently broken dataset through terraform
+func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			// Create a parent dataset with column "key1" and a child that depends on that column.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key1:string("foo")
+						EOF
+					}
+				}
+					
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key1 = "foo"
+						EOF
+					}
+				}`, randomPrefix),
+			},
+			// Update the parent to replace column "key1" with "key2". This should break the child.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key2:string("bar")
+						EOF
+					}
+				}
+				
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key1 = "foo"
+						EOF
+					}
+				}`, randomPrefix),
+				// Because the version in the dataset oid triggers a SaveDataset call on child, we
+				// should see the parent get successfully updated, but the child should cause an error.
+				ExpectError: regexp.MustCompile("the field \"key1\" does not exist among fields"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.parent", "stage.0.pipeline", "make_col key2:string(\"bar\")\n"),
+				),
+			},
+			// Ensure it's possible to fix the child despite it currently being in a broken state.
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "parent" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-parent"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							make_col key2:string("bar")
+						EOF
+					}
+				}
+					
+				resource "observe_dataset" "child" {
+					workspace = data.observe_workspace.default.oid
+					name 	  = "%[1]s-child"
+
+					inputs = {
+						"parent" = observe_dataset.parent.oid
+					}
+
+					stage {
+						input    = "parent"
+						pipeline = <<-EOF
+							filter key2 = "bar"
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.child", "stage.0.pipeline", "filter key2 = \"bar\"\n"),
 				),
 			},
 		},

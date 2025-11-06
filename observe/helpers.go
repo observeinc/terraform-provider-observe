@@ -549,3 +549,11 @@ func sliceExclude[T comparable](slice []T, exclude ...T) []T {
 	}
 	return result
 }
+
+func concatenateDiagnosticsToStr(diags diag.Diagnostics) string {
+	messages := make([]string, len(diags))
+	for i, d := range diags {
+		messages[i] = d.Summary
+	}
+	return strings.Join(messages, ", ")
+}

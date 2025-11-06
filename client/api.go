@@ -60,7 +60,7 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 }
 
-func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) ([]meta.DatasetMaterialization, error) {
+func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) (*meta.DatasetSaveResult, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
