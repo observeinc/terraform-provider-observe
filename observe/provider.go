@@ -201,7 +201,9 @@ func Provider() *schema.Provider {
 			"observe_service_account":           resourceServiceAccount(),
 			"observe_drop_filter":               resourceDropFilter(),
 			"observe_ingest_token":              resourceIngestToken(),
+			"observe_service_account_token":     resourceServiceAccountToken(),
 		},
+
 		TerraformVersion: version.ProviderVersion,
 	}
 
