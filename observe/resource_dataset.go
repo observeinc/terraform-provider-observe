@@ -185,7 +185,13 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 			return err
 		}
 	}
+	if err := validateDatasetChanges(ctx, d, client); err != nil {
+		return err
+	}
+	return nil
+}
 
+func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	// Fields that could use server-side validation ("name" because we enforce uniqueness)
 	if d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name") {
 		// We first need to check if the resource is fully known. For example, if inputs is
@@ -207,7 +213,12 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 
 			result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput)
 			if err != nil {
-				return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
+				// Ignore timeout errors. TODO: no longer necessary once the backend is updated.
+				if errors.Is(err, context.DeadlineExceeded) {
+					return nil
+				} else {
+					return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
+				}
 			}
 
 			// Ideally in addition to erroring for "must_skip_rematerialization", we'd also emit warnings
@@ -218,7 +229,7 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 			}
 
 			// We could also check result.ErrorDatasets here for any downstream errors. But there
-			// may be cases when downstream dataset must be temporarily broken in order to make
+			// may be cases when a downstream dataset must be temporarily broken in order to make
 			// certain changes one dataset at a time. So not erroring here to allow such changes.
 			// Unfortunately, terraform won't let us emit a warning here. In the future, may
 			// consider erroring in such cases by default and having some field/flag to ignore them.
