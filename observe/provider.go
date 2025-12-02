@@ -128,6 +128,12 @@ func Provider() *schema.Provider {
 				Description:      "Default rematerialization mode for datasets (internal use).",
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_REMATERIALIZATION_MODE", nil),
 			},
+			"skip_dataset_dry_runs": {
+				Type:        schema.TypeBool,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_SKIP_DATASET_DRY_RUNS", false),
+				Optional:    true,
+				Description: "Skip making dry run API requests for dataset changes during the plan stage (for validation). This can speed up plan time, but means that certain classes of errors will not be detected until applying the changes (such as invalid OPAL).",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -297,6 +303,10 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("default_rematerialization_mode"); ok {
 			s := v.(string)
 			config.DefaultRematerializationMode = &s
+		}
+
+		if v, ok := data.GetOk("skip_dataset_dry_runs"); ok {
+			config.SkipDatasetDryRuns = v.(bool)
 		}
 
 		// by omission, cache client
