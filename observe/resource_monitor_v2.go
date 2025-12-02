@@ -104,6 +104,7 @@ func resourceMonitorV2() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
+				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
 				Type:        schema.TypeList,
