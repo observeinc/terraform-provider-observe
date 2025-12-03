@@ -186,44 +186,63 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 		}
 	}
 
-	// Fields that could use server-side validation ("name" because we enforce uniqueness)
-	if d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name") {
-		// We first need to check if the resource is fully known. For example, if inputs is
-		// referencing a dataset that's being created in the same terraform run, we don't know its
-		// ID during the plan stage and therefore can't do a dry-run save.
-		// If a value is not known, .Get() will return the zero value, so we could perhaps get
-		// away with not knowing the value for certain optional fields that wouldn't affect the
-		// validation. But if we get it wrong, it could prevent a valid dataset create/update.
-		// So for now, if all fields aren't fully known, we skip the dry-run validation.
-		if d.GetRawConfig().IsWhollyKnown() {
-			wsid, _ := oid.NewOID(d.Get("workspace").(string))
-			input, queryInput, diags := newDatasetConfig(d)
-			if diags.HasError() {
-				return fmt.Errorf("invalid dataset config: %s", concatenateDiagnosticsToStr(diags))
-			}
-			if id := d.Id(); id != "" {
-				input.Id = &id
-			}
-
-			result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput)
-			if err != nil {
-				return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
-			}
-
-			// Ideally in addition to erroring for "must_skip_rematerialization", we'd also emit warnings
-			// for "skip_rematerialization". But terraform doesn't let us do that here.
-			rematerializationMode := getRematerializationMode(client, d)
-			if rematerializationMode == RematerializationModeMustSkipRematerialization && len(result.DematerializedDatasets) > 0 {
-				return errors.New(rematerializationErrorStr(result.DematerializedDatasets))
-			}
-
-			// We could also check result.ErrorDatasets here for any downstream errors. But there
-			// may be cases when downstream dataset must be temporarily broken in order to make
-			// certain changes one dataset at a time. So not erroring here to allow such changes.
-			// Unfortunately, terraform won't let us emit a warning here. In the future, may
-			// consider erroring in such cases by default and having some field/flag to ignore them.
-		}
+	err := validateDatasetChanges(ctx, d, client)
+	if err != nil {
+		return err
 	}
+
+	return nil
+}
+
+func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
+	// Skip dry-run validation if configured to do so
+	if client.SkipDatasetDryRuns {
+		return nil
+	}
+
+	// Only do server-side validation if one of the following fields change ("name" because we enforce uniqueness)
+	if !(d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name")) {
+		return nil
+	}
+
+	// We first need to check if the resource is fully known. For example, if inputs is
+	// referencing a dataset that's being created in the same terraform run, we don't know its
+	// ID during the plan stage and therefore can't do a dry-run save.
+	// If a value is not known, .Get() will return the zero value, so we could perhaps get
+	// away with not knowing the value for certain optional fields that wouldn't affect the
+	// validation. But if we get it wrong, it could prevent a valid dataset create/update.
+	// So for now, if all fields aren't fully known, we skip the dry-run validation.
+	if !d.GetRawConfig().IsWhollyKnown() {
+		return nil
+	}
+
+	wsid, _ := oid.NewOID(d.Get("workspace").(string))
+	input, queryInput, diags := newDatasetConfig(d)
+	if diags.HasError() {
+		return fmt.Errorf("invalid dataset config: %s", concatenateDiagnosticsToStr(diags))
+	}
+	if id := d.Id(); id != "" {
+		input.Id = &id
+	}
+
+	result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput)
+	if err != nil {
+		return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
+	}
+
+	// Ideally in addition to erroring for "must_skip_rematerialization", we'd also emit warnings
+	// for "skip_rematerialization". But terraform doesn't let us emit warnings in CustomizeDiff.
+	rematerializationMode := getRematerializationMode(client, d)
+	if rematerializationMode == RematerializationModeMustSkipRematerialization && len(result.DematerializedDatasets) > 0 {
+		return errors.New(rematerializationErrorStr(result.DematerializedDatasets))
+	}
+
+	// We could also check result.ErrorDatasets here for any downstream errors. But there
+	// may be cases when downstream dataset must be temporarily broken in order to make
+	// certain changes one dataset at a time. So not erroring here to allow such changes.
+	// Unfortunately, terraform won't let us emit a warning here. In the future, may
+	// consider erroring in such cases by default and having some field/flag to ignore them.
+
 	return nil
 }
 

@@ -94,6 +94,7 @@ terraform plan
 - `managing_object_id` (String) ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).
 - `retry_count` (Number) Maximum number of retries on temporary network failures. Defaults to 3.
 - `retry_wait` (String) Time between retries. Defaults to 3s.
+- `skip_dataset_dry_runs` (Boolean) Skip making dry run API requests for dataset changes during the plan stage (for validation). This can speed up plan time, but means that certain classes of errors will not be detected until applying the changes (such as invalid OPAL).
 - `source_comment` (String) Source identifier comment. If null, fallback to `user_email`.
 - `source_format` (String) Source identifier format.
 - `user_email` (String) User email. If supplied, `user_password` is also required.

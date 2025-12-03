@@ -58,6 +58,9 @@ type Config struct {
 
 	// Allow setting default materialization mode for dataset resources
 	DefaultRematerializationMode *string `json:"default_rematerialization_mode"`
+
+	// Skip making dry run API requests for dataset changes during the plan stage (for validation)
+	SkipDatasetDryRuns bool `json:"skip_dataset_dry_runs"`
 }
 
 func (c *Config) Hash() uint64 {
