@@ -8,6 +8,8 @@ import (
 )
 
 func TestAccObserveRbacDefaultGroupSet(t *testing.T) {
+	t.Skipf("skipping, default groups are deprecated and not supported in v2, to be removed")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
