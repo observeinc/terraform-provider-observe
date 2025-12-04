@@ -44,6 +44,7 @@ func resourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2RuleKinds),
+				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("monitorv2", "schema", "rule_kind"),
 			},
 			"icon_url": { // String

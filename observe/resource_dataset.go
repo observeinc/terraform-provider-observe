@@ -101,6 +101,7 @@ func resourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateEnums(gql.AllAccelerationDisabledSource),
+				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("dataset", "schema", "acceleration_disabled_source"),
 			},
 			"inputs": {
@@ -163,6 +164,7 @@ func resourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateEnums(AllRematerializationModes),
+				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
 		},

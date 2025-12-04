@@ -299,6 +299,7 @@ func resourcePoller() *schema.Resource {
 										Type:             schema.TypeString,
 										Optional:         true,
 										ValidateDiagFunc: validateEnums(gql.AllPollerHTTPTimestampFormats),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"offset": {
 										Type:             schema.TypeString,

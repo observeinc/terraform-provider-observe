@@ -34,6 +34,7 @@ func resourceMonitorV2Action() *schema.Resource {
 			"type": { // MonitorV2ActionType!
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
+				DiffSuppressFunc: diffSuppressEnums,
 				Required:         true,
 			},
 			"email": { // MonitorV2EmailDestinationInput
@@ -127,6 +128,7 @@ func monitorV2WebhookActionInput() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
+				DiffSuppressFunc: diffSuppressEnums,
 			},
 		},
 	}
