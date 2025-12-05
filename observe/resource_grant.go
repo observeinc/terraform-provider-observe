@@ -34,6 +34,7 @@ func resourceGrant() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
+				DiffSuppressFunc: diffSuppressEnums,
 				Description:      describeEnums(validGrantRoles, descriptions.Get("grant", "schema", "role")),
 				ForceNew:         true,
 			},

@@ -238,6 +238,7 @@ func dataSourceMonitor() *schema.Resource {
 										Computed:         true,
 										Optional:         true,
 										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"compare_values": {
 										Type:     schema.TypeList,
@@ -257,6 +258,7 @@ func dataSourceMonitor() *schema.Resource {
 										Computed:         true,
 										Optional:         true,
 										ValidateDiagFunc: validateEnums(gql.AllThresholdAggFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 								},
 							},

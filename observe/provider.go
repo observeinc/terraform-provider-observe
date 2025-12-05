@@ -125,6 +125,7 @@ func Provider() *schema.Provider {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateEnums(AllRematerializationModes),
+				DiffSuppressFunc: diffSuppressEnums,
 				Description:      "Default rematerialization mode for datasets (internal use).",
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_REMATERIALIZATION_MODE", nil),
 			},

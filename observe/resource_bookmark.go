@@ -61,6 +61,7 @@ func resourceBookmark() *schema.Resource {
 				Optional:         true,
 				Description:      describeEnums(gql.AllBookmarkKindTypes, descriptions.Get("bookmark", "schema", "bookmark_kind")),
 				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
+				DiffSuppressFunc: diffSuppressEnums,
 			},
 		},
 	}

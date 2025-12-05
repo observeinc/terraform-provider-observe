@@ -177,6 +177,7 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"compare_value": {
 										Type:     schema.TypeFloat,
@@ -213,17 +214,20 @@ func resourceMonitor() *schema.Resource {
 										Optional:         true,
 										Default:          "absolute",
 										ValidateDiagFunc: validateEnums(gql.AllChangeTypes),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"compare_function": {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"aggregate_function": {
 										Type:             schema.TypeString,
 										Optional:         true,
 										Default:          "avg",
 										ValidateDiagFunc: validateEnums(gql.AllAggregateFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 									},
 									"compare_value": {
 										Type:     schema.TypeFloat,
@@ -266,6 +270,7 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllFacetFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 										Description:      descriptions.Get("monitor", "schema", "rule", "facet", "facet_function"),
 									},
 									"facet_values": {
@@ -279,6 +284,7 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllTimeFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 										Description:      descriptions.Get("monitor", "schema", "rule", "facet", "time_function"),
 									},
 									"time_value": {
@@ -307,6 +313,7 @@ func resourceMonitor() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllCompareFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 										Description:      descriptions.Get("monitor", "schema", "rule", "threshold", "compare_function"),
 									},
 									"compare_values": {
@@ -329,6 +336,7 @@ func resourceMonitor() *schema.Resource {
 										Optional:         true,
 										Default:          "at_all_times",
 										ValidateDiagFunc: validateEnums(gql.AllThresholdAggFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
 										Description:      descriptions.Get("monitor", "schema", "rule", "threshold", "threshold_agg_function"),
 									},
 								},
@@ -424,12 +432,14 @@ func resourceMonitor() *schema.Resource {
 							Optional:         true,
 							Default:          "informational",
 							ValidateDiagFunc: validateEnums(gql.AllNotificationImportances),
+							DiffSuppressFunc: diffSuppressEnums,
 						},
 						"merge": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "merged",
 							ValidateDiagFunc: validateEnums(gql.AllNotificationMerges),
+							DiffSuppressFunc: diffSuppressEnums,
 						},
 						"reminder_frequency": {
 							Type:             schema.TypeString,

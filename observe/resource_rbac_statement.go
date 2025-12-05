@@ -135,6 +135,7 @@ func resourceRbacStatement() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllRbacRoles),
+				DiffSuppressFunc: diffSuppressEnums,
 			},
 			"oid": {
 				Type:     schema.TypeString,
