@@ -268,7 +268,7 @@ Read-Only:
 
 Read-Only:
 
-- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
 - `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups))
 - `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_values))
 - `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
@@ -483,7 +483,7 @@ Read-Only:
 
 Read-Only:
 
-- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
 - `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups))
 - `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
 - `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.

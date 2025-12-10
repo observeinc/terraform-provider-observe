@@ -147,11 +147,15 @@ monitor type since it acts on rows, not on values.
  - AnyOf: This is like "any value > 80" (which is like saying max(value) > 80)
  - SumOf: This sums all values over the lookback and makes that the value to compare
  - AvgOf: This averages all values over the lookback and makes that the value to compare
+ - Max: This takes the maximum value over the lookback and makes that the value to compare
+ - Min: This takes the minimum value over the lookback and makes that the value to compare
 """
 enum MonitorV2ValueAggregation @goModel(model: "observe/meta/metatypes.MonitorV2ValueAggregation") {
   AllOf
   AnyOf
   AvgOf
+  Max
+  Min
   SumOf
 }
 
