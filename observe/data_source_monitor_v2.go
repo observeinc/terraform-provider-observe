@@ -476,11 +476,11 @@ func monitorV2ComparisonDatasource() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_string"),
 			},
-			"value_duration": { // Int64
+			"value_duration": { // String
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeBool,
+					Type: schema.TypeString,
 				},
 				Description: descriptions.Get("monitorv2", "schema", "comparison", "value_duration"),
 			},
