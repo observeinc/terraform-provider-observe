@@ -325,7 +325,30 @@ func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 func diffSuppressTimeDuration(k, prv, nxt string, d *schema.ResourceData) bool {
 	o, _ := time.ParseDuration(prv)
 	n, _ := time.ParseDuration(nxt)
+
+	// Special handling for on_demand_materialization_length:
+	// The API rounds up to the nearest day (ceiling), so we need to compare
+	// the ceiling values rather than the raw values
+	if k == "on_demand_materialization_length" || strings.HasSuffix(k, ".on_demand_materialization_length") {
+		// Round both values up to the nearest day
+		oCeil := ceilToDays(o)
+		nCeil := ceilToDays(n)
+		return oCeil == nCeil
+	}
+
 	return o == n
+}
+
+// ceilToDays rounds a duration up to the nearest whole number of days
+func ceilToDays(d time.Duration) time.Duration {
+	if d == 0 {
+		return 0
+	}
+	days := int64(d / (24 * time.Hour))
+	if d%(24*time.Hour) != 0 {
+		days++
+	}
+	return time.Duration(days) * 24 * time.Hour
 }
 
 func diffSuppressTimeDurationZeroDistinctFromEmpty(k, prv, nxt string, d *schema.ResourceData) bool {
