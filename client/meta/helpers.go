@@ -146,6 +146,8 @@ var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
 	MonitorV2ValueAggregationAllof,
 	MonitorV2ValueAggregationAnyof,
 	MonitorV2ValueAggregationAvgof,
+	MonitorV2ValueAggregationMax,
+	MonitorV2ValueAggregationMin,
 	MonitorV2ValueAggregationSumof,
 }
 

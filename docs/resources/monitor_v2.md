@@ -273,7 +273,7 @@ Optional:
 
 Required:
 
-- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
 - `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
 
 Optional:
@@ -546,7 +546,7 @@ Optional:
 
 Required:
 
-- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
 - `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
 
 Optional:

@@ -7398,12 +7398,16 @@ func (v *MonitorV2TransformScheduleInput) GetFreshnessGoal() types.DurationScala
 // - AnyOf: This is like "any value > 80" (which is like saying max(value) > 80)
 // - SumOf: This sums all values over the lookback and makes that the value to compare
 // - AvgOf: This averages all values over the lookback and makes that the value to compare
+// - Max: This takes the maximum value over the lookback and makes that the value to compare
+// - Min: This takes the minimum value over the lookback and makes that the value to compare
 type MonitorV2ValueAggregation string
 
 const (
 	MonitorV2ValueAggregationAllof MonitorV2ValueAggregation = "AllOf"
 	MonitorV2ValueAggregationAnyof MonitorV2ValueAggregation = "AnyOf"
 	MonitorV2ValueAggregationAvgof MonitorV2ValueAggregation = "AvgOf"
+	MonitorV2ValueAggregationMax   MonitorV2ValueAggregation = "Max"
+	MonitorV2ValueAggregationMin   MonitorV2ValueAggregation = "Min"
 	MonitorV2ValueAggregationSumof MonitorV2ValueAggregation = "SumOf"
 )
 

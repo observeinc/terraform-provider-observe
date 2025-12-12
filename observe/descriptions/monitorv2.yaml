@@ -28,7 +28,7 @@ schema:
       description: |
         Adds the ability for threshold monitor to have a no data rule. When this input is provided here, you must provide the aggregation and valueColumnName, while the compareGroups is optional. The compareValues should be left empty. The aggregation and value column provided must be identical across all rules.
       aggregation: |
-        The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+        The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
       value_column_name: |
         Indicates which column in the input query has the value to apply the aggregation.
   rules:
@@ -44,7 +44,7 @@ schema:
       value_column_name: |
         Indicates which column in the input query has the value to apply the aggregation.
       aggregation: |
-        The query aggregator (AllOf, AnyOf, AvgOf, SumOf) for the value monitor type.
+        The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
     promote: |
       The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
       If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition.
