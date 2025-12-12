@@ -80,6 +80,7 @@ func resourceDataset() *schema.Resource {
 			"on_demand_materialization_length": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      descriptions.Get("dataset", "schema", "on_demand_materialization_length"),
