@@ -165,6 +165,10 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 									compare_fn = "greater"
 									value_int64 = [0]
 								}
+								compare_values {
+									compare_fn    = "greater"
+									value_duration = ["1s"]
+								}
 								value_column_name = "temp_number"
 								aggregation = "all_of"
 							}
@@ -191,6 +195,8 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.compare_values.1.compare_fn", "greater"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.compare_values.1.value_duration.0", "1s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.threshold.0.aggregation", "all_of"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.transform.0.freshness_goal", "15m0s"),
