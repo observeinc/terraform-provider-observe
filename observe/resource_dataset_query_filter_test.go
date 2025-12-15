@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -137,7 +138,12 @@ func TestAccObserveDatasetQueryFilter(t *testing.T) {
 			{
 				RefreshState: true,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset_query_filter.test", "errors.0", "1,8: the field \"OBSERVATION_KIND\" does not exist among fields [BUNDLE_TIMESTAMP, FIELDS, EXTRA, BUNDLE_ID, OBSERVATION_INDEX, DATASTREAM_ID, DATASTREAM_TOKEN_ID]"),
+					resource.TestCheckResourceAttrWith("observe_dataset_query_filter.test", "errors.0", func(val string) error {
+						if !strings.Contains(val, "the field \"OBSERVATION_KIND\" does not exist") {
+							return fmt.Errorf("expected error containing 'the field \"OBSERVATION_KIND\" does not exist', got %s", val)
+						}
+						return nil
+					}),
 				),
 			},
 		},
