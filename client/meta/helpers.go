@@ -171,6 +171,11 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 	MonitorV2HttpTypePut,
 }
 
+var AllMonitorV2MuteScheduleTypes = []MonitorV2MuteScheduleType{
+	MonitorV2MuteScheduleTypeOnetime,
+	MonitorV2MuteScheduleTypeRecurring,
+}
+
 var AllMonitorV2BooleanOperators = []MonitorV2BooleanOperator{
 	MonitorV2BooleanOperatorAnd,
 	MonitorV2BooleanOperatorOr,

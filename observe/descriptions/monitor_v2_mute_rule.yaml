@@ -1,0 +1,90 @@
+description: |
+  Monitor V2 mute rules provide a way to suppress notifications from monitors during
+  planned maintenance windows, known issue periods, or other times when alerts would
+  be expected and not actionable. Mute rules can be scoped to specific monitors or
+  applied globally across all monitors, and can be conditional based on alert properties.
+
+  Mute rules support two scheduling modes:
+  - One-time: A single time window with a start time and optional end time
+  - Recurring: Cron-based recurring windows (e.g., every Sunday 2-6 AM for maintenance)
+
+schema:
+  name: |
+    Name of the mute rule. This should clearly indicate the purpose of the mute
+    (e.g., "Weekly Maintenance Window", "Holiday Freeze Period").
+  description: |
+    Optional detailed description explaining why this mute rule exists, what it covers,
+    and any relevant context for operators.
+  icon_url: |
+    Optional icon URL to visually identify this mute rule in the Observe UI.
+  folder: |
+    OID of the folder containing this mute rule. Mute rules inherit folder-based
+    permissions, allowing teams to organize and control access to their mute rules.
+  managed_by: |
+    Optional OID of the app or system managing this mute rule. When set, the mute rule
+    is considered "managed" and may have restricted manual editing in the UI.
+  monitor_id: |
+    Optional OID of the specific monitor this mute rule applies to. If omitted, the
+    mute rule is "global" and applies to all monitors in the workspace (subject to
+    criteria filtering). Global mute rules must specify criteria.
+  schedule: |
+    Defines when this mute rule is active. Must specify exactly one schedule type: one_time for a single time window, or recurring for cron-based repeating windows.
+  schedule.type: |
+    Schedule type: "OneTime" for a single time window, or "Recurring" for cron-based repeating windows.
+  schedule.one_time: |
+    One-time mute schedule configuration. Use this for planned events like deployments, migrations, or known outages with a specific start and end time.
+  schedule.one_time.start_time: |
+    Start time for the mute window in RFC3339 format (e.g., "2025-12-17T10:00:00Z"). The mute becomes active at this time.
+  schedule.one_time.end_time: |
+    Optional end time for the mute window in RFC3339 format. If omitted, the mute remains active indefinitely until manually deleted. For safety, it's recommended to always specify an end time.
+  schedule.recurring: |
+    Recurring mute schedule configuration. Use this for regular maintenance windows (e.g., weekly deployments, nightly batch jobs, weekend maintenance).
+  schedule.recurring.cron_schedule: |
+    Cron schedule defining when each mute window starts.
+  schedule.recurring.cron_schedule.raw_cron: |
+    Standard cron expression (5 fields: minute hour day month weekday). Examples: "0 2 * * 0" = Every Sunday at 2:00 AM, "0 22 * * 1-5" = Weekdays at 10:00 PM, "0 0 1 * *" = First day of each month at midnight. If omitted, the mute evaluates continuously (not recommended for recurring mutes).
+  schedule.recurring.cron_schedule.timezone: |
+    IANA timezone name for interpreting the cron schedule (e.g., "America/New_York", "Europe/London", "UTC"). Required for recurring schedules to ensure consistent behavior across daylight saving time transitions.
+  schedule.recurring.duration: |
+    How long each mute window lasts, specified as a Go duration string. Examples: "1h" (1 hour), "30m" (30 minutes), "4h30m" (4.5 hours). The mute starts at the cron-scheduled time and remains active for this duration.
+  criteria: |
+    Optional conditional expression to selectively mute notifications based on alert properties. If omitted, all notifications from the target monitor(s) are muted. Global mute rules (no monitor_id) MUST specify criteria to prevent accidentally muting all alerts in the workspace.
+  criteria.operator: |
+    Boolean operator combining comparison terms: "And" (all must match) or "Or" (any must match).
+  criteria.compare_terms: |
+    List of comparison conditions to evaluate against alert properties.
+  criteria.compare_terms.column: |
+    Name of the alert property column to compare (e.g., "severity", "host", "environment").
+  criteria.compare_terms.comparison: |
+    Comparison operation to perform.
+  criteria.compare_terms.comparison.compare_fn: |
+    Comparison function: "Equal", "NotEqual", "GreaterThan", "GreaterThanOrEqual", "LessThan", "LessThanOrEqual", "Contains", "NotContains", "In", "NotIn".
+  criteria.compare_terms.comparison.compare_value: |
+    Value to compare against. Specify exactly one value field matching the column type.
+  criteria.compare_terms.comparison.compare_value.value_int64: |
+    Integer value for numeric comparisons.
+  criteria.compare_terms.comparison.compare_value.value_float64: |
+    Floating-point value for numeric comparisons.
+  criteria.compare_terms.comparison.compare_value.value_bool: |
+    Boolean value for true/false comparisons.
+  criteria.compare_terms.comparison.compare_value.value_string: |
+    String value for text comparisons.
+  criteria.compare_terms.comparison.compare_value.value_duration: |
+    Duration value (e.g., "5m", "1h") for time-based comparisons.
+  criteria.compare_terms.comparison.compare_value.value_timestamp: |
+    Timestamp value in RFC3339 format for time comparisons.
+  valid_from: |
+    Computed read-only field indicating when the mute rule is currently active from.
+    For one-time mutes, this is the start_time. For recurring mutes, this is the start
+    of the current active window (may be in the past if still within the duration).
+  valid_to: |
+    Computed read-only field indicating when the current mute window expires.
+    For one-time mutes with end_time, this is the end_time. For recurring mutes, this
+    is valid_from + duration. Null if the mute has no expiration (one-time without end_time).
+  is_global: |
+    Computed read-only boolean indicating whether this is a global mute rule (true) or
+    monitor-specific (false). Global mutes apply to all monitors subject to criteria.
+  is_conditional: |
+    Computed read-only boolean indicating whether this mute rule has criteria (true) or
+    applies unconditionally to all matching notifications (false).
+

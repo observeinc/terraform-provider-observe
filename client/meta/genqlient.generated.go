@@ -7138,6 +7138,207 @@ func (v *MonitorV2LinkColumnMetaInput) GetDstFields() []string { return v.DstFie
 // GetTargetDataset returns MonitorV2LinkColumnMetaInput.TargetDataset, and is useful for accessing the field via an interface.
 func (v *MonitorV2LinkColumnMetaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
 
+// MonitorV2MuteCronSchedule includes the GraphQL fields of MonitorV2MuteCronSchedule requested by the fragment MonitorV2MuteCronSchedule.
+type MonitorV2MuteCronSchedule struct {
+	CronSchedule MonitorV2CronSchedule `json:"cronSchedule"`
+	Duration     types.DurationScalar  `json:"duration"`
+}
+
+// GetCronSchedule returns MonitorV2MuteCronSchedule.CronSchedule, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteCronSchedule) GetCronSchedule() MonitorV2CronSchedule { return v.CronSchedule }
+
+// GetDuration returns MonitorV2MuteCronSchedule.Duration, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteCronSchedule) GetDuration() types.DurationScalar { return v.Duration }
+
+type MonitorV2MuteCronScheduleInput struct {
+	CronSchedule MonitorV2CronScheduleInput `json:"cronSchedule"`
+	Duration     types.DurationScalar       `json:"duration"`
+}
+
+// GetCronSchedule returns MonitorV2MuteCronScheduleInput.CronSchedule, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteCronScheduleInput) GetCronSchedule() MonitorV2CronScheduleInput {
+	return v.CronSchedule
+}
+
+// GetDuration returns MonitorV2MuteCronScheduleInput.Duration, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteCronScheduleInput) GetDuration() types.DurationScalar { return v.Duration }
+
+// MonitorV2MuteRule includes the GraphQL fields of MonitorV2MuteRule requested by the fragment MonitorV2MuteRule.
+type MonitorV2MuteRule struct {
+	Id          string                    `json:"id"`
+	WorkspaceId string                    `json:"workspaceId"`
+	Name        string                    `json:"name"`
+	IconUrl     *string                   `json:"iconUrl"`
+	Description *string                   `json:"description"`
+	ManagedById *string                   `json:"managedById"`
+	FolderId    string                    `json:"folderId"`
+	CreatedBy   types.UserIdScalar        `json:"createdBy"`
+	CreatedDate types.TimeScalar          `json:"createdDate"`
+	UpdatedBy   types.UserIdScalar        `json:"updatedBy"`
+	UpdatedDate types.TimeScalar          `json:"updatedDate"`
+	Schedule    MonitorV2MuteRuleSchedule `json:"schedule"`
+	// Criteria is optional evaluation to apply to decide if the mute applies to an individual
+	// notification. If criteria are not given the mute is applied to all notifications
+	// for the monitor.
+	// note: A global mute (null monitor assignment) with no criteria is not allowed.
+	Criteria *MonitorV2ComparisonExpression `json:"criteria"`
+	// ValidFrom is calculated dynamically from the schedule based on the type and the clock.
+	// For a recurring schedule, this may be in the future but it could also be in the past
+	// if the current mute interval is not yet expired.
+	ValidFrom types.TimeScalar `json:"validFrom"`
+	// ValidTo is the countpart to ValidFrom and is optional. When this is null, the mute never expires.
+	ValidTo *types.TimeScalar `json:"validTo"`
+	// MonitorID is an optional identifer you assign to bind this mute rule to a single monitor.
+	// Leaving this null makes the rule global (evaluates against all notifications of all monitors).
+	MonitorID *string `json:"monitorID"`
+	// IsGlobal is just a convenience flag driven by a null check on monitorID.
+	IsGlobal bool `json:"isGlobal"`
+	// IsConditional is a convenience flag driven by checking if the rule contains
+	// any matching criteria. Having no matching criteria makes the rule an unconditional
+	// mute (suppresses all notifications). It is not permitted to have an unconditional
+	// mute be global.
+	IsConditional bool `json:"isConditional"`
+}
+
+// GetId returns MonitorV2MuteRule.Id, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetId() string { return v.Id }
+
+// GetWorkspaceId returns MonitorV2MuteRule.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns MonitorV2MuteRule.Name, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorV2MuteRule.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorV2MuteRule.Description, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetDescription() *string { return v.Description }
+
+// GetManagedById returns MonitorV2MuteRule.ManagedById, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns MonitorV2MuteRule.FolderId, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetFolderId() string { return v.FolderId }
+
+// GetCreatedBy returns MonitorV2MuteRule.CreatedBy, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetCreatedBy() types.UserIdScalar { return v.CreatedBy }
+
+// GetCreatedDate returns MonitorV2MuteRule.CreatedDate, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetCreatedDate() types.TimeScalar { return v.CreatedDate }
+
+// GetUpdatedBy returns MonitorV2MuteRule.UpdatedBy, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetUpdatedBy() types.UserIdScalar { return v.UpdatedBy }
+
+// GetUpdatedDate returns MonitorV2MuteRule.UpdatedDate, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetUpdatedDate() types.TimeScalar { return v.UpdatedDate }
+
+// GetSchedule returns MonitorV2MuteRule.Schedule, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetSchedule() MonitorV2MuteRuleSchedule { return v.Schedule }
+
+// GetCriteria returns MonitorV2MuteRule.Criteria, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetCriteria() *MonitorV2ComparisonExpression { return v.Criteria }
+
+// GetValidFrom returns MonitorV2MuteRule.ValidFrom, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetValidFrom() types.TimeScalar { return v.ValidFrom }
+
+// GetValidTo returns MonitorV2MuteRule.ValidTo, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetValidTo() *types.TimeScalar { return v.ValidTo }
+
+// GetMonitorID returns MonitorV2MuteRule.MonitorID, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetMonitorID() *string { return v.MonitorID }
+
+// GetIsGlobal returns MonitorV2MuteRule.IsGlobal, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetIsGlobal() bool { return v.IsGlobal }
+
+// GetIsConditional returns MonitorV2MuteRule.IsConditional, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRule) GetIsConditional() bool { return v.IsConditional }
+
+type MonitorV2MuteRuleInput struct {
+	Schedule    MonitorV2MuteRuleScheduleInput      `json:"schedule"`
+	Criteria    *MonitorV2ComparisonExpressionInput `json:"criteria,omitempty"`
+	MonitorID   *string                             `json:"monitorID,omitempty"`
+	Name        string                              `json:"name"`
+	IconUrl     *string                             `json:"iconUrl,omitempty"`
+	Description *string                             `json:"description,omitempty"`
+	ManagedById *string                             `json:"managedById,omitempty"`
+	FolderId    *string                             `json:"folderId,omitempty"`
+}
+
+// GetSchedule returns MonitorV2MuteRuleInput.Schedule, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetSchedule() MonitorV2MuteRuleScheduleInput { return v.Schedule }
+
+// GetCriteria returns MonitorV2MuteRuleInput.Criteria, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetCriteria() *MonitorV2ComparisonExpressionInput { return v.Criteria }
+
+// GetMonitorID returns MonitorV2MuteRuleInput.MonitorID, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetMonitorID() *string { return v.MonitorID }
+
+// GetName returns MonitorV2MuteRuleInput.Name, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetName() string { return v.Name }
+
+// GetIconUrl returns MonitorV2MuteRuleInput.IconUrl, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetIconUrl() *string { return v.IconUrl }
+
+// GetDescription returns MonitorV2MuteRuleInput.Description, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetDescription() *string { return v.Description }
+
+// GetManagedById returns MonitorV2MuteRuleInput.ManagedById, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetManagedById() *string { return v.ManagedById }
+
+// GetFolderId returns MonitorV2MuteRuleInput.FolderId, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleInput) GetFolderId() *string { return v.FolderId }
+
+// MonitorV2MuteRuleSchedule includes the GraphQL fields of MonitorV2MuteRuleSchedule requested by the fragment MonitorV2MuteRuleSchedule.
+type MonitorV2MuteRuleSchedule struct {
+	Type      MonitorV2MuteScheduleType     `json:"type"`
+	OneTime   *MonitorV2OneTimeMuteSchedule `json:"oneTime"`
+	Recurring *MonitorV2MuteCronSchedule    `json:"recurring"`
+}
+
+// GetType returns MonitorV2MuteRuleSchedule.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleSchedule) GetType() MonitorV2MuteScheduleType { return v.Type }
+
+// GetOneTime returns MonitorV2MuteRuleSchedule.OneTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleSchedule) GetOneTime() *MonitorV2OneTimeMuteSchedule { return v.OneTime }
+
+// GetRecurring returns MonitorV2MuteRuleSchedule.Recurring, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleSchedule) GetRecurring() *MonitorV2MuteCronSchedule { return v.Recurring }
+
+type MonitorV2MuteRuleScheduleInput struct {
+	Type      MonitorV2MuteScheduleType          `json:"type"`
+	OneTime   *MonitorV2OneTimeMuteScheduleInput `json:"oneTime,omitempty"`
+	Recurring *MonitorV2MuteCronScheduleInput    `json:"recurring,omitempty"`
+}
+
+// GetType returns MonitorV2MuteRuleScheduleInput.Type, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleScheduleInput) GetType() MonitorV2MuteScheduleType { return v.Type }
+
+// GetOneTime returns MonitorV2MuteRuleScheduleInput.OneTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleScheduleInput) GetOneTime() *MonitorV2OneTimeMuteScheduleInput {
+	return v.OneTime
+}
+
+// GetRecurring returns MonitorV2MuteRuleScheduleInput.Recurring, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleScheduleInput) GetRecurring() *MonitorV2MuteCronScheduleInput {
+	return v.Recurring
+}
+
+// MonitorV2MuteRuleSearchResult includes the GraphQL fields of MonitorV2MuteRuleSearchResult requested by the fragment MonitorV2MuteRuleSearchResult.
+type MonitorV2MuteRuleSearchResult struct {
+	Results []MonitorV2MuteRule `json:"results"`
+}
+
+// GetResults returns MonitorV2MuteRuleSearchResult.Results, and is useful for accessing the field via an interface.
+func (v *MonitorV2MuteRuleSearchResult) GetResults() []MonitorV2MuteRule { return v.Results }
+
+type MonitorV2MuteScheduleType string
+
+const (
+	MonitorV2MuteScheduleTypeOnetime   MonitorV2MuteScheduleType = "OneTime"
+	MonitorV2MuteScheduleTypeRecurring MonitorV2MuteScheduleType = "Recurring"
+)
+
 // MonitorV2NoDataRule includes the GraphQL fields of MonitorV2NoDataRule requested by the fragment MonitorV2NoDataRule.
 type MonitorV2NoDataRule struct {
 	// Allows for the user to specify how long they'd like the missing data alert to persist for before
@@ -7167,6 +7368,29 @@ func (v *MonitorV2NoDataRuleInput) GetExpiration() *types.DurationScalar { retur
 
 // GetThreshold returns MonitorV2NoDataRuleInput.Threshold, and is useful for accessing the field via an interface.
 func (v *MonitorV2NoDataRuleInput) GetThreshold() *MonitorV2ThresholdRuleInput { return v.Threshold }
+
+// MonitorV2OneTimeMuteSchedule includes the GraphQL fields of MonitorV2OneTimeMuteSchedule requested by the fragment MonitorV2OneTimeMuteSchedule.
+type MonitorV2OneTimeMuteSchedule struct {
+	StartTime types.TimeScalar  `json:"startTime"`
+	EndTime   *types.TimeScalar `json:"endTime"`
+}
+
+// GetStartTime returns MonitorV2OneTimeMuteSchedule.StartTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2OneTimeMuteSchedule) GetStartTime() types.TimeScalar { return v.StartTime }
+
+// GetEndTime returns MonitorV2OneTimeMuteSchedule.EndTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2OneTimeMuteSchedule) GetEndTime() *types.TimeScalar { return v.EndTime }
+
+type MonitorV2OneTimeMuteScheduleInput struct {
+	StartTime types.TimeScalar  `json:"startTime"`
+	EndTime   *types.TimeScalar `json:"endTime,omitempty"`
+}
+
+// GetStartTime returns MonitorV2OneTimeMuteScheduleInput.StartTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2OneTimeMuteScheduleInput) GetStartTime() types.TimeScalar { return v.StartTime }
+
+// GetEndTime returns MonitorV2OneTimeMuteScheduleInput.EndTime, and is useful for accessing the field via an interface.
+func (v *MonitorV2OneTimeMuteScheduleInput) GetEndTime() *types.TimeScalar { return v.EndTime }
 
 // MonitorV2PromoteRule includes the GraphQL fields of MonitorV2PromoteRule requested by the fragment MonitorV2PromoteRule.
 type MonitorV2PromoteRule struct {
@@ -10990,6 +11214,18 @@ func (v *__createMonitorV2Input) GetWorkspaceId() string { return v.WorkspaceId 
 // GetInput returns __createMonitorV2Input.Input, and is useful for accessing the field via an interface.
 func (v *__createMonitorV2Input) GetInput() MonitorV2Input { return v.Input }
 
+// __createMonitorV2MuteRuleInput is used internally by genqlient
+type __createMonitorV2MuteRuleInput struct {
+	WorkspaceId string                 `json:"workspaceId"`
+	Input       MonitorV2MuteRuleInput `json:"input"`
+}
+
+// GetWorkspaceId returns __createMonitorV2MuteRuleInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__createMonitorV2MuteRuleInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetInput returns __createMonitorV2MuteRuleInput.Input, and is useful for accessing the field via an interface.
+func (v *__createMonitorV2MuteRuleInput) GetInput() MonitorV2MuteRuleInput { return v.Input }
+
 // __createOrUpdateBookmarkGroupInput is used internally by genqlient
 type __createOrUpdateBookmarkGroupInput struct {
 	Id    *string            `json:"id"`
@@ -11277,6 +11513,14 @@ type __deleteMonitorV2Input struct {
 
 // GetId returns __deleteMonitorV2Input.Id, and is useful for accessing the field via an interface.
 func (v *__deleteMonitorV2Input) GetId() string { return v.Id }
+
+// __deleteMonitorV2MuteRuleInput is used internally by genqlient
+type __deleteMonitorV2MuteRuleInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __deleteMonitorV2MuteRuleInput.Id, and is useful for accessing the field via an interface.
+func (v *__deleteMonitorV2MuteRuleInput) GetId() string { return v.Id }
 
 // __deletePollerInput is used internally by genqlient
 type __deletePollerInput struct {
@@ -11569,6 +11813,14 @@ type __getMonitorV2Input struct {
 
 // GetId returns __getMonitorV2Input.Id, and is useful for accessing the field via an interface.
 func (v *__getMonitorV2Input) GetId() string { return v.Id }
+
+// __getMonitorV2MuteRuleInput is used internally by genqlient
+type __getMonitorV2MuteRuleInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getMonitorV2MuteRuleInput.Id, and is useful for accessing the field via an interface.
+func (v *__getMonitorV2MuteRuleInput) GetId() string { return v.Id }
 
 // __getPollerInput is used internally by genqlient
 type __getPollerInput struct {
@@ -11936,6 +12188,26 @@ func (v *__searchMonitorV2ActionInput) GetNameExact() *string { return v.NameExa
 // GetNameSubstring returns __searchMonitorV2ActionInput.NameSubstring, and is useful for accessing the field via an interface.
 func (v *__searchMonitorV2ActionInput) GetNameSubstring() *string { return v.NameSubstring }
 
+// __searchMonitorV2MuteRuleInput is used internally by genqlient
+type __searchMonitorV2MuteRuleInput struct {
+	WorkspaceId   *string `json:"workspaceId"`
+	FolderId      *string `json:"folderId"`
+	NameExact     *string `json:"nameExact"`
+	NameSubstring *string `json:"nameSubstring"`
+}
+
+// GetWorkspaceId returns __searchMonitorV2MuteRuleInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2MuteRuleInput) GetWorkspaceId() *string { return v.WorkspaceId }
+
+// GetFolderId returns __searchMonitorV2MuteRuleInput.FolderId, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2MuteRuleInput) GetFolderId() *string { return v.FolderId }
+
+// GetNameExact returns __searchMonitorV2MuteRuleInput.NameExact, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2MuteRuleInput) GetNameExact() *string { return v.NameExact }
+
+// GetNameSubstring returns __searchMonitorV2MuteRuleInput.NameSubstring, and is useful for accessing the field via an interface.
+func (v *__searchMonitorV2MuteRuleInput) GetNameSubstring() *string { return v.NameSubstring }
+
 // __setChannelsForChannelActionInput is used internally by genqlient
 type __setChannelsForChannelActionInput struct {
 	ActionId   string   `json:"actionId"`
@@ -12241,6 +12513,18 @@ func (v *__updateMonitorV2Input) GetId() string { return v.Id }
 
 // GetInput returns __updateMonitorV2Input.Input, and is useful for accessing the field via an interface.
 func (v *__updateMonitorV2Input) GetInput() MonitorV2Input { return v.Input }
+
+// __updateMonitorV2MuteRuleInput is used internally by genqlient
+type __updateMonitorV2MuteRuleInput struct {
+	Id    string                 `json:"id"`
+	Input MonitorV2MuteRuleInput `json:"input"`
+}
+
+// GetId returns __updateMonitorV2MuteRuleInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateMonitorV2MuteRuleInput) GetId() string { return v.Id }
+
+// GetInput returns __updateMonitorV2MuteRuleInput.Input, and is useful for accessing the field via an interface.
+func (v *__updateMonitorV2MuteRuleInput) GetInput() MonitorV2MuteRuleInput { return v.Input }
 
 // __updatePollerInput is used internally by genqlient
 type __updatePollerInput struct {
@@ -12638,6 +12922,14 @@ func (v *createMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action {
 	return v.MonitorV2Action
 }
 
+// createMonitorV2MuteRuleResponse is returned by createMonitorV2MuteRule on success.
+type createMonitorV2MuteRuleResponse struct {
+	MuteRule MonitorV2MuteRule `json:"muteRule"`
+}
+
+// GetMuteRule returns createMonitorV2MuteRuleResponse.MuteRule, and is useful for accessing the field via an interface.
+func (v *createMonitorV2MuteRuleResponse) GetMuteRule() MonitorV2MuteRule { return v.MuteRule }
+
 // createMonitorV2Response is returned by createMonitorV2 on success.
 type createMonitorV2Response struct {
 	MonitorV2 MonitorV2 `json:"monitorV2"`
@@ -12937,6 +13229,14 @@ type deleteMonitorV2ActionResponse struct {
 
 // GetResultStatus returns deleteMonitorV2ActionResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteMonitorV2ActionResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// deleteMonitorV2MuteRuleResponse is returned by deleteMonitorV2MuteRule on success.
+type deleteMonitorV2MuteRuleResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns deleteMonitorV2MuteRuleResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *deleteMonitorV2MuteRuleResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // deleteMonitorV2Response is returned by deleteMonitorV2 on success.
 type deleteMonitorV2Response struct {
@@ -13758,6 +14058,14 @@ type getMonitorV2ActionResponse struct {
 // GetMonitorV2Action returns getMonitorV2ActionResponse.MonitorV2Action, and is useful for accessing the field via an interface.
 func (v *getMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action { return v.MonitorV2Action }
 
+// getMonitorV2MuteRuleResponse is returned by getMonitorV2MuteRule on success.
+type getMonitorV2MuteRuleResponse struct {
+	MuteRule MonitorV2MuteRule `json:"muteRule"`
+}
+
+// GetMuteRule returns getMonitorV2MuteRuleResponse.MuteRule, and is useful for accessing the field via an interface.
+func (v *getMonitorV2MuteRuleResponse) GetMuteRule() MonitorV2MuteRule { return v.MuteRule }
+
 // getMonitorV2Response is returned by getMonitorV2 on success.
 type getMonitorV2Response struct {
 	MonitorV2 MonitorV2 `json:"monitorV2"`
@@ -14318,6 +14626,16 @@ type searchMonitorV2ActionResponse struct {
 // GetMonitorV2Actions returns searchMonitorV2ActionResponse.MonitorV2Actions, and is useful for accessing the field via an interface.
 func (v *searchMonitorV2ActionResponse) GetMonitorV2Actions() MonitorV2ActionSearchResult {
 	return v.MonitorV2Actions
+}
+
+// searchMonitorV2MuteRuleResponse is returned by searchMonitorV2MuteRule on success.
+type searchMonitorV2MuteRuleResponse struct {
+	SearchResult MonitorV2MuteRuleSearchResult `json:"searchResult"`
+}
+
+// GetSearchResult returns searchMonitorV2MuteRuleResponse.SearchResult, and is useful for accessing the field via an interface.
+func (v *searchMonitorV2MuteRuleResponse) GetSearchResult() MonitorV2MuteRuleSearchResult {
+	return v.SearchResult
 }
 
 // setChannelsForChannelActionResponse is returned by setChannelsForChannelAction on success.
@@ -14906,6 +15224,14 @@ type updateMonitorV2ActionResponse struct {
 func (v *updateMonitorV2ActionResponse) GetMonitorV2Action() MonitorV2Action {
 	return v.MonitorV2Action
 }
+
+// updateMonitorV2MuteRuleResponse is returned by updateMonitorV2MuteRule on success.
+type updateMonitorV2MuteRuleResponse struct {
+	MuteRule MonitorV2MuteRule `json:"muteRule"`
+}
+
+// GetMuteRule returns updateMonitorV2MuteRuleResponse.MuteRule, and is useful for accessing the field via an interface.
+func (v *updateMonitorV2MuteRuleResponse) GetMuteRule() MonitorV2MuteRule { return v.MuteRule }
 
 // updateMonitorV2Response is returned by updateMonitorV2 on success.
 type updateMonitorV2Response struct {
@@ -16441,6 +16767,143 @@ func createMonitorV2Action(
 	return &data, err
 }
 
+// The query or mutation executed by createMonitorV2MuteRule.
+const createMonitorV2MuteRule_Operation = `
+mutation createMonitorV2MuteRule ($workspaceId: ObjectId!, $input: MonitorV2MuteRuleInput!) {
+	muteRule: createMonitorV2MuteRule(workspaceId: $workspaceId, input: $input) {
+		... MonitorV2MuteRule
+	}
+}
+fragment MonitorV2MuteRule on MonitorV2MuteRule {
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	schedule {
+		... MonitorV2MuteRuleSchedule
+	}
+	criteria {
+		... MonitorV2ComparisonExpression
+	}
+	validFrom
+	validTo
+	monitorID
+	isGlobal
+	isConditional
+}
+fragment MonitorV2MuteRuleSchedule on MonitorV2MuteRuleSchedule {
+	type
+	oneTime {
+		... MonitorV2OneTimeMuteSchedule
+	}
+	recurring {
+		... MonitorV2MuteCronSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
+	}
+	operator
+}
+fragment MonitorV2OneTimeMuteSchedule on MonitorV2OneTimeMuteSchedule {
+	startTime
+	endTime
+}
+fragment MonitorV2MuteCronSchedule on MonitorV2MuteCronSchedule {
+	cronSchedule {
+		... MonitorV2CronSchedule
+	}
+	duration
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+`
+
+func createMonitorV2MuteRule(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	input MonitorV2MuteRuleInput,
+) (*createMonitorV2MuteRuleResponse, error) {
+	req := &graphql.Request{
+		OpName: "createMonitorV2MuteRule",
+		Query:  createMonitorV2MuteRule_Operation,
+		Variables: &__createMonitorV2MuteRuleInput{
+			WorkspaceId: workspaceId,
+			Input:       input,
+		},
+	}
+	var err error
+
+	var data createMonitorV2MuteRuleResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by createOrUpdateBookmark.
 const createOrUpdateBookmark_Operation = `
 mutation createOrUpdateBookmark ($id: ObjectId, $bookmark: BookmarkInput!) {
@@ -17950,6 +18413,46 @@ func deleteMonitorV2Action(
 	var err error
 
 	var data deleteMonitorV2ActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by deleteMonitorV2MuteRule.
+const deleteMonitorV2MuteRule_Operation = `
+mutation deleteMonitorV2MuteRule ($id: ObjectId!) {
+	resultStatus: deleteMonitorV2MuteRule(id: $id) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func deleteMonitorV2MuteRule(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*deleteMonitorV2MuteRuleResponse, error) {
+	req := &graphql.Request{
+		OpName: "deleteMonitorV2MuteRule",
+		Query:  deleteMonitorV2MuteRule_Operation,
+		Variables: &__deleteMonitorV2MuteRuleInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data deleteMonitorV2MuteRuleResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -20246,6 +20749,141 @@ func getMonitorV2Action(
 	var err error
 
 	var data getMonitorV2ActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by getMonitorV2MuteRule.
+const getMonitorV2MuteRule_Operation = `
+query getMonitorV2MuteRule ($id: ObjectId!) {
+	muteRule: monitorV2MuteRule(id: $id) {
+		... MonitorV2MuteRule
+	}
+}
+fragment MonitorV2MuteRule on MonitorV2MuteRule {
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	schedule {
+		... MonitorV2MuteRuleSchedule
+	}
+	criteria {
+		... MonitorV2ComparisonExpression
+	}
+	validFrom
+	validTo
+	monitorID
+	isGlobal
+	isConditional
+}
+fragment MonitorV2MuteRuleSchedule on MonitorV2MuteRuleSchedule {
+	type
+	oneTime {
+		... MonitorV2OneTimeMuteSchedule
+	}
+	recurring {
+		... MonitorV2MuteCronSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
+	}
+	operator
+}
+fragment MonitorV2OneTimeMuteSchedule on MonitorV2OneTimeMuteSchedule {
+	startTime
+	endTime
+}
+fragment MonitorV2MuteCronSchedule on MonitorV2MuteCronSchedule {
+	cronSchedule {
+		... MonitorV2CronSchedule
+	}
+	duration
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+`
+
+func getMonitorV2MuteRule(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getMonitorV2MuteRuleResponse, error) {
+	req := &graphql.Request{
+		OpName: "getMonitorV2MuteRule",
+		Query:  getMonitorV2MuteRule_Operation,
+		Variables: &__getMonitorV2MuteRuleInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getMonitorV2MuteRuleResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -23285,6 +23923,152 @@ func searchMonitorV2Action(
 	return &data, err
 }
 
+// The query or mutation executed by searchMonitorV2MuteRule.
+const searchMonitorV2MuteRule_Operation = `
+query searchMonitorV2MuteRule ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
+	searchResult: searchMonitorV2MuteRule(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
+		... MonitorV2MuteRuleSearchResult
+	}
+}
+fragment MonitorV2MuteRuleSearchResult on MonitorV2MuteRuleSearchResult {
+	results {
+		... MonitorV2MuteRule
+	}
+}
+fragment MonitorV2MuteRule on MonitorV2MuteRule {
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	schedule {
+		... MonitorV2MuteRuleSchedule
+	}
+	criteria {
+		... MonitorV2ComparisonExpression
+	}
+	validFrom
+	validTo
+	monitorID
+	isGlobal
+	isConditional
+}
+fragment MonitorV2MuteRuleSchedule on MonitorV2MuteRuleSchedule {
+	type
+	oneTime {
+		... MonitorV2OneTimeMuteSchedule
+	}
+	recurring {
+		... MonitorV2MuteCronSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
+	}
+	operator
+}
+fragment MonitorV2OneTimeMuteSchedule on MonitorV2OneTimeMuteSchedule {
+	startTime
+	endTime
+}
+fragment MonitorV2MuteCronSchedule on MonitorV2MuteCronSchedule {
+	cronSchedule {
+		... MonitorV2CronSchedule
+	}
+	duration
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+`
+
+func searchMonitorV2MuteRule(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId *string,
+	folderId *string,
+	nameExact *string,
+	nameSubstring *string,
+) (*searchMonitorV2MuteRuleResponse, error) {
+	req := &graphql.Request{
+		OpName: "searchMonitorV2MuteRule",
+		Query:  searchMonitorV2MuteRule_Operation,
+		Variables: &__searchMonitorV2MuteRuleInput{
+			WorkspaceId:   workspaceId,
+			FolderId:      folderId,
+			NameExact:     nameExact,
+			NameSubstring: nameSubstring,
+		},
+	}
+	var err error
+
+	var data searchMonitorV2MuteRuleResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by setChannelsForChannelAction.
 const setChannelsForChannelAction_Operation = `
 mutation setChannelsForChannelAction ($actionId: ObjectId!, $channelIds: [ObjectId!]!) {
@@ -24980,6 +25764,143 @@ func updateMonitorV2Action(
 	var err error
 
 	var data updateMonitorV2ActionResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by updateMonitorV2MuteRule.
+const updateMonitorV2MuteRule_Operation = `
+mutation updateMonitorV2MuteRule ($id: ObjectId!, $input: MonitorV2MuteRuleInput!) {
+	muteRule: updateMonitorV2MuteRule(id: $id, input: $input) {
+		... MonitorV2MuteRule
+	}
+}
+fragment MonitorV2MuteRule on MonitorV2MuteRule {
+	id
+	workspaceId
+	name
+	iconUrl
+	description
+	managedById
+	folderId
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate
+	schedule {
+		... MonitorV2MuteRuleSchedule
+	}
+	criteria {
+		... MonitorV2ComparisonExpression
+	}
+	validFrom
+	validTo
+	monitorID
+	isGlobal
+	isConditional
+}
+fragment MonitorV2MuteRuleSchedule on MonitorV2MuteRuleSchedule {
+	type
+	oneTime {
+		... MonitorV2OneTimeMuteSchedule
+	}
+	recurring {
+		... MonitorV2MuteCronSchedule
+	}
+}
+fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
+	compareTerms {
+		... MonitorV2ComparisonTerm
+	}
+	operator
+}
+fragment MonitorV2OneTimeMuteSchedule on MonitorV2OneTimeMuteSchedule {
+	startTime
+	endTime
+}
+fragment MonitorV2MuteCronSchedule on MonitorV2MuteCronSchedule {
+	cronSchedule {
+		... MonitorV2CronSchedule
+	}
+	duration
+}
+fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
+	comparison {
+		... MonitorV2Comparison
+	}
+	column {
+		... MonitorV2Column
+	}
+}
+fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
+	rawCron
+	timezone
+}
+fragment MonitorV2Comparison on MonitorV2Comparison {
+	compareFn
+	compareValue {
+		... PrimitiveValue
+	}
+}
+fragment MonitorV2Column on MonitorV2Column {
+	linkColumn {
+		... MonitorV2LinkColumn
+	}
+	columnPath {
+		... MonitorV2ColumnPath
+	}
+}
+fragment PrimitiveValue on PrimitiveValue {
+	bool
+	float64
+	int64
+	string
+	timestamp
+	duration
+}
+fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
+	name
+	meta {
+		... MonitorV2LinkColumnMeta
+	}
+}
+fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
+	name
+	path
+}
+fragment MonitorV2LinkColumnMeta on MonitorV2LinkColumnMeta {
+	srcFields {
+		... MonitorV2ColumnPath
+	}
+	dstFields
+	targetDataset
+}
+`
+
+func updateMonitorV2MuteRule(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+	input MonitorV2MuteRuleInput,
+) (*updateMonitorV2MuteRuleResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateMonitorV2MuteRule",
+		Query:  updateMonitorV2MuteRule_Operation,
+		Variables: &__updateMonitorV2MuteRuleInput{
+			Id:    id,
+			Input: input,
+		},
+	}
+	var err error
+
+	var data updateMonitorV2MuteRuleResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

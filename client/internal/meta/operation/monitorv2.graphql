@@ -445,3 +445,139 @@ mutation saveMonitorV2WithActions(
     }
 }
 
+# Fragments for MonitorV2MuteRule
+
+fragment MonitorV2OneTimeMuteSchedule on MonitorV2OneTimeMuteSchedule {
+    startTime
+    endTime
+}
+
+fragment MonitorV2MuteCronSchedule on MonitorV2MuteCronSchedule {
+    # @genqlient(flatten: true)
+    cronSchedule {
+        ...MonitorV2CronSchedule
+    }
+    duration
+}
+
+fragment MonitorV2MuteRuleSchedule on MonitorV2MuteRuleSchedule {
+    type
+    # @genqlient(flatten: true)
+    oneTime {
+        ...MonitorV2OneTimeMuteSchedule
+    }
+    # @genqlient(flatten: true)
+    recurring {
+        ...MonitorV2MuteCronSchedule
+    }
+}
+
+fragment MonitorV2MuteRule on MonitorV2MuteRule {
+    id
+    workspaceId
+    name
+    iconUrl
+    description
+    managedById
+    folderId
+    createdBy
+    createdDate
+    updatedBy
+    updatedDate
+    # @genqlient(flatten: true)
+    schedule {
+        ...MonitorV2MuteRuleSchedule
+    }
+    # @genqlient(flatten: true)
+    criteria {
+        ...MonitorV2ComparisonExpression
+    }
+    validFrom
+    validTo
+    monitorID
+    isGlobal
+    isConditional
+}
+
+fragment MonitorV2MuteRuleSearchResult on MonitorV2MuteRuleSearchResult {
+    # @genqlient(flatten: true)
+    results {
+        ...MonitorV2MuteRule
+    }
+}
+
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.compareTerms", omitempty: true)
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.subExpressions", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.criteria", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.monitorID", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleScheduleInput.oneTime", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleScheduleInput.recurring", omitempty: true)
+# @genqlient(for: "MonitorV2OneTimeMuteScheduleInput.endTime", omitempty: true)
+# @genqlient(for: "MonitorV2CronScheduleInput.rawCron", omitempty: true)
+mutation createMonitorV2MuteRule(
+    $workspaceId: ObjectId!,
+    $input: MonitorV2MuteRuleInput!
+) {
+    # @genqlient(flatten: true)
+    muteRule: createMonitorV2MuteRule(workspaceId: $workspaceId, input: $input) {
+        ...MonitorV2MuteRule
+    }
+}
+
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.compareTerms", omitempty: true)
+# @genqlient(for: "MonitorV2ComparisonExpressionInput.subExpressions", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.criteria", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.monitorID", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.iconUrl", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.description", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.managedById", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleInput.folderId", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleScheduleInput.oneTime", omitempty: true)
+# @genqlient(for: "MonitorV2MuteRuleScheduleInput.recurring", omitempty: true)
+# @genqlient(for: "MonitorV2OneTimeMuteScheduleInput.endTime", omitempty: true)
+# @genqlient(for: "MonitorV2CronScheduleInput.rawCron", omitempty: true)
+mutation updateMonitorV2MuteRule(
+    $id: ObjectId!,
+    $input: MonitorV2MuteRuleInput!
+) {
+    # @genqlient(flatten: true)
+    muteRule: updateMonitorV2MuteRule(id: $id, input: $input) {
+        ...MonitorV2MuteRule
+    }
+}
+
+mutation deleteMonitorV2MuteRule($id: ObjectId!) {
+    # @genqlient(flatten: true)
+	resultStatus: deleteMonitorV2MuteRule(id: $id) {
+        ...ResultStatus
+	}
+}
+
+query getMonitorV2MuteRule($id: ObjectId!) {
+    # @genqlient(flatten: true)
+    muteRule: monitorV2MuteRule(id: $id) {
+        ...MonitorV2MuteRule
+    }
+}
+
+query searchMonitorV2MuteRule(
+    $workspaceId: ObjectId,
+    $folderId: ObjectId,
+    $nameExact: String,
+    $nameSubstring: String
+) {
+    # @genqlient(flatten: true)
+    searchResult: searchMonitorV2MuteRule(
+        workspaceId: $workspaceId,
+        folderId: $folderId,
+        nameExact: $nameExact,
+        nameSubstring: $nameSubstring
+    ) {
+        ...MonitorV2MuteRuleSearchResult
+    }
+}
+

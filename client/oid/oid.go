@@ -41,6 +41,7 @@ const (
 	TypeMonitorV2               Type = "monitorv2"
 	TypeMonitorV2Action         Type = "monitorv2action"
 	TypeMonitorV2Destination    Type = "monitorv2destination"
+	TypeMonitorV2MuteRule       Type = "monitorv2muterule"
 	TypePoller                  Type = "poller"
 	TypePreferredPath           Type = "preferredpath"
 	TypeUser                    Type = "user"
@@ -83,6 +84,7 @@ func (t Type) IsValid() bool {
 	case TypeMonitorV2:
 	case TypeMonitorV2Action:
 	case TypeMonitorV2Destination:
+	case TypeMonitorV2MuteRule:
 	case TypePoller:
 	case TypePreferredPath:
 	case TypeUser:
@@ -249,6 +251,10 @@ func MonitorV2Oid(id string) OID {
 
 func MonitorV2ActionOid(id string) OID {
 	return OID{Id: id, Type: TypeMonitorV2Action}
+}
+
+func MonitorV2MuteRuleOid(id string) OID {
+	return OID{Id: id, Type: TypeMonitorV2MuteRule}
 }
 
 func PollerOid(id string) OID {

@@ -622,6 +622,41 @@ func (c *Client) SearchMonitorV2Action(ctx context.Context, workspaceId *string,
 	return c.Meta.SearchMonitorV2Action(ctx, workspaceId, nameExact)
 }
 
+func (c *Client) CreateMonitorV2MuteRule(ctx context.Context, workspaceId string, input *meta.MonitorV2MuteRuleInput) (*meta.MonitorV2MuteRule, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+	return c.Meta.CreateMonitorV2MuteRule(ctx, workspaceId, input)
+}
+
+func (c *Client) UpdateMonitorV2MuteRule(ctx context.Context, id string, input *meta.MonitorV2MuteRuleInput) (*meta.MonitorV2MuteRule, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.UpdateMonitorV2MuteRule(ctx, id, input)
+}
+
+func (c *Client) GetMonitorV2MuteRule(ctx context.Context, id string) (*meta.MonitorV2MuteRule, error) {
+	return c.Meta.GetMonitorV2MuteRule(ctx, id)
+}
+
+func (c *Client) DeleteMonitorV2MuteRule(ctx context.Context, id string) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Meta.DeleteMonitorV2MuteRule(ctx, id)
+}
+
+func (c *Client) SearchMonitorV2MuteRule(ctx context.Context, workspaceId *string, nameExact *string) ([]meta.MonitorV2MuteRule, error) {
+	return c.Meta.SearchMonitorV2MuteRule(ctx, workspaceId, nameExact)
+}
+
 // CreateMonitorActionAttachment creates a monitor action attachment
 func (c *Client) CreateMonitorActionAttachment(ctx context.Context, input *meta.MonitorActionAttachmentInput) (*meta.MonitorActionAttachment, error) {
 	if !c.Flags[flagObs2110] {
