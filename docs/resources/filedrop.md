@@ -82,6 +82,7 @@ Required:
 Required:
 
 - `region` (String) The region where the role ARN exists that you will be dropping files to.
+Must match the region where your Observe tenant is deployed.
 - `role_arn` (String) Your IAM role that Observe allows to drop data into the particular filedrop.
 
 
