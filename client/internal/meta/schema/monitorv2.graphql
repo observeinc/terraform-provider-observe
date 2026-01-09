@@ -101,6 +101,7 @@ enum MonitorV2HttpType @goModel(model: "observe/meta/metatypes.MonitorV2HttpType
 
 enum MonitorV2MuteScheduleType @goModel(model: "observe/meta/metatypes.MonitorV2MuteScheduleType") {
   OneTime
+  Recurring
 }
 
 """
@@ -1449,18 +1450,20 @@ type MonitorV2MuteRuleSearchResult @goModel(model: "observe/meta/metatypes.Monit
     results: [MonitorV2MuteRule!]!
 }
 
-# MonitorV2MuteRuleSchedule controls when a mute's time is valid. Only one of the types is allowed
-# (currently only one-time mutes).
+# MonitorV2MuteRuleSchedule controls the time when a muting is valid to run. The muting can only run on one type of schedule at a time.
+# For a single scheduled muting that starts and ends at a specific time, use 'oneTime.' For a recurring muting that repeatedly runs on a fixed schedule, use 'recurring.'
 type MonitorV2MuteRuleSchedule @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleSchedule") {
     # payload
     type: MonitorV2MuteScheduleType!
     oneTime: MonitorV2OneTimeMuteSchedule
+    recurring: MonitorV2MuteCronSchedule
 }
 
 input MonitorV2MuteRuleScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2MuteRuleScheduleInput") {
     # payload
     type: MonitorV2MuteScheduleType!
     oneTime: MonitorV2OneTimeMuteScheduleInput
+    recurring: MonitorV2MuteCronScheduleInput
 }
 
 
@@ -1479,6 +1482,20 @@ input MonitorV2OneTimeMuteScheduleInput @goModel(model: "observe/meta/metatypes.
     endTime: Time
 }
 
+
+# MonitorV2MuteCronSchedule describes a mute that is recurring based on a cron schedule.
+# One iteration of this type of muting will start at the cron schedule and last for the given duration.
+type MonitorV2MuteCronSchedule @goModel(model: "observe/meta/metatypes.MonitorV2MuteCronSchedule") {
+    # payload
+    cronSchedule: MonitorV2CronSchedule!
+    duration: Duration!
+}
+
+input MonitorV2MuteCronScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2MuteCronScheduleInput") {
+    # payload
+    cronSchedule: MonitorV2CronScheduleInput!
+    duration: Duration!
+}
 
 # MonitorV2MuteLink binds a mute rule to a monitor.
 type MonitorV2MuteLink @goModel(model: "observe/meta/metatypes.MonitorV2MuteLink") {
