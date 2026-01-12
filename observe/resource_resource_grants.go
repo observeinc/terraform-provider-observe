@@ -53,7 +53,7 @@ func resourceGrantsGrant() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(validGrantRoles),
-				Description:      descriptions.Get("resource_grants", "schema", "grant", "role"),
+				Description:      describeEnums(validGrantRoles, descriptions.Get("resource_grants", "schema", "grant", "role")),
 			},
 			"oid": {
 				Type:     schema.TypeString,

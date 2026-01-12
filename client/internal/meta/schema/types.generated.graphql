@@ -10,10 +10,12 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     blob
     bookmark
     bookmarkgroup
+    catalogintegration
     channel
     connection
     correlationtag
     customer
+    customerkeypair
     dashboard
     dashboardlink
     dataconnection
@@ -27,6 +29,8 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     document
     filedrop
     folder
+    inbound_share
+    inbound_share_table
     incident
     ingestfilter
     ingestroute
@@ -63,6 +67,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     BookmarkManage
     DashboardCreate
     DashboardEdit
+    DashboardEditVisibility
     DashboardView
     DatasetAccelerate
     DatasetCreate
@@ -84,12 +89,14 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     UserInvite
     WorksheetCreate
     WorksheetEdit
+    WorksheetEditVisibility
     WorksheetView
 }
 
 enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     ApitokenCreate
     BookmarkManager
+    DashboardVisibilityEditor
     DatasetAccelerator
     Editor
     Ingester
@@ -104,6 +111,7 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     UserDelete
     UserInvite
     Viewer
+    WorksheetVisibilityEditor
 }
 
 enum ORType @goModel(model: "observe/access/permission.ORType") {
