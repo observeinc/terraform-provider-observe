@@ -98,12 +98,15 @@ fragment DatasetSaveResult on DatasetSaveResult {
 		...Dataset
 	}
 	# @genqlient(flatten: true)
-	dematerializedDatasets {
-		...DatasetMaterialization
-	}
-	# @genqlient(flatten: true)
 	errorDatasets {
 		...DatasetError
+	}
+}
+
+fragment DatasetDryRunSaveResult on DatasetSaveResult {
+	# @genqlient(flatten: true)
+	dematerializedDatasets {
+		...DatasetMaterialization
 	}
 }
 
@@ -130,6 +133,18 @@ mutation saveDataset(
 	# @genqlient(flatten: true)
 	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
 		...DatasetSaveResult
+	}
+}
+
+mutation saveDatasetDryRun(
+	$workspaceId: ObjectId!,
+	$dataset: DatasetInput!,
+	$query: MultiStageQueryInput!,
+	$dep: DependencyHandlingInput
+) {
+	# @genqlient(flatten: true)
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
+		...DatasetDryRunSaveResult
 	}
 }
 
