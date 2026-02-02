@@ -8,6 +8,10 @@ fragment Worksheet on Worksheet {
 	stages {
 		...StageQuery
 	}
+	entityTags {
+		key
+		values
+	}
 }
 
 fragment WorksheetIdLabel on Worksheet {

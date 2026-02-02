@@ -610,3 +610,73 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveWorksheetEntityTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_worksheet" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
+					queries = <<-EOF
+					[{
+						"id": "stage",
+						"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+						"input": [{
+							"inputName": "kubernetes/metrics/Container Metrics",
+							"inputRole": "Data",
+							"datasetId": "41042989"
+						}]
+					}]
+					EOF
+
+					entity_tags = {
+						owner = "data-team"
+						type  = "analysis,reporting"
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_worksheet.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.owner", "data-team"),
+					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.type", "analysis,reporting"),
+				),
+			},
+			{
+				// Update entity_tags
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_worksheet" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					icon_url  = "test"
+					queries = <<-EOF
+					[{
+						"id": "stage",
+						"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+						"input": [{
+							"inputName": "kubernetes/metrics/Container Metrics",
+							"inputRole": "Data",
+							"datasetId": "41042989"
+						}]
+					}]
+					EOF
+
+					entity_tags = {
+						owner = "analytics-team"
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.owner", "analytics-team"),
+					resource.TestCheckNoResourceAttr("observe_worksheet.first", "entity_tags.type"),
+				),
+			},
+		},
+	})
+}

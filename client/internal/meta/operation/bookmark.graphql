@@ -6,6 +6,10 @@ fragment Bookmark on Bookmark {
 	targetIdKind
 	groupId
 	bookmarkKind
+	entityTags {
+		key
+		values
+	}
 }
 
 mutation createOrUpdateBookmark(

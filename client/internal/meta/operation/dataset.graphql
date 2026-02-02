@@ -71,6 +71,10 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
+	entityTags {
+		key
+		values
+	}
 }
 
 fragment DatasetIdName on Dataset {

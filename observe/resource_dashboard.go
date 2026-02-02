@@ -12,6 +12,7 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 const (
@@ -86,6 +87,15 @@ func resourceDashboard() *schema.Resource {
 				DiffSuppressFunc: diffSuppressParameterValues,
 				Description:      schemaDashboardParameterValuesDescription,
 			},
+			"entity_tags": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressEntityTagValues,
+				Description:      descriptions.Get("common", "schema", "entity_tags"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -136,6 +146,13 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 			diagErr := fmt.Errorf("failed to parse 'parameter_values' request field: %w", err)
 			diags = append(diags, diag.FromErr(diagErr)...)
 		}
+	}
+
+	// Always set EntityTags, even if empty, to allow clearing tags
+	if v, ok := data.GetOk("entity_tags"); ok {
+		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
+	} else {
+		input.EntityTags = []gql.EntityTagMappingInput{}
 	}
 
 	return input, diags
@@ -203,6 +220,10 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags
 		if err := data.Set("layout", d.Layout); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("entity_tags", flattenEntityTagsToMap(d.EntityTags)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {

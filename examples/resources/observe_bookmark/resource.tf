@@ -18,6 +18,12 @@ resource "observe_bookmark" "dataset" {
   group  = observe_bookmark_group.example.oid
   name   = "Example"
   target = data.observe_dataset.example.oid
+
+  # Optional: Entity tags for organizing and categorizing bookmarks
+  entity_tags = {
+    category = "monitoring"
+    priority = "high,critical"
+  }
 }
 
 # Dashboard

@@ -1,0 +1,10 @@
+description: |
+  Manages an Observe dashboard.
+schema:
+  name: |
+    Dashboard name.
+  icon_url: |
+    Icon to be displayed for this dashboard.
+  stages: |
+    JSON representation of dashboard stages.
+

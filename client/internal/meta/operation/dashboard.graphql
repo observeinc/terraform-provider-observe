@@ -76,6 +76,10 @@ fragment Dashboard on Dashboard {
             ...valueFields
         }
     }
+    entityTags {
+        key
+        values
+    }
 }
 
 query getDashboard($id: ObjectId!) {

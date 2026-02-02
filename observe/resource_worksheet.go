@@ -12,6 +12,7 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 const (
@@ -56,6 +57,15 @@ func resourceWorksheet() *schema.Resource {
 				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaWorksheetJSONDescription,
 			},
+			"entity_tags": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressEntityTagValues,
+				Description:      descriptions.Get("common", "schema", "entity_tags"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -81,6 +91,14 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 			diags = append(diags, diag.FromErr(diagErr)...)
 		}
 	}
+
+	// Always set EntityTags, even if empty, to allow clearing tags
+	if v, ok := data.GetOk("entity_tags"); ok {
+		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
+	} else {
+		input.EntityTags = []gql.EntityTagMappingInput{}
+	}
+
 	return input, diags
 }
 
@@ -118,6 +136,10 @@ func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags
 		} else if err := data.Set("queries", string(stagesRaw)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("entity_tags", flattenEntityTagsToMap(d.EntityTags)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {

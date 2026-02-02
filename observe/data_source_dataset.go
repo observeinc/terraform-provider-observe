@@ -155,6 +155,14 @@ func dataSourceDataset() *schema.Resource {
 					},
 				},
 			},
+			"entity_tags": {
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Description: descriptions.Get("common", "schema", "entity_tags"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }

@@ -284,7 +284,7 @@ type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     srcFields: [String!]! @deprecated(reason: "use src instead")
     # Since link sources are no longer plain column references, to cleanly model them,
     # I'm creating a new type that contains both column name and path (if any). Plan is to
-    # deprecate srcFields in future. 
+    # deprecate srcFields in future.
     src: [LinkField!]!
     dstFields: [String!]!
     id: String
@@ -375,6 +375,10 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
+    """
+    Entity tags for organizing and categorizing datasets.
+    """
+    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time!
     isSourceDataset: Boolean
@@ -649,6 +653,11 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.
     """
     managedById: ObjectId
+
+    """
+    Entity tags for organizing and categorizing datasets.
+    """
+    entityTags: [EntityTagMappingInput!]
 }
 
 # Warning!

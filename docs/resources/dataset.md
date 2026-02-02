@@ -30,7 +30,14 @@ resource "observe_dataset" "http_observations" {
   stage {
     pipeline = <<-EOT
       filter OBSERVATION_KIND = "http"
-    EOT 
+    EOT
+  }
+
+  # Optional: Entity tags for organizing and categorizing datasets
+  entity_tags = {
+    environment = "production"
+    team        = "backend,frontend"
+    category    = "observability"
   }
 }
 ```
@@ -53,6 +60,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `acceleration_disabled_source` (String) Source of disabled materialization
 - `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
 - `description` (String) Dataset description.
+- `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.

@@ -435,6 +435,10 @@ type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   userInfo: UserInfo! @goField(forceResolver:true)
   managedById: ObjectId
   bookmarkKind: BookmarkKind!
+  """
+  Entity tags for organizing and categorizing bookmarks.
+  """
+  entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
 }
 
 """
@@ -452,6 +456,10 @@ input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   managedById: ObjectId
   workspaceId: ObjectId
   bookmarkKind: BookmarkKind
+  """
+  Entity tags for organizing and categorizing bookmarks.
+  """
+  entityTags: [EntityTagMappingInput!]
 }
 
 type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {

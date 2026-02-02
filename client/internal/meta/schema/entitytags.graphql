@@ -1,0 +1,18 @@
+"""
+EntityTagMapping represents a key-value mapping for entity tags on workspace objects
+(datasets, dashboards, worksheets, monitors, etc.).
+Each mapping contains a tag key and a list of values associated with that key.
+"""
+type EntityTagMapping @goModel(model: "observe/meta/metatypes.EntityTagMapping") {
+    key: String!
+    values: [String!]!
+}
+
+"""
+EntityTagMappingInput is the input type for EntityTagMapping.
+"""
+input EntityTagMappingInput @goModel(model: "observe/meta/metatypes.EntityTagMapping") {
+    key: String!
+    values: [String!]!
+}
+

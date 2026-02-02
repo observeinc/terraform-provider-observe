@@ -3139,3 +3139,71 @@ func TestAccObserveDashboard_DefaultValueInt64(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveDashboardEntityTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dashboard" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+					icon_url  = "test"
+					stages = <<-EOF
+					[{
+						"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+						"input": [{
+							"inputName": "kubernetes/metrics/Container Metrics",
+							"inputRole": "Data",
+							"datasetId": "41042989"
+						}]
+					}]
+					EOF
+
+					entity_tags = {
+						team       = "platform"
+						visibility = "public,internal"  # Will be sorted to "internal,public" by backend
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.team", "platform"),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.visibility", "internal,public"), // Backend sorts alphabetically
+				),
+			},
+			{
+				// Update entity_tags
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_dashboard" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s"
+					icon_url  = "test"
+					stages = <<-EOF
+					[{
+						"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+						"input": [{
+							"inputName": "kubernetes/metrics/Container Metrics",
+							"inputRole": "Data",
+							"datasetId": "41042989"
+						}]
+					}]
+					EOF
+
+					entity_tags = {
+						team = "platform,sre"
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.team", "platform,sre"),
+					resource.TestCheckNoResourceAttr("observe_dashboard.first", "entity_tags.visibility"),
+				),
+			},
+		},
+	})
+}
