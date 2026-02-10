@@ -168,6 +168,15 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
+			"entity_tags": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressEntityTagValues,
+				Description:      descriptions.Get("common", "schema", "entity_tags"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -318,6 +327,13 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 
 	}
 
+	// Always set EntityTags, even if empty, to allow clearing tags
+	if v, ok := data.GetOk("entity_tags"); ok {
+		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
+	} else {
+		input.EntityTags = []gql.EntityTagMappingInput{}
+	}
+
 	return input, query, diags
 }
 
@@ -384,6 +400,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		if err := data.Set("storage_integration", oid.String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	if err := data.Set("entity_tags", flattenEntityTagsToMap(d.EntityTags)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	if diags.HasError() {

@@ -33,6 +33,7 @@ data "observe_worksheet" "lookup" {
 
 ### Read-Only
 
+- `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `icon_url` (String) Icon image.
 - `name` (String) Worksheet name. Must be unique within workspace.
 - `oid` (String) The Observe ID for worksheet.

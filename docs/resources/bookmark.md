@@ -30,6 +30,12 @@ resource "observe_bookmark" "dataset" {
   group  = observe_bookmark_group.example.oid
   name   = "Example"
   target = data.observe_dataset.example.oid
+
+  # Optional: Entity tags for organizing and categorizing bookmarks
+  entity_tags = {
+    category = "monitoring"
+    priority = "high,critical"
+  }
 }
 
 # Dashboard
@@ -57,6 +63,7 @@ resource "observe_bookmark" "dashboard" {
 
 - `bookmark_kind` (String) The target page for your bookmark. An appropriate default will be used if not set.
  Accepted values: `dataset`, `dashboard`, `log_explorer`, `metric_explorer`
+- `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 
 ### Read-Only

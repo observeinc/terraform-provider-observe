@@ -8,6 +8,11 @@ fragment Worksheet on Worksheet {
 	stages {
 		...StageQuery
 	}
+	# @genqlient(typename: "EntityTagMapping")
+	entityTags {
+		key
+		values
+	}
 }
 
 fragment WorksheetIdLabel on Worksheet {

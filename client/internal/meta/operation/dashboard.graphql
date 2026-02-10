@@ -76,6 +76,11 @@ fragment Dashboard on Dashboard {
             ...valueFields
         }
     }
+    # @genqlient(typename: "EntityTagMapping")
+    entityTags {
+        key
+        values
+    }
 }
 
 query getDashboard($id: ObjectId!) {

@@ -1,0 +1,10 @@
+description: |
+  Manages an Observe worksheet.
+schema:
+  name: |
+    Worksheet name.
+  icon_url: |
+    Icon to be displayed for this worksheet.
+  queries: |
+    JSON representation of worksheet queries.
+

@@ -87,6 +87,11 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
 
     defaultForDatasets: [ObjectId!]
     links: [DashboardLink!]!
+
+    """
+    Entity tags for organizing and categorizing dashboards.
+    """
+    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
 }
 
 input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
@@ -109,6 +114,11 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
     parameterValues: [ParameterBindingInput!]
 
     links: [DashboardLinkInput!]
+
+    """
+    Entity tags for organizing and categorizing dashboards.
+    """
+    entityTags: [EntityTagMappingInput!]
 }
 
 type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Worksheet") {
@@ -146,6 +156,11 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
 
     folderId: ObjectId!
 
+    """
+    Entity tags for organizing and categorizing worksheets.
+    """
+    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+
     # deprecated
 
     icon: String @goField(name:iconUrl) @deprecated(reason: "Use iconUrl")
@@ -169,6 +184,11 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
+
+    """
+    Entity tags for organizing and categorizing worksheets.
+    """
+    entityTags: [EntityTagMappingInput!]
 
     label: String @deprecated(reason: "Use name")
     icon: String @goField(name:iconUrl) @deprecated(reason: "Use iconUrl")

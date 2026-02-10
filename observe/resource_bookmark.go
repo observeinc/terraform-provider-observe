@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
@@ -63,6 +62,15 @@ func resourceBookmark() *schema.Resource {
 				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
 				DiffSuppressFunc: diffSuppressEnums,
 			},
+			"entity_tags": {
+				Type:             schema.TypeMap,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressEntityTagValues,
+				Description:      descriptions.Get("common", "schema", "entity_tags"),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -87,6 +95,13 @@ func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, dia
 	if v, ok := data.GetOk("bookmark_kind"); ok {
 		bookmarkKind := gql.BookmarkKind(toCamel(v.(string)))
 		input.BookmarkKind = &bookmarkKind
+	}
+
+	// Always set EntityTags, even if empty, to allow clearing tags
+	if v, ok := data.GetOk("entity_tags"); ok {
+		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
+	} else {
+		input.EntityTags = []gql.EntityTagMappingInput{}
 	}
 
 	return input, diags
@@ -124,6 +139,10 @@ func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags d
 	}
 
 	if err := data.Set("bookmark_kind", toSnake(string(b.GetBookmarkKind()))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("entity_tags", flattenEntityTagsToMap(b.EntityTags)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

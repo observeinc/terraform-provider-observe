@@ -6,6 +6,11 @@ fragment Bookmark on Bookmark {
 	targetIdKind
 	groupId
 	bookmarkKind
+	# @genqlient(typename: "EntityTagMapping")
+	entityTags {
+		key
+		values
+	}
 }
 
 mutation createOrUpdateBookmark(

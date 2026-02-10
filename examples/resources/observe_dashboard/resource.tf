@@ -31,4 +31,10 @@ resource "observe_dashboard" "example" {
     ]
   )
   workspace = data.observe_workspace.default.oid
+
+  # Optional: Entity tags for organizing and categorizing dashboards
+  entity_tags = {
+    team       = "platform"
+    visibility = "public,internal"
+  }
 }

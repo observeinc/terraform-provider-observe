@@ -96,7 +96,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					inputs = {
 						"test" = observe_datastream.test.dataset
 					}
-					
+
 					acceleration_disabled = true
 					acceleration_disabled_source = "view"
 
@@ -167,7 +167,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					inputs = {
 						"test" = observe_datastream.test.dataset
 					}
-					
+
 					acceleration_disabled = true
 					acceleration_disabled_source = "view"
 
@@ -515,7 +515,7 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-1"
 
-					inputs = { 
+					inputs = {
 						"test" = observe_datastream.test.dataset
 						"other" = observe_datastream.test.dataset
 					}
@@ -1202,7 +1202,7 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 						EOF
 					}
 				}
-					
+
 				resource "observe_dataset" "child" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-child"
@@ -1236,7 +1236,7 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 						EOF
 					}
 				}
-				
+
 				resource "observe_dataset" "child" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-child"
@@ -1276,7 +1276,7 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 						EOF
 					}
 				}
-					
+
 				resource "observe_dataset" "child" {
 					workspace = data.observe_workspace.default.oid
 					name 	  = "%[1]s-child"
@@ -1294,6 +1294,119 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.child", "stage.0.pipeline", "filter key2 = \"bar\"\n"),
+				),
+			},
+		},
+	})
+}
+
+// Test entity_tags field for datasets
+func TestAccObserveDatasetEntityTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					entity_tags = {
+						environment = "production"
+						team        = "backend,frontend"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-dataset"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.team", "backend,frontend"),
+				),
+			},
+			{
+				// Update entity_tags
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					entity_tags = {
+						environment = "staging,production"
+						region      = "us-west-2"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production,staging"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.region", "us-west-2"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "entity_tags.team"),
+				),
+			},
+			{
+				// Test CSV escaping (value with comma)
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					entity_tags = {
+						note = "\"Team A, Inc\""
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.note", "\"Team A, Inc\""),
+				),
+			},
+			{
+				// Remove all entity_tags
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.%", "0"),
 				),
 			},
 		},

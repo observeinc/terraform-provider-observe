@@ -18,6 +18,13 @@ resource "observe_dataset" "http_observations" {
   stage {
     pipeline = <<-EOT
       filter OBSERVATION_KIND = "http"
-    EOT 
+    EOT
+  }
+
+  # Optional: Entity tags for organizing and categorizing datasets
+  entity_tags = {
+    environment = "production"
+    team        = "backend,frontend"
+    category    = "observability"
   }
 }

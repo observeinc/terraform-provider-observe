@@ -178,3 +178,64 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveBookmarkEntityTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "%[1]s"
+
+					entity_tags = {
+						category = "monitoring"
+						priority = "high,critical"  # Will be sorted to "critical,high" by backend
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category", "monitoring"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.priority", "critical,high"), // Backend sorts alphabetically
+				),
+			},
+			{
+				// Update entity_tags
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "%[1]s"
+
+					entity_tags = {
+						category = "logging,monitoring"
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category", "logging,monitoring"), // Already alphabetical
+					resource.TestCheckNoResourceAttr("observe_bookmark.bm", "entity_tags.priority"),
+				),
+			},
+			{
+				// Remove all entity_tags
+				Config: fmt.Sprintf(bookmarkConfigPreamble+`
+				resource "observe_bookmark" "bm" {
+					group  = observe_bookmark_group.a.oid
+					target = observe_datastream.test.dataset
+					name   = "%[1]s"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.%", "0"),
+				),
+			},
+		},
+	})
+}
