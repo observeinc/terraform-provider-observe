@@ -324,7 +324,7 @@ type Bookmark struct {
 	GroupId      string       `json:"groupId"`
 	BookmarkKind BookmarkKind `json:"bookmarkKind"`
 	// Entity tags for organizing and categorizing bookmarks.
-	EntityTags []BookmarkEntityTagsEntityTagMapping `json:"entityTags"`
+	EntityTags []EntityTagMapping `json:"entityTags"`
 }
 
 // GetId returns Bookmark.Id, and is useful for accessing the field via an interface.
@@ -349,24 +349,7 @@ func (v *Bookmark) GetGroupId() string { return v.GroupId }
 func (v *Bookmark) GetBookmarkKind() BookmarkKind { return v.BookmarkKind }
 
 // GetEntityTags returns Bookmark.EntityTags, and is useful for accessing the field via an interface.
-func (v *Bookmark) GetEntityTags() []BookmarkEntityTagsEntityTagMapping { return v.EntityTags }
-
-// BookmarkEntityTagsEntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
-// The GraphQL type's documentation follows.
-//
-// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-// (datasets, dashboards, worksheets, monitors, etc.).
-// Each mapping contains a tag key and a list of values associated with that key.
-type BookmarkEntityTagsEntityTagMapping struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
-// GetKey returns BookmarkEntityTagsEntityTagMapping.Key, and is useful for accessing the field via an interface.
-func (v *BookmarkEntityTagsEntityTagMapping) GetKey() string { return v.Key }
-
-// GetValues returns BookmarkEntityTagsEntityTagMapping.Values, and is useful for accessing the field via an interface.
-func (v *BookmarkEntityTagsEntityTagMapping) GetValues() []string { return v.Values }
+func (v *Bookmark) GetEntityTags() []EntityTagMapping { return v.EntityTags }
 
 // BookmarkGroup includes the GraphQL fields of BookmarkGroup requested by the fragment BookmarkGroup.
 type BookmarkGroup struct {
@@ -962,7 +945,7 @@ type Dashboard struct {
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
 	ParameterValues []DashboardParameterValuesParameterBinding `json:"parameterValues"`
 	// Entity tags for organizing and categorizing dashboards.
-	EntityTags []DashboardEntityTagsEntityTagMapping `json:"entityTags"`
+	EntityTags []EntityTagMapping `json:"entityTags"`
 }
 
 // GetId returns Dashboard.Id, and is useful for accessing the field via an interface.
@@ -995,24 +978,7 @@ func (v *Dashboard) GetParameterValues() []DashboardParameterValuesParameterBind
 }
 
 // GetEntityTags returns Dashboard.EntityTags, and is useful for accessing the field via an interface.
-func (v *Dashboard) GetEntityTags() []DashboardEntityTagsEntityTagMapping { return v.EntityTags }
-
-// DashboardEntityTagsEntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
-// The GraphQL type's documentation follows.
-//
-// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-// (datasets, dashboards, worksheets, monitors, etc.).
-// Each mapping contains a tag key and a list of values associated with that key.
-type DashboardEntityTagsEntityTagMapping struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
-// GetKey returns DashboardEntityTagsEntityTagMapping.Key, and is useful for accessing the field via an interface.
-func (v *DashboardEntityTagsEntityTagMapping) GetKey() string { return v.Key }
-
-// GetValues returns DashboardEntityTagsEntityTagMapping.Values, and is useful for accessing the field via an interface.
-func (v *DashboardEntityTagsEntityTagMapping) GetValues() []string { return v.Values }
+func (v *Dashboard) GetEntityTags() []EntityTagMapping { return v.EntityTags }
 
 type DashboardInput struct {
 	// if id is not specified, a new dashboard is created
@@ -1322,7 +1288,7 @@ type Dataset struct {
 	SourceTable                   *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
 	CorrelationTagMappings        []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
 	// Entity tags for organizing and categorizing datasets.
-	EntityTags []DatasetEntityTagsEntityTagMapping `json:"entityTags"`
+	EntityTags []EntityTagMapping `json:"entityTags"`
 }
 
 // GetWorkspaceId returns Dataset.WorkspaceId, and is useful for accessing the field via an interface.
@@ -1395,7 +1361,7 @@ func (v *Dataset) GetCorrelationTagMappings() []DatasetCorrelationTagMappingsCor
 }
 
 // GetEntityTags returns Dataset.EntityTags, and is useful for accessing the field via an interface.
-func (v *Dataset) GetEntityTags() []DatasetEntityTagsEntityTagMapping { return v.EntityTags }
+func (v *Dataset) GetEntityTags() []EntityTagMapping { return v.EntityTags }
 
 // DatasetCorrelationTagMappingsCorrelationTagMapping includes the requested fields of the GraphQL type CorrelationTagMapping.
 type DatasetCorrelationTagMappingsCorrelationTagMapping struct {
@@ -1488,23 +1454,6 @@ type DatasetDryRunSaveResult struct {
 func (v *DatasetDryRunSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
 	return v.DematerializedDatasets
 }
-
-// DatasetEntityTagsEntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
-// The GraphQL type's documentation follows.
-//
-// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-// (datasets, dashboards, worksheets, monitors, etc.).
-// Each mapping contains a tag key and a list of values associated with that key.
-type DatasetEntityTagsEntityTagMapping struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
-// GetKey returns DatasetEntityTagsEntityTagMapping.Key, and is useful for accessing the field via an interface.
-func (v *DatasetEntityTagsEntityTagMapping) GetKey() string { return v.Key }
-
-// GetValues returns DatasetEntityTagsEntityTagMapping.Values, and is useful for accessing the field via an interface.
-func (v *DatasetEntityTagsEntityTagMapping) GetValues() []string { return v.Values }
 
 // DatasetError includes the GraphQL fields of DatasetError requested by the fragment DatasetError.
 type DatasetError struct {
@@ -2439,6 +2388,23 @@ func (v *EmailActionInput) GetIsHtml() *bool { return v.IsHtml }
 
 // GetFragments returns EmailActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
+
+// EntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
+// The GraphQL type's documentation follows.
+//
+// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
+// (datasets, dashboards, worksheets, monitors, etc.).
+// Each mapping contains a tag key and a list of values associated with that key.
+type EntityTagMapping struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
+// GetKey returns EntityTagMapping.Key, and is useful for accessing the field via an interface.
+func (v *EntityTagMapping) GetKey() string { return v.Key }
+
+// GetValues returns EntityTagMapping.Values, and is useful for accessing the field via an interface.
+func (v *EntityTagMapping) GetValues() []string { return v.Values }
 
 // EntityTagMappingInput is the input type for EntityTagMapping.
 type EntityTagMappingInput struct {
@@ -10706,7 +10672,7 @@ type Worksheet struct {
 	WorkspaceId string       `json:"workspaceId"`
 	Stages      []StageQuery `json:"stages"`
 	// Entity tags for organizing and categorizing worksheets.
-	EntityTags []WorksheetEntityTagsEntityTagMapping `json:"entityTags"`
+	EntityTags []EntityTagMapping `json:"entityTags"`
 }
 
 // GetId returns Worksheet.Id, and is useful for accessing the field via an interface.
@@ -10728,24 +10694,7 @@ func (v *Worksheet) GetWorkspaceId() string { return v.WorkspaceId }
 func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
 
 // GetEntityTags returns Worksheet.EntityTags, and is useful for accessing the field via an interface.
-func (v *Worksheet) GetEntityTags() []WorksheetEntityTagsEntityTagMapping { return v.EntityTags }
-
-// WorksheetEntityTagsEntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
-// The GraphQL type's documentation follows.
-//
-// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-// (datasets, dashboards, worksheets, monitors, etc.).
-// Each mapping contains a tag key and a list of values associated with that key.
-type WorksheetEntityTagsEntityTagMapping struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
-// GetKey returns WorksheetEntityTagsEntityTagMapping.Key, and is useful for accessing the field via an interface.
-func (v *WorksheetEntityTagsEntityTagMapping) GetKey() string { return v.Key }
-
-// GetValues returns WorksheetEntityTagsEntityTagMapping.Values, and is useful for accessing the field via an interface.
-func (v *WorksheetEntityTagsEntityTagMapping) GetValues() []string { return v.Values }
+func (v *Worksheet) GetEntityTags() []EntityTagMapping { return v.EntityTags }
 
 // WorksheetIdLabel includes the GraphQL fields of Worksheet requested by the fragment WorksheetIdLabel.
 type WorksheetIdLabel struct {

@@ -3,7 +3,6 @@ package observe
 import (
 	"bytes"
 	"encoding/csv"
-	"reflect"
 	"sort"
 	"strings"
 
@@ -54,26 +53,11 @@ func expandEntityTagsFromMap(tagsMap map[string]interface{}) []gql.EntityTagMapp
 
 // flattenEntityTagsToMap converts GraphQL EntityTagMapping to a Terraform map.
 // Multiple values are joined with commas using CSV encoding for proper escaping.
-//
-// Uses reflection to handle all EntityTagMapping types generically, avoiding
-// the need for a type switch with duplicate code for each resource type.
-func flattenEntityTagsToMap(tags interface{}) map[string]interface{} {
+func flattenEntityTagsToMap(tags []gql.EntityTagMapping) map[string]interface{} {
 	result := make(map[string]interface{})
-
-	// Use reflection to iterate over any slice of EntityTagMapping structs
-	v := reflect.ValueOf(tags)
-	if v.Kind() != reflect.Slice {
-		return result
+	for _, tag := range tags {
+		result[tag.Key] = encodeCSVValues(tag.Values)
 	}
-
-	for i := 0; i < v.Len(); i++ {
-		tag := v.Index(i)
-		// All EntityTagMapping types have Key and Values fields
-		key := tag.FieldByName("Key").String()
-		values := tag.FieldByName("Values").Interface().([]string)
-		result[key] = encodeCSVValues(values)
-	}
-
 	return result
 }
 

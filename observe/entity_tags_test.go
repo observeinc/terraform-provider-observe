@@ -125,21 +125,21 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 	}
 }
 
-// TestFlattenEntityTagsToMap tests the reflection-based flatten function with all resource types
+// TestFlattenEntityTagsToMap tests the flatten function
 func TestFlattenEntityTagsToMap(t *testing.T) {
 	testcases := []struct {
 		name     string
-		input    interface{} // Can be any EntityTagMapping slice type
+		input    []gql.EntityTagMapping
 		expected map[string]interface{}
 	}{
 		{
-			name:     "empty Dataset slice",
-			input:    []gql.DatasetEntityTagsEntityTagMapping{},
+			name:     "empty slice",
+			input:    []gql.EntityTagMapping{},
 			expected: map[string]interface{}{},
 		},
 		{
-			name: "Dataset - single value",
-			input: []gql.DatasetEntityTagsEntityTagMapping{
+			name: "single value",
+			input: []gql.EntityTagMapping{
 				{Key: "environment", Values: []string{"production"}},
 			},
 			expected: map[string]interface{}{
@@ -147,8 +147,8 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "Dashboard - multiple values",
-			input: []gql.DashboardEntityTagsEntityTagMapping{
+			name: "multiple values",
+			input: []gql.EntityTagMapping{
 				{Key: "team", Values: []string{"backend", "frontend"}},
 			},
 			expected: map[string]interface{}{
@@ -156,8 +156,8 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "Worksheet - internal spaces preserved",
-			input: []gql.WorksheetEntityTagsEntityTagMapping{
+			name: "internal spaces preserved",
+			input: []gql.EntityTagMapping{
 				{Key: "description", Values: []string{"Team Alpha", "Team Beta"}},
 			},
 			expected: map[string]interface{}{
@@ -165,8 +165,8 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "Bookmark - CSV quoted values",
-			input: []gql.BookmarkEntityTagsEntityTagMapping{
+			name: "CSV quoted values",
+			input: []gql.EntityTagMapping{
 				{Key: "note", Values: []string{"Team A, Inc"}},
 			},
 			expected: map[string]interface{}{
@@ -174,8 +174,8 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "Dataset - mixed quoted and unquoted",
-			input: []gql.DatasetEntityTagsEntityTagMapping{
+			name: "mixed quoted and unquoted",
+			input: []gql.EntityTagMapping{
 				{Key: "tags", Values: []string{"Team A, Inc", "backend", "frontend"}},
 			},
 			expected: map[string]interface{}{
@@ -183,8 +183,8 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "Dashboard - multiple tags",
-			input: []gql.DashboardEntityTagsEntityTagMapping{
+			name: "multiple tags",
+			input: []gql.EntityTagMapping{
 				{Key: "environment", Values: []string{"production"}},
 				{Key: "team", Values: []string{"backend", "frontend"}},
 				{Key: "region", Values: []string{"us-west-2"}},
@@ -195,15 +195,9 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 				"region":      "us-west-2",
 			},
 		},
-		// Edge cases
 		{
 			name:     "nil input",
 			input:    nil,
-			expected: map[string]interface{}{},
-		},
-		{
-			name:     "non-slice input",
-			input:    "not a slice",
 			expected: map[string]interface{}{},
 		},
 	}
