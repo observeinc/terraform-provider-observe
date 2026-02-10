@@ -1,0 +1,163 @@
+extend type Mutation {
+    """
+    Add blocks to an investigation notebook.
+    """
+    addBlocksToInvestigationNotebook(notebookId: ObjectId!, blocks: [NotebookBlockInput!]!): [NotebookBlock!]!
+    """
+    Ask the AI to run an instruction on an investigation notebook.
+    """
+    runNotebookInstruction(notebookId: ObjectId!, input: NotebookInstructionInput!): NotebookInstructionJobState!
+    """
+    Update the status of a notebook instruction job.
+    """
+    updateNotebookInstructionStatus(taskID: ObjectId!, input: NotebookInstructionJobStateInput!): NotebookInstructionJobState!
+    """
+    Update a block in an investigation notebook.
+    """
+    updateNotebookBlock(notebookId: ObjectId!, input: NotebookBlockInput!): NotebookBlock!
+    """
+    Remove blocks from an investigation notebook.
+    """
+    removeBlocksFromInvestigationNotebook(notebookId: ObjectId!, blockIds: [String!]!): [NotebookBlock!]!
+    """
+    Create an investigation notebook with a mocked alert. For testing only.
+    """
+    createTestInvestigationNotebook(workspaceId: ObjectId!, input: InvestigationNotebookInput!): InvestigationNotebook!
+    """
+    Update the user status of a notebook.
+    """
+    updateNotebookUserStatus(notebookId: ObjectId!, input: NotebookUserInfoInput!): [NotebookUserInfo!]!
+    """
+    Score a particular response in the notebooks API.
+    Any positive value is "good" and any negative value is "bad".
+    """
+    scoreNotebook(notebookId: ObjectId!, score: Int64!, blockId: String): ResultStatus!
+    """
+    Select a choice for a notebook.
+    Can be any choice for which there is a valid choice ID in the notebook.
+    The text can be altered from what the original choice was if needed.
+    If the text is not specified, the original choice text will be used.
+    If the text is the same as the original choice text, we will run the recorded tool call instead
+    of actually calling all the LLMs again.
+    """
+    selectNotebookChoice(notebookId: ObjectId!, choiceId: String!, choiceText: String!): NotebookInstructionJobState!
+}
+extend type Query {
+    """
+    Get the user status of a notebook.
+    """
+    getNotebookUserStatus(notebookId: ObjectId!): [NotebookUserInfo!]!
+    """
+    Get the status of a notebook instruction job.
+    """
+    notebookInstructionStatus(taskID: ObjectId!): NotebookInstructionJobState!
+}
+enum InstructionType  @goModel(model: "observe/meta/metatypes.InstructionType"){
+    SummarizeBlock
+    FollowInstruction
+    Investigate
+    Interrupt
+    GenerateChoices
+    FollowChoice
+}
+enum InstructionStatus @goModel(model: "observe/meta/metatypes.InstructionStatus") {
+    Failed
+    Running
+    Pending
+    Success
+}
+input NotebookInstructionInput @goModel(model: "observe/meta/metatypes.NotebookInstructionInput") {
+    operation: InstructionType!
+    instruction: String
+    blockID: String # this is a UUID but gmodelgen doesn't support UUIDs
+    taskID: ObjectId
+}
+
+type NotebookInstructionJobStatusMessage @goModel(model: "observe/meta/metatypes.NotebookInstructionJobStatusMessage") {
+    message: String!
+    timestamp: Time!
+}
+
+input NotebookInstructionJobStatusMessageInput @goModel(model: "observe/meta/metatypes.NotebookInstructionJobStatusMessage") {
+    message: String!
+    timestamp: Time!
+}
+
+type NotebookInstructionJobState @goModel(model: "observe/meta/metatypes.NotebookInstructionJobState") {
+    taskID: ObjectId!
+    status: InstructionStatus
+    statusMessages: [NotebookInstructionJobStatusMessage!]
+    notebookID: ObjectId!
+    createdAt: Time!
+    updatedAt: Time!
+    errorMessage: String
+}
+
+input NotebookInstructionJobStateInput @goModel(model: "observe/meta/metatypes.NotebookInstructionJobStateInput") {
+    status: InstructionStatus
+    statusMessages: [NotebookInstructionJobStatusMessageInput!]
+    errorMessage: String
+}
+
+type NotebookUserInfo @goModel(model: "observe/meta/metatypes.NotebookUserInfo") {
+    userId: UserId!
+    user: User!
+    isTyping: Boolean!
+    updatedAt: Time!
+}
+input NotebookUserInfoInput @goModel(model: "observe/meta/metatypes.NotebookUserInfoInput") {
+    isTyping: Boolean!
+}
+
+
+type NotebookContextCorrelationTag @goModel(model: "observe/meta/metatypes.NotebookContextCorrelationTag") {
+    id: String!
+    value: String!
+}
+
+type NotebookContextResource @goModel(model: "observe/meta/metatypes.NotebookContextResource") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValue!]!
+    label: String!
+}
+
+input NotebookContextCorrelationTagInput @goModel(model: "observe/meta/metatypes.NotebookContextCorrelationTag") {
+    id: String!
+    value: String!
+}
+
+input NotebookContextResourceInput @goModel(model: "observe/meta/metatypes.NotebookContextResource") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValueInput!]!
+    label: String!
+}
+
+type NotebookContextValueInstance @goModel(model: "observe/meta/metatypes.NotebookContextValueInstance") {
+    bool: Boolean
+    int64: Int64
+    float64: Float
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArray
+    link: ValueLink
+    datasetref: ValueDatasetref
+    timeRange: TimeRange
+    correlationTag: NotebookContextCorrelationTag
+    resource: NotebookContextResource
+}
+
+input NotebookContextValueInstanceInput @goModel(model: "observe/meta/metatypes.NotebookContextValueInstanceInput") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArrayInput
+    link: ValueLinkInput
+    datasetref: ValueDatasetrefInput
+    timeRange: TimeRangeInput
+    correlationTag: NotebookContextCorrelationTagInput
+    resource: NotebookContextResourceInput
+}

@@ -39,7 +39,7 @@ input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
     expiration: Time!
 }
 
-enum AuthtokenKind @goModel(model: "observe/authorization.AuthtokenKind") {
+enum AuthtokenKind @goModel(model: "observe/authorization/authtypes.AuthtokenKind") {
     Datastream
     Login
     Api
@@ -48,6 +48,12 @@ enum AuthtokenKind @goModel(model: "observe/authorization.AuthtokenKind") {
 
 extend type Query {
     authtoken(id: String!): Authtoken!
+
+    """
+    "kinds" and "user" are both optional, but combine together with AND -- "find all Login tokens for user 3"
+    Meanwhile, "kinds" is OR -- "find all authtokens that are either Login or Sso".
+    If left unspecified, "kinds" defaults to [Api].
+    """
     searchAuthtokens(kinds: [AuthtokenKind!], user: UserId): [Authtoken!]
 }
 

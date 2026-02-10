@@ -7,6 +7,7 @@
 #  - ./another_directory/*/*.graphql
 schema:
 - ../internal/meta/schema/*.graphql
+- ../internal/meta/schema/*/*.graphql
 
 # Filename(s) or globs with the operations for which to generate code, relative
 # to genqlient.yaml.

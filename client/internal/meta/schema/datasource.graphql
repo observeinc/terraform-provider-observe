@@ -1,25 +1,23 @@
-# Objects that represent collections of ingestion components that bring data into observe.
-# this file is auto-generated, do not edit
 extend type DataConnection {
     datasources: [Datasource!]! @goField(forceResolver: true)
 }
 
 extend type Query {
   """
-  DataConnectionModuleVersion returns the complete list of all versions a DataConnectionModule's definition.
+  Returns the complete list of all versions a DataConnectionModule's definition.
   """
-  dataConnectionModuleVersions(id: String!, workspaceId: ObjectId!): [DataConnectionModuleVersion!]!
+  dataConnectionModuleVersions(id: String!, workspaceId: ObjectId!, latest: Boolean): [DataConnectionModuleVersion!]!
   """
-  GetDatasourcesByConnection returns the list of all Datasources for a given DataConnection.
+  Returns the list of all Datasources for a given DataConnection.
   """
-  GetDatasourcesByConnection(dataConnectionId: ObjectId!): [Datasource]!
+  getDatasourcesByConnection(dataConnectionId: ObjectId!): [Datasource]!
 }
 
 extend type Query {
     datasource(id: ObjectId!): Datasource!
     searchDatasource(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DatasourceSearchResult!
     dataConnection(id: ObjectId!): DataConnection!
-    searchDataConnection(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DataConnectionSearchResult!
+    searchDataConnection(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String, moduleID: String): DataConnectionSearchResult!
 }
 
 extend type Mutation {
@@ -32,8 +30,11 @@ extend type Mutation {
 }
 
 enum DatasetType @goModel(model: "observe/meta/metatypes.DatasetType") {
+  k8s_entity
   otellogs
   otelmetrics
+  oteltraces
+  prometheus
 }
 
 enum DatasourceState @goModel(model: "observe/meta/metatypes.DatasourceState") {
@@ -42,8 +43,13 @@ enum DatasourceState @goModel(model: "observe/meta/metatypes.DatasourceState") {
   Running
 }
 
+enum DatasourceType @goModel(model: "observe/meta/metatypes.DatasourceType") {
+  Filedrop
+  Poller
+  Token
+}
+
 type DataVariable @goModel(model: "observe/meta/metatypes.DataVariable") {
-    # payload
     name: String!
     title: String
     type: String!
@@ -57,22 +63,117 @@ type DataVariable @goModel(model: "observe/meta/metatypes.DataVariable") {
 }
 
 input DataVariableInput @goModel(model: "observe/meta/metatypes.DataVariableInput") {
-    # payload
     name: String!
     title: String
-    # not in input: type: String!
-    # not in input: description: String
-    # not in input: required: Boolean!
-    # not in input: sensitive: Boolean
-    # not in input: default: String
-    # not in input: advanced: Boolean
-    # not in input: validValues: [String!]
     value: String
 }
 
 
+type DatasourceConfig @goModel(model: "observe/meta/metatypes.DatasourceConfig") {
+    datasourceFiledropConfig: DatasourceFiledropConfig
+    awsMetricsPollerConfig: AWSMetricsPollerConfig
+    awsCollectionStackConfig: AWSCollectionStackConfig
+}
+
+input DatasourceConfigInput @goModel(model: "observe/meta/metatypes.DatasourceConfigInput") {
+    awsMetricsPollerConfig: AWSMetricsPollerConfigInput
+    awsCollectionStackConfig: AWSCollectionStackConfigInput
+}
+
+
+type DatasourceFiledropConfig @goModel(model: "observe/meta/metatypes.DatasourceFiledropConfig") {
+    filedrop: Filedrop! @goField(forceResolver: true)
+    destinationUri: String!
+    dataAccessPointArn: String!
+}
+
+input DatasourceFiledropConfigInput @goModel(model: "observe/meta/metatypes.DatasourceFiledropConfigInput") {
+    filedropID: ObjectId!
+    destinationUri: String!
+    dataAccessPointArn: String!
+}
+
+
+type AWSMetricsPollerConfig @goModel(model: "observe/meta/metatypes.AWSMetricsPollerConfig") {
+    poller: Poller! @goField(forceResolver: true)
+}
+
+input AWSMetricsPollerConfigInput @goModel(model: "observe/meta/metatypes.AWSMetricsPollerConfigInput") {
+    cloudWatchMetricsConfig: [AWSPollerMetricsInput!]!
+    interval: Duration!
+}
+
+
+type AWSCollectionStackConfig @goModel(model: "observe/meta/metatypes.AWSCollectionStackConfig") {
+    configDeliveryBucketName: String
+    logGroupNamePatterns: [String!]
+    excludeLogGroupNamePatterns: [String!]
+    sourceBucketNames: [String!]
+    awsServiceMetricsList: [AWSServiceMetrics!]
+    customMetricsList: [AWSServiceMetrics!]
+    configResourceList: [String!]
+}
+
+input AWSCollectionStackConfigInput @goModel(model: "observe/meta/metatypes.AWSCollectionStackConfigInput") {
+    configDeliveryBucketName: String
+    logGroupNamePatterns: [String!]
+    excludeLogGroupNamePatterns: [String!]
+    sourceBucketNames: [String!]
+    awsServiceMetricsList: [AWSServiceMetricsInput!]
+    customMetricsList: [AWSServiceMetricsInput!]
+    configResourceList: [String!]
+}
+
+
+type AWSServiceMetrics @goModel(model: "observe/meta/metatypes.AWSServiceMetrics") {
+    namespace: String!
+    metricNames: [String!]!
+}
+
+input AWSServiceMetricsInput @goModel(model: "observe/meta/metatypes.AWSServiceMetricsInput") {
+    namespace: String!
+    metricNames: [String!]!
+}
+
+
+type AWSPollerMetrics @goModel(model: "observe/meta/metatypes.AWSPollerMetrics") {
+    namespace: String!
+    metricNames: [String!]
+    tagFilters: [TagFilter!]
+    dimensions: [DimensionFilter!]
+}
+
+input AWSPollerMetricsInput @goModel(model: "observe/meta/metatypes.AWSPollerMetricsInput") {
+    namespace: String!
+    metricNames: [String!]
+    tagFilters: [TagFilterInput!]
+    dimensions: [DimensionFilterInput!]
+}
+
+
+type TagFilter @goModel(model: "observe/meta/metatypes.TagFilter") {
+    key: String!
+    values: [String!]!
+}
+
+input TagFilterInput @goModel(model: "observe/meta/metatypes.TagFilterInput") {
+    key: String!
+    values: [String!]!
+}
+
+
+type DimensionFilter @goModel(model: "observe/meta/metatypes.DimensionFilter") {
+    name: String!
+    value: String!
+}
+
+input DimensionFilterInput @goModel(model: "observe/meta/metatypes.DimensionFilterInput") {
+    name: String!
+    value: String!
+}
+
+
 type DatasourceInstruction @goModel(model: "observe/meta/metatypes.DatasourceInstruction") {
-    # payload
     clientStackAttributeValues: JsonObject!
     template: String!
 }
@@ -81,7 +182,6 @@ type DatasourceInstruction @goModel(model: "observe/meta/metatypes.DatasourceIns
 
 
 type DatasourceDefinition @goModel(model: "observe/meta/metatypes.DatasourceDefinition") {
-    # payload
     name: String!
     description: String!
     type: String!
@@ -94,7 +194,6 @@ type DatasourceDefinition @goModel(model: "observe/meta/metatypes.DatasourceDefi
 
 
 type DatasourceStatus @goModel(model: "observe/meta/metatypes.DatasourceStatus") {
-    # payload
     state: DatasourceState!
     details: JsonObject
 }
@@ -103,15 +202,14 @@ type DatasourceStatus @goModel(model: "observe/meta/metatypes.DatasourceStatus")
 
 
 type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datasource") {
-    # payload
     dataConnectionID: ObjectId!
     datastreamID: ObjectId!
-    datastreamTokenID: String!
-    type: String!
+    datastreamTokenID: String
+    type: DatasourceType
     status: DatasourceStatus!
     clientStackAttributes: [DataVariable!]!
     variables: [DataVariable!]!
-    # WorkspaceObject
+    config: DatasourceConfig
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -120,10 +218,8 @@ type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goMod
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -133,21 +229,18 @@ type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goMod
 }
 
 input DatasourceInput @goModel(model: "observe/meta/metatypes.DatasourceInput") {
-    # payload
     dataConnectionID: ObjectId!
     datastreamID: ObjectId!
-    datastreamTokenID: String!
-    # not in input: type: String!
-    # not in input: status: DatasourceStatusInput!
+    datastreamTokenID: String
+    type: DatasourceType
     clientStackAttributes: [DataVariableInput!]!
     variables: [DataVariableInput!]!
-    # WorkspaceObject
+    config: DatasourceConfigInput
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 
@@ -156,7 +249,6 @@ type DatasourceSearchResult @goModel(model: "observe/meta/metatypes.DatasourceSe
 }
 
 type RequiredDatasetDefinition @goModel(model: "observe/meta/metatypes.RequiredDatasetDefinition") {
-    # payload
     type: DatasetType!
 }
 
@@ -164,7 +256,6 @@ type RequiredDatasetDefinition @goModel(model: "observe/meta/metatypes.RequiredD
 
 
 type DatastreamDefinition @goModel(model: "observe/meta/metatypes.DatastreamDefinition") {
-    # payload
     name: String!
     supportedTypes: [RequiredDatasetDefinition!]!
 }
@@ -173,17 +264,18 @@ type DatastreamDefinition @goModel(model: "observe/meta/metatypes.DatastreamDefi
 
 
 type DataConnectionOutputs @goModel(model: "observe/meta/metatypes.DataConnectionOutputs") {
-    # payload
     name: String!
     target: String!
+    datasetName: String
+    metricName: String
 }
 
 
 
 
 type DataConnectionModuleVersion @goModel(model: "observe/meta/metatypes.DataConnectionModuleVersion") {
-    # payload
     id: String!
+    appID: String!
     version: String!
     changelog: String!
     readme: String!
@@ -191,24 +283,22 @@ type DataConnectionModuleVersion @goModel(model: "observe/meta/metatypes.DataCon
     variableInputs: [DataVariable!]!
     datasourceDefinitions: [DatasourceDefinition!]!
     outputs: [DataConnectionOutputs!]!
-    defaultDatastream: DatastreamDefinition!
+    defaultDatastream: DatastreamDefinition! @deprecated(reason:"This was moved to an array field `defaultDatastreams`. You should use that field instead of this.")
+    defaultDatastreams: [DatastreamDefinition!]!
 }
 
 
 
 
 type DataConnection implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DataConnection") {
-    # payload
     moduleID: String!
     version: String!
     changelog: String!
     readme: String!
     source: String!
     variables: [DataVariable!]!
-    # not in output: datasources: [Datasource!]! @goField(forceResolver: true)
     outputs: [DataConnectionOutputs!]!
     defaultDatastreams: [DatastreamDefinition!]!
-    # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -217,10 +307,8 @@ type DataConnection implements WorkspaceObject & AuditedObject & FolderObject @g
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -230,23 +318,14 @@ type DataConnection implements WorkspaceObject & AuditedObject & FolderObject @g
 }
 
 input DataConnectionInput @goModel(model: "observe/meta/metatypes.DataConnectionInput") {
-    # payload
     moduleID: String!
     version: String!
-    # not in input: changelog: String!
-    # not in input: readme: String!
-    # not in input: source: String!
     variables: [DataVariableInput!]!
-    # resolver: datasources: [DatasourceInput!]!
-    # not in input: outputs: [DataConnectionOutputsInput!]!
-    # not in input: defaultDatastreams: [DatastreamDefinitionInput!]!
-    # WorkspaceObject
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 

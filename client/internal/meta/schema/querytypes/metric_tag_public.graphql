@@ -1,0 +1,41 @@
+
+enum MetricState @goModel(model: "observe/meta/metatypes.MetricState"){
+    """
+    A metric in Active state is usable and currently reporting
+    """
+    Active
+    """
+    A metric in Inactive state is usable, but not currently reporting
+    """
+    Inactive
+    """
+    A metric in Error state is unusable because the metric dataset has errors in its definition
+    """
+    Error
+}
+
+type MetricTag @goModel(model: "observe/meta/metatypes.MetricTag") {
+    tagName: String!
+    tagPaths: [DatasetTagPath!]!
+    """
+    The preferredTagName is the tag name to be used based off the discovery rules.
+    If we have the following (clusterUid, cluster, k8s.cluster.uid) tags and a discovery
+    rule that maps the field clusterUid to k8s.cluster.uid tag, the preferred tags for
+    the example above would be:
+    1. tagName: clusterUid, preferredTagName: k8s.cluster.uid
+    2. tagName: cluster
+    3. tagName: k8s.cluster.uid
+    where the preferredTagName would be empty for (2) and (3) as there's no discovery rule matches.
+    """
+    preferredTagName: String
+}
+
+type DatasetTagPath @goModel(model: "observe/meta/metatypes.DatasetTagPath") {
+    datasetId: ObjectId!
+    tagPath: TagPath!
+}
+
+type MetricTagValues @goModel(model: "observe/meta/metatypes.MetricTagValues"){
+    tagValues: [String!]!
+    total: Int64!
+}

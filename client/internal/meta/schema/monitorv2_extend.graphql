@@ -1,5 +1,11 @@
 extend type Query {
     """
+    Allows frontend to retrieve the necessary OPAL and schema metadata to visualize an appropriate
+    evaluated data preview for the user.
+    """
+    evaluateMonitorV2Source(input: MonitorV2Input!): MonitorV2SourceEvaluation!
+
+    """
     Accepts the same input as create or update, but for the purpose of showing to the user
     how the candidate monitor definition will behave against the input data. The return is a preview type that
     shows how the monitoring strategy will emit results.
@@ -22,17 +28,21 @@ extend type Query {
     any URLs with a workspaceId have the correct value.
     """
     monitorV2TemplateDictionary(
+        workspaceId: ObjectId,
+        monitorId: ObjectId,
         alertType: MonitorV2AlertType,
         monitorInput: MonitorV2Input!,
         alarmInput: MonitorV2AlarmInput!,
-        workspaceId: ObjectId,
     ): TemplateDictionary!
 
     """
     Receive an actionInput and sample data payload to render all the fields in the mustache template.
     SampleData is the json payload that contains all the fields to render the mustache template.
     """
-    monitorV2RenderTemplate(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): RenderedTemplate!
+    monitorV2RenderTemplate(
+        templateDict: JsonObject!, 
+        actionInput: MonitorV2ActionInput!,
+    ): RenderedTemplate!
 
     """
     Can be used to query alerts in the explorer using various optional filters.
@@ -58,8 +68,19 @@ extend type Query {
         levels: [MonitorV2AlarmLevel!],
         groupingHash: Int64,
         active: Boolean,
-        # TODO: captured value search?
     ): MonitorV2AlarmSearchResult!
+
+    """
+    Returns counts of monitor v2 alarms grouped by various facets (monitor name, status, level, muted).
+    This is useful for displaying summary statistics and filter counts in the UI.
+
+    minTime and maxTime optionally restrict to alarms that partially overlap with the time range
+    """
+    getMonitorV2AlarmCounts(
+        workspaceId: ObjectId!,
+        minTime: Time,
+        maxTime: Time,
+    ): MonitorV2AlarmCountsResult!
 }
 
 extend type Mutation {
@@ -101,7 +122,10 @@ extend type Mutation {
     the actionInput and destinationInputs object. Afterward, it sends a test alert to see whether the customer can
     receive an alert at their designated end point.
     """
-    testMonitorV2Alert(templateDict: JsonObject!, actionInput: MonitorV2ActionInput!): ResultStatus!
+    testMonitorV2Alert(
+        templateDict: JsonObject!, 
+        actionInput: MonitorV2ActionInput!,
+    ): ResultStatus!
 
     """
     SaveMonitorV2WithActions builds on the primitives of createMonitorV2, updateMonitorV2,
@@ -123,8 +147,10 @@ extend type Mutation {
     ): MonitorV2!
 }
 
-# Future placeholder for mutation in one go -- an optional definition can be added along with what type of mutation
-# the frontend desires
+type MonitorV2SourceEvaluation @goModel(model: "observe/meta/metatypes.MonitorV2SourceEvaluation") {
+    query: MultiStageQuery!
+}
+
 """
 ActionRelationInput maps the action's relationship to the destinations the user desires to link with.
 """
@@ -154,6 +180,72 @@ type MonitorV2AlarmSearchResult @goModel(model: "observe/meta/metatypes.MonitorV
 }
 
 """
+MonitorV2AlarmStatus represents the current status of an alarm.
+- Active: The alarm is currently triggering
+- Ended: The alarm has ended normally
+- Retracted: The alarm was invalidated (false positive due to late-arriving data)
+"""
+enum MonitorV2AlarmStatus @goModel(model: "observe/meta/metatypes.MonitorV2AlarmStatus") {
+    Active
+    Ended
+    Retracted
+}
+
+"""
+MonitorV2AlarmCountByMonitor represents the count of alarms for a specific monitor.
+"""
+type MonitorV2AlarmCountByMonitor @goModel(model: "observe/meta/metatypes.MonitorV2AlarmCountByMonitor") {
+    monitorId: ObjectId!
+    count: Int64!
+}
+
+"""
+MonitorV2AlarmCountByStatus represents the count of alarms for a specific status.
+"""
+type MonitorV2AlarmCountByStatus @goModel(model: "observe/meta/metatypes.MonitorV2AlarmCountByStatus") {
+    status: MonitorV2AlarmStatus!
+    count: Int64!
+}
+
+"""
+MonitorV2AlarmCountByLevel represents the count of alarms for a specific severity level.
+"""
+type MonitorV2AlarmCountByLevel @goModel(model: "observe/meta/metatypes.MonitorV2AlarmCountByLevel") {
+    level: MonitorV2AlarmLevel!
+    count: Int64!
+}
+
+"""
+MonitorV2AlarmCountByMuted represents the count of alarms by their muted status.
+"""
+type MonitorV2AlarmCountByMuted @goModel(model: "observe/meta/metatypes.MonitorV2AlarmCountByMuted") {
+    isMuted: Boolean!
+    count: Int64!
+}
+
+"""
+MonitorV2AlarmCountsResult contains the alarm counts grouped by various facets.
+"""
+type MonitorV2AlarmCountsResult @goModel(model: "observe/meta/metatypes.MonitorV2AlarmCountsResult") {
+    """
+    Alarm counts grouped by monitor.
+    """
+    byMonitor: [MonitorV2AlarmCountByMonitor!]!
+    """
+    Alarm counts grouped by status (Active, Ended, Retracted).
+    """
+    byStatus: [MonitorV2AlarmCountByStatus!]!
+    """
+    Alarm counts grouped by severity level.
+    """
+    byLevel: [MonitorV2AlarmCountByLevel!]!
+    """
+    Alarm counts grouped by muted status.
+    """
+    byMuted: [MonitorV2AlarmCountByMuted!]!
+}
+
+"""
 MonitorV2ActionAndRelationInput allows for defining a relation and an optional action at the same
 time for the saveMonitorV2WithActions function. This emulates what the primitives
 do using MonitorV2ActionInput and MonitorV2ActionRuleInput.
@@ -173,4 +265,42 @@ input MonitorV2ActionAndRelationInput @goModel(model: "observe/meta/metatypes.Mo
     conditions: MonitorV2ComparisonExpressionInput
     sendEndNotifications: Boolean
     sendRemindersInterval: Duration
+}
+
+"""
+MonitorV2GovernorStatusKind describes the cost governor status for a monitor.
+The governor tracks monitor usage against cost limits and can disable monitors
+that exceed their budget.
+"""
+enum MonitorV2GovernorStatusKind @goModel(model: "observe/meta/metatypes.MonitorV2GovernorStatusKind") {
+    """
+    Normal: Usage is within budget or no limit is configured. Monitor runs normally.
+    """
+    Normal
+    """
+    GracePeriod: Monitor is over budget but still running during a countdown period.
+    The gracePeriodRemaining field indicates how much time is left before the monitor
+    will be disabled.
+    """
+    GracePeriod
+    """
+    CostDisabled: Grace period expired and monitor is over budget. Monitor is disabled
+    by the cost governor. The user must re-enable the monitor to restart it.
+    """
+    CostDisabled
+}
+
+"""
+MonitorV2GovernorStatus represents the cost governor status of a monitor.
+"""
+type MonitorV2GovernorStatus @goModel(model: "observe/meta/metatypes.MonitorV2GovernorStatus") {
+    """
+    The current status of the monitor with respect to the cost governor.
+    """
+    status: MonitorV2GovernorStatusKind!
+    """
+    When status is GracePeriod, this indicates how much time remains before the monitor
+    will be disabled. This is null for Normal and CostDisabled states.
+    """
+    gracePeriodRemaining: Duration
 }

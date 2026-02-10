@@ -2,7 +2,7 @@ extend type User {
     """
     Contains information about the credit usage of the user
     """
-    creditUsage: UserCreditUsage!
+    creditUsage: UserCreditUsage! @goField(forceResolver: true)
 }
 
 

@@ -41,19 +41,19 @@ type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
     lastError: Time
     numTokens: Int64!
     """
-    per minute observation counts for the past hour
+    Per minute observation counts for the past hour
     """
     observations: [TimeSeriesValue!]
     """
-    per minute ingest volume bytes for the past hour
+    Per minute ingest volume bytes for the past hour
     """
     volumeBytes: [TimeSeriesValue!]
     """
-    total observations for the past hour derived from the above per minute counts
+    Total observations for the past hour derived from the above per minute counts
     """
     totalObservations: Int64!
     """
-    total volume bytes for the past hour derived from the above per minute counts
+    Total volume bytes for the past hour derived from the above per minute counts
     """
     totalVolumeBytes: Int64!
 }
@@ -66,7 +66,6 @@ enum DatastreamState @goModel(model: "observe/meta/metatypes.DatastreamState") {
 
 type DatastreamPrometheus @goModel(model: "observe/meta/metatypes.DatastreamPrometheusOutput") {
     enabled: Boolean!
-    useTransform: Boolean!
 }
 
 type DatastreamOtelLogs @goModel(model: "observe/meta/metatypes.DatastreamOtelLogsOutput") {
@@ -75,6 +74,29 @@ type DatastreamOtelLogs @goModel(model: "observe/meta/metatypes.DatastreamOtelLo
 
 type DatastreamK8sEntity @goModel(model: "observe/meta/metatypes.DatastreamK8sEntityOutput") {
     enabled: Boolean!
+}
+
+type DatastreamDirectWrite @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteOutput") {
+    prometheus:  DatastreamDirectWriteInfoPrometheus
+    otelLogs:    DatastreamDirectWriteInfo
+    otelMetrics: DatastreamDirectWriteInfo
+    k8sEntity:   DatastreamDirectWriteInfo
+    otelTrace:   DatastreamDirectWriteInfoOtelTrace
+}
+
+type DatastreamDirectWriteInfo @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInfoOutput") {
+    datasetId: ObjectId!
+}
+
+type DatastreamDirectWriteInfoPrometheus @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInfoPrometheusOutput") {
+    datasetId: ObjectId!
+    metadataDatasetId: ObjectId!
+}
+
+type DatastreamDirectWriteInfoOtelTrace @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInfoOtelTraceOutput") {
+    spanDatasetId: ObjectId!
+    spanEventDatasetId: ObjectId!
+    spanLinkDatasetId: ObjectId!
 }
 
 type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datastream") {
@@ -87,28 +109,35 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
-    datasetId: ObjectId!
+    datasetId: ObjectId
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     updatedBy: UserId!
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
     updatedDate: Time!
-    disabled: Boolean! @deprecated(reason: "use state instead")
     state: DatastreamState!
     tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
     filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
     externalSourceId: ObjectId
-    prometheus: DatastreamPrometheus @goField(forceResolver:true)
-    otelLogs: DatastreamOtelLogs @goField(forceResolver:true)
-    k8sEntity: DatastreamK8sEntity @goField(forceResolver:true)
+
+
+}
+
+input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
+    name: String!
+    description: String
+    iconUrl: String
+    disabled: Boolean
+    externalSourceId: ObjectId
+
+
 }
 
 input DatastreamPrometheusInput @goModel(model: "observe/meta/metatypes.DatastreamPrometheusInput") {
     enabled: Boolean!
-    useTransform: Boolean
 }
 
 input DatastreamOtelLogsInput @goModel(model: "observe/meta/metatypes.DatastreamOtelLogsInput") {
@@ -119,15 +148,12 @@ input DatastreamK8sEntityInput @goModel(model: "observe/meta/metatypes.Datastrea
     enabled: Boolean!
 }
 
-input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
-    name: String!
-    description: String
-    iconUrl: String
-    disabled: Boolean
-    externalSourceId: ObjectId
-    prometheusInput: DatastreamPrometheusInput
-    otelLogsInput: DatastreamOtelLogsInput
-    k8sEntityInput: DatastreamK8sEntityInput
+input DatastreamDirectWriteInput @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInput") {
+    prometheus: Boolean
+    otelLogs: Boolean
+    otelMetrics: Boolean
+    k8sEntity: Boolean
+    otelTrace: Boolean
 }
 
 interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {

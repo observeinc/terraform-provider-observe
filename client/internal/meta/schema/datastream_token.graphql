@@ -24,7 +24,7 @@ type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.Da
     managedById: ObjectId
     stats: DatastreamTokenStats @goField(forceResolver:true)
     """
-    only populated for creates
+    Only populated for creates
     """
     secret: String
     appMetadata: DatastreamTokenAppMetadata

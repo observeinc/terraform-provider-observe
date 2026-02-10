@@ -1,5 +1,3 @@
-# Collate multiple separate objects and data into a single organizational unit.
-# this file is auto-generated, do not edit
 extend type Query {
     incident(id: ObjectId!): Incident!
     searchIncident(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): IncidentSearchResult!
@@ -18,7 +16,6 @@ enum IncidentStatus @goModel(model: "observe/meta/metatypes.IncidentStatus") {
 }
 
 type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Incident") {
-    # payload
     status: IncidentStatus!
     inactiveTime: Time
     closedTime: Time
@@ -26,7 +23,6 @@ type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel
     slackChannels: [IncidentSlackchannel!]! @goField(forceResolver: true)
     worksheets: [ObjectId!]! @goField(forceResolver: true)
     dashboards: [ObjectId!]! @goField(forceResolver: true)
-    # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -35,10 +31,8 @@ type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -48,21 +42,12 @@ type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel
 }
 
 input IncidentInput @goModel(model: "observe/meta/metatypes.IncidentInput") {
-    # payload
     status: IncidentStatus!
-    # not in input: inactiveTime: Time
-    # not in input: closedTime: Time
-    # resolver: users: [UserInfo!]!
-    # resolver: slackChannels: [IncidentSlackchannelInput!]!
-    # resolver: worksheets: [ObjectId!]!
-    # resolver: dashboards: [ObjectId!]!
-    # WorkspaceObject
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 
@@ -71,7 +56,6 @@ type IncidentSearchResult @goModel(model: "observe/meta/metatypes.IncidentSearch
 }
 
 type IncidentSlackchannel @goModel(model: "observe/meta/metatypes.IncidentSlackchannel") {
-    # payload
     connectionID: String!
     slackchannelID: String!
     lastSummarized: Time
@@ -82,14 +66,8 @@ type IncidentSlackchannel @goModel(model: "observe/meta/metatypes.IncidentSlackc
 }
 
 input IncidentSlackchannelInput @goModel(model: "observe/meta/metatypes.IncidentSlackchannelInput") {
-    # payload
     connectionID: String!
     slackchannelID: String!
-    # not in input: lastSummarized: Time
-    # not in input: lastRetroed: Time
-    # not in input: embedVector: String
-    # not in input: summary: String
-    # not in input: retrospective: String
 }
 
 

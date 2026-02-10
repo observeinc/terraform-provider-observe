@@ -1,0 +1,1133 @@
+
+enum CursorCacheMode @goModel(model: "observe/meta/metatypes.CursorCacheMode") {
+    AlwaysCache
+    AlwaysDontCache
+
+    """
+    This mode will cache the cursor if not all data is returned by the initial
+    query. Specifically, cursor will be cached if any of the following
+    conditions is true:
+    1) initialRows != -1 && the query returns more rows than requested
+    2) initialRows == -1 && the query returns rollup results and the rollup
+    filter is not in "all" mode.
+    """
+    CacheIfMoreData
+}
+
+input PaginationInput @goModel(model: "observe/meta/metatypes.PaginationInput") {
+    """
+    Number of rows to return in paginatedResults of initial TaskResult. May
+    be set to 0, in which case paginatedResults will only contain a cursor
+    ID. Any value < 0 (say, -1) is interpreted as "all rows" (beware of
+    large results).
+    """
+    initialRows: Int64!
+
+    """
+    Initial rollup filter (default to "all" mode if nil).
+    """
+    initialRollupFilter: RollupFilterInput
+
+    """
+    If set to true, cache the cursor so that Query.cursor() can be used to
+    fetch additional rows beyond initialRows. Omitting or setting the
+    parameter to false saves back-end resources and is to be preferred if
+    the caller knows it will not call Query.cursor().
+    """
+    cacheCursor: Boolean @deprecated(reason:"use cursorCacheMode instead")
+
+    """
+    Choose how the cursor is cached.
+    """
+    cursorCacheMode: CursorCacheMode
+}
+
+enum TimeUnit @goModel(model: "observe/meta/metatypes.TimeUnit") {
+    Second
+    Millisecond
+    Microsecond
+    Nanosecond
+}
+
+input TimeSinceEpoch @goModel(model: "observe/meta/metatypes.TimeSinceEpoch") {
+    value: Int64
+    unit: TimeUnit
+}
+
+enum RateLimitOption @goModel(model: "observe/meta/metatypes.RateLimitOption") {
+    """
+    Default behavior. Rate limiting is enforced unless it is explicitly
+    disabled at the customer or user level using some other mechanism.
+    """
+    EnforceRateLimit
+    """
+    Set this to bypass rate limiting for this query. Credits used by queries
+    that bypass the rate limit are not counted towards the rate limit.
+    """
+    BypassRateLimit
+}
+
+"""
+QueryParams are for parameters intrinsic to the *query*, not the *presentation*
+of the query. One way to think about this, is that anything that goes in here
+should be equally applicable to invocations by transformer, monitors, exports,
+or worksheets.
+"""
+input QueryParams @goModel(model: "observe/meta/metatypes.QueryParamsInput") {
+    """
+    Please specify exact one of startTime and startTimeSinceEpoch.
+    """
+    startTime: Time
+    startTimeSinceEpoch: TimeSinceEpoch
+    """
+    Please specify exact one of endTime and endTimeSinceEpoch.
+    """
+    endTime: Time
+    endTimeSinceEpoch: TimeSinceEpoch
+
+    """
+    Use this to specify rate limiting options for this query. To bypass the
+    rate limit for all queries by this user for a certain amount of time, see
+    the QueryGovernor.bypassUntil layered setting instead
+    """
+    rateLimitOption: RateLimitOption
+
+    """
+    Queries may have some parameter values bound
+    """
+    opalParameters: [ParameterBindingInput!] @deprecated(reason:"Use parameterValues instead")
+}
+
+type ColumnStatTopKValue @goModel(model: "observe/meta/metatypes.ColumnStatTopKValue") {
+    """
+    The value
+    """
+    value: String!
+    """
+    The number of times this value may appear in the column.
+    """
+    count: Int64!
+    """
+    A value between 0 and 1 to show how frequent this value may appear in the
+    column.  1 means the value appears 100% of the time, while ~0 means the
+    value almost never appears in the column (0 is not a valid value).
+    """
+    frequency: Float!
+}
+
+type ColumnStatHistogram @goModel(model: "observe/meta/metatypes.ColumnStatHistogram") {
+    """
+    Min value of the column
+    """
+    min: Float!
+    """
+    Max value of the column
+    """
+    max: Float!
+    """
+    Count of values within each bucket
+    """
+    buckets: [Int64!]!
+}
+
+type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
+    column: String!
+    """
+    If true, the stats below are for a given tag (not a column)
+    """
+    isTag: Boolean!
+    """
+    Top-K most frequent values. Null if disabled or unavailable.
+    """
+    topK: [ColumnStatTopKValue!]
+    """
+    Approximate number of distinct values. Null if disabled or unavailable.
+    """
+    distinctCount: Int64
+    """
+    Histogram of the values. Null if disabled or unavailable.
+    """
+    histogram: ColumnStatHistogram
+}
+
+type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
+    name: String!
+    value: Float
+}
+
+"""
+TimeAlignment describes the temporal nature of the data contained in an Observe table.
+It describes a periodic time grid with which all events/intervals in the table align
+perfectly.
+"""
+type TimeAlignment @goModel(model: "observe/meta/metatypes.TimeAlignment") {
+    """
+    Distance between every pair of adjacent points in the time grid.
+    """
+    stepSize: Duration!
+    """
+    Offset of this periodic time grid compare to epoch.  It will be between [0,
+    stepSize).
+    """
+    offset: Duration!
+}
+
+"""
+AlignedTimeRange describes the validFrom of the first and last event/interval that should
+be returned in an OPAL query, assuming that all time buckets have some data. This is only
+populated when the query result aligns with a periodic time grid.
+"""
+type AlignedTimeRange @goModel(model: "observe/meta/metatypes.AlignedTimeRange") {
+    leadingValidFrom: Time
+    endingValidFrom: Time
+}
+
+type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema") {
+    """
+    These fields are the same as for Dataset
+    """
+    validFromField: String
+    validToField: String
+    primaryKey: [String!]
+    """
+    This tracks how the primary keys of input datsets map to the current
+    output, reusing the convenient ForeignKey type to do so
+    """
+    sourceResources: [ForeignKey!]
+    keys: [[String!]!]
+    foreignKeys: [ForeignKey!]
+    relatedKeys: [RelatedKey!]
+    groupingKey: GroupingKey
+    correlationTagMappings: [CorrelationTagMapping!]
+    """
+    This is the same schema as Typedef.definition
+    """
+    typedefDefinition: JsonObject @deprecated(reason: "use the strong typed \"typedef\" field instead")
+    typedef: ObjectTypedef @deprecated(reason: "use fieldList instead")
+    fieldList: [FieldDesc!]
+    labelField: String
+    iconUrl: String
+    kind: DatasetKind!
+    interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
+    metrics: [Metric!]! @goField(forceResolver:true)
+    accelerable: Boolean!
+    accelerationType: AccelerationType!
+    eligibleAsView: Boolean!
+    streamable: Boolean! @deprecated(reason:"renamed to accelerable") @goField(name:accelerable)
+    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
+    """
+    Alignment and alignedTimeRange are set when the produced result is on an
+    aligned time grid. Both event table and interval/resource table can be aligned.
+    """
+    alignment: TimeAlignment
+    alignedTimeRange: AlignedTimeRange
+
+    """
+    Information about the queried datasets. This is the same as the one in
+    ResultMetadata but we need to send this back earlier as part of schema.
+    """
+    inputDatasetsInfo: [DatasetInfo!]
+    """
+    The accelerated windows of the query. This is the same as the one in
+    ResultMetadata but we need to send this back earlier as part of schema.
+    """
+    acceleratedWindows: [TimeRange!]!
+    """
+    Information about the OPAL sort column ordering
+    """
+    sortColumnOrdering: [ColumnOrder!]
+
+    """
+    Information about the limit returned by the backend
+    """
+    limit: Int64
+}
+
+type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
+    anykey: Boolean
+    fields: [ObjectFieldDef!]
+    linkDesc: LinkSchema
+}
+
+"""
+FieldDesc describes a field by its column name, its type, and a set of metadata properties.
+"""
+type FieldDesc @goModel(model: "observe/meta/metatypes.FieldDesc") {
+    name: String
+    type: FieldType!
+    """
+    Use indexDesc instead
+    """
+    indexDefs: [IndexDefinition!] @deprecated(reason: "use indexDesc instead")
+    indexDesc: [IndexDescription!]
+    linkDesc: LinkSchema
+    isNullable: Boolean
+    isEnum: Boolean
+    isSearchable: Boolean
+    isHidden: Boolean
+    isConst: Boolean
+    isMetric: Boolean
+}
+
+"""
+The FieldType contains a tag, which represents the underling type.
+In the future, we may extend this with further properties.
+"""
+type FieldType @goModel(model: "observe/meta/metatypes.FieldType") {
+    tag: DataType!
+}
+
+enum DataType @goModel(model: "observe/compiler/comptypes.ValueType") {
+    """
+    be explicit about the "empty" value for the null/unknown case
+    """
+    NONE
+
+
+    BOOL
+    FLOAT64
+    INT64
+    STRING
+    TIMESTAMP
+    DURATION
+    IPV4
+    TDIGEST
+
+
+    ARRAY       # used to be ParameterKindList
+    OBJECT    # there's not currently any object literals
+    VARIANT   # there's not currently any need to put IN variants, only take them out of things
+    LINK        # used to be ParameterKindResource
+
+
+    DATASETREF  # used to be ParameterKindInput
+}
+
+"""
+Base interface for all index types.
+@deprecated: use IndexDescription instead
+"""
+interface IndexDefinition @goModel(model: "observe/meta/metatypes.IndexDefinition") {
+    column: String!
+}
+
+"""
+IndexType represents the type of index.
+"""
+enum IndexType @goModel(model: "observe/meta/metatypes.IndexType") {
+    EqualityIndex
+    SubstringIndex
+    TokenIndex
+    AutoClusteringIndex
+}
+
+"""
+IndexDescription represents the index type and the column it is applied to.
+"""
+type IndexDescription @goModel(model: "observe/meta/metatypes.IndexDescription") {
+    column: String!
+    type: IndexType!
+}
+
+type LinkSchema @goModel(model: "observe/compiler/comptypes.LinkSchema") {
+    targetDataset: Int64
+    targetStageLabel: String
+    targetLabelField: String
+    label: String!
+    srcFields: [String!]! @deprecated(reason: "use src instead")
+    src: [LinkField!]
+    dstFields: [String!]!
+}
+type LinkField @goModel(model: "observe/compiler/comptypes.ColumnWithPath") {
+    column: String!
+    path: String
+}
+
+input LinkFieldInput @goModel(model: "observe/compiler/comptypes.ColumnWithPath") {
+    column: String!
+    path: String
+}
+
+
+type ObjectFieldType @goModel(model: "observe/compiler/comptypes.ObjectFieldType") {
+    rep: String!
+    def: ObjectTypedef
+    nullable: Boolean
+}
+
+type ObjectFieldDef @goModel(model: "observe/compiler/comptypes.ObjectFieldDef") {
+    name: String!
+    type: ObjectFieldType!
+    isEnum: Boolean
+    isSearchable: Boolean
+    isHidden: Boolean
+    isConst: Boolean
+    isMetric: Boolean
+}
+
+type ColumnOrder @goModel(model: "observe/meta/metatypes.ColumnOrder") {
+    columnId: String!
+    ascending: Boolean!
+    nullOrdering: NullOrdering!
+}
+
+"""
+Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
+"""
+interface TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultError") {
+    """
+    Error type identifier, common for all errors of the same type
+    """
+    messageTypeId: String!
+    """
+    Unique error instance identifier
+    """
+    messageId: String!
+    """
+    Error location in the pipeline
+    """
+    span: SourceSpan
+    """
+    Error text, returned without any decorations like message type ID
+    """
+    text: String!
+    """
+    Error message, can be decorated with message type ID, source location and other bits
+    """
+    message: String!
+}
+
+type DatasetInfo @goModel(model: "observe/meta/metatypes.DatasetInfo") {
+    datasetId: ObjectId!
+    datasetLabel: String
+
+    """
+    True if this is a dataset brought in through linkify. Otherwise it's an
+    input dataset directly referenced in the query.
+    """
+    datasetIsLinkifyInput: Boolean!
+
+    """
+    On-demand materialization length (in nanoseconds) for this dataset.
+    """
+    onDemandMatLen: Int64!
+
+    """
+    List of the missing intervals for which the dataset is queried for but not
+    accelerated. These are the intervals we need to request for materialization
+    (in the future, when we have the corresponding API). The missing intervals
+    are always calculated using the original query window (not the smaller query
+    window for progressive slices). This is non-empty only when canAccelerate is
+    true.
+    """
+    unacceleratedWindows: [TimeRange!]
+
+    """
+    If the dataset is not hibernated, this field is nil
+    If the dataset is hibernated, this field will be set to the time when it was
+    hibernated. The dataset will not automatically accelerate new data.
+    You can still query the dataset on the accelerated range and issue manual
+    acceleration jobs.
+    """
+    hibernatedAt: Time
+}
+
+input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
+    """
+    unique ID that other stages can reference in their InputDefinitionInput
+    """
+    stageId: String! @goField(name:StageID)
+    """
+    What is the description of this stage (stage name)
+    """
+    description: String @deprecated(reason:"use metadata.description")
+    """
+    What component feature is this stage driving? i.e. filter bar, visualization etc.
+    """
+    component: String @deprecated(reason:"use metadata.component")
+    """
+    Which inputs are defined for this stage?
+    """
+    inputs: [InputDefinitionInput!]!
+    """
+    What is the processing?
+    """
+    pipeline: String!
+    """
+    How do we arrange presentation? (ordering etc)
+    Note that later stages referencing this stage will NOT see the stage presentation processing
+    """
+    presentation: StagePresentationInput
+    """
+    UI presentation data to use when storing transforms
+    """
+    layout: JsonObject
+    """
+    If set, enables paginatedResults in initial TaskResult of ResultKindData.
+    """
+    pagination: PaginationInput
+    """
+    If set, run this stage with progressive execution
+    """
+    progressive: Boolean
+    """
+    If set and progressive is also set, we will try to run the query incrementally
+    """
+    incremental: Boolean @deprecated(reason: "this is work in progress; will be removed") @goField(name:IncrementalDeprecated)
+    """
+    If set, backend will try to run this stage with best effort binding mode
+    """
+    bestEffortBinding: Boolean @deprecated(reason: "now we default to best effort binding mode. this flag has no effect")
+    """
+    A location within the pipeline. Used to support "run query up to cursor" type functionality, where this location
+    defines the last verb within the query or subquery to run.
+    """
+    runUntilLocation: SourceLocInput
+    """
+    Parameter values for parameters scoped to this stage
+    """
+    parameterValues: [ParameterBindingInput!]
+    """
+    Additional metadata about the stage. Should not change the behavior of the query, and should
+    merely provide more context about how and where the stage is being used.
+    """
+    metadata: StageMetadata
+}
+
+"""
+Metadata a client can send for a particular stage in a query. Should not change
+the behavior of the query, and should only provide some context around what this
+stage is used for.
+"""
+input StageMetadata @goModel(model: "observe/meta/metatypes.StageMetadata") {
+    """
+    Display name of the stage in the UI
+    """
+    displayName: String
+
+    """
+    Description of the stage
+    """
+    description: String
+
+    """
+    What component feature is this stage driving? i.e. filter bar, visualization etc.
+    """
+    component: String
+
+    """
+    Extra stuff
+    """
+    extra: JsonObject
+}
+
+"""
+Parameter values for queries (and defaults) are specified with
+ParameterBindingInput.
+
+For APIs that take a raw StageInput array, the parameterValues argument is in
+parallel.  For APIs that take MultiStageQueryInput, parameterValues are part
+of that query.
+"""
+input ParameterBindingInput @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
+    id: String!
+    value: ValueInput!
+}
+
+type ParameterBinding @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
+    id: String!
+    value: Value!
+}
+
+"""
+These are the OPAL native types that can go into worksheet parameters.  Some
+of the native OPAL types aren't (currently?) exposed to the worksheet
+parameters, but it's likely we will expand this to the full roster over time.
+Also, there will be other places where we send "values" into the API. For
+example, we've dodged it so far in places like monitors, by saying "threshold
+is always float, and facet is always string," but a generic monitor
+specification should absolutely use ValueInput / ValueType.
+"""
+enum ValueType @goModel(model: "observe/compiler/comptypes.ValueType") {
+    """
+    be explicit about the "empty" value for the null/unknown case
+    """
+    NONE
+
+
+    BOOL
+    FLOAT64
+    INT64
+    STRING
+    TIMESTAMP
+    DURATION
+
+
+    ARRAY       # used to be ParameterKindList
+    LINK        # used to be ParameterKindResource
+
+
+    DATASETREF  # used to be ParameterKindInput
+
+    TAG              # for "metric tag" dashboard parameters
+    CORRELATION_TAG  # for "correlation tag" dashboard parameters
+}
+
+"""
+The ValueInput specifies a value for a parameter. To specify a null value, specify
+the particular field, but with the JSON value null. This is needed because values
+are always of a particular type, and a generic null is not typed.
+"""
+input ValueInput @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArrayInput
+    link: ValueLinkInput
+    datasetref: ValueDatasetrefInput
+}
+
+input PrimitiveValueInput @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+}
+
+type Value @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+    array: ValueArray
+    link: ValueLink
+    datasetref: ValueDatasetref
+}
+
+type PrimitiveValue @goModel(model: "observe/compiler/comptypes.ValueInstance") {
+    bool: Boolean
+    float64: Float
+    int64: Int64
+    string: String
+    timestamp: Time @goField(forceResolver: true)
+    duration: Int64 @goField(forceResolver: true)
+}
+
+input ValueArrayInput @goModel(model: "observe/compiler/comptypes.ValueArray") {
+    value: [PrimitiveValueInput!]!
+}
+
+type ValueArray @goModel(model: "observe/compiler/comptypes.ValueArray") {
+    value: [PrimitiveValue!]!
+}
+
+input ValueLinkInput @goModel(model: "observe/compiler/comptypes.ValueLink") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ValueKeyValueInput!]!
+    storedLabel: String
+}
+
+type ValueLink @goModel(model: "observe/compiler/comptypes.ValueLink") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ValueKeyValue!]!
+    storedLabel: String
+}
+
+input ValueKeyValueInput @goModel(model: "observe/compiler/comptypes.ValueKeyValue") {
+    name: String!
+    value: PrimitiveValueInput!
+}
+
+type ValueKeyValue @goModel(model: "observe/compiler/comptypes.ValueKeyValue") {
+    name: String!
+    value: PrimitiveValue!
+}
+
+"""
+ValueDatasetrefInput looks a bit like InputDefinitionInput, EXCEPT
+you can't specify a parameterId as the value of a ValueDatasetrefInput
+(because that would make little sense.)
+"""
+input ValueDatasetrefInput @goModel(model: "observe/compiler/comptypes.ValueDatasetref") {
+    datasetId: ObjectId
+    datasetPath: String
+    stageId: String
+}
+
+type ValueDatasetref @goModel(model: "observe/compiler/comptypes.ValueDatasetref") {
+    datasetId: ObjectId
+    datasetPath: String
+    stageId: String
+}
+
+input ValueTypeSpecInput @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
+    type: ValueType!
+    arrayItemType: ValueTypeSpecInput
+    keyForDatasetId: ObjectId
+    tagName: String
+}
+
+type ValueTypeSpec @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
+    type: ValueType!
+    arrayItemType: ValueTypeSpec
+    keyForDatasetId: ObjectId
+    tagName: String
+}
+
+input ValueKeyTypeInput @goModel(model: "observe/compiler/comptypes.ValueKeyType") {
+    name: String!
+    type: ValueTypeSpecInput!
+}
+
+type ValueKeyType @goModel(model: "observe/compiler/comptypes.ValueKeyType") {
+    name: String!
+    type: ValueTypeSpec!
+}
+
+"""
+Whever you can "save" a worksheet-like entity, you can also save the
+parameters that go with it. This is so that the worksheet component in the FE
+can have a unified API to work against. You can also save the parameterValues
+to go with it as well.
+"""
+input ParameterSpecInput @goModel(model: "observe/meta/metatypes.ParameterSpec") {
+    """
+    opal usable id, ideally a valid C and JavaScript identifier
+    """
+    id: String!
+    """
+    user-readable name
+    """
+    name: String!
+    """
+    optional default value, must match valueKind if present
+    """
+    defaultValue: ValueInput
+    valueKind: ValueTypeSpecInput!
+}
+
+type ParameterSpec @goModel(model: "observe/meta/metatypes.ParameterSpec") {
+    id: String!
+    name: String!
+    """
+    Optional default value
+    """
+    defaultValue: Value
+    valueKind: ValueTypeSpec!
+}
+
+"""
+Why do we separate "Data" bindings from "Reference" bindings? Why does this
+have to be pre-declared, rather than resolved at the end by the compiler?
+
+Because we have the hard rule that physical dataset IDs only exist in the
+API, not at the OPAL level, we wouldn't know which particular dataset you'd
+suggest to use, unless the input binding was pre-declared.  If we just made
+something up in GetTargetDatasetBinding() then how would we later know which
+shape to resolve it to?
+
+The user writes addfk "some name", id=@theThing.id
+
+We need to know what theThing really means. Hence, it needs a binding. Hence,
+when bindings are specified, we need to know whether you expect that to be
+100% defined, or left pending.  We could allow a less concrete pipeline
+specification. Leave @theThing entirely unresolved, and only resolve it using
+some later operation that says "and wherever I called something @theThing,
+now I mean this thing!" (edited)
+
+Which means that we have to live with pipelines that are constantly in
+unresolved and unresolvable states, and only some pipelines can run. We also
+can no longer preview the data until that next step has been taken.
+
+I e, we assume each query (set of stages) compiles and links as a unit. There
+is no separate compilation, because the user experience and complexity of
+that abstraction seems unnecessary just to solve this one use case in this
+one alternative way.
+"""
+enum InputRole @goModel(model: "observe/meta/metatypes.InputRole") {
+    Default
+    Data
+    Reference
+}
+
+type InputDefinition @goModel(model: "observe/meta/metatypes.InputDefinition") {
+    """
+    Assign the short and unique user mnemonic for this input, used in @tableref expressions
+    """
+    inputName: String!
+    inputRole: InputRole!
+    """
+    One of the input definition fields is used; the others are null
+    because GO doesn't have unions.
+    """
+    datasetId: ObjectId
+    datasetPath: String
+    stageID: String @deprecated(reason: "use stageId")
+    """
+    Only set stageId to reference input that comes from an actual stage in the same query
+    """
+    stageId: String @goField(name:StageID)
+}
+
+input InputDefinitionInput @goModel(model: "observe/meta/metatypes.InputDefinition") {
+    """
+    Assign the short and unique user mnemonic for this input, used in @tableref expressions
+    """
+    inputName: String!
+    """
+    If this input is to be used for a purpose other than "slurp data," then specify that here.
+    """
+    inputRole: InputRole
+
+    """
+    Datasets defined by IDs refer to latest-published version of dataset.
+    """
+    datasetId: ObjectId
+
+    """
+    Format of datasetPath is projectlabel.datasetlabel
+    """
+    datasetPath: String
+
+    """
+    Reference a previous query in the worksheet by label
+    """
+    stageID: String @deprecated(reason: "use stageId")
+    stageId: String @goField(name:StageID)
+
+    """
+    If this input is parameterized, this will contain the ID of the parameter to substitute for this input. Parameters
+    are bound in the QueryParams for the query being issued with this input.
+    """
+    parameterId: String
+}
+
+"""
+StagePresentationInput is about how to format the results of the query. Here is
+where you can ask for things like linkified results, rolled up results, stats
+from the results, schema-only results, and so forth. These requests are
+generally made by interactive systems, and are not generally applicable to
+other use cases.
+"""
+input StagePresentationInput @goModel(model: "observe/meta/metaparser.StagePresentationInput") {
+    """
+    limit can be per-query in addition to per-request; the min() is applied
+    """
+    limit: Int64
+    """
+    columnStats configuration
+    """
+    columnStats: ColumnStatsInput
+    """
+    volumeStats configuration
+    """
+    volumeStats: VolumeStatsInput
+    """
+    orderColumns determines order of returned data rows
+    """
+    orderColumns: [ColumnOrderInput!]
+    """
+    when linkify is true, the server will resolve all declared foreign keys
+    and create one new field for each containing that user-readable name of the
+    target of the key (see design doc in Notion)
+    """
+    linkify: Boolean
+    """
+    Specifies the options for rollup presentation.
+    """
+    rollup: RollupOptionInput
+    """
+    rollupMode, if specified, overrides rollup.
+    Always: Roll up the result, grouping by primary key if possible,
+    otherwise by grouping all rows together.
+    Never: Don't roll up the result.
+    Auto: Roll up the result if it is a Resource, otherwise don't roll up
+    the result.
+    """
+    rollupMode: RollupMode
+    """
+    resultKinds map to which fields of TaskResult will end up containing
+    information in results (when using datasetProgressive for querying.) Note that not
+    all the fields may be set at the same time, data may be split across
+    multiple separate TaskResult structs in the result stream. However, in
+    aggregate, all the data requested in resultKinds will be responded.
+    """
+    resultKinds: [ResultKind!]
+    """
+    When wantBuckets is set, time-binning verbs without explicit resolution specification
+    will automatically find a human-friendly resolution and generate the wanted number of
+    buckets. When exact number of buckets is not possible, more buckets will be generated.
+    """
+    wantBuckets: Int64
+    """
+    When set to SearchMatchColumns, TaskResult.TODO for ResultKindData responses
+    will contain a list of column names that produced matches for some of the filters in
+    the pipeline
+    """
+    searchMatchKind: SearchMatchKind
+    """
+    Specifies the aggregation mode. Default is `Precise`.
+    """
+    aggregationMode: AggregationMode
+
+    """
+    This field is deprecated and will be ignored, but cannot be removed because
+    Terraform provider depends on it.
+    """
+    defaultStats: DefaultStatsInput @deprecated(reason:"Use columnStats and/or volumeStats")
+
+    """
+    Decide how we want to encode variant values. Default is `Json`.
+    """
+    variantEncodingMode: VariantEncodingMode
+
+    """
+    List of dataset query filter IDs to disable for this query.
+    The server will check that the user has editor privileges on the parent dataset for each filter.
+    Only filters where the user has permission will be disabled. Disabled filters will be logged for audit purposes.
+    This is a request-scoped option for verification/debug workflows.
+    """
+    disabledFilterIds: [Int64!]
+}
+
+"""
+What pieces of result to include in the response to an OPAL query.
+"""
+enum ResultKind @goModel(model: "observe/meta/metaparser.ResultKind") {
+    ResultKindSchema      # Return the schema of the OPAL query
+    ResultKindData        # Return the data of the OPAL query
+    ResultKindStats       @deprecated(reason:"use ResultKindColumnStats and/or ResultKindVolumeStats")
+    ResultKindColumnStats # Return column stats on the data of the OPAL query
+    ResultKindVolumeStats # Return volume stats on the data of the OPAL query
+    ResultKindSuppress    # Don't execute/return results
+    ResultKindProgress    # Return the progress of the OPAL query
+    ResultKindMetricDiscovery # Return a schema of the OPAL query with discovered metric information (MetricHeuristics) attached
+}
+
+"""
+Deprecated, and will return entirely empty result. Use ColumnStatsInput and/or VolumeStatsInput instead.
+We cannot remove it because the Terraform provider depends on it.
+"""
+input DefaultStatsInput @goModel(model: "observe/meta/metaparser.DefaultStatsInput") {
+    """
+    This field is deprecated and will be ignored
+    """
+    topKCount: Int64 @deprecated(reason:"use ColumnStatsInput.topKCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    maxNbHistograms: Int64 @deprecated(reason:"use ColumnStatsInput.maxNbHistograms")
+    """
+    This field is deprecated and will be ignored
+    """
+    histogramCount: Int64 @deprecated(reason:"use ColumnStatsInput.histogramBucketCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    sparklineBucketCount: Int64 @deprecated(reason:"use VolumeStatsInput.bucketCount")
+    """
+    This field is deprecated and will be ignored
+    """
+    sparklineFunction: String @deprecated(reason:"DefaultStatsInput is deprecated")
+    """
+    This field is deprecated and will be ignored
+    """
+    includeTimestampColumns: Boolean @deprecated(reason:"DefaultStatsInput is deprecated")
+    """
+    This field is deprecated and will be ignored
+    """
+    useCompoundTopKForLinks: Boolean @deprecated(reason:"use ColumnStatsInput.useCompoundTopKForLinks")
+}
+
+enum AggregationMode @goModel(model: "observe/compiler/comptypes.AggregationMode") {
+    """
+    Run the query without sampling.
+    """
+    Precise,
+    """
+    Run the query with sampled aggregation enabled. The result is not
+    guaranteed to be sampled.
+    """
+    Sampled
+}
+
+enum RollupMode @goModel(model: "observe/compiler/comptypes.RollupMode") {
+    """
+    Roll up the result, grouping by primary key if possible,
+    otherwise by grouping all rows together.
+    """
+    Always,
+    """
+    Don't roll up the result.
+    """
+    Never,
+    """
+    Roll up the result if it is a Resource, otherwise don't roll up the result.
+    """
+    Auto,
+    """
+    Roll up the result (by returning the last value + a bit describing whether
+    the value changed during the query window) if it is a Resource, otherwise
+    don’t roll up the result
+    """
+    LastValueAndChanged,
+}
+
+enum SearchMatchKind @goModel(model: "observe/meta/metatypes.SearchMatchKind") {
+    """
+    Search match  data is not needed
+    """
+    SearchMatchNone,
+    """
+    Send back a list of columns that have contributed to resulting data matching the search
+    """
+    SearchMatchColumns
+}
+
+enum VariantEncodingMode @goModel(model: "observe/compiler/comptypes.VariantEncodingMode") {
+    """
+    JSON (default)
+    """
+    Json,
+    """
+    String, which is the same as the value cast to string. The main difference
+    is that for string value stored in variant, it is not quoted.
+    """
+    String
+}
+
+input RollupOptionInput @goModel(model: "observe/meta/metaparser.RollupOptionInput") {
+    """
+    If maxRowsPerGroup is set, rollup presentation will respect it as the limit for maximum number
+    of points allowed for each group; otherwise, rollup presentation will use heuristics to propose
+    a limit (typically 400 or 2000).
+    Either way, rollup presentation limits each group to this size, and apply sampling preemptively.
+    """
+    maxRowsPerGroup: Int64
+
+    """
+    If unrollColumns is set, the columns specified will be unrolled after being
+    grouped by primary key and ordered by time. Empty unrollColumns will produce
+    1 row for each primary key (because all non-primary key columns are rolled
+    up). If a column C having values [0,1,0] at times [0,1,2] for a given primary
+    key is specified in unrollColumns, 3 rows will be produced for that primary
+    key, with the values of C being 0, 1, 0 in each row, respectively.
+    """
+    unrollColumns: [String!] @deprecated(reason:"only used in niche scenarios, not worth the complexity")
+
+    """
+    If set to true, explicitly disables rollup, even for a Resource
+    """
+    forceNoRollup: Boolean @deprecated(reason:"use StagePresentationInput.rollupMode instead")
+}
+
+input ColumnStatsInput @goModel(model: "observe/meta/metatypes.ColumnStatsInput") {
+    """
+    Something which is a string, or which is inferred to be an ID, will
+    return a list of the top K values + counts
+    """
+    topKCount: Int64
+
+    """
+    Whether to generate compound TopK for link columns. Note that this will
+    disable the normal TopK results for link columns.
+    """
+    useCompoundTopKForLinks: Boolean
+
+    """
+    Maximum number of histograms to return.
+
+    Integer, float, duration columns return histograms.
+
+    Set to 0 to disable histograms.
+    Set to <0 for an unlimited number of histograms.
+    Set to null to let the backend decide a suitable limit.
+    """
+    maxNbHistograms: Int64
+
+    """
+    Number of buckets per histogram.
+
+    Set to 0 to disable histograms.
+    Set to null to let the backend decide.
+    """
+    histogramBucketCount: Int64
+
+    """
+    Whether to compute distinct value count per column. This applies to string
+    column or column inferred to be an ID. null or false would disable it.
+    """
+    needDistinctCount: Boolean
+}
+
+input VolumeStatsInput @goModel(model: "observe/meta/metatypes.VolumeStatsInput") {
+    """
+    Number of buckets to compute the volume over time.
+    Set to 0 to disable volume over time stats.
+    Set to null to let the backend decide.
+    """
+    bucketCount: Int64
+
+    """
+    Whether to compute the total number of rows. null or false would disable it.
+    """
+    needTotalCount: Boolean
+}
+
+enum NullOrdering @goModel(model: "observe/meta/metatypes.NullOrdering") {
+    """
+    Default: nulls are "small" for valid-from, "big" for valid-to, and "last"
+    for other fields.
+    """
+    Default,
+    First,
+    Last
+}
+
+input ColumnOrderInput @goModel(model: "observe/meta/metatypes.ColumnOrderInput") {
+    columnName: String!
+    """
+    default is descending, which is great for timestamps
+    """
+    ascending: Boolean
+    nullOrdering: NullOrdering
+}
+
+enum RollupFilterMode @goModel(model: "observe/meta/metatypes.RollupFilterMode") {
+    Last
+    All
+}
+
+input RollupFilterInput @goModel(model: "observe/meta/metatypes.RollupFilterInput") {
+    mode: RollupFilterMode!
+
+}
+
+type ColumnAndValue @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
+    name: String!
+    value: String
+}
+
+input ColumnAndValueInput @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
+    name: String!
+    value: String
+}
+
+input ResourceIdInput @goModel(model: "observe/meta/metatypes.ResourceIdInput") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValueInput!]!
+    timeRange: TimeRangeInput
+}
+
+type ResourceId @goModel(model: "observe/meta/metatypes.ResourceId") {
+    datasetId: ObjectId!
+    primaryKeyValue: [ColumnAndValue!]!
+    timeRange: TimeRange
+}

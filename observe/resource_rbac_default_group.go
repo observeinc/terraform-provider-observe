@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	observe "github.com/observeinc/terraform-provider-observe/client"
-	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
@@ -40,39 +38,16 @@ func resourceRbacDefaultGroup() *schema.Resource {
 }
 
 func resourceRbacDefaultGroupSet(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	group, _ := oid.NewOID(data.Get("group").(string))
-
-	if err := client.SetRbacDefaultGroup(ctx, group.Id); err != nil {
-		return diag.Errorf("failed to set rbac default group: %s", err.Error())
-	}
-	data.SetId(group.Id)
-	return append(diags, resourceRbacDefaultGroupRead(ctx, data, meta)...)
+	return diag.Errorf("observe_rbac_default_group is deprecated and no longer has any effect; use observe_workspace_default_grants / default sharing groups instead")
 }
 
 func resourceRbacDefaultGroupRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	group, err := client.GetRbacDefaultGroup(ctx)
-	if err != nil {
-		return diag.Errorf("failed to read rbac default group: %s", err.Error())
-	}
-	return rbacDefaultGroupToResourceData(group, data)
+	// We should error similar to the other operations, but to avoid breaking the terraform plans for
+	// unrelated changes, we'll just no-op instead, leaving the existing state as is.
+	// Only when someone attempts to change this resource will they get an error.
+	return nil
 }
 
 func resourceRbacDefaultGroupUnset(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-
-	if err := client.UnsetRbacDefaultGroup(ctx); err != nil {
-		return diag.Errorf("failed to unset rbac default group: %s", err.Error())
-	}
-	return diags
-}
-
-func rbacDefaultGroupToResourceData(r *gql.RbacGroup, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("group", r.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	return diags
+	return diag.Errorf("observe_rbac_default_group is deprecated and no longer has any effect; use observe_workspace_default_grants / default sharing groups instead")
 }

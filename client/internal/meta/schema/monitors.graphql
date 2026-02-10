@@ -53,10 +53,10 @@ extend type Query {
 }
 
 extend type Mutation {
-    createMonitorAction(input: MonitorActionInput!): MonitorAction!
-    updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction!
-    deleteMonitorAction(id: ObjectId!): ResultStatus!
-    testMonitorAction(id: ObjectId, input: MonitorActionInput!, payload: String!): ResultStatus!
+    createMonitorAction(input: MonitorActionInput!): MonitorAction! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. Use createMonitorV2Action, instead")
+    updateMonitorAction(id: ObjectId!, input: MonitorActionInput!): MonitorAction! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use updateMonitorV2Action, instead")
+    deleteMonitorAction(id: ObjectId!): ResultStatus! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use deleteMonitorV2Action instead")
+    testMonitorAction(id: ObjectId, input: MonitorActionInput!, payload: String!): ResultStatus! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use testMonitorV2Alert, instead")
 
     createChannelAction(workspaceId: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use createMonitorAction instead")
     updateChannelAction(id: ObjectId!, action: ActionInput!): ChannelAction! @deprecated(reason:"use updateMonitorAction instead")
@@ -67,9 +67,9 @@ extend type Mutation {
     updateChannel(id: ObjectId!, channel: ChannelInput, actions: [ObjectId!]): Channel!
     deleteChannel(id: ObjectId!): ResultStatus!
 
-    createMonitor(workspaceId: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
-    createMonitorWithActions(workspaceId: ObjectId!, monitor: MonitorInput!, newActions:[ActionInput!], addActionsToMonitorIds:[ObjectId!]): MonitorUpdateResult!
-    updateMonitor(id: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult!
+    createMonitor(workspaceId: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use createMonitorV2 instead")
+    createMonitorWithActions(workspaceId: ObjectId!, monitor: MonitorInput!, newActions:[ActionInput!], addActionsToMonitorIds:[ObjectId!]): MonitorUpdateResult! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use createMonitorV2WithActions instead")
+    updateMonitor(id: ObjectId!, monitor: MonitorInput!): MonitorUpdateResult! @deprecated(reason:"legacy monitor V1 APIs are being deprecated. use updateMonitorV2 instead")
     """
     Update the monitor.
     - monitor: updates monitor metadata.
@@ -97,7 +97,6 @@ extend type Mutation {
 }
 
 type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.Monitor") {
-    # WorkspaceObject
     id: ObjectId!
     name: String!
     iconUrl: String!
@@ -106,7 +105,6 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
 
-    # AuditedObject
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
@@ -114,7 +112,6 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     updatedDate: Time!
 
-    # Monitor
     source: String!
     isTemplate: Boolean!
     useDefaultFreshness: Boolean!
@@ -149,13 +146,10 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     activeMonitorInfo: ActiveMonitorInfo @goField(forceResolver:true)
 
 
-    # Fields that will be removed once FE migrates to using `activeMonitorInfo`.
-    # AccelerableObject
     freshnessGoal: Int64! @deprecated(reason:"use activeMonitorInfo.freshnessGoal instead")
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true) @deprecated(reason:"use activeMonitorInfo.accelerationInfo instead")
     accelerationDisabled: Boolean! @goField(name:disabled) @deprecated(reason:"use activeMonitorInfo.accelerationDisabled instead")
 
-    # Monitor
     generatedDatasetIds: [GeneratedDataset!]! @deprecated(reason:"use activeMonitorInfo.generatedDatasetIds instead")
     status: MonitorStatus! @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
     statusMessage: String! @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
@@ -165,17 +159,21 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     statusInfo: MonitorStatusInfo! @goField(forceResolver:true) @deprecated(reason:"use activeMonitorInfo.statusInfo instead")
 }
 
+type GeneratedDataset @goModel(model: "observe/meta/metatypes.GeneratedDataset") {
+    role: String!
+    datasetId: ObjectId!
+}
+
 type NotificationInfo @goModel(model: "observe/meta/metatypes.NotificationInfo") {
     lookbackTime: Duration!
     count: Int64!
 }
 
 type ActiveMonitorInfo implements AccelerableObject @goModel(model: "observe/meta/metatypes.ActiveMonitorInfo")  {
-    # AccelerableObject
+    accelerationState: AccelerationState! @goField(forceResolver:true)
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationDisabled: Boolean!
 
-    # Monitor
     """
     Check what state this monitor is in.
     """
@@ -212,7 +210,7 @@ type MonitorUpdateResult @goModel(model: "observe/meta/metatypes.MonitorUpdateRe
     monitor: Monitor!
     monitorErrors: [String!]
     """
-    information about errors that occur in the affected, and/or downstream datasets
+    Information about errors that occur in the affected, and/or downstream datasets
     """
     errorDatasets: [DatasetError!]
 }
@@ -254,12 +252,27 @@ input MonitorInput @goModel(model: "observe/meta/metatypes.MonitorInput") {
     rule: MonitorRuleInput
     notificationSpec: NotificationSpecificationInput
     channels: [ObjectId!]
+
+    """
+    Optional list of rules to set the list of users and groups that can access the monitor.
+    """
+    sharingRules: [MonitorSharingRuleInput!]
+}
+
+input MonitorSharingRuleInput @goModel(model: "observe/meta/metatypes.MonitorSharingRuleInput") {
+    subject: RbacSubjectInput!
+    role: MonitorRole!
+}
+
+enum MonitorRole @goModel(model: "observe/meta/metatypes.MonitorRole") {
+    Editor
+    Viewer
 }
 
 type NotificationSpecification @goModel(model: "observe/meta/metatypes.NotificationSpecification") {
     importance: NotificationImportance!
     """
-    should these go in each applicable Rule instead?
+    Should these go in each applicable Rule instead?
     """
     merge: NotificationMerge            # only matters when talking about distinct resources
     selection: NotificationSelection!    @deprecated(reason:"no longer supported will be ignored") # only matters when talking about distinct resources
@@ -275,7 +288,6 @@ input NotificationSpecificationInput @goModel(model: "observe/meta/metatypes.Not
     selection: NotificationSelection @deprecated(reason:"no longer supported will be ignored")
     selectionValue: Number @deprecated(reason:"no longer supported will be ignored")
 
-    # TODO(OB-15357): make notifyOnReminder and notifyOnClose required after we migrate.
     """
     Check if we should send reminder notifications at the specified reminderFrequency.
     """
@@ -463,7 +475,7 @@ type MonitorRuleFacet implements MonitorRule @goModel(model: "observe/meta/metat
     facetValues: [String!]
     timeFunction: TimeFunction!
     """
-    for example, "50" for "more than 50% of the time"
+    For example, "50" for "more than 50% of the time"
     """
     timeValue: Number
     lookbackTime: Duration!
@@ -702,7 +714,6 @@ interface MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") 
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
-# TODO(OB-14177): remove this, we have MonitorAction now.
 interface ChannelAction @goModel(model: "observe/meta/metatypes.MonitorAction") {
     id: ObjectId!
     name: String!
@@ -752,7 +763,6 @@ type EmailAction implements MonitorAction & ChannelAction @goModel(model: "obser
     targetUserStates: [EmailActionUserState!]! @goField(forceResolver:true)
     targetEmailStates: [EmailActionEmailState!]! @goField(forceResolver:true)
 
-    # Status of the Action based on all listed email address states
     status: ActionStatus! @goField(forceResolver:true)
 }
 
@@ -787,7 +797,6 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
     rateLimit: Duration
     notifyOnClose: Boolean
     notifyOnReminder: Boolean
-    # TODO(OB-14177): make this required.
     isPrivate: Boolean
 
     email: EmailActionInput
@@ -795,7 +804,6 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
 }
 
 input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionInput") {
-    # payload
     """
     Rate limit measured in nanoseconds.
     For email actions the minimum is: 10 / 10min
@@ -809,13 +817,11 @@ input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionIn
     email: EmailActionInput
     webhook: WebhookActionInput
 
-    # WorkspaceObject
     workspaceId: ObjectId!
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
-    # FolderObject
     folderId: ObjectId
 }
 
@@ -830,7 +836,6 @@ input ActionUpdateInput @goModel(model: "observe/meta/metatypes.ActionUpdateInpu
     rateLimit: Duration
     notifyOnClose: Boolean
     notifyOnReminder: Boolean
-    # TODO(OB-14177): make this required.
     isPrivate: Boolean
 
     email: EmailActionInput

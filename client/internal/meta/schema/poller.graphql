@@ -52,6 +52,7 @@ type Poller implements WorkspaceObject & AuditedObject @goModel(model: "observe/
     kind: PollerKind!
     stats: PollerStats @goField(forceResolver:true)
     appMetadata: PollerAppMetadata
+    debugMode: Boolean
 }
 
 type PollerAppMetadata implements DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.PollerAppMetadata") {
@@ -71,8 +72,6 @@ type PollerChunkConfig @goModel(model: "observe/meta/metatypes.PollerChunkConfig
 
 
 interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
-    # TODO: remove this field once the FE no longer uses it.
-    name: String @deprecated(reason:"use poller.name instead")
     retries: Int64
     interval: Duration
     chunk: PollerChunkConfig
@@ -276,6 +275,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     cloudWatchMetricsConfig: PollerCloudWatchMetricsInput
     awsSnapshotConfig: PollerAWSSnapshotInput
     skipExternalValidation: Boolean
+    debugMode: Boolean
 
     """
     The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.

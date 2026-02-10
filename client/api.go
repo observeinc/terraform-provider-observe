@@ -1246,21 +1246,6 @@ func (c *Client) LookupRbacGroup(ctx context.Context, name string) (*meta.RbacGr
 	return c.Meta.LookupRbacGroup(ctx, name)
 }
 
-// GetRbacDefaultGroup
-func (c *Client) GetRbacDefaultGroup(ctx context.Context) (*meta.RbacGroup, error) {
-	return c.Meta.GetRbacDefaultGroup(ctx)
-}
-
-// SetRbacDefaultGroup
-func (c *Client) SetRbacDefaultGroup(ctx context.Context, id string) error {
-	return c.Meta.SetRbacDefaultGroup(ctx, id)
-}
-
-// UnsetRbacDefaultGroup
-func (c *Client) UnsetRbacDefaultGroup(ctx context.Context) error {
-	return c.Meta.UnsetRbacDefaultGroup(ctx)
-}
-
 // GetUser by ID
 func (c *Client) GetUser(ctx context.Context, id string) (*meta.User, error) {
 	return c.Meta.GetUser(ctx, id)

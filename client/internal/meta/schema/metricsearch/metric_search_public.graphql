@@ -1,0 +1,14 @@
+type MetricSearchResult @goModel(model: "observe/meta/metatypes.MetricSearchResult") {
+    matches: [MetricMatch!]!
+    """
+    Shows how many metrics were matched in this search term. Note that it's not necessary
+    for all of them to be returned in the `matches` field, as the returned matches is limited
+    by the globalLimit and perDatasetLimit specified in the metricSearch request.
+    """
+    numSearched: Int64!
+}
+
+type MetricMatch @goModel(model: "observe/meta/metatypes.MetricMatch") {
+    metric: Metric!
+    datasetId: ObjectId
+}

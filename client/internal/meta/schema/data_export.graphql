@@ -1,0 +1,202 @@
+extend type Query {
+  """
+  Provides the necessary information to configure destinations (e.g. AWS S3 buckets)
+  of data export jobs.
+  """
+  getDataExportDestinationConfig(workspaceId: ObjectId): DataExportDestinationConfig!
+}
+
+extend type Mutation {
+  """
+  Sets the data export job's state to Active, and triggers a retry of the job.
+  The job's state must be Failed when retryDataExportJob is called.
+  """
+  retryDataExportJob(id: ObjectId!): DataExportJob!
+}
+
+extend type Query {
+    dataExportJob(id: ObjectId!): DataExportJob!
+    searchDataExportJob(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): DataExportJobSearchResult!
+}
+
+extend type Mutation {
+    createDataExportJob(workspaceId: ObjectId!, input: DataExportJobInput!): DataExportJob!
+    updateDataExportJob(id: ObjectId!, input: DataExportJobInput!): DataExportJob!
+    deleteDataExportJob(id: ObjectId!): ResultStatus!
+}
+
+"""
+The file format of the exported objects.
+JSON: Newline-delimited JSON objects (NDJSON) with gzip compression.
+Parquet: Apache Parquet files with snappy compression.
+"""
+enum DataExportJobFormat @goModel(model: "observe/meta/metatypes.DataExportJobFormat") {
+  JSON
+  Parquet
+}
+
+"""
+Active: The data export job is running normally.
+Failed: The data export job has failed and will not be retried automatically.
+Initializing: The data export job is being initialized.
+"""
+enum DataExportJobState @goModel(model: "observe/meta/metatypes.DataExportJobState") {
+  Active
+  Failed
+  Initializing
+}
+
+"""
+Retention: The data export job will export historical data before it reaches the dataset's retention limit.
+Live: The data export job will export newly-arrived data, with a delay on the order of a few hours.
+Custom: The data export job will export data according to the values of earliestTimestamp and olderThan.
+"""
+enum DataExportJobType @goModel(model: "observe/meta/metatypes.DataExportJobType") {
+  Custom
+  Live
+  Retention
+}
+
+type DataExportDestinationConfig @goModel(model: "observe/meta/metatypes.DataExportDestinationConfig") {
+    """
+    Whether exporting to AWS is supported.
+    If this field is false, then awsConfig will be null.
+    If this field is true, then awsConfig will be non-null.
+    """
+    awsSupported: Boolean!
+    """
+    Provides the necessary information for setting up AWS S3 buckets such that data export jobs can write to them.
+    This field will only be provided if awsSupported is true.
+    """
+    awsConfig: DataExportDestinationConfigAWS
+}
+
+
+
+
+type DataExportDestinationConfigAWS @goModel(model: "observe/meta/metatypes.DataExportDestinationConfigAWS") {
+    """
+    S3 buckets to which data export jobs write must exist in this AWS region.
+    """
+    region: String!
+    """
+    The IAM role that will be used by data export jobs to access S3 buckets.
+    """
+    iamRole: String!
+}
+
+
+
+
+type DataExportJob implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DataExportJob") {
+    """
+    The ID of the dataset exported by the job.
+    """
+    datasetID: ObjectId!
+    """
+    The type of the data export job. See enum DataExportJobType for details.
+    """
+    type: DataExportJobType!
+    """
+    The earliest timestamp exported by the job. This is a static field set when the job is created,
+    and does not change over time as the job runs.
+    """
+    earliestTimestamp: Time
+    """
+    Data is only exported once it is older than this value.
+    """
+    olderThan: Duration
+    """
+    The file format of the exported objects.
+    """
+    format: DataExportJobFormat!
+    """
+    The destination of the exported data. Currently only Amazon S3 is supported.
+    This is a URI identifying an S3 bucket, optionally with a path.
+    """
+    destination: String!
+    """
+    The state of the data export job. See enum DataExportJobState for details.
+    """
+    state: DataExportJobState!
+    stateLastUpdatedDate: Time!
+    """
+    Error message. This field is populated if and only if the state is Failed.
+    """
+    error: String
+    """
+    The time windows that have been exported.
+    Effectively deprecated. It is encouraged to use earliestTimestamp and latestTimestamp
+    instead.
+    """
+    exportedWindows: [TimeRange!]!
+    """
+    The latest timestamp exported by the job. This is updated periodically as the job
+    runs. It doesn't indicate a static timestamp at which the job will stop (No such
+    thing is configurable).
+    This should be the same as the latest timestamp in exportedWindows, or null if the
+    exportedWindows is empty.
+    """
+    latestTimestamp: Time
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    folderId: ObjectId!
+
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input DataExportJobInput @goModel(model: "observe/meta/metatypes.DataExportJobInput") {
+    """
+    The ID of the dataset to export.
+    """
+    datasetID: ObjectId!
+    """
+    The type of the data export job. See enum DataExportJobType for details.
+    If the type is Retention or Live, earliestTimestamp and olderThan should not be supplied.
+    If the type is Custom, earliestTimestamp and olderThan must be supplied.
+    """
+    type: DataExportJobType!
+    """
+    The earliest timestamp to be exported by the job.
+    This field is required if the type is Custom, otherwise it should not be supplied.
+    """
+    earliestTimestamp: Time
+    """
+    Data will only be exported once it is older than this value. Must be at least 2 hours.
+    This field is required if the type is Custom, otherwise it should not be supplied.
+    """
+    olderThan: Duration
+    """
+    The file format of the exported objects.
+    """
+    format: DataExportJobFormat!
+    """
+    The destination of the exported data. Currently only Amazon S3 is supported.
+    This is a URI identifying an S3 bucket, optionally with a path.
+    Example: "s3://my-bucket/"
+    Example: "s3://my-bucket/foo/bar/baz"
+    """
+    destination: String!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    folderId: ObjectId
+}
+
+type DataExportJobSearchResult @goModel(model: "observe/meta/metatypes.DataExportJobSearchResult") {
+    results: [DataExportJob!]!
+}
+

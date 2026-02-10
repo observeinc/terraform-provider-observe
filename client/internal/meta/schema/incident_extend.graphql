@@ -1,8 +1,7 @@
 
-# manual extension to the incident graphql schema
 
 input IncidentQueryInput @goModel(model: "observe/meta/metatypes.IncidentQueryInput") {
-    Text: String!
+    text: String!
 }
 
 extend type Query {
@@ -11,7 +10,6 @@ extend type Query {
     getIncidentsForWorksheet(w: ObjectId!): [Incident!]!
     getIncidentsForDashboard(d: ObjectId!): [Incident!]!
     getIncidentsForStatus(s: IncidentStatus!, startingAt: Time, endingAt: Time): [Incident!]!
-    # Given a text query, return incidents that have summaries which are semantically similar to the query.
     getIncidentsForTextQuery(s: IncidentQueryInput!): [Incident!]!
 }
 

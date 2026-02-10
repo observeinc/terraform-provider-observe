@@ -1,5 +1,8 @@
 extend type Query {
-    getTerraform(id: ObjectId!, type: TerraformObjectType!): TerraformDefinition!
+    """
+    Get a terraform resource representation of a supported observe object.
+    """
+    getTerraform(id: ObjectId!, type: TerraformObjectType!, crossAccount: Boolean): TerraformDefinition!
 }
 
 enum TerraformObjectType @goModel(model: "observe/meta/metatypes.TerraformObjectType") {
@@ -7,15 +10,13 @@ enum TerraformObjectType @goModel(model: "observe/meta/metatypes.TerraformObject
     Board
     Monitor
     Dashboard
+    MonitorV2
+    MonitorV2Action
 }
 
 type TerraformDefinition @goModel(model: "observe/meta/metatypes.TerraformDefinition") {
-    # How do I declare this object as a data source?
     dataSource: String
-    # How do I declare this object as a resource?
     resource: String
-    # ID used by terraform for import
     importId: String
-    # Name used by terraform for import
     importName: String
 }

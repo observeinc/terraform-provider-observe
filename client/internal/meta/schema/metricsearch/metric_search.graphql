@@ -1,0 +1,177 @@
+extend type Query {
+    """
+    Finds all matched metrics:
+    - inDatasets limits the candidates to only the metrics belonging to any of the provided metric datasets
+    - linkToDatasets limits the candidates to only the metrics in the metric dataset that has link(s) to any of the provided resource datasets
+    - match will be used to to match against (case ignored) metric name, label and description
+    - heuristicsOptions, when provided, expands the search to also include computed metric heuristics
+    """
+    metricSearch(workspaces: [ObjectId!], inDatasets: [ObjectId!], linkToDatasets: [ObjectId!], correlationTagMatches: [String!], match: String!, heuristicsOptions: MetricHeuristicsOptions): MetricSearchResult!
+
+    """
+    Finds all global metric, correlation, and ingest tags or specific tag kinds.
+     - match: Looks for tags that matches the name exactly.
+     - prefix: Looks for tags with the matching prefix.
+     - limit: Enforces a hard limit on the tags returned.
+     - metrics: Narrows the search to the given metric. Leaving it empty will look for all metrics.
+     - datasetIds: Narrows the search to the given dataset. Leaving it empty will look for all datasets.
+     - kinds: Looks for tags with the given kinds (metric, correlation, and ingest). Leaving it empty will return all the kinds.
+    """
+    searchMetricTags(match: String, prefix: String, limit: Int64!, metrics: [String!], datasetIds: [ObjectId!], kinds: [TagKind!]): MetricTagSearchResult!
+
+    """
+    Gets a specific metric/correlation tag  with all sources in the given metrics or datasets
+    """
+    getMetricTag(tag: String!, metrics: [String!], datasetIds: [ObjectId!]): MetricTag!
+
+    """
+    Finds all possible values for a given metric tag:
+     - tag is the tag to find the values for
+     - metrics, if provided, limits the values to those that are possible for one of the provided metrics
+     - datasetIds, if provided, limit the correlation tag values to those, contained in the given datasets
+     - kinds, if provided, treat the tag as of the given kind (metric, correlation, and ingest). If multiple kinds are provided, the tag is treated as of all the given kinds and the resulting values will be unioned.
+     - prefix filters the tag values to those with that prefix (case insensitive). If you want all values, provide an empty string
+     - limit is the maximum number of tag values to return. Tag values are returned sorted alphabetically
+     - startTime and endTime are used to limit the search to the given time window. If only one of the two is provided, the other
+       defaults to have time window of 1hr. If neither is provided, endTime defaults to the current time and startTime defaults to 1hr before endTime
+    """
+    searchMetricTagValues(tag: String!, metrics: [String!], datasetIds: [ObjectId!], kinds: [TagKind!], match: String, prefix: String, limit: Int64!, startTime: Time, endTime: Time): MetricTagValues!
+}
+
+
+extend type Subscription {
+
+    """
+    Finds a list of metrics for given (tag, value) combinations., sorted by 'usefulness'
+    - inDatasets, if provided, limits the candidates to only the metrics belonging to any of the provided metric datasets
+      if not provided, we will search all metric datasets
+    - match will be used to match against (case ignored) metric name, label and description
+    There are two ways to specify (tag, value) combinations:
+    - resource identifies the resource to search for.
+    OR
+    - correlationTagInput specifies the (correlationTag, value) combinations
+
+    Metrics are searched in the query window "startTime (inclusive) to endTime (exclusive)". If this window is bigger than 1 hour, metrics are searched in
+    "endTime-1hour (inclusive) to endTime (exclusive)" instead.
+
+    """
+    metricSearchWithTagValues(workspaces: [ObjectId!], startTime: Time!, endTime: Time!, inDatasets: [ObjectId!], match: String!, resource: ResourceIdInput, correlationTagInput: MetricSearchCorrelationTagInput, searchConfig: MetricSearchConfig): MetricSearchResult!
+}
+
+input MetricSearchConfig @goModel(model: "observe/meta/metatypes.MetricSearchConfig") {
+    """
+    By default, the search uses metric index table wherever it can. If this is set to true,
+    the search will not use metric index table.
+    """
+    mode: MetricSearchMode
+    """
+    If passed in, limit to `numMetricsPerDataset` metrics per dataset
+    """
+    perDatasetLimit: Int
+    """
+    If passed in, limit the number of metrics to `globalLimit`
+    """
+    globalLimit: Int
+}
+
+enum TagKind @goModel(model: "observe/meta/metatypes.TagKind") {
+    """
+    Tags discovered and created during data ingestion to Observe.
+    """
+    Ingest
+    """
+    Manual tags defined by the user on the dataset.
+    """
+    Correlation
+    """
+    Automatic tags constructed from publishing a metric dataset. 
+    """
+    Metric
+}
+
+enum MetricSearchMode @goModel(model: "observe/meta/metatypes.MetricSearchMode") {
+    """
+    Use metric index table if present. If not present, fallback to metadata. This is the default
+    """
+    UseMetricIndexTableIfPossible
+    """
+    Only use metric data table for all the datasets (even for the ones which have metric index table).
+    """
+    UseMetricTableOnly
+}
+
+enum TagValueMetricSearchMode @goModel(model: "observe/meta/metatypes.TagValueMetricSearchMode") {
+    Any
+    All
+}
+
+input MetricSearchCorrelationTagInput @goModel(model: "observe/meta/metatypes.MetricSearchCorrelationTagInput") {
+    filteringMatches: [CorrelationTagValueInput!]!
+    """
+    Auxiliary matches are used to sort the datasets. A dataset containing more of the
+    auxiliary matches is sorted before a dataset containing fewer of them.
+    """
+    orderingMatches: [CorrelationTagValueInput!]
+    """
+    Default mode is All
+    """
+    matchMode: TagValueMetricSearchMode
+}
+
+
+input CorrelationTagValueInput @goModel(model: "observe/meta/metatypes.CorrelationTagValueInput") {
+    tag: String!
+    value: PrimitiveValueInput!
+}
+
+enum MetricInclusionOption @goModel(model: "observe/meta/metatypes.MetricInclusionOption") {
+    Everything
+    """
+    ExcludeInactive will hide user-defined metrics that are inactive (not showing up in
+    metric discovery)
+    """
+    ExcludeInactive
+}
+
+enum MetricHeuristicsSource @goModel(model: "observe/meta/metatypes.MetricHeuristicsSource") {
+    """
+    Performs metric search using the cached metric heuristics, yields best performance.
+    """
+    Cached
+    """
+    Performs metric search by performing a blocking metric discovery queries, yields most accurate
+    result but slower.
+    This option is not allowed when searching globally across all datasets, to avoid unintentional
+    expensive Snowflake queries.
+    """
+    ForceRefresh
+}
+
+input MetricHeuristicsOptions @goModel(model: "observe/meta/metatypes.MetricHeuristicsOptions") {
+    """
+    Maximum number of metrics to return globally across all datasets.
+    """
+    globalLimit:     Int64
+    """
+    Maximum number of metrics to return per dataset.
+    """
+    perDatasetLimit: Int64
+    """
+    Number of matching metrics to skip before returning results.
+    Used for pagination in combination with globalLimit.
+    """
+    offset:          Int64
+    """
+    include everything by default
+    """
+    inclusionOption:  MetricInclusionOption
+    """
+    heuristicsSource defaults to Cached, using the metric heuristics cached in memory.
+    """
+    heuristicsSource: MetricHeuristicsSource
+}
+
+type MetricTagSearchResult @goModel(model: "observe/meta/metatypes.MetricTagSearchResult") {
+    tags: [MetricTag!]!
+    total: Int64!
+}
