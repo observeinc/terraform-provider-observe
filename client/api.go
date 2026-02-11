@@ -1680,3 +1680,29 @@ func (c *Client) GetServiceAccount(ctx context.Context, id string) (*rest.Servic
 func (c *Client) ListServiceAccounts(ctx context.Context) ([]rest.ServiceAccountResource, error) {
 	return c.Rest.ListServiceAccounts(ctx)
 }
+
+// Service Account API Tokens
+func (c *Client) CreateServiceAccountToken(ctx context.Context, accountId string, input *rest.ServiceAccountTokenCreateRequest) (result *rest.ServiceAccountTokenResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateServiceAccountToken(ctx, accountId, input)
+	})
+	return
+}
+
+func (c *Client) GetServiceAccountToken(ctx context.Context, accountId, tokenId string) (*rest.ServiceAccountTokenResource, error) {
+	return c.Rest.GetServiceAccountToken(ctx, accountId, tokenId)
+}
+
+func (c *Client) UpdateServiceAccountToken(ctx context.Context, accountId, tokenId string, input *rest.ServiceAccountTokenUpdateRequest) (result *rest.ServiceAccountTokenResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateServiceAccountToken(ctx, accountId, tokenId, input)
+	})
+	return
+}
+
+func (c *Client) DeleteServiceAccountToken(ctx context.Context, accountId, tokenId string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteServiceAccountToken(ctx, accountId, tokenId)
+	})
+	return
+}
