@@ -1,4 +1,3 @@
-# this file is auto-generated, do not edit
 extend type Query {
     snowflakeOutboundShare(id: ObjectId!): SnowflakeOutboundShare!
     searchSnowflakeOutboundShare(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String): SnowflakeOutboundShareSearchResult!
@@ -10,12 +9,7 @@ extend type Mutation {
     deleteSnowflakeOutboundShare(id: ObjectId!): ResultStatus!
 }
 
-# Represents a Snowflake share from Observe to a customer-managed Snowflake account.
-# All share mutations require the Manager role rather than the typical Editor role.
-# By default, only administrators have this access for all workspace objects.
-# However, administrators can grant other users access to sharing mutations via RBAC.
 type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShare") {
-    # payload
     """
     The fully qualified name of the Snowflake share, for use in a consumer account.
     """
@@ -27,7 +21,7 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
     shareNameInternal: String!
     databaseName: String!
     schemaName: String!
-    # WorkspaceObject
+
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -36,10 +30,8 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -49,19 +41,13 @@ type SnowflakeOutboundShare implements WorkspaceObject & AuditedObject & FolderO
 }
 
 input SnowflakeOutboundShareInput @goModel(model: "observe/meta/metatypes.SnowflakeOutboundShareInput") {
-    # payload
-    # not in input: shareName: String!
     accounts: [SnowflakeAccountInput!]!
-    # not in input: shareNameInternal: String!
-    # not in input: databaseName: String!
-    # not in input: schemaName: String!
-    # WorkspaceObject
+
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 
@@ -70,7 +56,6 @@ type SnowflakeOutboundShareSearchResult @goModel(model: "observe/meta/metatypes.
 }
 
 type SnowflakeAccount @goModel(model: "observe/meta/metatypes.SnowflakeAccount") {
-    # payload
     """
     The name of the Snowflake account.
     """
@@ -82,7 +67,6 @@ type SnowflakeAccount @goModel(model: "observe/meta/metatypes.SnowflakeAccount")
 }
 
 input SnowflakeAccountInput @goModel(model: "observe/meta/metatypes.SnowflakeAccountInput") {
-    # payload
     account: String!
     organization: String!
 }

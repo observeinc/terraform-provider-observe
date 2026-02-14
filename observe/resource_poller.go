@@ -760,6 +760,9 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 	if err := data.Set("oid", poller.Oid().String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	if err := data.Set("name", poller.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := data.Set("kind", poller.Kind); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -769,9 +772,6 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 
 	// read poller configuration
 	config := poller.Config
-	if err := data.Set("name", config.GetName()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
 	if config.GetRetries() != nil {
 		if err := data.Set("retries", int(*config.GetRetries())); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

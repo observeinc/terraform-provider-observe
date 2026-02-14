@@ -1,0 +1,49 @@
+
+"""
+Results which are returned from subscription datasetLiveQuery all implement this interface.
+"""
+interface LiveQueryResult @goModel(model: "observe/meta/metaparser.LiveQueryResult") {
+
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    """
+    The Observe Query identifier
+    """
+    queryId: String!
+
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageId: String #!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    """
+    Errors that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific errors
+    """
+    errors: [TaskResultError!]
+}
+
+"""
+Results returned from datasetProgressive and datasetQueryOutput.
+Note that we want to split this type up into individual types per result kind, because this allows
+to better specify (narrow down) which data is present in which result type.
+To better constrain this, the individual result types (currently only TaskResult and LiveQueryFreshnessUpdateResult)
+implement the interfaces of the subscriptions' / queries' result interfaces.
+Currently the only interface is LiveQueryResult, but there will be more when we split up TaskResult.
+"""
+type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metaparser.TaskResult") {
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    """
+    The Observe Query identifier
+    """
+    queryId: String!
+
+    stageId: String#!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    """
+    Errors that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific errors
+    """
+    errors: [TaskResultError!]
+}

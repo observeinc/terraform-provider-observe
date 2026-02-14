@@ -66,10 +66,21 @@ docker-sign:
 
 copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
-	rm -f client/internal/meta/schema/*.graphql
-	cp -pR "$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/"*.graphql client/internal/meta/schema/
-	sed -i.bak '/@eol/ { /directive/!d; }' client/internal/meta/schema/*
-	rm -rf client/internal/meta/schema/*.bak
+	rm -rf client/internal/meta/schema
+	mkdir -p client/internal/meta/schema
+	rsync -a --include='*/' --include='*.graphql' --exclude='*' \
+		"$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/" \
+		client/internal/meta/schema/
+
+	# Remove @eol fields and any preceding triple-quoted descriptions from all .graphql files.
+	# The (?<!directive ) excludes the @eol directive definition.
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n +"""\n(.+\n)+? +""")?\n.+(?<!directive )\@eol.*//g'
+
+	# Strip out @owner directives from all .graphql files
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i '' '/^directive/!s/ @owner([^)]*)//g'
+
+	# Remove internal comment lines starting with # from all .graphql files
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i '' '/^[[:space:]]*#/d'
 
 generate:
 	go generate ./...

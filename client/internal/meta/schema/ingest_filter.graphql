@@ -1,3 +1,9 @@
+extend type Mutation {
+    """
+    Enable or disable an ingest filter.
+    """
+    setIngestFilterEnabled(id: ObjectId!, enabled: Boolean!): IngestFilter
+}
 extend type Query {
     """
     Validates that the pipeline and dataset id are valid for filtering.
@@ -8,22 +14,20 @@ extend type Query {
     Provides a list of valid datasets to create filters against.
     """
     getIngestFilterableDatasetIds: [ObjectId!]
+}
+
+extend type Query {
     ingestFilter(id: ObjectId!): IngestFilter!
     searchIngestFilter(workspaceId: ObjectId, folderId: ObjectId, nameExact: String, nameSubstring: String, sourceDatasetID: ObjectId): IngestFilterSearchResult!
 }
 
 extend type Mutation {
-    """
-    Enable or disable an ingest filter.
-    """
-    setIngestFilterEnabled(id: ObjectId!, enabled: Boolean!): IngestFilter
     createIngestFilter(workspaceId: ObjectId!, input: IngestFilterInput!): IngestFilter!
     updateIngestFilter(id: ObjectId!, input: IngestFilterInput!): IngestFilter!
     deleteIngestFilter(id: ObjectId!): ResultStatus!
 }
 
 type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.IngestFilter") {
-    # payload
     """
     Raw opal that defines the filter predicate.
     """
@@ -40,7 +44,6 @@ type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goM
     The source dataset ID that this filter is applied to.
     """
     sourceDatasetID: ObjectId!
-    # not in output: ast: JsonObject!
     """
     The drop rate is a double precision floating point value between 0 and 1 that specifies what percentage of matching
     observations to drop.
@@ -50,7 +53,6 @@ type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goM
     Error message. Will return errors about incorrect filter definitions.
     """
     errors: [TaskResultError!]
-    # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -59,10 +61,8 @@ type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goM
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -72,21 +72,16 @@ type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goM
 }
 
 input IngestFilterInput @goModel(model: "observe/meta/metatypes.IngestFilterInput") {
-    # payload
     pipeline: String!
     layout: JsonObject
     enabled: Boolean!
     sourceDatasetID: ObjectId!
-    # not in input: ast: JsonObject!
     dropRate: Float!
-    # not in input: errors: [TaskResultError!]
-    # WorkspaceObject
     name: String!
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 

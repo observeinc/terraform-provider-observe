@@ -9,6 +9,9 @@ extend type Query {
     defaultDashboard(dsid: ObjectId!): ObjectId
     defaultInstanceDashboard(dsid: ObjectId!): ObjectId
 
+    defaultDashboardForTag(tag: String!): ObjectId
+    tagsDashboardIsDefaultFor(dashboardId: ObjectId!): [String!]
+
     dashboardLink(id: ObjectId!): DashboardLink!
     searchDashboardLinks(terms:DashboardLinkSearchInput): DashboardLinkSearchResult!
 }
@@ -32,6 +35,8 @@ extend type Mutation {
     clearDefaultDashboard(dsid: ObjectId!): ResultStatus!
     setDefaultInstanceDashboard(dsid: ObjectId!, dashid: ObjectId!): ResultStatus!
     clearDefaultInstanceDashboard(dsid: ObjectId!): ResultStatus!
+
+    setDefaultDashboardForTag(tag: String!, dashboardId: ObjectId!): ResultStatus!
 
     """
     A dashboard link goes from one dashboard (and possibly card within that dashboard)
@@ -89,9 +94,18 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     links: [DashboardLink!]!
 
     """
+    Unlisted dashboards are not returned by dashboardSearch except for the creating user.
+    """
+    visibility: ObjectVisibility!
+    """
     Entity tags for organizing and categorizing dashboards.
     """
     entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+}
+
+enum ObjectVisibility @goModel(model: "observe/meta/metatypes.ObjectVisibility") {
+    Listed
+    Unlisted
 }
 
 input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
@@ -116,6 +130,11 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
     links: [DashboardLinkInput!]
 
     """
+    Unlisted dashboards are not returned by dashboardSearch except for the creating user.
+    """
+    visibility: ObjectVisibility
+
+    """
     Entity tags for organizing and categorizing dashboards.
     """
     entityTags: [EntityTagMappingInput!]
@@ -123,7 +142,6 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
 
 type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Worksheet") {
 
-    # IWorksheetLike
 
     parameterValues: [ParameterBinding!]
 
@@ -131,7 +149,6 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     parameters: [ParameterSpec!]! @goField(forceResolver:true)
     stages: [StageQuery!]! @goField(forceResolver:true)
 
-    # WorkspaceObject
 
     description: String
     iconUrl: String
@@ -142,7 +159,6 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
 
     managedBy: WorkspaceObject @goField(forceResolver:true)
 
-    # AuditedObject
 
     createdBy: UserId!
     createdDate: Time!
@@ -152,16 +168,19 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     createdByInfo: UserInfo! @goField(forceResolver:true)
     updatedByInfo: UserInfo! @goField(forceResolver:true)
 
-    # FolderObject
 
     folderId: ObjectId!
+
+    """
+    Unlisted worksheets are not returned by worksheetSearch except for the creating user.
+    """
+    visibility: ObjectVisibility!
 
     """
     Entity tags for organizing and categorizing worksheets.
     """
     entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
 
-    # deprecated
 
     icon: String @goField(name:iconUrl) @deprecated(reason: "Use iconUrl")
     label: String! @goField(name:name) @deprecated(reason: "Use name")
@@ -177,6 +196,7 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     """
     id: ObjectId
     name: String # Will be required when label is deprecated
+    description: String
     workspaceId: ObjectId!
     managedById: ObjectId
     layout: JsonObject
@@ -184,6 +204,11 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
+
+    """
+    Unlisted worksheets are not returned by worksheetSearch except for the creating user.
+    """
+    visibility: ObjectVisibility
 
     """
     Entity tags for organizing and categorizing worksheets.
@@ -195,7 +220,6 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
 }
 
 type DashboardLink implements FolderObject & WorkspaceObject & AuditedObject @goModel(model: "observe/meta/metatypes.DashboardLink") {
-    # WorkspaceObject
     id: ObjectId!
     name: String!
     description: String!
@@ -204,10 +228,8 @@ type DashboardLink implements FolderObject & WorkspaceObject & AuditedObject @go
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     updatedDate: Time!
     updatedBy: UserId!
     updatedByInfo: UserInfo! @goField(forceResolver:true)
@@ -215,7 +237,6 @@ type DashboardLink implements FolderObject & WorkspaceObject & AuditedObject @go
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
 
-    # Actual payload data
     fromDashboardId: ObjectId!
     toDashboardId: ObjectId!
     fromCard: String
@@ -262,3 +283,15 @@ type DashboardLinkSearchResult @goModel(model: "observe/meta/metatypes.Dashboard
     links: [DashboardLink!]!
 }
 
+interface FolderObject @goModel(model: "observe/meta/metatypes.FolderObject") {
+    folderId: ObjectId!
+}
+
+interface AuditedObject @goModel(model: "observe/meta/metatypes.AuditedObject") {
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    createdDate: Time!
+    updatedDate: Time!
+}

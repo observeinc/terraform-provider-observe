@@ -1,0 +1,357 @@
+extend type Query {
+
+    stats(startTime: Time!, endTime: Time!, wkCols: [StatsWKCol!], dsQueries: [StatsDatasetQueryInput!]!): StatsQueryResult
+
+    """
+    Eventually this should be replaced by the usage dashboard, which has more
+    complete stats than this limited API.
+    """
+    queryRateLimitingStats(workspaceId: ObjectId!): QueryRateLimitingStats
+
+    """
+    This is equivalent to queryRateLimitingStats{dailyAvgCreditUsagePast7Days}.
+    This is a separate query so that it can be called very frequently and as a
+    result, will do the minimal amount of work needed to get the result
+    """
+    queryWeeklyCreditUtilization: QueryWeeklyCreditUtilization
+
+    """
+    Returns some daily stats on the transform usage based on the data stored in the customer's
+    SYSTEM datastream. Currently, we return only aggregate usage information. In the future, we will
+    also return governor specific state.
+    """
+    transformRateLimitingStats(workspaceId: ObjectId!): TransformRateLimitingStats
+}
+
+type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.TransformRateLimitingStats") {
+    """
+    Returns the daily ongoing transform credit usage for the past 7 days. Note that if the customer
+    has been active for less than 7 days, the time horizon for the computation is restricted to the
+    actual timeframe in which the customer was active.
+    """
+    dailyOngoingTransformCreditsUsedPast7Days: Float!
+
+    """
+    Returns the daily ongoing transform credit usage for the past 30 days. Note that if the customer
+    has been active for less than 30 days, the time horizon for the computation is restricted to the
+    actual timeframe in which the customer was active.
+    """
+    dailyOngoingTransformCreditsUsedPast30Days: Float!
+}
+
+"""
+Well-known stats column.
+"""
+enum StatsWKCol @goModel(model: "observe/meta/metastats.WKCol") {
+    BucketId
+    BucketHash
+    CountStar
+}
+
+"""
+Small materialized aggregates (SMAs).
+"""
+enum StatsSMA @goModel(model: "observe/meta/metastats.SMA") {
+    Count
+    Min
+    Max
+    CountDistinct
+    Size
+    Minhash
+}
+
+"""
+A query fragment for a single SMA of some dataset.
+"""
+input StatsSMAQueryInput @goModel(model: "observe/meta/metastats.SMAQuery") {
+    sma: StatsSMA!
+    inColNames: [String!]!
+}
+
+"""
+A query fragment that contains all the StatsSMAQueryInput fragments that
+belong to a common base dataset.
+"""
+input StatsDatasetQueryInput @goModel(model: "observe/meta/metastats.DatasetQuery") {
+    baseDatasetId: ObjectId
+    baseDatasetPath: String
+    smaQueries: [StatsSMAQueryInput!]
+}
+
+"""
+A StatsQueryResult fragment that corresponds to a single
+StatsDatasetQueryInput.
+"""
+type StatsDatasetQueryResult @goModel(model: "observe/meta/metastats.DatasetResult") {
+    validFromCol: [Number!]
+    validToCol: [Number!]
+    wkCols: [StatsVector!]
+    smaCols: [StatsVector!]
+    smasCombined: [Any!]
+}
+
+"""
+A complete stats result that corresponds to a stats() query. May contain
+multiple StatsDatasetQueryResult.
+
+Not to be confused with the stats result for some dataset() query.
+"""
+type StatsQueryResult @goModel(model: "observe/meta/metastats.Result") {
+    queryId: String!
+    dsResults: [StatsDatasetQueryResult]!
+}
+
+enum QueryRateLimitingState @goModel(model: "observe/meta/metatypes.QueryRateLimitingState") {
+    """
+    The query governor is configured and enforced, but we are not at any limits
+    """
+    Ok
+
+    """
+    The query governor has not been configured, e.g. it is disabled
+    """
+    NotConfigured
+
+    SoftLimit
+    HardLimit
+}
+
+enum ThrottledInfo @goModel(model: "observe/meta/metatypes.ThrottledInfo") {
+    """
+    The query governor is configured and throttling the customer
+    """
+    Throttled
+
+    """
+    The query governor is configured and is not throttling the customer
+    """
+    NotThrottled
+}
+
+type QueryRateLimitAndUsageDetails @goModel(model: "observe/meta/metatypes.QueryRateLimitAndUsageDetails") {
+
+    """
+    The scope (Customer or User) to which the limits or credit usage counts apply.
+    """
+    scope: String!
+
+    """
+    Credits left in the credit budget for the specified scope that can be used right now, or null if
+    no rate limit is configured
+    """
+    creditsRemainingInBudget: Float
+
+    """
+    Maximum total number of credits in the credit budget for this scope, or null if
+    no rate limit is configured. Note: In general, the QCM will be a in a particular state if
+    maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either user or customer).
+    """
+    maxCreditsInBudget: Float
+
+    """
+    Credits used in the past 24 hours until now for the scope
+    """
+    creditsUsedPast24Hours: Float!
+
+    """
+    Credits used over the past 7 days for the scope
+    """
+    creditsUsedPast7Days: Float!
+
+    """
+    Credits used over the past 30 days for the scope
+    """
+    creditsUsedPast30Days: Float!
+
+    """
+    Total credits available for the time horizon for the scope. Null if no limit is set.
+    """
+    creditLimit: Float
+
+    """
+    Total credits available for the time horizon for the scope before throttling.
+    Null if not limit is set.
+    """
+    throttledCreditLimit: Float
+
+    """
+    The time horizon that limits apply over
+    """
+    timeHorizon: Duration!
+}
+
+type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLimitingStats") {
+    """
+    Current rate limiting state for this user.
+
+    The user may be limited based on customer or user level limits.
+    """
+    state: QueryRateLimitingState!
+
+    """
+    Credits left in the _customer_ credit budget that can be used right now, or null if no
+    rate limit is configured
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    creditsRemainingInBudget: Float
+
+    """
+    Maximum total number of credits in the _customer_ credit budget, or null if
+    no rate limit is configured. Note: In general, the QCM will be a in a particular state if
+    maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either user or customer).
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    maxCreditsInBudget: Float
+
+    """
+    Current throttling Info for the user, null if QCM is not configured.
+
+    The user may be throttled due to either customer or user limits;
+    see limitAndUsageDetailsPerScope for credit usage and limits for
+    the customer and user scope individually.
+    """
+    throttleMode: ThrottledInfo
+
+    """
+    Credits used in the past 24 hours until now for the _customer_.
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditsUsedPast24Hours where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    creditsUsedPast24Hours: Float!
+
+    """
+    Daily average credits used over the past 7 days for the _customer_.
+
+    Raw credit usage information for the 7 day period is available in
+    limitAndUsageDetailsPerScope[i].creditsUsedPast7Days where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    dailyAvgCreditUsagePast7Days: Float!
+
+    """
+    Daily average credits used over the past 30 days for the customer
+
+    Raw credit usage information for the 30 day period is available in
+    limitAndUsageDetailsPerScope[i].creditsUsedPast30Days where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    dailyAvgCreditUsagePast30Days: Float!
+
+     """
+    Total credits available for each day for the _customer_. Null if no limit is set.
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditLimit where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    dailyCreditLimit: Float
+
+    """
+    Total contract credits available for each day for the customer. Null if no limit is set.
+    """
+    dailyContractCreditLimit: Float
+
+    """
+    Total throttled credits available for each day. Null if not limit is set.
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].throttledCreditLimit where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    dailyThrottledCreditLimit: Float
+
+    """
+    The details of credit usage and limits for all scopes that have applicable limits.
+
+    NOTE - this in general will return an entry for all scopes - but limits may be missing if not
+    set. This is so that credit usage / billing information is returned.
+    """
+    limitAndUsageDetailsPerScope: [QueryRateLimitAndUsageDetails!]!
+
+}
+
+type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryWeeklyCreditUtilization") {
+    """
+    Current rate limiting state for this user.
+
+    The user may be limited based on customer or user level limits.
+    """
+    state: QueryRateLimitingState!
+
+    """
+    Credits left in the _customer_ credit budget that can be used right now, or null if no
+    rate limit is configured
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    creditsRemainingInBudget: Float
+
+    """
+    Maximum total number of customer credits in the credit budget, or null if
+    no rate limit is configured. Note: In general, the QCM will be a in a particular state if
+    maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either customer or user)
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    maxCreditsInBudget: Float
+
+    """
+    Current throttling Info for the user, null if QCM is not configured.
+
+    The user may be throttled based on customer or user level limits.
+    """
+    throttleMode: ThrottledInfo
+
+    """
+    Total credits used over the past 7 days for the customer
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditsUsedPast7Days where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    creditUsagePast7Days: Float!
+
+    """
+    Total credits available for each week for the customer. Zero if no limit is set.
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].creditLimit where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    weeklyCreditLimit: Float!
+
+    """
+    Total contract credits available for each week for the customer. Zero if no limit is set.
+    """
+    weeklyContractCreditLimit: Float!
+
+    """
+    Total credits available for each week for the customer before throttling. Zero if not limit is set.
+
+    This field is deprecated - and in future should be replaced with
+    limitAndUsageDetailsPerScope[i].throttledCreditLimit where
+    limitAndUsageDetailsPerScope[i].scope == "Customer".
+    """
+    weeklyThrottledCreditLimit: Float!
+
+    """
+    The details of credit usage and limits for all scopes that have applicable limits.
+
+    NOTE - this in general will return an entry for all scopes - but limits may be missing if not
+    set. This is so that credit usage / billing information is still returned.
+    """
+    limitAndUsageDetailsPerScope: [QueryRateLimitAndUsageDetails!]!
+
+}

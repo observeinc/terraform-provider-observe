@@ -1,0 +1,384 @@
+"""
+RematerializationAction is used to control the rematerialization behavior of content mutations.
+"""
+enum RematerializationAction @goModel(model: "observe/meta/metatypes.RematerializationAction") {
+  """
+  AbortOnRematerialization aborts the content upgrade if any rematerialization was to occur in
+  the datasets. This means even the downstream datasets that are outside of the content datasets 
+  being rematerialized will cause the content upgrade to rollback.
+  """
+  AbortOnRematerialization
+  """
+  AbortOnContentRematerialization aborts the content upgrade if any rematerialization was to occur
+  in the content datasets. This means even if the datasets outside of the content gets rematerialized,
+  we ignore the change and commit the upgrade as it's not part of the content.
+  """
+  AbortOnContentRematerialization
+  """
+  IgnoreRematerialization ignores any rematerialization that would occur in the datasets and commits the upgrade
+  regardless of what may happen afterwards.
+  """
+  IgnoreRematerialization
+}
+
+extend type Mutation {
+  """
+  Install the Kubernetes Content or upgrade any existing Kubernetes content to the latest version
+  for the current customer. If any such content is already installed, this mutation allows the
+  caller to specify new Dataset IDs for the Kubernetes content to depend on:
+    - The otellogs dataset that the explorer shows logs from.
+    - The metrics dataset that the explorer fetches metrics from. This mutation
+      ensures the right set of correlation tags is present on this dataset.
+    - The k8s entity dataset that the explorer fetches entity data from.
+  """
+  updateKubernetesContent(input: KubernetesContentInput!): KubernetesContent!
+
+  """
+  Delete the Kubernetes Content for the current customer.
+  Fails if no Kubernetes Content is installed.
+  """
+  deleteKubernetesContent: ResultStatus!
+
+  """
+  Install the Host Explorer Content or upgrade any existing Host Explorer content to the latest
+  version for the current customer. If any such content is already installed, this mutation allows
+  the caller to specify new Dataset IDs for the Host Explorer content to depend on:
+    - The otellogs dataset that the explorer shows logs from.
+    - The metrics dataset that the explorer fetches metrics from. This mutation
+      ensures the right set of correlation tags is present on this dataset.
+  """
+  updateHostExplorerContent(input: HostExplorerContentInput!): HostExplorerContent!
+
+  """
+  Delete the Host Explorer Content for the current customer.
+  Fails if no Host Explorer Content is installed.
+  """
+  deleteHostExplorerContent: ResultStatus!
+
+  """
+  Install the Tracing Content for the current customer if not present.  Returns
+  an error if the content is already installed or if there were errors during
+  the installation procedure.
+  """
+  installTracingContent(input: TracingContentInput): TracingContent!
+
+  """
+  Configures an existing Tracing Content installation.  Each field is optional
+  for the PATCH semantics. Most of the customizations may result in
+  rematerialization of the target dataset(s) and all of the downstreams.
+  """
+  configureTracingContent(input: TracingContentConfigurationInput!, rematerializationAction: RematerializationAction): TracingContent!
+
+  """
+  Installs the LLM Content for the current customer if not present.  Returns
+  an error if the content is already installed or if there were errors during
+  the installation procedure.
+  """
+  installLlmContent(input: LlmContentInput): LlmContent!
+}
+
+extend type Query {
+  """
+  Retrieves the Kubernetes Content information for the current customer.
+  Returns nil if no Kubernetes Content is installed.
+  """
+  getKubernetesContent: KubernetesContent
+
+  """
+  Retrieves the Host Explorer Content information for the current customer.
+  Returns nil if no Host Explorer Content is installed.
+  """
+  hostExplorerContent: HostExplorerContent
+
+  """
+  Retrieves the Service Explorer Content information for the current customer.
+  Returns nil if no Service Explorer Content is installed.
+  """
+  tracingContent: TracingContent
+
+  llmContent: LlmContent
+}
+
+"""
+Models the required information to create or update the Kubernetes Content for
+the current customer.  All fields are optional, so only the fields that are
+specified will be updated.
+"""
+input KubernetesContentInput @goModel(model: "observe/meta/metatypes.KubernetesContentInput") {
+  otelLogsDatasetId: ObjectId
+  prometheusDatasetId: ObjectId
+  entityDatasetId: ObjectId
+}
+
+"""
+Models the complete information of a Kubernetes Content
+"""
+type KubernetesContent @goModel(model: "observe/meta/metatypes.KubernetesContent") {
+  otelLogsDatasetId: ObjectId
+  prometheusDatasetId: ObjectId
+  entityDatasetId: ObjectId
+
+  kubernetesLogsDatasetId: ObjectId
+}
+
+
+"""
+Models the required information to create or update the Host Explorer Content for
+the current customer.  All fields are optional, so only the fields that are
+specified will be updated.
+"""
+input HostExplorerContentInput @goModel(model: "observe/meta/metatypes.HostExplorerContentInput") {
+  otelLogsDatasetId: ObjectId
+  prometheusDatasetId: ObjectId
+}
+
+"""
+Models the complete information of a Host Explorer Content
+"""
+type HostExplorerContent @goModel(model: "observe/meta/metatypes.HostExplorerContent") {
+  otelLogsDatasetId: ObjectId
+  prometheusDatasetId: ObjectId
+
+  hostExplorerLogsDatasetId: ObjectId
+}
+
+"""
+Models the required information to create the Tracing Content
+"""
+input TracingContentInput @goModel(model: "observe/meta/metatypes.TracingContentInput") {
+  """
+  The IDs of the source datasets that the Tracing Content depends on.
+  """
+  spanRawDatasetId: ObjectId!
+  spanEventDatasetId: ObjectId!
+  spanLinkDatasetId: ObjectId!
+  otelMetricsDatasetId: ObjectId!
+}
+
+"""
+Models the complete information of an installed Tracing Content
+"""
+type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
+
+  """
+  The IDs of the source datasets that the Tracing Content depends on.
+  """
+  spanRawDatasetId: ObjectId!
+  spanEventDatasetId: ObjectId!
+  spanLinkDatasetId: ObjectId!
+  otelMetricsDatasetId: ObjectId!
+
+  """
+  The ID of the dataset that powers all other content datasets and implements
+  the Span interface.  When installTracingContent has been called without
+  inputs, this is the ID of the "Tracing/Span" dataset view.  When
+  installTracingContent has been called with custom inputs, and the span dataset
+  already implements the Span interface, this is the ID of the same dataset
+  passed as input.  Either way, the dataset identified by this ID is guaranteed
+  to implement the Span interface.
+  """
+  spanDatasetId: ObjectId!
+
+  canonicalTraceDatasetId: ObjectId!
+  serviceInspectorMetricsDatasetId: ObjectId!
+  serviceExplorerDrilldownMetricsDatasetId: ObjectId!
+  serviceExplorerSpansDatasetId: ObjectId!
+  deploymentDatasetId: ObjectId!
+  serviceMetricsDatasetId: ObjectId!
+  serviceDatasetId: ObjectId!
+  serviceEdgeMetricsDatasetId: ObjectId!
+  errorTrackingMetricsDatasetId: ObjectId!
+
+  traceDatasetId: ObjectId!
+
+  options: [TracingContentOption!]
+}
+
+enum TracingContentOption @goModel(model: "observe/meta/metatypes.TracingContentOption") {
+  """
+  REDMetricsGeneratedByAgent flag indicates the node-level RED metrics are produced by the agent instead of the backend.
+  """
+  REDMetricsGeneratedByAgent
+  """
+  EndpointScopedMapAvailable flag indicates the backend is producing the endpoint-scoped dependency metrics. This indicates
+  that the Tracing/Service Inspector Metrics dataset is producing metrics with 3x dimensions that client
+  must be aware of when querying this dataset.
+  """
+  EndpointScopedMapAvailable
+  """
+  MultiHopDependencyMapDisabled flag indicates the backend is producing single-hop dependency metrics.
+  """
+  MultiHopDependencyMapDisabled
+  """
+  NamespaceEnvironmentAvailableDrilldown flag indicates the backend is adding namespace and environment tags to drill-down metrics.
+  """
+  NamespaceEnvironmentAvailableDrilldown
+}
+
+input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.TracingContentConfigurationInput") {
+  """
+  Controls the maximum time difference between start and end of any span. If the
+  tracing content is built on the direct-write "Tracing/Span" datastream, all of
+  the content will be rematerialized.
+
+  This configuration will have no effect when the Tracing Content is built on a
+  dataset (such as OpenTelemetry/Span).
+
+  Minimum value: 10s
+  Maximum value: 24h
+  Default value: 1h
+  """
+  spanMaxTimeDiff: Duration
+
+  """
+  Controls the expiry of the Trace dataset. That is, spans will be considered
+  as part of the same trace as long as the time difference between two
+  consecutive spans is lower than the value of this config.
+
+  Minimum value: 1m
+  Maximum value: 2h
+  Default value: 30m
+  """
+  traceExpiry: Duration
+
+  """
+  Controls the expiry of the canonical trace dataset. That is, spans will be considered
+  as part of the same trace as long as the time difference between two
+  consecutive spans is lower than the value of this config.
+
+  Minimum value: 1m
+  Maximum value: 1h
+  Default value: 10m
+  """
+  canonicalTraceExpiry: Duration
+
+  """
+  Controls the sampling in the canonical trace dataset.
+
+  Minimum value: 1
+  Maximum value: 100
+  Default value: 100
+  """
+  canonicalTraceSamplingPct: Int64
+
+  """
+  Controls which fields are to be extracted in the span view dataset.
+  """
+  spanFieldExtractionConfigurations: [TracingContentSpanFieldExtractionConfigInput]
+
+  """
+  Controls whether the RED metrics are generated directly by the agent or in the content.
+  When these metrics are generated by the agent, they can be found in the dataset identified by otelMetricsDatasetId.
+  When these metrics are generated in the content, they can be found in the dataset identified by serviceMetricsDatasetId.
+  """
+  redMetricsGeneratedByAgent: Boolean
+
+  """
+  Controls the max time dilation of a run of the canonical trace transform. In other words, this defines the max size
+  of the transform update window. This is an experimental, internal settings.
+
+  Minimum value: 1h
+  Maximum value: 24h
+  Default value: 4h
+  """
+  canonicalTraceMaxDilation: Duration
+
+
+  """
+  Controls whether the backend should produce a single-hop or multi-hop dependency map.
+  """
+  multiHopDependencyMapDisabled: Boolean
+
+  """
+  Controls whether the backend should process traces that contain more than 1000 spans.
+  """
+  disableLargeTraces: Boolean
+
+  """
+  Controls whether external calls metadata (peer network address and port) should be tracked
+  in the canonical trace dataset.
+
+  Default value: false
+  """
+  produceExternalCalls: Boolean
+
+  """
+  Controls whether the backend should compute exception fingerprints (Phase 1).
+  When enabled, exception fingerprints will be computed and stored in the error tracking metrics.
+  """
+  enableExceptionFingerprintingPhase1: Boolean
+
+  """
+  Controls the number of spans threshold for a trace to be considered pathological (truncated).
+  Traces with more spans than this value will be truncated.
+
+  Minimum value: 1000
+  Maximum value: 130000
+  Default value: 100000
+  """
+  pathologicalTraceNumSpans: Int64
+
+  """
+  Controls the duration threshold for a trace to be considered pathological (truncated).
+  Traces longer than this duration will be truncated.
+
+  Minimum value: 5m
+  Maximum value: 2h
+  Default value: 30m
+  """
+  pathologicalTraceDuration: Duration
+}
+
+"""
+This enum defines from which span attribute we want to extract
+a certain field.
+"""
+enum TracingContentSpanFieldColName @goModel(model: "observe/meta/metatypes.TracingContentSpanFieldColName") {
+  attributes
+  resource_attributes
+}
+
+"""
+This enum defines the type of a field that we want to extract
+from a certain span attribute.
+"""
+enum TracingContentSpanFieldTypedef @goModel(model: "observe/meta/metatypes.TracingContentSpanFieldTypedef") {
+  string
+  int64
+  bool
+  float64
+}
+
+"""
+This is a tuning knob to define the custom fields that we want to extract from the span raw data attributes and have them
+shown in the trace explorer.
+"""
+input TracingContentSpanFieldExtractionConfigInput @goModel(model: "observe/meta/metatypes.TracingContentSpanFieldExtractionConfig") {
+  inputColumn: TracingContentSpanFieldColName!
+  inputFieldNames: [String!]!
+  outputFieldName: String!
+  fieldType: TracingContentSpanFieldTypedef!
+}
+
+input LlmContentInput @goModel(model: "observe/meta/metatypes.LlmContentInput") {
+  """
+  The IDs of the source datasets that the LLM Content depends on.
+  """
+  spanRawDatasetId: ObjectId!
+  spanEventDatasetId: ObjectId!
+  spanLinkDatasetId: ObjectId!
+  otelMetricsDatasetId: ObjectId!
+}
+
+type LlmContent @goModel(model: "observe/meta/metatypes.LlmContent") {
+  """
+  The IDs of the source datasets that the Tracing Content depends on.
+  """
+  spanRawDatasetId: ObjectId!
+  spanEventDatasetId: ObjectId!
+  spanLinkDatasetId: ObjectId!
+  otelMetricsDatasetId: ObjectId!
+
+  llmSpansDatasetId: ObjectId!
+  llmMetricsDatasetId: ObjectId!
+}

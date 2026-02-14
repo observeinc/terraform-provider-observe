@@ -1,0 +1,36 @@
+
+"""
+stats common to all tokens (ingest, api etc)
+"""
+interface TokenStats @goModel(model: "observe/meta/metatypes.TokenStats") {
+    firstUsed: Time!
+    lastUsed: Time!
+    lastError: Time
+}
+
+interface Token @goModel(model: "observe/meta/metatypes.Token") {
+    id: String!
+    name: String!
+    description: String
+    createdBy: UserId!
+    createdByInfo: UserInfo!
+    updatedBy: UserId!
+    updatedByInfo: UserInfo!
+    createdDate: Time!
+    updatedDate: Time!
+    """
+    Optional stats
+    """
+    stats: TokenStats
+    disabled: Boolean!
+}
+
+type UserInfo @goModel(model: "observe/meta/metatypes.UserInfo") {
+    userId: UserId!
+    userLabel: String!
+    userTimezone: String!
+    userLocale: String!
+}
+
+scalar ORN @goModel(model: "observe/authorization/id.ORN")
+scalar ORNType @goModel(model: "observe/authorization/id.ORNType")

@@ -152,11 +152,10 @@ var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
 }
 
 var AllMonitorV2RollupStatuses = []MonitorV2RollupStatus{
-	MonitorV2RollupStatusDegraded,
+	MonitorV2RollupStatusDisabled,
 	MonitorV2RollupStatusFailed,
-	MonitorV2RollupStatusInactive,
 	MonitorV2RollupStatusRunning,
-	MonitorV2RollupStatusTriggering,
+	MonitorV2RollupStatusWarnings,
 }
 
 var AllMonitorV2ActionTypes = []MonitorV2ActionType{

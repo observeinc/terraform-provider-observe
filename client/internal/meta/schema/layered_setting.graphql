@@ -1,11 +1,7 @@
 extend type Query {
-    # return the setting settingurations that are in effect for the particular search
     searchLayeredSettingRecords(query: LayeredSettingRecordsQueryInput): SearchLayeredSettingRecordsResult!
-    # return name and documentation of all possible settings
     possibleLayeredSettings: LayeredSettingDocs!
-    # read some particular override record
     layeredSettingRecord(id: ObjectId!): LayeredSettingRecord!
-    # given a setting and a scope of some sort, figure out what the actual value is
     layeredSettingValue(name:String!, target: LayeredSettingContextInput): TargetedLayeredSettingValue!
 }
 
@@ -24,7 +20,6 @@ type LayeredSettingRecord implements WorkspaceObject & AuditedObject & FolderObj
     settingAndTargetScope: SettingAndTargetScope!
     value: PrimitiveValue!
 
-    # WorkspaceObject
     id: ObjectId!
     """ This is the name of the settings record, not the name of the setting! """
     name: String!
@@ -36,10 +31,8 @@ type LayeredSettingRecord implements WorkspaceObject & AuditedObject & FolderObj
     managedBy: WorkspaceObject @goField(forceResolver: true)
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver: true)
     updatedBy: UserId!
@@ -77,10 +70,7 @@ type LayeredSettingDescription @goModel(model: "observe/lsetting.LayeredSettingD
     type: ValueType!
     defaultValue: PrimitiveValue!
     possibleTargetScopes: [SettingTargetScope!]!
-    # description is markdown
     description: String!
-    # User roles are represented as strings, because we don't know
-    # what the final RBAC schema will be.
     writableBy: [String!]!
 }
 
@@ -100,7 +90,7 @@ type SearchLayeredSettingRecordsResult @goModel(model: "observe/lsetting.SearchL
 
 input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredSettingRecordsQueryInput") {
     setting: String
-    target: LayeredSettingContextInput
+    target: LayeredSettingTargetQueryInput
     """
     This is for "the record lives in this workspace," NOT for "the record affects this workspace."
     """
@@ -115,7 +105,20 @@ input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredS
     managedById: ObjectId
 }
 
-# Context used when fetching a layered setting value, all relevant scopes must be set.
+input LayeredSettingTargetQueryInput @goModel(model: "observe/lsetting.SettingTargetQueryInput") {
+    customerId: CustomerId
+    workspaceId: ObjectId
+    folderId: ObjectId
+    appId: ObjectId
+    monitorId: ObjectId
+    worksheetId: ObjectId
+    dashboardId: ObjectId
+    datastreamId: ObjectId
+    datasetId: ObjectId
+    rbacGroupId: ORN
+    userId: UserId
+}
+
 input LayeredSettingContextInput @goModel(model: "observe/lsetting.SettingContextInput") {
     customerId: CustomerId
     workspaceId: ObjectId
@@ -126,11 +129,9 @@ input LayeredSettingContextInput @goModel(model: "observe/lsetting.SettingContex
     dashboardId: ObjectId
     datastreamId: ObjectId
     datasetId: ObjectId
-    # providing a userId will automatically load the user's groups if applicable
     userId: UserId
 }
 
-# The scope is determined by which one field is defined and non-null
 input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.SettingTargetInput") {
     customerId: CustomerId
     workspaceId: ObjectId
@@ -146,6 +147,7 @@ input LayeredSettingRecordTargetInput @goModel(model: "observe/lsetting.SettingT
 }
 
 enum SettingTargetScope @goModel(model: "observe/lsetting.SettingTargetScope") {
+    Cluster
     Customer
     Workspace
     Folder
@@ -170,7 +172,6 @@ input LayeredSettingRecordInput @goModel(model: "observe/lsetting.LayeredSetting
     settingAndTargetScope: SettingAndTargetScopeInput!
     value: PrimitiveValueInput!
 
-    # WorkspaceObject
     id: ObjectId
     """
     This is the name of the settings record, not the name of the setting!
@@ -187,7 +188,6 @@ input LayeredSettingRecordInput @goModel(model: "observe/lsetting.LayeredSetting
     workspaceId: ObjectId!
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 

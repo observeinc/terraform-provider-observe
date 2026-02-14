@@ -1,10 +1,6 @@
 interface AccelerableObject @goModel(model: "observe/meta/metatypes.AccelerableObject") {
     accelerationInfo: AccelerationInfo!
     accelerationDisabled: Boolean!
-    # TODO:
-    # * Add accelerable: Boolean!
-    # * Add this interface to monitors
-    # * Add compilationError and onDemandMaterializationLength if they apply to monitors too?
 }
 
 type AccelerationError implements ErrorInstance @goModel(model: "observe/meta/metatypes.AccelerationError") {
@@ -71,6 +67,34 @@ type MinimumDownstreamTargetStaleness @goModel(model: "observe/meta/metatypes.Mi
     shareIds: [ObjectId!]
 }
 
+enum AccelerationType @goModel(model: "observe/compiler/comptypes.AccelerationType") {
+    """
+    Dataset can be accelerated by inserting new rows as they come in. This is
+    the most efficient form of acceleration.
+    """
+    InsertOnly
+
+    """
+    Dataset can be accelerated by aggregating new rows as they come in. This
+    usually happens when we have a time-based aggregation, ex: timechart.
+    Also efficient.
+    """
+    Aggregation
+
+    """
+    Dataset can be accelerated, but it's not insert-only or aggregation.
+    Such acceleration usually requires reading more data than just
+    the new rows, and rewrite existing data. It is usually less efficient
+    than the other types.
+    """
+    Other
+
+    """
+    Dataset cannot be accelerated.
+    """
+    NotSupported
+}
+
 enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState") {
     """
     Dataset is newly created/updated and acceleration has just started. It can
@@ -89,6 +113,12 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
     reduced to "zero" and reset to the original value again afterwards.
     """
     LiveMode
+
+    """
+    Normal operation, this dataset can't be accelerated, it's always inlined,
+    like a view in a database.
+    """
+    View
 
     """
     Acceleration is unavailable because the dataset or its upstream dataset is
@@ -112,12 +142,10 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
 }
 
 type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
-    state: AccelerationState!
 
     """
-    Staleness of the dataset (averaged over some moving window). 5min means we
-    may not return data received in the last 5 minutes. A float value in
-    seconds.
+    Live staleness of the dataset. 5min means we may not return data received
+    in the last 5 minutes. A float value representing a number of seconds.
     Empty if alwaysAccelerated is true.
     """
     stalenessSeconds: Float
@@ -180,12 +208,6 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     alwaysAccelerated: Boolean
 
-    """
-    The starting time of the "accelerated" range (i.e., materialized range).
-    Querying data before this time can result in inlining and might be slow.
-    A null value means nothing is materialized yet.
-    """
-    acceleratedRangeStart: Time @deprecated(reason: "Use acceleratedRanges")
 
     """
     The list of "accelerated" ranges (materialized ranges). Querying data outside
@@ -193,13 +215,6 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     acceleratedRanges: [TimeRange!]!
 
-    """
-    The target of accelerated range start for backfilling. If this value is
-    different from the actual accelerated range start, it means we are actively
-    backfilling more data, and the difference between the two can be treated as
-    a "progress" indication. The target is determined by historical queries.
-    """
-    targetAcceleratedRangeStart: Time @deprecated(reason: "Use targetAcceleratedRanges")
 
     """
     The target accelerated ranges. If this value is different from the actual
@@ -249,13 +264,7 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     minimumDataTimestamp: Time
 
     """
-    True if this dataset is hibernated. In this case, the dataset will not
-    automatically accelerate new data. You can still query the dataset on the
-    accelerated range and issue manual acceleration jobs.
-    """
-    hibernated: Boolean!
-
-    """
+    If the dataset is not hibernated, this field is null.
     If the dataset is hibernated, this field will be set to the time when it was
     hibernated. The dataset will not automatically accelerate new data.
     You can still query the dataset on the accelerated range and issue manual

@@ -1,4 +1,3 @@
-# GraphLink pre-defined paths support (PreferredPath)
 
 """
 An PreferredPath specifies some preferred destination to go to
@@ -102,13 +101,11 @@ It's OK to make these part of "list paths for given source dataset" though, as
 that's only one, and presumably you're likely to actually use it.
 """
 type PreferredPath implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.PreferredPath") {
-    # Specific to PreferredPath
     sourceDataset: ObjectId!
     destinationDataset: ObjectId @goField(forceResolver: true)
     resolvedPath: RelationshipPath @goField(forceResolver: true)
     path: [PreferredPathStep!]!
 
-    # WorkspaceObject
     id: ObjectId!
     name: String!
     description: String!
@@ -117,10 +114,8 @@ type PreferredPath implements WorkspaceObject & AuditedObject & FolderObject @go
     managedBy: WorkspaceObject @goField(forceResolver: true)
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver: true)
     createdDate: Time!
@@ -196,11 +191,11 @@ enum PreferredPathErrorCode @goModel(model:"observe/meta/metatypes.PreferredPath
 
 extend type RelationshipPath {
     """
-    non-null if this path was taken from a pre-defined preferred path
+    Non-null if this path was taken from a pre-defined preferred path
     """
     preferredPathId: ObjectId
     """
-    non-null if this path was taken from a pre-defined preferred path
+    Non-null if this path was taken from a pre-defined preferred path
     """
     preferredPathName: String
 }

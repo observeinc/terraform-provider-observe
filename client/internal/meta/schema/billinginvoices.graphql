@@ -1,6 +1,6 @@
 extend type Query {
     """
-    for a given customer collect all invoices. This will return all invoices for any customers sharing the same OrdwayId
+    For a given customer collect all invoices. This will return all invoices for any customers sharing the same OrdwayId
     """
     getBillingInvoices: [BillingInvoicesDefinition!]!
 }

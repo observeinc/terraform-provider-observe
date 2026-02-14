@@ -1,0 +1,874 @@
+extend type Subscription {
+    """
+    Same endpoint but streams results as they come.
+
+    This operation has an internal timeout (5 minutes by default, or layered setting override Query.timeout)
+    It also ends when the websocket connection is closed or snowflake times out the underlying queries.
+    """
+    datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [TaskResult]!
+
+    """
+    Similar endpoint as datasetProgressive, but runs this query in Live streaming mode. All stages are currently grouped by
+    their default input dataset (recursively in case it is another stage) and when new data arrives in that dataset then
+    the stages' queries are re-executed.
+
+    Different to datasetProgressive:
+    * StageInput.Progressive is forced to false
+    * StageInput.BestEffortBinding is ignored (always enabled internally)
+    * params is of type LiveQueryParams, which
+    + Has a query window size (duration) instead of a frame (start, end). The actual query window frame for the queries is determined
+    by (start = now - duration, end = now), where "now" is the time when new data arrived in the dataset.
+    + Has an optional parameter runImmediately, which when set will make all queries run immediately once before waiting for data updates.
+
+    In Live Mode:
+    * Observe queries are run repeatedly, once after new data was ingested for the datasets which participate in each stage.
+    * After this subscription was started, the handler starts checking for new data ingested.
+    * As soon as for a stage's main input new data was ingested, that stage is re-executed and that new result returned.
+    * In case the client wants to immediately run the query once without waiting for new data, it must set the optional parameter `runImmediately`.
+    * Each stage is executed individually, as with the datasetProgressive subscription.
+    * This subscription will stop in the following cases:
+    * The client explicitly stops it.
+    * After 5 minutes as a safeguard against high credit burn.
+    Afterwards, Live Mode stays enabled another 1 minute as a grace period to allow the client to continue Live Mode through a new subscription.
+    * The websocket connection is lost / times out.
+    Afterwards, Live Mode stays enabled another 3 minutes to accomodate for e.g. lossy connections and allow the user to reconnect and start a fresh subscription.
+    Otherwise, it continuesly sends new complete results as soon as new data is available in the main input.
+    * The value of StageInput.progressive will be ignored.
+    * The query window is moved, not extended.
+    * Until we have real incremental execution we always send "complete" (non-incremental) results to the client.
+    """
+    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [LiveQueryResult]!
+}
+
+extend type Query {
+    """
+    Given a cursorId from a previous query, you can arrange to get a URL that you can
+    GET to get the data pointed-at by that cursor. The URL will only have a limited
+    lifetime, and will have headers that suggest a browser treats it as a
+    download. The download will have the suggested filename you request, or a
+    generated filename if not provided. The data will have the file format
+    you request, or default to Csv.
+    """
+    exportCursor(cursorId: String!, filename: String, exportFormat: ExportFileFormat): ExportCursorResult!
+    """
+    Given a query (such as you'd pass to datasetProgressive() or checkQueries()),
+    run the query, and export the results to a cursor, then prepare the export URL for
+    that cursor with the same parameters as exportCursor(), and return that URL.
+    """
+    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat, metadata: QueryMetadata): ExportCursorResult!
+
+    """
+    Pull more results from a cursor. rollupFilter provides more granular
+    filter for rolled-up results. Must be nil for any unrolled-up result.
+    Default to the "all" mode for backward compatibility.
+    maxBytes provides a soft limit on response size in bytes (max 300MB).
+    It is counted as a sum of all cell value lengths, so JSON overhead is excluded.
+    Compression, including RLE, is also not accounted for.
+    There's no cap if this parameter is not provided or its value is 0.
+    """
+    cursor(cursorId: String!, offset: Int64!, numRows: Int64!, rollupFilter: RollupFilterInput, maxBytes: Int64): PaginatedResults
+
+    """
+    Given some datasets and pipeline expressions, run the query and extract the
+    query results.  Errors in input specification come back as GQL/HTTP errors,
+    but syntax errors in the parsed query come back in the parsedPipeline result
+    set for each query.
+
+    Times out after 2 minutes.
+    """
+    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!], metadata: QueryMetadata): [TaskResult!]!
+}
+
+"""
+QueryParams are for parameters intrinsic to Live *query*, not the *presentation*
+of the query. One way to think about this, is that anything that goes in here
+should be equally applicable to invocations by transformer, monitors, exports,
+or worksheets.
+"""
+input LiveQueryParams @goModel(model: "observe/meta/metatypes.LiveQueryParamsInput") {
+    """
+    Live queries are run with a sliding query window where the end time is always
+    the current time and the start time is derived through this duration. For instance,
+    this can be "the last 5 minutes".
+    """
+    queryWindowSize: Duration!
+
+    """
+    Use this to specify rate limiting options for this query. To bypass the
+    rate limit for all queries by this user for a certain amount of time, see
+    the QueryGovernor.bypassUntil layered setting instead
+    """
+    rateLimitOption: RateLimitOption
+
+    """
+    Whether the query is run immediately once before waiting for data updates.
+    """
+    runImmediately: Boolean
+}
+
+"""
+PaginatedResults is a scalar so we can use a custom marshaler for higher performance.
+
+It contains these fields:
+type PaginatedResults {
+    cursorId: String
+    sfQid: String
+    totalRows: Int64!
+    offset: Int64!
+    numRows: Int64!
+    columns: [[String]]
+}
+"""
+scalar PaginatedResults @goModel(model: "observe/meta/metatypes.PaginatedResults")
+
+enum ExportFileFormat @goModel(model: "observe/meta/metatypes.ExportFileFormat") {
+    """
+    Comma Separated Values
+    """
+    Csv
+    """
+    Newline Delimited JSON
+    """
+    NDJson
+}
+
+type ExportCursorResult @goModel(model: "observe/meta/metatypes.ExportCursorResult") {
+    """
+    If the data from the cursor can be had by calling GET on a URL, this is
+    the URL.
+    """
+    exportUrl: String!
+
+    """
+    The export URL will expire at some time in the future. This is that time.
+    """
+    exportUrlExpiration: Time
+
+    """
+    This is the filename you provided, or a generated filename if none was
+    part of the request
+    """
+    exportFilename: String
+
+    """
+    This is the format you requested, or the default if none was part of the
+    request
+    """
+    exportFormat: ExportFileFormat
+}
+
+extend type TaskResult {
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageID: String @deprecated(reason: "use stageId instead")
+
+    """
+    The time range which this set of results cover.
+    """
+    startTime: Time @deprecated(reason: "not used anymore")
+    endTime: Time @deprecated(reason: "not used anymore")
+
+    """
+    If resultKind is resultKindProgress (which will only happen if it is one
+    of the requested resultKinds for a stage), contains details on the task's
+    progress
+    """
+    resultProgress: TaskResultProgress
+
+    """
+    You used to paginate the data yourself out of S3 -- not needed anymore
+    """
+    resultCursor: SnowflakeCursor @deprecated(reason: "use paginatedResults instead")
+    """
+    Read the results you asked for, through the apiserver
+    """
+    paginatedResults: PaginatedResults
+    """
+    If resultCursor is set, does it contain data or stats? Or if
+    resultKindProgress, then resultProgress is set instead
+    """
+    resultKind: ResultKind
+
+    """
+    How to understand the columns in the result from Snowflake --
+    """
+    resultSchema: TaskResultSchema
+
+    """
+    Column stats results. Not null only if resultKind is ResultKindColumnStats
+    """
+    columnStats: ColumnStatsResults
+
+    """
+    Volume stats results. Not null only if resultKind is ResultKindVolumeStats
+    """
+    volumeStats: VolumeStatsResults
+
+    """
+    A parse/compile error is still a "successful" request, so HTTP status is OK,
+    but the parse/compile error is pointed into the right part of the code in
+    this result part.
+    """
+    parsedPipeline: ParsedPipeline
+
+    comments: JsonObject
+
+    estimatedCost: [CostMetric!]
+
+
+    """
+    Metadata about the returned data and stats result. This must not be null for
+    data and stats result.
+    """
+    resultMetadata: ResultMetadata
+
+    """
+    Warnings that apply to this stage as a whole rather than the OPAL. See
+    parsedPipeline for OPAL-specific warnings
+    """
+    warnings: [TaskResultWarning!]
+
+    """
+    True if this is a TaskResult for
+    - stats query whose data is sampled.
+    - the sampled aggregation presentation option is enabled and sampling was applied.
+    """
+    isSampled: Boolean!
+
+    """
+    Search match metadata, returned for ResultKindData results if was requested
+    in the StagePresentationInput.searchMatchKind
+    """
+    searchMatchMetadata: SearchMatchMetadata
+
+    """
+    Statistics about the Snowflake task execution (like warehouse size used
+    and time spent in Snowflake)
+    """
+    taskExecutionStats: TaskExecutionStats
+}
+
+type LiveQueryFreshnessUpdateResult implements LiveQueryResult @goModel(model: "observe/meta/metaparser.LiveQueryFreshnessUpdateResult") {
+
+    stageIdx: Int! @deprecated(reason: "identify stages by stageId instead")
+
+    """
+    The Observe Query identifier
+    """
+    queryId: String!
+
+    """
+    This set of results pertains to the StageInput with this ID:
+    """
+    stageId: String #!<- make mandatory once stageIdx is removed @goField(name:StageID)
+
+    """
+    Errors that apply to this stage as a whole,
+    """
+    errors: [TaskResultError!]
+
+    """
+    Update related to the data freshness.
+    """
+    freshnessUpdate: FreshnessUpdate!
+}
+
+type FreshnessUpdate @goModel(model: "observe/meta/metaparser.FreshnessUpdate") {
+    """
+    The latest ingestion time is the most recent time that we ingested
+    new data that may influence (depending on the query) the
+    query result.
+    """
+    latestIngestionTime: Time
+
+
+    """
+    The latest materialization time is the most recent time that the bottom most
+    datasets for the given query were materializated. This may influence
+    (depending on the query) the query result.
+    """
+    latestMaterializationTime: Time
+}
+
+
+type ColumnStatsResults @goModel(model: "observe/meta/metatypes.ColumnStatsResults") {
+    """
+    The number of rows that the stats are computed over. The semantic of the row
+    limit is the same as the row limit in data request (i.e., top N rows based
+    on the specific sorting orders).
+    """
+    rowCount: Int64!
+
+    """
+    Whether the stats results cover all data in the query results. If the field
+    is true, one should assume that the returned stats are only an
+    approximation, and can check the rowCount to find out how large the sample
+    size is.
+    """
+    isSampled: Boolean!
+
+    """
+    Per column stats
+    """
+    stats: [ColumnStats!]!
+}
+
+type VolumeStatsResults @goModel(model: "observe/meta/metatypes.VolumeStatsResults") {
+    """
+    Volume stats may be disabled by the backend. If it is disabled, all other
+    fields except disabledReason are null.
+    """
+    isDisabled: Boolean!
+
+    """
+    Reason for being disabled
+    """
+    disabledReason: String
+
+    """
+    Whether the stats results cover all data in the query results. If the field
+    is true, one should assume that the returned stats are an approximation.
+    """
+    isSampled: Boolean
+
+    """
+    Size of each bucket
+    """
+    interval: Duration
+
+    """
+    Start time of the first bucket
+    """
+    base: Time
+
+    """
+    Number of rows within each bucket. This contains estimated values if isSampled is true.
+    """
+    buckets: [Int64!]
+
+    """
+    Total number of rows within the query window. This contains an estimated value if isSampled is true.
+    """
+    totalCount: Int64
+}
+
+type SearchMatchMetadata @goModel(model: "observe/meta/metatypes.SearchMatchMetadata") {
+    """
+    List of columns that have contributed to resulting data matching the search
+    """
+    columns: [String!]!
+    """
+    List of regexes to highlight the matches. There can be multiple elements for the same column
+    """
+    regexes: [SearchMatchColumnRegex!]!
+}
+
+type SearchMatchColumnRegex @goModel(model: "observe/meta/metatypes.SearchMatchColumnRegex") {
+    column: String!
+    regex: String!
+    negated: Boolean!
+}
+
+enum TaskState @goModel(model: "observe/meta/metaparser.TaskState") {
+    """
+    The query is being throttled by us for some reason, because the apiserver
+    is handling too many requests already or the customer has issued too many
+    queries
+    """
+    TaskStateQueued
+    """
+    The query is still being processed, either on our end or in snowflake.
+    This covers everything from the query being compiled in the apiserver to
+    the query being sent to the scheduler to the query being queued in
+    snowflake.
+    """
+    TaskStatePreparing
+    """
+    The query is running in snowflake
+    """
+    TaskStateRunning
+}
+
+type TaskResultProgress @goModel(model: "observe/meta/metaparser.TaskResultProgress") {
+    """
+    Is this update for the data or stats part of this stage?
+    """
+    progressKind: ResultKind!
+
+    """
+    A task may have several subtasks, which subtask is currently running and
+    how many are there in total? subtaskIdx is 0-indexed
+    """
+    subtaskIdx: Int!
+    totalSubtasks: Int!
+
+    """
+    What is the state of the current subtask?
+    """
+    state: TaskState!
+
+    """
+    How many bytes has this subtask scanned so far and what is the upper
+    bound on the total number of bytes it may have to scan? These are only
+    set if the query is running. Note that it is possible for totalScanBytes
+    to be 0 in some rare cases.
+    """
+    scannedBytes: Int64
+    totalScanBytes: Int64
+
+    """
+    How long has this task been waiting in the scheduler queue?
+    """
+    queuingDuration: Duration
+
+    """
+    How many times has this task been retried? (default / ideal is 0)
+    """
+    retries: Int
+}
+
+"""
+Generic interface for a warning from a task result. Warnings are not fatal, and can be returned alongside query results.
+"""
+interface TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarning") {
+    """
+    Warning type identifier, common for all warnings of the same type
+    """
+    messageTypeId: String!
+    """
+    Unique warning instance identifier
+    """
+    messageId: String!
+    """
+    Warning location in the pipeline
+    """
+    span: SourceSpan
+    """
+    Warning text, returned without any decorations like message type ID
+    """
+    text: String!
+    """
+    Warning message, can be decorated with warning type ID, source location and other bits
+    """
+    message: String!
+}
+
+"""
+Warning that the customer is approaching the credit limit
+"""
+type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningRateLimit") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Warning location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+
+    """
+    Credits left in the credit budget and credits fraction that can be used right now
+    """
+    creditsRemainingInBudget: Float!
+    creditsFractionRemainingInBudget: Float!
+    """
+    Info of whether the customer was throttled by the QCM
+    """
+    throttled: Boolean!
+}
+
+"""
+Warning that there are some datasets cannot be bounded when compiling the opal.
+"""
+type TaskResultWarningBinding implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningBinding") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Warning location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+Reason to be returned as part of the DatasetStalenessInfo
+"""
+enum StalenessReason @goModel(model: "observe/meta/metatypes.StalenessReason") {
+    CreditManagerOverride         # Staleness attributed to ACM override
+    UnusedDatasetHibernating      # Staleness attributed to unused dataset freshness decay
+    ConfiguredFreshnessGoal       # Staleness attributed to the set freshness goal
+    SlowAcceleration              # Staleness attributed due to slow transform execution
+    ActiveBackfill                # Staleness attributed due to an active backfill
+    DatasetHibernated             # Staleness due to hibernation
+}
+
+
+"""
+Warning that the query results are stale
+"""
+type TaskResultWarningStaleResults implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningStalenessResults") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+    staleness: [DatasetStalenessInfo!]!
+}
+
+"""
+Warning that the query results are answered from the result cache and that the data is maybe stale.
+"""
+type TaskResultWarningCachedResults implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningCachedResults") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+Warning that a live mode session involves a source table type where we cannot speed up ingest.
+One example is external table, where we cannot influence from the customer's POV how often new
+data is ingested. For instance, the external Snowflake tables in O2 are updated by Snowflake
+and we have no handle, except polling for new data more often.
+"""
+type TaskResultWarningLiveModeSource implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningLiveModeSource") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of warning
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+type DatasetStalenessInfo @goModel(model: "observe/meta/metatypes.DatasetStalenessInfo") {
+    datasetId: ObjectId!
+
+    """
+    How stale this dataset is
+    """
+    stalenessDuration: Duration!
+
+    """
+    Why this dataset is stale
+    """
+    stalenessReason: StalenessReason!
+}
+
+"""
+A generic error type to return legacy errors in that do not have more specific types yet
+"""
+type TaskResultErrorGeneric implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorGeneric") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+A generic error type to return legacy warnings in that do not have more specific types yet
+"""
+type TaskResultWarningGeneric implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningGeneric") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+"""
+An error returned when a stage cannot be compiled because it forms a dependency loop with some of its inputs
+"""
+type TaskResultErrorStageDependencyLoop implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorStageDependencyLoop") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of the stage that triggered an error
+    """
+    firstStageId: String!
+    """
+    IDs of all the stages forming a loop, firstStageId must be among them
+    """
+    stageIds: [String!]!
+}
+
+"""
+An error returned when a stage cannot be compiled because input stages have errors
+"""
+type TaskResultErrorStageHasDependenciesWithErrors implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorStageHasDependenciesWithErrors") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of the stage that triggered an error
+    """
+    stageId: String!
+    """
+    List of errors found in the upstream stages
+    """
+    upstreamStageErrors: [StageErrors!]!
+}
+
+type TaskResultErrorMissingParameter implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorMissingParameter") {
+    messageTypeId: String!
+    messageId: String!
+    span: SourceSpan
+    text: String!
+    message: String!
+    """
+    ID of parameter that is not set or otherwise fails to compile
+    """
+    parameterId: String!
+}
+
+"""
+Errors found in a given stage
+"""
+type StageErrors @goModel(model: "observe/meta/metatypes.StageErrors") {
+    stageId: String!
+    errors: [TaskResultError!]!
+    """
+    Tells if this stage is an "error root", meaning it has errors but no other
+    upstream stages have errors
+    """
+    isErrorRoot: Boolean!
+}
+
+"""
+Error that the query was blocked or throttled due to the query rate limit set for this customer
+"""
+type TaskResultErrorRateLimit implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorRateLimit") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of error
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+
+    """
+    Credits left in the credit budget that can be used right now, or null if no
+    rate limit is configured
+    """
+    creditsRemainingInBudget: Float!
+
+    """
+    Query resulted in an error because it was hard limit blocked or not. Currently if true, we don't
+    run the query and if false, the query was run but timed out because it was throttled i.e. downlaned
+    and shorter timeout.
+    """
+    hardLimitBlocked: Boolean!
+}
+
+"""
+Error that a stage fails to bind the dataset to the physical table (i.e., fail
+to inline or use best effort binding).
+"""
+type TaskResultErrorBinding implements TaskResultError @goModel(model: "observe/meta/metatypes.TaskResultErrorBinding") {
+    messageTypeId: String!
+    messageId: String!
+    """
+    Error location in the pipeline, never set for this type of error
+    """
+    span: SourceSpan
+    text: String!
+    message: String!
+}
+
+type TokenIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.TokenIndex") {
+    column: String!
+}
+
+type SubstringIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.SubstringIndex") {
+    column: String!
+}
+
+type EqualityIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.EqualityIndex") {
+    column: String!
+}
+
+type AutoClusteringIndex implements IndexDefinition @goModel(model: "observe/meta/metatypes.AutoClusteringIndex") {
+    column: String!
+}
+
+"""
+Metadata for data and stats result.
+"""
+type ResultMetadata @goModel(model: "observe/meta/metatypes.ResultMetadata") {
+    """
+    If true, more TaskResults are expected. This will replace
+    TaskResult.isProgressive. This is mostly used in progressive execution where
+    multiple TaskResults could be returned for the same query.
+    """
+    hasMoreResults: Boolean!
+
+    """
+    @deprecated(reason:"use executionMode")
+    If true, the query is running incrementally. This means that there will be
+    more frequent updates to the result set. Each update replaces the results
+    that have been already delivered so far.
+    """
+    isIncremental: Boolean!
+
+    """
+    The execution mode of the query. All execution modes will execute the query
+    and return the same final result. Some execution modes provide less or more
+    frequent partial results.
+    """
+    executionMode: ExecutionMode!
+
+    """
+    Queries that are executed in multiple parts will report how many time slices
+    have been executed so far.
+    """
+    incrementalSliceNumber: Int
+
+    """
+    The number of parallel incremental tasks that are used at this stage of
+    the query.
+    """
+    incrementalParallelism: Int
+
+    """
+    The actual windows of returned data.
+    """
+    effectiveWindows: [TimeRange!]!
+
+    """
+    The accelerated windows of the query.
+    """
+    acceleratedWindows: [TimeRange!]!
+
+    """
+    Information about the queried datasets.
+    """
+    inputDatasetsInfo: [DatasetInfo!]
+
+    """
+    Information about the accessed indexes.
+    """
+    accessedIndexes: [IndexDefinition!]
+
+    """
+    Information about the accessed indexes using enum-based representation.
+    This is a simpler alternative to accessedIndexes.
+    """
+    accessedIndexDescs: [IndexDescription!]
+
+    """
+    The number of slices that are answered using results from the result cache
+    """
+    resultCacheHits: Int
+}
+
+"""
+The execution mode for this OPAL query
+"""
+enum ExecutionMode @goModel(model: "observe/meta/metatypes.ExecutionMode") {
+    """
+    Execution runs a single query that returns only one result per ResultKind.
+    """
+    ExecutionModeSingle
+    """
+    Execution runs up to 3 queries with a progressively bigger query window.
+    The third query will always be the full query window.
+    This execution mode will return:
+    - at most 3 ResultKindData results (if the request asks for ResultKindData),
+    - at most 4 ResultKindColumnStats results (if the request asks for ResultKindColumnStats), and
+    - at most 5 ResultKindVolumneStats results (if the request asks for ResultKindVolumeStats)
+    Each new result replaces the results that have been already delivered so far.
+    """
+    ExecutionModeProgressive
+    """
+    Same as ExecutionModeProgressive, but the execution will run multiple (depending on the query window)
+    incrementally bigger queries that do not overlap, in order to cover the entire full query window.
+    This means that there will be more frequent updates to the result set. Each new result replaces
+    the results that have been already delivered so far.
+    """
+    ExecutionModeIncremental
+}
+
+enum WarehouseSize @goModel(model: "observe/meta/metatypes.WarehouseSize") {
+    WHSZ_UNKNOWN
+    WHSZ_XSMALL
+    WHSZ_SMALL
+    WHSZ_MEDIUM
+    WHSZ_LARGE
+    WHSZ_XLARGE
+    WHSZ_XXLARGE
+    WHSZ_XXXLARGE
+    WHSZ_X4LARGE
+    WHSZ_X5LARGE
+    WHSZ_X6LARGE
+}
+
+type TaskExecutionStats @goModel(model: "observe/meta/metaparser.TaskExecutionStats") {
+    """
+    Total time spent executing in the scheduler overall (not just in Snowflake)
+    NOTE: this does not include time queueing - only the time from when the task is
+    scheduled on the warehouse.
+    """
+    schedulerTotalExecutionTime: Duration!
+
+    """
+    Warehouse size used in Snowflake
+    """
+    warehouseSize: WarehouseSize!
+}
+
+"""
+Metadata a client can send together with an observe query. Should not change the
+behavior of the query, and should only provide some context around what this
+query is used for.
+"""
+input QueryMetadata @goModel(model: "observe/meta/metatypes.QueryMetadata") {
+    """
+    Observe site URL where the query is triggered
+    """
+    url: String
+
+    """
+    Observe page type (dashboard, log explorer, etc.)
+    """
+    pageType: String
+
+    """
+    Associated observe entity of the page. For dashboard, it would be the
+    dashboard ID. For log explorer, it would be the dataset ID of the log
+    dataset, etc.
+    """
+    pageEntityId: ObjectId
+
+    """
+    For some page, there may be an inner tab structure and this logs which
+    tab the user is on.
+    """
+    pageTab: String
+
+    """
+    Indicates that the result cache can be used to answer this query.
+    """
+    useResultCache: Boolean
+
+    """
+    Extra stuff
+    """
+    extra: JsonObject
+}

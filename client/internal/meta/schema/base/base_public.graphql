@@ -1,15 +1,3 @@
-schema {
-    query: Query
-    mutation: Mutation
-    subscription: Subscription
-}
-
-type Query
-
-type Mutation
-
-type Subscription
-
 directive @goModel(model: String, models: [String!]) on OBJECT
     | INPUT_OBJECT
     | SCALAR
@@ -25,13 +13,43 @@ directive @eol on
     | FIELD_DEFINITION
     | ARGUMENT_DEFINITION
 
+enum Team @goModel(model: "observe/meta/apiowner.Team") {
+    Logs
+    Streaming
+    Enterprise
+    Intake
+    AI
+    APM
+    Query
+}
+
+"""
+Directive to specify the owner of an API endpoint, which includes the owner team
+and the lead engineer. For the lead engineer, please use their primary google
+email alias (can look it up using the Google contact directory).
+"""
+directive @owner(team: Team!, lead: String!) on
+    | FIELD_DEFINITION
+    | INPUT_FIELD_DEFINITION
+
+
+"""
+Directive to configure which API rate limit buckets apply to this GraphQL field.
+If omitted, the default buckets of api:readonlyPerUser and api:readonlyPerCustomer are used for
+Query fields, and api:perUser and api:perCustomer are used for Mutation fields.
+When provided, ONLY the listed buckets apply, replacing the defaults.
+To enforce extra rate limits in addition to the defaults, include the default ones in the list.
+To disable rate limiting for this field, set names: [].
+"""
+directive @rateLimits(names: [String!]) on FIELD_DEFINITION
+
 scalar Any @goModel(model: "observe/meta/metascalar.Any")
 scalar CustomerId @goModel(model: "observe/authorization/id.CustomerId")
 scalar Duration @goModel(model: "observe/compiler/comptypes.Duration")
 scalar Int64 @goModel(model: "observe/meta/metascalar.Int64")
 scalar JsonObject @goModel(model: "observe/meta/metascalar.ObjectScalar")
 scalar Number @goModel(model: "observe/meta/metascalar.Number")
-scalar ObjectId @goModel(model: "observe/compiler/comptypes.ObjectId")
+scalar ObjectId @goModel(model: "observe/meta/metascalar.ObjectId")
 scalar SnowflakeCursor @goModel(model: "observe/meta/metaparser.SnowflakeCursor")
 scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
 
@@ -55,65 +73,6 @@ enum ObjectKind @goModel(model: "observe/meta/metatypes.ObjectKind") {
   Dashboard
 }
 
-"""
-Currently only used for Monitors
-"""
-type GeneratedDataset @goModel(model: "observe/meta/metatypes.GeneratedDataset") {
-    role: String!
-    datasetId: ObjectId!
-}
-
-interface FolderObject @goModel(model: "observe/meta/metatypes.FolderObject") {
-    folderId: ObjectId!
-}
-
-interface AuditedObject @goModel(model: "observe/meta/metatypes.AuditedObject") {
-    createdBy: UserId!
-    createdByInfo: UserInfo!
-    updatedBy: UserId!
-    updatedByInfo: UserInfo!
-    createdDate: Time!
-    updatedDate: Time!
-}
-
-"""
-stats common to all tokens (ingest, api etc)
-"""
-interface TokenStats @goModel(model: "observe/meta/metatypes.TokenStats") {
-    firstUsed: Time!
-    lastUsed: Time!
-    lastError: Time
-}
-
-interface Token @goModel(model: "observe/meta/metatypes.Token") {
-    id: String!
-    name: String!
-    description: String
-    createdBy: UserId!
-    createdByInfo: UserInfo!
-    updatedBy: UserId!
-    updatedByInfo: UserInfo!
-    createdDate: Time!
-    updatedDate: Time!
-    """
-    optional stats
-    """
-    stats: TokenStats
-    disabled: Boolean!
-}
-
-input ResourceIdInput @goModel(model: "observe/meta/metatypes.ResourceIdInput") {
-    datasetId: ObjectId!
-    primaryKeyValue: [ColumnAndValueInput!]!
-    timeRange: TimeRangeInput
-}
-
-type ResourceId @goModel(model: "observe/meta/metatypes.ResourceId") {
-    datasetId: ObjectId!
-    primaryKeyValue: [ColumnAndValue!]!
-    timeRange: TimeRange
-}
-
 type TimeRange @goModel(model: "observe/meta/metatypes.TimeRange") {
     start: Time
     end: Time
@@ -122,16 +81,6 @@ type TimeRange @goModel(model: "observe/meta/metatypes.TimeRange") {
 input TimeRangeInput @goModel(model: "observe/meta/metatypes.TimeRange") {
     start: Time
     end: Time
-}
-
-type ColumnAndValue @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
-    name: String!
-    value: String
-}
-
-input ColumnAndValueInput @goModel(model: "observe/meta/metatypes.ColumnAndValue") {
-    name: String!
-    value: String
 }
 
 type SourceLoc @goModel(model: "observe/compiler/comptypes.SourceLocation") {
@@ -165,4 +114,15 @@ interface ErrorInstance @goModel(model: "observe/meta/metatypes.ErrorInstance") 
     Error text.
     """
     errorText: String!
+}
+
+type RateLimitConfig @goModel(model: "observe/meta/metatypes.RateLimitConfig") {
+    rate: Float!
+    burst: Int64
+}
+
+input RateLimitInput @goModel(model: "observe/meta/metatypes.RateLimitInput") {
+    rate: Float!
+
+    burst: Int64
 }

@@ -1,6 +1,22 @@
-# This file is auto-generated -- do not edit
 
-# ---- Customer properties ----
+
+type LayeredCustomerApps @goModel(model:"observe/meta/metatypes.LayeredCustomerApps") {
+    hideOldApps: Boolean
+}
+
+input LayeredCustomerAppsInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAppsInput") {
+    hideOldApps: Boolean @goField(forceResolver: true)
+}
+
+type LayeredCustomerAuth @goModel(model:"observe/meta/metatypes.LayeredCustomerAuth") {
+    allowPasswordLogin: Boolean
+    fullLogoutUI: Boolean
+}
+
+input LayeredCustomerAuthInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAuthInput") {
+    allowPasswordLogin: Boolean @goField(forceResolver: true)
+    fullLogoutUI: Boolean @goField(forceResolver: true)
+}
 
 type LayeredCustomerContractLimit @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimit") {
     ingestLogGbPerDay: Int64
@@ -38,11 +54,13 @@ input LayeredCustomerDataRetentionInput @goModel(model:"observe/meta/metatypes.L
 
 type LayeredCustomerDataset @goModel(model:"observe/meta/metatypes.LayeredCustomerDataset") {
     freshnessDesired: Int64
+    hibernationDelayHours: Int64
     snowflakeSharingEnabled: Boolean
 }
 
 input LayeredCustomerDatasetInput @goModel(model:"observe/meta/metatypes.LayeredCustomerDatasetInput") {
     freshnessDesired: Int64 @goField(forceResolver: true)
+    hibernationDelayHours: Int64 @goField(forceResolver: true)
     snowflakeSharingEnabled: Boolean @goField(forceResolver: true)
 }
 
@@ -57,15 +75,39 @@ input LayeredCustomerLinkifyInput @goModel(model:"observe/meta/metatypes.Layered
 }
 
 type LayeredCustomerMonitor @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitor") {
+    blockActions: Boolean
+    blockNonEmailNotifications: Boolean
     freshnessGoal: Int64
 }
 
 input LayeredCustomerMonitorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorInput") {
+    blockActions: Boolean @goField(forceResolver: true)
+    blockNonEmailNotifications: Boolean @goField(forceResolver: true)
     freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredCustomerMonitorGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorGovernor") {
+    monitorCreditsPerDay: Float
+}
+
+input LayeredCustomerMonitorGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorGovernorInput") {
+    monitorCreditsPerDay: Float @goField(forceResolver: true)
+}
+
+type LayeredCustomerMonitorV2 @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorV2") {
+    blockNonEmailNotifications: Boolean
+    blockSlackPagerDutyActions: Boolean
+}
+
+input LayeredCustomerMonitorV2Input @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorV2Input") {
+    blockNonEmailNotifications: Boolean @goField(forceResolver: true)
+    blockSlackPagerDutyActions: Boolean @goField(forceResolver: true)
 }
 
 type LayeredCustomerQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernor") {
     creditsPerDay: Float
+    dashboardCreditsPerDay: Float
+    dashboardThrottledLimitCreditsPerDay: Float
     throttledLimitCreditsPerDay: Float
     userCreditsPerDay: Float
     userThrottledLimitCreditsPerDay: Float
@@ -73,6 +115,8 @@ type LayeredCustomerQueryGovernor @goModel(model:"observe/meta/metatypes.Layered
 
 input LayeredCustomerQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerQueryGovernorInput") {
     creditsPerDay: Float @goField(forceResolver: true)
+    dashboardCreditsPerDay: Float @goField(forceResolver: true)
+    dashboardThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
     throttledLimitCreditsPerDay: Float @goField(forceResolver: true)
     userCreditsPerDay: Float @goField(forceResolver: true)
     userThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
@@ -107,24 +151,32 @@ input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatyp
 }
 
 type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
+    apps: LayeredCustomerApps!
+    auth: LayeredCustomerAuth!
     contractLimit: LayeredCustomerContractLimit!
     customer: LayeredCustomerCustomer!
     dataRetention: LayeredCustomerDataRetention!
     dataset: LayeredCustomerDataset!
     linkify: LayeredCustomerLinkify!
     monitor: LayeredCustomerMonitor!
+    monitorGovernor: LayeredCustomerMonitorGovernor!
+    monitorV2: LayeredCustomerMonitorV2!
     queryGovernor: LayeredCustomerQueryGovernor!
     scanner: LayeredCustomerScanner!
     transformGovernor: LayeredCustomerTransformGovernor!
 }
 
 input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
+    apps: LayeredCustomerAppsInput
+    auth: LayeredCustomerAuthInput
     contractLimit: LayeredCustomerContractLimitInput
     customer: LayeredCustomerCustomerInput
     dataRetention: LayeredCustomerDataRetentionInput
     dataset: LayeredCustomerDatasetInput
     linkify: LayeredCustomerLinkifyInput
     monitor: LayeredCustomerMonitorInput
+    monitorGovernor: LayeredCustomerMonitorGovernorInput
+    monitorV2: LayeredCustomerMonitorV2Input
     queryGovernor: LayeredCustomerQueryGovernorInput
     scanner: LayeredCustomerScannerInput
     transformGovernor: LayeredCustomerTransformGovernorInput
@@ -138,7 +190,6 @@ extend type Mutation {
     saveCustomerSettings(workspaceId: ObjectId!, input: LayeredCustomerInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Workspace properties ----
 
 type LayeredWorkspaceDataRetention @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDataRetention") {
     periodDays: Int64
@@ -150,10 +201,12 @@ input LayeredWorkspaceDataRetentionInput @goModel(model:"observe/meta/metatypes.
 
 type LayeredWorkspaceDataset @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDataset") {
     freshnessDesired: Int64
+    hibernationDelayHours: Int64
 }
 
 input LayeredWorkspaceDatasetInput @goModel(model:"observe/meta/metatypes.LayeredWorkspaceDatasetInput") {
     freshnessDesired: Int64 @goField(forceResolver: true)
+    hibernationDelayHours: Int64 @goField(forceResolver: true)
 }
 
 type LayeredWorkspaceLinkify @goModel(model:"observe/meta/metatypes.LayeredWorkspaceLinkify") {
@@ -216,7 +269,6 @@ extend type Mutation {
     saveProjectSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorkspaceInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Folder properties ----
 
 type LayeredFolderScanner @goModel(model:"observe/meta/metatypes.LayeredFolderScanner") {
     powerLevel: Int64
@@ -242,14 +294,15 @@ extend type Mutation {
     saveFolderSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredFolderInput!): [LayeredSettingRecord!]!
 }
 
-# ---- App properties ----
 
 type LayeredAppDataset @goModel(model:"observe/meta/metatypes.LayeredAppDataset") {
     freshnessDesired: Int64
+    hibernationDelayHours: Int64
 }
 
 input LayeredAppDatasetInput @goModel(model:"observe/meta/metatypes.LayeredAppDatasetInput") {
     freshnessDesired: Int64 @goField(forceResolver: true)
+    hibernationDelayHours: Int64 @goField(forceResolver: true)
 }
 
 type LayeredAppMonitor @goModel(model:"observe/meta/metatypes.LayeredAppMonitor") {
@@ -288,7 +341,6 @@ extend type Mutation {
     saveAppSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredAppInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Monitor properties ----
 
 type LayeredMonitorMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitor") {
     freshnessGoal: Int64
@@ -296,6 +348,14 @@ type LayeredMonitorMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitor
 
 input LayeredMonitorMonitorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitorInput") {
     freshnessGoal: Int64 @goField(forceResolver: true)
+}
+
+type LayeredMonitorMonitorGovernor @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitorGovernor") {
+    monitorCreditsPerDay: Float
+}
+
+input LayeredMonitorMonitorGovernorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorMonitorGovernorInput") {
+    monitorCreditsPerDay: Float @goField(forceResolver: true)
 }
 
 type LayeredMonitorScanner @goModel(model:"observe/meta/metatypes.LayeredMonitorScanner") {
@@ -318,12 +378,14 @@ input LayeredMonitorTransformGovernorInput @goModel(model:"observe/meta/metatype
 
 type LayeredMonitor @goModel(model:"observe/meta/metatypes.LayeredMonitor") {
     monitor: LayeredMonitorMonitor!
+    monitorGovernor: LayeredMonitorMonitorGovernor!
     scanner: LayeredMonitorScanner!
     transformGovernor: LayeredMonitorTransformGovernor!
 }
 
 input LayeredMonitorInput @goModel(model:"observe/meta/metatypes.LayeredMonitorInput") {
     monitor: LayeredMonitorMonitorInput
+    monitorGovernor: LayeredMonitorMonitorGovernorInput
     scanner: LayeredMonitorScannerInput
     transformGovernor: LayeredMonitorTransformGovernorInput
 }
@@ -336,7 +398,6 @@ extend type Mutation {
     saveMonitorSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredMonitorInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Worksheet properties ----
 
 type LayeredWorksheetScanner @goModel(model:"observe/meta/metatypes.LayeredWorksheetScanner") {
     powerLevel: Int64
@@ -362,7 +423,16 @@ extend type Mutation {
     saveWorksheetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredWorksheetInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Dashboard properties ----
+
+type LayeredDashboardQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredDashboardQueryGovernor") {
+    dashboardCreditsPerDay: Float
+    dashboardThrottledLimitCreditsPerDay: Float
+}
+
+input LayeredDashboardQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredDashboardQueryGovernorInput") {
+    dashboardCreditsPerDay: Float @goField(forceResolver: true)
+    dashboardThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
+}
 
 type LayeredDashboardScanner @goModel(model:"observe/meta/metatypes.LayeredDashboardScanner") {
     powerLevel: Int64
@@ -373,10 +443,12 @@ input LayeredDashboardScannerInput @goModel(model:"observe/meta/metatypes.Layere
 }
 
 type LayeredDashboard @goModel(model:"observe/meta/metatypes.LayeredDashboard") {
+    queryGovernor: LayeredDashboardQueryGovernor!
     scanner: LayeredDashboardScanner!
 }
 
 input LayeredDashboardInput @goModel(model:"observe/meta/metatypes.LayeredDashboardInput") {
+    queryGovernor: LayeredDashboardQueryGovernorInput
     scanner: LayeredDashboardScannerInput
 }
 
@@ -388,7 +460,6 @@ extend type Mutation {
     saveDashboardSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDashboardInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Datastream properties ----
 
 type LayeredDatastreamDataRetention @goModel(model:"observe/meta/metatypes.LayeredDatastreamDataRetention") {
     periodDays: Int64
@@ -424,15 +495,16 @@ extend type Mutation {
     saveDatastreamSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatastreamInput!): [LayeredSettingRecord!]!
 }
 
-# ---- Dataset properties ----
 
 type LayeredDatasetDataset @goModel(model:"observe/meta/metatypes.LayeredDatasetDataset") {
     freshnessDesired: Int64
+    hibernationDelayHours: Int64
     snowflakeSharingEnabled: Boolean
 }
 
 input LayeredDatasetDatasetInput @goModel(model:"observe/meta/metatypes.LayeredDatasetDatasetInput") {
     freshnessDesired: Int64 @goField(forceResolver: true)
+    hibernationDelayHours: Int64 @goField(forceResolver: true)
     snowflakeSharingEnabled: Boolean @goField(forceResolver: true)
 }
 
@@ -486,7 +558,51 @@ extend type Mutation {
     saveDatasetSettings(workspaceId: ObjectId!, oid: ObjectId!, input: LayeredDatasetInput!): [LayeredSettingRecord!]!
 }
 
-# ---- User properties ----
+
+type LayeredRbacGroupQueryGovernor @goModel(model:"observe/meta/metatypes.LayeredRbacGroupQueryGovernor") {
+    userCreditsPerDay: Float
+    userThrottledLimitCreditsPerDay: Float
+}
+
+input LayeredRbacGroupQueryGovernorInput @goModel(model:"observe/meta/metatypes.LayeredRbacGroupQueryGovernorInput") {
+    userCreditsPerDay: Float @goField(forceResolver: true)
+    userThrottledLimitCreditsPerDay: Float @goField(forceResolver: true)
+}
+
+type LayeredRbacGroupScanner @goModel(model:"observe/meta/metatypes.LayeredRbacGroupScanner") {
+    powerLevel: Int64
+}
+
+input LayeredRbacGroupScannerInput @goModel(model:"observe/meta/metatypes.LayeredRbacGroupScannerInput") {
+    powerLevel: Int64 @goField(forceResolver: true)
+}
+
+type LayeredRbacGroup @goModel(model:"observe/meta/metatypes.LayeredRbacGroup") {
+    queryGovernor: LayeredRbacGroupQueryGovernor!
+    scanner: LayeredRbacGroupScanner!
+}
+
+input LayeredRbacGroupInput @goModel(model:"observe/meta/metatypes.LayeredRbacGroupInput") {
+    queryGovernor: LayeredRbacGroupQueryGovernorInput
+    scanner: LayeredRbacGroupScannerInput
+}
+
+extend type RbacGroup {
+    effectiveSettings: LayeredRbacGroup! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+    saveRbacGroupSettings(workspaceId: ObjectId!, gid: ORN!, input: LayeredRbacGroupInput!): [LayeredSettingRecord!]!
+}
+
+
+type LayeredUserAuth @goModel(model:"observe/meta/metatypes.LayeredUserAuth") {
+    allowPasswordLogin: Boolean
+}
+
+input LayeredUserAuthInput @goModel(model:"observe/meta/metatypes.LayeredUserAuthInput") {
+    allowPasswordLogin: Boolean @goField(forceResolver: true)
+}
 
 type LayeredUserLinkify @goModel(model:"observe/meta/metatypes.LayeredUserLinkify") {
     joinSourceDisabled: Boolean
@@ -517,12 +633,14 @@ input LayeredUserScannerInput @goModel(model:"observe/meta/metatypes.LayeredUser
 }
 
 type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
+    auth: LayeredUserAuth!
     linkify: LayeredUserLinkify!
     queryGovernor: LayeredUserQueryGovernor!
     scanner: LayeredUserScanner!
 }
 
 input LayeredUserInput @goModel(model:"observe/meta/metatypes.LayeredUserInput") {
+    auth: LayeredUserAuthInput
     linkify: LayeredUserLinkifyInput
     queryGovernor: LayeredUserQueryGovernorInput
     scanner: LayeredUserScannerInput
@@ -533,5 +651,5 @@ extend type User {
 }
 
 extend type Mutation {
-    saveUserSettings(workspaceId: ObjectId!, uid: UserId!, input: LayeredUserInput!): [LayeredSettingRecord!]!
+    saveUserSettings(workspaceId: ObjectId!, uid: UserId!,input: LayeredUserInput!): [LayeredSettingRecord!]!
 }

@@ -30,7 +30,7 @@ extend type Query {
     The optional prompt lets you tune the extraction (could come from the user).
     This is the old interface, which is now deprecated, and replaced by the two-step process of getDataExtractionCandidates() and getDataExtractionFromCandidates()
     """
-    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse! @deprecated
+    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse! @deprecated(reason: "please use getDataExtractionCandidates and getDataExtractionFromCandidates")
 
     """
     Given some data, generate possible extraction actions on it.
@@ -62,10 +62,28 @@ extend type Query {
 }
 
 enum SummaryKind @goModel(model:"observe/meta/metascalar.SummaryKind") {
+    """
+    Generates a basic paragraph-length summary of Slack conversations.
+    Originally designed for the Slack summarization bot. Plan on renaming
+    to something more representative of the kind of summary it produces in the future.
+    """
     Summary
+    """
+    Generates a timeline of events from Slack conversations.
+    """
     Timeline
+    """
+    Generates a summary of a new incident.
+    """
     Incident
+    """
+    Generates a retrospective of events from Slack conversations.
+    """
     Retrospective
+    """
+    Generates a summary of an incident notebook.
+    """
+    Notebook
 }
 
 extend type Mutation {
@@ -136,12 +154,13 @@ type HelpResponse @goModel(model:"observe/meta/metatypes.HelpResponse") {
 type HelpResponseItem @goModel(model:"observe/meta/metatypes.HelpResponseItem") {
     sender: String!
     message: String!
-    url: String
+    url: String @deprecated(reason: "Use 'urls' instead.")
     """
     Any question you get the answer to, is allocated an ID. This ID can be
     provided for context in subsequent questions, and can also be scored
     with scoreHelp().
     """
+    urls: [String!]
     id: String!
 }
 

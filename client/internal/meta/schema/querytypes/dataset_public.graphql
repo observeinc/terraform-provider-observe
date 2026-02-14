@@ -1,0 +1,250 @@
+enum DatasetKind @goModel(model: "observe/compiler/comptypes.DatasetKind") {
+    Table
+    Resource
+    Event
+    Interval
+}
+
+input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQueryInput") {
+    outputStage: String!
+    stages: [StageQueryInput!]!
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+    layout: JsonObject
+}
+
+type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
+    outputStage: String!
+    stages: [StageQuery!]!
+    parameters: [ParameterSpec!]!
+    parameterValues: [ParameterBinding!]
+    layout: JsonObject
+}
+
+type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
+    id: String! @goField(name:StageID)
+    input: [InputDefinition!]!
+    params: JsonObject
+    pipeline: String!
+    layout: JsonObject
+    parameters: [ParameterSpec!]
+    parameterValues: [ParameterBinding!]
+}
+
+input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
+    """
+    make id required when we've removed all deprecated use of stageId
+    """
+    id: String @goField(name:StageID)
+    input: [InputDefinitionInput!]!
+    pipeline: String!
+    layout: JsonObject
+    parameters: [ParameterSpecInput!]
+    parameterValues: [ParameterBindingInput!]
+}
+
+type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
+    targetDataset: Int64
+    targetStageLabel: String
+    label: String!
+    targetLabelFieldName: String
+    srcFields: [String!]! @deprecated(reason: "use src instead")
+    src: [LinkField!]!
+    dstFields: [String!]!
+}
+
+"""
+A RelatedKey is like a ForeignKey, but it may not be a full
+primary key to the target dataset.
+"""
+type RelatedKey @goModel(model: "observe/meta/metatypes.RelatedKey") {
+    targetDataset: Int64!
+    label: String!
+    srcFields: [String!]
+    dstFields: [String!]
+}
+
+enum GroupingElementType @goModel(model: "observe/compiler/comptypes.GroupingElementType") {
+    Column
+    Link
+}
+
+"""
+If type is Column, value is the column name.
+If type is Link, value is the link ID.
+"""
+type GroupingElement @goModel(model: "observe/compiler/comptypes.GroupingElement") {
+    type: GroupingElementType!
+    value: String!
+}
+
+"""
+The GroupingKey represents how the output data is grouped. It usually originates
+from when the group_by clause is used in an OPAL aggregate verb.
+The elements consist of a mix of links and columns.
+Note: When elements is an empty list, it literally represents "group_by()" with no
+arguments, meaning that all rows are grouped together in a single group. This is
+different from the lack of a grouping, which is represented by Dataset.groupingKey
+or TaskResultSchema.groupingKey being null.
+"""
+type GroupingKey @goModel(model: "observe/compiler/comptypes.GroupingKey") {
+    elements: [GroupingElement!]!
+}
+
+"""
+IndexMetadata represents the metadata information of a dataset of the result schema of a query.
+Currently only used for token index.
+"""
+type IndexMetadata @goModel(model: "observe/compiler/comptypes.IndexMetadata") {
+    columns: [String!]
+}
+
+enum MetricType @goModel(model: "observe/compiler/comptypes.MetricType") {
+    cumulativeCounter
+    counter @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    ratePerSec @deprecated(reason: "This field is no longer supported in set_metric verb.")
+    delta
+    gauge
+    tdigest
+    sample
+    histogram
+    exponentialHistogram
+}
+
+enum TagSourceKind @goModel(model: "observe/meta/metatypes.TagSourceKind") {
+    Metric
+    User
+    Ingest
+}
+
+enum TagSource @goModel(model: "observe/meta/metatypes.TagSourceKind") {
+    Metric
+    User
+    Ingest
+}
+
+type TagSourceInfo @goModel(model: "observe/meta/metatypes.TagSourceInfo") {
+    kind: TagSourceKind!
+    origin: [ObjectId!]!
+}
+
+type TagMapping @goModel(model: "observe/meta/metatypes.TagMapping") {
+    tag: String!
+    location: TagPath!
+}
+
+
+type MetricTagPath @goModel(model: "observe/compiler/comptypes.MetricTag") {
+    column: String!
+    path: String!
+}
+
+
+type TagPath @goModel(model: "observe/meta/metatypes.TagPath") {
+    column: String!
+    path: String!
+    sources: [TagSource!]! @deprecated(reason: "use sourceInfos instead") @goField(forceResolver:true)
+    sourceInfos: [TagSourceInfo!]!
+}
+
+"""
+MetricHeuristics contains information deduced via all kinds of "educated guessing", such
+as analysis on metric name, or aggregation based metric discovery. They may be inaccurate.
+Any heuristics may be unavailable for any metric, due to missing data or other edge cases
+where the heuristic estimation method does not apply.
+"""
+type MetricHeuristics @goModel(model: "observe/meta/metatypes.MetricHeuristics") {
+    validLinkLabels: [String!]
+    numOfPoints: Int64
+    cardinality: Int64
+    interval: Duration
+    intervalStddev: Duration
+    """
+    The last time this metric was reported. This time could be underreported by at most an hour.
+
+    When a metric has a lastReported of T, here is the information you can extract from it:
+    1. the metric was actually reported at the timestamp T
+    2. the metric was NEVER reported between [T+1h, now-5m), for fresh metric datasets (most are)
+    3. the metric was NEVER reported between [T+1h, last_transform_time), for stale metric datasets (either freshness decayed, or has a high freshness goal)
+    In other words, for the common cases where T > now-1h, it's not clear whether the metric is reported between [T, now). We haven't yet found an affordable way to uncover this information.
+    """
+    lastReported: Time
+    tags: [MetricTagPath!]
+    """
+    List of correlation tags on the metric dataset filtered to the ones that are relevant to the metric.
+    """
+    correlationTags: [CorrelationTagMapping!]
+}
+
+type Metric @goModel(model: "observe/meta/metatypes.Metric") {
+    name: String!
+    """
+    Format: <dataset-alias>.<metric-name>. If an alias is not defined for the dataset, the name is instead used as the alias
+    """
+    nameWithPath: String!
+    type: MetricType! @goField(name:MetricType)
+    unit: String!
+    description: String!
+    rollup: String!
+    aggregate: String!
+    interval: Duration
+    suggestedBucketSize: Duration
+    """
+    Whether the metric has been defined explicitly by user.
+    Non-user-defined metrics are discovered by scanning metric data.
+    """
+    userDefined: Boolean!
+    heuristics: MetricHeuristics
+    state: MetricState!
+}
+
+type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
+    id: ObjectId!
+    label: String!
+    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead")
+    def: ObjectTypedef
+}
+
+
+type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
+    path: String!
+    mapping: [InterfaceFieldMapping!]!
+}
+
+type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {
+    interfaceField: String!
+    field: String!
+}
+
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
+type InterfaceDefinition @goModel(model: "observe/meta/metatypes.InterfaceDefinition") {
+    name: String!
+    """
+    Path is the same as name for platform-defined interfaces
+    """
+    path: String!
+    """
+    Null for platform-defined interfaces
+    """
+    workspaceId: ObjectId
+    interfaceFields: [InterfaceFieldDefinition!]!
+    description: String!
+    deprecation: String!
+    qualifiers: [String!]!
+}
+
+"""
+TODO(OB-32415): this type is already not used and pending deprecation.
+"""
+type InterfaceFieldDefinition @goModel(model: "observe/meta/metatypes.InterfaceFieldDefinition") {
+    interfaceField: String!
+    rep: String!
+    optional: Boolean!
+}
+
+type CorrelationTagMapping @goModel(model: "observe/compiler/comptypes.CorrelationTagMapping") {
+    tag: String!
+    path: LinkField!
+}

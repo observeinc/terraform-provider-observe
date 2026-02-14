@@ -1,5 +1,3 @@
-# A data source that loads data from a cloud object storage service provider into Observe platform Must be associated with a datastream
-# this file is auto-generated, do not edit
 """
 Configurations related to the cloud object storage service provider
 """
@@ -48,9 +46,8 @@ enum FiledropStatus @goModel(model: "observe/meta/metatypes.FiledropStatus") {
 }
 
 type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Filedrop") {
-    # payload
     """
-    status of the filedrop
+    Status of the filedrop
     """
     status: FiledropStatus!
     disabled: Boolean
@@ -64,9 +61,7 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
     datastreamTokenID: String!
     config: FiledropConfig!
     endpoint: FiledropEndpoint!
-    # not in output: metadata: FiledropMetadata!
     stats: DatastreamTokenStats @goField(forceResolver: true)
-    # WorkspaceObject
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -75,10 +70,8 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
     managedById: ObjectId
     managedBy: WorkspaceObject @goField(forceResolver: true)
 
-    # FolderObject
     folderId: ObjectId!
 
-    # AuditedObject
     createdBy: UserId!
     createdDate: Time!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -88,22 +81,13 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
 }
 
 input FiledropInput @goModel(model: "observe/meta/metatypes.FiledropInput") {
-    # payload
-    # not in input: status: FiledropStatus!
     disabled: Boolean
-    # immutable: datastreamID: ObjectId!
-    # not in input: datastreamTokenID: String!
     config: FiledropConfigInput!
-    # not in input: endpoint: FiledropEndpoint!
-    # not in input: metadata: FiledropMetadataInput!
-    # resolver: stats: DatastreamTokenStats
-    # WorkspaceObject
     name: String
     iconUrl: String
     description: String
     managedById: ObjectId
 
-    # FolderObject
     folderId: ObjectId
 }
 
@@ -111,22 +95,16 @@ type FiledropSearchResult @goModel(model: "observe/meta/metatypes.FiledropSearch
     results: [Filedrop!]!
 }
 
-# User provided configuration that defines a filedrop
 type FiledropConfig @goModel(model: "observe/meta/metatypes.FiledropConfig") {
-    # payload
     provider: FiledropProviderConfig!
-    # not in output: providerAws: FiledropProviderAwsConfig
 }
 
 input FiledropConfigInput @goModel(model: "observe/meta/metatypes.FiledropConfigInput") {
-    # payload
-    # not in input: provider: FiledropProviderConfig!
     providerAws: FiledropProviderAwsConfigInput
 }
 
 
 type FiledropProviderAwsConfig implements FiledropProviderConfig @goModel(model: "observe/meta/metatypes.FiledropProviderAwsConfig") {
-    # payload
     type: FiledropProviderType!
     """
     AWS region of the filedrop
@@ -139,15 +117,12 @@ type FiledropProviderAwsConfig implements FiledropProviderConfig @goModel(model:
 }
 
 input FiledropProviderAwsConfigInput @goModel(model: "observe/meta/metatypes.FiledropProviderAwsConfigInput") {
-    # payload
-    # not in input: type: FiledropProviderType!
     region: String!
     roleArn: String!
 }
 
 
 type FiledropS3Endpoint implements FiledropEndpoint @goModel(model: "observe/meta/metatypes.FiledropS3Endpoint") {
-    # payload
     type: FiledropEndpointType!
     """
     IAM arn of the S3 access point
@@ -158,7 +133,7 @@ type FiledropS3Endpoint implements FiledropEndpoint @goModel(model: "observe/met
     """
     bucket: String!
     """
-    filedrop's prefix path within the S3 access point
+    Filedrop's prefix path within the S3 access point
     """
     prefix: String!
 }

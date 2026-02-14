@@ -1,0 +1,56 @@
+extend type Mutation {
+  hibernationAction(
+    datasetId: ObjectId!,
+    action: HibernationActionType!
+    """
+    Whether the action will modify the state of the datasets or not.
+    If this is true, this API returns the datasets that will be
+    affected
+    """
+    dryRun: Boolean,
+  ): HibernationActionResponse!
+}
+
+enum HibernationActionType @goModel(model: "observe/meta/metatypes.HibernationActionType") {
+  Hibernate
+  WakeUp
+  WakeUpIncludingDownstreams
+}
+
+enum HiberationActionStatus @goModel(model: "observe/meta/metatypes.HiberationActionStatus") {
+  Success
+  CannotApply
+  HibernationDisabled
+}
+
+enum HibernationActionDatasetStatus @goModel(model: "observe/meta/metatypes.HibernationActionDatasetStatus") {
+  Success
+  DatasetDoesNotExist
+  DatasetIsMonitor
+  DatasetIsDataStream
+  DownstreamDatasetCannotHibernate
+}
+
+type HibernationActionDataset @goModel(model: "observe/meta/metatypes.HibernationActionDataset") {
+  """
+  The dataset that caused an error.
+  """
+  datasetId: ObjectId!
+  """
+  The reason for the error.
+  """
+  status: HibernationActionDatasetStatus!
+}
+
+type HibernationActionResponse @goModel(model: "observe/meta/metatypes.HibernationActionResponse") {
+  """
+  The status of the action.
+  """
+  status: HiberationActionStatus!
+
+  """
+  If status is SUCCESS, this slice contains all the datasets that are affected by the operation and status SUCCESS.
+  If status is not SUCCESS, this slice contains the datasets that caused the failure, and the reason.
+  """
+  datasets: [HibernationActionDataset!]
+}
