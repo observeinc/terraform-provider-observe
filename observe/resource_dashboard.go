@@ -155,6 +155,8 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 		input.EntityTags = []gql.EntityTagMappingInput{}
 	}
 
+	input.Visibility = asPointer(gql.ObjectVisibilityListed)
+
 	return input, diags
 }
 

@@ -99,6 +99,8 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 		input.EntityTags = []gql.EntityTagMappingInput{}
 	}
 
+	input.Visibility = asPointer(gql.ObjectVisibilityListed)
+
 	return input, diags
 }
 
