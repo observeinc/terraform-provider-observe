@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -205,6 +206,33 @@ func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\ncolmake key:\"test\"\n"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.name", randomPrefix+"-tag"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.column", "key"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccObserveBuiltinDataset tests that we can read a dataset using a built-in transform.
+func TestAccObserveBuiltinDataset(t *testing.T) {
+	if os.Getenv("CI") != "true" {
+		t.Skip("CI != true. This test requires the tracing built-in content to be installed.")
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble + `
+					data "observe_dataset" "tracing_canonical_trace" {
+						workspace = data.observe_workspace.default.oid
+						name      = "Tracing/Canonical Trace"
+					}
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_dataset.tracing_canonical_trace", "oid"),
+					// no stages as this uses a built-in transform
+					resource.TestCheckResourceAttr("data.observe_dataset.tracing_canonical_trace", "stage.#", "0"),
 				),
 			},
 		},
