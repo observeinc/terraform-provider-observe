@@ -13,24 +13,6 @@ directive @eol on
     | FIELD_DEFINITION
     | ARGUMENT_DEFINITION
 
-enum Team @goModel(model: "observe/meta/apiowner.Team") {
-    Logs
-    Streaming
-    Enterprise
-    Intake
-    AI
-    APM
-    Query
-}
-
-"""
-Directive to specify the owner of an API endpoint, which includes the owner team
-and the lead engineer. For the lead engineer, please use their primary google
-email alias (can look it up using the Google contact directory).
-"""
-directive @owner(team: Team!, lead: String!) on
-    | FIELD_DEFINITION
-    | INPUT_FIELD_DEFINITION
 
 
 """

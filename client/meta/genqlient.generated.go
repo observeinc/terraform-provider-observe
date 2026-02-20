@@ -11051,29 +11051,6 @@ func (v *Workspace) GetId() string { return v.Id }
 // GetLabel returns Workspace.Label, and is useful for accessing the field via an interface.
 func (v *Workspace) GetLabel() string { return v.Label }
 
-type WorkspaceInput struct {
-	Label              *string           `json:"label"`
-	Timezone           *string           `json:"timezone"`
-	Locale             *string           `json:"locale"`
-	Layout             *types.JsonObject `json:"layout"`
-	DefaultDashboardId *string           `json:"defaultDashboardId"`
-}
-
-// GetLabel returns WorkspaceInput.Label, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetLabel() *string { return v.Label }
-
-// GetTimezone returns WorkspaceInput.Timezone, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetTimezone() *string { return v.Timezone }
-
-// GetLocale returns WorkspaceInput.Locale, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetLocale() *string { return v.Locale }
-
-// GetLayout returns WorkspaceInput.Layout, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetLayout() *types.JsonObject { return v.Layout }
-
-// GetDefaultDashboardId returns WorkspaceInput.DefaultDashboardId, and is useful for accessing the field via an interface.
-func (v *WorkspaceInput) GetDefaultDashboardId() *string { return v.DefaultDashboardId }
-
 // __addCorrelationTagInput is used internally by genqlient
 type __addCorrelationTagInput struct {
 	DatasetId string         `json:"datasetId"`
@@ -11426,14 +11403,6 @@ func (v *__createSnowflakeOutboundShareInput) GetWorkspaceId() string { return v
 // GetInput returns __createSnowflakeOutboundShareInput.Input, and is useful for accessing the field via an interface.
 func (v *__createSnowflakeOutboundShareInput) GetInput() SnowflakeOutboundShareInput { return v.Input }
 
-// __createWorkspaceInput is used internally by genqlient
-type __createWorkspaceInput struct {
-	Config WorkspaceInput `json:"config"`
-}
-
-// GetConfig returns __createWorkspaceInput.Config, and is useful for accessing the field via an interface.
-func (v *__createWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
-
 // __deleteAppDataSourceInput is used internally by genqlient
 type __deleteAppDataSourceInput struct {
 	Id string `json:"id"`
@@ -11685,14 +11654,6 @@ type __deleteWorksheetInput struct {
 
 // GetId returns __deleteWorksheetInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteWorksheetInput) GetId() string { return v.Id }
-
-// __deleteWorkspaceInput is used internally by genqlient
-type __deleteWorkspaceInput struct {
-	Id string `json:"id"`
-}
-
-// GetId returns __deleteWorkspaceInput.Id, and is useful for accessing the field via an interface.
-func (v *__deleteWorkspaceInput) GetId() string { return v.Id }
 
 // __getAppDataSourceInput is used internally by genqlient
 type __getAppDataSourceInput struct {
@@ -12666,18 +12627,6 @@ func (v *__updateSnowflakeOutboundShareInput) GetId() string { return v.Id }
 // GetInput returns __updateSnowflakeOutboundShareInput.Input, and is useful for accessing the field via an interface.
 func (v *__updateSnowflakeOutboundShareInput) GetInput() SnowflakeOutboundShareInput { return v.Input }
 
-// __updateWorkspaceInput is used internally by genqlient
-type __updateWorkspaceInput struct {
-	Id     string         `json:"id"`
-	Config WorkspaceInput `json:"config"`
-}
-
-// GetId returns __updateWorkspaceInput.Id, and is useful for accessing the field via an interface.
-func (v *__updateWorkspaceInput) GetId() string { return v.Id }
-
-// GetConfig returns __updateWorkspaceInput.Config, and is useful for accessing the field via an interface.
-func (v *__updateWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
-
 // addCorrelationTagResponse is returned by addCorrelationTag on success.
 type addCorrelationTagResponse struct {
 	ResultStatus ResultStatus `json:"resultStatus"`
@@ -13084,17 +13033,6 @@ type createSnowflakeOutboundShareResponse struct {
 // GetShare returns createSnowflakeOutboundShareResponse.Share, and is useful for accessing the field via an interface.
 func (v *createSnowflakeOutboundShareResponse) GetShare() SnowflakeOutboundShare { return v.Share }
 
-// createWorkspaceResponse is returned by createWorkspace on success.
-type createWorkspaceResponse struct {
-	// When creating a workspace, all users for the customer will be granted
-	// access to it through the ACL system. This is because we don't yet have
-	// a UI to deal with selective access.
-	Workspace *Workspace `json:"workspace"`
-}
-
-// GetWorkspace returns createWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
-func (v *createWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
-
 // currentUserResponse is returned by currentUser on success.
 type currentUserResponse struct {
 	User *User `json:"user"`
@@ -13365,14 +13303,6 @@ type deleteWorksheetResponse struct {
 
 // GetResultStatus returns deleteWorksheetResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteWorksheetResponse) GetResultStatus() *ResultStatus { return v.ResultStatus }
-
-// deleteWorkspaceResponse is returned by deleteWorkspace on success.
-type deleteWorkspaceResponse struct {
-	ResultStatus ResultStatus `json:"resultStatus"`
-}
-
-// GetResultStatus returns deleteWorkspaceResponse.ResultStatus, and is useful for accessing the field via an interface.
-func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // errorFields includes the GraphQL fields of TaskResultError requested by the fragment errorFields.
 // The GraphQL type's documentation follows.
@@ -15351,14 +15281,6 @@ type updateSnowflakeOutboundShareResponse struct {
 // GetShare returns updateSnowflakeOutboundShareResponse.Share, and is useful for accessing the field via an interface.
 func (v *updateSnowflakeOutboundShareResponse) GetShare() SnowflakeOutboundShare { return v.Share }
 
-// updateWorkspaceResponse is returned by updateWorkspace on success.
-type updateWorkspaceResponse struct {
-	Workspace *Workspace `json:"workspace"`
-}
-
-// GetWorkspace returns updateWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
-func (v *updateWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
-
 // The query or mutation executed by addCorrelationTag.
 const addCorrelationTag_Operation = `
 mutation addCorrelationTag ($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
@@ -17316,45 +17238,6 @@ func createSnowflakeOutboundShare(
 	return &data, err
 }
 
-// The query or mutation executed by createWorkspace.
-const createWorkspace_Operation = `
-mutation createWorkspace ($config: WorkspaceInput!) {
-	workspace: createWorkspace(definition: $config) {
-		... Workspace
-	}
-}
-fragment Workspace on Project {
-	id
-	label
-}
-`
-
-func createWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	config WorkspaceInput,
-) (*createWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "createWorkspace",
-		Query:  createWorkspace_Operation,
-		Variables: &__createWorkspaceInput{
-			Config: config,
-		},
-	}
-	var err error
-
-	var data createWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 // The query or mutation executed by currentUser.
 const currentUser_Operation = `
 query currentUser {
@@ -18625,46 +18508,6 @@ func deleteWorksheet(
 	var err error
 
 	var data deleteWorksheetResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-// The query or mutation executed by deleteWorkspace.
-const deleteWorkspace_Operation = `
-mutation deleteWorkspace ($id: ObjectId!) {
-	resultStatus: deleteWorkspace(id: $id) {
-		... ResultStatus
-	}
-}
-fragment ResultStatus on ResultStatus {
-	success
-	errorMessage
-	detailedInfo
-}
-`
-
-func deleteWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteWorkspace",
-		Query:  deleteWorkspace_Operation,
-		Variables: &__deleteWorkspaceInput{
-			Id: id,
-		},
-	}
-	var err error
-
-	var data deleteWorkspaceResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -25697,47 +25540,6 @@ func updateSnowflakeOutboundShare(
 	var err error
 
 	var data updateSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-// The query or mutation executed by updateWorkspace.
-const updateWorkspace_Operation = `
-mutation updateWorkspace ($id: ObjectId!, $config: WorkspaceInput!) {
-	workspace: updateWorkspace(id: $id, definition: $config) {
-		... Workspace
-	}
-}
-fragment Workspace on Project {
-	id
-	label
-}
-`
-
-func updateWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-	config WorkspaceInput,
-) (*updateWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "updateWorkspace",
-		Query:  updateWorkspace_Operation,
-		Variables: &__updateWorkspaceInput{
-			Id:     id,
-			Config: config,
-		},
-	}
-	var err error
-
-	var data updateWorkspaceResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

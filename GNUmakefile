@@ -82,6 +82,12 @@ copy-gql-schema:
 	# Remove internal comment lines starting with # from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i '' '/^[[:space:]]*#/d'
 
+	# Strip out Team enum definitions from all .graphql files
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i '' '/^[[:space:]]*enum Team/,/^}/d'
+
+	# Remove the @owner directive definition (and its docstring, if present) that references Team
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n *"""\n(.+\n)+? *"""\n)?[ \t]*directive \@owner\(team: Team!, lead: String!\) on\n( *\|[^\n]*\n)+//g'
+
 generate:
 	go generate ./...
 
