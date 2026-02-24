@@ -26,12 +26,14 @@ func dataSourceRbacGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Computed:     true,
 				Description:  schemaRbacGroupIdDescription,
 			},
 			"name": {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Computed:     true,
 				Description:  schemaRbacGroupNameDescription,
 			},
 			// computed values

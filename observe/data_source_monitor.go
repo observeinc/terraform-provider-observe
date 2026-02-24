@@ -21,6 +21,7 @@ func dataSourceMonitor() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
@@ -28,6 +29,7 @@ func dataSourceMonitor() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
+				Computed:     true,
 				RequiredWith: []string{"workspace"},
 				Description: descriptions.Get("monitor", "schema", "name") +
 					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
@@ -36,6 +38,7 @@ func dataSourceMonitor() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateID(),
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `id` or `name` must be provided",

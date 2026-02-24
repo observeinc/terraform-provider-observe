@@ -19,6 +19,7 @@ func dataSourceReferenceTable() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"label", "id"},
 				Optional:     true,
+				Computed:     true,
 				Description: descriptions.Get("reference_table", "schema", "label") +
 					"One of `label` or `id` must be set.",
 			},
@@ -26,6 +27,7 @@ func dataSourceReferenceTable() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"label", "id"},
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateID(),
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `label` or `id` must be set.",

@@ -21,6 +21,7 @@ func dataSourceDataset() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
@@ -28,6 +29,7 @@ func dataSourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
+				Computed:         true,
 				RequiredWith:     []string{"workspace"},
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 				Description: descriptions.Get("dataset", "schema", "name") +
@@ -37,6 +39,7 @@ func dataSourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateID(),
 				Description: descriptions.Get("common", "schema", "id") +
 					"One of `name` or `id` must be set.",
