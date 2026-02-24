@@ -19,6 +19,7 @@ func dataSourceMonitorV2Action() *schema.Resource {
 			"id": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ExactlyOneOf:     []string{"name", "id"},
 				ValidateDiagFunc: validateID(),
 				Description:      descriptions.Get("common", "schema", "id") + " One of either `id` or `name` must be provided.",
@@ -26,12 +27,14 @@ func dataSourceMonitorV2Action() *schema.Resource {
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace") + " Must be specified if looking up by name.",
 			},
 			"name": { // String!
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ExactlyOneOf: []string{"name", "id"},
 				RequiredWith: []string{"workspace"},
 				Description:  descriptions.Get("monitor_v2_action", "schema", "name") + " One of either `id` or `name` must be provided.",

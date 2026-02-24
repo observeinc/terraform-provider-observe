@@ -25,6 +25,7 @@ func dataSourceUser() *schema.Resource {
 				Type:             schema.TypeString,
 				ExactlyOneOf:     []string{"email", "id"},
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateUID(),
 				Description:      schemaUserIdDescription,
 			},
@@ -32,6 +33,7 @@ func dataSourceUser() *schema.Resource {
 				Type:         schema.TypeString,
 				ExactlyOneOf: []string{"email", "id"},
 				Optional:     true,
+				Computed:     true,
 				Description:  schemaUserEmailDescription,
 			},
 			// computed values
