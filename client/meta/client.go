@@ -65,7 +65,7 @@ func (c *Client) Run(ctx context.Context, query string, vars map[string]interfac
 	defer res.Body.Close()
 
 	if code := res.StatusCode; code != http.StatusOK {
-		return nil, fmt.Errorf(strings.ToLower(http.StatusText(code)))
+		return nil, fmt.Errorf("%s", strings.ToLower(http.StatusText(code)))
 	}
 
 	var buf bytes.Buffer

@@ -133,11 +133,11 @@ func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 				data "observe_dataset" "missing" {
 					workspace = data.observe_workspace.default.oid
 					name      = ""
-				}`),
+				}`,
 				ExpectError: regexp.MustCompile("not be an empty string"),
 			},
 		},
@@ -150,11 +150,11 @@ func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 				data "observe_dataset" "missing" {
 					workspace = data.observe_workspace.default.oid
 					id        = "xyz"
-				}`),
+				}`,
 				ExpectError: regexp.MustCompile("expected ID to be valid integer"),
 			},
 		},
@@ -223,12 +223,12 @@ func TestAccObserveBuiltinDataset(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 					data "observe_dataset" "tracing_canonical_trace" {
 						workspace = data.observe_workspace.default.oid
 						name      = "Tracing/Canonical Trace"
 					}
-				`),
+				`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_dataset.tracing_canonical_trace", "oid"),
 					// no stages as this uses a built-in transform
