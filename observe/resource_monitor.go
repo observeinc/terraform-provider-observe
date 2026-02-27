@@ -80,6 +80,7 @@ func resourceMonitor() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
+				DiffSuppressFunc: diffSuppressOIDVersion,
 			},
 			"is_template": {
 				Type:        schema.TypeBool,
