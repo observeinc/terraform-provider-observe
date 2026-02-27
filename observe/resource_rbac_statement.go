@@ -154,13 +154,13 @@ func newRbacStatementConfig(data *schema.ResourceData) (input *gql.RbacStatement
 
 	subject, err := newRbacSubjectInput(data)
 	if err != nil {
-		return nil, diag.Errorf("%s", err.Error())
+		return nil, diag.FromErr(err)
 	}
 	input.Subject = subject
 
 	object, err := newRbacObjectInput(data)
 	if err != nil {
-		return nil, diag.Errorf("%s", err.Error())
+		return nil, diag.FromErr(err)
 	}
 	input.Object = object
 

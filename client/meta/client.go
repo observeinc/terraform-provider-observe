@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -65,7 +66,7 @@ func (c *Client) Run(ctx context.Context, query string, vars map[string]interfac
 	defer res.Body.Close()
 
 	if code := res.StatusCode; code != http.StatusOK {
-		return nil, fmt.Errorf("%s", strings.ToLower(http.StatusText(code)))
+		return nil, errors.New(strings.ToLower(http.StatusText(code)))
 	}
 
 	var buf bytes.Buffer
