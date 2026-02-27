@@ -1,7 +1,6 @@
 package observe
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -15,7 +14,7 @@ func TestAccObserveRbacDefaultGroupSet(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 				data "observe_rbac_group" "writer" {
 					name      = "writer"
 				}
@@ -23,7 +22,7 @@ func TestAccObserveRbacDefaultGroupSet(t *testing.T) {
 				resource "observe_rbac_default_group" "writer" {
 					group = data.observe_rbac_group.writer.oid
 				}
-				`),
+				`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_rbac_default_group.writer", "group"),
 				),

@@ -2,6 +2,7 @@ package collect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,6 +44,6 @@ func (c *Client) Observe(ctx context.Context, s string, body io.Reader, tags map
 	case http.StatusOK, http.StatusAccepted, http.StatusNoContent:
 		return nil
 	default:
-		return fmt.Errorf(strings.ToLower(http.StatusText(resp.StatusCode)))
+		return errors.New(strings.ToLower(http.StatusText(resp.StatusCode)))
 	}
 }

@@ -51,7 +51,7 @@ func TestAccObserveSourceQuery(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 					data "observe_query" "test" {
 						start = timeadd(timestamp(), "-10m")
 
@@ -60,7 +60,6 @@ func TestAccObserveSourceQuery(t *testing.T) {
 						stage {}
 					}
 				`,
-				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.observe_query.test", "id"),
 				),

@@ -64,7 +64,7 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 				data "observe_rbac_group" "everyone" {
 				  name = "Everyone"
 				}
@@ -75,7 +75,7 @@ func TestAccObserveWorkspaceDefaultGrants(t *testing.T) {
 					permission = "edit"
 				  }
 				}
-				`),
+				`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "1"),
 					resource.TestCheckResourceAttrSet("observe_workspace_default_grants.test", "group.0.oid"),
@@ -94,10 +94,10 @@ func TestAccObserveWorkspaceDefaultGrantsEmpty(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble + `
+				Config: configPreamble + `
 				resource "observe_workspace_default_grants" "test" {
 				}
-				`),
+				`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_workspace_default_grants.test", "group.#", "0"),
 				),
