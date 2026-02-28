@@ -1,13 +1,13 @@
-// The query or mutation executed by {{.Name}}.
+// The {{.Type}} executed by {{.Name}}.
 const {{.Name}}_Operation = `{{$.Body}}`
 
 {{.Doc}}
 func {{.Name}}(
     {{if ne .Config.ContextType "-" -}}
-    ctx {{ref .Config.ContextType}},
+    ctx_ {{ref .Config.ContextType}},
     {{end}}
     {{- if not .Config.ClientGetter -}}
-    client {{ref "github.com/Khan/genqlient/graphql.Client"}},
+    client_ {{if eq .Type "subscription"}}{{ref "github.com/Khan/genqlient/graphql.WebSocketClient"}}{{else}}{{ref "github.com/Khan/genqlient/graphql.Client"}}{{end}},
     {{end}}
     {{- if .Input -}}
     {{- range .Input.Fields -}}
@@ -15,8 +15,8 @@ func {{.Name}}(
     {{.GraphQLName}} {{.GoType.Reference}},
     {{end -}}
     {{end -}}
-) (*{{.ResponseName}}, {{if .Config.Extensions -}}map[string]interface{},{{end}} error) {
-    req := &graphql.Request{
+) ({{if eq .Type "subscription"}}dataChan_ chan {{.Name}}WsResponse, subscriptionID_ string,{{else}}data_ *{{.ResponseName}}, {{if .Config.Extensions -}}ext_ map[string]interface{},{{end}}{{end}} err_ error) {
+    req_ := &graphql.Request{
         OpName: "{{.Name}}",
         Query:  {{.Name}}_Operation,
     {{if .Input -}}
@@ -27,23 +27,54 @@ func {{.Name}}(
         },
     {{end -}}
     }
-    var err error
     {{if .Config.ClientGetter -}}
-    var client graphql.Client
+    var client_ graphql.Client
 
-    client, err = {{ref .Config.ClientGetter}}({{if ne .Config.ContextType "-"}}ctx{{else}}{{end}})
-    if err != nil {
-        return nil, {{if .Config.Extensions -}}nil,{{end -}} err
+    client_, err_ = {{ref .Config.ClientGetter}}({{if ne .Config.ContextType "-"}}ctx_{{else}}{{end}})
+    if err_ != nil {
+        return nil, {{if .Config.Extensions -}}nil,{{end -}} err_
     }
     {{end}}
-    var data {{.ResponseName}}
-    resp := &graphql.Response{Data: &data}
+    {{if eq .Type "subscription"}}
+    dataChan_ = make(chan {{.Name}}WsResponse)
+    subscriptionID_, err_ = client_.Subscribe(req_, dataChan_, {{.Name}}ForwardData)
+    {{else}}
+    data_ = &{{.ResponseName}}{}
+    resp_ := &graphql.Response{Data: data_}
 
-    err = client.MakeRequest(
-        {{if ne .Config.ContextType "-"}}ctx{{else}}nil{{end}},
-        req,
-        resp,
+    err_ = client_.MakeRequest(
+        {{if ne .Config.ContextType "-"}}ctx_{{else}}nil{{end}},
+        req_,
+        resp_,
     )
-	
-    return &data, {{if .Config.Extensions -}}resp.Extensions,{{end -}} err
+    {{end}}
+
+    return {{if eq .Type "subscription"}}dataChan_, subscriptionID_,{{else}}data_, {{if .Config.Extensions -}}resp_.Extensions,{{end -}}{{end}} err_
 }
+
+{{if eq .Type "subscription"}}
+type {{.Name}}WsResponse graphql.BaseResponse[*{{.ResponseName}}]
+
+func {{.Name}}ForwardData(interfaceChan interface{}, jsonRawMsg json.RawMessage) error {
+    var gqlResp graphql.Response
+    var wsResp {{.Name}}WsResponse
+    err := json.Unmarshal(jsonRawMsg, &gqlResp)
+    if err != nil {
+        return err
+    }
+    if len(gqlResp.Errors) == 0 {
+        err = json.Unmarshal(jsonRawMsg, &wsResp)
+        if err != nil {
+            return err
+        }
+    } else {
+        wsResp.Errors = gqlResp.Errors
+    }
+    dataChan_, ok := interfaceChan.(chan {{.Name}}WsResponse)
+	if !ok {
+		return errors.New("failed to cast interface into 'chan {{.Name}}WsResponse'")
+	}
+	dataChan_ <- wsResp
+	return nil
+}
+{{end}}

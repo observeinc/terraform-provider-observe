@@ -1,5 +1,5 @@
-# github.com/Khan/genqlient v0.6.0
-## explicit; go 1.18
+# github.com/Khan/genqlient v0.8.2-0.20251119064104-5b0aabc933fa
+## explicit; go 1.23.0
 github.com/Khan/genqlient
 github.com/Khan/genqlient/generate
 github.com/Khan/genqlient/graphql
@@ -38,11 +38,11 @@ github.com/agext/levenshtein
 # github.com/agnivade/levenshtein v1.1.1
 ## explicit; go 1.13
 github.com/agnivade/levenshtein
-# github.com/alexflint/go-arg v1.4.2
-## explicit; go 1.13
+# github.com/alexflint/go-arg v1.5.1
+## explicit; go 1.18
 github.com/alexflint/go-arg
-# github.com/alexflint/go-scalar v1.0.0
-## explicit
+# github.com/alexflint/go-scalar v1.2.0
+## explicit; go 1.15
 github.com/alexflint/go-scalar
 # github.com/apparentlymart/go-textseg/v15 v15.0.0
 ## explicit; go 1.16
@@ -56,6 +56,9 @@ github.com/bgentry/speakeasy
 # github.com/bitfield/gotestdox v0.2.1
 ## explicit; go 1.18
 github.com/bitfield/gotestdox
+# github.com/bmatcuk/doublestar/v4 v4.6.1
+## explicit; go 1.16
+github.com/bmatcuk/doublestar/v4
 # github.com/cloudflare/circl v1.3.7
 ## explicit; go 1.19
 github.com/cloudflare/circl/dh/x25519
@@ -98,7 +101,7 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 ## explicit; go 1.13
 github.com/google/shlex
-# github.com/google/uuid v1.3.1
+# github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
@@ -283,8 +286,8 @@ github.com/shopspring/decimal
 # github.com/spf13/cast v1.5.0
 ## explicit; go 1.18
 github.com/spf13/cast
-# github.com/vektah/gqlparser/v2 v2.5.1
-## explicit; go 1.16
+# github.com/vektah/gqlparser/v2 v2.5.19
+## explicit; go 1.21
 github.com/vektah/gqlparser/v2/ast
 github.com/vektah/gqlparser/v2/formatter
 github.com/vektah/gqlparser/v2/gqlerror

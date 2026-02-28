@@ -77,19 +77,6 @@ fragment Monitor on Monitor {
 	}
 }
 
-# More workarounds for server-side struggles
-# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
-# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "MonitorInput.freshnessGoal", omitempty: true)
-# @genqlient(for: "MonitorInput.overwriteSource", omitempty: true)
-# @genqlient(for: "MonitorInput.accelerationDisabled", omitempty: true)
-# @genqlient(for: "StageQueryInput.id", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation createMonitor(
 	$workspaceId: ObjectId!,
 	$monitor: MonitorInput!
@@ -110,19 +97,6 @@ query getMonitor($id: ObjectId!) {
 	}
 }
 
-# More workarounds for server-side struggles
-# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
-# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "MonitorInput.freshnessGoal", omitempty: true)
-# @genqlient(for: "MonitorInput.overwriteSource", omitempty: true)
-# @genqlient(for: "MonitorInput.accelerationDisabled", omitempty: true)
-# @genqlient(for: "StageQueryInput.id", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation updateMonitor(
 	$id: ObjectId!,
 	$monitor: MonitorInput!

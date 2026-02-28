@@ -20,15 +20,6 @@ fragment WorksheetIdLabel on Worksheet {
 	label
 }
 
-# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
-# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
-# @genqlient(for: "StageQueryInput.id", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation saveWorksheet(
 	$worksheetInput: WorksheetInput!
 ) {

@@ -80,9 +80,6 @@ func (g *generator) baseTypeForOperation(operation ast.Operation) (*ast.Definiti
 	case ast.Mutation:
 		return g.schema.Mutation, nil
 	case ast.Subscription:
-		if !g.Config.AllowBrokenFeatures {
-			return nil, errorf(nil, "genqlient does not yet support subscriptions")
-		}
 		return g.schema.Subscription, nil
 	default:
 		return nil, errorf(nil, "unexpected operation: %v", operation)
@@ -174,7 +171,8 @@ func (g *generator) convertArguments(
 			return nil, err
 		}
 
-		goName := upperFirst(arg.Variable)
+		goName := arg.Variable
+		goName = ApplyCasing(goName, g.Config.GetDefaultCasingAlgorithm(), true)
 		// Some of the arguments don't apply here, namely the name-prefix (see
 		// names.go) and the selection-set (we use all the input type's fields,
 		// and so on recursively).  See also the `case ast.InputObject` in
@@ -248,6 +246,9 @@ func (g *generator) convertType(
 	def := g.schema.Types[typ.Name()]
 	goTyp, err := g.convertDefinition(
 		namePrefix, def, typ.Position, selectionSet, options, queryOptions)
+	if err != nil {
+		return nil, err
+	}
 
 	if g.getStructReference(def) {
 		if options.Pointer == nil || *options.Pointer {
@@ -257,13 +258,34 @@ func (g *generator) convertType(
 			oe := true
 			options.Omitempty = &oe
 		}
-	} else if options.GetPointer() || (!typ.NonNull && g.Config.Optional == "pointer") {
+	} else if g.Config.Optional == "pointer_omitempty" && (options.GetPointer() || !typ.NonNull) {
+		if !options.PointerIsFalse() {
+			goTyp = &goPointerType{Elem: goTyp}
+		}
+
+		if options.Omitempty == nil {
+			oe := true
+			options.Omitempty = &oe
+		}
+	} else if !options.PointerIsFalse() && (options.GetPointer() || (!typ.NonNull && g.Config.Optional == "pointer")) {
 		// Whatever we get, wrap it in a pointer.  (Because of the way the
-		// options work, recursing here isn't as connvenient.)
+		// options work, recursing here isn't as convenient.)
 		// Note this does []*T or [][]*T, not e.g. *[][]T.  See #16.
 		goTyp = &goPointerType{goTyp}
+	} else if !typ.NonNull && g.Config.Optional == "generic" {
+		var genericRef string
+		genericRef, err = g.ref(g.Config.OptionalGenericType)
+		if err != nil {
+			return nil, err
+		}
+
+		goTyp = &goGenericType{
+			GoGenericRef: genericRef,
+			Elem:         goTyp,
+		}
 	}
-	return goTyp, err
+
+	return goTyp, nil
 }
 
 // getStructReference decides if a field should be of pointer type and have the omitempty flag set.
@@ -333,7 +355,7 @@ func (g *generator) convertDefinition(
 			// name-prefix, append the type-name anyway.  This happens when you
 			// assign a type name to an interface type, and we are generating
 			// one of its implementations.
-			name = makeLongTypeName(namePrefix, def.Name)
+			name = makeLongTypeName(namePrefix, def.Name, g.Config.GetDefaultCasingAlgorithm())
 		}
 		// (But the prefix is shared.)
 		namePrefix = newPrefixList(options.TypeName)
@@ -342,11 +364,11 @@ func (g *generator) convertDefinition(
 		// ever possibly generate for this type, so we don't need any of the
 		// qualifiers.  This is especially helpful because the caller is very
 		// likely to need to reference these types in their code.
-		name = upperFirst(def.Name)
+		name = ApplyCasing(def.Name, g.Config.GetDefaultCasingAlgorithm(), true)
 		// (namePrefix is ignored in this case.)
 	} else {
 		// Else, construct a name using the usual algorithm (see names.go).
-		name = makeTypeName(namePrefix, def.Name)
+		name = makeTypeName(namePrefix, def.Name, g.Config.GetDefaultCasingAlgorithm())
 	}
 
 	// If we already generated the type, we can skip it as long as it matches
@@ -421,7 +443,8 @@ func (g *generator) convertDefinition(
 				return nil, err
 			}
 
-			goName := upperFirst(field.Name)
+			goName := field.Name
+			goName = ApplyCasing(goName, g.Config.GetDefaultCasingAlgorithm(), true)
 			// Several of the arguments don't really make sense here:
 			// (note field.Type is necessarily a scalar, input, or enum)
 			//  - namePrefix is ignored for input types and enums (see
@@ -437,6 +460,24 @@ func (g *generator) convertDefinition(
 				namePrefix, field.Type, nil, fieldOptions, queryOptions)
 			if err != nil {
 				return nil, err
+			}
+
+			if !g.Config.StructReferences {
+				// Only do this validation when StructReferences are not used, as that can generate types that would not
+				// pass these validations. See https://github.com/Khan/genqlient/issues/342
+
+				// Try to protect against generating a field type that could send `null` to a non-nullable graphQL
+				// type. This does not protect against lists/slices, as Go zero-slices are already serialized as `null`
+				// (which can therefore currently send invalid graphQL value - e.g. `null` for [String!]!).
+				// And does not protect against custom MarshalJSON.
+				_, isPointer := fieldGoType.(*goPointerType)
+				if field.Type.NonNull && isPointer && !fieldOptions.GetOmitempty() {
+					return nil, errorf(pos, "pointer on non-null input field can only be used together with omitempty: %s.%s", name, field.Name)
+				}
+
+				if fieldOptions.GetOmitempty() && field.Type.NonNull && field.DefaultValue == nil {
+					return nil, errorf(pos, "omitempty may only be used on optional arguments: %s.%s", name, field.Name)
+				}
 			}
 
 			goType.Fields[i] = &goStructField{
@@ -505,8 +546,23 @@ func (g *generator) convertDefinition(
 			Description: def.Description,
 			Values:      make([]goEnumValue, len(def.EnumValues)),
 		}
+		goNames := make(map[string]*goEnumValue, len(def.EnumValues))
 		for i, val := range def.EnumValues {
-			goType.Values[i] = goEnumValue{Name: val.Name, Description: val.Description}
+			goName := g.Config.Casing.enumValueName(name, def, val)
+			if conflict := goNames[goName]; conflict != nil {
+				return nil, errorf(val.Position,
+					"enum values %s and %s have conflicting Go name %s; "+
+						"add 'all_enums: raw' or 'enums: %v: raw' "+
+						"to 'casing' in genqlient.yaml to fix",
+					val.Name, conflict.GraphQLName, goName, def.Name)
+			}
+
+			goType.Values[i] = goEnumValue{
+				GoName:      goName,
+				GraphQLName: val.Name,
+				Description: val.Description,
+			}
+			goNames[goName] = &goType.Values[i]
 		}
 		return g.addType(goType, goType.GoName, pos)
 
@@ -597,7 +653,7 @@ func (g *generator) convertSelectionSet(
 		// us.  (See also the special handling for IsEmbedded in
 		// unmarshal.go.tmpl.)
 		//
-		// But if you spread the samenamed fragment twice, e.g.
+		// But if you spread the same named fragment twice, e.g.
 		//	{ ...MyFragment, ... on SubType { ...MyFragment } }
 		// we'll still deduplicate that.
 		if field.JSONName == "" {
@@ -652,7 +708,7 @@ func (g *generator) convertSelectionSet(
 // the fragment's type.  This is distinct from the rules for when a fragment
 // spread is legal, which is true when the fragment would be active for *any*
 // of the concrete types the spread-context could have (see the [GraphQL spec]
-// or docs/DESIGN.md).
+// or docs/design.md).
 //
 // containingTypedef is as described in convertInlineFragment, below.
 // fragmentTypedef is the definition of the fragment's type-condition, i.e. the
@@ -675,6 +731,17 @@ func fragmentMatches(containingTypedef, fragmentTypedef *ast.Definition) bool {
 			return true
 		}
 	}
+
+	// Handle the special case where the fragment is on a union, then the
+	// fragment can match any of the types in the union.
+	if fragmentTypedef.Kind == ast.Union {
+		for _, typeName := range fragmentTypedef.Types {
+			if typeName == containingTypedef.Name {
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -689,7 +756,7 @@ func fragmentMatches(containingTypedef, fragmentTypedef *ast.Definition) bool {
 //
 // In general, we treat such fragments' fields as if they were fields of the
 // parent selection-set (except of course they are only included in types the
-// fragment matches); see docs/DESIGN.md for more.
+// fragment matches); see docs/design.md for more.
 func (g *generator) convertInlineFragment(
 	namePrefix *prefixList,
 	fragment *ast.InlineFragment,
@@ -804,6 +871,8 @@ func (g *generator) convertNamedFragment(fragment *ast.FragmentDefinition) (goTy
 		return goType, nil
 	case ast.Interface, ast.Union:
 		implementationTypes := g.schema.GetPossibleTypes(typ)
+		// Make sure we generate stable output by sorting the types by name when we get them
+		sort.Slice(implementationTypes, func(i, j int) bool { return implementationTypes[i].Name < implementationTypes[j].Name })
 		goType := &goInterfaceType{
 			GoName:          fragment.Name,
 			SharedFields:    fields,
@@ -859,8 +928,14 @@ func (g *generator) convertField(
 			field.Position, "undefined field %v", field.Alias)
 	}
 
-	goName := upperFirst(field.Alias)
-	namePrefix = nextPrefix(namePrefix, field)
+	goName := field.Alias
+	if fieldOptions.Alias != "" {
+		goName = fieldOptions.Alias
+	}
+
+	goName = ApplyCasing(goName, g.Config.GetDefaultCasingAlgorithm(), true)
+
+	namePrefix = nextPrefix(namePrefix, field, g.Config.GetDefaultCasingAlgorithm())
 
 	fieldGoType, err := g.convertType(
 		namePrefix, field.Definition.Type, field.SelectionSet,

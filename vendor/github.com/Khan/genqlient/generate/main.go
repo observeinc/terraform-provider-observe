@@ -9,10 +9,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/alexflint/go-arg"
 )
+
+// TODO(benkraft): Make this mockable for tests?
+func warn(err error) {
+	fmt.Println(err)
+}
 
 func readConfigGenerateAndWrite(configFilename string) error {
 	var config *Config
@@ -54,6 +60,7 @@ func readConfigGenerateAndWrite(configFilename string) error {
 type cliArgs struct {
 	ConfigFilename string `arg:"positional" placeholder:"CONFIG" default:"" help:"path to genqlient configuration (default: genqlient.yaml in current or any parent directory)"`
 	Init           bool   `arg:"--init" help:"write out and use a default config file"`
+	Version        bool   `arg:"--version" help:"print version information"`
 }
 
 func (cliArgs) Description() string {
@@ -61,6 +68,42 @@ func (cliArgs) Description() string {
 Generates GraphQL client code for a given schema and queries.
 See https://github.com/Khan/genqlient for full documentation.
 `)
+}
+
+func printVersion() {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		fmt.Println("genqlient (version information not available)")
+		return
+	}
+
+	version := info.Main.Version
+	if version == "" || version == "(devel)" || strings.HasPrefix(version, "v0.0.0-") {
+		version = "dev"
+	}
+
+	var commit, buildDate string
+	for _, setting := range info.Settings {
+		switch setting.Key {
+		case "vcs.revision":
+			commit = setting.Value
+		case "vcs.time":
+			buildDate = setting.Value
+		}
+	}
+
+	fmt.Print("genqlient " + version)
+	if commit != "" {
+		if len(commit) > 12 {
+			commit = commit[:12]
+		}
+		fmt.Printf(" (%s", commit)
+		if buildDate != "" {
+			fmt.Printf(", built %s", buildDate)
+		}
+		fmt.Print(")")
+	}
+	fmt.Println()
 }
 
 // Main is the command-line entrypoint to genqlient; it's equivalent to calling
@@ -78,6 +121,12 @@ func Main() {
 
 	var args cliArgs
 	arg.MustParse(&args)
+
+	if args.Version {
+		printVersion()
+		return
+	}
+
 	if args.Init {
 		filename := args.ConfigFilename
 		if filename == "" {

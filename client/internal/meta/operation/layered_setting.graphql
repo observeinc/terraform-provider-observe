@@ -50,23 +50,6 @@ fragment PrimitiveValue on PrimitiveValue {
     duration
 }
 
-# @genqlient(for: "LayeredSettingRecordInput.managedById", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.customerId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.workspaceId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.folderId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.appId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.monitorId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.rbacGroupId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation createLayeredSettingRecord(
     $settingRecord: LayeredSettingRecordInput!
 ) {
@@ -84,23 +67,6 @@ query getLayeredSettingRecord($id: ObjectId!) {
     }
 }
 
-# @genqlient(for: "LayeredSettingRecordInput.managedById", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.customerId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.workspaceId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.folderId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.appId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.monitorId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.worksheetId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.dashboardId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.datasetId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.rbacGroupId", omitempty: true)
-# @genqlient(for: "LayeredSettingRecordTargetInput.userId", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
-# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
 mutation updateLayeredSettingRecord(
     $settingRecord: LayeredSettingRecordInput!
 ) {

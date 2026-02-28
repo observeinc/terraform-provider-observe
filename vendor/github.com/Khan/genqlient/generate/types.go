@@ -55,6 +55,7 @@ var (
 	_ goType = (*goEnumType)(nil)
 	_ goType = (*goStructType)(nil)
 	_ goType = (*goInterfaceType)(nil)
+	_ goType = (*goGenericType)(nil)
 )
 
 type (
@@ -80,6 +81,12 @@ type (
 	// user (perhaps to handle nulls explicitly, or to avoid copying large
 	// structures).
 	goPointerType struct{ Elem goType }
+	// goGenericType represent the Go type GoGenericRef[Elem], used when requested by the
+	// user to box nullable data without using pointers or sentinel values
+	goGenericType struct {
+		GoGenericRef string
+		Elem         goType
+	}
 )
 
 // Opaque types are defined by the user; pointers and slices need no definition
@@ -91,21 +98,27 @@ func (typ *goTypenameForBuiltinType) WriteDefinition(w io.Writer, g *generator) 
 }
 func (typ *goSliceType) WriteDefinition(io.Writer, *generator) error   { return nil }
 func (typ *goPointerType) WriteDefinition(io.Writer, *generator) error { return nil }
+func (typ *goGenericType) WriteDefinition(io.Writer, *generator) error { return nil }
 
 func (typ *goOpaqueType) Reference() string             { return typ.GoRef }
 func (typ *goTypenameForBuiltinType) Reference() string { return typ.GoTypeName }
 func (typ *goSliceType) Reference() string              { return "[]" + typ.Elem.Reference() }
 func (typ *goPointerType) Reference() string            { return "*" + typ.Elem.Reference() }
+func (typ *goGenericType) Reference() string {
+	return fmt.Sprintf("%s[%s]", typ.GoGenericRef, typ.Elem.Reference())
+}
 
 func (typ *goOpaqueType) SelectionSet() ast.SelectionSet             { return nil }
 func (typ *goTypenameForBuiltinType) SelectionSet() ast.SelectionSet { return nil }
 func (typ *goSliceType) SelectionSet() ast.SelectionSet              { return typ.Elem.SelectionSet() }
 func (typ *goPointerType) SelectionSet() ast.SelectionSet            { return typ.Elem.SelectionSet() }
+func (typ *goGenericType) SelectionSet() ast.SelectionSet            { return typ.Elem.SelectionSet() }
 
 func (typ *goOpaqueType) GraphQLTypeName() string             { return typ.GraphQLName }
 func (typ *goTypenameForBuiltinType) GraphQLTypeName() string { return typ.GraphQLName }
 func (typ *goSliceType) GraphQLTypeName() string              { return typ.Elem.GraphQLTypeName() }
 func (typ *goPointerType) GraphQLTypeName() string            { return typ.Elem.GraphQLTypeName() }
+func (typ *goGenericType) GraphQLTypeName() string            { return typ.Elem.GraphQLTypeName() }
 
 // goEnumType represents a Go named-string type used to represent a GraphQL
 // enum.  In this case, we generate both the type (`type T string`) and also a
@@ -118,7 +131,8 @@ type goEnumType struct {
 }
 
 type goEnumValue struct {
-	Name        string
+	GoName      string
+	GraphQLName string
 	Description string
 }
 
@@ -130,10 +144,16 @@ func (typ *goEnumType) WriteDefinition(w io.Writer, g *generator) error {
 	for _, val := range typ.Values {
 		writeDescription(w, val.Description)
 		fmt.Fprintf(w, "%s %s = \"%s\"\n",
-			typ.GoName+goConstName(val.Name),
-			typ.GoName, val.Name)
+			val.GoName, typ.GoName, val.GraphQLName)
 	}
 	fmt.Fprintf(w, ")\n")
+
+	// Add slice with all enums.
+	fmt.Fprintf(w, "var All%s = []%s{\n", typ.GoName, typ.GoName)
+	for _, val := range typ.Values {
+		fmt.Fprintf(w, "%s,\n", val.GoName)
+	}
+	fmt.Fprintf(w, "}\n")
 	return nil
 }
 
@@ -215,7 +235,7 @@ func (field *goStructField) Unmarshaler(g *generator) (string, error) {
 
 // marshaler returns:
 //   - the fully-qualified name of the function to use to marshal this field
-//   - true if we need to generate an marshaler at all, false if the default
+//   - true if we need to generate a marshaler at all, false if the default
 //     behavior will suffice
 func (field *goStructField) marshaler() (qualifiedName string, needsImport bool, needsMarshaler bool) {
 	switch typ := field.GoType.Unwrap().(type) {
@@ -331,7 +351,7 @@ func (typ *goStructType) FlattenedFields() ([]*selector, error) {
 		field := queue[0]
 		queue = queue[1:]
 		if field.IsEmbedded() {
-			typ, ok := field.GoType.(*goStructType)
+			structField, ok := field.GoType.(*goStructType)
 			if !ok {
 				// Should never happen: embeds correspond to named fragments,
 				// and even if the fragment is of interface type in GraphQL,
@@ -345,7 +365,7 @@ func (typ *goStructType) FlattenedFields() ([]*selector, error) {
 			}
 
 			// Enqueue the embedded fields for our BFS.
-			for _, subField := range typ.Fields {
+			for _, subField := range structField.Fields {
 				queue = append(queue,
 					&selector{subField, field.Selector + "." + subField.Selector()})
 			}
@@ -529,6 +549,7 @@ func (typ *goOpaqueType) Unwrap() goType             { return typ }
 func (typ *goTypenameForBuiltinType) Unwrap() goType { return typ }
 func (typ *goSliceType) Unwrap() goType              { return typ.Elem.Unwrap() }
 func (typ *goPointerType) Unwrap() goType            { return typ.Elem.Unwrap() }
+func (typ *goGenericType) Unwrap() goType            { return typ.Elem.Unwrap() }
 func (typ *goEnumType) Unwrap() goType               { return typ }
 func (typ *goStructType) Unwrap() goType             { return typ }
 func (typ *goInterfaceType) Unwrap() goType          { return typ }
@@ -537,6 +558,7 @@ func (typ *goOpaqueType) SliceDepth() int             { return 0 }
 func (typ *goTypenameForBuiltinType) SliceDepth() int { return 0 }
 func (typ *goSliceType) SliceDepth() int              { return typ.Elem.SliceDepth() + 1 }
 func (typ *goPointerType) SliceDepth() int            { return 0 }
+func (typ *goGenericType) SliceDepth() int            { return 0 }
 func (typ *goEnumType) SliceDepth() int               { return 0 }
 func (typ *goStructType) SliceDepth() int             { return 0 }
 func (typ *goInterfaceType) SliceDepth() int          { return 0 }
@@ -545,6 +567,7 @@ func (typ *goOpaqueType) IsPointer() bool             { return false }
 func (typ *goTypenameForBuiltinType) IsPointer() bool { return false }
 func (typ *goSliceType) IsPointer() bool              { return typ.Elem.IsPointer() }
 func (typ *goPointerType) IsPointer() bool            { return true }
+func (typ *goGenericType) IsPointer() bool            { return false }
 func (typ *goEnumType) IsPointer() bool               { return false }
 func (typ *goStructType) IsPointer() bool             { return false }
 func (typ *goInterfaceType) IsPointer() bool          { return false }
