@@ -2,7 +2,7 @@ package generate
 
 // This file generates the names for genqlient's generated types.  This is
 // somewhat tricky because the names need to be unique, stable, and, to the
-// extent possible, human-readable and -writable.  See docs/DESIGN.md for an
+// extent possible, human-readable and -writable.  See docs/design.md for an
 // overview of the considerations; in short, we need long names.
 //
 // Specifically, the names we generate are of the form:
@@ -33,7 +33,7 @@ package generate
 // One subtlety in the above description is: is the "MyType" the interface or
 // the implementation?  When it's a suffix, the answer is both: we generate
 // both MyFieldMyInterface and MyFieldMyImplementation, and the latter, in Go,
-// implements the former.  (See docs/DESIGN.md for more.)  But as an infix, we
+// implements the former.  (See docs/design.md for more.)  But as an infix, we
 // use the type on which the field is requested.  Concretely, the following
 // schema and query:
 //	type Query { f: I }
@@ -99,6 +99,7 @@ package generate
 // response object (inline in convertOperation).
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -138,10 +139,10 @@ func joinPrefixList(prefix *prefixList) string {
 // prefix-list, since it ends with a type, not a field (see top-of-file
 // comment), but it's used to construct both the type-names from the input and
 // the next prefix-list.
-func typeNameParts(prefix *prefixList, typeName string) *prefixList {
-	// GraphQL types are conventionally UpperCamelCase, but it's not required;
-	// our names will look best if they are.
-	typeName = upperFirst(typeName)
+func typeNameParts(prefix *prefixList, typeName string, algorithm CasingAlgorithm) *prefixList {
+	// Apply the specified casing algorithm with uppercase first letter
+	typeName = ApplyCasing(typeName, algorithm, true)
+
 	// If the prefix has just one part, that's the operation-name.  There's no
 	// need to add "Query" or "Mutation".  (Zero should never happen.)
 	if prefix == nil || prefix.tail == nil ||
@@ -155,18 +156,19 @@ func typeNameParts(prefix *prefixList, typeName string) *prefixList {
 
 // Given a prefix-list, and a field, compute the next prefix-list, which will
 // be used for that field's selections.
-func nextPrefix(prefix *prefixList, field *ast.Field) *prefixList {
+func nextPrefix(prefix *prefixList, field *ast.Field, algorithm CasingAlgorithm) *prefixList {
 	// Add the type.
-	prefix = typeNameParts(prefix, field.ObjectDefinition.Name)
+	prefix = typeNameParts(prefix, field.ObjectDefinition.Name, algorithm)
 	// Add the field (there's no shortening here, see top-of-file comment).
-	prefix = &prefixList{upperFirst(field.Alias), prefix}
+	fieldAlias := ApplyCasing(field.Alias, algorithm, true)
+	prefix = &prefixList{fieldAlias, prefix}
 	return prefix
 }
 
 // Given a prefix-list, and the GraphQL of the current type, compute the name
 // we should give it in Go.
-func makeTypeName(prefix *prefixList, typeName string) string {
-	return joinPrefixList(typeNameParts(prefix, typeName))
+func makeTypeName(prefix *prefixList, typeName string, algorithm CasingAlgorithm) string {
+	return joinPrefixList(typeNameParts(prefix, typeName, algorithm))
 }
 
 // Like makeTypeName, but append typeName unconditionally.
@@ -174,7 +176,21 @@ func makeTypeName(prefix *prefixList, typeName string) string {
 // This is used for when you specify a type-name for a field of interface
 // type; we use YourName for the interface, but need to do YourNameImplName for
 // the implementations.
-func makeLongTypeName(prefix *prefixList, typeName string) string {
-	typeName = upperFirst(typeName)
+func makeLongTypeName(prefix *prefixList, typeName string, algorithm CasingAlgorithm) string {
+	typeName = ApplyCasing(typeName, algorithm, true)
 	return joinPrefixList(&prefixList{typeName, prefix})
+}
+
+func (casing *Casing) enumValueName(goTypeName string, enum *ast.Definition, val *ast.EnumValueDefinition) string {
+	switch algo := casing.forEnum(enum.Name); algo {
+	case CasingDefault:
+		return goTypeName + goConstName(val.Name)
+	case CasingRaw:
+		return goTypeName + "_" + val.Name
+	case CasingAutoCamelCase:
+		return goTypeName + ApplyCasing(val.Name, algo, true)
+	default:
+		// Should already be caught by validation.
+		panic(fmt.Sprintf("unknown casing algorithm %s", algo))
+	}
 }

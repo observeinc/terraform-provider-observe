@@ -108,7 +108,7 @@ use_struct_references: false
   #   pointers-to-slices, so the GraphQL type `[String]` will map to the Go
   #   type `[]*string`, not `*[]*string`; GraphQL null and empty list simply
   #   map to Go nil- and empty-slice.
-optional: pointer
+optional: pointer_omitempty
 
 
 # A map from GraphQL type name to Go fully-qualified type name to override

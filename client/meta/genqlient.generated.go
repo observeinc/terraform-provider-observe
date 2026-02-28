@@ -19,16 +19,22 @@ const (
 	AccelerationDisabledSourceView    AccelerationDisabledSource = "View"
 )
 
+var AllAccelerationDisabledSource = []AccelerationDisabledSource{
+	AccelerationDisabledSourceEmpty,
+	AccelerationDisabledSourceMonitor,
+	AccelerationDisabledSourceView,
+}
+
 type ActionInput struct {
-	Name             *string               `json:"name"`
-	IconUrl          *string               `json:"iconUrl"`
-	Description      *string               `json:"description"`
-	RateLimit        *types.DurationScalar `json:"rateLimit"`
-	NotifyOnClose    *bool                 `json:"notifyOnClose"`
-	NotifyOnReminder *bool                 `json:"notifyOnReminder"`
-	IsPrivate        *bool                 `json:"isPrivate"`
-	Email            *EmailActionInput     `json:"email"`
-	Webhook          *WebhookActionInput   `json:"webhook"`
+	Name             *string               `json:"name,omitempty"`
+	IconUrl          *string               `json:"iconUrl,omitempty"`
+	Description      *string               `json:"description,omitempty"`
+	RateLimit        *types.DurationScalar `json:"rateLimit,omitempty"`
+	NotifyOnClose    *bool                 `json:"notifyOnClose,omitempty"`
+	NotifyOnReminder *bool                 `json:"notifyOnReminder,omitempty"`
+	IsPrivate        *bool                 `json:"isPrivate,omitempty"`
+	Email            *EmailActionInput     `json:"email,omitempty"`
+	Webhook          *WebhookActionInput   `json:"webhook,omitempty"`
 }
 
 // GetName returns ActionInput.Name, and is useful for accessing the field via an interface.
@@ -79,6 +85,13 @@ const (
 	AggregateFunctionMax AggregateFunction = "Max"
 )
 
+var AllAggregateFunction = []AggregateFunction{
+	AggregateFunctionAvg,
+	AggregateFunctionSum,
+	AggregateFunctionMin,
+	AggregateFunctionMax,
+}
+
 type AggregationMode string
 
 const (
@@ -88,6 +101,11 @@ const (
 	// guaranteed to be sampled.
 	AggregationModeSampled AggregationMode = "Sampled"
 )
+
+var AllAggregationMode = []AggregationMode{
+	AggregationModePrecise,
+	AggregationModeSampled,
+}
 
 // App includes the GraphQL fields of App requested by the fragment App.
 // The GraphQL type's documentation follows.
@@ -182,7 +200,7 @@ func (v *AppDataSource) GetInstructions() string { return v.Instructions }
 
 type AppDataSourceInput struct {
 	Name         string             `json:"name"`
-	Description  *string            `json:"description"`
+	Description  *string            `json:"description,omitempty"`
 	SourceUrl    string             `json:"sourceUrl"`
 	Variables    []AppVariableInput `json:"variables"`
 	Instructions string             `json:"instructions"`
@@ -211,7 +229,7 @@ type AppInput struct {
 	ModuleId  string             `json:"moduleId"`
 	Version   string             `json:"version"`
 	Variables []AppVariableInput `json:"variables"`
-	FolderId  *string            `json:"folderId"`
+	FolderId  *string            `json:"folderId,omitempty"`
 }
 
 // GetModuleId returns AppInput.ModuleId, and is useful for accessing the field via an interface.
@@ -235,6 +253,14 @@ const (
 	AppStateDeleting     AppState = "Deleting"
 	AppStateError        AppState = "Error"
 )
+
+var AllAppState = []AppState{
+	AppStateInitializing,
+	AppStateInstalling,
+	AppStateInstalled,
+	AppStateDeleting,
+	AppStateError,
+}
 
 // AppStatus includes the requested fields of the GraphQL type AppStatus.
 type AppStatus struct {
@@ -289,10 +315,10 @@ func (v *Board) GetBoardJson() types.JsonObject { return v.BoardJson }
 func (v *Board) GetSource() *string { return v.Source }
 
 type BoardInput struct {
-	Name      *string           `json:"name"`
-	IsDefault *bool             `json:"isDefault"`
-	Board     *types.JsonObject `json:"board"`
-	Source    *string           `json:"source"`
+	Name      *string           `json:"name,omitempty"`
+	IsDefault *bool             `json:"isDefault,omitempty"`
+	Board     *types.JsonObject `json:"board,omitempty"`
+	Source    *string           `json:"source,omitempty"`
 }
 
 // GetName returns BoardInput.Name, and is useful for accessing the field via an interface.
@@ -313,6 +339,11 @@ const (
 	BoardTypeSet       BoardType = "Set"
 	BoardTypeSingleton BoardType = "Singleton"
 )
+
+var AllBoardType = []BoardType{
+	BoardTypeSet,
+	BoardTypeSingleton,
+}
 
 // Bookmark includes the GraphQL fields of Bookmark requested by the fragment Bookmark.
 type Bookmark struct {
@@ -380,13 +411,13 @@ func (v *BookmarkGroup) GetWorkspaceId() string { return v.WorkspaceId }
 func (v *BookmarkGroup) GetIsHome() bool { return v.IsHome }
 
 type BookmarkGroupInput struct {
-	Name         *string                    `json:"name"`
-	Description  *string                    `json:"description"`
-	IsHome       *bool                      `json:"isHome"`
-	IconUrl      *string                    `json:"iconUrl"`
-	WorkspaceId  *string                    `json:"workspaceId"`
-	Presentation *BookmarkGroupPresentation `json:"presentation"`
-	ManagedById  *string                    `json:"managedById"`
+	Name         *string                    `json:"name,omitempty"`
+	Description  *string                    `json:"description,omitempty"`
+	IsHome       *bool                      `json:"isHome,omitempty"`
+	IconUrl      *string                    `json:"iconUrl,omitempty"`
+	WorkspaceId  *string                    `json:"workspaceId,omitempty"`
+	Presentation *BookmarkGroupPresentation `json:"presentation,omitempty"`
+	ManagedById  *string                    `json:"managedById,omitempty"`
 }
 
 // GetName returns BookmarkGroupInput.Name, and is useful for accessing the field via an interface.
@@ -419,19 +450,26 @@ const (
 	BookmarkGroupPresentationHidden               BookmarkGroupPresentation = "Hidden"
 )
 
+var AllBookmarkGroupPresentation = []BookmarkGroupPresentation{
+	BookmarkGroupPresentationPercustomerworkspace,
+	BookmarkGroupPresentationPeruserworkspace,
+	BookmarkGroupPresentationPeruser,
+	BookmarkGroupPresentationHidden,
+}
+
 // Bookmarks have their own identity, but they don't have "last changed by"
 // or "created by" timestamps / user auditing, as they are more lightweight.
 type BookmarkInput struct {
-	Name             *string          `json:"name"`
-	Description      *string          `json:"description"`
-	IconUrl          *string          `json:"iconUrl"`
-	UrlStateId       *string          `json:"urlStateId"`
-	TargetId         *string          `json:"targetId"`
-	TargetResourceId *ResourceIdInput `json:"targetResourceId"`
-	GroupId          *string          `json:"groupId"`
-	ManagedById      *string          `json:"managedById"`
-	WorkspaceId      *string          `json:"workspaceId"`
-	BookmarkKind     *BookmarkKind    `json:"bookmarkKind"`
+	Name             *string          `json:"name,omitempty"`
+	Description      *string          `json:"description,omitempty"`
+	IconUrl          *string          `json:"iconUrl,omitempty"`
+	UrlStateId       *string          `json:"urlStateId,omitempty"`
+	TargetId         *string          `json:"targetId,omitempty"`
+	TargetResourceId *ResourceIdInput `json:"targetResourceId,omitempty"`
+	GroupId          *string          `json:"groupId,omitempty"`
+	ManagedById      *string          `json:"managedById,omitempty"`
+	WorkspaceId      *string          `json:"workspaceId,omitempty"`
+	BookmarkKind     *BookmarkKind    `json:"bookmarkKind,omitempty"`
 	// Entity tags for organizing and categorizing bookmarks.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 }
@@ -486,12 +524,32 @@ const (
 	BookmarkKindServiceexplorer  BookmarkKind = "ServiceExplorer"
 )
 
+var AllBookmarkKind = []BookmarkKind{
+	BookmarkKindDataset,
+	BookmarkKindWorksheet,
+	BookmarkKindBookmarkgroup,
+	BookmarkKindMonitor,
+	BookmarkKindResource,
+	BookmarkKindDashboard,
+	BookmarkKindLogexplorer,
+	BookmarkKindMetricexplorer,
+	BookmarkKindResourceexplorer,
+	BookmarkKindTraceexplorer,
+	BookmarkKindAlertexplorer,
+	BookmarkKindServiceexplorer,
+}
+
 type ChangeType string
 
 const (
 	ChangeTypeAbsolute ChangeType = "Absolute"
 	ChangeTypeRelative ChangeType = "Relative"
 )
+
+var AllChangeType = []ChangeType{
+	ChangeTypeAbsolute,
+	ChangeTypeRelative,
+}
 
 // Channel includes the GraphQL fields of Channel requested by the fragment Channel.
 type Channel struct {
@@ -525,8 +583,8 @@ func (v *Channel) GetMonitors() []ChannelMonitorsMonitor { return v.Monitors }
 //
 // ChannelAction is implemented by the following types:
 // ChannelActionEmailAction
-// ChannelActionWebhookAction
 // ChannelActionUnknownAction
+// ChannelActionWebhookAction
 type ChannelAction interface {
 	implementsGraphQLInterfaceChannelAction()
 	// GetId returns the interface-field "id" from its implementation.
@@ -550,8 +608,8 @@ type ChannelAction interface {
 }
 
 func (v *ChannelActionEmailAction) implementsGraphQLInterfaceChannelAction()   {}
-func (v *ChannelActionWebhookAction) implementsGraphQLInterfaceChannelAction() {}
 func (v *ChannelActionUnknownAction) implementsGraphQLInterfaceChannelAction() {}
+func (v *ChannelActionWebhookAction) implementsGraphQLInterfaceChannelAction() {}
 
 func __unmarshalChannelAction(b []byte, v *ChannelAction) error {
 	if string(b) == "null" {
@@ -570,11 +628,11 @@ func __unmarshalChannelAction(b []byte, v *ChannelAction) error {
 	case "EmailAction":
 		*v = new(ChannelActionEmailAction)
 		return json.Unmarshal(b, *v)
-	case "WebhookAction":
-		*v = new(ChannelActionWebhookAction)
-		return json.Unmarshal(b, *v)
 	case "UnknownAction":
 		*v = new(ChannelActionUnknownAction)
+		return json.Unmarshal(b, *v)
+	case "WebhookAction":
+		*v = new(ChannelActionWebhookAction)
 		return json.Unmarshal(b, *v)
 	case "":
 		return fmt.Errorf(
@@ -597,20 +655,20 @@ func __marshalChannelAction(v *ChannelAction) ([]byte, error) {
 			*ChannelActionEmailAction
 		}{typename, v}
 		return json.Marshal(result)
-	case *ChannelActionWebhookAction:
-		typename = "WebhookAction"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*ChannelActionWebhookAction
-		}{typename, v}
-		return json.Marshal(result)
 	case *ChannelActionUnknownAction:
 		typename = "UnknownAction"
 
 		result := struct {
 			TypeName string `json:"__typename"`
 			*ChannelActionUnknownAction
+		}{typename, v}
+		return json.Marshal(result)
+	case *ChannelActionWebhookAction:
+		typename = "WebhookAction"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*ChannelActionWebhookAction
 		}{typename, v}
 		return json.Marshal(result)
 	case nil:
@@ -796,9 +854,9 @@ func (v *ChannelActionWebhookAction) GetHeaders() []ChannelActionHeadersWebhookH
 }
 
 type ChannelInput struct {
-	Name        *string `json:"name"`
-	IconUrl     *string `json:"iconUrl"`
-	Description *string `json:"description"`
+	Name        *string `json:"name,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 // GetName returns ChannelInput.Name, and is useful for accessing the field via an interface.
@@ -839,7 +897,7 @@ func (v *CloudInfo) GetProvider() string { return v.Provider }
 
 type ColumnAndValueInput struct {
 	Name  string  `json:"name"`
-	Value *string `json:"value"`
+	Value *string `json:"value,omitempty"`
 }
 
 // GetName returns ColumnAndValueInput.Name, and is useful for accessing the field via an interface.
@@ -851,8 +909,8 @@ func (v *ColumnAndValueInput) GetValue() *string { return v.Value }
 type ColumnOrderInput struct {
 	ColumnName string `json:"columnName"`
 	// default is descending, which is great for timestamps
-	Ascending    *bool         `json:"ascending"`
-	NullOrdering *NullOrdering `json:"nullOrdering"`
+	Ascending    *bool         `json:"ascending,omitempty"`
+	NullOrdering *NullOrdering `json:"nullOrdering,omitempty"`
 }
 
 // GetColumnName returns ColumnOrderInput.ColumnName, and is useful for accessing the field via an interface.
@@ -867,10 +925,10 @@ func (v *ColumnOrderInput) GetNullOrdering() *NullOrdering { return v.NullOrderi
 type ColumnStatsInput struct {
 	// Something which is a string, or which is inferred to be an ID, will
 	// return a list of the top K values + counts
-	TopKCount *types.Int64Scalar `json:"topKCount"`
+	TopKCount *types.Int64Scalar `json:"topKCount,omitempty"`
 	// Whether to generate compound TopK for link columns. Note that this will
 	// disable the normal TopK results for link columns.
-	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks"`
+	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks,omitempty"`
 	// Maximum number of histograms to return.
 	//
 	// Integer, float, duration columns return histograms.
@@ -878,15 +936,15 @@ type ColumnStatsInput struct {
 	// Set to 0 to disable histograms.
 	// Set to <0 for an unlimited number of histograms.
 	// Set to null to let the backend decide a suitable limit.
-	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms"`
+	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms,omitempty"`
 	// Number of buckets per histogram.
 	//
 	// Set to 0 to disable histograms.
 	// Set to null to let the backend decide.
-	HistogramBucketCount *types.Int64Scalar `json:"histogramBucketCount"`
+	HistogramBucketCount *types.Int64Scalar `json:"histogramBucketCount,omitempty"`
 	// Whether to compute distinct value count per column. This applies to string
 	// column or column inferred to be an ID. null or false would disable it.
-	NeedDistinctCount *bool `json:"needDistinctCount"`
+	NeedDistinctCount *bool `json:"needDistinctCount,omitempty"`
 }
 
 // GetTopKCount returns ColumnStatsInput.TopKCount, and is useful for accessing the field via an interface.
@@ -919,6 +977,17 @@ const (
 	CompareFunctionIsnotnull      CompareFunction = "IsNotNull"
 )
 
+var AllCompareFunction = []CompareFunction{
+	CompareFunctionEqual,
+	CompareFunctionNotequal,
+	CompareFunctionGreater,
+	CompareFunctionGreaterorequal,
+	CompareFunctionLess,
+	CompareFunctionLessorequal,
+	CompareFunctionIsnull,
+	CompareFunctionIsnotnull,
+}
+
 type CursorCacheMode string
 
 const (
@@ -932,6 +1001,12 @@ const (
 	// filter is not in "all" mode.
 	CursorCacheModeCacheifmoredata CursorCacheMode = "CacheIfMoreData"
 )
+
+var AllCursorCacheMode = []CursorCacheMode{
+	CursorCacheModeAlwayscache,
+	CursorCacheModeAlwaysdontcache,
+	CursorCacheModeCacheifmoredata,
+}
 
 // Dashboard includes the GraphQL fields of Dashboard requested by the fragment Dashboard.
 type Dashboard struct {
@@ -982,20 +1057,20 @@ func (v *Dashboard) GetEntityTags() []EntityTagMapping { return v.EntityTags }
 
 type DashboardInput struct {
 	// if id is not specified, a new dashboard is created
-	Id              *string                 `json:"id"`
-	Name            *string                 `json:"name"`
-	Description     *string                 `json:"description"`
-	IconUrl         *string                 `json:"iconUrl"`
-	WorkspaceId     *string                 `json:"workspaceId"`
-	ManagedById     *string                 `json:"managedById"`
-	FolderId        *string                 `json:"folderId"`
-	Layout          *types.JsonObject       `json:"layout"`
+	Id              *string                 `json:"id,omitempty"`
+	Name            *string                 `json:"name,omitempty"`
+	Description     *string                 `json:"description,omitempty"`
+	IconUrl         *string                 `json:"iconUrl,omitempty"`
+	WorkspaceId     *string                 `json:"workspaceId,omitempty"`
+	ManagedById     *string                 `json:"managedById,omitempty"`
+	FolderId        *string                 `json:"folderId,omitempty"`
+	Layout          *types.JsonObject       `json:"layout,omitempty"`
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 	Links           []DashboardLinkInput    `json:"links"`
 	// Unlisted dashboards are not returned by dashboardSearch except for the creating user.
-	Visibility *ObjectVisibility `json:"visibility"`
+	Visibility *ObjectVisibility `json:"visibility,omitempty"`
 	// Entity tags for organizing and categorizing dashboards.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 }
@@ -1093,18 +1168,18 @@ func (v *DashboardLink) GetLinkLabel() string { return v.LinkLabel }
 type DashboardLinkInput struct {
 	// If name is empty on create, a unique name will be generated. If name is empty
 	// on update, the name won't be changed.
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	IconUrl     *string `json:"iconUrl"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
 	WorkspaceId string  `json:"workspaceId"`
-	ManagedById *string `json:"managedById"`
+	ManagedById *string `json:"managedById,omitempty"`
 	// If folder is empty on create, it will be put in the default folder. If folder
 	// is empty on update, the existing folder won't be changed.
-	FolderId        *string `json:"folderId"`
+	FolderId        *string `json:"folderId,omitempty"`
 	FromDashboardId string  `json:"fromDashboardId"`
 	ToDashboardId   string  `json:"toDashboardId"`
 	// When fromCard is null, it clears the property.
-	FromCard *string `json:"fromCard"`
+	FromCard *string `json:"fromCard,omitempty"`
 	// linkLabel is the display text of the link label. This is neded because the
 	// 'name' is more like a textual ID and needs to be unique.
 	LinkLabel string `json:"linkLabel"`
@@ -1401,7 +1476,7 @@ func (v *DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetPat
 type DatasetDefinitionInput struct {
 	Dataset  DatasetInput                    `json:"dataset"`
 	Schema   []DatasetFieldDefInput          `json:"schema"`
-	Metadata *DatasetDefinitionMetadataInput `json:"metadata"`
+	Metadata *DatasetDefinitionMetadataInput `json:"metadata,omitempty"`
 }
 
 // GetDataset returns DatasetDefinitionInput.Dataset, and is useful for accessing the field via an interface.
@@ -1418,9 +1493,9 @@ func (v *DatasetDefinitionInput) GetMetadata() *DatasetDefinitionMetadataInput {
 // its primary key, and it won't be an event dataset without having a
 // validFromField.
 type DatasetDefinitionMetadataInput struct {
-	ValidFromField *string    `json:"validFromField"`
-	ValidToField   *string    `json:"validToField"`
-	LabelField     *string    `json:"labelField"`
+	ValidFromField *string    `json:"validFromField,omitempty"`
+	ValidToField   *string    `json:"validToField,omitempty"`
+	LabelField     *string    `json:"labelField,omitempty"`
 	PrimaryKey     []string   `json:"primaryKey"`
 	Keys           [][]string `json:"keys"`
 }
@@ -1445,6 +1520,10 @@ type DatasetDefinitionType string
 const (
 	DatasetDefinitionTypeLogderivedmetric DatasetDefinitionType = "LogDerivedMetric"
 )
+
+var AllDatasetDefinitionType = []DatasetDefinitionType{
+	DatasetDefinitionTypeLogderivedmetric,
+}
 
 // DatasetDryRunSaveResult includes the GraphQL fields of DatasetSaveResult requested by the fragment DatasetDryRunSaveResult.
 type DatasetDryRunSaveResult struct {
@@ -1491,11 +1570,11 @@ func (v *DatasetError) GetHasExistingError() bool { return v.HasExistingError }
 type DatasetFieldDefInput struct {
 	Name         string                `json:"name"`
 	Type         DatasetFieldTypeInput `json:"type"`
-	IsEnum       *bool                 `json:"isEnum"`
-	IsSearchable *bool                 `json:"isSearchable"`
-	IsHidden     *bool                 `json:"isHidden"`
-	IsConst      *bool                 `json:"isConst"`
-	IsMetric     *bool                 `json:"isMetric"`
+	IsEnum       *bool                 `json:"isEnum,omitempty"`
+	IsSearchable *bool                 `json:"isSearchable,omitempty"`
+	IsHidden     *bool                 `json:"isHidden,omitempty"`
+	IsConst      *bool                 `json:"isConst,omitempty"`
+	IsMetric     *bool                 `json:"isMetric,omitempty"`
 }
 
 // GetName returns DatasetFieldDefInput.Name, and is useful for accessing the field via an interface.
@@ -1521,7 +1600,7 @@ func (v *DatasetFieldDefInput) GetIsMetric() *bool { return v.IsMetric }
 
 type DatasetFieldTypeInput struct {
 	Rep      string               `json:"rep"`
-	Def      *DatasetTypedefInput `json:"def"`
+	Def      *DatasetTypedefInput `json:"def,omitempty"`
 	Nullable *bool                `json:"nullable,omitempty"`
 }
 
@@ -1568,18 +1647,18 @@ func (v *DatasetIdName) GetId() string { return v.Id }
 
 type DatasetInput struct {
 	// if id is not specified, a new dataset is created
-	Id *string `json:"id"`
+	Id *string `json:"id,omitempty"`
 	// External identifier for the dataset. Must be unique.  If not provided, an id will be
 	// generated based on the label.
 	// Depending on configuration, the id returned by the API may change to match externalId.
 	// Validation: start with a-z, 2-64 chars, only a-z 0-9 - _ /, max one slash, no trailing slash.
-	ExternalId  *string `json:"externalId"`
+	ExternalId  *string `json:"externalId,omitempty"`
 	Label       string  `json:"label"`
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// Format - source/comment. Examples - monitor/471142069, web/user created.
-	Source *string `json:"source"`
+	Source *string `json:"source,omitempty"`
 	// Used only when id is specified - that is to say, only when the dataset is updated.
-	OverwriteSource *bool `json:"overwriteSource"`
+	OverwriteSource *bool `json:"overwriteSource,omitempty"`
 	Deleted         *bool `json:"deleted,omitempty"`
 	// Specifies if dataset acceleration should be disabled. Set to true if
 	// dataset materialization is not desired. Defaults to false.
@@ -1589,27 +1668,27 @@ type DatasetInput struct {
 	// and set accelerationDisabledSource to 'View'. Options include: 'Empty',
 	// 'Monitor', and 'View'. Defaults to 'Empty'.
 	AccelerationDisabledSource *AccelerationDisabledSource `json:"accelerationDisabledSource,omitempty"`
-	LatencyDesired             *types.Int64Scalar          `json:"latencyDesired"`
-	FreshnessDesired           *types.Int64Scalar          `json:"freshnessDesired"`
-	IconUrl                    *string                     `json:"iconUrl"`
-	Layout                     *types.JsonObject           `json:"layout"`
-	PathCost                   *types.Int64Scalar          `json:"pathCost"`
-	DataTableViewState         *types.JsonObject           `json:"dataTableViewState"`
-	StorageIntegrationId       *string                     `json:"storageIntegrationId"`
+	LatencyDesired             *types.Int64Scalar          `json:"latencyDesired,omitempty"`
+	FreshnessDesired           *types.Int64Scalar          `json:"freshnessDesired,omitempty"`
+	IconUrl                    *string                     `json:"iconUrl,omitempty"`
+	Layout                     *types.JsonObject           `json:"layout,omitempty"`
+	PathCost                   *types.Int64Scalar          `json:"pathCost,omitempty"`
+	DataTableViewState         *types.JsonObject           `json:"dataTableViewState,omitempty"`
+	StorageIntegrationId       *string                     `json:"storageIntegrationId,omitempty"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
-	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
+	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength,omitempty"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
-	ManagedById *string `json:"managedById"`
+	ManagedById *string `json:"managedById,omitempty"`
 	// Optional list of rules to set the list of users and groups that can access the dataset
 	SharingRules []DatasetSharingRuleInput `json:"sharingRules"`
 	// Entity tags for organizing and categorizing datasets.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 	// Defines the data retention period of the dataset. We will currently only persist this field but
 	// it wouldn't take effect. TODO: Also apply it to the data retention manager.
-	DataRetentionPeriod *types.DurationScalar `json:"dataRetentionPeriod"`
+	DataRetentionPeriod *types.DurationScalar `json:"dataRetentionPeriod,omitempty"`
 	// The type of dataset definition. Used to specify special dataset types like log derived metrics.
-	DatasetDefinitionType *DatasetDefinitionType `json:"datasetDefinitionType"`
+	DatasetDefinitionType *DatasetDefinitionType `json:"datasetDefinitionType,omitempty"`
 }
 
 // GetId returns DatasetInput.Id, and is useful for accessing the field via an interface.
@@ -1685,9 +1764,9 @@ func (v *DatasetInput) GetDatasetDefinitionType() *DatasetDefinitionType {
 }
 
 type DatasetLinkSchemaInput struct {
-	TargetDataset    *types.Int64Scalar `json:"targetDataset"`
-	TargetStageLabel *string            `json:"targetStageLabel"`
-	TargetLabelField *string            `json:"targetLabelField"`
+	TargetDataset    *types.Int64Scalar `json:"targetDataset,omitempty"`
+	TargetStageLabel *string            `json:"targetStageLabel,omitempty"`
+	TargetLabelField *string            `json:"targetLabelField,omitempty"`
 	Label            string             `json:"label"`
 	SrcFields        []string           `json:"srcFields"`
 	DstFields        []string           `json:"dstFields"`
@@ -1782,12 +1861,12 @@ type DatasetOutboundShareInput struct {
 	ViewName      string            `json:"viewName"`
 	FreshnessGoal types.Int64Scalar `json:"freshnessGoal"`
 	// If set to true, the shared view will have change tracking enabled.
-	ChangeTracking *bool   `json:"changeTracking"`
+	ChangeTracking *bool   `json:"changeTracking,omitempty"`
 	Name           string  `json:"name"`
-	IconUrl        *string `json:"iconUrl"`
-	Description    *string `json:"description"`
-	ManagedById    *string `json:"managedById"`
-	FolderId       *string `json:"folderId"`
+	IconUrl        *string `json:"iconUrl,omitempty"`
+	Description    *string `json:"description,omitempty"`
+	ManagedById    *string `json:"managedById,omitempty"`
+	FolderId       *string `json:"folderId,omitempty"`
 }
 
 // GetSchemaName returns DatasetOutboundShareInput.SchemaName, and is useful for accessing the field via an interface.
@@ -1826,6 +1905,13 @@ const (
 	DatasetOutboundShareStateUnavailable DatasetOutboundShareState = "Unavailable"
 )
 
+var AllDatasetOutboundShareState = []DatasetOutboundShareState{
+	DatasetOutboundShareStateError,
+	DatasetOutboundShareStateLive,
+	DatasetOutboundShareStatePending,
+	DatasetOutboundShareStateUnavailable,
+}
+
 // DatasetOutboundShareStatus includes the requested fields of the GraphQL type DatasetOutboundShareStatus.
 type DatasetOutboundShareStatus struct {
 	State DatasetOutboundShareState `json:"state"`
@@ -1844,6 +1930,11 @@ const (
 	DatasetRoleEditor DatasetRole = "Editor"
 	DatasetRoleViewer DatasetRole = "Viewer"
 )
+
+var AllDatasetRole = []DatasetRole{
+	DatasetRoleEditor,
+	DatasetRoleViewer,
+}
 
 // DatasetSaveResult includes the GraphQL fields of DatasetSaveResult requested by the fragment DatasetSaveResult.
 type DatasetSaveResult struct {
@@ -2049,9 +2140,9 @@ func (v *DatasetTypedefDefObjectTypedefFieldsObjectFieldDefTypeObjectFieldType) 
 }
 
 type DatasetTypedefInput struct {
-	Anykey   *bool                   `json:"anykey"`
+	Anykey   *bool                   `json:"anykey,omitempty"`
 	Fields   []DatasetFieldDefInput  `json:"fields"`
-	LinkDesc *DatasetLinkSchemaInput `json:"linkDesc"`
+	LinkDesc *DatasetLinkSchemaInput `json:"linkDesc,omitempty"`
 }
 
 // GetAnykey returns DatasetTypedefInput.Anykey, and is useful for accessing the field via an interface.
@@ -2093,10 +2184,10 @@ func (v *Datastream) GetDatasetId() *string { return v.DatasetId }
 
 type DatastreamInput struct {
 	Name             string  `json:"name"`
-	Description      *string `json:"description"`
-	IconUrl          *string `json:"iconUrl"`
-	Disabled         *bool   `json:"disabled"`
-	ExternalSourceId *string `json:"externalSourceId"`
+	Description      *string `json:"description,omitempty"`
+	IconUrl          *string `json:"iconUrl,omitempty"`
+	Disabled         *bool   `json:"disabled,omitempty"`
+	ExternalSourceId *string `json:"externalSourceId,omitempty"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -2145,7 +2236,7 @@ func (v *DatastreamToken) GetSecret() *string { return v.Secret }
 
 type DatastreamTokenAppMetadataInput struct {
 	AppId          string  `json:"appId"`
-	ModuleId       *string `json:"moduleId"`
+	ModuleId       *string `json:"moduleId,omitempty"`
 	Instructions   string  `json:"instructions"`
 	DatasourceName string  `json:"datasourceName"`
 }
@@ -2164,9 +2255,9 @@ func (v *DatastreamTokenAppMetadataInput) GetDatasourceName() string { return v.
 
 type DatastreamTokenInput struct {
 	Name        string                           `json:"name"`
-	Description *string                          `json:"description"`
-	Disabled    *bool                            `json:"disabled"`
-	AppMetadata *DatastreamTokenAppMetadataInput `json:"appMetadata"`
+	Description *string                          `json:"description,omitempty"`
+	Disabled    *bool                            `json:"disabled,omitempty"`
+	AppMetadata *DatastreamTokenAppMetadataInput `json:"appMetadata,omitempty"`
 }
 
 // GetName returns DatastreamTokenInput.Name, and is useful for accessing the field via an interface.
@@ -2187,19 +2278,19 @@ func (v *DatastreamTokenInput) GetAppMetadata() *DatastreamTokenAppMetadataInput
 // We cannot remove it because the Terraform provider depends on it.
 type DefaultStatsInput struct {
 	// This field is deprecated and will be ignored
-	TopKCount *types.Int64Scalar `json:"topKCount"`
+	TopKCount *types.Int64Scalar `json:"topKCount,omitempty"`
 	// This field is deprecated and will be ignored
-	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms"`
+	MaxNbHistograms *types.Int64Scalar `json:"maxNbHistograms,omitempty"`
 	// This field is deprecated and will be ignored
-	HistogramCount *types.Int64Scalar `json:"histogramCount"`
+	HistogramCount *types.Int64Scalar `json:"histogramCount,omitempty"`
 	// This field is deprecated and will be ignored
-	SparklineBucketCount *types.Int64Scalar `json:"sparklineBucketCount"`
+	SparklineBucketCount *types.Int64Scalar `json:"sparklineBucketCount,omitempty"`
 	// This field is deprecated and will be ignored
-	SparklineFunction *string `json:"sparklineFunction"`
+	SparklineFunction *string `json:"sparklineFunction,omitempty"`
 	// This field is deprecated and will be ignored
-	IncludeTimestampColumns *bool `json:"includeTimestampColumns"`
+	IncludeTimestampColumns *bool `json:"includeTimestampColumns,omitempty"`
 	// This field is deprecated and will be ignored
-	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks"`
+	UseCompoundTopKForLinks *bool `json:"useCompoundTopKForLinks,omitempty"`
 }
 
 // GetTopKCount returns DefaultStatsInput.TopKCount, and is useful for accessing the field via an interface.
@@ -2226,11 +2317,11 @@ func (v *DefaultStatsInput) GetIncludeTimestampColumns() *bool { return v.Includ
 func (v *DefaultStatsInput) GetUseCompoundTopKForLinks() *bool { return v.UseCompoundTopKForLinks }
 
 type DeferredDatasetReferenceInput struct {
-	DatasetId *string `json:"datasetId"`
+	DatasetId *string `json:"datasetId,omitempty"`
 	// A path may specify "Workspace.Datasetname", or it may just specify
 	// Datasetname, in which case it is relative to the Workspace that the
 	// Potential Foreign Key lives in.
-	DatasetPath *string `json:"datasetPath"`
+	DatasetPath *string `json:"datasetPath,omitempty"`
 }
 
 // GetDatasetId returns DeferredDatasetReferenceInput.DatasetId, and is useful for accessing the field via an interface.
@@ -2286,13 +2377,13 @@ func (v *DeferredForeignKey) GetResolution() *DeferredForeignKeyResolutionResolv
 func (v *DeferredForeignKey) GetStatus() DeferredForeignKeyStatus { return v.Status }
 
 type DeferredForeignKeyInput struct {
-	SourceDataset *DeferredDatasetReferenceInput `json:"sourceDataset"`
-	TargetDataset *DeferredDatasetReferenceInput `json:"targetDataset"`
+	SourceDataset *DeferredDatasetReferenceInput `json:"sourceDataset,omitempty"`
+	TargetDataset *DeferredDatasetReferenceInput `json:"targetDataset,omitempty"`
 	SrcFields     []string                       `json:"srcFields"`
 	DstFields     []string                       `json:"dstFields"`
 	// The API will make up a label if it's specified as empty.
-	Label       *string `json:"label"`
-	ManagedById *string `json:"managedById"`
+	Label       *string `json:"label,omitempty"`
+	ManagedById *string `json:"managedById,omitempty"`
 }
 
 // GetSourceDataset returns DeferredForeignKeyInput.SourceDataset, and is useful for accessing the field via an interface.
@@ -2358,11 +2449,11 @@ func (v *DeferredForeignKeyTargetDatasetDeferredDatasetReference) GetDatasetId()
 }
 
 type DependencyHandlingInput struct {
-	SaveMode *SaveMode `json:"saveMode"`
+	SaveMode *SaveMode `json:"saveMode,omitempty"`
 	// For saveMode UpdateDatasetAndDependenciesUnlessNewErrors, here are errors that don't count as "new"
 	IgnoreSpecificErrors []string `json:"ignoreSpecificErrors"`
 	// If no mode is specified, Rematerialize will be used by default
-	RematerializationMode *RematerializationMode `json:"rematerializationMode"`
+	RematerializationMode *RematerializationMode `json:"rematerializationMode,omitempty"`
 }
 
 // GetSaveMode returns DependencyHandlingInput.SaveMode, and is useful for accessing the field via an interface.
@@ -2379,14 +2470,14 @@ func (v *DependencyHandlingInput) GetRematerializationMode() *RematerializationM
 type EmailActionInput struct {
 	TargetUsers     []types.UserIdScalar `json:"targetUsers"`
 	TargetAddresses []string             `json:"targetAddresses"`
-	SubjectTemplate *string              `json:"subjectTemplate"`
-	BodyTemplate    *string              `json:"bodyTemplate"`
-	IsHtml          *bool                `json:"isHtml"`
+	SubjectTemplate *string              `json:"subjectTemplate,omitempty"`
+	BodyTemplate    *string              `json:"bodyTemplate,omitempty"`
+	IsHtml          *bool                `json:"isHtml,omitempty"`
 	// Fragments are fields that users can edit on simple mode.
 	// For example,
 	// fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
 	// is available in all other templates as {{fragments.title}}
-	Fragments *types.JsonObject `json:"fragments"`
+	Fragments *types.JsonObject `json:"fragments,omitempty"`
 }
 
 // GetTargetUsers returns EmailActionInput.TargetUsers, and is useful for accessing the field via an interface.
@@ -2446,6 +2537,15 @@ const (
 	FacetFunctionIsnull         FacetFunction = "IsNull"
 	FacetFunctionIsnotnull      FacetFunction = "IsNotNull"
 )
+
+var AllFacetFunction = []FacetFunction{
+	FacetFunctionEquals,
+	FacetFunctionNotequal,
+	FacetFunctionContains,
+	FacetFunctionDoesnotcontain,
+	FacetFunctionIsnull,
+	FacetFunctionIsnotnull,
+}
 
 // Filedrop includes the GraphQL fields of Filedrop requested by the fragment Filedrop.
 type Filedrop struct {
@@ -2650,7 +2750,7 @@ func (v *FiledropConfig) __premarshalJSON() (*__premarshalFiledropConfig, error)
 }
 
 type FiledropConfigInput struct {
-	ProviderAws *FiledropProviderAwsConfigInput `json:"providerAws"`
+	ProviderAws *FiledropProviderAwsConfigInput `json:"providerAws,omitempty"`
 }
 
 // GetProviderAws returns FiledropConfigInput.ProviderAws, and is useful for accessing the field via an interface.
@@ -2823,11 +2923,11 @@ func (v *FiledropEndpointFiledropS3Endpoint) GetPrefix() string { return v.Prefi
 type FiledropInput struct {
 	Disabled    *bool               `json:"disabled,omitempty"`
 	Config      FiledropConfigInput `json:"config"`
-	Name        *string             `json:"name"`
-	IconUrl     *string             `json:"iconUrl"`
-	Description *string             `json:"description"`
-	ManagedById *string             `json:"managedById"`
-	FolderId    *string             `json:"folderId"`
+	Name        *string             `json:"name,omitempty"`
+	IconUrl     *string             `json:"iconUrl,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	ManagedById *string             `json:"managedById,omitempty"`
+	FolderId    *string             `json:"folderId,omitempty"`
 }
 
 // GetDisabled returns FiledropInput.Disabled, and is useful for accessing the field via an interface.
@@ -2871,6 +2971,13 @@ const (
 	FiledropStatusUpdating     FiledropStatus = "Updating"
 )
 
+var AllFiledropStatus = []FiledropStatus{
+	FiledropStatusDisabled,
+	FiledropStatusInitializing,
+	FiledropStatusRunning,
+	FiledropStatusUpdating,
+}
+
 // Folder includes the GraphQL fields of Folder requested by the fragment Folder.
 type Folder struct {
 	Id          string  `json:"id"`
@@ -2896,10 +3003,10 @@ func (v *Folder) GetDescription() *string { return v.Description }
 func (v *Folder) GetWorkspaceId() string { return v.WorkspaceId }
 
 type FolderInput struct {
-	Name             *string             `json:"name"`
-	Description      *string             `json:"description"`
-	IconUrl          *string             `json:"iconUrl"`
-	PersonalToUserId *types.UserIdScalar `json:"personalToUserId"`
+	Name             *string             `json:"name,omitempty"`
+	Description      *string             `json:"description,omitempty"`
+	IconUrl          *string             `json:"iconUrl,omitempty"`
+	PersonalToUserId *types.UserIdScalar `json:"personalToUserId,omitempty"`
 }
 
 // GetName returns FolderInput.Name, and is useful for accessing the field via an interface.
@@ -3828,15 +3935,15 @@ func (v *IngestFilterErrorsTaskResultErrorStageHasDependenciesWithErrors) __prem
 
 type IngestFilterInput struct {
 	Pipeline        string            `json:"pipeline"`
-	Layout          *types.JsonObject `json:"layout"`
+	Layout          *types.JsonObject `json:"layout,omitempty"`
 	Enabled         bool              `json:"enabled"`
 	SourceDatasetID string            `json:"sourceDatasetID"`
 	DropRate        float64           `json:"dropRate"`
 	Name            string            `json:"name"`
-	IconUrl         *string           `json:"iconUrl"`
-	Description     *string           `json:"description"`
-	ManagedById     *string           `json:"managedById"`
-	FolderId        *string           `json:"folderId"`
+	IconUrl         *string           `json:"iconUrl,omitempty"`
+	Description     *string           `json:"description,omitempty"`
+	ManagedById     *string           `json:"managedById,omitempty"`
+	FolderId        *string           `json:"folderId,omitempty"`
 }
 
 // GetPipeline returns IngestFilterInput.Pipeline, and is useful for accessing the field via an interface.
@@ -4749,12 +4856,12 @@ func (v *IngestToken) GetDisabled() *bool { return v.Disabled }
 func (v *IngestToken) GetSecret() *string { return v.Secret }
 
 type IngestTokenInput struct {
-	Disabled    *bool   `json:"disabled"`
-	Name        *string `json:"name"`
-	IconUrl     *string `json:"iconUrl"`
-	Description *string `json:"description"`
-	ManagedById *string `json:"managedById"`
-	FolderId    *string `json:"folderId"`
+	Disabled    *bool   `json:"disabled,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ManagedById *string `json:"managedById,omitempty"`
+	FolderId    *string `json:"folderId,omitempty"`
 }
 
 // GetDisabled returns IngestTokenInput.Disabled, and is useful for accessing the field via an interface.
@@ -4779,17 +4886,17 @@ type InputDefinitionInput struct {
 	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
 	InputName string `json:"inputName"`
 	// If this input is to be used for a purpose other than "slurp data," then specify that here.
-	InputRole *InputRole `json:"inputRole"`
+	InputRole *InputRole `json:"inputRole,omitempty"`
 	// Datasets defined by IDs refer to latest-published version of dataset.
-	DatasetId *string `json:"datasetId"`
+	DatasetId *string `json:"datasetId,omitempty"`
 	// Format of datasetPath is projectlabel.datasetlabel
-	DatasetPath *string `json:"datasetPath"`
+	DatasetPath *string `json:"datasetPath,omitempty"`
 	// Reference a previous query in the worksheet by label
 	StageID *string `json:"stageID,omitempty"`
 	StageId *string `json:"stageId,omitempty"`
 	// If this input is parameterized, this will contain the ID of the parameter to substitute for this input. Parameters
 	// are bound in the QueryParams for the query being issued with this input.
-	ParameterId *string `json:"parameterId"`
+	ParameterId *string `json:"parameterId,omitempty"`
 }
 
 // GetInputName returns InputDefinitionInput.InputName, and is useful for accessing the field via an interface.
@@ -4846,6 +4953,12 @@ const (
 	InputRoleData      InputRole = "Data"
 	InputRoleReference InputRole = "Reference"
 )
+
+var AllInputRole = []InputRole{
+	InputRoleDefault,
+	InputRoleData,
+	InputRoleReference,
+}
 
 // LayeredSettingRecord includes the GraphQL fields of LayeredSettingRecord requested by the fragment LayeredSettingRecord.
 // The GraphQL type's documentation follows.
@@ -4905,7 +5018,7 @@ func (v *LayeredSettingRecord) GetFolderId() string { return v.FolderId }
 type LayeredSettingRecordInput struct {
 	SettingAndTargetScope SettingAndTargetScopeInput `json:"settingAndTargetScope"`
 	Value                 PrimitiveValueInput        `json:"value"`
-	Id                    *string                    `json:"id"`
+	Id                    *string                    `json:"id,omitempty"`
 	// This is the name of the settings record, not the name of the setting!
 	//
 	// If you give the layered setting record the empty name, it will get an auto-generated
@@ -4914,11 +5027,11 @@ type LayeredSettingRecordInput struct {
 	// separate name.
 	Name string `json:"name"`
 	// This is the description of the settings record, not the description of the setting!
-	Description *string `json:"description"`
-	IconUrl     *string `json:"iconUrl"`
+	Description *string `json:"description,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
 	WorkspaceId string  `json:"workspaceId"`
 	ManagedById *string `json:"managedById,omitempty"`
-	FolderId    *string `json:"folderId"`
+	FolderId    *string `json:"folderId,omitempty"`
 }
 
 // GetSettingAndTargetScope returns LayeredSettingRecordInput.SettingAndTargetScope, and is useful for accessing the field via an interface.
@@ -5010,7 +5123,7 @@ type LayeredSettingRecordTargetInput struct {
 	AppId        *string             `json:"appId,omitempty"`
 	WorksheetId  *string             `json:"worksheetId,omitempty"`
 	DashboardId  *string             `json:"dashboardId,omitempty"`
-	DatastreamId *string             `json:"datastreamId"`
+	DatastreamId *string             `json:"datastreamId,omitempty"`
 	MonitorId    *string             `json:"monitorId,omitempty"`
 	DatasetId    *string             `json:"datasetId,omitempty"`
 	RbacGroupId  *string             `json:"rbacGroupId,omitempty"`
@@ -5052,7 +5165,7 @@ func (v *LayeredSettingRecordTargetInput) GetUserId() *types.UserIdScalar { retu
 
 type LinkFieldInput struct {
 	Column string  `json:"column"`
-	Path   *string `json:"path"`
+	Path   *string `json:"path,omitempty"`
 }
 
 // GetColumn returns LinkFieldInput.Column, and is useful for accessing the field via an interface.
@@ -5257,8 +5370,8 @@ func (v *Monitor) __premarshalJSON() (*__premarshalMonitor, error) {
 //
 // MonitorAction is implemented by the following types:
 // MonitorActionEmailAction
-// MonitorActionWebhookAction
 // MonitorActionUnknownAction
+// MonitorActionWebhookAction
 type MonitorAction interface {
 	implementsGraphQLInterfaceMonitorAction()
 	// GetId returns the interface-field "id" from its implementation.
@@ -5287,8 +5400,8 @@ type MonitorAction interface {
 }
 
 func (v *MonitorActionEmailAction) implementsGraphQLInterfaceMonitorAction()   {}
-func (v *MonitorActionWebhookAction) implementsGraphQLInterfaceMonitorAction() {}
 func (v *MonitorActionUnknownAction) implementsGraphQLInterfaceMonitorAction() {}
+func (v *MonitorActionWebhookAction) implementsGraphQLInterfaceMonitorAction() {}
 
 func __unmarshalMonitorAction(b []byte, v *MonitorAction) error {
 	if string(b) == "null" {
@@ -5307,11 +5420,11 @@ func __unmarshalMonitorAction(b []byte, v *MonitorAction) error {
 	case "EmailAction":
 		*v = new(MonitorActionEmailAction)
 		return json.Unmarshal(b, *v)
-	case "WebhookAction":
-		*v = new(MonitorActionWebhookAction)
-		return json.Unmarshal(b, *v)
 	case "UnknownAction":
 		*v = new(MonitorActionUnknownAction)
+		return json.Unmarshal(b, *v)
+	case "WebhookAction":
+		*v = new(MonitorActionWebhookAction)
 		return json.Unmarshal(b, *v)
 	case "":
 		return fmt.Errorf(
@@ -5334,20 +5447,20 @@ func __marshalMonitorAction(v *MonitorAction) ([]byte, error) {
 			*MonitorActionEmailAction
 		}{typename, v}
 		return json.Marshal(result)
-	case *MonitorActionWebhookAction:
-		typename = "WebhookAction"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*MonitorActionWebhookAction
-		}{typename, v}
-		return json.Marshal(result)
 	case *MonitorActionUnknownAction:
 		typename = "UnknownAction"
 
 		result := struct {
 			TypeName string `json:"__typename"`
 			*MonitorActionUnknownAction
+		}{typename, v}
+		return json.Marshal(result)
+	case *MonitorActionWebhookAction:
+		typename = "WebhookAction"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*MonitorActionWebhookAction
 		}{typename, v}
 		return json.Marshal(result)
 	case nil:
@@ -5393,13 +5506,13 @@ func (v *MonitorActionAttachment) GetDescription() *string { return v.Descriptio
 type MonitorActionAttachmentInput struct {
 	MonitorID   string  `json:"monitorID"`
 	ActionID    string  `json:"actionID"`
-	ChannelID   *string `json:"channelID"`
+	ChannelID   *string `json:"channelID,omitempty"`
 	WorkspaceId string  `json:"workspaceId"`
-	Name        *string `json:"name"`
-	IconUrl     *string `json:"iconUrl"`
-	Description *string `json:"description"`
-	ManagedById *string `json:"managedById"`
-	FolderId    *string `json:"folderId"`
+	Name        *string `json:"name,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ManagedById *string `json:"managedById,omitempty"`
+	FolderId    *string `json:"folderId,omitempty"`
 }
 
 // GetMonitorID returns MonitorActionAttachmentInput.MonitorID, and is useful for accessing the field via an interface.
@@ -5504,18 +5617,18 @@ type MonitorActionInput struct {
 	// Rate limit measured in nanoseconds.
 	// For email actions the minimum is: 10 / 10min
 	// For webhook actions the minimum is: 10 / 1s
-	RateLimit        *types.DurationScalar `json:"rateLimit"`
+	RateLimit        *types.DurationScalar `json:"rateLimit,omitempty"`
 	NotifyOnClose    bool                  `json:"notifyOnClose"`
 	NotifyOnReminder bool                  `json:"notifyOnReminder"`
 	IsPrivate        bool                  `json:"isPrivate"`
-	Email            *EmailActionInput     `json:"email"`
-	Webhook          *WebhookActionInput   `json:"webhook"`
+	Email            *EmailActionInput     `json:"email,omitempty"`
+	Webhook          *WebhookActionInput   `json:"webhook,omitempty"`
 	WorkspaceId      string                `json:"workspaceId"`
 	Name             string                `json:"name"`
-	IconUrl          *string               `json:"iconUrl"`
-	Description      *string               `json:"description"`
-	ManagedById      *string               `json:"managedById"`
-	FolderId         *string               `json:"folderId"`
+	IconUrl          *string               `json:"iconUrl,omitempty"`
+	Description      *string               `json:"description,omitempty"`
+	ManagedById      *string               `json:"managedById,omitempty"`
+	FolderId         *string               `json:"folderId,omitempty"`
 }
 
 // GetRateLimit returns MonitorActionInput.RateLimit, and is useful for accessing the field via an interface.
@@ -5682,7 +5795,7 @@ type MonitorGroupInfoInput struct {
 	// └───────────┴─────────┴──────────────────────────┴─────────────┴────────────┘
 	Columns    []string                       `json:"columns"`
 	GroupName  string                         `json:"groupName"`
-	ColumnPath *MonitorGroupByColumnPathInput `json:"columnPath"`
+	ColumnPath *MonitorGroupByColumnPathInput `json:"columnPath,omitempty"`
 }
 
 // GetColumns returns MonitorGroupInfoInput.Columns, and is useful for accessing the field via an interface.
@@ -5703,30 +5816,37 @@ const (
 	MonitorGroupingLinktarget MonitorGrouping = "LinkTarget"
 )
 
+var AllMonitorGrouping = []MonitorGrouping{
+	MonitorGroupingNone,
+	MonitorGroupingValue,
+	MonitorGroupingResource,
+	MonitorGroupingLinktarget,
+}
+
 type MonitorInput struct {
-	Name        *string `json:"name"`
-	IconUrl     *string `json:"iconUrl"`
-	Description *string `json:"description"`
+	Name        *string `json:"name,omitempty"`
+	IconUrl     *string `json:"iconUrl,omitempty"`
+	Description *string `json:"description,omitempty"`
 	// Static comment for extra information about a monitor available in notification template.
-	Comment *string `json:"comment"`
+	Comment *string `json:"comment,omitempty"`
 	// Examples - "terraform", "webui".
-	Source *string `json:"source"`
+	Source *string `json:"source,omitempty"`
 	// Only when the monitor is updated.
 	OverwriteSource *bool `json:"overwriteSource,omitempty"`
 	// The optional id of the object that owns the monitor. Ex: the id of an app that installs the monitor.
-	ManagedById          *string `json:"managedById"`
-	Disabled             *bool   `json:"disabled"`
+	ManagedById          *string `json:"managedById,omitempty"`
+	Disabled             *bool   `json:"disabled,omitempty"`
 	AccelerationDisabled *bool   `json:"accelerationDisabled,omitempty"`
-	IsTemplate           *bool   `json:"isTemplate"`
+	IsTemplate           *bool   `json:"isTemplate,omitempty"`
 	// Similar to dataset freshness goal, this is in Nanoseconds when received from UI.
 	// Only changes setting if useDefaultFreshness is false
 	FreshnessGoal *types.Int64Scalar `json:"freshnessGoal,omitempty"`
 	// Defaults to true on creation if not specified
-	UseDefaultFreshness *bool                           `json:"useDefaultFreshness"`
-	Query               *MultiStageQueryInput           `json:"query"`
-	Definition          *types.JsonObject               `json:"definition"`
-	Rule                *MonitorRuleInput               `json:"rule"`
-	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec"`
+	UseDefaultFreshness *bool                           `json:"useDefaultFreshness,omitempty"`
+	Query               *MultiStageQueryInput           `json:"query,omitempty"`
+	Definition          *types.JsonObject               `json:"definition,omitempty"`
+	Rule                *MonitorRuleInput               `json:"rule,omitempty"`
+	NotificationSpec    *NotificationSpecificationInput `json:"notificationSpec,omitempty"`
 	Channels            []string                        `json:"channels"`
 	// Optional list of rules to set the list of users and groups that can access the monitor.
 	SharingRules []MonitorSharingRuleInput `json:"sharingRules"`
@@ -5841,6 +5961,11 @@ const (
 	MonitorRoleEditor MonitorRole = "Editor"
 	MonitorRoleViewer MonitorRole = "Viewer"
 )
+
+var AllMonitorRole = []MonitorRole{
+	MonitorRoleEditor,
+	MonitorRoleViewer,
+}
 
 // MonitorRule includes the requested fields of the GraphQL interface MonitorRule.
 //
@@ -5970,11 +6095,11 @@ func __marshalMonitorRule(v *MonitorRule) ([]byte, error) {
 }
 
 type MonitorRuleChangeInput struct {
-	ChangeType      *ChangeType      `json:"changeType"`
-	CompareFunction *CompareFunction `json:"compareFunction"`
+	ChangeType      *ChangeType      `json:"changeType,omitempty"`
+	CompareFunction *CompareFunction `json:"compareFunction,omitempty"`
 	// For Relative ChangeType, the value is a multiple -- 0.3 means 30% change
 	CompareValues     []types.NumberScalar `json:"compareValues"`
-	AggregateFunction *AggregateFunction   `json:"aggregateFunction"`
+	AggregateFunction *AggregateFunction   `json:"aggregateFunction,omitempty"`
 	// The comparison time is established as
 	// from: now - lookbackTime - baselineTime
 	// to:   now - lookbackTime
@@ -5982,8 +6107,8 @@ type MonitorRuleChangeInput struct {
 	// from: now - lookbackTime
 	// to:   now
 	// (These may end up being approximate, depending on transform scheduling and such)
-	LookbackTime *types.DurationScalar `json:"lookbackTime"`
-	BaselineTime *types.DurationScalar `json:"baselineTime"`
+	LookbackTime *types.DurationScalar `json:"lookbackTime,omitempty"`
+	BaselineTime *types.DurationScalar `json:"baselineTime,omitempty"`
 }
 
 // GetChangeType returns MonitorRuleChangeInput.ChangeType, and is useful for accessing the field via an interface.
@@ -6007,9 +6132,9 @@ func (v *MonitorRuleChangeInput) GetLookbackTime() *types.DurationScalar { retur
 func (v *MonitorRuleChangeInput) GetBaselineTime() *types.DurationScalar { return v.BaselineTime }
 
 type MonitorRuleCountInput struct {
-	CompareFunction *CompareFunction      `json:"compareFunction"`
+	CompareFunction *CompareFunction      `json:"compareFunction,omitempty"`
 	CompareValues   []types.NumberScalar  `json:"compareValues"`
-	LookbackTime    *types.DurationScalar `json:"lookbackTime"`
+	LookbackTime    *types.DurationScalar `json:"lookbackTime,omitempty"`
 }
 
 // GetCompareFunction returns MonitorRuleCountInput.CompareFunction, and is useful for accessing the field via an interface.
@@ -6022,11 +6147,11 @@ func (v *MonitorRuleCountInput) GetCompareValues() []types.NumberScalar { return
 func (v *MonitorRuleCountInput) GetLookbackTime() *types.DurationScalar { return v.LookbackTime }
 
 type MonitorRuleFacetInput struct {
-	FacetFunction *FacetFunction        `json:"facetFunction"`
+	FacetFunction *FacetFunction        `json:"facetFunction,omitempty"`
 	FacetValues   []string              `json:"facetValues"`
-	TimeFunction  *TimeFunction         `json:"timeFunction"`
-	TimeValue     *types.NumberScalar   `json:"timeValue"`
-	LookbackTime  *types.DurationScalar `json:"lookbackTime"`
+	TimeFunction  *TimeFunction         `json:"timeFunction,omitempty"`
+	TimeValue     *types.NumberScalar   `json:"timeValue,omitempty"`
+	LookbackTime  *types.DurationScalar `json:"lookbackTime,omitempty"`
 }
 
 // GetFacetFunction returns MonitorRuleFacetInput.FacetFunction, and is useful for accessing the field via an interface.
@@ -6067,21 +6192,21 @@ func (v *MonitorRuleGroupByGroupsMonitorGroupInfo) GetGroupName() string { retur
 func (v *MonitorRuleGroupByGroupsMonitorGroupInfo) GetColumns() []string { return v.Columns }
 
 type MonitorRuleInput struct {
-	Layout       *types.JsonObject `json:"layout"`
-	SourceColumn *string           `json:"sourceColumn"`
+	Layout       *types.JsonObject `json:"layout,omitempty"`
+	SourceColumn *string           `json:"sourceColumn,omitempty"`
 	// Takes precedence over GroupByColumns -- will replace contents of GroupByColumns
 	// Specify value columns with an MonitorGroupInfo with a nil datasetId
 	GroupByGroups     []MonitorGroupInfoInput `json:"groupByGroups"`
-	GroupBy           *MonitorGrouping        `json:"groupBy"`
+	GroupBy           *MonitorGrouping        `json:"groupBy,omitempty"`
 	GroupByColumns    []string                `json:"groupByColumns"`
 	GroupByDatasetIds []string                `json:"groupByDatasetIds"`
 	// exactly one of these should be used
-	ChangeRule    *MonitorRuleChangeInput    `json:"changeRule"`
-	CountRule     *MonitorRuleCountInput     `json:"countRule"`
-	FacetRule     *MonitorRuleFacetInput     `json:"facetRule"`
-	ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule"`
-	LogRule       *MonitorRuleLogInput       `json:"logRule"`
-	PromoteRule   *MonitorRulePromoteInput   `json:"promoteRule"`
+	ChangeRule    *MonitorRuleChangeInput    `json:"changeRule,omitempty"`
+	CountRule     *MonitorRuleCountInput     `json:"countRule,omitempty"`
+	FacetRule     *MonitorRuleFacetInput     `json:"facetRule,omitempty"`
+	ThresholdRule *MonitorRuleThresholdInput `json:"thresholdRule,omitempty"`
+	LogRule       *MonitorRuleLogInput       `json:"logRule,omitempty"`
+	PromoteRule   *MonitorRulePromoteInput   `json:"promoteRule,omitempty"`
 }
 
 // GetLayout returns MonitorRuleInput.Layout, and is useful for accessing the field via an interface.
@@ -6121,12 +6246,12 @@ func (v *MonitorRuleInput) GetLogRule() *MonitorRuleLogInput { return v.LogRule 
 func (v *MonitorRuleInput) GetPromoteRule() *MonitorRulePromoteInput { return v.PromoteRule }
 
 type MonitorRuleLogInput struct {
-	CompareFunction    *CompareFunction      `json:"compareFunction"`
+	CompareFunction    *CompareFunction      `json:"compareFunction,omitempty"`
 	CompareValues      []types.NumberScalar  `json:"compareValues"`
-	LookbackTime       *types.DurationScalar `json:"lookbackTime"`
-	ExpressionSummary  *string               `json:"expressionSummary"`
-	LogStageId         *string               `json:"logStageId"`
-	SourceLogDatasetId *string               `json:"sourceLogDatasetId"`
+	LookbackTime       *types.DurationScalar `json:"lookbackTime,omitempty"`
+	ExpressionSummary  *string               `json:"expressionSummary,omitempty"`
+	LogStageId         *string               `json:"logStageId,omitempty"`
+	SourceLogDatasetId *string               `json:"sourceLogDatasetId,omitempty"`
 }
 
 // GetCompareFunction returns MonitorRuleLogInput.CompareFunction, and is useful for accessing the field via an interface.
@@ -6386,8 +6511,8 @@ func (v *MonitorRuleMonitorRuleThreshold) GetThresholdAggFunction() ThresholdAgg
 
 type MonitorRulePromoteInput struct {
 	PrimaryKey       []string `json:"primaryKey"`
-	DescriptionField *string  `json:"descriptionField"`
-	KindField        *string  `json:"kindField"`
+	DescriptionField *string  `json:"descriptionField,omitempty"`
+	KindField        *string  `json:"kindField,omitempty"`
 }
 
 // GetPrimaryKey returns MonitorRulePromoteInput.PrimaryKey, and is useful for accessing the field via an interface.
@@ -6400,11 +6525,11 @@ func (v *MonitorRulePromoteInput) GetDescriptionField() *string { return v.Descr
 func (v *MonitorRulePromoteInput) GetKindField() *string { return v.KindField }
 
 type MonitorRuleThresholdInput struct {
-	CompareFunction      *CompareFunction      `json:"compareFunction"`
+	CompareFunction      *CompareFunction      `json:"compareFunction,omitempty"`
 	CompareValues        []types.NumberScalar  `json:"compareValues"`
-	LookbackTime         *types.DurationScalar `json:"lookbackTime"`
-	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction"`
-	ExpressionSummary    *string               `json:"expressionSummary"`
+	LookbackTime         *types.DurationScalar `json:"lookbackTime,omitempty"`
+	ThresholdAggFunction *ThresholdAggFunction `json:"thresholdAggFunction,omitempty"`
+	ExpressionSummary    *string               `json:"expressionSummary,omitempty"`
 }
 
 // GetCompareFunction returns MonitorRuleThresholdInput.CompareFunction, and is useful for accessing the field via an interface.
@@ -6435,7 +6560,7 @@ func (v *MonitorSharingRuleInput) GetSubject() RbacSubjectInput { return v.Subje
 // GetRole returns MonitorSharingRuleInput.Role, and is useful for accessing the field via an interface.
 func (v *MonitorSharingRuleInput) GetRole() MonitorRole { return v.Role }
 
-// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
+// MonitorV2 includes the GraphQL fields of MonitorV2 requested by the fragment MonitorV2.
 type MonitorV2 struct {
 	Id          string             `json:"id"`
 	WorkspaceId string             `json:"workspaceId"`
@@ -6561,7 +6686,7 @@ func (v *MonitorV2Action) GetCreatedDate() types.TimeScalar { return v.CreatedDa
 type MonitorV2ActionAndRelationInput struct {
 	Action                *MonitorV2ActionInput               `json:"action,omitempty"`
 	ActionID              *string                             `json:"actionID,omitempty"`
-	Levels                []MonitorV2AlarmLevel               `json:"levels,omitempty"`
+	Levels                []MonitorV2AlarmLevel               `json:"levels"`
 	Conditions            *MonitorV2ComparisonExpressionInput `json:"conditions,omitempty"`
 	SendEndNotifications  *bool                               `json:"sendEndNotifications,omitempty"`
 	SendRemindersInterval *types.DurationScalar               `json:"sendRemindersInterval,omitempty"`
@@ -6613,7 +6738,7 @@ func (v *MonitorV2ActionDefinition) GetEmail() *MonitorV2EmailAction { return v.
 func (v *MonitorV2ActionDefinition) GetWebhook() *MonitorV2WebhookAction { return v.Webhook }
 
 type MonitorV2ActionInput struct {
-	Inline      *bool                        `json:"inline"`
+	Inline      *bool                        `json:"inline,omitempty"`
 	Type        MonitorV2ActionType          `json:"type"`
 	Email       *MonitorV2EmailActionInput   `json:"email,omitempty"`
 	Webhook     *MonitorV2WebhookActionInput `json:"webhook,omitempty"`
@@ -6692,7 +6817,7 @@ func (v *MonitorV2ActionRule) GetDefinition() MonitorV2ActionDefinition { return
 
 type MonitorV2ActionRuleInput struct {
 	ActionID              string                              `json:"actionID"`
-	Levels                []MonitorV2AlarmLevel               `json:"levels,omitempty"`
+	Levels                []MonitorV2AlarmLevel               `json:"levels"`
 	Conditions            *MonitorV2ComparisonExpressionInput `json:"conditions,omitempty"`
 	SendEndNotifications  *bool                               `json:"sendEndNotifications,omitempty"`
 	SendRemindersInterval *types.DurationScalar               `json:"sendRemindersInterval,omitempty"`
@@ -6736,6 +6861,13 @@ const (
 	MonitorV2ActionTypeWebhook   MonitorV2ActionType = "Webhook"
 )
 
+var AllMonitorV2ActionType = []MonitorV2ActionType{
+	MonitorV2ActionTypeEmail,
+	MonitorV2ActionTypePagerduty,
+	MonitorV2ActionTypeSlack,
+	MonitorV2ActionTypeWebhook,
+}
+
 // MonitorV2AlarmLevel presents the severity level a user can choose for their monitor.
 // The NoData severity is a special placeholder for the no data rule.
 type MonitorV2AlarmLevel string
@@ -6749,8 +6881,17 @@ const (
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
 )
 
+var AllMonitorV2AlarmLevel = []MonitorV2AlarmLevel{
+	MonitorV2AlarmLevelCritical,
+	MonitorV2AlarmLevelError,
+	MonitorV2AlarmLevelInformational,
+	MonitorV2AlarmLevelNodata,
+	MonitorV2AlarmLevelNone,
+	MonitorV2AlarmLevelWarning,
+}
+
 type MonitorV2AnomalyRuleInput struct {
-	ComparePercentage *types.Int64Scalar               `json:"comparePercentage"`
+	ComparePercentage *types.Int64Scalar               `json:"comparePercentage,omitempty"`
 	CompareGroups     []MonitorV2ColumnComparisonInput `json:"compareGroups"`
 }
 
@@ -6765,11 +6906,11 @@ func (v *MonitorV2AnomalyRuleInput) GetCompareGroups() []MonitorV2ColumnComparis
 }
 
 type MonitorV2AnomalyRuleTemplateInput struct {
-	ComputationWindow     *types.DurationScalar            `json:"computationWindow"`
+	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
 	ValueColumnName       string                           `json:"valueColumnName"`
 	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
 	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
-	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
+	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm,omitempty"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
@@ -6802,6 +6943,11 @@ const (
 	MonitorV2BooleanOperatorOr  MonitorV2BooleanOperator = "Or"
 )
 
+var AllMonitorV2BooleanOperator = []MonitorV2BooleanOperator{
+	MonitorV2BooleanOperatorAnd,
+	MonitorV2BooleanOperatorOr,
+}
+
 // These are functions meant to express comparison against standard deviation bounds.
 type MonitorV2BoundComparisonFunction string
 
@@ -6810,6 +6956,12 @@ const (
 	MonitorV2BoundComparisonFunctionAboveorbelow MonitorV2BoundComparisonFunction = "AboveOrBelow"
 	MonitorV2BoundComparisonFunctionBelow        MonitorV2BoundComparisonFunction = "Below"
 )
+
+var AllMonitorV2BoundComparisonFunction = []MonitorV2BoundComparisonFunction{
+	MonitorV2BoundComparisonFunctionAbove,
+	MonitorV2BoundComparisonFunctionAboveorbelow,
+	MonitorV2BoundComparisonFunctionBelow,
+}
 
 // MonitorV2Column includes the GraphQL fields of MonitorV2Column requested by the fragment MonitorV2Column.
 type MonitorV2Column struct {
@@ -6846,7 +6998,7 @@ func (v *MonitorV2ColumnComparison) GetCompareValues() []MonitorV2Comparison { r
 type MonitorV2ColumnComparisonInput struct {
 	CompareValues []MonitorV2ComparisonInput `json:"compareValues"`
 	Column        MonitorV2ColumnInput       `json:"column"`
-	Operator      *MonitorV2BooleanOperator  `json:"operator"`
+	Operator      *MonitorV2BooleanOperator  `json:"operator,omitempty"`
 }
 
 // GetCompareValues returns MonitorV2ColumnComparisonInput.CompareValues, and is useful for accessing the field via an interface.
@@ -6959,6 +7111,21 @@ const (
 	MonitorV2ComparisonFunctionStartswith     MonitorV2ComparisonFunction = "StartsWith"
 )
 
+var AllMonitorV2ComparisonFunction = []MonitorV2ComparisonFunction{
+	MonitorV2ComparisonFunctionContains,
+	MonitorV2ComparisonFunctionEqual,
+	MonitorV2ComparisonFunctionGreater,
+	MonitorV2ComparisonFunctionGreaterorequal,
+	MonitorV2ComparisonFunctionIsnotnull,
+	MonitorV2ComparisonFunctionIsnull,
+	MonitorV2ComparisonFunctionLess,
+	MonitorV2ComparisonFunctionLessorequal,
+	MonitorV2ComparisonFunctionNotcontains,
+	MonitorV2ComparisonFunctionNotequal,
+	MonitorV2ComparisonFunctionNotstartswith,
+	MonitorV2ComparisonFunctionStartswith,
+}
+
 type MonitorV2ComparisonInput struct {
 	CompareFn    MonitorV2ComparisonFunction `json:"compareFn"`
 	CompareValue PrimitiveValueInput         `json:"compareValue"`
@@ -7048,7 +7215,7 @@ func (v *MonitorV2CronSchedule) GetRawCron() *string { return v.RawCron }
 func (v *MonitorV2CronSchedule) GetTimezone() string { return v.Timezone }
 
 type MonitorV2CronScheduleInput struct {
-	RawCron  *string `json:"rawCron"`
+	RawCron  *string `json:"rawCron,omitempty"`
 	Timezone string  `json:"timezone"`
 }
 
@@ -7139,12 +7306,12 @@ type MonitorV2DefinitionInput struct {
 	RuleTemplate           *MonitorV2RuleTemplateInput `json:"ruleTemplate,omitempty"`
 	NoDataRules            []MonitorV2NoDataRuleInput  `json:"noDataRules"`
 	Rules                  []MonitorV2RuleInput        `json:"rules"`
-	LookbackTime           *types.DurationScalar       `json:"lookbackTime"`
+	LookbackTime           *types.DurationScalar       `json:"lookbackTime,omitempty"`
 	DataStabilizationDelay *types.DurationScalar       `json:"dataStabilizationDelay,omitempty"`
 	MaxAlertsPerHour       *types.Int64Scalar          `json:"maxAlertsPerHour,omitempty"`
 	Groupings              []MonitorV2ColumnInput      `json:"groupings"`
-	Scheduling             *MonitorV2SchedulingInput   `json:"scheduling"`
-	CustomVariables        *types.JsonObject           `json:"customVariables"`
+	Scheduling             *MonitorV2SchedulingInput   `json:"scheduling,omitempty"`
+	CustomVariables        *types.JsonObject           `json:"customVariables,omitempty"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
@@ -7229,7 +7396,7 @@ type MonitorV2EmailActionInput struct {
 	Users     []types.UserIdScalar `json:"users"`
 	Addresses []string             `json:"addresses"`
 	Subject   string               `json:"subject"`
-	Body      *string              `json:"body"`
+	Body      *string              `json:"body,omitempty"`
 	Fragments *types.JsonObject    `json:"fragments,omitempty"`
 }
 
@@ -7257,13 +7424,18 @@ const (
 	MonitorV2HttpTypePut  MonitorV2HttpType = "Put"
 )
 
+var AllMonitorV2HttpType = []MonitorV2HttpType{
+	MonitorV2HttpTypePost,
+	MonitorV2HttpTypePut,
+}
+
 type MonitorV2Input struct {
 	SharingRules      []MonitorSharingRuleInput        `json:"sharingRules"`
 	Disabled          *bool                            `json:"disabled,omitempty"`
-	Comment           *string                          `json:"comment"`
+	Comment           *string                          `json:"comment,omitempty"`
 	Definition        MonitorV2DefinitionInput         `json:"definition"`
 	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
-	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
+	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo,omitempty"`
 	Name              string                           `json:"name"`
 	IconUrl           *string                          `json:"iconUrl,omitempty"`
 	Description       *string                          `json:"description,omitempty"`
@@ -7394,7 +7566,7 @@ func (v *MonitorV2LinkColumnMeta) GetTargetDataset() *types.Int64Scalar { return
 type MonitorV2LinkColumnMetaInput struct {
 	SrcFields     []MonitorV2ColumnPathInput `json:"srcFields"`
 	DstFields     []string                   `json:"dstFields"`
-	TargetDataset *types.Int64Scalar         `json:"targetDataset"`
+	TargetDataset *types.Int64Scalar         `json:"targetDataset,omitempty"`
 }
 
 // GetSrcFields returns MonitorV2LinkColumnMetaInput.SrcFields, and is useful for accessing the field via an interface.
@@ -7426,9 +7598,9 @@ func (v *MonitorV2NoDataRule) GetExpiration() *types.DurationScalar { return v.E
 func (v *MonitorV2NoDataRule) GetThreshold() *MonitorV2ThresholdRule { return v.Threshold }
 
 type MonitorV2NoDataRuleInput struct {
-	Expiration *types.DurationScalar        `json:"expiration"`
+	Expiration *types.DurationScalar        `json:"expiration,omitempty"`
 	Threshold  *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
-	Anomaly    *MonitorV2AnomalyRuleInput   `json:"anomaly"`
+	Anomaly    *MonitorV2AnomalyRuleInput   `json:"anomaly,omitempty"`
 }
 
 // GetExpiration returns MonitorV2NoDataRuleInput.Expiration, and is useful for accessing the field via an interface.
@@ -7486,6 +7658,13 @@ const (
 	MonitorV2RollupStatusWarnings MonitorV2RollupStatus = "Warnings"
 )
 
+var AllMonitorV2RollupStatus = []MonitorV2RollupStatus{
+	MonitorV2RollupStatusDisabled,
+	MonitorV2RollupStatusFailed,
+	MonitorV2RollupStatusRunning,
+	MonitorV2RollupStatusWarnings,
+}
+
 // MonitorV2Rule includes the GraphQL fields of MonitorV2Rule requested by the fragment MonitorV2Rule.
 type MonitorV2Rule struct {
 	// Level is the severity level to assign to a rule's conditions being matched.
@@ -7513,7 +7692,7 @@ type MonitorV2RuleInput struct {
 	Count     *MonitorV2CountRuleInput     `json:"count,omitempty"`
 	Threshold *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
 	Promote   *MonitorV2PromoteRuleInput   `json:"promote,omitempty"`
-	Anomaly   *MonitorV2AnomalyRuleInput   `json:"anomaly"`
+	Anomaly   *MonitorV2AnomalyRuleInput   `json:"anomaly,omitempty"`
 }
 
 // GetLevel returns MonitorV2RuleInput.Level, and is useful for accessing the field via an interface.
@@ -7550,8 +7729,15 @@ const (
 	MonitorV2RuleKindThreshold MonitorV2RuleKind = "Threshold"
 )
 
+var AllMonitorV2RuleKind = []MonitorV2RuleKind{
+	MonitorV2RuleKindAnomaly,
+	MonitorV2RuleKindCount,
+	MonitorV2RuleKindPromote,
+	MonitorV2RuleKindThreshold,
+}
+
 type MonitorV2RuleTemplateInput struct {
-	Anomaly *MonitorV2AnomalyRuleTemplateInput `json:"anomaly"`
+	Anomaly *MonitorV2AnomalyRuleTemplateInput `json:"anomaly,omitempty"`
 }
 
 // GetAnomaly returns MonitorV2RuleTemplateInput.Anomaly, and is useful for accessing the field via an interface.
@@ -7582,9 +7768,9 @@ func (v *MonitorV2Scheduling) GetTransform() *MonitorV2TransformSchedule { retur
 func (v *MonitorV2Scheduling) GetScheduled() *MonitorV2CronSchedule { return v.Scheduled }
 
 type MonitorV2SchedulingInput struct {
-	Interval  *MonitorV2IntervalScheduleInput  `json:"interval"`
-	Transform *MonitorV2TransformScheduleInput `json:"transform"`
-	Scheduled *MonitorV2CronScheduleInput      `json:"scheduled"`
+	Interval  *MonitorV2IntervalScheduleInput  `json:"interval,omitempty"`
+	Transform *MonitorV2TransformScheduleInput `json:"transform,omitempty"`
+	Scheduled *MonitorV2CronScheduleInput      `json:"scheduled,omitempty"`
 }
 
 // GetInterval returns MonitorV2SchedulingInput.Interval, and is useful for accessing the field via an interface.
@@ -7702,6 +7888,15 @@ const (
 	MonitorV2ValueAggregationSumof MonitorV2ValueAggregation = "SumOf"
 )
 
+var AllMonitorV2ValueAggregation = []MonitorV2ValueAggregation{
+	MonitorV2ValueAggregationAllof,
+	MonitorV2ValueAggregationAnyof,
+	MonitorV2ValueAggregationAvgof,
+	MonitorV2ValueAggregationMax,
+	MonitorV2ValueAggregationMin,
+	MonitorV2ValueAggregationSumof,
+}
+
 // MonitorV2WebhookAction includes the GraphQL fields of MonitorV2WebhookAction requested by the fragment MonitorV2WebhookAction.
 type MonitorV2WebhookAction struct {
 	// The webhook headers -- a header and a value template.
@@ -7735,7 +7930,7 @@ func (v *MonitorV2WebhookAction) GetMethod() MonitorV2HttpType { return v.Method
 type MonitorV2WebhookActionInput struct {
 	Url       string                        `json:"url"`
 	Method    MonitorV2HttpType             `json:"method"`
-	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
+	Headers   []MonitorV2WebhookHeaderInput `json:"headers"`
 	Body      string                        `json:"body"`
 	Fragments *types.JsonObject             `json:"fragments,omitempty"`
 }
@@ -7785,7 +7980,7 @@ type MultiStageQueryInput struct {
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
-	Layout          *types.JsonObject       `json:"layout"`
+	Layout          *types.JsonObject       `json:"layout,omitempty"`
 }
 
 // GetOutputStage returns MultiStageQueryInput.OutputStage, and is useful for accessing the field via an interface.
@@ -8019,12 +8214,23 @@ const (
 	NotificationImportanceMissing       NotificationImportance = "Missing"
 )
 
+var AllNotificationImportance = []NotificationImportance{
+	NotificationImportanceInformational,
+	NotificationImportanceImportant,
+	NotificationImportanceMissing,
+}
+
 type NotificationMerge string
 
 const (
 	NotificationMergeMerged   NotificationMerge = "Merged"
 	NotificationMergeSeparate NotificationMerge = "Separate"
 )
+
+var AllNotificationMerge = []NotificationMerge{
+	NotificationMergeMerged,
+	NotificationMergeSeparate,
+}
 
 type NotificationSelection string
 
@@ -8035,16 +8241,23 @@ const (
 	NotificationSelectionCount      NotificationSelection = "Count"
 )
 
+var AllNotificationSelection = []NotificationSelection{
+	NotificationSelectionAny,
+	NotificationSelectionAll,
+	NotificationSelectionPercentage,
+	NotificationSelectionCount,
+}
+
 type NotificationSpecificationInput struct {
-	Importance     *NotificationImportance `json:"importance"`
-	Merge          *NotificationMerge      `json:"merge"`
-	Selection      *NotificationSelection  `json:"selection"`
-	SelectionValue *types.NumberScalar     `json:"selectionValue"`
+	Importance     *NotificationImportance `json:"importance,omitempty"`
+	Merge          *NotificationMerge      `json:"merge,omitempty"`
+	Selection      *NotificationSelection  `json:"selection,omitempty"`
+	SelectionValue *types.NumberScalar     `json:"selectionValue,omitempty"`
 	// Check if we should send reminder notifications at the specified reminderFrequency.
-	NotifyOnReminder *bool `json:"notifyOnReminder"`
+	NotifyOnReminder *bool `json:"notifyOnReminder,omitempty"`
 	// Send a notification when this alert becomes inactive.
-	NotifyOnClose     *bool                 `json:"notifyOnClose"`
-	ReminderFrequency *types.DurationScalar `json:"reminderFrequency"`
+	NotifyOnClose     *bool                 `json:"notifyOnClose,omitempty"`
+	ReminderFrequency *types.DurationScalar `json:"reminderFrequency,omitempty"`
 }
 
 // GetImportance returns NotificationSpecificationInput.Importance, and is useful for accessing the field via an interface.
@@ -8082,6 +8295,12 @@ const (
 	NullOrderingLast    NullOrdering = "Last"
 )
 
+var AllNullOrdering = []NullOrdering{
+	NullOrderingDefault,
+	NullOrderingFirst,
+	NullOrderingLast,
+}
+
 type ORType string
 
 const (
@@ -8093,6 +8312,16 @@ const (
 	ORTypeReferencetable ORType = "Referencetable"
 	ORTypeWorksheet      ORType = "Worksheet"
 )
+
+var AllORType = []ORType{
+	ORTypeCustomer,
+	ORTypeDashboard,
+	ORTypeDataset,
+	ORTypeDatastream,
+	ORTypeMonitor,
+	ORTypeReferencetable,
+	ORTypeWorksheet,
+}
 
 // At some point in the future, we may have Segments as business objects,
 // and be able to bookmark them. Technically, we can bookmark bookmark groups, but
@@ -8108,12 +8337,26 @@ const (
 	ObjectKindDashboard     ObjectKind = "Dashboard"
 )
 
+var AllObjectKind = []ObjectKind{
+	ObjectKindDataset,
+	ObjectKindWorksheet,
+	ObjectKindBookmarkgroup,
+	ObjectKindMonitor,
+	ObjectKindResource,
+	ObjectKindDashboard,
+}
+
 type ObjectVisibility string
 
 const (
 	ObjectVisibilityListed   ObjectVisibility = "Listed"
 	ObjectVisibilityUnlisted ObjectVisibility = "Unlisted"
 )
+
+var AllObjectVisibility = []ObjectVisibility{
+	ObjectVisibilityListed,
+	ObjectVisibilityUnlisted,
+}
 
 type PaginationInput struct {
 	// Number of rows to return in paginatedResults of initial TaskResult. May
@@ -8122,14 +8365,14 @@ type PaginationInput struct {
 	// large results).
 	InitialRows types.Int64Scalar `json:"initialRows"`
 	// Initial rollup filter (default to "all" mode if nil).
-	InitialRollupFilter *RollupFilterInput `json:"initialRollupFilter"`
+	InitialRollupFilter *RollupFilterInput `json:"initialRollupFilter,omitempty"`
 	// If set to true, cache the cursor so that Query.cursor() can be used to
 	// fetch additional rows beyond initialRows. Omitting or setting the
 	// parameter to false saves back-end resources and is to be preferred if
 	// the caller knows it will not call Query.cursor().
-	CacheCursor *bool `json:"cacheCursor"`
+	CacheCursor *bool `json:"cacheCursor,omitempty"`
 	// Choose how the cursor is cached.
-	CursorCacheMode *CursorCacheMode `json:"cursorCacheMode"`
+	CursorCacheMode *CursorCacheMode `json:"cursorCacheMode,omitempty"`
 }
 
 // GetInitialRows returns PaginationInput.InitialRows, and is useful for accessing the field via an interface.
@@ -8171,7 +8414,7 @@ type ParameterSpecInput struct {
 	// user-readable name
 	Name string `json:"name"`
 	// optional default value, must match valueKind if present
-	DefaultValue *types.Value       `json:"defaultValue"`
+	DefaultValue *types.Value       `json:"defaultValue,omitempty"`
 	ValueKind    ValueTypeSpecInput `json:"valueKind"`
 }
 
@@ -8324,7 +8567,7 @@ func (v *PollerAWSSnapshotInput) GetAssumeRoleArn() string { return v.AssumeRole
 
 type PollerChunkInput struct {
 	Enabled bool               `json:"enabled"`
-	Size    *types.Int64Scalar `json:"size"`
+	Size    *types.Int64Scalar `json:"size,omitempty"`
 }
 
 // GetEnabled returns PollerChunkInput.Enabled, and is useful for accessing the field via an interface.
@@ -8335,7 +8578,7 @@ func (v *PollerChunkInput) GetSize() *types.Int64Scalar { return v.Size }
 
 type PollerCloudWatchMetricsDimensionFilterInput struct {
 	Name  string  `json:"name"`
-	Value *string `json:"value"`
+	Value *string `json:"value,omitempty"`
 }
 
 // GetName returns PollerCloudWatchMetricsDimensionFilterInput.Name, and is useful for accessing the field via an interface.
@@ -8373,7 +8616,7 @@ type PollerCloudWatchMetricsQueryInput struct {
 	Namespace      string                                        `json:"namespace"`
 	MetricNames    []string                                      `json:"metricNames"`
 	Dimensions     []PollerCloudWatchMetricsDimensionFilterInput `json:"dimensions"`
-	ResourceFilter *PollerCloudWatchMetricsResourceFilterInput   `json:"resourceFilter"`
+	ResourceFilter *PollerCloudWatchMetricsResourceFilterInput   `json:"resourceFilter,omitempty"`
 }
 
 // GetNamespace returns PollerCloudWatchMetricsQueryInput.Namespace, and is useful for accessing the field via an interface.
@@ -8393,9 +8636,9 @@ func (v *PollerCloudWatchMetricsQueryInput) GetResourceFilter() *PollerCloudWatc
 }
 
 type PollerCloudWatchMetricsResourceFilterInput struct {
-	ResourceType  *string                                 `json:"resourceType"`
-	Pattern       *string                                 `json:"pattern"`
-	DimensionName *string                                 `json:"dimensionName"`
+	ResourceType  *string                                 `json:"resourceType,omitempty"`
+	Pattern       *string                                 `json:"pattern,omitempty"`
+	DimensionName *string                                 `json:"dimensionName,omitempty"`
 	TagFilters    []PollerCloudWatchMetricsTagFilterInput `json:"tagFilters"`
 }
 
@@ -9069,8 +9312,8 @@ type PollerGCPMonitoringInput struct {
 	JsonKey                   types.JsonObject   `json:"jsonKey"`
 	IncludeMetricTypePrefixes []string           `json:"includeMetricTypePrefixes"`
 	ExcludeMetricTypePrefixes []string           `json:"excludeMetricTypePrefixes"`
-	RateLimit                 *types.Int64Scalar `json:"rateLimit"`
-	TotalLimit                *types.Int64Scalar `json:"totalLimit"`
+	RateLimit                 *types.Int64Scalar `json:"rateLimit,omitempty"`
+	TotalLimit                *types.Int64Scalar `json:"totalLimit,omitempty"`
 }
 
 // GetProjectId returns PollerGCPMonitoringInput.ProjectId, and is useful for accessing the field via an interface.
@@ -9103,12 +9346,12 @@ type PollerHTTPDecoderInput struct {
 func (v *PollerHTTPDecoderInput) GetType() string { return v.Type }
 
 type PollerHTTPInput struct {
-	Method      *string                    `json:"method"`
-	Body        *string                    `json:"body"`
-	Endpoint    *string                    `json:"endpoint"`
-	ContentType *string                    `json:"contentType"`
-	Headers     *types.JsonObject          `json:"headers"`
-	Template    *PollerHTTPRequestInput    `json:"template"`
+	Method      *string                    `json:"method,omitempty"`
+	Body        *string                    `json:"body,omitempty"`
+	Endpoint    *string                    `json:"endpoint,omitempty"`
+	ContentType *string                    `json:"contentType,omitempty"`
+	Headers     *types.JsonObject          `json:"headers,omitempty"`
+	Template    *PollerHTTPRequestInput    `json:"template,omitempty"`
 	Requests    []PollerHTTPRequestInput   `json:"requests"`
 	Rules       []PollerHTTPRuleInput      `json:"rules"`
 	Timestamps  []PollerHTTPTimestampInput `json:"timestamps"`
@@ -9148,15 +9391,20 @@ const (
 	PollerHTTPRequestAuthSchemeDigest PollerHTTPRequestAuthScheme = "Digest"
 )
 
+var AllPollerHTTPRequestAuthScheme = []PollerHTTPRequestAuthScheme{
+	PollerHTTPRequestAuthSchemeBasic,
+	PollerHTTPRequestAuthSchemeDigest,
+}
+
 type PollerHTTPRequestInput struct {
-	Url        *string                      `json:"url"`
-	Method     *string                      `json:"method"`
-	Username   *string                      `json:"username"`
-	Password   *string                      `json:"password"`
-	AuthScheme *PollerHTTPRequestAuthScheme `json:"authScheme"`
-	Body       *string                      `json:"body"`
-	Headers    *types.JsonObject            `json:"headers"`
-	Params     *types.JsonObject            `json:"params"`
+	Url        *string                      `json:"url,omitempty"`
+	Method     *string                      `json:"method,omitempty"`
+	Username   *string                      `json:"username,omitempty"`
+	Password   *string                      `json:"password,omitempty"`
+	AuthScheme *PollerHTTPRequestAuthScheme `json:"authScheme,omitempty"`
+	Body       *string                      `json:"body,omitempty"`
+	Headers    *types.JsonObject            `json:"headers,omitempty"`
+	Params     *types.JsonObject            `json:"params,omitempty"`
 }
 
 // GetUrl returns PollerHTTPRequestInput.Url, and is useful for accessing the field via an interface.
@@ -9184,9 +9432,9 @@ func (v *PollerHTTPRequestInput) GetHeaders() *types.JsonObject { return v.Heade
 func (v *PollerHTTPRequestInput) GetParams() *types.JsonObject { return v.Params }
 
 type PollerHTTPRuleInput struct {
-	Match   *PollerHTTPRequestInput `json:"match"`
-	Decoder *PollerHTTPDecoderInput `json:"decoder"`
-	Follow  *string                 `json:"follow"`
+	Match   *PollerHTTPRequestInput `json:"match,omitempty"`
+	Decoder *PollerHTTPDecoderInput `json:"decoder,omitempty"`
+	Follow  *string                 `json:"follow,omitempty"`
 }
 
 // GetMatch returns PollerHTTPRuleInput.Match, and is useful for accessing the field via an interface.
@@ -9218,12 +9466,30 @@ const (
 	PollerHTTPTimestampFormatSchemeUnixmano    PollerHTTPTimestampFormatScheme = "UnixMano"
 )
 
+var AllPollerHTTPTimestampFormatScheme = []PollerHTTPTimestampFormatScheme{
+	PollerHTTPTimestampFormatSchemeAnsic,
+	PollerHTTPTimestampFormatSchemeUnixdate,
+	PollerHTTPTimestampFormatSchemeRubydate,
+	PollerHTTPTimestampFormatSchemeRfc822,
+	PollerHTTPTimestampFormatSchemeRfc822z,
+	PollerHTTPTimestampFormatSchemeRfc850,
+	PollerHTTPTimestampFormatSchemeRfc1123,
+	PollerHTTPTimestampFormatSchemeRfc1123z,
+	PollerHTTPTimestampFormatSchemeRfc3339,
+	PollerHTTPTimestampFormatSchemeRfc3339nano,
+	PollerHTTPTimestampFormatSchemeKitchen,
+	PollerHTTPTimestampFormatSchemeUnix,
+	PollerHTTPTimestampFormatSchemeUnixmilli,
+	PollerHTTPTimestampFormatSchemeUnixmicro,
+	PollerHTTPTimestampFormatSchemeUnixmano,
+}
+
 type PollerHTTPTimestampInput struct {
-	Name     *string                          `json:"name"`
-	Source   *string                          `json:"source"`
-	Format   *PollerHTTPTimestampFormatScheme `json:"format"`
-	Offset   *string                          `json:"offset"`
-	Truncate *string                          `json:"truncate"`
+	Name     *string                          `json:"name,omitempty"`
+	Source   *string                          `json:"source,omitempty"`
+	Format   *PollerHTTPTimestampFormatScheme `json:"format,omitempty"`
+	Offset   *string                          `json:"offset,omitempty"`
+	Truncate *string                          `json:"truncate,omitempty"`
 }
 
 // GetName returns PollerHTTPTimestampInput.Name, and is useful for accessing the field via an interface.
@@ -9243,26 +9509,26 @@ func (v *PollerHTTPTimestampInput) GetTruncate() *string { return v.Truncate }
 
 // Config is mandatory, but varies based on the poller kind
 type PollerInput struct {
-	Name                    *string                       `json:"name"`
-	Description             *string                       `json:"description"`
-	Disabled                *bool                         `json:"disabled"`
-	Retries                 *types.Int64Scalar            `json:"retries"`
-	Interval                *types.DurationScalar         `json:"interval"`
-	Chunk                   *PollerChunkInput             `json:"chunk"`
-	Tags                    *types.JsonObject             `json:"tags"`
-	ApiReqLimit             *RateLimitInput               `json:"apiReqLimit"`
-	DatastreamId            *string                       `json:"datastreamId"`
-	PubsubConfig            *PollerPubSubInput            `json:"pubsubConfig"`
-	HttpConfig              *PollerHTTPInput              `json:"httpConfig"`
-	GcpConfig               *PollerGCPMonitoringInput     `json:"gcpConfig"`
-	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
-	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
-	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
-	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig"`
-	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
-	DebugMode               *bool                         `json:"debugMode"`
+	Name                    *string                       `json:"name,omitempty"`
+	Description             *string                       `json:"description,omitempty"`
+	Disabled                *bool                         `json:"disabled,omitempty"`
+	Retries                 *types.Int64Scalar            `json:"retries,omitempty"`
+	Interval                *types.DurationScalar         `json:"interval,omitempty"`
+	Chunk                   *PollerChunkInput             `json:"chunk,omitempty"`
+	Tags                    *types.JsonObject             `json:"tags,omitempty"`
+	ApiReqLimit             *RateLimitInput               `json:"apiReqLimit,omitempty"`
+	DatastreamId            *string                       `json:"datastreamId,omitempty"`
+	PubsubConfig            *PollerPubSubInput            `json:"pubsubConfig,omitempty"`
+	HttpConfig              *PollerHTTPInput              `json:"httpConfig,omitempty"`
+	GcpConfig               *PollerGCPMonitoringInput     `json:"gcpConfig,omitempty"`
+	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig,omitempty"`
+	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig,omitempty"`
+	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig,omitempty"`
+	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig,omitempty"`
+	SkipExternalValidation  *bool                         `json:"skipExternalValidation,omitempty"`
+	DebugMode               *bool                         `json:"debugMode,omitempty"`
 	// The optional id of the object that owns the poller. Ex: The id of an AppDataSource instance.
-	ManagedById *string `json:"managedById"`
+	ManagedById *string `json:"managedById,omitempty"`
 }
 
 // GetName returns PollerInput.Name, and is useful for accessing the field via an interface.
@@ -9337,6 +9603,16 @@ const (
 	PollerKindCloudwatchmetrics PollerKind = "CloudWatchMetrics"
 	PollerKindAwssnapshot       PollerKind = "AWSSnapshot"
 )
+
+var AllPollerKind = []PollerKind{
+	PollerKindPubsub,
+	PollerKindHttp,
+	PollerKindGcpmonitoring,
+	PollerKindMongodbatlas,
+	PollerKindConfluentcloud,
+	PollerKindCloudwatchmetrics,
+	PollerKindAwssnapshot,
+}
 
 type PollerMongoDBAtlasInput struct {
 	PublicKey     string   `json:"publicKey"`
@@ -9422,13 +9698,13 @@ func (v *PreferredPath) GetPath() []PreferredPathPathPreferredPathStep { return 
 // to get there, specifically.
 type PreferredPathInput struct {
 	// Short name for the path, to use in menus, must be unique within folder
-	Name *string `json:"name"`
+	Name *string `json:"name,omitempty"`
 	// Long description text for the path, at most 1000 characters.
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// Which dataset ID to present this path starting out from. Note that this
 	// must be an extant dataset when creating/updating the path, even if we
 	// 'acceptInErrorState' for the steps, and even though it can become broken later.
-	SourceDataset *string `json:"sourceDataset"`
+	SourceDataset *string `json:"sourceDataset,omitempty"`
 	// Each step along the path to get to the destination. The destination
 	// is inferred from the last element in the step.
 	Path []PreferredPathStepInput `json:"path"`
@@ -9710,15 +9986,15 @@ func (v *PrimitiveValueInput) GetDuration() *types.Int64Scalar { return v.Durati
 // or worksheets.
 type QueryParams struct {
 	// Please specify exact one of startTime and startTimeSinceEpoch.
-	StartTime           *types.TimeScalar `json:"startTime"`
-	StartTimeSinceEpoch *TimeSinceEpoch   `json:"startTimeSinceEpoch"`
+	StartTime           *types.TimeScalar `json:"startTime,omitempty"`
+	StartTimeSinceEpoch *TimeSinceEpoch   `json:"startTimeSinceEpoch,omitempty"`
 	// Please specify exact one of endTime and endTimeSinceEpoch.
-	EndTime           *types.TimeScalar `json:"endTime"`
-	EndTimeSinceEpoch *TimeSinceEpoch   `json:"endTimeSinceEpoch"`
+	EndTime           *types.TimeScalar `json:"endTime,omitempty"`
+	EndTimeSinceEpoch *TimeSinceEpoch   `json:"endTimeSinceEpoch,omitempty"`
 	// Use this to specify rate limiting options for this query. To bypass the
 	// rate limit for all queries by this user for a certain amount of time, see
 	// the QueryGovernor.bypassUntil layered setting instead
-	RateLimitOption *RateLimitOption `json:"rateLimitOption"`
+	RateLimitOption *RateLimitOption `json:"rateLimitOption,omitempty"`
 	// Queries may have some parameter values bound
 	OpalParameters []ParameterBindingInput `json:"opalParameters"`
 }
@@ -9743,7 +10019,7 @@ func (v *QueryParams) GetOpalParameters() []ParameterBindingInput { return v.Opa
 
 type RateLimitInput struct {
 	Rate  float64            `json:"rate"`
-	Burst *types.Int64Scalar `json:"burst"`
+	Burst *types.Int64Scalar `json:"burst,omitempty"`
 }
 
 // GetRate returns RateLimitInput.Rate, and is useful for accessing the field via an interface.
@@ -9762,6 +10038,11 @@ const (
 	// that bypass the rate limit are not counted towards the rate limit.
 	RateLimitOptionBypassratelimit RateLimitOption = "BypassRateLimit"
 )
+
+var AllRateLimitOption = []RateLimitOption{
+	RateLimitOptionEnforceratelimit,
+	RateLimitOptionBypassratelimit,
+}
 
 // RbacDefaultSharingGroup includes the GraphQL fields of RbacDefaultSharingGroup requested by the fragment RbacDefaultSharingGroup.
 type RbacDefaultSharingGroup struct {
@@ -9848,8 +10129,8 @@ func (v *RbacGroupmember) GetMemberGroupId() *string { return v.MemberGroupId }
 type RbacGroupmemberInput struct {
 	Description   string              `json:"description"`
 	GroupId       string              `json:"groupId"`
-	MemberUserId  *types.UserIdScalar `json:"memberUserId"`
-	MemberGroupId *string             `json:"memberGroupId"`
+	MemberUserId  *types.UserIdScalar `json:"memberUserId,omitempty"`
+	MemberGroupId *string             `json:"memberGroupId,omitempty"`
 }
 
 // GetDescription returns RbacGroupmemberInput.Description, and is useful for accessing the field via an interface.
@@ -9865,13 +10146,13 @@ func (v *RbacGroupmemberInput) GetMemberUserId() *types.UserIdScalar { return v.
 func (v *RbacGroupmemberInput) GetMemberGroupId() *string { return v.MemberGroupId }
 
 type RbacObjectInput struct {
-	ObjectId    *string `json:"objectId"`
-	FolderId    *string `json:"folderId"`
-	WorkspaceId *string `json:"workspaceId"`
-	Type        *string `json:"type"`
-	Name        *string `json:"name"`
-	Owner       *bool   `json:"owner"`
-	All         *bool   `json:"all"`
+	ObjectId    *string `json:"objectId,omitempty"`
+	FolderId    *string `json:"folderId,omitempty"`
+	WorkspaceId *string `json:"workspaceId,omitempty"`
+	Type        *string `json:"type,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	Owner       *bool   `json:"owner,omitempty"`
+	All         *bool   `json:"all,omitempty"`
 }
 
 // GetObjectId returns RbacObjectInput.ObjectId, and is useful for accessing the field via an interface.
@@ -9918,6 +10199,27 @@ const (
 	RbacRoleWorksheetvisibilityeditor RbacRole = "WorksheetVisibilityEditor"
 )
 
+var AllRbacRole = []RbacRole{
+	RbacRoleApitokencreate,
+	RbacRoleBookmarkmanager,
+	RbacRoleDashboardvisibilityeditor,
+	RbacRoleDatasetaccelerator,
+	RbacRoleEditor,
+	RbacRoleIngester,
+	RbacRoleInvestigatorglobal,
+	RbacRoleLister,
+	RbacRoleManager,
+	RbacRoleMonitoractioncreator,
+	RbacRoleMonitorglobalmute,
+	RbacRoleReferencetablecreator,
+	RbacRoleReportmanager,
+	RbacRoleServiceaccountcreator,
+	RbacRoleUserdelete,
+	RbacRoleUserinvite,
+	RbacRoleViewer,
+	RbacRoleWorksheetvisibilityeditor,
+}
+
 // RbacStatement includes the GraphQL fields of RbacStatement requested by the fragment RbacStatement.
 type RbacStatement struct {
 	Id          string                          `json:"id"`
@@ -9951,7 +10253,7 @@ type RbacStatementInput struct {
 	Subject     RbacSubjectInput `json:"subject"`
 	Object      RbacObjectInput  `json:"object"`
 	Role        RbacRole         `json:"role"`
-	Version     *int             `json:"version"`
+	Version     *int             `json:"version,omitempty"`
 }
 
 // GetDescription returns RbacStatementInput.Description, and is useful for accessing the field via an interface.
@@ -10018,9 +10320,9 @@ func (v *RbacStatementSubjectRbacSubject) GetGroupId() *string { return v.GroupI
 func (v *RbacStatementSubjectRbacSubject) GetAll() *bool { return v.All }
 
 type RbacSubjectInput struct {
-	UserId  *types.UserIdScalar `json:"userId"`
-	GroupId *string             `json:"groupId"`
-	All     *bool               `json:"all"`
+	UserId  *types.UserIdScalar `json:"userId,omitempty"`
+	GroupId *string             `json:"groupId,omitempty"`
+	All     *bool               `json:"all,omitempty"`
 }
 
 // GetUserId returns RbacSubjectInput.UserId, and is useful for accessing the field via an interface.
@@ -10044,10 +10346,15 @@ const (
 	RematerializationModeSkiprematerialization RematerializationMode = "SkipRematerialization"
 )
 
+var AllRematerializationMode = []RematerializationMode{
+	RematerializationModeRematerialize,
+	RematerializationModeSkiprematerialization,
+}
+
 type ResourceIdInput struct {
 	DatasetId       string                `json:"datasetId"`
 	PrimaryKeyValue []ColumnAndValueInput `json:"primaryKeyValue"`
-	TimeRange       *TimeRangeInput       `json:"timeRange"`
+	TimeRange       *TimeRangeInput       `json:"timeRange,omitempty"`
 }
 
 // GetDatasetId returns ResourceIdInput.DatasetId, and is useful for accessing the field via an interface.
@@ -10072,6 +10379,17 @@ const (
 	ResultKindResultkindprogress        ResultKind = "ResultKindProgress"
 	ResultKindResultkindmetricdiscovery ResultKind = "ResultKindMetricDiscovery"
 )
+
+var AllResultKind = []ResultKind{
+	ResultKindResultkindschema,
+	ResultKindResultkinddata,
+	ResultKindResultkindstats,
+	ResultKindResultkindcolumnstats,
+	ResultKindResultkindvolumestats,
+	ResultKindResultkindsuppress,
+	ResultKindResultkindprogress,
+	ResultKindResultkindmetricdiscovery,
+}
 
 // ResultStatus includes the GraphQL fields of ResultStatus requested by the fragment ResultStatus.
 type ResultStatus struct {
@@ -10103,6 +10421,11 @@ const (
 	RollupFilterModeAll  RollupFilterMode = "All"
 )
 
+var AllRollupFilterMode = []RollupFilterMode{
+	RollupFilterModeLast,
+	RollupFilterModeAll,
+}
+
 type RollupMode string
 
 const (
@@ -10119,12 +10442,19 @@ const (
 	RollupModeLastvalueandchanged RollupMode = "LastValueAndChanged"
 )
 
+var AllRollupMode = []RollupMode{
+	RollupModeAlways,
+	RollupModeNever,
+	RollupModeAuto,
+	RollupModeLastvalueandchanged,
+}
+
 type RollupOptionInput struct {
 	// If maxRowsPerGroup is set, rollup presentation will respect it as the limit for maximum number
 	// of points allowed for each group; otherwise, rollup presentation will use heuristics to propose
 	// a limit (typically 400 or 2000).
 	// Either way, rollup presentation limits each group to this size, and apply sampling preemptively.
-	MaxRowsPerGroup *types.Int64Scalar `json:"maxRowsPerGroup"`
+	MaxRowsPerGroup *types.Int64Scalar `json:"maxRowsPerGroup,omitempty"`
 	// If unrollColumns is set, the columns specified will be unrolled after being
 	// grouped by primary key and ordered by time. Empty unrollColumns will produce
 	// 1 row for each primary key (because all non-primary key columns are rolled
@@ -10133,7 +10463,7 @@ type RollupOptionInput struct {
 	// key, with the values of C being 0, 1, 0 in each row, respectively.
 	UnrollColumns []string `json:"unrollColumns"`
 	// If set to true, explicitly disables rollup, even for a Resource
-	ForceNoRollup *bool `json:"forceNoRollup"`
+	ForceNoRollup *bool `json:"forceNoRollup,omitempty"`
 }
 
 // GetMaxRowsPerGroup returns RollupOptionInput.MaxRowsPerGroup, and is useful for accessing the field via an interface.
@@ -10160,6 +10490,14 @@ const (
 	SaveModePreflightdatasetanddependencies SaveMode = "PreflightDatasetAndDependencies"
 )
 
+var AllSaveMode = []SaveMode{
+	SaveModeUpdatedataset,
+	SaveModeUpdatedatasetanddependenciesunlessnewerrors,
+	SaveModeUpdatedatasetanddependenciesignoringallerrors,
+	SaveModePreflightdataset,
+	SaveModePreflightdatasetanddependencies,
+}
+
 type SearchMatchKind string
 
 const (
@@ -10168,6 +10506,11 @@ const (
 	// Send back a list of columns that have contributed to resulting data matching the search
 	SearchMatchKindSearchmatchcolumns SearchMatchKind = "SearchMatchColumns"
 )
+
+var AllSearchMatchKind = []SearchMatchKind{
+	SearchMatchKindSearchmatchnone,
+	SearchMatchKindSearchmatchcolumns,
+}
 
 // SettingAndTargetScope includes the GraphQL fields of SettingAndTargetScope requested by the fragment SettingAndTargetScope.
 type SettingAndTargetScope struct {
@@ -10250,10 +10593,10 @@ func (v *SnowflakeOutboundShare) GetAccounts() []SnowflakeAccount { return v.Acc
 type SnowflakeOutboundShareInput struct {
 	Accounts    []SnowflakeAccountInput `json:"accounts"`
 	Name        string                  `json:"name"`
-	IconUrl     *string                 `json:"iconUrl"`
-	Description *string                 `json:"description"`
-	ManagedById *string                 `json:"managedById"`
-	FolderId    *string                 `json:"folderId"`
+	IconUrl     *string                 `json:"iconUrl,omitempty"`
+	Description *string                 `json:"description,omitempty"`
+	ManagedById *string                 `json:"managedById,omitempty"`
+	FolderId    *string                 `json:"folderId,omitempty"`
 }
 
 // GetAccounts returns SnowflakeOutboundShareInput.Accounts, and is useful for accessing the field via an interface.
@@ -10289,11 +10632,11 @@ type SourceTableDefinitionInput struct {
 	Schema                       string                            `json:"schema"`
 	TableName                    string                            `json:"tableName"`
 	Fields                       []SourceTableFieldDefinitionInput `json:"fields"`
-	ValidFromField               *string                           `json:"validFromField"`
-	BatchSeqField                *string                           `json:"batchSeqField"`
+	ValidFromField               *string                           `json:"validFromField,omitempty"`
+	BatchSeqField                *string                           `json:"batchSeqField,omitempty"`
 	IsInsertOnly                 *bool                             `json:"isInsertOnly,omitempty"`
-	SourceUpdateTableName        *string                           `json:"sourceUpdateTableName"`
-	TableChangeTrackingMechanism *TableChangeTrackingMechanism     `json:"tableChangeTrackingMechanism"`
+	SourceUpdateTableName        *string                           `json:"sourceUpdateTableName,omitempty"`
+	TableChangeTrackingMechanism *TableChangeTrackingMechanism     `json:"tableChangeTrackingMechanism,omitempty"`
 }
 
 // GetSchema returns SourceTableDefinitionInput.Schema, and is useful for accessing the field via an interface.
@@ -10339,34 +10682,34 @@ type StageInput struct {
 	// unique ID that other stages can reference in their InputDefinitionInput
 	StageId string `json:"stageId"`
 	// What is the description of this stage (stage name)
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// What component feature is this stage driving? i.e. filter bar, visualization etc.
-	Component *string `json:"component"`
+	Component *string `json:"component,omitempty"`
 	// Which inputs are defined for this stage?
 	Inputs []InputDefinitionInput `json:"inputs"`
 	// What is the processing?
 	Pipeline string `json:"pipeline"`
 	// How do we arrange presentation? (ordering etc)
 	// Note that later stages referencing this stage will NOT see the stage presentation processing
-	Presentation *StagePresentationInput `json:"presentation"`
+	Presentation *StagePresentationInput `json:"presentation,omitempty"`
 	// UI presentation data to use when storing transforms
-	Layout *types.JsonObject `json:"layout"`
+	Layout *types.JsonObject `json:"layout,omitempty"`
 	// If set, enables paginatedResults in initial TaskResult of ResultKindData.
-	Pagination *PaginationInput `json:"pagination"`
+	Pagination *PaginationInput `json:"pagination,omitempty"`
 	// If set, run this stage with progressive execution
-	Progressive *bool `json:"progressive"`
+	Progressive *bool `json:"progressive,omitempty"`
 	// If set and progressive is also set, we will try to run the query incrementally
-	Incremental *bool `json:"incremental"`
+	Incremental *bool `json:"incremental,omitempty"`
 	// If set, backend will try to run this stage with best effort binding mode
-	BestEffortBinding *bool `json:"bestEffortBinding"`
+	BestEffortBinding *bool `json:"bestEffortBinding,omitempty"`
 	// A location within the pipeline. Used to support "run query up to cursor" type functionality, where this location
 	// defines the last verb within the query or subquery to run.
-	RunUntilLocation *SourceLocInput `json:"runUntilLocation"`
+	RunUntilLocation *SourceLocInput `json:"runUntilLocation,omitempty"`
 	// Parameter values for parameters scoped to this stage
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 	// Additional metadata about the stage. Should not change the behavior of the query, and should
 	// merely provide more context about how and where the stage is being used.
-	Metadata *StageMetadata `json:"metadata"`
+	Metadata *StageMetadata `json:"metadata,omitempty"`
 }
 
 // GetStageId returns StageInput.StageId, and is useful for accessing the field via an interface.
@@ -10416,13 +10759,13 @@ func (v *StageInput) GetMetadata() *StageMetadata { return v.Metadata }
 // stage is used for.
 type StageMetadata struct {
 	// Display name of the stage in the UI
-	DisplayName *string `json:"displayName"`
+	DisplayName *string `json:"displayName,omitempty"`
 	// Description of the stage
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// What component feature is this stage driving? i.e. filter bar, visualization etc.
-	Component *string `json:"component"`
+	Component *string `json:"component,omitempty"`
 	// Extra stuff
-	Extra *types.JsonObject `json:"extra"`
+	Extra *types.JsonObject `json:"extra,omitempty"`
 }
 
 // GetDisplayName returns StageMetadata.DisplayName, and is useful for accessing the field via an interface.
@@ -10444,26 +10787,26 @@ func (v *StageMetadata) GetExtra() *types.JsonObject { return v.Extra }
 // other use cases.
 type StagePresentationInput struct {
 	// limit can be per-query in addition to per-request; the min() is applied
-	Limit *types.Int64Scalar `json:"limit"`
+	Limit *types.Int64Scalar `json:"limit,omitempty"`
 	// columnStats configuration
-	ColumnStats *ColumnStatsInput `json:"columnStats"`
+	ColumnStats *ColumnStatsInput `json:"columnStats,omitempty"`
 	// volumeStats configuration
-	VolumeStats *VolumeStatsInput `json:"volumeStats"`
+	VolumeStats *VolumeStatsInput `json:"volumeStats,omitempty"`
 	// orderColumns determines order of returned data rows
 	OrderColumns []ColumnOrderInput `json:"orderColumns"`
 	// when linkify is true, the server will resolve all declared foreign keys
 	// and create one new field for each containing that user-readable name of the
 	// target of the key (see design doc in Notion)
-	Linkify *bool `json:"linkify"`
+	Linkify *bool `json:"linkify,omitempty"`
 	// Specifies the options for rollup presentation.
-	Rollup *RollupOptionInput `json:"rollup"`
+	Rollup *RollupOptionInput `json:"rollup,omitempty"`
 	// rollupMode, if specified, overrides rollup.
 	// Always: Roll up the result, grouping by primary key if possible,
 	// otherwise by grouping all rows together.
 	// Never: Don't roll up the result.
 	// Auto: Roll up the result if it is a Resource, otherwise don't roll up
 	// the result.
-	RollupMode *RollupMode `json:"rollupMode"`
+	RollupMode *RollupMode `json:"rollupMode,omitempty"`
 	// resultKinds map to which fields of TaskResult will end up containing
 	// information in results (when using datasetProgressive for querying.) Note that not
 	// all the fields may be set at the same time, data may be split across
@@ -10473,18 +10816,18 @@ type StagePresentationInput struct {
 	// When wantBuckets is set, time-binning verbs without explicit resolution specification
 	// will automatically find a human-friendly resolution and generate the wanted number of
 	// buckets. When exact number of buckets is not possible, more buckets will be generated.
-	WantBuckets *types.Int64Scalar `json:"wantBuckets"`
+	WantBuckets *types.Int64Scalar `json:"wantBuckets,omitempty"`
 	// When set to SearchMatchColumns, TaskResult.TODO for ResultKindData responses
 	// will contain a list of column names that produced matches for some of the filters in
 	// the pipeline
-	SearchMatchKind *SearchMatchKind `json:"searchMatchKind"`
+	SearchMatchKind *SearchMatchKind `json:"searchMatchKind,omitempty"`
 	// Specifies the aggregation mode. Default is `Precise`.
-	AggregationMode *AggregationMode `json:"aggregationMode"`
+	AggregationMode *AggregationMode `json:"aggregationMode,omitempty"`
 	// This field is deprecated and will be ignored, but cannot be removed because
 	// Terraform provider depends on it.
-	DefaultStats *DefaultStatsInput `json:"defaultStats"`
+	DefaultStats *DefaultStatsInput `json:"defaultStats,omitempty"`
 	// Decide how we want to encode variant values. Default is `Json`.
-	VariantEncodingMode *VariantEncodingMode `json:"variantEncodingMode"`
+	VariantEncodingMode *VariantEncodingMode `json:"variantEncodingMode,omitempty"`
 	// List of dataset query filter IDs to disable for this query.
 	// The server will check that the user has editor privileges on the parent dataset for each filter.
 	// Only filters where the user has permission will be disabled. Disabled filters will be logged for audit purposes.
@@ -10567,7 +10910,7 @@ type StageQueryInput struct {
 	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`
 	Pipeline        string                  `json:"pipeline"`
-	Layout          *types.JsonObject       `json:"layout"`
+	Layout          *types.JsonObject       `json:"layout,omitempty"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
@@ -10632,6 +10975,12 @@ const (
 	// cdc
 	TableChangeTrackingMechanismCdc TableChangeTrackingMechanism = "CDC"
 )
+
+var AllTableChangeTrackingMechanism = []TableChangeTrackingMechanism{
+	TableChangeTrackingMechanismNone,
+	TableChangeTrackingMechanismUpdatetable,
+	TableChangeTrackingMechanismCdc,
+}
 
 // TaskResult includes the GraphQL fields of TaskResult requested by the fragment TaskResult.
 // The GraphQL type's documentation follows.
@@ -10715,6 +11064,15 @@ const (
 	TerraformObjectTypeMonitorv2action TerraformObjectType = "MonitorV2Action"
 )
 
+var AllTerraformObjectType = []TerraformObjectType{
+	TerraformObjectTypeDataset,
+	TerraformObjectTypeBoard,
+	TerraformObjectTypeMonitor,
+	TerraformObjectTypeDashboard,
+	TerraformObjectTypeMonitorv2,
+	TerraformObjectTypeMonitorv2action,
+}
+
 type ThresholdAggFunction string
 
 const (
@@ -10723,6 +11081,13 @@ const (
 	ThresholdAggFunctionOnaverage   ThresholdAggFunction = "OnAverage"
 	ThresholdAggFunctionIntotal     ThresholdAggFunction = "InTotal"
 )
+
+var AllThresholdAggFunction = []ThresholdAggFunction{
+	ThresholdAggFunctionAtalltimes,
+	ThresholdAggFunctionAtleastonce,
+	ThresholdAggFunctionOnaverage,
+	ThresholdAggFunctionIntotal,
+}
 
 type TimeFunction string
 
@@ -10737,9 +11102,20 @@ const (
 	TimeFunctionCounttimes             TimeFunction = "CountTimes"
 )
 
+var AllTimeFunction = []TimeFunction{
+	TimeFunctionNever,
+	TimeFunctionAtleastonce,
+	TimeFunctionAtalltimes,
+	TimeFunctionAtleastpercentagetime,
+	TimeFunctionLessthanpercentagetime,
+	TimeFunctionNoevents,
+	TimeFunctionAllevents,
+	TimeFunctionCounttimes,
+}
+
 type TimeRangeInput struct {
-	Start *types.TimeScalar `json:"start"`
-	End   *types.TimeScalar `json:"end"`
+	Start *types.TimeScalar `json:"start,omitempty"`
+	End   *types.TimeScalar `json:"end,omitempty"`
 }
 
 // GetStart returns TimeRangeInput.Start, and is useful for accessing the field via an interface.
@@ -10749,8 +11125,8 @@ func (v *TimeRangeInput) GetStart() *types.TimeScalar { return v.Start }
 func (v *TimeRangeInput) GetEnd() *types.TimeScalar { return v.End }
 
 type TimeSinceEpoch struct {
-	Value *types.Int64Scalar `json:"value"`
-	Unit  *TimeUnit          `json:"unit"`
+	Value *types.Int64Scalar `json:"value,omitempty"`
+	Unit  *TimeUnit          `json:"unit,omitempty"`
 }
 
 // GetValue returns TimeSinceEpoch.Value, and is useful for accessing the field via an interface.
@@ -10768,13 +11144,20 @@ const (
 	TimeUnitNanosecond  TimeUnit = "Nanosecond"
 )
 
+var AllTimeUnit = []TimeUnit{
+	TimeUnitSecond,
+	TimeUnitMillisecond,
+	TimeUnitMicrosecond,
+	TimeUnitNanosecond,
+}
+
 type UpdateRbacStatementInput struct {
 	Id          string           `json:"id"`
 	Description string           `json:"description"`
 	Subject     RbacSubjectInput `json:"subject"`
 	Object      RbacObjectInput  `json:"object"`
 	Role        RbacRole         `json:"role"`
-	Version     *int             `json:"version"`
+	Version     *int             `json:"version,omitempty"`
 }
 
 // GetId returns UpdateRbacStatementInput.Id, and is useful for accessing the field via an interface.
@@ -10840,11 +11223,26 @@ const (
 	ValueTypeCorrelationTag ValueType = "CORRELATION_TAG"
 )
 
+var AllValueType = []ValueType{
+	ValueTypeNone,
+	ValueTypeBool,
+	ValueTypeFloat64,
+	ValueTypeInt64,
+	ValueTypeString,
+	ValueTypeTimestamp,
+	ValueTypeDuration,
+	ValueTypeArray,
+	ValueTypeLink,
+	ValueTypeDatasetref,
+	ValueTypeTag,
+	ValueTypeCorrelationTag,
+}
+
 type ValueTypeSpecInput struct {
 	Type            ValueType           `json:"type"`
-	ArrayItemType   *ValueTypeSpecInput `json:"arrayItemType"`
-	KeyForDatasetId *string             `json:"keyForDatasetId"`
-	TagName         *string             `json:"tagName"`
+	ArrayItemType   *ValueTypeSpecInput `json:"arrayItemType,omitempty"`
+	KeyForDatasetId *string             `json:"keyForDatasetId,omitempty"`
+	TagName         *string             `json:"tagName,omitempty"`
 }
 
 // GetType returns ValueTypeSpecInput.Type, and is useful for accessing the field via an interface.
@@ -10869,13 +11267,18 @@ const (
 	VariantEncodingModeString VariantEncodingMode = "String"
 )
 
+var AllVariantEncodingMode = []VariantEncodingMode{
+	VariantEncodingModeJson,
+	VariantEncodingModeString,
+}
+
 type VolumeStatsInput struct {
 	// Number of buckets to compute the volume over time.
 	// Set to 0 to disable volume over time stats.
 	// Set to null to let the backend decide.
-	BucketCount *types.Int64Scalar `json:"bucketCount"`
+	BucketCount *types.Int64Scalar `json:"bucketCount,omitempty"`
 	// Whether to compute the total number of rows. null or false would disable it.
-	NeedTotalCount *bool `json:"needTotalCount"`
+	NeedTotalCount *bool `json:"needTotalCount,omitempty"`
 }
 
 // GetBucketCount returns VolumeStatsInput.BucketCount, and is useful for accessing the field via an interface.
@@ -10886,16 +11289,16 @@ func (v *VolumeStatsInput) GetNeedTotalCount() *bool { return v.NeedTotalCount }
 
 type WebhookActionInput struct {
 	// If the templateName is not set, it will be set as an empty string.
-	TemplateName *string              `json:"templateName"`
-	UrlTemplate  *string              `json:"urlTemplate"`
-	Method       *string              `json:"method"`
+	TemplateName *string              `json:"templateName,omitempty"`
+	UrlTemplate  *string              `json:"urlTemplate,omitempty"`
+	Method       *string              `json:"method,omitempty"`
 	Headers      []WebhookHeaderInput `json:"headers"`
-	BodyTemplate *string              `json:"bodyTemplate"`
+	BodyTemplate *string              `json:"bodyTemplate,omitempty"`
 	// Fragments are fields that users can edit on simple mode.
 	// For example,
 	// fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
 	// is available in all other templates as {{fragments.title}}
-	Fragments *types.JsonObject `json:"fragments"`
+	Fragments *types.JsonObject `json:"fragments,omitempty"`
 }
 
 // GetTemplateName returns WebhookActionInput.TemplateName, and is useful for accessing the field via an interface.
@@ -10974,22 +11377,22 @@ func (v *WorksheetIdLabel) GetLabel() string { return v.Label }
 
 type WorksheetInput struct {
 	// if id is not specified, a new worksheet is created
-	Id              *string                 `json:"id"`
-	Name            *string                 `json:"name"`
-	Description     *string                 `json:"description"`
+	Id              *string                 `json:"id,omitempty"`
+	Name            *string                 `json:"name,omitempty"`
+	Description     *string                 `json:"description,omitempty"`
 	WorkspaceId     string                  `json:"workspaceId"`
-	ManagedById     *string                 `json:"managedById"`
-	Layout          *types.JsonObject       `json:"layout"`
-	IconUrl         *string                 `json:"iconUrl"`
+	ManagedById     *string                 `json:"managedById,omitempty"`
+	Layout          *types.JsonObject       `json:"layout,omitempty"`
+	IconUrl         *string                 `json:"iconUrl,omitempty"`
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 	// Unlisted worksheets are not returned by worksheetSearch except for the creating user.
-	Visibility *ObjectVisibility `json:"visibility"`
+	Visibility *ObjectVisibility `json:"visibility,omitempty"`
 	// Entity tags for organizing and categorizing worksheets.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
-	Label      *string                 `json:"label"`
-	Icon       *string                 `json:"icon"`
+	Label      *string                 `json:"label,omitempty"`
+	Icon       *string                 `json:"icon,omitempty"`
 }
 
 // GetId returns WorksheetInput.Id, and is useful for accessing the field via an interface.
@@ -11052,11 +11455,11 @@ func (v *Workspace) GetId() string { return v.Id }
 func (v *Workspace) GetLabel() string { return v.Label }
 
 type WorkspaceInput struct {
-	Label              *string           `json:"label"`
-	Timezone           *string           `json:"timezone"`
-	Locale             *string           `json:"locale"`
-	Layout             *types.JsonObject `json:"layout"`
-	DefaultDashboardId *string           `json:"defaultDashboardId"`
+	Label              *string           `json:"label,omitempty"`
+	Timezone           *string           `json:"timezone,omitempty"`
+	Locale             *string           `json:"locale,omitempty"`
+	Layout             *types.JsonObject `json:"layout,omitempty"`
+	DefaultDashboardId *string           `json:"defaultDashboardId,omitempty"`
 }
 
 // GetLabel returns WorkspaceInput.Label, and is useful for accessing the field via an interface.
@@ -11202,7 +11605,7 @@ func (v *__createDatastreamInput) GetDatastream() DatastreamInput { return v.Dat
 type __createDatastreamTokenInput struct {
 	DatastreamId string               `json:"datastreamId"`
 	Token        DatastreamTokenInput `json:"token"`
-	Password     *string              `json:"password"`
+	Password     *string              `json:"password,omitempty"`
 }
 
 // GetDatastreamId returns __createDatastreamTokenInput.DatastreamId, and is useful for accessing the field via an interface.
@@ -11344,7 +11747,7 @@ func (v *__createMonitorV2Input) GetInput() MonitorV2Input { return v.Input }
 
 // __createOrUpdateBookmarkGroupInput is used internally by genqlient
 type __createOrUpdateBookmarkGroupInput struct {
-	Id    *string            `json:"id"`
+	Id    *string            `json:"id,omitempty"`
 	Group BookmarkGroupInput `json:"group"`
 }
 
@@ -11356,7 +11759,7 @@ func (v *__createOrUpdateBookmarkGroupInput) GetGroup() BookmarkGroupInput { ret
 
 // __createOrUpdateBookmarkInput is used internally by genqlient
 type __createOrUpdateBookmarkInput struct {
-	Id       *string       `json:"id"`
+	Id       *string       `json:"id,omitempty"`
 	Bookmark BookmarkInput `json:"bookmark"`
 }
 
@@ -11509,7 +11912,7 @@ func (v *__deleteDashboardLinkInput) GetId() string { return v.Id }
 // __deleteDatasetInput is used internally by genqlient
 type __deleteDatasetInput struct {
 	Id  string                   `json:"id"`
-	Dep *DependencyHandlingInput `json:"dep"`
+	Dep *DependencyHandlingInput `json:"dep,omitempty"`
 }
 
 // GetId returns __deleteDatasetInput.Id, and is useful for accessing the field via an interface.
@@ -11792,7 +12195,7 @@ func (v *__getDatasetOutboundShareInput) GetId() string { return v.Id }
 
 // __getDatasetQueryOutputInput is used internally by genqlient
 type __getDatasetQueryOutputInput struct {
-	Query  []*StageInput `json:"query"`
+	Query  []*StageInput `json:"query,omitempty"`
 	Params QueryParams   `json:"params"`
 }
 
@@ -12092,10 +12495,10 @@ func (v *__lookupMonitorInput) GetName() string { return v.Name }
 
 // __lookupMonitorV2Input is used internally by genqlient
 type __lookupMonitorV2Input struct {
-	WorkspaceId   *string `json:"workspaceId"`
-	FolderId      *string `json:"folderId"`
-	NameExact     *string `json:"nameExact"`
-	NameSubstring *string `json:"nameSubstring"`
+	WorkspaceId   *string `json:"workspaceId,omitempty"`
+	FolderId      *string `json:"folderId,omitempty"`
+	NameExact     *string `json:"nameExact,omitempty"`
+	NameSubstring *string `json:"nameSubstring,omitempty"`
 }
 
 // GetWorkspaceId returns __lookupMonitorV2Input.WorkspaceId, and is useful for accessing the field via an interface.
@@ -12175,7 +12578,7 @@ type __saveDatasetDryRunInput struct {
 	WorkspaceId string                   `json:"workspaceId"`
 	Dataset     DatasetInput             `json:"dataset"`
 	Query       MultiStageQueryInput     `json:"query"`
-	Dep         *DependencyHandlingInput `json:"dep"`
+	Dep         *DependencyHandlingInput `json:"dep,omitempty"`
 }
 
 // GetWorkspaceId returns __saveDatasetDryRunInput.WorkspaceId, and is useful for accessing the field via an interface.
@@ -12195,7 +12598,7 @@ type __saveDatasetInput struct {
 	WorkspaceId string                   `json:"workspaceId"`
 	Dataset     DatasetInput             `json:"dataset"`
 	Query       MultiStageQueryInput     `json:"query"`
-	Dep         *DependencyHandlingInput `json:"dep"`
+	Dep         *DependencyHandlingInput `json:"dep,omitempty"`
 }
 
 // GetWorkspaceId returns __saveDatasetInput.WorkspaceId, and is useful for accessing the field via an interface.
@@ -12227,7 +12630,7 @@ func (v *__saveMonitorV2RelationsInput) GetActionRelations() []ActionRelationInp
 // __saveMonitorV2WithActionsInput is used internally by genqlient
 type __saveMonitorV2WithActionsInput struct {
 	WorkspaceId string                            `json:"workspaceId"`
-	MonitorId   *string                           `json:"monitorId"`
+	MonitorId   *string                           `json:"monitorId,omitempty"`
 	Input       MonitorV2Input                    `json:"input"`
 	Actions     []MonitorV2ActionAndRelationInput `json:"actions"`
 }
@@ -12251,7 +12654,7 @@ type __saveSourceDatasetInput struct {
 	WorkspaceId       string                     `json:"workspaceId"`
 	DatasetDefinition DatasetDefinitionInput     `json:"datasetDefinition"`
 	SourceTable       SourceTableDefinitionInput `json:"sourceTable"`
-	Dep               *DependencyHandlingInput   `json:"dep"`
+	Dep               *DependencyHandlingInput   `json:"dep,omitempty"`
 }
 
 // GetWorkspaceId returns __saveSourceDatasetInput.WorkspaceId, and is useful for accessing the field via an interface.
@@ -12278,8 +12681,8 @@ func (v *__saveWorksheetInput) GetWorksheetInput() WorksheetInput { return v.Wor
 
 // __searchMonitorActionsInput is used internally by genqlient
 type __searchMonitorActionsInput struct {
-	WorkspaceId *string `json:"workspaceId"`
-	Name        *string `json:"name"`
+	WorkspaceId *string `json:"workspaceId,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // GetWorkspaceId returns __searchMonitorActionsInput.WorkspaceId, and is useful for accessing the field via an interface.
@@ -12290,10 +12693,10 @@ func (v *__searchMonitorActionsInput) GetName() *string { return v.Name }
 
 // __searchMonitorV2ActionInput is used internally by genqlient
 type __searchMonitorV2ActionInput struct {
-	WorkspaceId   *string `json:"workspaceId"`
-	FolderId      *string `json:"folderId"`
-	NameExact     *string `json:"nameExact"`
-	NameSubstring *string `json:"nameSubstring"`
+	WorkspaceId   *string `json:"workspaceId,omitempty"`
+	FolderId      *string `json:"folderId,omitempty"`
+	NameExact     *string `json:"nameExact,omitempty"`
+	NameSubstring *string `json:"nameSubstring,omitempty"`
 }
 
 // GetWorkspaceId returns __searchMonitorV2ActionInput.WorkspaceId, and is useful for accessing the field via an interface.
@@ -13380,12 +13783,12 @@ func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.Resu
 // Generic interface for an error from a task result. Errors are fatal and are returned in place of query results.
 //
 // errorFields is implemented by the following types:
+// errorFieldsTaskResultErrorBinding
 // errorFieldsTaskResultErrorGeneric
-// errorFieldsTaskResultErrorStageDependencyLoop
-// errorFieldsTaskResultErrorStageHasDependenciesWithErrors
 // errorFieldsTaskResultErrorMissingParameter
 // errorFieldsTaskResultErrorRateLimit
-// errorFieldsTaskResultErrorBinding
+// errorFieldsTaskResultErrorStageDependencyLoop
+// errorFieldsTaskResultErrorStageHasDependenciesWithErrors
 type errorFields interface {
 	implementsGraphQLInterfaceerrorFields()
 	// GetMessage returns the interface-field "message" from its implementation.
@@ -13405,13 +13808,13 @@ type errorFields interface {
 	GetSpan() *errorFieldsSpanSourceSpan
 }
 
+func (v *errorFieldsTaskResultErrorBinding) implementsGraphQLInterfaceerrorFields()             {}
 func (v *errorFieldsTaskResultErrorGeneric) implementsGraphQLInterfaceerrorFields()             {}
+func (v *errorFieldsTaskResultErrorMissingParameter) implementsGraphQLInterfaceerrorFields()    {}
+func (v *errorFieldsTaskResultErrorRateLimit) implementsGraphQLInterfaceerrorFields()           {}
 func (v *errorFieldsTaskResultErrorStageDependencyLoop) implementsGraphQLInterfaceerrorFields() {}
 func (v *errorFieldsTaskResultErrorStageHasDependenciesWithErrors) implementsGraphQLInterfaceerrorFields() {
 }
-func (v *errorFieldsTaskResultErrorMissingParameter) implementsGraphQLInterfaceerrorFields() {}
-func (v *errorFieldsTaskResultErrorRateLimit) implementsGraphQLInterfaceerrorFields()        {}
-func (v *errorFieldsTaskResultErrorBinding) implementsGraphQLInterfaceerrorFields()          {}
 
 func __unmarshalerrorFields(b []byte, v *errorFields) error {
 	if string(b) == "null" {
@@ -13427,14 +13830,11 @@ func __unmarshalerrorFields(b []byte, v *errorFields) error {
 	}
 
 	switch tn.TypeName {
+	case "TaskResultErrorBinding":
+		*v = new(errorFieldsTaskResultErrorBinding)
+		return json.Unmarshal(b, *v)
 	case "TaskResultErrorGeneric":
 		*v = new(errorFieldsTaskResultErrorGeneric)
-		return json.Unmarshal(b, *v)
-	case "TaskResultErrorStageDependencyLoop":
-		*v = new(errorFieldsTaskResultErrorStageDependencyLoop)
-		return json.Unmarshal(b, *v)
-	case "TaskResultErrorStageHasDependenciesWithErrors":
-		*v = new(errorFieldsTaskResultErrorStageHasDependenciesWithErrors)
 		return json.Unmarshal(b, *v)
 	case "TaskResultErrorMissingParameter":
 		*v = new(errorFieldsTaskResultErrorMissingParameter)
@@ -13442,8 +13842,11 @@ func __unmarshalerrorFields(b []byte, v *errorFields) error {
 	case "TaskResultErrorRateLimit":
 		*v = new(errorFieldsTaskResultErrorRateLimit)
 		return json.Unmarshal(b, *v)
-	case "TaskResultErrorBinding":
-		*v = new(errorFieldsTaskResultErrorBinding)
+	case "TaskResultErrorStageDependencyLoop":
+		*v = new(errorFieldsTaskResultErrorStageDependencyLoop)
+		return json.Unmarshal(b, *v)
+	case "TaskResultErrorStageHasDependenciesWithErrors":
+		*v = new(errorFieldsTaskResultErrorStageHasDependenciesWithErrors)
 		return json.Unmarshal(b, *v)
 	case "":
 		return fmt.Errorf(
@@ -13458,28 +13861,20 @@ func __marshalerrorFields(v *errorFields) ([]byte, error) {
 
 	var typename string
 	switch v := (*v).(type) {
+	case *errorFieldsTaskResultErrorBinding:
+		typename = "TaskResultErrorBinding"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorBinding
+		}{typename, v}
+		return json.Marshal(result)
 	case *errorFieldsTaskResultErrorGeneric:
 		typename = "TaskResultErrorGeneric"
 
 		result := struct {
 			TypeName string `json:"__typename"`
 			*errorFieldsTaskResultErrorGeneric
-		}{typename, v}
-		return json.Marshal(result)
-	case *errorFieldsTaskResultErrorStageDependencyLoop:
-		typename = "TaskResultErrorStageDependencyLoop"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*errorFieldsTaskResultErrorStageDependencyLoop
-		}{typename, v}
-		return json.Marshal(result)
-	case *errorFieldsTaskResultErrorStageHasDependenciesWithErrors:
-		typename = "TaskResultErrorStageHasDependenciesWithErrors"
-
-		result := struct {
-			TypeName string `json:"__typename"`
-			*errorFieldsTaskResultErrorStageHasDependenciesWithErrors
 		}{typename, v}
 		return json.Marshal(result)
 	case *errorFieldsTaskResultErrorMissingParameter:
@@ -13498,12 +13893,20 @@ func __marshalerrorFields(v *errorFields) ([]byte, error) {
 			*errorFieldsTaskResultErrorRateLimit
 		}{typename, v}
 		return json.Marshal(result)
-	case *errorFieldsTaskResultErrorBinding:
-		typename = "TaskResultErrorBinding"
+	case *errorFieldsTaskResultErrorStageDependencyLoop:
+		typename = "TaskResultErrorStageDependencyLoop"
 
 		result := struct {
 			TypeName string `json:"__typename"`
-			*errorFieldsTaskResultErrorBinding
+			*errorFieldsTaskResultErrorStageDependencyLoop
+		}{typename, v}
+		return json.Marshal(result)
+	case *errorFieldsTaskResultErrorStageHasDependenciesWithErrors:
+		typename = "TaskResultErrorStageHasDependenciesWithErrors"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*errorFieldsTaskResultErrorStageHasDependenciesWithErrors
 		}{typename, v}
 		return json.Marshal(result)
 	case nil:
@@ -15359,7 +15762,7 @@ type updateWorkspaceResponse struct {
 // GetWorkspace returns updateWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
 func (v *updateWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
 
-// The query or mutation executed by addCorrelationTag.
+// The mutation executed by addCorrelationTag.
 const addCorrelationTag_Operation = `
 mutation addCorrelationTag ($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
 	resultStatus: addCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
@@ -15374,13 +15777,13 @@ fragment ResultStatus on ResultStatus {
 `
 
 func addCorrelationTag(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	datasetId string,
 	path LinkFieldInput,
 	tag string,
-) (*addCorrelationTagResponse, error) {
-	req := &graphql.Request{
+) (data_ *addCorrelationTagResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "addCorrelationTag",
 		Query:  addCorrelationTag_Operation,
 		Variables: &__addCorrelationTagInput{
@@ -15389,21 +15792,20 @@ func addCorrelationTag(
 			Tag:       tag,
 		},
 	}
-	var err error
 
-	var data addCorrelationTagResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &addCorrelationTagResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by clearDefaultDashboard.
+// The mutation executed by clearDefaultDashboard.
 const clearDefaultDashboard_Operation = `
 mutation clearDefaultDashboard ($dsid: ObjectId!) {
 	resultStatus: clearDefaultDashboard(dsid: $dsid) {
@@ -15418,32 +15820,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func clearDefaultDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	dsid string,
-) (*clearDefaultDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *clearDefaultDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "clearDefaultDashboard",
 		Query:  clearDefaultDashboard_Operation,
 		Variables: &__clearDefaultDashboardInput{
 			Dsid: dsid,
 		},
 	}
-	var err error
 
-	var data clearDefaultDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &clearDefaultDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createApp.
+// The mutation executed by createApp.
 const createApp_Operation = `
 mutation createApp ($workspaceId: ObjectId!, $config: AppInput!) {
 	app: createApp(workspaceId: $workspaceId, app: $config) {
@@ -15470,12 +15871,12 @@ fragment App on App {
 `
 
 func createApp(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	config AppInput,
-) (*createAppResponse, error) {
-	req := &graphql.Request{
+) (data_ *createAppResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createApp",
 		Query:  createApp_Operation,
 		Variables: &__createAppInput{
@@ -15483,21 +15884,20 @@ func createApp(
 			Config:      config,
 		},
 	}
-	var err error
 
-	var data createAppResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createAppResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createAppDataSource.
+// The mutation executed by createAppDataSource.
 const createAppDataSource_Operation = `
 mutation createAppDataSource ($config: AppDataSourceInput!) {
 	appdatasource: createAppDataSource(source: $config) {
@@ -15517,32 +15917,31 @@ fragment AppDataSource on AppDataSource {
 `
 
 func createAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	config AppDataSourceInput,
-) (*createAppDataSourceResponse, error) {
-	req := &graphql.Request{
+) (data_ *createAppDataSourceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createAppDataSource",
 		Query:  createAppDataSource_Operation,
 		Variables: &__createAppDataSourceInput{
 			Config: config,
 		},
 	}
-	var err error
 
-	var data createAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createAppDataSourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createBoard.
+// The mutation executed by createBoard.
 const createBoard_Operation = `
 mutation createBoard ($datasetId: ObjectId!, $boardType: BoardType!, $board: BoardInput!) {
 	board: createBoard(datasetId: $datasetId, type: $boardType, board: $board) {
@@ -15560,13 +15959,13 @@ fragment Board on Board {
 `
 
 func createBoard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	datasetId string,
 	boardType BoardType,
 	board BoardInput,
-) (*createBoardResponse, error) {
-	req := &graphql.Request{
+) (data_ *createBoardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createBoard",
 		Query:  createBoard_Operation,
 		Variables: &__createBoardInput{
@@ -15575,21 +15974,20 @@ func createBoard(
 			Board:     board,
 		},
 	}
-	var err error
 
-	var data createBoardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createBoardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createChannel.
+// The mutation executed by createChannel.
 const createChannel_Operation = `
 mutation createChannel ($workspaceId: ObjectId!, $channel: ChannelInput!) {
 	channel: createChannel(workspaceId: $workspaceId, channel: $channel) {
@@ -15609,12 +16007,12 @@ fragment Channel on Channel {
 `
 
 func createChannel(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	channel ChannelInput,
-) (*createChannelResponse, error) {
-	req := &graphql.Request{
+) (data_ *createChannelResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createChannel",
 		Query:  createChannel_Operation,
 		Variables: &__createChannelInput{
@@ -15622,21 +16020,20 @@ func createChannel(
 			Channel:     channel,
 		},
 	}
-	var err error
 
-	var data createChannelResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createChannelResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createChannelAction.
+// The mutation executed by createChannelAction.
 const createChannelAction_Operation = `
 mutation createChannelAction ($workspaceId: ObjectId!, $action: ActionInput!) {
 	channelAction: createChannelAction(workspaceId: $workspaceId, action: $action) {
@@ -15675,12 +16072,12 @@ fragment ChannelAction on ChannelAction {
 `
 
 func createChannelAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	action ActionInput,
-) (*createChannelActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *createChannelActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createChannelAction",
 		Query:  createChannelAction_Operation,
 		Variables: &__createChannelActionInput{
@@ -15688,21 +16085,20 @@ func createChannelAction(
 			Action:      action,
 		},
 	}
-	var err error
 
-	var data createChannelActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createChannelActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createDashboardLink.
+// The mutation executed by createDashboardLink.
 const createDashboardLink_Operation = `
 mutation createDashboardLink ($input: DashboardLinkInput!) {
 	dashboardLink: createDashboardLink(link: $input) {
@@ -15724,32 +16120,31 @@ fragment DashboardLink on DashboardLink {
 `
 
 func createDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	input DashboardLinkInput,
-) (*createDashboardLinkResponse, error) {
-	req := &graphql.Request{
+) (data_ *createDashboardLinkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createDashboardLink",
 		Query:  createDashboardLink_Operation,
 		Variables: &__createDashboardLinkInput{
 			Input: input,
 		},
 	}
-	var err error
 
-	var data createDashboardLinkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createDashboardLinkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createDatasetOutboundShare.
+// The mutation executed by createDatasetOutboundShare.
 const createDatasetOutboundShare_Operation = `
 mutation createDatasetOutboundShare ($workspaceId: ObjectId!, $datasetID: ObjectId!, $outboundShareID: ObjectId!, $input: DatasetOutboundShareInput!) {
 	datasetOutboundShare: createDatasetOutboundShare(workspaceId: $workspaceId, datasetID: $datasetID, outboundShareID: $outboundShareID, input: $input) {
@@ -15776,14 +16171,14 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 `
 
 func createDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	datasetID string,
 	outboundShareID string,
 	input DatasetOutboundShareInput,
-) (*createDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *createDatasetOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createDatasetOutboundShare",
 		Query:  createDatasetOutboundShare_Operation,
 		Variables: &__createDatasetOutboundShareInput{
@@ -15793,21 +16188,20 @@ func createDatasetOutboundShare(
 			Input:           input,
 		},
 	}
-	var err error
 
-	var data createDatasetOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createDatasetOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createDatastream.
+// The mutation executed by createDatastream.
 const createDatastream_Operation = `
 mutation createDatastream ($workspaceId: ObjectId!, $datastream: DatastreamInput!) {
 	datastream: createDatastream(workspaceId: $workspaceId, datastream: $datastream) {
@@ -15825,12 +16219,12 @@ fragment Datastream on Datastream {
 `
 
 func createDatastream(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	datastream DatastreamInput,
-) (*createDatastreamResponse, error) {
-	req := &graphql.Request{
+) (data_ *createDatastreamResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createDatastream",
 		Query:  createDatastream_Operation,
 		Variables: &__createDatastreamInput{
@@ -15838,21 +16232,20 @@ func createDatastream(
 			Datastream:  datastream,
 		},
 	}
-	var err error
 
-	var data createDatastreamResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createDatastreamResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createDatastreamToken.
+// The mutation executed by createDatastreamToken.
 const createDatastreamToken_Operation = `
 mutation createDatastreamToken ($datastreamId: ObjectId!, $token: DatastreamTokenInput!, $password: String) {
 	datastreamToken: createDatastreamToken(datastreamId: $datastreamId, token: $token, password: $password) {
@@ -15870,13 +16263,13 @@ fragment DatastreamToken on DatastreamToken {
 `
 
 func createDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	datastreamId string,
 	token DatastreamTokenInput,
 	password *string,
-) (*createDatastreamTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *createDatastreamTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createDatastreamToken",
 		Query:  createDatastreamToken_Operation,
 		Variables: &__createDatastreamTokenInput{
@@ -15885,21 +16278,20 @@ func createDatastreamToken(
 			Password:     password,
 		},
 	}
-	var err error
 
-	var data createDatastreamTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createDatastreamTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createDeferredForeignKey.
+// The mutation executed by createDeferredForeignKey.
 const createDeferredForeignKey_Operation = `
 mutation createDeferredForeignKey ($workspaceId: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
 	deferredForeignKey: createDeferredForeignKey(workspaceId: $workspaceId, data: $keyInput) {
@@ -15929,12 +16321,12 @@ fragment DeferredForeignKey on DeferredForeignKey {
 `
 
 func createDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	keyInput DeferredForeignKeyInput,
-) (*createDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
+) (data_ *createDeferredForeignKeyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createDeferredForeignKey",
 		Query:  createDeferredForeignKey_Operation,
 		Variables: &__createDeferredForeignKeyInput{
@@ -15942,21 +16334,20 @@ func createDeferredForeignKey(
 			KeyInput:    keyInput,
 		},
 	}
-	var err error
 
-	var data createDeferredForeignKeyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createDeferredForeignKeyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createFiledrop.
+// The mutation executed by createFiledrop.
 const createFiledrop_Operation = `
 mutation createFiledrop ($workspaceID: ObjectId!, $datastreamID: ObjectId!, $input: FiledropInput!) {
 	filedrop: createFiledrop(workspaceId: $workspaceID, datastreamID: $datastreamID, input: $input) {
@@ -15992,13 +16383,13 @@ fragment Filedrop on Filedrop {
 `
 
 func createFiledrop(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceID string,
 	datastreamID string,
 	input FiledropInput,
-) (*createFiledropResponse, error) {
-	req := &graphql.Request{
+) (data_ *createFiledropResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createFiledrop",
 		Query:  createFiledrop_Operation,
 		Variables: &__createFiledropInput{
@@ -16007,21 +16398,20 @@ func createFiledrop(
 			Input:        input,
 		},
 	}
-	var err error
 
-	var data createFiledropResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createFiledropResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createFolder.
+// The mutation executed by createFolder.
 const createFolder_Operation = `
 mutation createFolder ($workspaceId: ObjectId!, $config: FolderInput!) {
 	folder: createFolder(workspaceId: $workspaceId, folder: $config) {
@@ -16038,12 +16428,12 @@ fragment Folder on Folder {
 `
 
 func createFolder(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	config FolderInput,
-) (*createFolderResponse, error) {
-	req := &graphql.Request{
+) (data_ *createFolderResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createFolder",
 		Query:  createFolder_Operation,
 		Variables: &__createFolderInput{
@@ -16051,21 +16441,20 @@ func createFolder(
 			Config:      config,
 		},
 	}
-	var err error
 
-	var data createFolderResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createFolderResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createIngestFilter.
+// The mutation executed by createIngestFilter.
 const createIngestFilter_Operation = `
 mutation createIngestFilter ($workspace: ObjectId!, $input: IngestFilterInput!) {
 	ingestFilter: createIngestFilter(workspaceId: $workspace, input: $input) {
@@ -16115,12 +16504,12 @@ fragment errorFields on TaskResultError {
 `
 
 func createIngestFilter(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspace string,
 	input IngestFilterInput,
-) (*createIngestFilterResponse, error) {
-	req := &graphql.Request{
+) (data_ *createIngestFilterResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createIngestFilter",
 		Query:  createIngestFilter_Operation,
 		Variables: &__createIngestFilterInput{
@@ -16128,21 +16517,20 @@ func createIngestFilter(
 			Input:     input,
 		},
 	}
-	var err error
 
-	var data createIngestFilterResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createIngestFilterResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createIngestToken.
+// The mutation executed by createIngestToken.
 const createIngestToken_Operation = `
 mutation createIngestToken ($workspaceId: ObjectId!, $input: IngestTokenInput!) {
 	ingestToken: createIngestToken(workspaceId: $workspaceId, input: $input) {
@@ -16160,12 +16548,12 @@ fragment IngestToken on IngestToken {
 `
 
 func createIngestToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	input IngestTokenInput,
-) (*createIngestTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *createIngestTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createIngestToken",
 		Query:  createIngestToken_Operation,
 		Variables: &__createIngestTokenInput{
@@ -16173,21 +16561,20 @@ func createIngestToken(
 			Input:       input,
 		},
 	}
-	var err error
 
-	var data createIngestTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createIngestTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createLayeredSettingRecord.
+// The mutation executed by createLayeredSettingRecord.
 const createLayeredSettingRecord_Operation = `
 mutation createLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
 	layeredSettingRecord: createLayeredSettingRecord(settingRecord: $settingRecord) {
@@ -16239,32 +16626,31 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 `
 
 func createLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	settingRecord LayeredSettingRecordInput,
-) (*createLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
+) (data_ *createLayeredSettingRecordResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createLayeredSettingRecord",
 		Query:  createLayeredSettingRecord_Operation,
 		Variables: &__createLayeredSettingRecordInput{
 			SettingRecord: settingRecord,
 		},
 	}
-	var err error
 
-	var data createLayeredSettingRecordResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createLayeredSettingRecordResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createMonitor.
+// The mutation executed by createMonitor.
 const createMonitor_Operation = `
 mutation createMonitor ($workspaceId: ObjectId!, $monitor: MonitorInput!) {
 	monitor: createMonitor(workspaceId: $workspaceId, monitor: $monitor) {
@@ -16363,14 +16749,13 @@ fragment StageQuery on StageQuery {
 }
 `
 
-// More workarounds for server-side struggles
 func createMonitor(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	monitor MonitorInput,
-) (*createMonitorResponse, error) {
-	req := &graphql.Request{
+) (data_ *createMonitorResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createMonitor",
 		Query:  createMonitor_Operation,
 		Variables: &__createMonitorInput{
@@ -16378,21 +16763,20 @@ func createMonitor(
 			Monitor:     monitor,
 		},
 	}
-	var err error
 
-	var data createMonitorResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createMonitorResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createMonitorAction.
+// The mutation executed by createMonitorAction.
 const createMonitorAction_Operation = `
 mutation createMonitorAction ($monitorAction: MonitorActionInput!) {
 	monitorAction: createMonitorAction(input: $monitorAction) {
@@ -16429,32 +16813,31 @@ fragment MonitorAction on MonitorAction {
 `
 
 func createMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	monitorAction MonitorActionInput,
-) (*createMonitorActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *createMonitorActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createMonitorAction",
 		Query:  createMonitorAction_Operation,
 		Variables: &__createMonitorActionInput{
 			MonitorAction: monitorAction,
 		},
 	}
-	var err error
 
-	var data createMonitorActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createMonitorActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createMonitorActionAttachment.
+// The mutation executed by createMonitorActionAttachment.
 const createMonitorActionAttachment_Operation = `
 mutation createMonitorActionAttachment ($monitorActionAttachment: MonitorActionAttachmentInput!) {
 	monitorActionAttachment: createMonitorActionAttachment(input: $monitorActionAttachment) {
@@ -16473,32 +16856,31 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 `
 
 func createMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	monitorActionAttachment MonitorActionAttachmentInput,
-) (*createMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
+) (data_ *createMonitorActionAttachmentResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createMonitorActionAttachment",
 		Query:  createMonitorActionAttachment_Operation,
 		Variables: &__createMonitorActionAttachmentInput{
 			MonitorActionAttachment: monitorActionAttachment,
 		},
 	}
-	var err error
 
-	var data createMonitorActionAttachmentResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createMonitorActionAttachmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createMonitorV2.
+// The mutation executed by createMonitorV2.
 const createMonitorV2_Operation = `
 mutation createMonitorV2 ($workspaceId: ObjectId!, $input: MonitorV2Input!) {
 	monitorV2: createMonitorV2(workspaceId: $workspaceId, input: $input) {
@@ -16729,14 +17111,13 @@ fragment PrimitiveValue on PrimitiveValue {
 }
 `
 
-// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 func createMonitorV2(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	input MonitorV2Input,
-) (*createMonitorV2Response, error) {
-	req := &graphql.Request{
+) (data_ *createMonitorV2Response, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createMonitorV2",
 		Query:  createMonitorV2_Operation,
 		Variables: &__createMonitorV2Input{
@@ -16744,21 +17125,20 @@ func createMonitorV2(
 			Input:       input,
 		},
 	}
-	var err error
 
-	var data createMonitorV2Response
-	resp := &graphql.Response{Data: &data}
+	data_ = &createMonitorV2Response{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createMonitorV2Action.
+// The mutation executed by createMonitorV2Action.
 const createMonitorV2Action_Operation = `
 mutation createMonitorV2Action ($workspaceId: ObjectId!, $input: MonitorV2ActionInput!) {
 	monitorV2Action: createMonitorV2Action(workspaceId: $workspaceId, input: $input) {
@@ -16805,12 +17185,12 @@ fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 `
 
 func createMonitorV2Action(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	input MonitorV2ActionInput,
-) (*createMonitorV2ActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *createMonitorV2ActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createMonitorV2Action",
 		Query:  createMonitorV2Action_Operation,
 		Variables: &__createMonitorV2ActionInput{
@@ -16818,21 +17198,20 @@ func createMonitorV2Action(
 			Input:       input,
 		},
 	}
-	var err error
 
-	var data createMonitorV2ActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createMonitorV2ActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createOrUpdateBookmark.
+// The mutation executed by createOrUpdateBookmark.
 const createOrUpdateBookmark_Operation = `
 mutation createOrUpdateBookmark ($id: ObjectId, $bookmark: BookmarkInput!) {
 	bookmark: createOrUpdateBookmark(id: $id, bookmark: $bookmark) {
@@ -16855,12 +17234,12 @@ fragment Bookmark on Bookmark {
 `
 
 func createOrUpdateBookmark(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id *string,
 	bookmark BookmarkInput,
-) (*createOrUpdateBookmarkResponse, error) {
-	req := &graphql.Request{
+) (data_ *createOrUpdateBookmarkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createOrUpdateBookmark",
 		Query:  createOrUpdateBookmark_Operation,
 		Variables: &__createOrUpdateBookmarkInput{
@@ -16868,21 +17247,20 @@ func createOrUpdateBookmark(
 			Bookmark: bookmark,
 		},
 	}
-	var err error
 
-	var data createOrUpdateBookmarkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createOrUpdateBookmarkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createOrUpdateBookmarkGroup.
+// The mutation executed by createOrUpdateBookmarkGroup.
 const createOrUpdateBookmarkGroup_Operation = `
 mutation createOrUpdateBookmarkGroup ($id: ObjectId, $group: BookmarkGroupInput!) {
 	bookmarkGroup: createOrUpdateBookmarkGroup(id: $id, group: $group) {
@@ -16900,12 +17278,12 @@ fragment BookmarkGroup on BookmarkGroup {
 `
 
 func createOrUpdateBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id *string,
 	group BookmarkGroupInput,
-) (*createOrUpdateBookmarkGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *createOrUpdateBookmarkGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createOrUpdateBookmarkGroup",
 		Query:  createOrUpdateBookmarkGroup_Operation,
 		Variables: &__createOrUpdateBookmarkGroupInput{
@@ -16913,21 +17291,20 @@ func createOrUpdateBookmarkGroup(
 			Group: group,
 		},
 	}
-	var err error
 
-	var data createOrUpdateBookmarkGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createOrUpdateBookmarkGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createPoller.
+// The mutation executed by createPoller.
 const createPoller_Operation = `
 mutation createPoller ($workspaceId: ObjectId!, $poller: PollerInput!) {
 	poller: createPoller(workspaceId: $workspaceId, poller: $poller) {
@@ -17042,12 +17419,12 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 `
 
 func createPoller(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	poller PollerInput,
-) (*createPollerResponse, error) {
-	req := &graphql.Request{
+) (data_ *createPollerResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createPoller",
 		Query:  createPoller_Operation,
 		Variables: &__createPollerInput{
@@ -17055,21 +17432,20 @@ func createPoller(
 			Poller:      poller,
 		},
 	}
-	var err error
 
-	var data createPollerResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createPollerResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createPreferredPath.
+// The mutation executed by createPreferredPath.
 const createPreferredPath_Operation = `
 mutation createPreferredPath ($workspaceId: ObjectId!, $config: PreferredPathInput!) {
 	preferredPathWithStatus: createPreferredPath(workspaceId: $workspaceId, path: $config) {
@@ -17099,14 +17475,13 @@ fragment PreferredPath on PreferredPath {
 }
 `
 
-// More workarounds for server-side struggles
 func createPreferredPath(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	config PreferredPathInput,
-) (*createPreferredPathResponse, error) {
-	req := &graphql.Request{
+) (data_ *createPreferredPathResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createPreferredPath",
 		Query:  createPreferredPath_Operation,
 		Variables: &__createPreferredPathInput{
@@ -17114,21 +17489,20 @@ func createPreferredPath(
 			Config:      config,
 		},
 	}
-	var err error
 
-	var data createPreferredPathResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createPreferredPathResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createRbacGroup.
+// The mutation executed by createRbacGroup.
 const createRbacGroup_Operation = `
 mutation createRbacGroup ($config: RbacGroupInput!) {
 	rbacGroup: createRbacGroup(input: $config) {
@@ -17143,32 +17517,31 @@ fragment RbacGroup on RbacGroup {
 `
 
 func createRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	config RbacGroupInput,
-) (*createRbacGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *createRbacGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createRbacGroup",
 		Query:  createRbacGroup_Operation,
 		Variables: &__createRbacGroupInput{
 			Config: config,
 		},
 	}
-	var err error
 
-	var data createRbacGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createRbacGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createRbacGroupmember.
+// The mutation executed by createRbacGroupmember.
 const createRbacGroupmember_Operation = `
 mutation createRbacGroupmember ($config: RbacGroupmemberInput!) {
 	rbacGroupmember: createRbacGroupmember(input: $config) {
@@ -17185,32 +17558,31 @@ fragment RbacGroupmember on RbacGroupmember {
 `
 
 func createRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	config RbacGroupmemberInput,
-) (*createRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
+) (data_ *createRbacGroupmemberResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createRbacGroupmember",
 		Query:  createRbacGroupmember_Operation,
 		Variables: &__createRbacGroupmemberInput{
 			Config: config,
 		},
 	}
-	var err error
 
-	var data createRbacGroupmemberResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createRbacGroupmemberResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createRbacStatement.
+// The mutation executed by createRbacStatement.
 const createRbacStatement_Operation = `
 mutation createRbacStatement ($config: RbacStatementInput!) {
 	rbacStatement: createRbacStatement(input: $config) {
@@ -17240,32 +17612,31 @@ fragment RbacStatement on RbacStatement {
 `
 
 func createRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	config RbacStatementInput,
-) (*createRbacStatementResponse, error) {
-	req := &graphql.Request{
+) (data_ *createRbacStatementResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createRbacStatement",
 		Query:  createRbacStatement_Operation,
 		Variables: &__createRbacStatementInput{
 			Config: config,
 		},
 	}
-	var err error
 
-	var data createRbacStatementResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createRbacStatementResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createSnowflakeOutboundShare.
+// The mutation executed by createSnowflakeOutboundShare.
 const createSnowflakeOutboundShare_Operation = `
 mutation createSnowflakeOutboundShare ($workspaceId: ObjectId!, $input: SnowflakeOutboundShareInput!) {
 	share: createSnowflakeOutboundShare(workspaceId: $workspaceId, input: $input) {
@@ -17289,12 +17660,12 @@ fragment SnowflakeAccount on SnowflakeAccount {
 `
 
 func createSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	input SnowflakeOutboundShareInput,
-) (*createSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *createSnowflakeOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createSnowflakeOutboundShare",
 		Query:  createSnowflakeOutboundShare_Operation,
 		Variables: &__createSnowflakeOutboundShareInput{
@@ -17302,21 +17673,20 @@ func createSnowflakeOutboundShare(
 			Input:       input,
 		},
 	}
-	var err error
 
-	var data createSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createSnowflakeOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by createWorkspace.
+// The mutation executed by createWorkspace.
 const createWorkspace_Operation = `
 mutation createWorkspace ($config: WorkspaceInput!) {
 	workspace: createWorkspace(definition: $config) {
@@ -17330,32 +17700,31 @@ fragment Workspace on Project {
 `
 
 func createWorkspace(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	config WorkspaceInput,
-) (*createWorkspaceResponse, error) {
-	req := &graphql.Request{
+) (data_ *createWorkspaceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "createWorkspace",
 		Query:  createWorkspace_Operation,
 		Variables: &__createWorkspaceInput{
 			Config: config,
 		},
 	}
-	var err error
 
-	var data createWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &createWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by currentUser.
+// The query executed by currentUser.
 const currentUser_Operation = `
 query currentUser {
 	user: currentUser {
@@ -17371,28 +17740,27 @@ fragment User on User {
 `
 
 func currentUser(
-	ctx context.Context,
-	client graphql.Client,
-) (*currentUserResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *currentUserResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "currentUser",
 		Query:  currentUser_Operation,
 	}
-	var err error
 
-	var data currentUserResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &currentUserResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteApp.
+// The mutation executed by deleteApp.
 const deleteApp_Operation = `
 mutation deleteApp ($id: ObjectId!) {
 	resultStatus: deleteApp(id: $id) {
@@ -17407,32 +17775,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteApp(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteAppResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteAppResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteApp",
 		Query:  deleteApp_Operation,
 		Variables: &__deleteAppInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteAppResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteAppResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteAppDataSource.
+// The mutation executed by deleteAppDataSource.
 const deleteAppDataSource_Operation = `
 mutation deleteAppDataSource ($id: ObjectId!) {
 	resultStatus: deleteAppDataSource(id: $id) {
@@ -17447,32 +17814,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteAppDataSourceResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteAppDataSourceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteAppDataSource",
 		Query:  deleteAppDataSource_Operation,
 		Variables: &__deleteAppDataSourceInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteAppDataSourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteBoard.
+// The mutation executed by deleteBoard.
 const deleteBoard_Operation = `
 mutation deleteBoard ($id: ObjectId!) {
 	resultStatus: deleteBoard(id: $id) {
@@ -17487,32 +17853,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteBoard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteBoardResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteBoardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteBoard",
 		Query:  deleteBoard_Operation,
 		Variables: &__deleteBoardInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteBoardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteBoardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteBookmark.
+// The mutation executed by deleteBookmark.
 const deleteBookmark_Operation = `
 mutation deleteBookmark ($id: ObjectId!) {
 	resultStatus: deleteBookmark(id: $id) {
@@ -17527,32 +17892,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteBookmark(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteBookmarkResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteBookmarkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteBookmark",
 		Query:  deleteBookmark_Operation,
 		Variables: &__deleteBookmarkInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteBookmarkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteBookmarkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteBookmarkGroup.
+// The mutation executed by deleteBookmarkGroup.
 const deleteBookmarkGroup_Operation = `
 mutation deleteBookmarkGroup ($id: ObjectId!) {
 	resultStatus: deleteBookmarkGroup(id: $id) {
@@ -17567,32 +17931,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteBookmarkGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteBookmarkGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteBookmarkGroup",
 		Query:  deleteBookmarkGroup_Operation,
 		Variables: &__deleteBookmarkGroupInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteBookmarkGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteBookmarkGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteChannel.
+// The mutation executed by deleteChannel.
 const deleteChannel_Operation = `
 mutation deleteChannel ($id: ObjectId!) {
 	resultStatus: deleteChannel(id: $id) {
@@ -17607,32 +17970,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteChannel(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteChannelResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteChannelResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteChannel",
 		Query:  deleteChannel_Operation,
 		Variables: &__deleteChannelInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteChannelResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteChannelResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteChannelAction.
+// The mutation executed by deleteChannelAction.
 const deleteChannelAction_Operation = `
 mutation deleteChannelAction ($id: ObjectId!) {
 	resultStatus: deleteChannelAction(id: $id) {
@@ -17647,32 +18009,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteChannelAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteChannelActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteChannelActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteChannelAction",
 		Query:  deleteChannelAction_Operation,
 		Variables: &__deleteChannelActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteChannelActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteChannelActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDashboard.
+// The mutation executed by deleteDashboard.
 const deleteDashboard_Operation = `
 mutation deleteDashboard ($id: ObjectId!) {
 	resultStatus: deleteDashboard(id: $id) {
@@ -17687,32 +18048,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDashboard",
 		Query:  deleteDashboard_Operation,
 		Variables: &__deleteDashboardInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDashboardLink.
+// The mutation executed by deleteDashboardLink.
 const deleteDashboardLink_Operation = `
 mutation deleteDashboardLink ($id: ObjectId!) {
 	resultStatus: deleteDashboardLink(id: $id) {
@@ -17727,32 +18087,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDashboardLinkResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDashboardLinkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDashboardLink",
 		Query:  deleteDashboardLink_Operation,
 		Variables: &__deleteDashboardLinkInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDashboardLinkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDashboardLinkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDataset.
+// The mutation executed by deleteDataset.
 const deleteDataset_Operation = `
 mutation deleteDataset ($id: ObjectId!, $dep: DependencyHandlingInput) {
 	resultStatus: deleteDataset(dsid: $id, dependencyHandling: $dep) {
@@ -17767,12 +18126,12 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDataset(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	dep *DependencyHandlingInput,
-) (*deleteDatasetResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDatasetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDataset",
 		Query:  deleteDataset_Operation,
 		Variables: &__deleteDatasetInput{
@@ -17780,21 +18139,20 @@ func deleteDataset(
 			Dep: dep,
 		},
 	}
-	var err error
 
-	var data deleteDatasetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDatasetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDatasetOutboundShare.
+// The mutation executed by deleteDatasetOutboundShare.
 const deleteDatasetOutboundShare_Operation = `
 mutation deleteDatasetOutboundShare ($id: ObjectId!) {
 	resultStatus: deleteDatasetOutboundShare(id: $id) {
@@ -17809,32 +18167,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDatasetOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDatasetOutboundShare",
 		Query:  deleteDatasetOutboundShare_Operation,
 		Variables: &__deleteDatasetOutboundShareInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDatasetOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDatasetOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDatastream.
+// The mutation executed by deleteDatastream.
 const deleteDatastream_Operation = `
 mutation deleteDatastream ($id: ObjectId!) {
 	resultStatus: deleteDatastream(id: $id) {
@@ -17849,32 +18206,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDatastream(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDatastreamResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDatastreamResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDatastream",
 		Query:  deleteDatastream_Operation,
 		Variables: &__deleteDatastreamInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDatastreamResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDatastreamResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDatastreamToken.
+// The mutation executed by deleteDatastreamToken.
 const deleteDatastreamToken_Operation = `
 mutation deleteDatastreamToken ($id: String!) {
 	resultStatus: deleteDatastreamToken(id: $id) {
@@ -17889,32 +18245,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDatastreamTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDatastreamTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDatastreamToken",
 		Query:  deleteDatastreamToken_Operation,
 		Variables: &__deleteDatastreamTokenInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDatastreamTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDatastreamTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteDeferredForeignKey.
+// The mutation executed by deleteDeferredForeignKey.
 const deleteDeferredForeignKey_Operation = `
 mutation deleteDeferredForeignKey ($id: ObjectId!) {
 	resultStatus: deleteDeferredForeignKey(id: $id) {
@@ -17929,32 +18284,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteDeferredForeignKeyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteDeferredForeignKey",
 		Query:  deleteDeferredForeignKey_Operation,
 		Variables: &__deleteDeferredForeignKeyInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteDeferredForeignKeyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteDeferredForeignKeyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteFiledrop.
+// The mutation executed by deleteFiledrop.
 const deleteFiledrop_Operation = `
 mutation deleteFiledrop ($id: ObjectId!) {
 	resultStatus: deleteFiledrop(id: $id) {
@@ -17969,32 +18323,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteFiledrop(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteFiledropResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteFiledropResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteFiledrop",
 		Query:  deleteFiledrop_Operation,
 		Variables: &__deleteFiledropInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteFiledropResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteFiledropResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteFolder.
+// The mutation executed by deleteFolder.
 const deleteFolder_Operation = `
 mutation deleteFolder ($id: ObjectId!) {
 	resultStatus: deleteFolder(id: $id) {
@@ -18009,32 +18362,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteFolder(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteFolderResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteFolderResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteFolder",
 		Query:  deleteFolder_Operation,
 		Variables: &__deleteFolderInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteFolderResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteFolderResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteIngestFilter.
+// The mutation executed by deleteIngestFilter.
 const deleteIngestFilter_Operation = `
 mutation deleteIngestFilter ($filterId: ObjectId!) {
 	resultStatus: deleteIngestFilter(id: $filterId) {
@@ -18049,32 +18401,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteIngestFilter(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	filterId string,
-) (*deleteIngestFilterResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteIngestFilterResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteIngestFilter",
 		Query:  deleteIngestFilter_Operation,
 		Variables: &__deleteIngestFilterInput{
 			FilterId: filterId,
 		},
 	}
-	var err error
 
-	var data deleteIngestFilterResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteIngestFilterResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteIngestToken.
+// The mutation executed by deleteIngestToken.
 const deleteIngestToken_Operation = `
 mutation deleteIngestToken ($id: ObjectId!) {
 	resultStatus: deleteIngestToken(id: $id) {
@@ -18089,32 +18440,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteIngestToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteIngestTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteIngestTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteIngestToken",
 		Query:  deleteIngestToken_Operation,
 		Variables: &__deleteIngestTokenInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteIngestTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteIngestTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteLayeredSettingRecord.
+// The mutation executed by deleteLayeredSettingRecord.
 const deleteLayeredSettingRecord_Operation = `
 mutation deleteLayeredSettingRecord ($id: ObjectId!) {
 	deleteLayeredSettingRecord(id: $id) {
@@ -18131,32 +18481,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteLayeredSettingRecordResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteLayeredSettingRecord",
 		Query:  deleteLayeredSettingRecord_Operation,
 		Variables: &__deleteLayeredSettingRecordInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteLayeredSettingRecordResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteLayeredSettingRecordResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteMonitor.
+// The mutation executed by deleteMonitor.
 const deleteMonitor_Operation = `
 mutation deleteMonitor ($id: ObjectId!) {
 	resultStatus: deleteMonitor(id: $id) {
@@ -18171,32 +18520,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteMonitor(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteMonitorResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteMonitorResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteMonitor",
 		Query:  deleteMonitor_Operation,
 		Variables: &__deleteMonitorInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteMonitorResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteMonitorResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteMonitorAction.
+// The mutation executed by deleteMonitorAction.
 const deleteMonitorAction_Operation = `
 mutation deleteMonitorAction ($id: ObjectId!) {
 	resultStatus: deleteMonitorAction(id: $id) {
@@ -18211,32 +18559,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteMonitorActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteMonitorActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteMonitorAction",
 		Query:  deleteMonitorAction_Operation,
 		Variables: &__deleteMonitorActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteMonitorActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteMonitorActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteMonitorActionAttachment.
+// The mutation executed by deleteMonitorActionAttachment.
 const deleteMonitorActionAttachment_Operation = `
 mutation deleteMonitorActionAttachment ($id: ObjectId!) {
 	resultStatus: deleteMonitorActionAttachment(id: $id) {
@@ -18251,32 +18598,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteMonitorActionAttachmentResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteMonitorActionAttachment",
 		Query:  deleteMonitorActionAttachment_Operation,
 		Variables: &__deleteMonitorActionAttachmentInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteMonitorActionAttachmentResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteMonitorActionAttachmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteMonitorV2.
+// The mutation executed by deleteMonitorV2.
 const deleteMonitorV2_Operation = `
 mutation deleteMonitorV2 ($id: ObjectId!) {
 	resultStatus: deleteMonitorV2(id: $id) {
@@ -18291,32 +18637,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteMonitorV2(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteMonitorV2Response, error) {
-	req := &graphql.Request{
+) (data_ *deleteMonitorV2Response, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteMonitorV2",
 		Query:  deleteMonitorV2_Operation,
 		Variables: &__deleteMonitorV2Input{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteMonitorV2Response
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteMonitorV2Response{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteMonitorV2Action.
+// The mutation executed by deleteMonitorV2Action.
 const deleteMonitorV2Action_Operation = `
 mutation deleteMonitorV2Action ($id: ObjectId!) {
 	resultStatus: deleteMonitorV2Action(id: $id) {
@@ -18331,32 +18676,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteMonitorV2Action(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteMonitorV2ActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteMonitorV2ActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteMonitorV2Action",
 		Query:  deleteMonitorV2Action_Operation,
 		Variables: &__deleteMonitorV2ActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteMonitorV2ActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteMonitorV2ActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deletePoller.
+// The mutation executed by deletePoller.
 const deletePoller_Operation = `
 mutation deletePoller ($id: ObjectId!) {
 	resultStatus: deletePoller(id: $id) {
@@ -18371,32 +18715,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deletePoller(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deletePollerResponse, error) {
-	req := &graphql.Request{
+) (data_ *deletePollerResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deletePoller",
 		Query:  deletePoller_Operation,
 		Variables: &__deletePollerInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deletePollerResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deletePollerResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deletePreferredPath.
+// The mutation executed by deletePreferredPath.
 const deletePreferredPath_Operation = `
 mutation deletePreferredPath ($id: ObjectId!) {
 	resultStatus: deletePreferredPath(id: $id) {
@@ -18411,32 +18754,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deletePreferredPath(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deletePreferredPathResponse, error) {
-	req := &graphql.Request{
+) (data_ *deletePreferredPathResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deletePreferredPath",
 		Query:  deletePreferredPath_Operation,
 		Variables: &__deletePreferredPathInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deletePreferredPathResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deletePreferredPathResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteRbacGroup.
+// The mutation executed by deleteRbacGroup.
 const deleteRbacGroup_Operation = `
 mutation deleteRbacGroup ($id: ORN!) {
 	resultStatus: deleteRbacGroup(id: $id) {
@@ -18451,32 +18793,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteRbacGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteRbacGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteRbacGroup",
 		Query:  deleteRbacGroup_Operation,
 		Variables: &__deleteRbacGroupInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteRbacGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteRbacGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteRbacGroupmember.
+// The mutation executed by deleteRbacGroupmember.
 const deleteRbacGroupmember_Operation = `
 mutation deleteRbacGroupmember ($id: ORN!) {
 	resultStatus: deleteRbacGroupmember(id: $id) {
@@ -18491,32 +18832,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteRbacGroupmemberResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteRbacGroupmember",
 		Query:  deleteRbacGroupmember_Operation,
 		Variables: &__deleteRbacGroupmemberInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteRbacGroupmemberResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteRbacGroupmemberResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteRbacStatement.
+// The mutation executed by deleteRbacStatement.
 const deleteRbacStatement_Operation = `
 mutation deleteRbacStatement ($id: ORN!) {
 	resultStatus: deleteRbacStatement(id: $id) {
@@ -18531,32 +18871,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteRbacStatementResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteRbacStatementResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteRbacStatement",
 		Query:  deleteRbacStatement_Operation,
 		Variables: &__deleteRbacStatementInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteRbacStatementResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteRbacStatementResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteSnowflakeOutboundShare.
+// The mutation executed by deleteSnowflakeOutboundShare.
 const deleteSnowflakeOutboundShare_Operation = `
 mutation deleteSnowflakeOutboundShare ($id: ObjectId!) {
 	resultStatus: deleteSnowflakeOutboundShare(id: $id) {
@@ -18571,32 +18910,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteSnowflakeOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteSnowflakeOutboundShare",
 		Query:  deleteSnowflakeOutboundShare_Operation,
 		Variables: &__deleteSnowflakeOutboundShareInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteSnowflakeOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteWorksheet.
+// The mutation executed by deleteWorksheet.
 const deleteWorksheet_Operation = `
 mutation deleteWorksheet ($id: ObjectId!) {
 	resultStatus: deleteWorksheet(wks: $id) {
@@ -18611,32 +18949,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteWorksheet(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteWorksheetResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteWorksheetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteWorksheet",
 		Query:  deleteWorksheet_Operation,
 		Variables: &__deleteWorksheetInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteWorksheetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteWorksheetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by deleteWorkspace.
+// The mutation executed by deleteWorkspace.
 const deleteWorkspace_Operation = `
 mutation deleteWorkspace ($id: ObjectId!) {
 	resultStatus: deleteWorkspace(id: $id) {
@@ -18651,32 +18988,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func deleteWorkspace(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*deleteWorkspaceResponse, error) {
-	req := &graphql.Request{
+) (data_ *deleteWorkspaceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "deleteWorkspace",
 		Query:  deleteWorkspace_Operation,
 		Variables: &__deleteWorkspaceInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data deleteWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &deleteWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getApp.
+// The query executed by getApp.
 const getApp_Operation = `
 query getApp ($id: ObjectId!) {
 	app(id: $id) {
@@ -18703,32 +19039,31 @@ fragment App on App {
 `
 
 func getApp(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getAppResponse, error) {
-	req := &graphql.Request{
+) (data_ *getAppResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getApp",
 		Query:  getApp_Operation,
 		Variables: &__getAppInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getAppResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getAppResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getAppDataSource.
+// The query executed by getAppDataSource.
 const getAppDataSource_Operation = `
 query getAppDataSource ($id: ObjectId!) {
 	appdatasource: appDataSource(id: $id) {
@@ -18748,32 +19083,31 @@ fragment AppDataSource on AppDataSource {
 `
 
 func getAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getAppDataSourceResponse, error) {
-	req := &graphql.Request{
+) (data_ *getAppDataSourceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getAppDataSource",
 		Query:  getAppDataSource_Operation,
 		Variables: &__getAppDataSourceInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getAppDataSourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getBoard.
+// The query executed by getBoard.
 const getBoard_Operation = `
 query getBoard ($id: ObjectId!) {
 	board: getBoard(id: $id) {
@@ -18791,32 +19125,31 @@ fragment Board on Board {
 `
 
 func getBoard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getBoardResponse, error) {
-	req := &graphql.Request{
+) (data_ *getBoardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getBoard",
 		Query:  getBoard_Operation,
 		Variables: &__getBoardInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getBoardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getBoardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getBookmark.
+// The query executed by getBookmark.
 const getBookmark_Operation = `
 query getBookmark ($id: ObjectId!) {
 	bookmark(id: $id) {
@@ -18839,32 +19172,31 @@ fragment Bookmark on Bookmark {
 `
 
 func getBookmark(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getBookmarkResponse, error) {
-	req := &graphql.Request{
+) (data_ *getBookmarkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getBookmark",
 		Query:  getBookmark_Operation,
 		Variables: &__getBookmarkInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getBookmarkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getBookmarkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getBookmarkGroup.
+// The query executed by getBookmarkGroup.
 const getBookmarkGroup_Operation = `
 query getBookmarkGroup ($id: ObjectId!) {
 	bookmarkGroup(id: $id) {
@@ -18882,32 +19214,31 @@ fragment BookmarkGroup on BookmarkGroup {
 `
 
 func getBookmarkGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getBookmarkGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *getBookmarkGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getBookmarkGroup",
 		Query:  getBookmarkGroup_Operation,
 		Variables: &__getBookmarkGroupInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getBookmarkGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getBookmarkGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getChannel.
+// The query executed by getChannel.
 const getChannel_Operation = `
 query getChannel ($id: ObjectId!) {
 	channel: getChannel(id: $id) {
@@ -18927,32 +19258,31 @@ fragment Channel on Channel {
 `
 
 func getChannel(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getChannelResponse, error) {
-	req := &graphql.Request{
+) (data_ *getChannelResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getChannel",
 		Query:  getChannel_Operation,
 		Variables: &__getChannelInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getChannelResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getChannelResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getChannelAction.
+// The query executed by getChannelAction.
 const getChannelAction_Operation = `
 query getChannelAction ($id: ObjectId!) {
 	channelAction: getChannelAction(id: $id) {
@@ -18991,32 +19321,31 @@ fragment ChannelAction on ChannelAction {
 `
 
 func getChannelAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getChannelActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *getChannelActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getChannelAction",
 		Query:  getChannelAction_Operation,
 		Variables: &__getChannelActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getChannelActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getChannelActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getCloudInfo.
+// The query executed by getCloudInfo.
 const getCloudInfo_Operation = `
 query getCloudInfo {
 	cloud: currentCustomer {
@@ -19033,28 +19362,27 @@ fragment CloudInfo on CloudInfo {
 `
 
 func getCloudInfo(
-	ctx context.Context,
-	client graphql.Client,
-) (*getCloudInfoResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *getCloudInfoResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getCloudInfo",
 		Query:  getCloudInfo_Operation,
 	}
-	var err error
 
-	var data getCloudInfoResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getCloudInfoResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getCurrentCustomer.
+// The query executed by getCurrentCustomer.
 const getCurrentCustomer_Operation = `
 query getCurrentCustomer {
 	customer: currentCustomer {
@@ -19072,28 +19400,27 @@ fragment User on User {
 `
 
 func getCurrentCustomer(
-	ctx context.Context,
-	client graphql.Client,
-) (*getCurrentCustomerResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *getCurrentCustomerResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getCurrentCustomer",
 		Query:  getCurrentCustomer_Operation,
 	}
-	var err error
 
-	var data getCurrentCustomerResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getCurrentCustomerResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDashboard.
+// The query executed by getDashboard.
 const getDashboard_Operation = `
 query getDashboard ($id: ObjectId!) {
 	dashboard(id: $id) {
@@ -19181,32 +19508,31 @@ fragment primitiveValueFields on PrimitiveValue {
 `
 
 func getDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDashboard",
 		Query:  getDashboard_Operation,
 		Variables: &__getDashboardInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDashboardLink.
+// The query executed by getDashboardLink.
 const getDashboardLink_Operation = `
 query getDashboardLink ($id: ObjectId!) {
 	dashboardLink(id: $id) {
@@ -19228,32 +19554,31 @@ fragment DashboardLink on DashboardLink {
 `
 
 func getDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDashboardLinkResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDashboardLinkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDashboardLink",
 		Query:  getDashboardLink_Operation,
 		Variables: &__getDashboardLinkInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDashboardLinkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDashboardLinkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDataset.
+// The query executed by getDataset.
 const getDataset_Operation = `
 query getDataset ($id: ObjectId!) {
 	dataset(id: $id) {
@@ -19353,32 +19678,31 @@ fragment StageQuery on StageQuery {
 `
 
 func getDataset(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDatasetResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatasetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDataset",
 		Query:  getDataset_Operation,
 		Variables: &__getDatasetInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDatasetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatasetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDatasetCorrelationTags.
+// The query executed by getDatasetCorrelationTags.
 const getDatasetCorrelationTags_Operation = `
 query getDatasetCorrelationTags ($datasetId: ObjectId!) {
 	correlationTags: dataset(id: $datasetId) {
@@ -19394,32 +19718,31 @@ query getDatasetCorrelationTags ($datasetId: ObjectId!) {
 `
 
 func getDatasetCorrelationTags(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	datasetId string,
-) (*getDatasetCorrelationTagsResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatasetCorrelationTagsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDatasetCorrelationTags",
 		Query:  getDatasetCorrelationTags_Operation,
 		Variables: &__getDatasetCorrelationTagsInput{
 			DatasetId: datasetId,
 		},
 	}
-	var err error
 
-	var data getDatasetCorrelationTagsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatasetCorrelationTagsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDatasetOutboundShare.
+// The query executed by getDatasetOutboundShare.
 const getDatasetOutboundShare_Operation = `
 query getDatasetOutboundShare ($id: ObjectId!) {
 	datasetOutboundShare(id: $id) {
@@ -19446,32 +19769,31 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 `
 
 func getDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatasetOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDatasetOutboundShare",
 		Query:  getDatasetOutboundShare_Operation,
 		Variables: &__getDatasetOutboundShareInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDatasetOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatasetOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDatasetQueryOutput.
+// The query executed by getDatasetQueryOutput.
 const getDatasetQueryOutput_Operation = `
 query getDatasetQueryOutput ($query: [StageInput!]!, $params: QueryParams!) {
 	taskResult: datasetQueryOutput(query: $query, params: $params) {
@@ -19491,12 +19813,12 @@ fragment TaskResult on TaskResult {
 `
 
 func getDatasetQueryOutput(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	query []*StageInput,
 	params QueryParams,
-) (*getDatasetQueryOutputResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatasetQueryOutputResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDatasetQueryOutput",
 		Query:  getDatasetQueryOutput_Operation,
 		Variables: &__getDatasetQueryOutputInput{
@@ -19504,21 +19826,20 @@ func getDatasetQueryOutput(
 			Params: params,
 		},
 	}
-	var err error
 
-	var data getDatasetQueryOutputResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatasetQueryOutputResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDatastream.
+// The query executed by getDatastream.
 const getDatastream_Operation = `
 query getDatastream ($id: ObjectId!) {
 	datastream(id: $id) {
@@ -19536,32 +19857,31 @@ fragment Datastream on Datastream {
 `
 
 func getDatastream(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDatastreamResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatastreamResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDatastream",
 		Query:  getDatastream_Operation,
 		Variables: &__getDatastreamInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDatastreamResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatastreamResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDatastreamToken.
+// The query executed by getDatastreamToken.
 const getDatastreamToken_Operation = `
 query getDatastreamToken ($id: String!) {
 	datastreamToken(id: $id) {
@@ -19579,32 +19899,31 @@ fragment DatastreamToken on DatastreamToken {
 `
 
 func getDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDatastreamTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDatastreamTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDatastreamToken",
 		Query:  getDatastreamToken_Operation,
 		Variables: &__getDatastreamTokenInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDatastreamTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDatastreamTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDefaultDashboard.
+// The query executed by getDefaultDashboard.
 const getDefaultDashboard_Operation = `
 query getDefaultDashboard ($dsid: ObjectId!) {
 	defaultDashboard(dsid: $dsid)
@@ -19612,32 +19931,31 @@ query getDefaultDashboard ($dsid: ObjectId!) {
 `
 
 func getDefaultDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	dsid string,
-) (*getDefaultDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDefaultDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDefaultDashboard",
 		Query:  getDefaultDashboard_Operation,
 		Variables: &__getDefaultDashboardInput{
 			Dsid: dsid,
 		},
 	}
-	var err error
 
-	var data getDefaultDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDefaultDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getDeferredForeignKey.
+// The query executed by getDeferredForeignKey.
 const getDeferredForeignKey_Operation = `
 query getDeferredForeignKey ($id: ObjectId!) {
 	deferredForeignKey(id: $id) {
@@ -19667,32 +19985,31 @@ fragment DeferredForeignKey on DeferredForeignKey {
 `
 
 func getDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
+) (data_ *getDeferredForeignKeyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getDeferredForeignKey",
 		Query:  getDeferredForeignKey_Operation,
 		Variables: &__getDeferredForeignKeyInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getDeferredForeignKeyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getDeferredForeignKeyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getFiledrop.
+// The query executed by getFiledrop.
 const getFiledrop_Operation = `
 query getFiledrop ($id: ObjectId!) {
 	filedrop(id: $id) {
@@ -19728,32 +20045,31 @@ fragment Filedrop on Filedrop {
 `
 
 func getFiledrop(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getFiledropResponse, error) {
-	req := &graphql.Request{
+) (data_ *getFiledropResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getFiledrop",
 		Query:  getFiledrop_Operation,
 		Variables: &__getFiledropInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getFiledropResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getFiledropResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getFolder.
+// The query executed by getFolder.
 const getFolder_Operation = `
 query getFolder ($id: ObjectId!) {
 	folder(id: $id) {
@@ -19770,32 +20086,31 @@ fragment Folder on Folder {
 `
 
 func getFolder(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getFolderResponse, error) {
-	req := &graphql.Request{
+) (data_ *getFolderResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getFolder",
 		Query:  getFolder_Operation,
 		Variables: &__getFolderInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getFolderResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getFolderResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getIngestFilter.
+// The query executed by getIngestFilter.
 const getIngestFilter_Operation = `
 query getIngestFilter ($filterId: ObjectId!) {
 	ingestFilter(id: $filterId) {
@@ -19845,32 +20160,31 @@ fragment errorFields on TaskResultError {
 `
 
 func getIngestFilter(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	filterId string,
-) (*getIngestFilterResponse, error) {
-	req := &graphql.Request{
+) (data_ *getIngestFilterResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getIngestFilter",
 		Query:  getIngestFilter_Operation,
 		Variables: &__getIngestFilterInput{
 			FilterId: filterId,
 		},
 	}
-	var err error
 
-	var data getIngestFilterResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getIngestFilterResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getIngestFilters.
+// The query executed by getIngestFilters.
 const getIngestFilters_Operation = `
 query getIngestFilters ($workspaceId: ObjectId!) {
 	ingestFilter: searchIngestFilter(workspaceId: $workspaceId) {
@@ -19922,32 +20236,31 @@ fragment errorFields on TaskResultError {
 `
 
 func getIngestFilters(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
-) (*getIngestFiltersResponse, error) {
-	req := &graphql.Request{
+) (data_ *getIngestFiltersResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getIngestFilters",
 		Query:  getIngestFilters_Operation,
 		Variables: &__getIngestFiltersInput{
 			WorkspaceId: workspaceId,
 		},
 	}
-	var err error
 
-	var data getIngestFiltersResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getIngestFiltersResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getIngestInfo.
+// The query executed by getIngestInfo.
 const getIngestInfo_Operation = `
 query getIngestInfo {
 	ingest: currentCustomer {
@@ -19965,28 +20278,27 @@ fragment IngestInfo on IngestInfo {
 `
 
 func getIngestInfo(
-	ctx context.Context,
-	client graphql.Client,
-) (*getIngestInfoResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *getIngestInfoResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getIngestInfo",
 		Query:  getIngestInfo_Operation,
 	}
-	var err error
 
-	var data getIngestInfoResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getIngestInfoResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getIngestToken.
+// The query executed by getIngestToken.
 const getIngestToken_Operation = `
 query getIngestToken ($id: ObjectId!) {
 	ingestToken(id: $id) {
@@ -20004,32 +20316,31 @@ fragment IngestToken on IngestToken {
 `
 
 func getIngestToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getIngestTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *getIngestTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getIngestToken",
 		Query:  getIngestToken_Operation,
 		Variables: &__getIngestTokenInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getIngestTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getIngestTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getLayeredSettingRecord.
+// The query executed by getLayeredSettingRecord.
 const getLayeredSettingRecord_Operation = `
 query getLayeredSettingRecord ($id: ObjectId!) {
 	layeredSettingRecord(id: $id) {
@@ -20081,32 +20392,31 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 `
 
 func getLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
+) (data_ *getLayeredSettingRecordResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getLayeredSettingRecord",
 		Query:  getLayeredSettingRecord_Operation,
 		Variables: &__getLayeredSettingRecordInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getLayeredSettingRecordResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getLayeredSettingRecordResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getMonitor.
+// The query executed by getMonitor.
 const getMonitor_Operation = `
 query getMonitor ($id: ObjectId!) {
 	monitor(id: $id) {
@@ -20204,32 +20514,31 @@ fragment StageQuery on StageQuery {
 `
 
 func getMonitor(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getMonitorResponse, error) {
-	req := &graphql.Request{
+) (data_ *getMonitorResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getMonitor",
 		Query:  getMonitor_Operation,
 		Variables: &__getMonitorInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getMonitorResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getMonitorResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getMonitorAction.
+// The query executed by getMonitorAction.
 const getMonitorAction_Operation = `
 query getMonitorAction ($id: ObjectId!) {
 	monitorAction(id: $id) {
@@ -20266,32 +20575,31 @@ fragment MonitorAction on MonitorAction {
 `
 
 func getMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getMonitorActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *getMonitorActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getMonitorAction",
 		Query:  getMonitorAction_Operation,
 		Variables: &__getMonitorActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getMonitorActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getMonitorActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getMonitorActionAttachment.
+// The query executed by getMonitorActionAttachment.
 const getMonitorActionAttachment_Operation = `
 query getMonitorActionAttachment ($id: ObjectId!) {
 	monitorActionAttachment(id: $id) {
@@ -20310,32 +20618,31 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 `
 
 func getMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
+) (data_ *getMonitorActionAttachmentResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getMonitorActionAttachment",
 		Query:  getMonitorActionAttachment_Operation,
 		Variables: &__getMonitorActionAttachmentInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getMonitorActionAttachmentResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getMonitorActionAttachmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getMonitorV2.
+// The query executed by getMonitorV2.
 const getMonitorV2_Operation = `
 query getMonitorV2 ($id: ObjectId!) {
 	monitorV2(id: $id) {
@@ -20567,32 +20874,31 @@ fragment PrimitiveValue on PrimitiveValue {
 `
 
 func getMonitorV2(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getMonitorV2Response, error) {
-	req := &graphql.Request{
+) (data_ *getMonitorV2Response, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getMonitorV2",
 		Query:  getMonitorV2_Operation,
 		Variables: &__getMonitorV2Input{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getMonitorV2Response
-	resp := &graphql.Response{Data: &data}
+	data_ = &getMonitorV2Response{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getMonitorV2Action.
+// The query executed by getMonitorV2Action.
 const getMonitorV2Action_Operation = `
 query getMonitorV2Action ($id: ObjectId!) {
 	monitorV2Action(id: $id) {
@@ -20639,32 +20945,31 @@ fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 `
 
 func getMonitorV2Action(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getMonitorV2ActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *getMonitorV2ActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getMonitorV2Action",
 		Query:  getMonitorV2Action_Operation,
 		Variables: &__getMonitorV2ActionInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getMonitorV2ActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getMonitorV2ActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getPoller.
+// The query executed by getPoller.
 const getPoller_Operation = `
 query getPoller ($id: ObjectId!) {
 	poller(id: $id) {
@@ -20779,32 +21084,31 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 `
 
 func getPoller(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getPollerResponse, error) {
-	req := &graphql.Request{
+) (data_ *getPollerResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getPoller",
 		Query:  getPoller_Operation,
 		Variables: &__getPollerInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getPollerResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getPollerResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getPreferredPath.
+// The query executed by getPreferredPath.
 const getPreferredPath_Operation = `
 query getPreferredPath ($id: ObjectId!) {
 	preferredPathWithStatus: preferredPath(id: $id) {
@@ -20835,32 +21139,31 @@ fragment PreferredPath on PreferredPath {
 `
 
 func getPreferredPath(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getPreferredPathResponse, error) {
-	req := &graphql.Request{
+) (data_ *getPreferredPathResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getPreferredPath",
 		Query:  getPreferredPath_Operation,
 		Variables: &__getPreferredPathInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getPreferredPathResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getPreferredPathResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacDefaultSharingGroups.
+// The query executed by getRbacDefaultSharingGroups.
 const getRbacDefaultSharingGroups_Operation = `
 query getRbacDefaultSharingGroups {
 	rbacDefaultSharingGroups {
@@ -20875,28 +21178,27 @@ fragment RbacDefaultSharingGroup on RbacDefaultSharingGroup {
 `
 
 func getRbacDefaultSharingGroups(
-	ctx context.Context,
-	client graphql.Client,
-) (*getRbacDefaultSharingGroupsResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *getRbacDefaultSharingGroupsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacDefaultSharingGroups",
 		Query:  getRbacDefaultSharingGroups_Operation,
 	}
-	var err error
 
-	var data getRbacDefaultSharingGroupsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacDefaultSharingGroupsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacGroup.
+// The query executed by getRbacGroup.
 const getRbacGroup_Operation = `
 query getRbacGroup ($id: ORN!) {
 	rbacGroup(id: $id) {
@@ -20911,32 +21213,31 @@ fragment RbacGroup on RbacGroup {
 `
 
 func getRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getRbacGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *getRbacGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacGroup",
 		Query:  getRbacGroup_Operation,
 		Variables: &__getRbacGroupInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getRbacGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacGroupmember.
+// The query executed by getRbacGroupmember.
 const getRbacGroupmember_Operation = `
 query getRbacGroupmember ($id: ORN!) {
 	rbacGroupmember(id: $id) {
@@ -20953,32 +21254,31 @@ fragment RbacGroupmember on RbacGroupmember {
 `
 
 func getRbacGroupmember(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getRbacGroupmemberResponse, error) {
-	req := &graphql.Request{
+) (data_ *getRbacGroupmemberResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacGroupmember",
 		Query:  getRbacGroupmember_Operation,
 		Variables: &__getRbacGroupmemberInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getRbacGroupmemberResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacGroupmemberResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacGroups.
+// The query executed by getRbacGroups.
 const getRbacGroups_Operation = `
 query getRbacGroups {
 	rbacGroups {
@@ -20993,28 +21293,27 @@ fragment RbacGroup on RbacGroup {
 `
 
 func getRbacGroups(
-	ctx context.Context,
-	client graphql.Client,
-) (*getRbacGroupsResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *getRbacGroupsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacGroups",
 		Query:  getRbacGroups_Operation,
 	}
-	var err error
 
-	var data getRbacGroupsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacGroupsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacResourceStatements.
+// The query executed by getRbacResourceStatements.
 const getRbacResourceStatements_Operation = `
 query getRbacResourceStatements ($ids: [ObjectId!]!) {
 	rbacResourceStatements(ids: $ids) {
@@ -21044,32 +21343,31 @@ fragment RbacStatement on RbacStatement {
 `
 
 func getRbacResourceStatements(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	ids []string,
-) (*getRbacResourceStatementsResponse, error) {
-	req := &graphql.Request{
+) (data_ *getRbacResourceStatementsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacResourceStatements",
 		Query:  getRbacResourceStatements_Operation,
 		Variables: &__getRbacResourceStatementsInput{
 			Ids: ids,
 		},
 	}
-	var err error
 
-	var data getRbacResourceStatementsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacResourceStatementsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getRbacStatement.
+// The query executed by getRbacStatement.
 const getRbacStatement_Operation = `
 query getRbacStatement ($id: ORN!) {
 	rbacStatement(id: $id) {
@@ -21099,32 +21397,31 @@ fragment RbacStatement on RbacStatement {
 `
 
 func getRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getRbacStatementResponse, error) {
-	req := &graphql.Request{
+) (data_ *getRbacStatementResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getRbacStatement",
 		Query:  getRbacStatement_Operation,
 		Variables: &__getRbacStatementInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getRbacStatementResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getRbacStatementResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getSnowflakeOutboundShare.
+// The query executed by getSnowflakeOutboundShare.
 const getSnowflakeOutboundShare_Operation = `
 query getSnowflakeOutboundShare ($id: ObjectId!) {
 	share: snowflakeOutboundShare(id: $id) {
@@ -21148,32 +21445,31 @@ fragment SnowflakeAccount on SnowflakeAccount {
 `
 
 func getSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *getSnowflakeOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getSnowflakeOutboundShare",
 		Query:  getSnowflakeOutboundShare_Operation,
 		Variables: &__getSnowflakeOutboundShareInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getSnowflakeOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getTerraform.
+// The query executed by getTerraform.
 const getTerraform_Operation = `
 query getTerraform ($id: ObjectId!, $ty: TerraformObjectType!) {
 	terraform: getTerraform(id: $id, type: $ty) {
@@ -21189,12 +21485,12 @@ fragment TerraformDefinition on TerraformDefinition {
 `
 
 func getTerraform(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	ty TerraformObjectType,
-) (*getTerraformResponse, error) {
-	req := &graphql.Request{
+) (data_ *getTerraformResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getTerraform",
 		Query:  getTerraform_Operation,
 		Variables: &__getTerraformInput{
@@ -21202,21 +21498,20 @@ func getTerraform(
 			Ty: ty,
 		},
 	}
-	var err error
 
-	var data getTerraformResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getTerraformResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getUser.
+// The query executed by getUser.
 const getUser_Operation = `
 query getUser ($id: UserId!) {
 	user(id: $id) {
@@ -21232,32 +21527,31 @@ fragment User on User {
 `
 
 func getUser(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id types.UserIdScalar,
-) (*getUserResponse, error) {
-	req := &graphql.Request{
+) (data_ *getUserResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getUser",
 		Query:  getUser_Operation,
 		Variables: &__getUserInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getUserResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getUserResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getWorksheet.
+// The query executed by getWorksheet.
 const getWorksheet_Operation = `
 query getWorksheet ($id: ObjectId!) {
 	worksheet(id: $id) {
@@ -21294,32 +21588,31 @@ fragment StageQuery on StageQuery {
 `
 
 func getWorksheet(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getWorksheetResponse, error) {
-	req := &graphql.Request{
+) (data_ *getWorksheetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getWorksheet",
 		Query:  getWorksheet_Operation,
 		Variables: &__getWorksheetInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getWorksheetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getWorksheetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by getWorkspace.
+// The query executed by getWorkspace.
 const getWorkspace_Operation = `
 query getWorkspace ($id: ObjectId!) {
 	workspace(id: $id) {
@@ -21333,32 +21626,31 @@ fragment Workspace on Project {
 `
 
 func getWorkspace(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*getWorkspaceResponse, error) {
-	req := &graphql.Request{
+) (data_ *getWorkspaceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "getWorkspace",
 		Query:  getWorkspace_Operation,
 		Variables: &__getWorkspaceInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data getWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &getWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by listDatasets.
+// The query executed by listDatasets.
 const listDatasets_Operation = `
 query listDatasets {
 	datasets: projects {
@@ -21460,28 +21752,27 @@ fragment StageQuery on StageQuery {
 `
 
 func listDatasets(
-	ctx context.Context,
-	client graphql.Client,
-) (*listDatasetsResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *listDatasetsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "listDatasets",
 		Query:  listDatasets_Operation,
 	}
-	var err error
 
-	var data listDatasetsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &listDatasetsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by listDatasetsIdNameOnly.
+// The query executed by listDatasetsIdNameOnly.
 const listDatasetsIdNameOnly_Operation = `
 query listDatasetsIdNameOnly {
 	datasets: datasetSearch {
@@ -21497,28 +21788,27 @@ fragment DatasetIdName on Dataset {
 `
 
 func listDatasetsIdNameOnly(
-	ctx context.Context,
-	client graphql.Client,
-) (*listDatasetsIdNameOnlyResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *listDatasetsIdNameOnlyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "listDatasetsIdNameOnly",
 		Query:  listDatasetsIdNameOnly_Operation,
 	}
-	var err error
 
-	var data listDatasetsIdNameOnlyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &listDatasetsIdNameOnlyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by listUsers.
+// The query executed by listUsers.
 const listUsers_Operation = `
 query listUsers {
 	users: currentCustomer {
@@ -21536,28 +21826,27 @@ fragment User on User {
 `
 
 func listUsers(
-	ctx context.Context,
-	client graphql.Client,
-) (*listUsersResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *listUsersResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "listUsers",
 		Query:  listUsers_Operation,
 	}
-	var err error
 
-	var data listUsersResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &listUsersResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by listWorksheetsIdLabelOnly.
+// The query executed by listWorksheetsIdLabelOnly.
 const listWorksheetsIdLabelOnly_Operation = `
 query listWorksheetsIdLabelOnly ($workspaceId: ObjectId!) {
 	worksheetSearch(terms: {workspaceId:[$workspaceId]}) {
@@ -21575,32 +21864,31 @@ fragment WorksheetIdLabel on Worksheet {
 `
 
 func listWorksheetsIdLabelOnly(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
-) (*listWorksheetsIdLabelOnlyResponse, error) {
-	req := &graphql.Request{
+) (data_ *listWorksheetsIdLabelOnlyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "listWorksheetsIdLabelOnly",
 		Query:  listWorksheetsIdLabelOnly_Operation,
 		Variables: &__listWorksheetsIdLabelOnlyInput{
 			WorkspaceId: workspaceId,
 		},
 	}
-	var err error
 
-	var data listWorksheetsIdLabelOnlyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &listWorksheetsIdLabelOnlyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by listWorkspaces.
+// The query executed by listWorkspaces.
 const listWorkspaces_Operation = `
 query listWorkspaces {
 	workspaces: projects {
@@ -21614,28 +21902,27 @@ fragment Workspace on Project {
 `
 
 func listWorkspaces(
-	ctx context.Context,
-	client graphql.Client,
-) (*listWorkspacesResponse, error) {
-	req := &graphql.Request{
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *listWorkspacesResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "listWorkspaces",
 		Query:  listWorkspaces_Operation,
 	}
-	var err error
 
-	var data listWorkspacesResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &listWorkspacesResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupApp.
+// The query executed by lookupApp.
 const lookupApp_Operation = `
 query lookupApp ($workspaceId: ObjectId!, $name: String!) {
 	apps(workspaceId: $workspaceId, name: $name) {
@@ -21664,12 +21951,12 @@ fragment App on App {
 // LookupApp retrieves app by name.
 // TODO: this should be bound to a folderId, not a workspace.
 func lookupApp(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	name string,
-) (*lookupAppResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupAppResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupApp",
 		Query:  lookupApp_Operation,
 		Variables: &__lookupAppInput{
@@ -21677,21 +21964,20 @@ func lookupApp(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data lookupAppResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupAppResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupDataset.
+// The query executed by lookupDataset.
 const lookupDataset_Operation = `
 query lookupDataset ($workspaceId: ObjectId!, $name: String!) {
 	dataset: workspace(id: $workspaceId) {
@@ -21793,12 +22079,12 @@ fragment StageQuery on StageQuery {
 `
 
 func lookupDataset(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	name string,
-) (*lookupDatasetResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupDatasetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupDataset",
 		Query:  lookupDataset_Operation,
 		Variables: &__lookupDatasetInput{
@@ -21806,21 +22092,20 @@ func lookupDataset(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data lookupDatasetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupDatasetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupDatastream.
+// The query executed by lookupDatastream.
 const lookupDatastream_Operation = `
 query lookupDatastream ($workspaceId: ObjectId!, $name: String!) {
 	datastream: workspace(id: $workspaceId) {
@@ -21840,12 +22125,12 @@ fragment Datastream on Datastream {
 `
 
 func lookupDatastream(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	name string,
-) (*lookupDatastreamResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupDatastreamResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupDatastream",
 		Query:  lookupDatastream_Operation,
 		Variables: &__lookupDatastreamInput{
@@ -21853,21 +22138,20 @@ func lookupDatastream(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data lookupDatastreamResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupDatastreamResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupFolder.
+// The query executed by lookupFolder.
 const lookupFolder_Operation = `
 query lookupFolder ($workspaceId: ObjectId!, $name: String!) {
 	folder: workspace(id: $workspaceId) {
@@ -21886,12 +22170,12 @@ fragment Folder on Folder {
 `
 
 func lookupFolder(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	name string,
-) (*lookupFolderResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupFolderResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupFolder",
 		Query:  lookupFolder_Operation,
 		Variables: &__lookupFolderInput{
@@ -21899,21 +22183,20 @@ func lookupFolder(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data lookupFolderResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupFolderResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupModuleVersions.
+// The query executed by lookupModuleVersions.
 const lookupModuleVersions_Operation = `
 query lookupModuleVersions ($id: String!) {
 	moduleVersions(id: $id) {
@@ -21926,32 +22209,31 @@ fragment ModuleVersion on ModuleVersion {
 `
 
 func lookupModuleVersions(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
-) (*lookupModuleVersionsResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupModuleVersionsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupModuleVersions",
 		Query:  lookupModuleVersions_Operation,
 		Variables: &__lookupModuleVersionsInput{
 			Id: id,
 		},
 	}
-	var err error
 
-	var data lookupModuleVersionsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupModuleVersionsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupMonitor.
+// The query executed by lookupMonitor.
 const lookupMonitor_Operation = `
 query lookupMonitor ($workspaceId: ObjectId!, $name: String!) {
 	monitor: workspace(id: $workspaceId) {
@@ -22051,12 +22333,12 @@ fragment StageQuery on StageQuery {
 `
 
 func lookupMonitor(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	name string,
-) (*lookupMonitorResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupMonitorResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupMonitor",
 		Query:  lookupMonitor_Operation,
 		Variables: &__lookupMonitorInput{
@@ -22064,21 +22346,20 @@ func lookupMonitor(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data lookupMonitorResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupMonitorResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupMonitorV2.
+// The query executed by lookupMonitorV2.
 const lookupMonitorV2_Operation = `
 query lookupMonitorV2 ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
 	monitorV2s: searchMonitorV2(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
@@ -22315,14 +22596,14 @@ fragment PrimitiveValue on PrimitiveValue {
 `
 
 func lookupMonitorV2(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId *string,
 	folderId *string,
 	nameExact *string,
 	nameSubstring *string,
-) (*lookupMonitorV2Response, error) {
-	req := &graphql.Request{
+) (data_ *lookupMonitorV2Response, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupMonitorV2",
 		Query:  lookupMonitorV2_Operation,
 		Variables: &__lookupMonitorV2Input{
@@ -22332,21 +22613,20 @@ func lookupMonitorV2(
 			NameSubstring: nameSubstring,
 		},
 	}
-	var err error
 
-	var data lookupMonitorV2Response
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupMonitorV2Response{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupSnowflakeOutboundShare.
+// The query executed by lookupSnowflakeOutboundShare.
 const lookupSnowflakeOutboundShare_Operation = `
 query lookupSnowflakeOutboundShare ($name: String!, $workspaceId: ObjectId!) {
 	shares: searchSnowflakeOutboundShare(nameExact: $name, workspaceId: $workspaceId) {
@@ -22372,12 +22652,12 @@ fragment SnowflakeAccount on SnowflakeAccount {
 `
 
 func lookupSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	name string,
 	workspaceId string,
-) (*lookupSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupSnowflakeOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupSnowflakeOutboundShare",
 		Query:  lookupSnowflakeOutboundShare_Operation,
 		Variables: &__lookupSnowflakeOutboundShareInput{
@@ -22385,21 +22665,20 @@ func lookupSnowflakeOutboundShare(
 			WorkspaceId: workspaceId,
 		},
 	}
-	var err error
 
-	var data lookupSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupSnowflakeOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by lookupWorkspace.
+// The query executed by lookupWorkspace.
 const lookupWorkspace_Operation = `
 query lookupWorkspace ($name: String!) {
 	workspace(label: $name) {
@@ -22413,32 +22692,31 @@ fragment Workspace on Project {
 `
 
 func lookupWorkspace(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	name string,
-) (*lookupWorkspaceResponse, error) {
-	req := &graphql.Request{
+) (data_ *lookupWorkspaceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "lookupWorkspace",
 		Query:  lookupWorkspace_Operation,
 		Variables: &__lookupWorkspaceInput{
 			Name: name,
 		},
 	}
-	var err error
 
-	var data lookupWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &lookupWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by mutateRbacStatements.
+// The mutation executed by mutateRbacStatements.
 const mutateRbacStatements_Operation = `
 mutation mutateRbacStatements ($toCreate: [RbacStatementInput!], $toUpdate: [UpdateRbacStatementInput!], $toDelete: [ORN!]) {
 	mutateRbacStatements(toCreate: $toCreate, toUpdate: $toUpdate, toDelete: $toDelete) {
@@ -22477,13 +22755,13 @@ fragment RbacStatement on RbacStatement {
 `
 
 func mutateRbacStatements(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	toCreate []RbacStatementInput,
 	toUpdate []UpdateRbacStatementInput,
 	toDelete []string,
-) (*mutateRbacStatementsResponse, error) {
-	req := &graphql.Request{
+) (data_ *mutateRbacStatementsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "mutateRbacStatements",
 		Query:  mutateRbacStatements_Operation,
 		Variables: &__mutateRbacStatementsInput{
@@ -22492,21 +22770,20 @@ func mutateRbacStatements(
 			ToDelete: toDelete,
 		},
 	}
-	var err error
 
-	var data mutateRbacStatementsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &mutateRbacStatementsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by removeCorrelationTag.
+// The mutation executed by removeCorrelationTag.
 const removeCorrelationTag_Operation = `
 mutation removeCorrelationTag ($datasetId: ObjectId!, $path: LinkFieldInput!, $tag: String!) {
 	resultStatus: removeCorrelationTag(datasetId: $datasetId, path: $path, tag: $tag) {
@@ -22521,13 +22798,13 @@ fragment ResultStatus on ResultStatus {
 `
 
 func removeCorrelationTag(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	datasetId string,
 	path LinkFieldInput,
 	tag string,
-) (*removeCorrelationTagResponse, error) {
-	req := &graphql.Request{
+) (data_ *removeCorrelationTagResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "removeCorrelationTag",
 		Query:  removeCorrelationTag_Operation,
 		Variables: &__removeCorrelationTagInput{
@@ -22536,21 +22813,20 @@ func removeCorrelationTag(
 			Tag:       tag,
 		},
 	}
-	var err error
 
-	var data removeCorrelationTagResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &removeCorrelationTagResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveDashboard.
+// The mutation executed by saveDashboard.
 const saveDashboard_Operation = `
 mutation saveDashboard ($dashboardInput: DashboardInput!) {
 	dashboard: saveDashboard(dash: $dashboardInput) {
@@ -22638,32 +22914,31 @@ fragment primitiveValueFields on PrimitiveValue {
 `
 
 func saveDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	dashboardInput DashboardInput,
-) (*saveDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveDashboard",
 		Query:  saveDashboard_Operation,
 		Variables: &__saveDashboardInput{
 			DashboardInput: dashboardInput,
 		},
 	}
-	var err error
 
-	var data saveDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveDataset.
+// The mutation executed by saveDataset.
 const saveDataset_Operation = `
 mutation saveDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
 	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
@@ -22777,14 +23052,14 @@ fragment StageQuery on StageQuery {
 `
 
 func saveDataset(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	dataset DatasetInput,
 	query MultiStageQueryInput,
 	dep *DependencyHandlingInput,
-) (*saveDatasetResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveDatasetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveDataset",
 		Query:  saveDataset_Operation,
 		Variables: &__saveDatasetInput{
@@ -22794,21 +23069,20 @@ func saveDataset(
 			Dep:         dep,
 		},
 	}
-	var err error
 
-	var data saveDatasetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveDatasetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveDatasetDryRun.
+// The mutation executed by saveDatasetDryRun.
 const saveDatasetDryRun_Operation = `
 mutation saveDatasetDryRun ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
 	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
@@ -22832,14 +23106,14 @@ fragment DatasetIdName on Dataset {
 `
 
 func saveDatasetDryRun(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	dataset DatasetInput,
 	query MultiStageQueryInput,
 	dep *DependencyHandlingInput,
-) (*saveDatasetDryRunResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveDatasetDryRunResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveDatasetDryRun",
 		Query:  saveDatasetDryRun_Operation,
 		Variables: &__saveDatasetDryRunInput{
@@ -22849,21 +23123,20 @@ func saveDatasetDryRun(
 			Dep:         dep,
 		},
 	}
-	var err error
 
-	var data saveDatasetDryRunResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveDatasetDryRunResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveMonitorV2Relations.
+// The mutation executed by saveMonitorV2Relations.
 const saveMonitorV2Relations_Operation = `
 mutation saveMonitorV2Relations ($monitorId: ObjectId!, $actionRelations: [ActionRelationInput!]) {
 	monitorV2: saveMonitorV2Relations(monitorId: $monitorId, actionRelations: $actionRelations) {
@@ -23095,12 +23368,12 @@ fragment PrimitiveValue on PrimitiveValue {
 `
 
 func saveMonitorV2Relations(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	monitorId string,
 	actionRelations []ActionRelationInput,
-) (*saveMonitorV2RelationsResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveMonitorV2RelationsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveMonitorV2Relations",
 		Query:  saveMonitorV2Relations_Operation,
 		Variables: &__saveMonitorV2RelationsInput{
@@ -23108,21 +23381,20 @@ func saveMonitorV2Relations(
 			ActionRelations: actionRelations,
 		},
 	}
-	var err error
 
-	var data saveMonitorV2RelationsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveMonitorV2RelationsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveMonitorV2WithActions.
+// The mutation executed by saveMonitorV2WithActions.
 const saveMonitorV2WithActions_Operation = `
 mutation saveMonitorV2WithActions ($workspaceId: ObjectId!, $monitorId: ObjectId, $input: MonitorV2Input!, $actions: [MonitorV2ActionAndRelationInput!]) {
 	monitorV2: saveMonitorV2WithActions(workspaceId: $workspaceId, monitorId: $monitorId, input: $input, actions: $actions) {
@@ -23354,14 +23626,14 @@ fragment PrimitiveValue on PrimitiveValue {
 `
 
 func saveMonitorV2WithActions(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	monitorId *string,
 	input MonitorV2Input,
 	actions []MonitorV2ActionAndRelationInput,
-) (*saveMonitorV2WithActionsResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveMonitorV2WithActionsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveMonitorV2WithActions",
 		Query:  saveMonitorV2WithActions_Operation,
 		Variables: &__saveMonitorV2WithActionsInput{
@@ -23371,21 +23643,20 @@ func saveMonitorV2WithActions(
 			Actions:     actions,
 		},
 	}
-	var err error
 
-	var data saveMonitorV2WithActionsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveMonitorV2WithActionsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveSourceDataset.
+// The mutation executed by saveSourceDataset.
 const saveSourceDataset_Operation = `
 mutation saveSourceDataset ($workspaceId: ObjectId!, $datasetDefinition: DatasetDefinitionInput!, $sourceTable: SourceTableDefinitionInput!, $dep: DependencyHandlingInput) {
 	dataset: saveSourceDataset(workspaceId: $workspaceId, datasetDefinition: $datasetDefinition, sourceTable: $sourceTable, dependencyHandling: $dep) {
@@ -23487,14 +23758,14 @@ fragment StageQuery on StageQuery {
 `
 
 func saveSourceDataset(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId string,
 	datasetDefinition DatasetDefinitionInput,
 	sourceTable SourceTableDefinitionInput,
 	dep *DependencyHandlingInput,
-) (*saveSourceDatasetResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveSourceDatasetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveSourceDataset",
 		Query:  saveSourceDataset_Operation,
 		Variables: &__saveSourceDatasetInput{
@@ -23504,21 +23775,20 @@ func saveSourceDataset(
 			Dep:               dep,
 		},
 	}
-	var err error
 
-	var data saveSourceDatasetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveSourceDatasetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by saveWorksheet.
+// The mutation executed by saveWorksheet.
 const saveWorksheet_Operation = `
 mutation saveWorksheet ($worksheetInput: WorksheetInput!) {
 	worksheet: saveWorksheet(wks: $worksheetInput) {
@@ -23555,32 +23825,31 @@ fragment StageQuery on StageQuery {
 `
 
 func saveWorksheet(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	worksheetInput WorksheetInput,
-) (*saveWorksheetResponse, error) {
-	req := &graphql.Request{
+) (data_ *saveWorksheetResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "saveWorksheet",
 		Query:  saveWorksheet_Operation,
 		Variables: &__saveWorksheetInput{
 			WorksheetInput: worksheetInput,
 		},
 	}
-	var err error
 
-	var data saveWorksheetResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &saveWorksheetResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by searchMonitorActions.
+// The query executed by searchMonitorActions.
 const searchMonitorActions_Operation = `
 query searchMonitorActions ($workspaceId: ObjectId, $name: String) {
 	monitorActions: searchMonitorActions(workspaceId: $workspaceId, name: $name) {
@@ -23617,12 +23886,12 @@ fragment MonitorAction on MonitorAction {
 `
 
 func searchMonitorActions(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId *string,
 	name *string,
-) (*searchMonitorActionsResponse, error) {
-	req := &graphql.Request{
+) (data_ *searchMonitorActionsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "searchMonitorActions",
 		Query:  searchMonitorActions_Operation,
 		Variables: &__searchMonitorActionsInput{
@@ -23630,21 +23899,20 @@ func searchMonitorActions(
 			Name:        name,
 		},
 	}
-	var err error
 
-	var data searchMonitorActionsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &searchMonitorActionsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by searchMonitorV2Action.
+// The query executed by searchMonitorV2Action.
 const searchMonitorV2Action_Operation = `
 query searchMonitorV2Action ($workspaceId: ObjectId, $folderId: ObjectId, $nameExact: String, $nameSubstring: String) {
 	monitorV2Actions: searchMonitorV2Action(workspaceId: $workspaceId, folderId: $folderId, nameExact: $nameExact, nameSubstring: $nameSubstring) {
@@ -23696,14 +23964,14 @@ fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 `
 
 func searchMonitorV2Action(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	workspaceId *string,
 	folderId *string,
 	nameExact *string,
 	nameSubstring *string,
-) (*searchMonitorV2ActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *searchMonitorV2ActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "searchMonitorV2Action",
 		Query:  searchMonitorV2Action_Operation,
 		Variables: &__searchMonitorV2ActionInput{
@@ -23713,21 +23981,20 @@ func searchMonitorV2Action(
 			NameSubstring: nameSubstring,
 		},
 	}
-	var err error
 
-	var data searchMonitorV2ActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &searchMonitorV2ActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by setChannelsForChannelAction.
+// The mutation executed by setChannelsForChannelAction.
 const setChannelsForChannelAction_Operation = `
 mutation setChannelsForChannelAction ($actionId: ObjectId!, $channelIds: [ObjectId!]!) {
 	resultStatus: setChannelsForChannelAction(actionId: $actionId, channelIds: $channelIds) {
@@ -23742,12 +24009,12 @@ fragment ResultStatus on ResultStatus {
 `
 
 func setChannelsForChannelAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	actionId string,
 	channelIds []string,
-) (*setChannelsForChannelActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *setChannelsForChannelActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "setChannelsForChannelAction",
 		Query:  setChannelsForChannelAction_Operation,
 		Variables: &__setChannelsForChannelActionInput{
@@ -23755,21 +24022,20 @@ func setChannelsForChannelAction(
 			ChannelIds: channelIds,
 		},
 	}
-	var err error
 
-	var data setChannelsForChannelActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &setChannelsForChannelActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by setDefaultDashboard.
+// The mutation executed by setDefaultDashboard.
 const setDefaultDashboard_Operation = `
 mutation setDefaultDashboard ($dsid: ObjectId!, $dashid: ObjectId!) {
 	resultStatus: setDefaultDashboard(dsid: $dsid, dashid: $dashid) {
@@ -23784,12 +24050,12 @@ fragment ResultStatus on ResultStatus {
 `
 
 func setDefaultDashboard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	dsid string,
 	dashid string,
-) (*setDefaultDashboardResponse, error) {
-	req := &graphql.Request{
+) (data_ *setDefaultDashboardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "setDefaultDashboard",
 		Query:  setDefaultDashboard_Operation,
 		Variables: &__setDefaultDashboardInput{
@@ -23797,21 +24063,20 @@ func setDefaultDashboard(
 			Dashid: dashid,
 		},
 	}
-	var err error
 
-	var data setDefaultDashboardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &setDefaultDashboardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by setIngestFilterEnabled.
+// The mutation executed by setIngestFilterEnabled.
 const setIngestFilterEnabled_Operation = `
 mutation setIngestFilterEnabled ($filterId: ObjectId!, $enabled: Boolean!) {
 	setIngestFilterEnabled(id: $filterId, enabled: $enabled) {
@@ -23861,12 +24126,12 @@ fragment errorFields on TaskResultError {
 `
 
 func setIngestFilterEnabled(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	filterId string,
 	enabled bool,
-) (*setIngestFilterEnabledResponse, error) {
-	req := &graphql.Request{
+) (data_ *setIngestFilterEnabledResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "setIngestFilterEnabled",
 		Query:  setIngestFilterEnabled_Operation,
 		Variables: &__setIngestFilterEnabledInput{
@@ -23874,21 +24139,20 @@ func setIngestFilterEnabled(
 			Enabled:  enabled,
 		},
 	}
-	var err error
 
-	var data setIngestFilterEnabledResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &setIngestFilterEnabledResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by setMonitorsForChannel.
+// The mutation executed by setMonitorsForChannel.
 const setMonitorsForChannel_Operation = `
 mutation setMonitorsForChannel ($channelId: ObjectId!, $monitorIds: [ObjectId!]!) {
 	resultStatus: setMonitorsForChannel(channelId: $channelId, monitorIds: $monitorIds) {
@@ -23903,12 +24167,12 @@ fragment ResultStatus on ResultStatus {
 `
 
 func setMonitorsForChannel(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	channelId string,
 	monitorIds []string,
-) (*setMonitorsForChannelResponse, error) {
-	req := &graphql.Request{
+) (data_ *setMonitorsForChannelResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "setMonitorsForChannel",
 		Query:  setMonitorsForChannel_Operation,
 		Variables: &__setMonitorsForChannelInput{
@@ -23916,21 +24180,20 @@ func setMonitorsForChannel(
 			MonitorIds: monitorIds,
 		},
 	}
-	var err error
 
-	var data setMonitorsForChannelResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &setMonitorsForChannelResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by setRbacDefaultSharingGroups.
+// The mutation executed by setRbacDefaultSharingGroups.
 const setRbacDefaultSharingGroups_Operation = `
 mutation setRbacDefaultSharingGroups ($shares: [RbacDefaultSharingGroupInput!]!) {
 	resultStatus: setRbacDefaultSharingGroups(shares: $shares) {
@@ -23945,32 +24208,31 @@ fragment ResultStatus on ResultStatus {
 `
 
 func setRbacDefaultSharingGroups(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	shares []RbacDefaultSharingGroupInput,
-) (*setRbacDefaultSharingGroupsResponse, error) {
-	req := &graphql.Request{
+) (data_ *setRbacDefaultSharingGroupsResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "setRbacDefaultSharingGroups",
 		Query:  setRbacDefaultSharingGroups_Operation,
 		Variables: &__setRbacDefaultSharingGroupsInput{
 			Shares: shares,
 		},
 	}
-	var err error
 
-	var data setRbacDefaultSharingGroupsResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &setRbacDefaultSharingGroupsResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateApp.
+// The mutation executed by updateApp.
 const updateApp_Operation = `
 mutation updateApp ($id: ObjectId!, $config: AppInput!) {
 	app: updateApp(id: $id, app: $config) {
@@ -23997,12 +24259,12 @@ fragment App on App {
 `
 
 func updateApp(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config AppInput,
-) (*updateAppResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateAppResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateApp",
 		Query:  updateApp_Operation,
 		Variables: &__updateAppInput{
@@ -24010,21 +24272,20 @@ func updateApp(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateAppResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateAppResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateAppDataSource.
+// The mutation executed by updateAppDataSource.
 const updateAppDataSource_Operation = `
 mutation updateAppDataSource ($id: ObjectId!, $config: AppDataSourceInput!) {
 	appdatasource: updateAppDataSource(id: $id, source: $config) {
@@ -24044,12 +24305,12 @@ fragment AppDataSource on AppDataSource {
 `
 
 func updateAppDataSource(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config AppDataSourceInput,
-) (*updateAppDataSourceResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateAppDataSourceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateAppDataSource",
 		Query:  updateAppDataSource_Operation,
 		Variables: &__updateAppDataSourceInput{
@@ -24057,21 +24318,20 @@ func updateAppDataSource(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateAppDataSourceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateAppDataSourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateBoard.
+// The mutation executed by updateBoard.
 const updateBoard_Operation = `
 mutation updateBoard ($id: ObjectId!, $board: BoardInput!) {
 	board: updateBoard(id: $id, board: $board) {
@@ -24089,12 +24349,12 @@ fragment Board on Board {
 `
 
 func updateBoard(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	board BoardInput,
-) (*updateBoardResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateBoardResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateBoard",
 		Query:  updateBoard_Operation,
 		Variables: &__updateBoardInput{
@@ -24102,21 +24362,20 @@ func updateBoard(
 			Board: board,
 		},
 	}
-	var err error
 
-	var data updateBoardResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateBoardResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateChannel.
+// The mutation executed by updateChannel.
 const updateChannel_Operation = `
 mutation updateChannel ($id: ObjectId!, $channel: ChannelInput!) {
 	channel: updateChannel(id: $id, channel: $channel) {
@@ -24136,12 +24395,12 @@ fragment Channel on Channel {
 `
 
 func updateChannel(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	channel ChannelInput,
-) (*updateChannelResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateChannelResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateChannel",
 		Query:  updateChannel_Operation,
 		Variables: &__updateChannelInput{
@@ -24149,21 +24408,20 @@ func updateChannel(
 			Channel: channel,
 		},
 	}
-	var err error
 
-	var data updateChannelResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateChannelResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateChannelAction.
+// The mutation executed by updateChannelAction.
 const updateChannelAction_Operation = `
 mutation updateChannelAction ($id: ObjectId!, $action: ActionInput!) {
 	channelAction: updateChannelAction(id: $id, action: $action) {
@@ -24202,12 +24460,12 @@ fragment ChannelAction on ChannelAction {
 `
 
 func updateChannelAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	action ActionInput,
-) (*updateChannelActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateChannelActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateChannelAction",
 		Query:  updateChannelAction_Operation,
 		Variables: &__updateChannelActionInput{
@@ -24215,21 +24473,20 @@ func updateChannelAction(
 			Action: action,
 		},
 	}
-	var err error
 
-	var data updateChannelActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateChannelActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateDashboardLink.
+// The mutation executed by updateDashboardLink.
 const updateDashboardLink_Operation = `
 mutation updateDashboardLink ($id: ObjectId!, $input: DashboardLinkInput!) {
 	dashboardLink: updateDashboardLink(id: $id, link: $input) {
@@ -24251,12 +24508,12 @@ fragment DashboardLink on DashboardLink {
 `
 
 func updateDashboardLink(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input DashboardLinkInput,
-) (*updateDashboardLinkResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateDashboardLinkResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateDashboardLink",
 		Query:  updateDashboardLink_Operation,
 		Variables: &__updateDashboardLinkInput{
@@ -24264,21 +24521,20 @@ func updateDashboardLink(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateDashboardLinkResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateDashboardLinkResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateDatasetOutboundShare.
+// The mutation executed by updateDatasetOutboundShare.
 const updateDatasetOutboundShare_Operation = `
 mutation updateDatasetOutboundShare ($id: ObjectId!, $input: DatasetOutboundShareInput!) {
 	datasetOutboundShare: updateDatasetOutboundShare(id: $id, input: $input) {
@@ -24305,12 +24561,12 @@ fragment DatasetOutboundShare on DatasetOutboundShare {
 `
 
 func updateDatasetOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input DatasetOutboundShareInput,
-) (*updateDatasetOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateDatasetOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateDatasetOutboundShare",
 		Query:  updateDatasetOutboundShare_Operation,
 		Variables: &__updateDatasetOutboundShareInput{
@@ -24318,21 +24574,20 @@ func updateDatasetOutboundShare(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateDatasetOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateDatasetOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateDatastream.
+// The mutation executed by updateDatastream.
 const updateDatastream_Operation = `
 mutation updateDatastream ($id: ObjectId!, $datastream: DatastreamInput!) {
 	datastream: updateDatastream(id: $id, datastream: $datastream) {
@@ -24350,12 +24605,12 @@ fragment Datastream on Datastream {
 `
 
 func updateDatastream(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	datastream DatastreamInput,
-) (*updateDatastreamResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateDatastreamResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateDatastream",
 		Query:  updateDatastream_Operation,
 		Variables: &__updateDatastreamInput{
@@ -24363,21 +24618,20 @@ func updateDatastream(
 			Datastream: datastream,
 		},
 	}
-	var err error
 
-	var data updateDatastreamResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateDatastreamResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateDatastreamToken.
+// The mutation executed by updateDatastreamToken.
 const updateDatastreamToken_Operation = `
 mutation updateDatastreamToken ($id: String!, $token: DatastreamTokenInput!) {
 	datastreamToken: updateDatastreamToken(id: $id, token: $token) {
@@ -24395,12 +24649,12 @@ fragment DatastreamToken on DatastreamToken {
 `
 
 func updateDatastreamToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	token DatastreamTokenInput,
-) (*updateDatastreamTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateDatastreamTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateDatastreamToken",
 		Query:  updateDatastreamToken_Operation,
 		Variables: &__updateDatastreamTokenInput{
@@ -24408,21 +24662,20 @@ func updateDatastreamToken(
 			Token: token,
 		},
 	}
-	var err error
 
-	var data updateDatastreamTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateDatastreamTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateDeferredForeignKey.
+// The mutation executed by updateDeferredForeignKey.
 const updateDeferredForeignKey_Operation = `
 mutation updateDeferredForeignKey ($id: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
 	deferredForeignKey: updateDeferredForeignKey(id: $id, data: $keyInput) {
@@ -24452,12 +24705,12 @@ fragment DeferredForeignKey on DeferredForeignKey {
 `
 
 func updateDeferredForeignKey(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	keyInput DeferredForeignKeyInput,
-) (*updateDeferredForeignKeyResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateDeferredForeignKeyResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateDeferredForeignKey",
 		Query:  updateDeferredForeignKey_Operation,
 		Variables: &__updateDeferredForeignKeyInput{
@@ -24465,21 +24718,20 @@ func updateDeferredForeignKey(
 			KeyInput: keyInput,
 		},
 	}
-	var err error
 
-	var data updateDeferredForeignKeyResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateDeferredForeignKeyResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateFiledrop.
+// The mutation executed by updateFiledrop.
 const updateFiledrop_Operation = `
 mutation updateFiledrop ($id: ObjectId!, $input: FiledropInput!) {
 	filedrop: updateFiledrop(id: $id, input: $input) {
@@ -24515,12 +24767,12 @@ fragment Filedrop on Filedrop {
 `
 
 func updateFiledrop(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input FiledropInput,
-) (*updateFiledropResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateFiledropResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateFiledrop",
 		Query:  updateFiledrop_Operation,
 		Variables: &__updateFiledropInput{
@@ -24528,21 +24780,20 @@ func updateFiledrop(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateFiledropResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateFiledropResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateFolder.
+// The mutation executed by updateFolder.
 const updateFolder_Operation = `
 mutation updateFolder ($id: ObjectId!, $config: FolderInput!) {
 	folder: updateFolder(id: $id, folder: $config) {
@@ -24559,12 +24810,12 @@ fragment Folder on Folder {
 `
 
 func updateFolder(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config FolderInput,
-) (*updateFolderResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateFolderResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateFolder",
 		Query:  updateFolder_Operation,
 		Variables: &__updateFolderInput{
@@ -24572,21 +24823,20 @@ func updateFolder(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateFolderResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateFolderResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateIngestFilter.
+// The mutation executed by updateIngestFilter.
 const updateIngestFilter_Operation = `
 mutation updateIngestFilter ($filterId: ObjectId!, $input: IngestFilterInput!) {
 	ingestFilter: updateIngestFilter(id: $filterId, input: $input) {
@@ -24636,12 +24886,12 @@ fragment errorFields on TaskResultError {
 `
 
 func updateIngestFilter(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	filterId string,
 	input IngestFilterInput,
-) (*updateIngestFilterResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateIngestFilterResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateIngestFilter",
 		Query:  updateIngestFilter_Operation,
 		Variables: &__updateIngestFilterInput{
@@ -24649,21 +24899,20 @@ func updateIngestFilter(
 			Input:    input,
 		},
 	}
-	var err error
 
-	var data updateIngestFilterResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateIngestFilterResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateIngestToken.
+// The mutation executed by updateIngestToken.
 const updateIngestToken_Operation = `
 mutation updateIngestToken ($id: ObjectId!, $input: IngestTokenInput!) {
 	ingestToken: updateIngestToken(id: $id, input: $input) {
@@ -24681,12 +24930,12 @@ fragment IngestToken on IngestToken {
 `
 
 func updateIngestToken(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input IngestTokenInput,
-) (*updateIngestTokenResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateIngestTokenResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateIngestToken",
 		Query:  updateIngestToken_Operation,
 		Variables: &__updateIngestTokenInput{
@@ -24694,21 +24943,20 @@ func updateIngestToken(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateIngestTokenResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateIngestTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateLayeredSettingRecord.
+// The mutation executed by updateLayeredSettingRecord.
 const updateLayeredSettingRecord_Operation = `
 mutation updateLayeredSettingRecord ($settingRecord: LayeredSettingRecordInput!) {
 	layeredSettingRecord: updateLayeredSettingRecord(settingRecord: $settingRecord) {
@@ -24760,32 +25008,31 @@ fragment LayeredSettingRecordTarget on LayeredSettingRecordTarget {
 `
 
 func updateLayeredSettingRecord(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	settingRecord LayeredSettingRecordInput,
-) (*updateLayeredSettingRecordResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateLayeredSettingRecordResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateLayeredSettingRecord",
 		Query:  updateLayeredSettingRecord_Operation,
 		Variables: &__updateLayeredSettingRecordInput{
 			SettingRecord: settingRecord,
 		},
 	}
-	var err error
 
-	var data updateLayeredSettingRecordResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateLayeredSettingRecordResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateMonitor.
+// The mutation executed by updateMonitor.
 const updateMonitor_Operation = `
 mutation updateMonitor ($id: ObjectId!, $monitor: MonitorInput!) {
 	monitor: updateMonitor(id: $id, monitor: $monitor) {
@@ -24884,14 +25131,13 @@ fragment StageQuery on StageQuery {
 }
 `
 
-// More workarounds for server-side struggles
 func updateMonitor(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	monitor MonitorInput,
-) (*updateMonitorResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateMonitorResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateMonitor",
 		Query:  updateMonitor_Operation,
 		Variables: &__updateMonitorInput{
@@ -24899,21 +25145,20 @@ func updateMonitor(
 			Monitor: monitor,
 		},
 	}
-	var err error
 
-	var data updateMonitorResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateMonitorResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateMonitorAction.
+// The mutation executed by updateMonitorAction.
 const updateMonitorAction_Operation = `
 mutation updateMonitorAction ($id: ObjectId!, $monitorAction: MonitorActionInput!) {
 	monitorAction: updateMonitorAction(id: $id, input: $monitorAction) {
@@ -24950,12 +25195,12 @@ fragment MonitorAction on MonitorAction {
 `
 
 func updateMonitorAction(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	monitorAction MonitorActionInput,
-) (*updateMonitorActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateMonitorActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateMonitorAction",
 		Query:  updateMonitorAction_Operation,
 		Variables: &__updateMonitorActionInput{
@@ -24963,21 +25208,20 @@ func updateMonitorAction(
 			MonitorAction: monitorAction,
 		},
 	}
-	var err error
 
-	var data updateMonitorActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateMonitorActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateMonitorActionAttachment.
+// The mutation executed by updateMonitorActionAttachment.
 const updateMonitorActionAttachment_Operation = `
 mutation updateMonitorActionAttachment ($id: ObjectId!, $monitorActionAttachment: MonitorActionAttachmentInput!) {
 	monitorActionAttachment: updateMonitorActionAttachment(id: $id, input: $monitorActionAttachment) {
@@ -24996,12 +25240,12 @@ fragment MonitorActionAttachment on MonitorActionAttachment {
 `
 
 func updateMonitorActionAttachment(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	monitorActionAttachment MonitorActionAttachmentInput,
-) (*updateMonitorActionAttachmentResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateMonitorActionAttachmentResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateMonitorActionAttachment",
 		Query:  updateMonitorActionAttachment_Operation,
 		Variables: &__updateMonitorActionAttachmentInput{
@@ -25009,21 +25253,20 @@ func updateMonitorActionAttachment(
 			MonitorActionAttachment: monitorActionAttachment,
 		},
 	}
-	var err error
 
-	var data updateMonitorActionAttachmentResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateMonitorActionAttachmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateMonitorV2.
+// The mutation executed by updateMonitorV2.
 const updateMonitorV2_Operation = `
 mutation updateMonitorV2 ($id: ObjectId!, $input: MonitorV2Input!) {
 	monitorV2: updateMonitorV2(id: $id, input: $input) {
@@ -25254,14 +25497,13 @@ fragment PrimitiveValue on PrimitiveValue {
 }
 `
 
-// @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 func updateMonitorV2(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input MonitorV2Input,
-) (*updateMonitorV2Response, error) {
-	req := &graphql.Request{
+) (data_ *updateMonitorV2Response, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateMonitorV2",
 		Query:  updateMonitorV2_Operation,
 		Variables: &__updateMonitorV2Input{
@@ -25269,21 +25511,20 @@ func updateMonitorV2(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateMonitorV2Response
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateMonitorV2Response{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateMonitorV2Action.
+// The mutation executed by updateMonitorV2Action.
 const updateMonitorV2Action_Operation = `
 mutation updateMonitorV2Action ($id: ObjectId!, $input: MonitorV2ActionInput!) {
 	monitorV2Action: updateMonitorV2Action(id: $id, input: $input) {
@@ -25330,12 +25571,12 @@ fragment MonitorV2WebhookHeader on MonitorV2WebhookHeader {
 `
 
 func updateMonitorV2Action(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input MonitorV2ActionInput,
-) (*updateMonitorV2ActionResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateMonitorV2ActionResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateMonitorV2Action",
 		Query:  updateMonitorV2Action_Operation,
 		Variables: &__updateMonitorV2ActionInput{
@@ -25343,21 +25584,20 @@ func updateMonitorV2Action(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateMonitorV2ActionResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateMonitorV2ActionResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updatePoller.
+// The mutation executed by updatePoller.
 const updatePoller_Operation = `
 mutation updatePoller ($id: ObjectId!, $poller: PollerInput!) {
 	poller: updatePoller(id: $id, poller: $poller) {
@@ -25472,12 +25712,12 @@ fragment HttpRequestConfig on PollerHTTPRequestConfig {
 `
 
 func updatePoller(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	poller PollerInput,
-) (*updatePollerResponse, error) {
-	req := &graphql.Request{
+) (data_ *updatePollerResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updatePoller",
 		Query:  updatePoller_Operation,
 		Variables: &__updatePollerInput{
@@ -25485,21 +25725,20 @@ func updatePoller(
 			Poller: poller,
 		},
 	}
-	var err error
 
-	var data updatePollerResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updatePollerResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updatePreferredPath.
+// The mutation executed by updatePreferredPath.
 const updatePreferredPath_Operation = `
 mutation updatePreferredPath ($id: ObjectId!, $config: PreferredPathInput!) {
 	preferredPathWithStatus: updatePreferredPath(id: $id, path: $config) {
@@ -25529,14 +25768,13 @@ fragment PreferredPath on PreferredPath {
 }
 `
 
-// More workarounds for server-side struggles
 func updatePreferredPath(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config PreferredPathInput,
-) (*updatePreferredPathResponse, error) {
-	req := &graphql.Request{
+) (data_ *updatePreferredPathResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updatePreferredPath",
 		Query:  updatePreferredPath_Operation,
 		Variables: &__updatePreferredPathInput{
@@ -25544,21 +25782,20 @@ func updatePreferredPath(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updatePreferredPathResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updatePreferredPathResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateRbacGroup.
+// The mutation executed by updateRbacGroup.
 const updateRbacGroup_Operation = `
 mutation updateRbacGroup ($id: ORN!, $config: RbacGroupInput!) {
 	rbacGroup: updateRbacGroup(id: $id, input: $config) {
@@ -25573,12 +25810,12 @@ fragment RbacGroup on RbacGroup {
 `
 
 func updateRbacGroup(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config RbacGroupInput,
-) (*updateRbacGroupResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateRbacGroupResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateRbacGroup",
 		Query:  updateRbacGroup_Operation,
 		Variables: &__updateRbacGroupInput{
@@ -25586,21 +25823,20 @@ func updateRbacGroup(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateRbacGroupResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateRbacGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateRbacStatement.
+// The mutation executed by updateRbacStatement.
 const updateRbacStatement_Operation = `
 mutation updateRbacStatement ($id: ORN!, $config: RbacStatementInput!) {
 	rbacStatement: updateRbacStatement(id: $id, input: $config) {
@@ -25630,12 +25866,12 @@ fragment RbacStatement on RbacStatement {
 `
 
 func updateRbacStatement(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config RbacStatementInput,
-) (*updateRbacStatementResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateRbacStatementResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateRbacStatement",
 		Query:  updateRbacStatement_Operation,
 		Variables: &__updateRbacStatementInput{
@@ -25643,21 +25879,20 @@ func updateRbacStatement(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateRbacStatementResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateRbacStatementResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateSnowflakeOutboundShare.
+// The mutation executed by updateSnowflakeOutboundShare.
 const updateSnowflakeOutboundShare_Operation = `
 mutation updateSnowflakeOutboundShare ($id: ObjectId!, $input: SnowflakeOutboundShareInput!) {
 	share: updateSnowflakeOutboundShare(id: $id, input: $input) {
@@ -25681,12 +25916,12 @@ fragment SnowflakeAccount on SnowflakeAccount {
 `
 
 func updateSnowflakeOutboundShare(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	input SnowflakeOutboundShareInput,
-) (*updateSnowflakeOutboundShareResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateSnowflakeOutboundShareResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateSnowflakeOutboundShare",
 		Query:  updateSnowflakeOutboundShare_Operation,
 		Variables: &__updateSnowflakeOutboundShareInput{
@@ -25694,21 +25929,20 @@ func updateSnowflakeOutboundShare(
 			Input: input,
 		},
 	}
-	var err error
 
-	var data updateSnowflakeOutboundShareResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateSnowflakeOutboundShareResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }
 
-// The query or mutation executed by updateWorkspace.
+// The mutation executed by updateWorkspace.
 const updateWorkspace_Operation = `
 mutation updateWorkspace ($id: ObjectId!, $config: WorkspaceInput!) {
 	workspace: updateWorkspace(id: $id, definition: $config) {
@@ -25722,12 +25956,12 @@ fragment Workspace on Project {
 `
 
 func updateWorkspace(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	id string,
 	config WorkspaceInput,
-) (*updateWorkspaceResponse, error) {
-	req := &graphql.Request{
+) (data_ *updateWorkspaceResponse, err_ error) {
+	req_ := &graphql.Request{
 		OpName: "updateWorkspace",
 		Query:  updateWorkspace_Operation,
 		Variables: &__updateWorkspaceInput{
@@ -25735,16 +25969,15 @@ func updateWorkspace(
 			Config: config,
 		},
 	}
-	var err error
 
-	var data updateWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
+	data_ = &updateWorkspaceResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return data_, err_
 }

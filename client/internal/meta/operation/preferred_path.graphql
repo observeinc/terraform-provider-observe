@@ -21,13 +21,6 @@ fragment PreferredPathWithStatus on PreferredPathWithStatus {
 	error
 }
 
-# More workarounds for server-side struggles
-# @genqlient(for: "PreferredPathInput.folderId", omitempty: true)
-# @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.linkId", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.linkName", omitempty: true)
 mutation createPreferredPath(
 	$workspaceId: ObjectId!,
 	$config: PreferredPathInput!
@@ -45,13 +38,6 @@ query getPreferredPath($id: ObjectId!) {
 	}
 }
 
-# More workarounds for server-side struggles
-# @genqlient(for: "PreferredPathInput.folderId", omitempty: true)
-# @genqlient(for: "PreferredPathInput.managedById", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.reverseFromDataset", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.reverse", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.linkId", omitempty: true)
-# @genqlient(for: "PreferredPathStepInput.linkName", omitempty: true)
 mutation updatePreferredPath(
 	$id: ObjectId!,
 	$config: PreferredPathInput!

@@ -18,6 +18,7 @@ type genqlientDirective struct {
 	Flatten   *bool
 	Bind      string
 	TypeName  string
+	Alias     string
 	// FieldDirectives contains the directives to be
 	// applied to specific fields via the "for" option.
 	// Map from type-name -> field-name -> directive.
@@ -52,6 +53,9 @@ func (dir *genqlientDirective) argsString() string {
 	if dir.TypeName != "" {
 		parts = append(parts, fmt.Sprintf("typename: %v", dir.TypeName))
 	}
+	if dir.Alias != "" {
+		parts = append(parts, fmt.Sprintf("alias: %v", dir.Alias))
+	}
 	return strings.Join(parts, ", ")
 }
 
@@ -67,10 +71,11 @@ func (dir *genqlientDirective) String() string {
 	return strings.Join(lines, "\n")
 }
 
-func (dir *genqlientDirective) GetOmitempty() bool { return dir.Omitempty != nil && *dir.Omitempty }
-func (dir *genqlientDirective) GetPointer() bool   { return dir.Pointer != nil && *dir.Pointer }
-func (dir *genqlientDirective) GetStruct() bool    { return dir.Struct != nil && *dir.Struct }
-func (dir *genqlientDirective) GetFlatten() bool   { return dir.Flatten != nil && *dir.Flatten }
+func (dir *genqlientDirective) GetOmitempty() bool   { return dir.Omitempty != nil && *dir.Omitempty }
+func (dir *genqlientDirective) GetPointer() bool     { return dir.Pointer != nil && *dir.Pointer }
+func (dir *genqlientDirective) PointerIsFalse() bool { return dir.Pointer != nil && !*dir.Pointer }
+func (dir *genqlientDirective) GetStruct() bool      { return dir.Struct != nil && *dir.Struct }
+func (dir *genqlientDirective) GetFlatten() bool     { return dir.Flatten != nil && *dir.Flatten }
 
 func setBool(optionName string, dst **bool, v *ast.Value, pos *ast.Position) error {
 	if *dst != nil {
@@ -169,6 +174,8 @@ func (dir *genqlientDirective) add(graphQLDirective *ast.Directive, pos *ast.Pos
 			err = setString("bind", &dir.Bind, arg.Value, pos)
 		case "typename":
 			err = setString("typename", &dir.TypeName, arg.Value, pos)
+		case "alias":
+			err = setString("alias", &dir.Alias, arg.Value, pos)
 		case "for":
 			// handled above
 		default:
@@ -212,10 +219,6 @@ func (dir *genqlientDirective) validate(node interface{}, schema *ast.Schema) er
 				return errorf(fieldDir.pos, "struct and flatten can't be used via for")
 			}
 
-			if fieldDir.Omitempty != nil && field.Type.NonNull {
-				return errorf(fieldDir.pos, "omitempty may only be used on optional arguments")
-			}
-
 			if fieldDir.TypeName != "" && fieldDir.Bind != "" && fieldDir.Bind != "-" {
 				return errorf(fieldDir.pos, "typename and bind may not be used together")
 			}
@@ -238,7 +241,7 @@ func (dir *genqlientDirective) validate(node interface{}, schema *ast.Schema) er
 		}
 
 		if dir.Struct != nil {
-			return errorf(dir.pos, "struct is only applicable to fields, not frragment-definitions")
+			return errorf(dir.pos, "struct is only applicable to fields, not fragment-definitions")
 		}
 
 		// Like operations, anything else will just apply to the entire
@@ -444,6 +447,7 @@ func (dir *genqlientDirective) mergeOperationDirective(
 	// typename isn't settable on the operation (when set there it replies to
 	// the response-type).
 	fillDefaultString(&dir.TypeName, forField.TypeName)
+	fillDefaultString(&dir.Alias, forField.Alias, operationDirective.Alias)
 }
 
 // parsePrecedingComment looks at the comment right before this node, and

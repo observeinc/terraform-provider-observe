@@ -7,11 +7,6 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-var AllBoardType = []BoardType{
-	BoardTypeSet,
-	BoardTypeSingleton,
-}
-
 var AllCompareFunctions = []CompareFunction{
 	CompareFunctionEqual,
 	CompareFunctionNotequal,
@@ -173,12 +168,6 @@ var AllMonitorV2HttpTypes = []MonitorV2HttpType{
 var AllMonitorV2BooleanOperators = []MonitorV2BooleanOperator{
 	MonitorV2BooleanOperatorAnd,
 	MonitorV2BooleanOperatorOr,
-}
-
-var AllAccelerationDisabledSource = []AccelerationDisabledSource{
-	AccelerationDisabledSourceEmpty,
-	AccelerationDisabledSourceMonitor,
-	AccelerationDisabledSourceView,
 }
 
 var AllRematerializationModes = []RematerializationMode{
