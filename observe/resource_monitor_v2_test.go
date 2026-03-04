@@ -875,3 +875,169 @@ func TestAccObserveMonitorV2CompareAgainstZeroVals(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorV2Anomaly(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "anomaly"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						stage {
+							pipeline = "timechart 5m, temp_number:avg(temp_number)"
+						}
+						rule_template {
+							anomaly {
+								value_column_name = "temp_number"
+								compare_fn = "above"
+								num_standard_deviations = 3
+								basic_algorithm {}
+							}
+						}
+						rules {
+							level = "informational"
+							anomaly {
+								compare_percentage = 50
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "30m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "anomaly"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.compare_fn", "above"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.num_standard_deviations", "3"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.basic_algorithm.#", "1"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.anomaly.0.compare_percentage", "50"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "anomaly"
+						name = "%[1]s"
+						lookback_time = "1h"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						stage {
+							pipeline = "timechart 5m, temp_number:avg(temp_number)"
+						}
+						rule_template {
+							anomaly {
+								value_column_name = "temp_number"
+								compare_fn = "above_or_below"
+								num_standard_deviations = 2
+								basic_algorithm {}
+							}
+						}
+						rules {
+							level = "informational"
+							anomaly {
+								compare_percentage = 25
+							}
+						}
+						rules {
+							level = "warning"
+							anomaly {
+								compare_percentage = 75
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "lookback_time", "1h0m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "anomaly"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.compare_fn", "above_or_below"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.num_standard_deviations", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.anomaly.0.compare_percentage", "25"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.1.level", "warning"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.1.anomaly.0.compare_percentage", "75"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorV2AnomalyWithNoDataRule(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "anomaly"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						stage {
+							pipeline = "timechart 5m, temp_number:avg(temp_number)"
+						}
+						rule_template {
+							anomaly {
+								value_column_name = "temp_number"
+								compare_fn = "below"
+								num_standard_deviations = 2
+								basic_algorithm {}
+							}
+						}
+						no_data_rules {
+							expiration = "30m"
+							anomaly {}
+						}
+						rules {
+							level = "informational"
+							anomaly {
+								compare_percentage = 50
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.first", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "anomaly"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.compare_fn", "below"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.num_standard_deviations", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.anomaly.0.compare_percentage", "50"),
+				),
+			},
+		},
+	})
+}

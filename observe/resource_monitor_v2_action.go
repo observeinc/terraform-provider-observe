@@ -259,21 +259,18 @@ func monitorV2FlattenEmailAction(gqlEmail gql.MonitorV2EmailAction) []interface{
 		email["fragments"] = gqlEmail.Fragments.String()
 	}
 
-	if len(gqlEmail.Addresses) > 0 {
-		addrs := make([]string, 0)
-		for _, addr := range gqlEmail.Addresses {
-			addrs = append(addrs, addr)
-		}
-		email["addresses"] = addrs
+	addrs := make([]string, 0)
+	for _, addr := range gqlEmail.Addresses {
+		addrs = append(addrs, addr)
 	}
-	if len(gqlEmail.Users) > 0 {
-		userOIDStrs := make([]string, 0)
-		for _, uid := range gqlEmail.Users {
-			userOID := oid.UserOid(uid)
-			userOIDStrs = append(userOIDStrs, userOID.String())
-		}
-		email["users"] = userOIDStrs
+	email["addresses"] = addrs
+
+	userOIDStrs := make([]string, 0)
+	for _, uid := range gqlEmail.Users {
+		userOID := oid.UserOid(uid)
+		userOIDStrs = append(userOIDStrs, userOID.String())
 	}
+	email["users"] = userOIDStrs
 	return []interface{}{email}
 }
 
