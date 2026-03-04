@@ -54,3 +54,50 @@ resource "observe_monitor_v2" "example" {
     EOT
   }
 }
+
+# anomaly type monitor
+resource "observe_monitor_v2" "anomaly_example" {
+  name          = "Anomaly Monitor Example"
+  workspace     = data.observe_workspace.default.oid
+  rule_kind     = "anomaly"
+  lookback_time = "10m0s"
+  inputs = {
+    "credits_adhoc_query_from_usage/Observe Usage Metrics" = data.observe_dataset.usage_metrics.oid
+  }
+
+  stage {
+    pipeline = <<-EOT
+      align 2m, frame(back: 2m), A_credits_adhoc_query_sum:sum(m("credits_adhoc_query"))/to_minutes(bin_size())
+      aggregate A_credits_adhoc_query_sum:sum(A_credits_adhoc_query_sum), group_by(^Dataset...)
+    EOT
+  }
+
+  groupings {
+    link_column {
+      name = "Dataset"
+    }
+  }
+
+  rule_template {
+    anomaly {
+      value_column_name       = "A_credits_adhoc_query_sum"
+      compare_fn              = "above"
+      num_standard_deviations = 3
+      basic_algorithm {}
+    }
+  }
+
+  rules {
+    level = "informational"
+    anomaly {
+      compare_percentage = 50
+    }
+  }
+
+  rules {
+    level = "warning"
+    anomaly {
+      compare_percentage = 75
+    }
+  }
+}

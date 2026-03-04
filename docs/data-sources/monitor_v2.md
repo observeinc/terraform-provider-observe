@@ -64,6 +64,7 @@ stage pipelines.
 - `no_data_rules` (Block List) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `oid` (String)
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
+- `rule_template` (Block List) Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more. (see [below for nested schema](#nestedblock--rule_template))
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
@@ -260,8 +261,67 @@ Read-Only:
 
 Read-Only:
 
+- `anomaly` (Block List) The anomaly rule fires when the percentage of data points out of bounds within the evaluation window meets or exceeds the specified threshold. (see [below for nested schema](#nestedblock--no_data_rules--anomaly))
 - `expiration` (String) Allows for the user to specify how long they'd like the missing data alert to persist for before it resolves by itself. If not provided, the default expiration time will be set to 24 hours. The expiration must be identical across all rules.
 - `threshold` (Block List) Adds the ability for threshold monitor to have a no data rule. When this input is provided here, you must provide the aggregation and valueColumnName, while the compareGroups is optional. The compareValues should be left empty. The aggregation and value column provided must be identical across all rules. (see [below for nested schema](#nestedblock--no_data_rules--threshold))
+
+<a id="nestedblock--no_data_rules--anomaly"></a>
+### Nested Schema for `no_data_rules.anomaly`
+
+Read-Only:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups))
+- `compare_percentage` (Number) The percentage of points that needs to be out of bound within the evaluation window for the monitor to trigger the anomaly rule (0 to 100).
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups`
+
+Read-Only:
+
+- `column` (Block List) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--compare_values))
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups--column"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups.column`
+
+Read-Only:
+
+- `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column--column_path))
+- `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column--link_column))
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups--column--column_path"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups.column.column_path`
+
+Read-Only:
+
+- `name` (String) The name of the column.
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups--column--link_column"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups.column.link_column`
+
+Read-Only:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups--compare_values"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups.compare_values`
+
+Read-Only:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
 
 <a id="nestedblock--no_data_rules--threshold"></a>
 ### Nested Schema for `no_data_rules.threshold`
@@ -338,16 +398,102 @@ Read-Only:
 
 
 
+<a id="nestedblock--rule_template"></a>
+### Nested Schema for `rule_template`
+
+Read-Only:
+
+- `anomaly` (Block List) Configuration for anomaly detection monitors, defining which column to monitor, the comparison function, and how many standard deviations constitute an anomaly. (see [below for nested schema](#nestedblock--rule_template--anomaly))
+
+<a id="nestedblock--rule_template--anomaly"></a>
+### Nested Schema for `rule_template.anomaly`
+
+Read-Only:
+
+- `basic_algorithm` (List of Object) Makes the monitor use the basic algorithm. Set to an empty block to enable. The basic algorithm computes the average and standard deviations over the computation window. (see [below for nested schema](#nestedatt--rule_template--anomaly--basic_algorithm))
+- `compare_fn` (String) The bound comparison function (Above, Below, AboveOrBelow) defining which direction(s) of standard deviation to consider out of bounds.
+- `computation_window` (String) The length of the window used to compute the average and the deviation. This value is automatically computed by the backend based on the evaluation window.
+- `num_standard_deviations` (Number) The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5).
+- `value_column_name` (String) Indicates which of the columns in the input query to apply the basic algorithm and create bounds over.
+
+<a id="nestedatt--rule_template--anomaly--basic_algorithm"></a>
+### Nested Schema for `rule_template.anomaly.basic_algorithm`
+
+Read-Only:
+
+
+
+
+
 <a id="nestedblock--rules"></a>
 ### Nested Schema for `rules`
 
 Read-Only:
 
+- `anomaly` (Block List) The anomaly rule fires when the percentage of data points out of bounds within the evaluation window meets or exceeds the specified threshold. (see [below for nested schema](#nestedblock--rules--anomaly))
 - `count` (Block List) The count rule to apply to incoming data. (see [below for nested schema](#nestedblock--rules--count))
 - `level` (String) The alarm level (Critical, Error, Informational, None, Warning).
 - `promote` (Block List) The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
 If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition. (see [below for nested schema](#nestedblock--rules--promote))
 - `threshold` (Block List) Gives flexibility for threshold and range-based monitors to trigger on values. To look for sustained behavior (CPU > 80 for 5 mins), specify lookbackTime. (see [below for nested schema](#nestedblock--rules--threshold))
+
+<a id="nestedblock--rules--anomaly"></a>
+### Nested Schema for `rules.anomaly`
+
+Read-Only:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups))
+- `compare_percentage` (Number) The percentage of points that needs to be out of bound within the evaluation window for the monitor to trigger the anomaly rule (0 to 100).
+
+<a id="nestedblock--rules--anomaly--compare_groups"></a>
+### Nested Schema for `rules.anomaly.compare_groups`
+
+Read-Only:
+
+- `column` (Block List) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--compare_values))
+
+<a id="nestedblock--rules--anomaly--compare_groups--column"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column`
+
+Read-Only:
+
+- `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--column_path))
+- `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.column_path`
+
+Read-Only:
+
+- `name` (String) The name of the column.
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.link_column`
+
+Read-Only:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--compare_values"></a>
+### Nested Schema for `rules.anomaly.compare_groups.compare_values`
+
+Read-Only:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
 
 <a id="nestedblock--rules--count"></a>
 ### Nested Schema for `rules.count`

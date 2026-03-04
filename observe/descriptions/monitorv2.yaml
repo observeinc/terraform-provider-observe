@@ -48,6 +48,27 @@ schema:
     promote: |
       The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
       If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition.
+    anomaly:
+      description: |
+        The anomaly rule fires when the percentage of data points out of bounds within the evaluation window meets or exceeds the specified threshold.
+      compare_percentage: |
+        The percentage of points that needs to be out of bound within the evaluation window for the monitor to trigger the anomaly rule (0 to 100).
+  rule_template:
+    description: |
+      Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more.
+    anomaly:
+      description: |
+        Configuration for anomaly detection monitors, defining which column to monitor, the comparison function, and how many standard deviations constitute an anomaly.
+      computation_window: |
+        The length of the window used to compute the average and the deviation. This value is automatically computed by the backend based on the evaluation window.
+      value_column_name: |
+        Indicates which of the columns in the input query to apply the basic algorithm and create bounds over.
+      compare_fn: |
+        The bound comparison function (Above, Below, AboveOrBelow) defining which direction(s) of standard deviation to consider out of bounds.
+      num_standard_deviations: |
+        The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5).
+      basic_algorithm: |
+        Makes the monitor use the basic algorithm. Set to an empty block to enable. The basic algorithm computes the average and standard deviations over the computation window.
   lookback_time: |
     optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
   data_stabilization_delay: |

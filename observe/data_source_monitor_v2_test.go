@@ -375,3 +375,68 @@ func TestAccObserveMonitorV2ExportWithBindings(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveGetIDMonitorV2Anomaly(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "anomaly"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						stage {
+							pipeline = "timechart 5m, temp_number:avg(temp_number)"
+						}
+						rule_template {
+							anomaly {
+								value_column_name = "temp_number"
+								compare_fn = "above"
+								num_standard_deviations = 3
+								basic_algorithm {}
+							}
+						}
+						no_data_rules {
+							expiration = "30m"
+							anomaly {}
+						}
+						rules {
+							level = "informational"
+							anomaly {
+								compare_percentage = 50
+							}
+						}
+					}
+
+					data "observe_monitor_v2" "lookup" {
+						id = observe_monitor_v2.first.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "anomaly"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.compare_fn", "above"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.num_standard_deviations", "3"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.basic_algorithm.#", "1"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.expiration", "30m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.anomaly.0.compare_percentage", "50"),
+				),
+			},
+		},
+	})
+}

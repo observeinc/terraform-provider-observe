@@ -6749,9 +6749,28 @@ const (
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
 )
 
+// MonitorV2AnomalyRule includes the GraphQL fields of MonitorV2AnomalyRule requested by the fragment MonitorV2AnomalyRule.
+type MonitorV2AnomalyRule struct {
+	// ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
+	// window for the monitor to trigger the anomaly rule. It will always do a greater than or equal to
+	// evaluation of this following comparison. It accepts a range between 0 to 100.
+	ComparePercentage *types.Int64Scalar `json:"comparePercentage"`
+	// CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
+	// This gives the option to add extra dimension to the existing rule by specifying which column of
+	// the group the user looks forward to being alerted by. For example, this allows for rule expression
+	// like (Count > 80 and Group = "Good Group") which would trigger a critical alert.
+	CompareGroups []MonitorV2ColumnComparison `json:"compareGroups"`
+}
+
+// GetComparePercentage returns MonitorV2AnomalyRule.ComparePercentage, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRule) GetComparePercentage() *types.Int64Scalar { return v.ComparePercentage }
+
+// GetCompareGroups returns MonitorV2AnomalyRule.CompareGroups, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRule) GetCompareGroups() []MonitorV2ColumnComparison { return v.CompareGroups }
+
 type MonitorV2AnomalyRuleInput struct {
-	ComparePercentage *types.Int64Scalar               `json:"comparePercentage"`
-	CompareGroups     []MonitorV2ColumnComparisonInput `json:"compareGroups"`
+	ComparePercentage *types.Int64Scalar               `json:"comparePercentage,omitempty"`
+	CompareGroups     []MonitorV2ColumnComparisonInput `json:"compareGroups,omitempty"`
 }
 
 // GetComparePercentage returns MonitorV2AnomalyRuleInput.ComparePercentage, and is useful for accessing the field via an interface.
@@ -6764,12 +6783,55 @@ func (v *MonitorV2AnomalyRuleInput) GetCompareGroups() []MonitorV2ColumnComparis
 	return v.CompareGroups
 }
 
+// MonitorV2AnomalyRuleTemplate includes the GraphQL fields of MonitorV2AnomalyRuleTemplate requested by the fragment MonitorV2AnomalyRuleTemplate.
+type MonitorV2AnomalyRuleTemplate struct {
+	// ComputationWindow describes the length of the window used to compute the average and the deviation.
+	// When not provided, the computation window will be dynamically chosen based on the lookbackTime provided.
+	ComputationWindow *types.DurationScalar `json:"computationWindow"`
+	// ValueColumnName indicates which of the columns in the input query to apply the basic algorithm and create
+	// bounds over.
+	ValueColumnName string `json:"valueColumnName"`
+	// CompareFn allows the user to select one of above, below, or above or below standard deviations to be
+	// the bounds the data point has to be out.
+	CompareFn MonitorV2BoundComparisonFunction `json:"compareFn"`
+	// NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
+	// be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
+	NumStandardDeviations types.Int64Scalar `json:"numStandardDeviations"`
+	// BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the
+	// computation window of data, it will calculate the average and standard deviations and then determine
+	// whether the new point is out of bound. As of now, it will be of type JsonObject in anticipation to
+	// introduce MonitorV2BasicAnomalyAlgorithm in the future only if the need for special fields appear.
+	// To use the basic algorithm, set this value to an empty object.
+	BasicAlgorithm *types.JsonObject `json:"basicAlgorithm"`
+}
+
+// GetComputationWindow returns MonitorV2AnomalyRuleTemplate.ComputationWindow, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetComputationWindow() *types.DurationScalar {
+	return v.ComputationWindow
+}
+
+// GetValueColumnName returns MonitorV2AnomalyRuleTemplate.ValueColumnName, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetValueColumnName() string { return v.ValueColumnName }
+
+// GetCompareFn returns MonitorV2AnomalyRuleTemplate.CompareFn, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetCompareFn() MonitorV2BoundComparisonFunction {
+	return v.CompareFn
+}
+
+// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplate.NumStandardDeviations, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetNumStandardDeviations() types.Int64Scalar {
+	return v.NumStandardDeviations
+}
+
+// GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplate.BasicAlgorithm, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetBasicAlgorithm() *types.JsonObject { return v.BasicAlgorithm }
+
 type MonitorV2AnomalyRuleTemplateInput struct {
-	ComputationWindow     *types.DurationScalar            `json:"computationWindow"`
+	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
 	ValueColumnName       string                           `json:"valueColumnName"`
 	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
 	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
-	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
+	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm,omitempty"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
@@ -7063,6 +7125,10 @@ type MonitorV2Definition struct {
 	// InputQuery is the MultiStageQuery that defines the input feed of data for this monitor. It will include the
 	// original dataset(s) and other transform information that the user selected to create "Create Monitor".
 	InputQuery MonitorV2DefinitionInputQueryMultiStageQuery `json:"inputQuery"`
+	// RuleTemplate is the additional attributes for a monitor rule kind. Some monitor kinds like count and promote don't
+	// have any common attributes, but for kinds like anomaly there are attributes shared amongst all rules such as the
+	// detection algorithm, out of bound condition, and more.
+	RuleTemplate *MonitorV2RuleTemplate `json:"ruleTemplate"`
 	// NoDataRules allows a user to be alerted on missing data for the specified lookback window. When provided,
 	// the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created
 	// is 1 for the threshold monitor kind.
@@ -7107,6 +7173,9 @@ type MonitorV2Definition struct {
 func (v *MonitorV2Definition) GetInputQuery() MonitorV2DefinitionInputQueryMultiStageQuery {
 	return v.InputQuery
 }
+
+// GetRuleTemplate returns MonitorV2Definition.RuleTemplate, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetRuleTemplate() *MonitorV2RuleTemplate { return v.RuleTemplate }
 
 // GetNoDataRules returns MonitorV2Definition.NoDataRules, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetNoDataRules() []MonitorV2NoDataRule { return v.NoDataRules }
@@ -7417,6 +7486,9 @@ type MonitorV2NoDataRule struct {
 	// compareValues should be left empty. The aggregation and value column provided must be identical
 	// across all rules.
 	Threshold *MonitorV2ThresholdRule `json:"threshold"`
+	// Adds the ability for anomaly monitor to have a no data rule. When this input is provided here,
+	// nothing needs to be provided to its fields as they're made optional.
+	Anomaly *MonitorV2AnomalyRule `json:"anomaly"`
 }
 
 // GetExpiration returns MonitorV2NoDataRule.Expiration, and is useful for accessing the field via an interface.
@@ -7425,10 +7497,13 @@ func (v *MonitorV2NoDataRule) GetExpiration() *types.DurationScalar { return v.E
 // GetThreshold returns MonitorV2NoDataRule.Threshold, and is useful for accessing the field via an interface.
 func (v *MonitorV2NoDataRule) GetThreshold() *MonitorV2ThresholdRule { return v.Threshold }
 
+// GetAnomaly returns MonitorV2NoDataRule.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2NoDataRule) GetAnomaly() *MonitorV2AnomalyRule { return v.Anomaly }
+
 type MonitorV2NoDataRuleInput struct {
 	Expiration *types.DurationScalar        `json:"expiration"`
 	Threshold  *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
-	Anomaly    *MonitorV2AnomalyRuleInput   `json:"anomaly"`
+	Anomaly    *MonitorV2AnomalyRuleInput   `json:"anomaly,omitempty"`
 }
 
 // GetExpiration returns MonitorV2NoDataRuleInput.Expiration, and is useful for accessing the field via an interface.
@@ -7494,6 +7569,7 @@ type MonitorV2Rule struct {
 	// The aggregation and value column provided must be identical across all rules.
 	Threshold *MonitorV2ThresholdRule `json:"threshold"`
 	Promote   *MonitorV2PromoteRule   `json:"promote"`
+	Anomaly   *MonitorV2AnomalyRule   `json:"anomaly"`
 }
 
 // GetLevel returns MonitorV2Rule.Level, and is useful for accessing the field via an interface.
@@ -7508,12 +7584,15 @@ func (v *MonitorV2Rule) GetThreshold() *MonitorV2ThresholdRule { return v.Thresh
 // GetPromote returns MonitorV2Rule.Promote, and is useful for accessing the field via an interface.
 func (v *MonitorV2Rule) GetPromote() *MonitorV2PromoteRule { return v.Promote }
 
+// GetAnomaly returns MonitorV2Rule.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2Rule) GetAnomaly() *MonitorV2AnomalyRule { return v.Anomaly }
+
 type MonitorV2RuleInput struct {
 	Level     MonitorV2AlarmLevel          `json:"level"`
 	Count     *MonitorV2CountRuleInput     `json:"count,omitempty"`
 	Threshold *MonitorV2ThresholdRuleInput `json:"threshold,omitempty"`
 	Promote   *MonitorV2PromoteRuleInput   `json:"promote,omitempty"`
-	Anomaly   *MonitorV2AnomalyRuleInput   `json:"anomaly"`
+	Anomaly   *MonitorV2AnomalyRuleInput   `json:"anomaly,omitempty"`
 }
 
 // GetLevel returns MonitorV2RuleInput.Level, and is useful for accessing the field via an interface.
@@ -7549,6 +7628,14 @@ const (
 	MonitorV2RuleKindPromote   MonitorV2RuleKind = "Promote"
 	MonitorV2RuleKindThreshold MonitorV2RuleKind = "Threshold"
 )
+
+// MonitorV2RuleTemplate includes the GraphQL fields of MonitorV2RuleTemplate requested by the fragment MonitorV2RuleTemplate.
+type MonitorV2RuleTemplate struct {
+	Anomaly *MonitorV2AnomalyRuleTemplate `json:"anomaly"`
+}
+
+// GetAnomaly returns MonitorV2RuleTemplate.Anomaly, and is useful for accessing the field via an interface.
+func (v *MonitorV2RuleTemplate) GetAnomaly() *MonitorV2AnomalyRuleTemplate { return v.Anomaly }
 
 type MonitorV2RuleTemplateInput struct {
 	Anomaly *MonitorV2AnomalyRuleTemplateInput `json:"anomaly"`
@@ -16531,6 +16618,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -16573,10 +16663,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -16589,6 +16687,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -16626,12 +16727,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -20368,6 +20482,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -20410,10 +20527,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -20426,6 +20551,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -20463,12 +20591,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -22116,6 +22257,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -22158,10 +22302,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -22174,6 +22326,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -22211,12 +22366,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -22896,6 +23064,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -22938,10 +23109,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -22954,6 +23133,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -22991,12 +23173,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -23155,6 +23350,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -23197,10 +23395,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -23213,6 +23419,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -23250,12 +23459,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
@@ -25056,6 +25278,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 			... StageQuery
 		}
 	}
+	ruleTemplate {
+		... MonitorV2RuleTemplate
+	}
 	noDataRules {
 		... MonitorV2NoDataRule
 	}
@@ -25098,10 +25323,18 @@ fragment StageQuery on StageQuery {
 		stageId
 	}
 }
+fragment MonitorV2RuleTemplate on MonitorV2RuleTemplate {
+	anomaly {
+		... MonitorV2AnomalyRuleTemplate
+	}
+}
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
 	expiration
 	threshold {
 		... MonitorV2ThresholdRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Rule on MonitorV2Rule {
@@ -25114,6 +25347,9 @@ fragment MonitorV2Rule on MonitorV2Rule {
 	}
 	promote {
 		... MonitorV2PromoteRule
+	}
+	anomaly {
+		... MonitorV2AnomalyRule
 	}
 }
 fragment MonitorV2Column on MonitorV2Column {
@@ -25151,12 +25387,25 @@ fragment MonitorV2ActionDefinition on MonitorV2ActionDefinition {
 		... MonitorV2WebhookAction
 	}
 }
+fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
+	computationWindow
+	valueColumnName
+	compareFn
+	numStandardDeviations
+	basicAlgorithm
+}
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
 		... MonitorV2Comparison
 	}
 	valueColumnName
 	aggregation
+	compareGroups {
+		... MonitorV2ColumnComparison
+	}
+}
+fragment MonitorV2AnomalyRule on MonitorV2AnomalyRule {
+	comparePercentage
 	compareGroups {
 		... MonitorV2ColumnComparison
 	}
