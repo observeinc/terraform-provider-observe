@@ -104,7 +104,52 @@ func dataSourceMonitorV2() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("transform", "schema", "inputs"),
 			},
-			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
+			"rule_template": { // MonitorV2RuleTemplateInput
+			Type:        schema.TypeList,
+			Computed:    true,
+			Optional:    true,
+			Description: descriptions.Get("monitorv2", "schema", "rule_template", "description"),
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"anomaly": {
+						Type:        schema.TypeList,
+						Computed:    true,
+						Optional:    true,
+						Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "description"),
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"computation_window": {
+									Type:        schema.TypeString,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "computation_window"),
+								},
+								"value_column_name": {
+									Type:        schema.TypeString,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "value_column_name"),
+								},
+								"compare_fn": {
+									Type:        schema.TypeString,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
+								},
+								"num_standard_deviations": {
+									Type:        schema.TypeInt,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+								},
+								"basic_algorithm": {
+									Type:        schema.TypeString,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
 				Type:        schema.TypeList,
 				Computed:    true,
 				Optional:    true,
@@ -140,20 +185,42 @@ func dataSourceMonitorV2() *schema.Resource {
 										Computed:    true,
 										Description: descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
 									},
-									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
-										Type:        schema.TypeList,
-										Optional:    true,
-										Computed:    true,
-										Elem:        monitorV2ColumnComparisonDatasource(),
-										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
-									},
+								"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+									Type:        schema.TypeList,
+									Optional:    true,
+									Computed:    true,
+									Elem:        monitorV2ColumnComparisonDatasource(),
+									Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+								},
+							},
+						},
+					},
+					"anomaly": { // MonitorV2AnomalyRuleInput
+						Type:        schema.TypeList,
+						Optional:    true,
+						Computed:    true,
+						Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"compare_percentage": {
+									Type:        schema.TypeInt,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
+								},
+								"compare_groups": {
+									Type:        schema.TypeList,
+									Optional:    true,
+									Computed:    true,
+									Elem:        monitorV2ColumnComparisonDatasource(),
+									Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
 								},
 							},
 						},
 					},
 				},
 			},
-			"rules": { // [MonitorV2RuleInput!]!
+		},
+		"rules": { // [MonitorV2RuleInput!]!
 				Type:        schema.TypeList,
 				Computed:    true,
 				Optional:    true,
@@ -223,27 +290,49 @@ func dataSourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
-						"promote": { // MonitorV2PromoteRuleInput
-							Type:        schema.TypeList,
-							Optional:    true,
-							Computed:    true,
-							Description: descriptions.Get("monitorv2", "schema", "rules", "promote"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"compare_columns": { // [MonitorV2ColumnComparisonInput!]
-										Type:        schema.TypeList,
-										Optional:    true,
-										Computed:    true,
-										Elem:        monitorV2ColumnComparisonDatasource(),
-										Description: descriptions.Get("monitorv2", "schema", "column_comparison", "description"),
-									},
+					"promote": { // MonitorV2PromoteRuleInput
+						Type:        schema.TypeList,
+						Optional:    true,
+						Computed:    true,
+						Description: descriptions.Get("monitorv2", "schema", "rules", "promote"),
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"compare_columns": { // [MonitorV2ColumnComparisonInput!]
+									Type:        schema.TypeList,
+									Optional:    true,
+									Computed:    true,
+									Elem:        monitorV2ColumnComparisonDatasource(),
+									Description: descriptions.Get("monitorv2", "schema", "column_comparison", "description"),
+								},
+							},
+						},
+					},
+					"anomaly": { // MonitorV2AnomalyRuleInput
+						Type:        schema.TypeList,
+						Optional:    true,
+						Computed:    true,
+						Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"compare_percentage": {
+									Type:        schema.TypeInt,
+									Computed:    true,
+									Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
+								},
+								"compare_groups": {
+									Type:        schema.TypeList,
+									Optional:    true,
+									Computed:    true,
+									Elem:        monitorV2ColumnComparisonDatasource(),
+									Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
 								},
 							},
 						},
 					},
 				},
 			},
-			"lookback_time": { // Duration
+		},
+		"lookback_time": { // Duration
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "lookback_time"),

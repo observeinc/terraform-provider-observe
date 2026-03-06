@@ -88,6 +88,7 @@ func monitorV2EmailActionInput() *schema.Resource {
 			"users": { // [UserId!]
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validateOID(oid.TypeUser),
@@ -96,6 +97,7 @@ func monitorV2EmailActionInput() *schema.Resource {
 			"addresses": { // [String!]
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
