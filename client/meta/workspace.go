@@ -17,24 +17,9 @@ func workspaceOrError(w workspaceResponse, err error) (*Workspace, error) {
 	return w.GetWorkspace(), nil
 }
 
-func (client *Client) CreateWorkspace(ctx context.Context, input *WorkspaceInput) (*Workspace, error) {
-	resp, err := createWorkspace(ctx, client.Gql, *input)
-	return workspaceOrError(resp, err)
-}
-
 func (client *Client) GetWorkspace(ctx context.Context, id string) (*Workspace, error) {
 	resp, err := getWorkspace(ctx, client.Gql, id)
 	return workspaceOrError(resp, err)
-}
-
-func (client *Client) UpdateWorkspace(ctx context.Context, id string, input *WorkspaceInput) (*Workspace, error) {
-	resp, err := updateWorkspace(ctx, client.Gql, id, *input)
-	return workspaceOrError(resp, err)
-}
-
-func (client *Client) DeleteWorkspace(ctx context.Context, id string) error {
-	resp, err := deleteWorkspace(ctx, client.Gql, id)
-	return resultStatusError(resp, err)
 }
 
 func (client *Client) LookupWorkspace(ctx context.Context, name string) (*Workspace, error) {
