@@ -5061,6 +5061,395 @@ func (v *LinkFieldInput) GetColumn() string { return v.Column }
 // GetPath returns LinkFieldInput.Path, and is useful for accessing the field via an interface.
 func (v *LinkFieldInput) GetPath() *string { return v.Path }
 
+type LogDerivedMetricAggregationConfigInput struct {
+	Function LogDerivedMetricAggregationFunction `json:"function"`
+}
+
+// GetFunction returns LogDerivedMetricAggregationConfigInput.Function, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricAggregationConfigInput) GetFunction() LogDerivedMetricAggregationFunction {
+	return v.Function
+}
+
+type LogDerivedMetricAggregationFunction string
+
+const (
+	LogDerivedMetricAggregationFunctionCount         LogDerivedMetricAggregationFunction = "Count"
+	LogDerivedMetricAggregationFunctionCountdistinct LogDerivedMetricAggregationFunction = "CountDistinct"
+	LogDerivedMetricAggregationFunctionSum           LogDerivedMetricAggregationFunction = "Sum"
+	LogDerivedMetricAggregationFunctionAvg           LogDerivedMetricAggregationFunction = "Avg"
+	LogDerivedMetricAggregationFunctionMin           LogDerivedMetricAggregationFunction = "Min"
+	LogDerivedMetricAggregationFunctionMax           LogDerivedMetricAggregationFunction = "Max"
+)
+
+type LogDerivedMetricAggregationInput struct {
+	Config    LogDerivedMetricAggregationConfigInput `json:"config"`
+	FieldPath *MetricTagPathInput                    `json:"fieldPath"`
+}
+
+// GetConfig returns LogDerivedMetricAggregationInput.Config, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricAggregationInput) GetConfig() LogDerivedMetricAggregationConfigInput {
+	return v.Config
+}
+
+// GetFieldPath returns LogDerivedMetricAggregationInput.FieldPath, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricAggregationInput) GetFieldPath() *MetricTagPathInput { return v.FieldPath }
+
+// LogDerivedMetricDefinition includes the GraphQL fields of LogDerivedMetricDefinition requested by the fragment LogDerivedMetricDefinition.
+type LogDerivedMetricDefinition struct {
+	MetricName   string                                                           `json:"metricName"`
+	MetricType   MetricType                                                       `json:"metricType"`
+	Unit         string                                                           `json:"unit"`
+	Interval     types.DurationScalar                                             `json:"interval"`
+	ShapingQuery LogDerivedMetricDefinitionShapingQueryStageQuery                 `json:"shapingQuery"`
+	Aggregation  LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation `json:"aggregation"`
+	MetricTags   []LogDerivedMetricDefinitionMetricTagsLogMetricTag               `json:"metricTags"`
+}
+
+// GetMetricName returns LogDerivedMetricDefinition.MetricName, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetMetricName() string { return v.MetricName }
+
+// GetMetricType returns LogDerivedMetricDefinition.MetricType, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetMetricType() MetricType { return v.MetricType }
+
+// GetUnit returns LogDerivedMetricDefinition.Unit, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetUnit() string { return v.Unit }
+
+// GetInterval returns LogDerivedMetricDefinition.Interval, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetInterval() types.DurationScalar { return v.Interval }
+
+// GetShapingQuery returns LogDerivedMetricDefinition.ShapingQuery, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetShapingQuery() LogDerivedMetricDefinitionShapingQueryStageQuery {
+	return v.ShapingQuery
+}
+
+// GetAggregation returns LogDerivedMetricDefinition.Aggregation, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetAggregation() LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation {
+	return v.Aggregation
+}
+
+// GetMetricTags returns LogDerivedMetricDefinition.MetricTags, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetMetricTags() []LogDerivedMetricDefinitionMetricTagsLogMetricTag {
+	return v.MetricTags
+}
+
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation includes the requested fields of the GraphQL type LogDerivedMetricAggregation.
+type LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation struct {
+	Config    LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig                  `json:"-"`
+	FieldPath *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath `json:"fieldPath"`
+}
+
+// GetConfig returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation.Config, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation) GetConfig() LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig {
+	return v.Config
+}
+
+// GetFieldPath returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation.FieldPath, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation) GetFieldPath() *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath {
+	return v.FieldPath
+}
+
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation
+		Config json.RawMessage `json:"config"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = __unmarshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation.Config: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation struct {
+	Config json.RawMessage `json:"config"`
+
+	FieldPath *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath `json:"fieldPath"`
+}
+
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation) __premarshalJSON() (*__premarshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation, error) {
+	var retval __premarshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation
+
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = __marshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation.Config: %w", err)
+		}
+	}
+	retval.FieldPath = v.FieldPath
+	return &retval, nil
+}
+
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig includes the requested fields of the GraphQL interface LogDerivedMetricAggregationConfig.
+//
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig is implemented by the following types:
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig
+type LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig interface {
+	implementsGraphQLInterfaceLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() *string
+	// GetFunction returns the interface-field "function" from its implementation.
+	GetFunction() LogDerivedMetricAggregationFunction
+}
+
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig) implementsGraphQLInterfaceLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig() {
+}
+
+func __unmarshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig(b []byte, v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "SimpleLogDerivedMetricAggregationConfig":
+		*v = new(LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing LogDerivedMetricAggregationConfig.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalLogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig(v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig:
+		typename = "SimpleLogDerivedMetricAggregationConfig"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfig: "%T"`, v)
+	}
+}
+
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig includes the requested fields of the GraphQL type SimpleLogDerivedMetricAggregationConfig.
+type LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig struct {
+	Typename *string                             `json:"__typename"`
+	Function LogDerivedMetricAggregationFunction `json:"function"`
+}
+
+// GetTypename returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig.Typename, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig) GetTypename() *string {
+	return v.Typename
+}
+
+// GetFunction returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig.Function, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationConfigSimpleLogDerivedMetricAggregationConfig) GetFunction() LogDerivedMetricAggregationFunction {
+	return v.Function
+}
+
+// LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath includes the requested fields of the GraphQL type MetricTagPath.
+type LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath struct {
+	Column string `json:"column"`
+	Path   string `json:"path"`
+}
+
+// GetColumn returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath.Column, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath) GetColumn() string {
+	return v.Column
+}
+
+// GetPath returns LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath.Path, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregationFieldPathMetricTagPath) GetPath() string {
+	return v.Path
+}
+
+type LogDerivedMetricDefinitionInput struct {
+	MetricName   string                           `json:"metricName"`
+	MetricType   *MetricType                      `json:"metricType"`
+	Unit         *string                          `json:"unit"`
+	ShapingQuery StageQueryInput                  `json:"shapingQuery"`
+	Aggregation  LogDerivedMetricAggregationInput `json:"aggregation"`
+	MetricTags   []LogMetricTagInput              `json:"metricTags"`
+	Interval     *types.DurationScalar            `json:"interval"`
+}
+
+// GetMetricName returns LogDerivedMetricDefinitionInput.MetricName, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetMetricName() string { return v.MetricName }
+
+// GetMetricType returns LogDerivedMetricDefinitionInput.MetricType, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetMetricType() *MetricType { return v.MetricType }
+
+// GetUnit returns LogDerivedMetricDefinitionInput.Unit, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetUnit() *string { return v.Unit }
+
+// GetShapingQuery returns LogDerivedMetricDefinitionInput.ShapingQuery, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetShapingQuery() StageQueryInput { return v.ShapingQuery }
+
+// GetAggregation returns LogDerivedMetricDefinitionInput.Aggregation, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetAggregation() LogDerivedMetricAggregationInput {
+	return v.Aggregation
+}
+
+// GetMetricTags returns LogDerivedMetricDefinitionInput.MetricTags, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetMetricTags() []LogMetricTagInput { return v.MetricTags }
+
+// GetInterval returns LogDerivedMetricDefinitionInput.Interval, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetInterval() *types.DurationScalar { return v.Interval }
+
+// LogDerivedMetricDefinitionMetricTagsLogMetricTag includes the requested fields of the GraphQL type LogMetricTag.
+type LogDerivedMetricDefinitionMetricTagsLogMetricTag struct {
+	Name      string                                                                 `json:"name"`
+	FieldPath LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath `json:"fieldPath"`
+}
+
+// GetName returns LogDerivedMetricDefinitionMetricTagsLogMetricTag.Name, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionMetricTagsLogMetricTag) GetName() string { return v.Name }
+
+// GetFieldPath returns LogDerivedMetricDefinitionMetricTagsLogMetricTag.FieldPath, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionMetricTagsLogMetricTag) GetFieldPath() LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath {
+	return v.FieldPath
+}
+
+// LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath includes the requested fields of the GraphQL type MetricTagPath.
+type LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath struct {
+	Column string `json:"column"`
+	Path   string `json:"path"`
+}
+
+// GetColumn returns LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath.Column, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath) GetColumn() string {
+	return v.Column
+}
+
+// GetPath returns LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath.Path, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionMetricTagsLogMetricTagFieldPathMetricTagPath) GetPath() string {
+	return v.Path
+}
+
+// LogDerivedMetricDefinitionShapingQueryStageQuery includes the requested fields of the GraphQL type StageQuery.
+type LogDerivedMetricDefinitionShapingQueryStageQuery struct {
+	Id       *string                                                                `json:"id"`
+	Pipeline string                                                                 `json:"pipeline"`
+	Input    []LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition `json:"input"`
+}
+
+// GetId returns LogDerivedMetricDefinitionShapingQueryStageQuery.Id, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQuery) GetId() *string { return v.Id }
+
+// GetPipeline returns LogDerivedMetricDefinitionShapingQueryStageQuery.Pipeline, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQuery) GetPipeline() string { return v.Pipeline }
+
+// GetInput returns LogDerivedMetricDefinitionShapingQueryStageQuery.Input, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQuery) GetInput() []LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition {
+	return v.Input
+}
+
+// LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition includes the requested fields of the GraphQL type InputDefinition.
+type LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition struct {
+	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
+	InputName string `json:"inputName"`
+	// One of the input definition fields is used; the others are null
+	// because GO doesn't have unions.
+	DatasetId *string `json:"datasetId"`
+	// Only set stageId to reference input that comes from an actual stage in the same query
+	StageId *string `json:"stageId"`
+}
+
+// GetInputName returns LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition.InputName, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition) GetInputName() string {
+	return v.InputName
+}
+
+// GetDatasetId returns LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition.DatasetId, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition) GetDatasetId() *string {
+	return v.DatasetId
+}
+
+// GetStageId returns LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition.StageId, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionShapingQueryStageQueryInputInputDefinition) GetStageId() *string {
+	return v.StageId
+}
+
+type LogMetricTagInput struct {
+	Name      string             `json:"name"`
+	FieldPath MetricTagPathInput `json:"fieldPath"`
+}
+
+// GetName returns LogMetricTagInput.Name, and is useful for accessing the field via an interface.
+func (v *LogMetricTagInput) GetName() string { return v.Name }
+
+// GetFieldPath returns LogMetricTagInput.FieldPath, and is useful for accessing the field via an interface.
+func (v *LogMetricTagInput) GetFieldPath() MetricTagPathInput { return v.FieldPath }
+
+type MetricTagPathInput struct {
+	Column string `json:"column"`
+	Path   string `json:"path"`
+}
+
+// GetColumn returns MetricTagPathInput.Column, and is useful for accessing the field via an interface.
+func (v *MetricTagPathInput) GetColumn() string { return v.Column }
+
+// GetPath returns MetricTagPathInput.Path, and is useful for accessing the field via an interface.
+func (v *MetricTagPathInput) GetPath() string { return v.Path }
+
+type MetricType string
+
+const (
+	MetricTypeCumulativecounter    MetricType = "cumulativeCounter"
+	MetricTypeCounter              MetricType = "counter"
+	MetricTypeRatepersec           MetricType = "ratePerSec"
+	MetricTypeDelta                MetricType = "delta"
+	MetricTypeGauge                MetricType = "gauge"
+	MetricTypeTdigest              MetricType = "tdigest"
+	MetricTypeSample               MetricType = "sample"
+	MetricTypeHistogram            MetricType = "histogram"
+	MetricTypeExponentialhistogram MetricType = "exponentialHistogram"
+)
+
 // ModuleVersion includes the GraphQL fields of ModuleVersion requested by the fragment ModuleVersion.
 // The GraphQL type's documentation follows.
 //
@@ -11882,6 +12271,14 @@ type __getLayeredSettingRecordInput struct {
 // GetId returns __getLayeredSettingRecordInput.Id, and is useful for accessing the field via an interface.
 func (v *__getLayeredSettingRecordInput) GetId() string { return v.Id }
 
+// __getLogDerivedMetricDatasetInput is used internally by genqlient
+type __getLogDerivedMetricDatasetInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __getLogDerivedMetricDatasetInput.Id, and is useful for accessing the field via an interface.
+func (v *__getLogDerivedMetricDatasetInput) GetId() string { return v.Id }
+
 // __getMonitorActionAttachmentInput is used internally by genqlient
 type __getMonitorActionAttachmentInput struct {
 	Id string `json:"id"`
@@ -12209,6 +12606,50 @@ func (v *__saveDatasetInput) GetQuery() MultiStageQueryInput { return v.Query }
 
 // GetDep returns __saveDatasetInput.Dep, and is useful for accessing the field via an interface.
 func (v *__saveDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
+
+// __saveLogDerivedMetricDatasetDryRunInput is used internally by genqlient
+type __saveLogDerivedMetricDatasetDryRunInput struct {
+	WorkspaceId           string                          `json:"workspaceId"`
+	Dataset               DatasetInput                    `json:"dataset"`
+	LogDerivedMetricQuery LogDerivedMetricDefinitionInput `json:"logDerivedMetricQuery"`
+	Dep                   *DependencyHandlingInput        `json:"dep"`
+}
+
+// GetWorkspaceId returns __saveLogDerivedMetricDatasetDryRunInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetDryRunInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetDataset returns __saveLogDerivedMetricDatasetDryRunInput.Dataset, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetDryRunInput) GetDataset() DatasetInput { return v.Dataset }
+
+// GetLogDerivedMetricQuery returns __saveLogDerivedMetricDatasetDryRunInput.LogDerivedMetricQuery, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetDryRunInput) GetLogDerivedMetricQuery() LogDerivedMetricDefinitionInput {
+	return v.LogDerivedMetricQuery
+}
+
+// GetDep returns __saveLogDerivedMetricDatasetDryRunInput.Dep, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetDryRunInput) GetDep() *DependencyHandlingInput { return v.Dep }
+
+// __saveLogDerivedMetricDatasetInput is used internally by genqlient
+type __saveLogDerivedMetricDatasetInput struct {
+	WorkspaceId           string                          `json:"workspaceId"`
+	Dataset               DatasetInput                    `json:"dataset"`
+	LogDerivedMetricQuery LogDerivedMetricDefinitionInput `json:"logDerivedMetricQuery"`
+	Dep                   *DependencyHandlingInput        `json:"dep"`
+}
+
+// GetWorkspaceId returns __saveLogDerivedMetricDatasetInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetDataset returns __saveLogDerivedMetricDatasetInput.Dataset, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetInput) GetDataset() DatasetInput { return v.Dataset }
+
+// GetLogDerivedMetricQuery returns __saveLogDerivedMetricDatasetInput.LogDerivedMetricQuery, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetInput) GetLogDerivedMetricQuery() LogDerivedMetricDefinitionInput {
+	return v.LogDerivedMetricQuery
+}
+
+// GetDep returns __saveLogDerivedMetricDatasetInput.Dep, and is useful for accessing the field via an interface.
+func (v *__saveLogDerivedMetricDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
 
 // __saveMonitorV2RelationsInput is used internally by genqlient
 type __saveMonitorV2RelationsInput struct {
@@ -14059,6 +14500,58 @@ func (v *getLayeredSettingRecordResponse) GetLayeredSettingRecord() LayeredSetti
 	return v.LayeredSettingRecord
 }
 
+// getLogDerivedMetricDatasetDataset includes the requested fields of the GraphQL type Dataset.
+type getLogDerivedMetricDatasetDataset struct {
+	Id                    string                      `json:"id"`
+	WorkspaceId           string                      `json:"workspaceId"`
+	Name                  string                      `json:"name"`
+	Version               types.TimeScalar            `json:"version"`
+	Description           *string                     `json:"description"`
+	IconUrl               *string                     `json:"iconUrl"`
+	Source                *string                     `json:"source"`
+	ManagedById           *string                     `json:"managedById"`
+	LogDerivedMetricTable *LogDerivedMetricDefinition `json:"logDerivedMetricTable"`
+}
+
+// GetId returns getLogDerivedMetricDatasetDataset.Id, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetId() string { return v.Id }
+
+// GetWorkspaceId returns getLogDerivedMetricDatasetDataset.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetName returns getLogDerivedMetricDatasetDataset.Name, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetName() string { return v.Name }
+
+// GetVersion returns getLogDerivedMetricDatasetDataset.Version, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetVersion() types.TimeScalar { return v.Version }
+
+// GetDescription returns getLogDerivedMetricDatasetDataset.Description, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetDescription() *string { return v.Description }
+
+// GetIconUrl returns getLogDerivedMetricDatasetDataset.IconUrl, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetIconUrl() *string { return v.IconUrl }
+
+// GetSource returns getLogDerivedMetricDatasetDataset.Source, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetSource() *string { return v.Source }
+
+// GetManagedById returns getLogDerivedMetricDatasetDataset.ManagedById, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetManagedById() *string { return v.ManagedById }
+
+// GetLogDerivedMetricTable returns getLogDerivedMetricDatasetDataset.LogDerivedMetricTable, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetDataset) GetLogDerivedMetricTable() *LogDerivedMetricDefinition {
+	return v.LogDerivedMetricTable
+}
+
+// getLogDerivedMetricDatasetResponse is returned by getLogDerivedMetricDataset on success.
+type getLogDerivedMetricDatasetResponse struct {
+	Dataset *getLogDerivedMetricDatasetDataset `json:"dataset"`
+}
+
+// GetDataset returns getLogDerivedMetricDatasetResponse.Dataset, and is useful for accessing the field via an interface.
+func (v *getLogDerivedMetricDatasetResponse) GetDataset() *getLogDerivedMetricDatasetDataset {
+	return v.Dataset
+}
+
 // getMonitorActionAttachmentResponse is returned by getMonitorActionAttachment on success.
 type getMonitorActionAttachmentResponse struct {
 	MonitorActionAttachment *MonitorActionAttachment `json:"monitorActionAttachment"`
@@ -14575,6 +15068,36 @@ type saveDatasetResponse struct {
 
 // GetDatasetSaveResult returns saveDatasetResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
 func (v *saveDatasetResponse) GetDatasetSaveResult() *DatasetSaveResult { return v.DatasetSaveResult }
+
+// saveLogDerivedMetricDatasetDryRunResponse is returned by saveLogDerivedMetricDatasetDryRun on success.
+type saveLogDerivedMetricDatasetDryRunResponse struct {
+	// Create a dataset if you don't provide an input id.  It will also make sure
+	// that the provided transform is published with that dataset. This is the
+	// general "update the things" function to use.  If dependencyHandling is not
+	// specified, then the default is to apply changes but ignore downstream
+	// datasets or errors therein.
+	DatasetSaveResult *DatasetDryRunSaveResult `json:"datasetSaveResult"`
+}
+
+// GetDatasetSaveResult returns saveLogDerivedMetricDatasetDryRunResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
+func (v *saveLogDerivedMetricDatasetDryRunResponse) GetDatasetSaveResult() *DatasetDryRunSaveResult {
+	return v.DatasetSaveResult
+}
+
+// saveLogDerivedMetricDatasetResponse is returned by saveLogDerivedMetricDataset on success.
+type saveLogDerivedMetricDatasetResponse struct {
+	// Create a dataset if you don't provide an input id.  It will also make sure
+	// that the provided transform is published with that dataset. This is the
+	// general "update the things" function to use.  If dependencyHandling is not
+	// specified, then the default is to apply changes but ignore downstream
+	// datasets or errors therein.
+	DatasetSaveResult *DatasetSaveResult `json:"datasetSaveResult"`
+}
+
+// GetDatasetSaveResult returns saveLogDerivedMetricDatasetResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
+func (v *saveLogDerivedMetricDatasetResponse) GetDatasetSaveResult() *DatasetSaveResult {
+	return v.DatasetSaveResult
+}
 
 // saveMonitorV2RelationsResponse is returned by saveMonitorV2Relations on success.
 type saveMonitorV2RelationsResponse struct {
@@ -20106,6 +20629,83 @@ func getLayeredSettingRecord(
 	return &data, err
 }
 
+// The query or mutation executed by getLogDerivedMetricDataset.
+const getLogDerivedMetricDataset_Operation = `
+query getLogDerivedMetricDataset ($id: ObjectId!) {
+	dataset(id: $id) {
+		id
+		workspaceId
+		name
+		version
+		description
+		iconUrl
+		source
+		managedById
+		logDerivedMetricTable {
+			... LogDerivedMetricDefinition
+		}
+	}
+}
+fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
+	metricName
+	metricType
+	unit
+	interval
+	shapingQuery {
+		id
+		pipeline
+		input {
+			inputName
+			datasetId
+			stageId
+		}
+	}
+	aggregation {
+		config {
+			__typename
+			function
+		}
+		fieldPath {
+			column
+			path
+		}
+	}
+	metricTags {
+		name
+		fieldPath {
+			column
+			path
+		}
+	}
+}
+`
+
+func getLogDerivedMetricDataset(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*getLogDerivedMetricDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "getLogDerivedMetricDataset",
+		Query:  getLogDerivedMetricDataset_Operation,
+		Variables: &__getLogDerivedMetricDatasetInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data getLogDerivedMetricDatasetResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getMonitor.
 const getMonitor_Operation = `
 query getMonitor ($id: ObjectId!) {
@@ -22852,6 +23452,206 @@ func saveDatasetDryRun(
 	var err error
 
 	var data saveDatasetDryRunResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveLogDerivedMetricDataset.
+const saveLogDerivedMetricDataset_Operation = `
+mutation saveLogDerivedMetricDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
+		... DatasetSaveResult
+	}
+}
+fragment DatasetSaveResult on DatasetSaveResult {
+	dataset {
+		... Dataset
+	}
+	errorDatasets {
+		... DatasetError
+	}
+}
+fragment Dataset on Dataset {
+	workspaceId
+	id
+	name
+	freshnessDesired
+	description
+	iconUrl
+	accelerationDisabled
+	accelerationDisabledSource
+	version
+	lastSaved
+	pathCost
+	source
+	managedById
+	onDemandMaterializationLength
+	dataTableViewState
+	storageIntegrationId
+	foreignKeys {
+		label
+		targetDataset
+		srcFields
+		dstFields
+	}
+	transform {
+		current {
+			query {
+				outputStage
+				stages {
+					... StageQuery
+				}
+			}
+		}
+	}
+	typedef {
+		label
+		def {
+			anykey
+			fields {
+				name
+				type {
+					rep
+					nullable
+				}
+				isEnum
+				isSearchable
+				isHidden
+				isConst
+				isMetric
+			}
+		}
+	}
+	sourceTable {
+		schema
+		partitions {
+			name
+		}
+		sourceUpdateTableName
+		isInsertOnly
+		batchSeqField
+		validFromField
+		fields {
+			name
+			sqlType
+		}
+	}
+	correlationTagMappings {
+		tag
+		path {
+			column
+			path
+		}
+	}
+	entityTags {
+		key
+		values
+	}
+}
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
+}
+fragment StageQuery on StageQuery {
+	id
+	pipeline
+	params
+	layout
+	input {
+		inputName
+		inputRole
+		datasetId
+		datasetPath
+		stageId
+	}
+}
+`
+
+func saveLogDerivedMetricDataset(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	dataset DatasetInput,
+	logDerivedMetricQuery LogDerivedMetricDefinitionInput,
+	dep *DependencyHandlingInput,
+) (*saveLogDerivedMetricDatasetResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveLogDerivedMetricDataset",
+		Query:  saveLogDerivedMetricDataset_Operation,
+		Variables: &__saveLogDerivedMetricDatasetInput{
+			WorkspaceId:           workspaceId,
+			Dataset:               dataset,
+			LogDerivedMetricQuery: logDerivedMetricQuery,
+			Dep:                   dep,
+		},
+	}
+	var err error
+
+	var data saveLogDerivedMetricDatasetResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveLogDerivedMetricDatasetDryRun.
+const saveLogDerivedMetricDatasetDryRun_Operation = `
+mutation saveLogDerivedMetricDatasetDryRun ($workspaceId: ObjectId!, $dataset: DatasetInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
+		... DatasetDryRunSaveResult
+	}
+}
+fragment DatasetDryRunSaveResult on DatasetSaveResult {
+	dematerializedDatasets {
+		... DatasetMaterialization
+	}
+}
+fragment DatasetMaterialization on DatasetMaterialization {
+	dataset {
+		... DatasetIdName
+	}
+}
+fragment DatasetIdName on Dataset {
+	name
+	id
+}
+`
+
+func saveLogDerivedMetricDatasetDryRun(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	dataset DatasetInput,
+	logDerivedMetricQuery LogDerivedMetricDefinitionInput,
+	dep *DependencyHandlingInput,
+) (*saveLogDerivedMetricDatasetDryRunResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveLogDerivedMetricDatasetDryRun",
+		Query:  saveLogDerivedMetricDatasetDryRun_Operation,
+		Variables: &__saveLogDerivedMetricDatasetDryRunInput{
+			WorkspaceId:           workspaceId,
+			Dataset:               dataset,
+			LogDerivedMetricQuery: logDerivedMetricQuery,
+			Dep:                   dep,
+		},
+	}
+	var err error
+
+	var data saveLogDerivedMetricDatasetDryRunResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

@@ -76,6 +76,42 @@ func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta
 	return c.Meta.SaveDatasetDryRun(ctx, wsid, input, queryInput)
 }
 
+func (c *Client) SaveLogDerivedMetricDataset(ctx context.Context, wsid string, input *meta.DatasetInput, logMetricInput *meta.LogDerivedMetricDefinitionInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.Dataset, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	if c.Config.Source != nil {
+		input.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.SaveLogDerivedMetricDataset(ctx, wsid, input, logMetricInput, dependencyHandling)
+}
+
+func (c *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, logMetricInput *meta.LogDerivedMetricDefinitionInput) error {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	if c.Config.Source != nil {
+		input.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.SaveLogDerivedMetricDatasetDryRun(ctx, wsid, input, logMetricInput)
+}
+
+func (c *Client) GetLogDerivedMetricDataset(ctx context.Context, id string) (*meta.LogDerivedMetricDataset, error) {
+	return c.Meta.GetLogDerivedMetricDataset(ctx, id)
+}
+
 // DeleteDataset by ID
 func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {
