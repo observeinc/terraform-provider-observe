@@ -103,6 +103,36 @@ func (client *Client) SaveSourceDataset(ctx context.Context, workspaceId string,
 	return datasetOrError(resp.Dataset, err)
 }
 
+// SaveLogDerivedMetricDataset creates and updates log derived metric datasets
+func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, logMetricInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*Dataset, error) {
+	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *logMetricInput, dependencyHandling)
+	return datasetOrError(resp.DatasetSaveResult, err)
+}
+
+// SaveLogDerivedMetricDatasetDryRun validates log derived metric dataset configuration without saving
+func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, logMetricInput *LogDerivedMetricDefinitionInput) error {
+	saveMode := SaveModePreflightDatasetAndDependencies
+	dependencyHandling := &DependencyHandlingInput{
+		SaveMode: &saveMode,
+	}
+
+	_, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *logMetricInput, dependencyHandling)
+	// We only care if it errors (validation failed), not the result
+	return err
+}
+
+// LogDerivedMetricDataset is an alias for the generated type
+type LogDerivedMetricDataset = getLogDerivedMetricDatasetDataset
+
+// GetLogDerivedMetricDataset retrieves a log derived metric dataset by ID
+func (client *Client) GetLogDerivedMetricDataset(ctx context.Context, id string) (*LogDerivedMetricDataset, error) {
+	resp, err := getLogDerivedMetricDataset(ctx, client.Gql, id)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Dataset, nil
+}
+
 func (d *Dataset) Oid() *oid.OID {
 	version := d.LastSaved.String()
 	return &oid.OID{
