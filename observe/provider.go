@@ -169,7 +169,7 @@ func Provider() *schema.Provider {
 			"observe_source_dataset":            resourceSourceDataset(),
 			"observe_link":                      resourceLink(),
 			"observe_bookmark_group":            resourceBookmarkGroup(),
-			"observe_bookmark":                  resourceBookmark(),
+			// observe_bookmark: migrated to plugin framework (fw_resource_bookmark.go)
 			"observe_http_post":                 resourceHTTPPost(),
 			"observe_channel_action":            resourceChannelAction(),
 			"observe_channel":                   resourceChannel(),
