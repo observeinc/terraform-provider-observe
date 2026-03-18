@@ -52,7 +52,6 @@ stage pipelines.
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -73,6 +72,9 @@ paths between two datasets.
 "skip_rematerialization" will skip rematerialization if certain conditions are met, will rematerialize otherwise.
 "must_skip_rematerialization" will never rematerialize, update will fail if skipping rematerialization is not possible.
 - `storage_integration` (String) The ID of the storage integration associated with this dataset.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

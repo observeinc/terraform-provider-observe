@@ -31,9 +31,11 @@ func resourceBookmarkGroup() *schema.Resource {
 			},
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"name": {
@@ -125,8 +127,11 @@ func resourceBookmarkGroupCreate(ctx context.Context, data *schema.ResourceData,
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateBookmarkGroup(ctx, id.Id, config)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateBookmarkGroup(ctx, wsid, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

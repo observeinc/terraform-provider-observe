@@ -47,9 +47,11 @@ func resourceMonitorActionAttachment() *schema.Resource {
 			},
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"monitor": {
@@ -68,13 +70,9 @@ func resourceMonitorActionAttachment() *schema.Resource {
 	}
 }
 
-func newMonitorActionAttachmentConfig(data *schema.ResourceData) (input *gql.MonitorActionAttachmentInput, diags diag.Diagnostics) {
-	id, err := oid.NewOID(data.Get("workspace").(string))
-	if err != nil {
-		return nil, diag.Errorf("failed to get monitor action workspace id: %s", err.Error())
-	}
+func newMonitorActionAttachmentConfig(data *schema.ResourceData, wsid string) (input *gql.MonitorActionAttachmentInput, diags diag.Diagnostics) {
 	input = &gql.MonitorActionAttachmentInput{
-		WorkspaceId: id.Id,
+		WorkspaceId: wsid,
 		MonitorID:   data.Get("monitor").(string),
 		ActionID:    data.Get("action").(string),
 	}
@@ -97,7 +95,11 @@ func newMonitorActionAttachmentConfig(data *schema.ResourceData) (input *gql.Mon
 func resourceMonitorActionAttachmentCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorActionAttachmentConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	config, diags := newMonitorActionAttachmentConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}
@@ -114,12 +116,16 @@ func resourceMonitorActionAttachmentCreate(ctx context.Context, data *schema.Res
 func resourceMonitorActionAttachmentUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorActionAttachmentConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	config, diags := newMonitorActionAttachmentConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}
 
-	_, err := client.UpdateMonitorActionAttachment(ctx, data.Id(), config)
+	_, err = client.UpdateMonitorActionAttachment(ctx, data.Id(), config)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorActionAttachmentCreate(ctx, data, meta)

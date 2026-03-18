@@ -35,6 +35,8 @@ type Client struct {
 	Meta    *meta.Client
 	Rest    *rest.Client
 	Collect *collect.Client
+
+	cachedWorkspaceID string
 }
 
 // login to retrieve a valid token, only need to do this once

@@ -34,8 +34,11 @@ func resourceDatastream() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      schemaDatastreamWorkspaceDescription,
 			},
 			"name": {
@@ -125,8 +128,12 @@ func resourceDatastreamCreate(ctx context.Context, data *schema.ResourceData, me
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateDatastream(ctx, id.Id, config)
+	v, ok := data.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	result, err := client.CreateDatastream(ctx, wsid, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

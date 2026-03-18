@@ -20,7 +20,6 @@ description: |-
 - `source_update_table_name` (String)
 - `table_name` (String)
 - `valid_from_field` (String)
-- `workspace` (String)
 
 ### Optional
 
@@ -29,6 +28,7 @@ description: |-
 - `freshness` (String, Deprecated)
 - `icon_url` (String)
 - `is_insert_only` (Boolean)
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

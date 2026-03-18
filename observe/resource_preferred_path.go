@@ -27,14 +27,15 @@ func resourcePreferredPath() *schema.Resource {
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ExactlyOneOf:     []string{"folder", "workspace"},
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			"folder": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
 			},
 			"name": {
@@ -87,7 +88,7 @@ func resourcePreferredPath() *schema.Resource {
 	}
 }
 
-func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPathInput, wsid string, diags diag.Diagnostics) {
+func newPreferredPathConfig(ctx context.Context, data *schema.ResourceData, client *observe.Client) (input *gql.PreferredPathInput, wsid string, diags diag.Diagnostics) {
 	var (
 		name        = data.Get("name").(string)
 		source, _   = oid.NewOID(data.Get("source").(string))
@@ -107,9 +108,11 @@ func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPath
 		input.FolderId = id.Version
 		wsid = id.Id
 	} else {
-		workspace := data.Get("workspace").(string)
-		id, _ := oid.NewOID(workspace)
-		wsid = id.Id
+		var err error
+		wsid, err = client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if err != nil {
+			return nil, "", diag.FromErr(err)
+		}
 	}
 
 	for _, el := range steps {
@@ -162,7 +165,7 @@ func newPreferredPathConfig(data *schema.ResourceData) (input *gql.PreferredPath
 func resourcePreferredPathCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, wsid, diags := newPreferredPathConfig(data)
+	config, wsid, diags := newPreferredPathConfig(ctx, data, client)
 	if diags.HasError() {
 		return diags
 	}
@@ -179,7 +182,7 @@ func resourcePreferredPathCreate(ctx context.Context, data *schema.ResourceData,
 func resourcePreferredPathUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, _, diags := newPreferredPathConfig(data)
+	config, _, diags := newPreferredPathConfig(ctx, data, client)
 	if diags.HasError() {
 		return diags
 	}

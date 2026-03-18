@@ -31,12 +31,12 @@ resource "observe_app" "example" {
 ### Required
 
 - `name` (String)
-- `workspace` (String)
 
 ### Optional
 
 - `description` (String)
 - `icon_url` (String)
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

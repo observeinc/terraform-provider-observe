@@ -26,9 +26,11 @@ func resourceChannel() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -98,8 +100,11 @@ func resourceChannelCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateChannel(ctx, id.Id, config, monitors)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateChannel(ctx, wsid, config, monitors)
 	if err != nil {
 		return diag.Errorf("failed to create channel: %s", err.Error())
 	}

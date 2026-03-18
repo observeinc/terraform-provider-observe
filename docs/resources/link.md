@@ -48,11 +48,13 @@ same name, the target field name can be omitted, i.e. `col:col` can be
 written as `col`.
 - `source` (String) OID for the source dataset.
 - `target` (String) OID for the target dataset.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `label` (String) A human-readable label for the link.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

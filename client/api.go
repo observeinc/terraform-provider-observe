@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
@@ -23,6 +24,32 @@ var (
 	syncRetryFactor   = 2.0
 	syncRetryCap      = 5 * time.Second
 )
+
+// ResolveWorkspaceID returns the workspace ID from an OID string if provided,
+// or auto-resolves the single workspace for the customer. The result is cached.
+func (c *Client) ResolveWorkspaceID(ctx context.Context, workspaceOIDStr string) (string, error) {
+	if workspaceOIDStr != "" {
+		wsOID, err := oid.NewOID(workspaceOIDStr)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse workspace OID: %w", err)
+		}
+		return wsOID.Id, nil
+	}
+
+	if c.cachedWorkspaceID != "" {
+		return c.cachedWorkspaceID, nil
+	}
+
+	workspaces, err := c.ListWorkspaces(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to list workspaces: %w", err)
+	}
+	if len(workspaces) == 0 {
+		return "", fmt.Errorf("no workspaces found for customer")
+	}
+	c.cachedWorkspaceID = workspaces[0].Id
+	return c.cachedWorkspaceID, nil
+}
 
 func (c *Client) maybeRunConcurrently(cb func()) {
 	if c.Flags[flagObs2110] {

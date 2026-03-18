@@ -33,9 +33,11 @@ func resourceDatasetOutboundShare() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"folder": {
@@ -131,7 +133,7 @@ func newDatasetOutboundShare(d *schema.ResourceData) (*gql.DatasetOutboundShareI
 func resourceDatasetOutboundShareCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
-	workspaceId, err := oid.NewOID(d.Get("workspace").(string))
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(d.GetOk("workspace")))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -151,7 +153,7 @@ func resourceDatasetOutboundShareCreate(ctx context.Context, d *schema.ResourceD
 		return diags
 	}
 
-	result, err := client.CreateDatasetOutboundShare(ctx, workspaceId.Id, datasetId.Id, shareId.Id, input)
+	result, err := client.CreateDatasetOutboundShare(ctx, wsid, datasetId.Id, shareId.Id, input)
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,

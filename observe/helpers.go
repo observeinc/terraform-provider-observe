@@ -428,14 +428,8 @@ func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
 	return prvTrimmed == nxtTrimmed
 }
 
-func diffSuppressWhenWorkspace(k, prv, nxt string, d *schema.ResourceData) bool {
-	// If the user has specified a workspace, we suppress the diff unconditionally
-	// since the folder effectively becomes a computed attribute
-	if _, ok := d.GetOk("workspace"); ok {
-		return true
-	}
-	// Otherwise, diff like normal
-	return prv == nxt
+func diffSuppressWorkspace(_, _, _ string, _ *schema.ResourceData) bool {
+	return true
 }
 
 var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
