@@ -18,13 +18,13 @@ Manages a channel, which specifies a set of monitors for which notifications wil
 ### Required
 
 - `name` (String)
-- `workspace` (String)
 
 ### Optional
 
 - `description` (String)
 - `icon_url` (String)
 - `monitors` (Set of String)
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

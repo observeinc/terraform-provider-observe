@@ -47,3 +47,27 @@ func TestAccObserveFolderCreate(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveFolderCreateNoWorkspace(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_folder" "no_ws" {
+					name     = "%[1]s"
+					icon_url = "test"
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_folder.no_ws", "workspace"),
+					resource.TestCheckResourceAttr("observe_folder.no_ws", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_folder.no_ws", "icon_url", "test"),
+				),
+			},
+		},
+	})
+}

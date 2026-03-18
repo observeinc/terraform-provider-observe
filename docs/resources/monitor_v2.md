@@ -133,7 +133,6 @@ stage pipelines.
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -149,6 +148,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `rule_template` (Block List, Max: 1) Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more. (see [below for nested schema](#nestedblock--rule_template))
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
 
 ### Read-Only
 

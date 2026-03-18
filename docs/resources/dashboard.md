@@ -58,7 +58,6 @@ resource "observe_dashboard" "example" {
 
 - `name` (String) Dashboard name. Must be unique within workspace.
 - `stages` (String) Dashboard stages in JSON format.
-- `workspace` (String) OID of workspace dashboard is contained in.
 
 ### Optional
 
@@ -68,6 +67,7 @@ resource "observe_dashboard" "example" {
 - `layout` (String) Dashboard layout in JSON format.
 - `parameter_values` (String) Dashboard parameter values in JSON format.
 - `parameters` (String) Dashboard parameters in JSON format.
+- `workspace` (String, Deprecated) OID of workspace dashboard is contained in.
 
 ### Read-Only
 

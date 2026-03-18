@@ -18,6 +18,12 @@ var (
 				data "observe_workspace" "default" {
 					name = "%s"
 				}`, defaultWorkspaceName)
+
+	// config preamble that creates a datastream without specifying workspace
+	datastreamNoWorkspacePreamble = `
+	resource "observe_datastream" "test_no_ws" {
+		name = "%[1]s"
+	}`
 )
 
 func getenv(key, fallback string) string {
@@ -1407,6 +1413,33 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveDatasetNoWorkspace(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(datastreamNoWorkspacePreamble+`
+				resource "observe_dataset" "no_ws" {
+					name = "%[1]s-no-ws"
+
+					inputs = {
+						"test" = observe_datastream.test_no_ws.dataset
+					}
+
+					stage {}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.no_ws", "workspace"),
+					resource.TestCheckResourceAttr("observe_dataset.no_ws", "name", randomPrefix+"-no-ws"),
 				),
 			},
 		},

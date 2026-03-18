@@ -28,15 +28,15 @@ func resourceDashboardLink() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"folder": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ExactlyOneOf:     []string{"folder", "workspace"},
 				ValidateDiagFunc: validateOID(oid.TypeFolder),
 				Description:      descriptions.Get("common", "schema", "folder"),
 			},
@@ -76,14 +76,13 @@ func resourceDashboardLink() *schema.Resource {
 	}
 }
 
-func newDashboardLinkConfig(data *schema.ResourceData) (input *gql.DashboardLinkInput, diags diag.Diagnostics) {
+func newDashboardLinkConfig(ctx context.Context, data *schema.ResourceData, client *observe.Client) (input *gql.DashboardLinkInput, diags diag.Diagnostics) {
 	var (
 		name             = data.Get("name").(string)
 		fromDashboard, _ = oid.NewOID(data.Get("from_dashboard").(string))
 		fromCard         = maybeString(data.GetOk("from_card"))
 		toDashboard, _   = oid.NewOID(data.Get("to_dashboard").(string))
 		description      = maybeString(data.GetOk("description"))
-		workspace        = maybeOID(data.GetOk("workspace"))
 		folder           = maybeOID(data.GetOk("folder"))
 		managedBy        = maybeOID(data.GetOk("managed_by"))
 		linkLabel        = data.Get("link_label").(string)
@@ -112,8 +111,12 @@ func newDashboardLinkConfig(data *schema.ResourceData) (input *gql.DashboardLink
 		//	the Version is the folder Id.
 		input.WorkspaceId = folder.Id
 	}
-	if workspace != nil {
-		input.WorkspaceId = workspace.Id
+	if input.WorkspaceId == "" {
+		wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+		input.WorkspaceId = wsid
 	}
 
 	return
@@ -122,7 +125,7 @@ func newDashboardLinkConfig(data *schema.ResourceData) (input *gql.DashboardLink
 func resourceDashboardLinkCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newDashboardLinkConfig(data)
+	config, diags := newDashboardLinkConfig(ctx, data, client)
 	if diags.HasError() {
 		return diags
 	}
@@ -139,7 +142,7 @@ func resourceDashboardLinkCreate(ctx context.Context, data *schema.ResourceData,
 func resourceDashboardLinkUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newDashboardLinkConfig(data)
+	config, diags := newDashboardLinkConfig(ctx, data, client)
 	if diags.HasError() {
 		return diags
 	}

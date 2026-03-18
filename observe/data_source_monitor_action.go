@@ -20,6 +20,8 @@ func dataSourceMonitorAction() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
@@ -28,9 +30,8 @@ func dataSourceMonitorAction() *schema.Resource {
 				ExactlyOneOf: []string{"name", "id"},
 				Optional:     true,
 				Computed:     true,
-				RequiredWith: []string{"workspace"},
 				Description: descriptions.Get("monitor", "schema", "name") +
-					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
+					"One of `name` or `id` must be set.",
 			},
 			"id": {
 				Type:             schema.TypeString,
@@ -133,10 +134,11 @@ func dataSourceMonitorActionRead(ctx context.Context, data *schema.ResourceData,
 	if explicitId != "" {
 		m, err = client.GetMonitorAction(ctx, explicitId)
 	} else if name != "" {
-		var implicitId *oid.OID
-		implicitId, _ = oid.NewOID(data.Get("workspace").(string))
-		if err == nil {
-			m, err = client.LookupMonitorAction(ctx, implicitId.Id, name)
+		wsid, resolveErr := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if resolveErr == nil {
+			m, err = client.LookupMonitorAction(ctx, wsid, name)
+		} else {
+			err = resolveErr
 		}
 	}
 

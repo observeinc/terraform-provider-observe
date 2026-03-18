@@ -27,9 +27,11 @@ func resourceLink() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -98,8 +100,11 @@ func resourceLinkCreate(ctx context.Context, data *schema.ResourceData, meta int
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateForeignKey(ctx, id.Id, config)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateForeignKey(ctx, wsid, config)
 	if err != nil {
 		return diag.Errorf("failed to create foreign key: %s", err.Error())
 	}

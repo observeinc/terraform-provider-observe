@@ -2,7 +2,6 @@ package observe
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -145,7 +144,12 @@ func TestAccDashboardLinkWithoutFolderOrWorkspace(t *testing.T) {
 					to_dashboard   = observe_dashboard.b_to_a.oid
 					link_label     = "going nowhere"
 				}`, randomPrefix),
-				ExpectError: regexp.MustCompile(`one of .folder,workspace. must be specified`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dashboard_link.example_without_folder_or_workspace", "workspace"),
+					resource.TestCheckResourceAttrSet("observe_dashboard_link.example_without_folder_or_workspace", "folder"),
+					resource.TestCheckResourceAttr("observe_dashboard_link.example_without_folder_or_workspace", "description", "Very linked, much dashboard"),
+					resource.TestCheckResourceAttr("observe_dashboard_link.example_without_folder_or_workspace", "link_label", "going nowhere"),
+				),
 			},
 		},
 	})

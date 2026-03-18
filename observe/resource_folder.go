@@ -24,9 +24,11 @@ func resourceFolder() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -74,8 +76,11 @@ func resourceFolderCreate(ctx context.Context, data *schema.ResourceData, meta i
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateFolder(ctx, id.Id, config)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateFolder(ctx, wsid, config)
 	if err != nil {
 		return diag.Errorf("failed to create folder: %s", err.Error())
 	}

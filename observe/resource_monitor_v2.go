@@ -29,9 +29,11 @@ func resourceMonitorV2() *schema.Resource {
 			// needed as input to MonitorV2Create, also part of MonitorV2 struct
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("monitorv2", "schema", "workspace"),
 			},
 			"name": { // String!
@@ -724,9 +726,12 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	wid, _ := oid.NewOID(data.Get("workspace").(string))
+	wid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	result, err := client.SaveMonitorV2WithActions(ctx, wid.Id, nil, input, actions)
+	result, err := client.SaveMonitorV2WithActions(ctx, wid, nil, input, actions)
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}
@@ -749,10 +754,13 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	// TODO: do we require workspace here?
-	wid, _ := oid.NewOID(data.Get("workspace").(string))
+	wid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	mid := data.Id()
 
-	_, err := client.SaveMonitorV2WithActions(ctx, wid.Id, &mid, input, actions)
+	_, err = client.SaveMonitorV2WithActions(ctx, wid, &mid, input, actions)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
 			diags = resourceMonitorV2Create(ctx, data, meta)

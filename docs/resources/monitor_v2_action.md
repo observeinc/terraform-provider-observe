@@ -16,13 +16,13 @@ description: |-
 
 - `name` (String)
 - `type` (String)
-- `workspace` (String)
 
 ### Optional
 
 - `description` (String)
 - `email` (Block List, Max: 1) (see [below for nested schema](#nestedblock--email))
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

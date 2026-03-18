@@ -22,7 +22,7 @@ Manages a preferred path. A preferred path specifies useful dataset relationship
 ### Optional
 
 - `folder` (String)
-- `workspace` (String)
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

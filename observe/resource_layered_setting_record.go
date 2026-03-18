@@ -32,8 +32,11 @@ func resourceLayeredSettingRecord() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -83,14 +86,13 @@ func resourceLayeredSettingRecord() *schema.Resource {
 	}
 }
 
-func newLayeredSettingRecordConfig(data *schema.ResourceData) (input *gql.LayeredSettingRecordInput, diags diag.Diagnostics) {
-	workspaceOid, _ := oid.NewOID(data.Get("workspace").(string))
+func newLayeredSettingRecordConfig(data *schema.ResourceData, workspaceId string) (input *gql.LayeredSettingRecordInput, diags diag.Diagnostics) {
 	name := data.Get("name").(string)
 	setting := data.Get("setting").(string)
 
 	ret := gql.LayeredSettingRecordInput{
 		Name:        name,
-		WorkspaceId: workspaceOid.Id,
+		WorkspaceId: workspaceId,
 	}
 	ret.SettingAndTargetScope.Setting = setting
 	if diags = targetDecode(data, &ret.SettingAndTargetScope.Target); diags != nil {
@@ -126,7 +128,11 @@ func layeredSettingRecordToResourceData(c *gql.LayeredSettingRecord, data *schem
 
 func resourceLayeredSettingRecordCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	setting, diags := newLayeredSettingRecordConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	setting, diags := newLayeredSettingRecordConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}
@@ -163,7 +169,11 @@ func resourceLayeredSettingRecordRead(ctx context.Context, data *schema.Resource
 
 func resourceLayeredSettingRecordUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	setting, diags := newLayeredSettingRecordConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	setting, diags := newLayeredSettingRecordConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}

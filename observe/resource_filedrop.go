@@ -51,9 +51,11 @@ func resourceFiledrop() *schema.Resource {
 			},
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"status": {
@@ -181,16 +183,9 @@ func resourceFiledropCreate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	id, err := oid.NewOID(data.Get("workspace").(string))
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
 	if err != nil {
-		return diag.Diagnostics{
-			diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       "failed to parse filedrop workspace ID",
-				Detail:        err.Error(),
-				AttributePath: cty.Path{cty.GetAttrStep{Name: "workspace"}},
-			},
-		}
+		return diag.FromErr(err)
 	}
 
 	datastreamId, err := oid.NewOID(data.Get("datastream").(string))
@@ -205,7 +200,7 @@ func resourceFiledropCreate(ctx context.Context, data *schema.ResourceData, meta
 		}
 	}
 
-	result, err := client.CreateFiledrop(ctx, id.Id, datastreamId.Id, config)
+	result, err := client.CreateFiledrop(ctx, wsid, datastreamId.Id, config)
 
 	if err != nil {
 		return diag.Diagnostics{

@@ -22,6 +22,8 @@ func dataSourceDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
@@ -30,10 +32,9 @@ func dataSourceDataset() *schema.Resource {
 				ExactlyOneOf:     []string{"name", "id"},
 				Optional:         true,
 				Computed:         true,
-				RequiredWith:     []string{"workspace"},
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 				Description: descriptions.Get("dataset", "schema", "name") +
-					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
+					"One of `name` or `id` must be set.",
 			},
 			"id": {
 				Type:             schema.TypeString,
@@ -191,10 +192,10 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 			}
 		}()
 
-		var implicitId *oid.OID
-		implicitId, err = oid.NewOID(data.Get("workspace").(string))
+		var wsid string
+		wsid, err = client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
 		if err == nil {
-			d, err = client.LookupDataset(ctx, implicitId.Id, name)
+			d, err = client.LookupDataset(ctx, wsid, name)
 		}
 	}
 

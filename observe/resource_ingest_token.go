@@ -26,9 +26,11 @@ func resourceIngestToken() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -122,13 +124,16 @@ func resourceIngestTokenCreate(ctx context.Context, data *schema.ResourceData, m
 	}
 
 	client := meta.(*observe.Client)
-	workspaceId := data.Get("workspace").(string)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	ingestTokenInput := ingestTokenInputFromResource(data)
 	if ingestTokenInput.Disabled != nil && *ingestTokenInput.Disabled {
 		return handleError("?", "ingest token cannot be disabled on creation")
 	}
 
-	ingestToken, err := client.CreateIngestToken(ctx, workspaceId, ingestTokenInput)
+	ingestToken, err := client.CreateIngestToken(ctx, wsid, ingestTokenInput)
 	if err != nil {
 		return handleError(ingestToken.Id, err.Error())
 	}

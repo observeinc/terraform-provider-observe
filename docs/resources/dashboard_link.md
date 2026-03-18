@@ -24,7 +24,9 @@ Manages a link between two dashboards, optionally for a specific card. This feat
 
 - `folder` (String) Observe folder OID for this object.
 - `from_card` (String) Name of card to link in originating dashboard.
-- `workspace` (String) OID of the workspace this object is contained in.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

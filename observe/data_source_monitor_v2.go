@@ -34,6 +34,8 @@ func dataSourceMonitorV2() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("monitorv2", "schema", "workspace"),
 			},
@@ -42,9 +44,8 @@ func dataSourceMonitorV2() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"name", "id"},
-				RequiredWith: []string{"workspace"},
 				Description: descriptions.Get("monitorv2", "schema", "name") +
-					"One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.",
+					"One of `name` or `id` must be set.",
 			},
 			// fields of MonitorV2Input excluding the components of MonitorV2Definition
 			"rule_kind": { // MonitorV2RuleKind!
@@ -673,9 +674,11 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 	if getID != "" {
 		m, err = client.GetMonitorV2(ctx, getID)
 	} else if name != "" {
-		workspaceID, _ := data.Get("workspace").(string)
-		if workspaceID != "" {
-			m, err = client.LookupMonitorV2(ctx, &workspaceID, &name)
+		wsid, resolveErr := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if resolveErr == nil {
+			m, err = client.LookupMonitorV2(ctx, &wsid, &name)
+		} else {
+			err = resolveErr
 		}
 	}
 

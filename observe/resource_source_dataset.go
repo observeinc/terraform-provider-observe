@@ -76,8 +76,11 @@ func resourceSourceDataset() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -203,6 +206,10 @@ func newSourceDatasetConfig(data *schema.ResourceData) (*gql.DatasetDefinitionIn
 }
 
 func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -326,8 +333,11 @@ func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	workspace, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateSourceDataset(ctx, workspace.Id, input, sourceInput)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateSourceDataset(ctx, wsid, input, sourceInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -366,8 +376,11 @@ func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	workspace, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateSourceDataset(ctx, workspace.Id, data.Id(), input, sourceInput)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.UpdateSourceDataset(ctx, wsid, data.Id(), input, sourceInput)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

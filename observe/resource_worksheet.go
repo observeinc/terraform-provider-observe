@@ -36,8 +36,11 @@ func resourceWorksheet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      schemaWorksheetWorkspaceDescription,
 			},
 			"name": {
@@ -105,6 +108,10 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 }
 
 func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -158,8 +165,11 @@ func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateWorksheet(ctx, id.Id, config)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateWorksheet(ctx, wsid, config)
 	if err != nil {
 		if gql.HasErrorCode(err, gql.ErrNotFound) {
 			data.SetId("")
@@ -198,8 +208,11 @@ func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.UpdateWorksheet(ctx, data.Id(), id.Id, config)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.UpdateWorksheet(ctx, data.Id(), wsid, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

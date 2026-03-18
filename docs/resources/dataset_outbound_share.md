@@ -53,7 +53,6 @@ resource "observe_dataset_outbound_share" "example" {
 - `outbound_share` (String) The OID of the Observe Snowflake outbound share where the dataset will be shared
 - `schema_name` (String) The name of the schema within the shared database where the dataset view will be created.
 - `view_name` (String) The name of the view that will be created in the shared database, within the specified schema.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -61,6 +60,9 @@ resource "observe_dataset_outbound_share" "example" {
 - `description` (String) A description of the dataset sharing configuration.
 - `folder` (String)
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

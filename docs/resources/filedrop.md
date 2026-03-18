@@ -45,7 +45,6 @@ resource "observe_filedrop" "example" {
 
 - `config` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--config))
 - `datastream` (String) The OID of the datastream that the filedrop loads data into.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -53,6 +52,9 @@ resource "observe_filedrop" "example" {
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `name` (String) Filedrop name. Must be unique within workspace.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

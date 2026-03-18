@@ -46,9 +46,11 @@ func resourceMonitorAction() *schema.Resource {
 			},
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"rate_limit": {
@@ -133,15 +135,11 @@ func resourceMonitorAction() *schema.Resource {
 	}
 }
 
-func newMonitorActionConfig(data *schema.ResourceData) (input *gql.MonitorActionInput, diags diag.Diagnostics) {
+func newMonitorActionConfig(data *schema.ResourceData, wsid string) (input *gql.MonitorActionInput, diags diag.Diagnostics) {
 	name := data.Get("name").(string)
-	id, err := oid.NewOID(data.Get("workspace").(string))
-	if err != nil {
-		return nil, diag.Errorf("failed to get monitor action workspace id: %s", err.Error())
-	}
 	input = &gql.MonitorActionInput{
 		Name:        name,
-		WorkspaceId: id.Id,
+		WorkspaceId: wsid,
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
@@ -244,7 +242,11 @@ func flattenMonitorActionEmail(email *gql.MonitorActionEmailAction) []map[string
 func resourceMonitorActionCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorActionConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	config, diags := newMonitorActionConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}
@@ -261,12 +263,16 @@ func resourceMonitorActionCreate(ctx context.Context, data *schema.ResourceData,
 func resourceMonitorActionUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorActionConfig(data)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	config, diags := newMonitorActionConfig(data, wsid)
 	if diags.HasError() {
 		return diags
 	}
 
-	_, err := client.UpdateMonitorAction(ctx, data.Id(), config)
+	_, err = client.UpdateMonitorAction(ctx, data.Id(), config)
 	if err != nil {
 		return diag.Errorf("failed to update monitor action: %s", err.Error())
 	}

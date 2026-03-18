@@ -25,12 +25,12 @@ resource "observe_datastream" "example" {
 ### Required
 
 - `name` (String) Datastream name. Must be unique within workspace.
-- `workspace` (String) OID of workspace datastream is contained in.
 
 ### Optional
 
 - `description` (String) Datastream description.
 - `icon_url` (String) Icon image.
+- `workspace` (String, Deprecated) OID of workspace datastream is contained in.
 
 ### Read-Only
 

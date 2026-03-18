@@ -18,7 +18,10 @@ func dataSourceDatastream() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaDatastreamWorkspaceDescription,
 			},
@@ -69,8 +72,6 @@ func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, me
 		explicitId = data.Get("id").(string)
 	)
 
-	implicitId, _ := oid.NewOID(data.Get("workspace").(string))
-
 	var d *gql.Datastream
 	var err error
 
@@ -85,7 +86,11 @@ func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, me
 			}
 		}()
 
-		d, err = client.LookupDatastream(ctx, implicitId.Id, name)
+		var wsid string
+		wsid, err = client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if err == nil {
+			d, err = client.LookupDatastream(ctx, wsid, name)
+		}
 	}
 
 	if err != nil {

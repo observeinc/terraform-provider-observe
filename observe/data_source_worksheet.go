@@ -17,7 +17,10 @@ func dataSourceWorksheet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      schemaWorksheetWorkspaceDescription,
 			},

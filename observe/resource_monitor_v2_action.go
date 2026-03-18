@@ -26,9 +26,11 @@ func resourceMonitorV2Action() *schema.Resource {
 			// needed as input to CreateMonitorV2Action
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
 			// fields of MonitorV2ActionInput
 			"type": { // MonitorV2ActionType!
@@ -157,8 +159,11 @@ func resourceMonitorV2ActionCreate(ctx context.Context, data *schema.ResourceDat
 		return diags
 	}
 
-	workspaceID, _ := oid.NewOID(data.Get("workspace").(string))
-	actResult, err := client.CreateMonitorV2Action(ctx, workspaceID.Id, actInput)
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	actResult, err := client.CreateMonitorV2Action(ctx, wsid, actInput)
 	if err != nil {
 		return diag.Errorf("failed to create monitor action: %s", err.Error())
 	}

@@ -49,7 +49,6 @@ resource "observe_monitor_action" "email_action" {
 ### Required
 
 - `name` (String) Monitor action name. Must be unique within workspace.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -60,6 +59,9 @@ resource "observe_monitor_action" "email_action" {
 - `rate_limit` (String) Limits 10 alerts to the defined time period. For email actions the minimum 
 is 10m. For webhook actions the minimum is 1s.
 - `webhook` (Block List, Max: 1) Make a request to a URL as the alert action. (see [below for nested schema](#nestedblock--webhook))
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

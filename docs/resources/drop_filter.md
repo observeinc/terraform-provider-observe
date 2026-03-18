@@ -57,11 +57,13 @@ resource "observe_drop_filter" "example2" {
 - `name` (String) The name of the drop filter.
 - `pipeline` (String) The opal that defines the drop filter.
 - `source_dataset` (String) The source dataset that the drop filter should apply to.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `enabled` (Boolean) When true the drop filter will drop data, and when false the drop filter will not drop data.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

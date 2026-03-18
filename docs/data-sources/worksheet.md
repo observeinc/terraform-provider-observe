@@ -29,7 +29,10 @@ data "observe_worksheet" "lookup" {
 ### Required
 
 - `id` (String) Worksheet ID.
-- `workspace` (String) OID of workspace worksheet is contained in.
+
+### Optional
+
+- `workspace` (String, Deprecated) OID of workspace worksheet is contained in.
 
 ### Read-Only
 

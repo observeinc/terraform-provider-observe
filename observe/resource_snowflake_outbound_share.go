@@ -25,9 +25,11 @@ func resourceSnowflakeOutboundShare() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -103,7 +105,7 @@ func expandSnowflakeOutboundShareAccounts(in []interface{}) []gql.SnowflakeAccou
 func resourceSnowflakeOutboundShareCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*observe.Client)
 
-	id, err := oid.NewOID(d.Get("workspace").(string))
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(d.GetOk("workspace")))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,7 +115,7 @@ func resourceSnowflakeOutboundShareCreate(ctx context.Context, d *schema.Resourc
 		return diags
 	}
 
-	share, err := client.CreateSnowflakeOutboundShare(ctx, id.Id, input)
+	share, err := client.CreateSnowflakeOutboundShare(ctx, wsid, input)
 	if err != nil {
 		return diag.Errorf("failed to create snowflake outbound share: %s", err)
 	}
