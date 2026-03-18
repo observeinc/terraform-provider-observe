@@ -28,8 +28,8 @@ func TestAccObserveBookmarkCreate(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
@@ -64,8 +64,8 @@ func TestAccObserveBookmarkMoveGroup(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
@@ -93,8 +93,8 @@ func TestAccObserveBookmarkDashboard(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(bookmarkDashboardConfigPreamble+`
@@ -131,8 +131,8 @@ func TestAccObserveBookmarkKind(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
@@ -183,8 +183,8 @@ func TestAccObserveBookmarkEntityTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
@@ -194,19 +194,21 @@ func TestAccObserveBookmarkEntityTags(t *testing.T) {
 					name   = "%[1]s"
 
 					entity_tags = {
-						category = "monitoring"
-						priority = "high,critical"  # Will be sorted to "critical,high" by backend
+						category = ["monitoring"]
+						priority = ["high", "critical"]
 					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_bookmark.bm", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category", "monitoring"),
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.priority", "critical,high"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category.#", "1"),
+					resource.TestCheckTypeSetElemAttr("observe_bookmark.bm", "entity_tags.category.*", "monitoring"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.priority.#", "2"),
+					resource.TestCheckTypeSetElemAttr("observe_bookmark.bm", "entity_tags.priority.*", "high"),
+					resource.TestCheckTypeSetElemAttr("observe_bookmark.bm", "entity_tags.priority.*", "critical"),
 				),
 			},
 			{
-				// Update entity_tags
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
@@ -214,17 +216,18 @@ func TestAccObserveBookmarkEntityTags(t *testing.T) {
 					name   = "%[1]s"
 
 					entity_tags = {
-						category = "logging,monitoring"
+						category = ["logging", "monitoring"]
 					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category", "logging,monitoring"), // Already alphabetical
-					resource.TestCheckNoResourceAttr("observe_bookmark.bm", "entity_tags.priority"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.%", "1"),
+					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.category.#", "2"),
+					resource.TestCheckTypeSetElemAttr("observe_bookmark.bm", "entity_tags.category.*", "logging"),
+					resource.TestCheckTypeSetElemAttr("observe_bookmark.bm", "entity_tags.category.*", "monitoring"),
 				),
 			},
 			{
-				// Remove all entity_tags
 				Config: fmt.Sprintf(bookmarkConfigPreamble+`
 				resource "observe_bookmark" "bm" {
 					group  = observe_bookmark_group.a.oid
@@ -233,7 +236,7 @@ func TestAccObserveBookmarkEntityTags(t *testing.T) {
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_bookmark.bm", "entity_tags.%", "0"),
+					resource.TestCheckNoResourceAttr("observe_bookmark.bm", "entity_tags.%"),
 				),
 			},
 		},
