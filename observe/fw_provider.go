@@ -294,11 +294,14 @@ func (p *observeFrameworkProvider) Configure(ctx context.Context, req provider.C
 func (p *observeFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewBookmarkResource,
+		NewDatasetResource,
 	}
 }
 
 func (p *observeFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewDatasetDataSource,
+	}
 }
 
 func envOrDefault(val types.String, envVar, defaultVal string) string {

@@ -261,3 +261,262 @@ func TestValidateFWFlags(t *testing.T) {
 		}
 	})
 }
+
+func TestValidateFWJSON(t *testing.T) {
+	ctx := context.Background()
+	v := validateFWJSON()
+
+	t.Run("valid JSON", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(`{"key": "value"}`),
+			Path:        path.Root("data"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("expected no errors, got: %s", resp.Diagnostics.Errors())
+		}
+	})
+
+	t.Run("invalid JSON", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(`{broken`),
+			Path:        path.Root("data"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatal("expected validation error for invalid JSON")
+		}
+	})
+}
+
+func TestValidateFWDatasetName(t *testing.T) {
+	ctx := context.Background()
+	v := validateFWDatasetName()
+
+	t.Run("valid name", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue("my-dataset"),
+			Path:        path.Root("name"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("expected no errors, got: %s", resp.Diagnostics.Errors())
+		}
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(""),
+			Path:        path.Root("name"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatal("expected validation error for empty name")
+		}
+	})
+
+	t.Run("invalid characters", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue("bad:name"),
+			Path:        path.Root("name"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatal("expected validation error for name with colon")
+		}
+	})
+}
+
+func TestValidateFWStringNotEmpty(t *testing.T) {
+	ctx := context.Background()
+	v := validateFWStringNotEmpty()
+
+	t.Run("non-empty is valid", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue("hello"),
+			Path:        path.Root("val"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("expected no errors, got: %s", resp.Diagnostics.Errors())
+		}
+	})
+
+	t.Run("empty string is invalid", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(""),
+			Path:        path.Root("val"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatal("expected validation error for empty string")
+		}
+	})
+}
+
+func TestValidateFWRegex(t *testing.T) {
+	ctx := context.Background()
+	v := validateFWRegex(`^\d+$`, "expected valid integer")
+
+	t.Run("matching string", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue("12345"),
+			Path:        path.Root("id"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("expected no errors, got: %s", resp.Diagnostics.Errors())
+		}
+	})
+
+	t.Run("non-matching string", func(t *testing.T) {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue("abc"),
+			Path:        path.Root("id"),
+		}
+		resp := &validator.StringResponse{}
+		v.ValidateString(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatal("expected validation error for non-matching string")
+		}
+	})
+}
+
+func TestPipelinePlanModifier(t *testing.T) {
+	ctx := context.Background()
+	mod := &pipelinePlanModifier{}
+
+	t.Run("trailing whitespace is suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("make_col x:1\n"),
+			PlanValue:  types.StringValue("make_col x:1\n\t\n"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.StateValue {
+			t.Fatalf("expected suppression, got %q", resp.PlanValue.ValueString())
+		}
+	})
+
+	t.Run("different content is not suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("make_col x:1"),
+			PlanValue:  types.StringValue("make_col x:2"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.PlanValue {
+			t.Fatal("expected no suppression for different content")
+		}
+	})
+}
+
+func TestTimeDurationPlanModifier(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("equivalent durations are suppressed", func(t *testing.T) {
+		mod := &timeDurationPlanModifier{}
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("1m0s"),
+			PlanValue:  types.StringValue("60s"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.StateValue {
+			t.Fatal("expected suppression for equivalent durations")
+		}
+	})
+
+	t.Run("ceil days mode", func(t *testing.T) {
+		mod := &timeDurationPlanModifier{ceilDays: true}
+		// 48h39s and 72h0m0s both ceil to 72h (3 days)
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("72h0m0s"),
+			PlanValue:  types.StringValue("48h39s"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.StateValue {
+			t.Fatal("expected suppression for durations that ceil to same day count")
+		}
+	})
+
+	t.Run("different durations are not suppressed", func(t *testing.T) {
+		mod := &timeDurationPlanModifier{}
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("1m"),
+			PlanValue:  types.StringValue("2m"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.PlanValue {
+			t.Fatal("expected no suppression for different durations")
+		}
+	})
+}
+
+func TestJSONPlanModifier(t *testing.T) {
+	ctx := context.Background()
+	mod := &jsonPlanModifier{}
+
+	t.Run("semantically equal JSON is suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue(`{"a":"b","c":"d"}`),
+			PlanValue:  types.StringValue(`{"c":"d","a":"b"}`),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.StateValue {
+			t.Fatal("expected suppression for semantically equal JSON")
+		}
+	})
+
+	t.Run("different JSON is not suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue(`{"a":"b"}`),
+			PlanValue:  types.StringValue(`{"a":"c"}`),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.PlanValue {
+			t.Fatal("expected no suppression for different JSON")
+		}
+	})
+}
+
+func TestEnumPlanModifier(t *testing.T) {
+	ctx := context.Background()
+	mod := &enumPlanModifier{}
+
+	t.Run("same enum different casing is suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("skip_rematerialization"),
+			PlanValue:  types.StringValue("SkipRematerialization"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.StateValue {
+			t.Fatal("expected suppression for same enum with different casing")
+		}
+	})
+
+	t.Run("different enum values are not suppressed", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			StateValue: types.StringValue("rematerialize"),
+			PlanValue:  types.StringValue("skip_rematerialization"),
+		}
+		resp := &planmodifier.StringResponse{PlanValue: req.PlanValue}
+		mod.PlanModifyString(ctx, req, resp)
+		if resp.PlanValue != req.PlanValue {
+			t.Fatal("expected no suppression for different enum values")
+		}
+	})
+}

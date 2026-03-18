@@ -2,10 +2,15 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -17,6 +22,21 @@ import (
 // configureClient extracts the *observe.Client from provider data in a
 // resource's Configure method. Returns nil if provider data is not yet available.
 func configureClient(req resource.ConfigureRequest, resp *resource.ConfigureResponse) *observe.Client {
+	if req.ProviderData == nil {
+		return nil
+	}
+	client, ok := req.ProviderData.(*observe.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected provider data type",
+			fmt.Sprintf("Expected *observe.Client, got: %T", req.ProviderData),
+		)
+		return nil
+	}
+	return client
+}
+
+func configureDataSourceClient(req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) *observe.Client {
 	if req.ProviderData == nil {
 		return nil
 	}
@@ -187,4 +207,204 @@ func (v *enumValidator) ValidateString(_ context.Context, req validator.StringRe
 		"Invalid value",
 		fmt.Sprintf("must be one of: %s, got: %s", strings.Join(v.allowed, ", "), req.ConfigValue.ValueString()),
 	)
+}
+
+type jsonValidator struct{}
+
+func validateFWJSON() validator.String {
+	return &jsonValidator{}
+}
+
+func (v *jsonValidator) Description(_ context.Context) string {
+	return "value must be valid JSON"
+}
+
+func (v *jsonValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *jsonValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	var j interface{}
+	if err := json.Unmarshal([]byte(req.ConfigValue.ValueString()), &j); err != nil {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid JSON", err.Error())
+	}
+}
+
+type datasetNameValidator struct{}
+
+func validateFWDatasetName() validator.String {
+	return &datasetNameValidator{}
+}
+
+func (v *datasetNameValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("name must be 1-%d characters and not contain %q", MaxNameLength, InvalidObjectNameChars)
+}
+
+func (v *datasetNameValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *datasetNameValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	if len(val) < 1 || len(val) > MaxNameLength {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid name length",
+			fmt.Sprintf("expected length of name to be in the range (1 - %d), got %d", MaxNameLength, len(val)))
+		return
+	}
+	if strings.ContainsAny(val, InvalidObjectNameChars) {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid name characters",
+			fmt.Sprintf("expected value of name to not contain any of %q", InvalidObjectNameChars))
+	}
+}
+
+// pipelinePlanModifier suppresses diffs from trailing whitespace in pipeline strings.
+type pipelinePlanModifier struct{}
+
+func (m *pipelinePlanModifier) Description(_ context.Context) string {
+	return "Suppresses diffs from trailing whitespace in pipeline strings."
+}
+
+func (m *pipelinePlanModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m *pipelinePlanModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.StateValue.IsNull() || req.PlanValue.IsNull() {
+		return
+	}
+	old := strings.TrimRightFunc(req.StateValue.ValueString(), unicode.IsSpace)
+	new := strings.TrimRightFunc(req.PlanValue.ValueString(), unicode.IsSpace)
+	if old == new {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+// timeDurationPlanModifier suppresses diffs when two duration strings represent the same duration.
+type timeDurationPlanModifier struct {
+	ceilDays bool
+}
+
+func (m *timeDurationPlanModifier) Description(_ context.Context) string {
+	return "Suppresses diffs when two duration strings represent the same duration."
+}
+
+func (m *timeDurationPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m *timeDurationPlanModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.StateValue.IsNull() || req.PlanValue.IsNull() {
+		return
+	}
+	o, _ := time.ParseDuration(req.StateValue.ValueString())
+	n, _ := time.ParseDuration(req.PlanValue.ValueString())
+	if m.ceilDays {
+		if ceilToDays(o) == ceilToDays(n) {
+			resp.PlanValue = req.StateValue
+		}
+	} else if o == n {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+// jsonPlanModifier suppresses diffs when two JSON strings are semantically equal.
+type jsonPlanModifier struct{}
+
+func (m *jsonPlanModifier) Description(_ context.Context) string {
+	return "Suppresses diffs when two JSON strings are semantically equal."
+}
+
+func (m *jsonPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m *jsonPlanModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.StateValue.IsNull() || req.PlanValue.IsNull() {
+		return
+	}
+	var oldVal, newVal interface{}
+	if err := json.Unmarshal([]byte(req.StateValue.ValueString()), &oldVal); err != nil {
+		return
+	}
+	if err := json.Unmarshal([]byte(req.PlanValue.ValueString()), &newVal); err != nil {
+		return
+	}
+	if reflect.DeepEqual(oldVal, newVal) {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+// enumPlanModifier suppresses diffs between enum values that normalize to the same snake_case.
+type enumPlanModifier struct{}
+
+func (m *enumPlanModifier) Description(_ context.Context) string {
+	return "Suppresses diffs between enum values that normalize to the same value."
+}
+
+func (m *enumPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m *enumPlanModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.StateValue.IsNull() || req.PlanValue.IsNull() {
+		return
+	}
+	if strings.EqualFold(toSnake(req.StateValue.ValueString()), toSnake(req.PlanValue.ValueString())) {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+type stringNotEmptyValidator struct{}
+
+func validateFWStringNotEmpty() validator.String {
+	return &stringNotEmptyValidator{}
+}
+
+func (v *stringNotEmptyValidator) Description(_ context.Context) string {
+	return "value must not be an empty string"
+}
+
+func (v *stringNotEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *stringNotEmptyValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.ValueString() == "" {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", "expected value to not be an empty string")
+	}
+}
+
+type regexValidator struct {
+	re  *regexp.Regexp
+	msg string
+}
+
+func validateFWRegex(pattern, msg string) validator.String {
+	return &regexValidator{re: regexp.MustCompile(pattern), msg: msg}
+}
+
+func (v *regexValidator) Description(_ context.Context) string {
+	return v.msg
+}
+
+func (v *regexValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *regexValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if !v.re.MatchString(req.ConfigValue.ValueString()) {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", v.msg)
+	}
 }
