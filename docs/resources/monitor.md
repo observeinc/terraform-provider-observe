@@ -21,7 +21,6 @@ stage pipelines.
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -34,6 +33,9 @@ frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `is_template` (Boolean) This resource is template for creating new monitors
 - `notification_spec` (Block List, Max: 1) (see [below for nested schema](#nestedblock--notification_spec))
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

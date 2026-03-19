@@ -38,7 +38,9 @@ data "observe_monitor_v2_action" "name_lookup" {
  One of either `id` or `name` must be provided.
 - `name` (String) Name of the monitor v2 action.
  One of either `id` or `name` must be provided.
-- `workspace` (String) OID of the workspace this object is contained in.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
  Must be specified if looking up by name.
 
 ### Read-Only

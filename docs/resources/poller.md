@@ -55,7 +55,6 @@ resource "observe_poller" "weather" {
 ### Required
 
 - `name` (String) Poller name. Must be unique within workspace.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -72,6 +71,9 @@ resource "observe_poller" "weather" {
 - `retries` (Number)
 - `skip_external_validation` (Boolean) Skips validating any provided external API credentials against their external APIs.
 - `tags` (Map of String)
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

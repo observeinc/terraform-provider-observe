@@ -16,11 +16,13 @@ Manages an outbound Snowflake share, which allows you to share datasets with an 
 
 - `account` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--account))
 - `name` (String) A descriptive name for the share. This will be included in the Snowflake share name.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `description` (String) A description of the share.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

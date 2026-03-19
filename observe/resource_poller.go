@@ -100,10 +100,12 @@ func resourcePoller() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Description:      descriptions.Get("common", "schema", "workspace"),
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
+				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
 				Type:        schema.TypeString,
@@ -715,8 +717,12 @@ func resourcePollerCreate(ctx context.Context, data *schema.ResourceData, meta i
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreatePoller(ctx, id.Id, config)
+	v, ok := data.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreatePoller(ctx, wsid, config)
 	if err != nil {
 		return diag.Errorf("failed to create poller: %s", err.Error())
 	}

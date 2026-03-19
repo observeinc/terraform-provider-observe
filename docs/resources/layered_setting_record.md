@@ -36,7 +36,6 @@ resource "observe_layered_setting_record" "datastream_retention_example" {
 - `name` (String)
 - `setting` (String)
 - `target` (String)
-- `workspace` (String)
 
 ### Optional
 
@@ -46,6 +45,7 @@ resource "observe_layered_setting_record" "datastream_retention_example" {
 - `value_int64` (Number)
 - `value_string` (String)
 - `value_timestamp` (String)
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

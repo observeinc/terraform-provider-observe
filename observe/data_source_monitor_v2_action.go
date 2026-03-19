@@ -28,6 +28,8 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
 				Description:      descriptions.Get("common", "schema", "workspace") + " Must be specified if looking up by name.",
 			},
@@ -36,7 +38,6 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"name", "id"},
-				RequiredWith: []string{"workspace"},
 				Description:  descriptions.Get("monitor_v2_action", "schema", "name") + " One of either `id` or `name` must be provided.",
 			},
 			// fields of MonitorV2ActionInput
@@ -167,16 +168,18 @@ func dataSourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceDat
 			return diag.FromErr(err)
 		}
 	} else if name != "" {
-		workspaceID, _ := data.Get("workspace").(string)
-		if workspaceID != "" {
-			actions, err := client.SearchMonitorV2Action(ctx, &workspaceID, &name)
-			if err != nil {
-				return diag.FromErr(err)
-			} else if len(actions) != 1 {
-				return diag.Errorf("found %d monitor actions with name %q", len(actions), name)
-			}
-			act = &actions[0]
+		wsid, resolveErr := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+		if resolveErr != nil {
+			return diag.FromErr(resolveErr)
 		}
+		actions, err := client.SearchMonitorV2Action(ctx, &wsid, &name)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if len(actions) != 1 {
+			return diag.Errorf("found %d monitor actions with name %q", len(actions), name)
+		}
+		act = &actions[0]
 	}
 
 	if act == nil {

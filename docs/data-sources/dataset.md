@@ -31,8 +31,10 @@ data "observe_dataset" "example" {
 - `id` (String) Resource ID for this object.
 One of `name` or `id` must be set.
 - `name` (String) Dataset name. Must be unique within workspace.
-One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
-- `workspace` (String) OID of the workspace this object is contained in.
+One of `name` or `id` must be set.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

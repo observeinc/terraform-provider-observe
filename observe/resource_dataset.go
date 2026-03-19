@@ -47,8 +47,11 @@ func resourceDataset() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -228,7 +231,11 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 		return nil
 	}
 
-	wsid, _ := oid.NewOID(d.Get("workspace").(string))
+	v, ok := d.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return err
+	}
 	input, queryInput, diags := newDatasetConfig(d)
 	if diags.HasError() {
 		return fmt.Errorf("invalid dataset config: %s", concatenateDiagnosticsToStr(diags))
@@ -237,7 +244,7 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 		input.Id = &id
 	}
 
-	result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput)
+	result, err := client.SaveDatasetDryRun(ctx, wsid, input, queryInput)
 	if err != nil {
 		return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
 	}
@@ -497,8 +504,12 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	wsid, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
+	v, ok := data.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	result, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -539,7 +550,11 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 
 	id := data.Id()
 	input.Id = &id
-	wsid, _ := oid.NewOID(data.Get("workspace").(string))
+	v, ok := data.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	// If must_skip_rematerialization is set, do a dry-run to ensure it skips rematerialization.
 	// We already do this in CustomizeDiff, but sometimes the plan is run beforehand (e.g. when a PR is created)
@@ -547,7 +562,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	// Something could have changed in the environment between them resulting in new dematerializations.
 	rematerializationMode := getRematerializationMode(client, data)
 	if rematerializationMode == RematerializationModeMustSkipRematerialization {
-		if result, err := client.SaveDatasetDryRun(ctx, wsid.Id, input, queryInput); err != nil {
+		if result, err := client.SaveDatasetDryRun(ctx, wsid, input, queryInput); err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
@@ -575,7 +590,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		dependencyHandling.RematerializationMode = &mode
 	}
 
-	result, err := client.SaveDataset(ctx, wsid.Id, input, queryInput, dependencyHandling)
+	result, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

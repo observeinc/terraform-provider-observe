@@ -16,13 +16,15 @@ Support for making connections between monitors and monitor actions. Monitor act
 
 - `action` (String) The Observe ID of the monitor action that you want to connect to the monitor
 - `monitor` (String) The Observe ID of the monitor that you want to connect to the monitor action.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
 - `description` (String) A brief description of the monitor action attachment.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `name` (String) Monitor action attachment name. Must be unique within workspace.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

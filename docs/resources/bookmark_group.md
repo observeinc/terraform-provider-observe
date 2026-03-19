@@ -25,7 +25,6 @@ resource "observe_bookmark_group" "example" {
 ### Required
 
 - `name` (String) Name of bookmark group.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -33,6 +32,9 @@ resource "observe_bookmark_group" "example" {
 - `icon_url` (String) Icon used when presenting bookmark group.
 - `is_home` (Boolean) Whether to add this bookmark group to the home page
 - `presentation` (String)
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

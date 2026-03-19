@@ -37,9 +37,11 @@ func resourceMonitor() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -772,8 +774,12 @@ func resourceMonitorCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	id, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.CreateMonitor(ctx, id.Id, config)
+	v, ok := data.GetOk("workspace")
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(v, ok))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	result, err := client.CreateMonitor(ctx, wsid, config)
 	if err != nil {
 		return diag.Errorf("failed to create monitor: %s", err.Error())
 	}

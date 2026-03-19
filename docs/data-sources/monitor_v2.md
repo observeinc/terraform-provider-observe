@@ -43,9 +43,9 @@ data "observe_monitor_v2" "name_lookup" {
 - `id` (String) Resource ID for this object.
 One of `name` or `id` must be set.
 - `name` (String) Monitor name.
-One of `name` or `id` must be set. If `name` is provided, `workspace` must be set.
+One of `name` or `id` must be set.
 - `scheduling` (Block List) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
-- `workspace` (String) OID of the workspace this object is contained in.
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
 
 ### Read-Only
 

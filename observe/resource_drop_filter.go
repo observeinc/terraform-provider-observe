@@ -26,9 +26,11 @@ func resourceDropFilter() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
-				ForceNew:         true,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
+				DiffSuppressFunc: diffSuppressWorkspace,
+				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 				Description:      descriptions.Get("common", "schema", "workspace"),
 			},
 			"oid": {
@@ -121,12 +123,15 @@ func ingestFilterToResourceData(filter *gql.IngestFilter, data *schema.ResourceD
 func resourceIngestFilterCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	config, diags := newIngestFilterConfig(data)
-	workspace, _ := oid.NewOID(data.Get("workspace").(string))
-
 	if diags.HasError() {
 		return diags
 	}
-	filter, err := client.CreateIngestFilter(ctx, workspace.Id, config)
+
+	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	filter, err := client.CreateIngestFilter(ctx, wsid, config)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

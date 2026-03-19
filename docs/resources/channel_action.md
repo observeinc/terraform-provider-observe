@@ -18,7 +18,6 @@ Manages a channel action, which adds a notification template to the specified ch
 ### Required
 
 - `name` (String)
-- `workspace` (String)
 
 ### Optional
 
@@ -29,6 +28,7 @@ Manages a channel action, which adds a notification template to the specified ch
 - `notify_on_close` (Boolean)
 - `rate_limit` (String)
 - `webhook` (Block List, Max: 1) (see [below for nested schema](#nestedblock--webhook))
+- `workspace` (String, Deprecated)
 
 ### Read-Only
 

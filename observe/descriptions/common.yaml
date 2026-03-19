@@ -2,6 +2,8 @@
 schema:
   workspace: |
     OID of the workspace this object is contained in.
+    This field is optional and deprecated. Since each customer has exactly
+    one workspace, the server automatically assigns the correct workspace.
   id: |
     Resource ID for this object.
   type:

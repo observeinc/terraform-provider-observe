@@ -16,12 +16,12 @@ Manages an worksheet. Worksheets are used for ad-hoc analysis of datasets.
 
 - `name` (String) Worksheet name. Must be unique within workspace.
 - `queries` (String) Worksheet definition in JSON format.
-- `workspace` (String) OID of workspace worksheet is contained in.
 
 ### Optional
 
 - `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `icon_url` (String) Icon image.
+- `workspace` (String, Deprecated) OID of workspace worksheet is contained in.
 
 ### Read-Only
 
