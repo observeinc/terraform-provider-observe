@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -868,8 +869,101 @@ func TestAccObserveMonitorV2CompareAgainstZeroVals(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.1.value_float64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.2.value_bool.0", "false"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.3.value_string.0", ""),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.4.value_duration.0", "0s"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.5.value_timestamp.0", "1970-01-01T00:00:00Z"),
+				resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.4.value_duration.0", "0s"),
+				resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.promote.0.compare_columns.0.compare_values.5.value_timestamp.0", "1970-01-01T00:00:00Z"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccObserveMonitorV2MaxAlertsPerHourValidation(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								colmake kind:"test", description:"test"
+							EOF
+							output_stage = true
+						}
+						stage {
+							pipeline = <<-EOF
+								filter kind ~ "test"
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+						max_alerts_per_hour = -5
+					}
+				`, randomPrefix),
+				ExpectError: regexp.MustCompile(`max_alerts_per_hour must be -1 \(unset/null\), 0 \(system maximum\), or a positive integer`),
+			},
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								colmake kind:"test", description:"test"
+							EOF
+							output_stage = true
+						}
+						stage {
+							pipeline = <<-EOF
+								filter kind ~ "test"
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+						max_alerts_per_hour = 0
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "max_alerts_per_hour", "0"),
 				),
 			},
 		},

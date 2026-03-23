@@ -106,6 +106,58 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
+			"rule_template": { // MonitorV2RuleTemplateInput
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "rule_template", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"anomaly": { // MonitorV2AnomalyRuleTemplateInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"computation_window": { // Duration
+										Type:             schema.TypeString,
+										Optional:         true,
+										Computed:         true,
+										ValidateDiagFunc: validateTimeDuration,
+										DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "computation_window"),
+									},
+									"value_column_name": { // String!
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "value_column_name"),
+									},
+									"compare_fn": { // MonitorV2BoundComparisonFunction!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2BoundComparisonFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
+										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
+									},
+									"num_standard_deviations": { // Int64!
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+									},
+									"basic_algorithm": { // JsonObject
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateStringIsJSON,
+										DiffSuppressFunc: diffSuppressJSON,
+										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -143,6 +195,27 @@ func resourceMonitorV2() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
 										Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+									},
+								},
+							},
+						},
+						"anomaly": { // MonitorV2AnomalyRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_percentage": { // Int64
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:        schema.TypeList,
@@ -242,6 +315,27 @@ func resourceMonitorV2() *schema.Resource {
 								},
 							},
 						},
+						"anomaly": { // MonitorV2AnomalyRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_percentage": { // Int64
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -261,14 +355,15 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			// The terraform sdk is unable to distinguish between an explicit 0 and an unset value,
 			// which is relevant here since unset means use the default (100 at time of writing),
-			// while 0 means "no limit". So we'll use -1 to indicate unset/null as a workaround.
-			// Should be mostly transparent to the user (may see -1 in terraform plan when changing
-			// from unset to some value or vice versa).
+			// while 0 means "use the system maximum" (typically 3600). So we'll use -1 to indicate
+			// unset/null as a workaround. Should be mostly transparent to the user (may see -1 in
+			// terraform plan when changing from unset to some value or vice versa).
 			"max_alerts_per_hour": { //Int64
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
-				Default:     -1,
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Description:      descriptions.Get("monitorv2", "schema", "max_alerts_per_hour"),
+				Default:          -1,
+				ValidateDiagFunc: validateMaxAlertsPerHour(),
 			},
 			"groupings": { // [MonitorV2ColumnInput!]
 				Type:        schema.TypeList,
@@ -758,7 +853,7 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		// -1 is a sentinel value to indicate null, see comments above for max_alerts_per_hour
+		// -1 is a sentinel value to indicate null/unset, see comments above for max_alerts_per_hour
 		if err := data.Set("max_alerts_per_hour", -1); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -1176,11 +1271,11 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		dataStabilizationDelay, _ := types.ParseDurationScalar(v.(string))
 		defnInput.DataStabilizationDelay = dataStabilizationDelay
 	}
-	// -1 is a sentinel value to indicate null, see comments above for max_alerts_per_hour
-	// (don't want to use GetOk since 0 is a valid value here, and GetOk would return !ok for 0)
+	// -1 is a sentinel value to indicate null/unset, see comments above for max_alerts_per_hour.
+	// Can't use GetOk since 0 is a valid value ("use system maximum") and GetOk would return !ok for 0.
 	v := data.Get("max_alerts_per_hour").(int)
 	if v == -1 {
-		defnInput.MaxAlertsPerHour = nil // translate -1 to null (defaults to nil anyway but added for clarity)
+		defnInput.MaxAlertsPerHour = nil
 	} else {
 		defnInput.MaxAlertsPerHour = types.Int64Scalar(v).Ptr()
 	}

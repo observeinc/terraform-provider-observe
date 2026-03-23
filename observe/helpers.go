@@ -549,6 +549,20 @@ func validateReferenceTableName() schema.SchemaValidateDiagFunc {
 	return validateDatasetName()
 }
 
+// -1 is the Terraform sentinel for null/unset; 0 and above are valid API values.
+func validateMaxAlertsPerHour() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		v, ok := i.(int)
+		if !ok {
+			return diag.Errorf("expected type of max_alerts_per_hour to be int")
+		}
+		if v < -1 {
+			return diag.Errorf("max_alerts_per_hour must be -1 (unset/null), 0 (system maximum), or a positive integer, got %d", v)
+		}
+		return nil
+	}
+}
+
 func asPointer[T any](val T) *T {
 	return &val
 }
