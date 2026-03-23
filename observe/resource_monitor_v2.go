@@ -106,6 +106,55 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateMapValues(validateOID()),
 				Description:      descriptions.Get("transform", "schema", "inputs"),
 			},
+			"rule_template": { // MonitorV2RuleTemplateInput
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "rule_template", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"anomaly": { // MonitorV2AnomalyRuleTemplateInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"computation_window": { // Duration (backend-computed from evaluation window)
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "computation_window"),
+									},
+									"value_column_name": { // String!
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "value_column_name"),
+									},
+									"compare_fn": { // MonitorV2BoundComparisonFunction!
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2BoundComparisonFunctions),
+										DiffSuppressFunc: diffSuppressEnums,
+										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
+									},
+									"num_standard_deviations": { // Int64!
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+									},
+									"basic_algorithm": { // JsonObject
+										Type:        schema.TypeList,
+										Optional:    true,
+										MaxItems:    1,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
+										Elem:        &schema.Resource{Schema: map[string]*schema.Schema{}},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"no_data_rules": { //  [MonitorV2NoDataRuleInput!]
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -143,6 +192,27 @@ func resourceMonitorV2() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
 										Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
+									},
+								},
+							},
+						},
+						"anomaly": { // MonitorV2AnomalyRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_percentage": { // Int64
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
 										Type:        schema.TypeList,
@@ -238,6 +308,27 @@ func resourceMonitorV2() *schema.Resource {
 										Optional:    true,
 										Elem:        monitorV2ColumnComparisonResource(),
 										Description: descriptions.Get("monitorv2", "schema", "column_comparison", "description"),
+									},
+								},
+							},
+						},
+						"anomaly": { // MonitorV2AnomalyRuleInput
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "description"),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"compare_percentage": { // Int64
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rules", "anomaly", "compare_percentage"),
+									},
+									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        monitorV2ColumnComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "compare_groups"),
 									},
 								},
 							},
@@ -733,6 +824,12 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if monitor.Definition.RuleTemplate != nil && monitor.Definition.RuleTemplate.Anomaly != nil {
+		if err := data.Set("rule_template", monitorV2FlattenRuleTemplate(*monitor.Definition.RuleTemplate)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	if monitor.Definition.NoDataRules != nil {
 		if err := data.Set("no_data_rules", monitorV2FlattenNoDataRules(monitor.Definition.NoDataRules)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -805,6 +902,9 @@ func monitorV2FlattenNoDataRule(gqlNoDataRule gql.MonitorV2NoDataRule) interface
 	if gqlNoDataRule.Threshold != nil {
 		noDataRule["threshold"] = monitorV2FlattenThresholdRule(*gqlNoDataRule.Threshold)
 	}
+	if gqlNoDataRule.Anomaly != nil {
+		noDataRule["anomaly"] = monitorV2FlattenAnomalyRule(*gqlNoDataRule.Anomaly)
+	}
 	return noDataRule
 }
 
@@ -828,6 +928,9 @@ func monitorV2FlattenRule(gqlRule gql.MonitorV2Rule) interface{} {
 	}
 	if gqlRule.Promote != nil {
 		rule["promote"] = monitorV2FlattenPromoteRule(*gqlRule.Promote)
+	}
+	if gqlRule.Anomaly != nil {
+		rule["anomaly"] = monitorV2FlattenAnomalyRule(*gqlRule.Anomaly)
 	}
 	return rule
 }
@@ -871,13 +974,11 @@ func monitorV2FlattenActionRule(ctx context.Context, client *observe.Client, gql
 		}
 	}
 
-	if len(gqlActionRule.Levels) > 0 {
-		levels := make([]interface{}, 0, len(gqlActionRule.Levels))
-		for _, level := range gqlActionRule.Levels {
-			levels = append(levels, toSnake(string(level)))
-		}
-		rules["levels"] = levels
+	levels := make([]interface{}, 0, len(gqlActionRule.Levels))
+	for _, level := range gqlActionRule.Levels {
+		levels = append(levels, toSnake(string(level)))
 	}
+	rules["levels"] = levels
 	if gqlActionRule.SendEndNotifications != nil {
 		rules["send_end_notifications"] = *gqlActionRule.SendEndNotifications
 	}
@@ -948,6 +1049,40 @@ func monitorV2FlattenPromoteRule(gqlPromote gql.MonitorV2PromoteRule) []interfac
 	return []interface{}{promoteRule}
 }
 
+func monitorV2FlattenAnomalyRule(gqlAnomaly gql.MonitorV2AnomalyRule) []interface{} {
+	anomalyRule := map[string]interface{}{}
+	if gqlAnomaly.ComparePercentage != nil {
+		anomalyRule["compare_percentage"] = int(*gqlAnomaly.ComparePercentage)
+	}
+	if gqlAnomaly.CompareGroups != nil {
+		anomalyRule["compare_groups"] = monitorV2FlattenColumnComparisons(gqlAnomaly.CompareGroups)
+	}
+	return []interface{}{anomalyRule}
+}
+
+func monitorV2FlattenRuleTemplate(gqlRuleTemplate gql.MonitorV2RuleTemplate) []interface{} {
+	ruleTemplate := map[string]interface{}{}
+	if gqlRuleTemplate.Anomaly != nil {
+		ruleTemplate["anomaly"] = monitorV2FlattenAnomalyRuleTemplate(*gqlRuleTemplate.Anomaly)
+	}
+	return []interface{}{ruleTemplate}
+}
+
+func monitorV2FlattenAnomalyRuleTemplate(gqlTemplate gql.MonitorV2AnomalyRuleTemplate) []interface{} {
+	template := map[string]interface{}{
+		"value_column_name":       gqlTemplate.ValueColumnName,
+		"compare_fn":              toSnake(string(gqlTemplate.CompareFn)),
+		"num_standard_deviations": int(gqlTemplate.NumStandardDeviations),
+	}
+	if gqlTemplate.ComputationWindow != nil {
+		template["computation_window"] = gqlTemplate.ComputationWindow.String()
+	}
+	if gqlTemplate.BasicAlgorithm != nil {
+		template["basic_algorithm"] = []interface{}{map[string]interface{}{}}
+	}
+	return []interface{}{template}
+}
+
 func monitorV2FlattenColumnComparisons(gqlColumnComparisons []gql.MonitorV2ColumnComparison) []interface{} {
 	columnComparisons := []interface{}{}
 	for _, gqlColumnComparison := range gqlColumnComparisons {
@@ -994,6 +1129,15 @@ func monitorV2FlattenComparison(gqlComparison gql.MonitorV2Comparison) interface
 }
 
 func monitorV2FlattenPrimitiveValue(gqlPrimitiveValue gql.PrimitiveValue, primitiveValue map[string]interface{}) {
+	// Explicitly clear all value types so that terraform state doesn't retain
+	// stale values from a previously active type (e.g. switching from value_int64 to value_string).
+	primitiveValue["value_bool"] = []interface{}{}
+	primitiveValue["value_int64"] = []interface{}{}
+	primitiveValue["value_float64"] = []interface{}{}
+	primitiveValue["value_string"] = []interface{}{}
+	primitiveValue["value_timestamp"] = []interface{}{}
+	primitiveValue["value_duration"] = []interface{}{}
+
 	if gqlPrimitiveValue.Bool != nil {
 		primitiveValue["value_bool"] = []interface{}{*gqlPrimitiveValue.Bool}
 	}
@@ -1160,6 +1304,14 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 	}
 
 	// optionals
+	if _, ok := data.GetOk("rule_template"); ok {
+		ruleTemplate, diags := newMonitorV2RuleTemplateInput("rule_template.0.", data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		defnInput.RuleTemplate = ruleTemplate
+	}
+
 	if _, ok := data.GetOk("no_data_rules"); ok {
 		noDataRules := make([]gql.MonitorV2NoDataRuleInput, 0)
 		for i := range data.Get("no_data_rules").([]interface{}) {
@@ -1232,6 +1384,13 @@ func newMonitorV2NoDataRuleInput(path string, data *schema.ResourceData) (noData
 			return nil, diags
 		}
 		noDataRule.Threshold = threshold
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%sanomaly", path)); ok {
+		anomaly, diags := newMonitorV2AnomalyRuleInput(fmt.Sprintf("%sanomaly.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		noDataRule.Anomaly = anomaly
 	}
 
 	return noDataRule, diags
@@ -1347,8 +1506,16 @@ func newMonitorV2RuleInput(path string, data *schema.ResourceData) (rule *gql.Mo
 		rule.Promote = promote
 		nRules++
 	}
+	if _, ok := data.GetOk(fmt.Sprintf("%sanomaly", path)); ok {
+		anomaly, diags := newMonitorV2AnomalyRuleInput(fmt.Sprintf("%sanomaly.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rule.Anomaly = anomaly
+		nRules++
+	}
 	if nRules != 1 {
-		return nil, diag.Errorf("exactly one of count, threshold, or promote must be specified")
+		return nil, diag.Errorf("exactly one of count, threshold, promote, or anomaly must be specified")
 	}
 
 	return rule, diags
@@ -1462,6 +1629,61 @@ func newMonitorV2PromoteRuleInput(prefix string, data *schema.ResourceData) (pro
 	return promoteRule, diags
 }
 
+func newMonitorV2AnomalyRuleInput(path string, data *schema.ResourceData) (anomalyRule *gql.MonitorV2AnomalyRuleInput, diags diag.Diagnostics) {
+	anomalyRule = &gql.MonitorV2AnomalyRuleInput{}
+
+	if v, ok := data.GetOk(fmt.Sprintf("%scompare_percentage", path)); ok {
+		cp := types.Int64Scalar(v.(int))
+		anomalyRule.ComparePercentage = &cp
+	}
+	if _, ok := data.GetOk(fmt.Sprintf("%scompare_groups", path)); ok {
+		compareGroups := make([]gql.MonitorV2ColumnComparisonInput, 0)
+		for i := range data.Get(fmt.Sprintf("%scompare_groups", path)).([]interface{}) {
+			columnComparison, diags := newMonitorV2ColumnComparisonInput(fmt.Sprintf("%scompare_groups.%d.", path, i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			compareGroups = append(compareGroups, *columnComparison)
+		}
+		anomalyRule.CompareGroups = compareGroups
+	}
+
+	return anomalyRule, diags
+}
+
+func newMonitorV2RuleTemplateInput(path string, data *schema.ResourceData) (ruleTemplate *gql.MonitorV2RuleTemplateInput, diags diag.Diagnostics) {
+	ruleTemplate = &gql.MonitorV2RuleTemplateInput{}
+
+	if _, ok := data.GetOk(fmt.Sprintf("%sanomaly", path)); ok {
+		anomaly, diags := newMonitorV2AnomalyRuleTemplateInput(fmt.Sprintf("%sanomaly.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		ruleTemplate.Anomaly = anomaly
+	}
+
+	return ruleTemplate, diags
+}
+
+func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData) (template *gql.MonitorV2AnomalyRuleTemplateInput, diags diag.Diagnostics) {
+	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
+	compareFn := gql.MonitorV2BoundComparisonFunction(toCamel(data.Get(fmt.Sprintf("%scompare_fn", path)).(string)))
+	numStdDevs := types.Int64Scalar(data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int))
+
+	template = &gql.MonitorV2AnomalyRuleTemplateInput{
+		ValueColumnName:       valueColumnName,
+		CompareFn:             compareFn,
+		NumStandardDeviations: numStdDevs,
+	}
+
+	if _, ok := data.GetOk(fmt.Sprintf("%sbasic_algorithm", path)); ok {
+		ba := types.JsonObject("{}")
+		template.BasicAlgorithm = &ba
+	}
+
+	return template, diags
+}
+
 func newMonitorV2ColumnComparisonInput(path string, data *schema.ResourceData) (comparison *gql.MonitorV2ColumnComparisonInput, diags diag.Diagnostics) {
 	// required
 	compareValues := make([]gql.MonitorV2ComparisonInput, 0)
@@ -1546,25 +1768,25 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 
 	nvalue := 0
 	var kinds []string
-	if hasBool && valueBool != nil {
+	if hasBool && valueBool != nil && len(valueBool.([]interface{})) > 0 {
 		b := valueBool.([]interface{})[0].(bool)
 		ret.Bool = &b
 		nvalue++
 		kinds = append(kinds, "value_bool")
 	}
-	if hasInt && valueInt != nil {
+	if hasInt && valueInt != nil && len(valueInt.([]interface{})) > 0 {
 		i64 := types.Int64Scalar(valueInt.([]interface{})[0].(int))
 		ret.Int64 = &i64
 		nvalue++
 		kinds = append(kinds, "value_int64")
 	}
-	if hasFloat && valueFloat != nil {
+	if hasFloat && valueFloat != nil && len(valueFloat.([]interface{})) > 0 {
 		vlt := valueFloat.([]interface{})[0].(float64)
 		ret.Float64 = &vlt
 		nvalue++
 		kinds = append(kinds, "value_float64")
 	}
-	if hasString && valueString != nil {
+	if hasString && valueString != nil && len(valueString.([]interface{})) > 0 {
 		// For some reason terraform parses [""] as [null] so we explicitly check for nil
 		// and treat it as an empty string. This only happens for strings.
 		v := valueString.([]interface{})[0]
@@ -1576,14 +1798,14 @@ func newMonitorV2PrimitiveValue(path string, data *schema.ResourceData, ret *gql
 		nvalue++
 		kinds = append(kinds, "value_string")
 	}
-	if hasDuration && valueDuration != nil {
+	if hasDuration && valueDuration != nil && len(valueDuration.([]interface{})) > 0 {
 		dur, _ := time.ParseDuration(valueDuration.([]interface{})[0].(string))
 		i64 := types.Int64Scalar(dur.Nanoseconds())
 		ret.Duration = &i64
 		nvalue++
 		kinds = append(kinds, "value_duration")
 	}
-	if hasTimestamp && valueTimestamp != nil {
+	if hasTimestamp && valueTimestamp != nil && len(valueTimestamp.([]interface{})) > 0 {
 		tsp, _ := time.Parse(time.RFC3339, valueTimestamp.([]interface{})[0].(string))
 		tss := types.TimeScalar(tsp)
 		ret.Timestamp = &tss
