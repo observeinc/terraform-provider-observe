@@ -128,9 +128,16 @@ var AllBookmarkKindTypes = []BookmarkKind{
 }
 
 var AllMonitorV2RuleKinds = []MonitorV2RuleKind{
+	MonitorV2RuleKindAnomaly,
 	MonitorV2RuleKindCount,
 	MonitorV2RuleKindPromote,
 	MonitorV2RuleKindThreshold,
+}
+
+var AllMonitorV2BoundComparisonFunctions = []MonitorV2BoundComparisonFunction{
+	MonitorV2BoundComparisonFunctionAbove,
+	MonitorV2BoundComparisonFunctionAboveorbelow,
+	MonitorV2BoundComparisonFunctionBelow,
 }
 
 var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{

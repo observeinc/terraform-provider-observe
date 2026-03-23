@@ -252,6 +252,34 @@ func TestValidateUID(t *testing.T) {
 	}
 }
 
+func TestValidateMaxAlertsPerHour(t *testing.T) {
+	testcases := []struct {
+		input int
+		valid bool
+	}{
+		{input: -1, valid: true},  // sentinel for null/unset
+		{input: 0, valid: true},   // means "use system maximum"
+		{input: 1, valid: true},
+		{input: 100, valid: true},
+		{input: 3600, valid: true},
+		{input: -2, valid: false},
+		{input: -100, valid: false},
+	}
+
+	for _, tt := range testcases {
+		diags := validateMaxAlertsPerHour()(tt.input, make(cty.Path, 0))
+		if tt.valid {
+			if len(diags) != 0 {
+				t.Errorf("validateMaxAlertsPerHour(%d): expected no errors, got %v", tt.input, diags)
+			}
+		} else {
+			if len(diags) == 0 {
+				t.Errorf("validateMaxAlertsPerHour(%d): expected validation error, got none", tt.input)
+			}
+		}
+	}
+}
+
 // newMultilineErrorRegexp creates a regexp that matches the given string,
 // allowing for any whitespace (including newlines) anywhere a space is present
 // in the input. The Terraform provider test framework executes the Terraform
