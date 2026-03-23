@@ -416,8 +416,12 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     dataStabilizationDelay: Duration
     """
     MaxAlertsPerHour sets the rate allowed before a monitor is considered possibly bad
-    and automatically disabled by the system. This has a default value of 100 if null/unset.
-    A value of 0 means "no limit".
+    and automatically disabled by the system.
+    Must be non-negative.  Default value when not provided is 100.
+    Maximum value is typically 3600 (one alert per second) to ensure monitors are actionable.
+    When set to 0, the maximum value will be used.
+    Contact support if you need to increase this maximum and allow more
+    than one alert per second.
     """
     maxAlertsPerHour: Int64
     """
@@ -1502,5 +1506,3 @@ type MonitorV2SetRulesResult @goModel(model: "observe/meta/metatypes.MonitorV2Se
 input MonitorV2SetRulesResultInput @goModel(model: "observe/meta/metatypes.MonitorV2SetRulesResultInput") {
     links: [MonitorV2MuteLinkInput!]!
 }
-
-

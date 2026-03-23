@@ -7081,8 +7081,12 @@ type MonitorV2Definition struct {
 	// value is defining where the "Ragged Right Edge" starts relative to the clock.
 	DataStabilizationDelay *types.DurationScalar `json:"dataStabilizationDelay"`
 	// MaxAlertsPerHour sets the rate allowed before a monitor is considered possibly bad
-	// and automatically disabled by the system. This has a default value of 100 if null/unset.
-	// A value of 0 means "no limit".
+	// and automatically disabled by the system.
+	// Must be non-negative.  Default value when not provided is 100.
+	// Maximum value is typically 3600 (one alert per second) to ensure monitors are actionable.
+	// When set to 0, the maximum value will be used.
+	// Contact support if you need to increase this maximum and allow more
+	// than one alert per second.
 	MaxAlertsPerHour *types.Int64Scalar `json:"maxAlertsPerHour"`
 	// Groupings describes the groups that logically separate events/rows/etc from each other.
 	// When the input monitor dataset is of type resource and the monitor strategy is of type promote, this field should
