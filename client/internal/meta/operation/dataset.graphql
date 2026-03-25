@@ -221,3 +221,47 @@ mutation saveSourceDataset(
 		}
 	}
 }
+
+# @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+mutation saveLogDerivedMetricDataset(
+	$workspaceId: ObjectId!,
+	$dataset: DatasetInput!,
+	$logDerivedMetricQuery: LogDerivedMetricDefinitionInput!,
+	$dep: DependencyHandlingInput
+) {
+	# @genqlient(flatten: true)
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
+		...LogDerivedMetricDatasetSaveResult
+	}
+}
+
+# @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+mutation saveLogDerivedMetricDatasetDryRun(
+	$workspaceId: ObjectId!,
+	$dataset: DatasetInput!,
+	$logDerivedMetricQuery: LogDerivedMetricDefinitionInput!,
+	$dep: DependencyHandlingInput
+) {
+	# @genqlient(flatten: true)
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
+		...DatasetDryRunSaveResult
+	}
+}

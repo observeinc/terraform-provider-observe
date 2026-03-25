@@ -1,0 +1,35 @@
+description: |
+  Manages an Observe log-derived metric dataset. This resource creates a dataset
+  that derives metrics from log data using an aggregation function and optional
+  shaping query.
+schema:
+  name: |
+    Dataset name. Must be unique within workspace.
+  description: |
+    Dataset description.
+  inputs: |
+    A map of input names to dataset OIDs used in the shaping query.
+  metric_name: |
+    The name of the derived metric.
+  metric_type: |
+    The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
+  unit: |
+    The unit of the derived metric (e.g. "bytes", "seconds").
+  interval: |
+    Aggregation interval as a duration string (e.g. "1m", "5m").
+  aggregation:
+    description: |
+      Aggregation configuration for the log-derived metric.
+    function: |
+      Aggregation function to apply. One of: count, count_distinct, sum, avg, min, max.
+    field_path: |
+      Path to the field to aggregate over. Required for sum, avg, min, max. Must not be set for count.
+  metric_tag:
+    description: |
+      Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path.
+    name: |
+      Tag name.
+    field_path: |
+      Path to the field used as the tag value.
+  shaping_query: |
+    The OPAL shaping query applied to the input dataset before aggregation.
