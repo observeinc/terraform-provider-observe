@@ -94,6 +94,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 			"metric_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateEnums(allMetricTypes),
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "metric_type"),
@@ -101,11 +102,13 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 			"unit": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: descriptions.Get("log_derived_metric_dataset", "schema", "unit"),
 			},
 			"interval": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressTimeDuration,
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "interval"),
@@ -142,6 +145,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 						"stage_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Computed:    true,
 							Description: descriptions.Get("transform", "schema", "stage", "alias"),
 						},
 					},
@@ -436,6 +440,40 @@ func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *
 	return input, queryInput, logDef, diags
 }
 
+func previousShapingQueryInputOIDVersion(data *schema.ResourceData, inputName, datasetID string) *string {
+	raw := data.Get("shaping_query").([]interface{})
+	if len(raw) != 1 || raw[0] == nil {
+		return nil
+	}
+
+	block, ok := raw[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	inputs, ok := block["inputs"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	prevValue, ok := inputs[inputName]
+	if !ok {
+		return nil
+	}
+
+	prevOIDValue, ok := prevValue.(string)
+	if !ok {
+		return nil
+	}
+
+	prevOID, err := oid.NewOID(prevOIDValue)
+	if err != nil || prevOID.Id != datasetID {
+		return nil
+	}
+
+	return prevOID.Version
+}
+
 func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data *schema.ResourceData) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -478,7 +516,11 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 	inputs := map[string]interface{}{}
 	for _, in := range sq.Input {
 		if in.DatasetId != nil && *in.DatasetId != "" {
-			inputs[in.InputName] = oid.OID{Type: oid.TypeDataset, Id: *in.DatasetId}.String()
+			inputOID := oid.OID{Type: oid.TypeDataset, Id: *in.DatasetId}
+			if version := previousShapingQueryInputOIDVersion(data, in.InputName, inputOID.Id); version != nil {
+				inputOID.Version = version
+			}
+			inputs[in.InputName] = inputOID.String()
 		}
 	}
 	shapingBlock := map[string]interface{}{
