@@ -113,8 +113,8 @@ func (d *Dataset) Oid() *oid.OID {
 }
 
 // SaveLogDerivedMetricDataset creates or updates a log-derived metric dataset.
-func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, ldmInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*LogDerivedMetricDataset, error) {
-	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
+func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, ldmInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*LogDerivedMetricDataset, error) {
+	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *queryInput, *ldmInput, dependencyHandling)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspace
 }
 
 // SaveLogDerivedMetricDatasetDryRun performs a preflight check for a log-derived metric dataset save.
-func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, ldmInput *LogDerivedMetricDefinitionInput) (*DatasetDryRunSaveResult, error) {
+func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, ldmInput *LogDerivedMetricDefinitionInput) (*DatasetDryRunSaveResult, error) {
 	saveMode := SaveModePreflightDatasetAndDependencies
 	rematerializationMode := RematerializationModeSkiprematerialization
 	dependencyHandling := &DependencyHandlingInput{
@@ -130,7 +130,7 @@ func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, wor
 		RematerializationMode: &rematerializationMode,
 	}
 
-	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
+	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *queryInput, *ldmInput, dependencyHandling)
 	if err != nil {
 		return nil, err
 	}

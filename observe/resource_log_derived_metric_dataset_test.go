@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -199,4 +200,114 @@ func TestAccObserveLogDerivedMetricDatasetWithTags(t *testing.T) {
 			},
 		},
 	})
+}
+
+type mockResourceReader struct {
+	data map[string]interface{}
+}
+
+func (m *mockResourceReader) Get(key string) interface{} {
+	v, ok := m.data[key]
+	if !ok {
+		return nil
+	}
+	return v
+}
+
+func (m *mockResourceReader) GetOk(key string) (interface{}, bool) {
+	v, ok := m.data[key]
+	return v, ok
+}
+
+func TestLogDerivedMetricDefinitionInput_MetricTagsNeverNil(t *testing.T) {
+	reader := &mockResourceReader{
+		data: map[string]interface{}{
+			"metric_name": "error_count",
+			"shaping_query": []interface{}{
+				map[string]interface{}{
+					"inputs": map[string]interface{}{
+						"logs": "o:::dataset:12345",
+					},
+					"pipeline": "",
+					"stage_id": "",
+				},
+			},
+			"aggregation": []interface{}{
+				map[string]interface{}{
+					"function":   "count",
+					"field_path": []interface{}{},
+				},
+			},
+		},
+	}
+
+	ldmInput, diags := newLogDerivedMetricDefinitionInput(reader)
+	if diags.HasError() {
+		t.Fatalf("unexpected diags: %v", diags)
+	}
+	if ldmInput.MetricTags == nil {
+		t.Fatal("MetricTags must not be nil (would serialize as JSON null)")
+	}
+
+	b, err := json.Marshal(ldmInput)
+	if err != nil {
+		t.Fatalf("marshal error: %v", err)
+	}
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		t.Fatalf("unmarshal error: %v", err)
+	}
+	tags, ok := raw["metricTags"]
+	if !ok {
+		t.Fatal("metricTags key missing from JSON")
+	}
+	arr, ok := tags.([]interface{})
+	if !ok {
+		t.Fatalf("metricTags should be an array, got %T", tags)
+	}
+	if len(arr) != 0 {
+		t.Fatalf("expected empty metricTags array, got length %d", len(arr))
+	}
+}
+
+func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
+	reader := &mockResourceReader{
+		data: map[string]interface{}{
+			"name":        "test-ldm",
+			"metric_name": "req_count",
+			"description": "test",
+			"shaping_query": []interface{}{
+				map[string]interface{}{
+					"inputs": map[string]interface{}{
+						"logs": "o:::dataset:12345",
+					},
+					"pipeline": "filter true",
+					"stage_id": "",
+				},
+			},
+			"aggregation": []interface{}{
+				map[string]interface{}{
+					"function":   "count",
+					"field_path": []interface{}{},
+				},
+			},
+		},
+	}
+
+	input, queryInput, ldmInput, diags := newLogDerivedMetricDatasetConfig(reader)
+	if diags.HasError() {
+		t.Fatalf("unexpected diags: %v", diags)
+	}
+	if input == nil || queryInput == nil || ldmInput == nil {
+		t.Fatal("all outputs must be non-nil")
+	}
+	if len(queryInput.Stages) != 1 {
+		t.Fatalf("expected 1 stage in query, got %d", len(queryInput.Stages))
+	}
+	if queryInput.OutputStage == "" {
+		t.Fatal("OutputStage must be set")
+	}
+	if queryInput.Stages[0].Id == nil || *queryInput.Stages[0].Id != queryInput.OutputStage {
+		t.Fatal("stage ID must match OutputStage")
+	}
 }

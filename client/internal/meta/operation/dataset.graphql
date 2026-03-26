@@ -235,11 +235,12 @@ mutation saveSourceDataset(
 mutation saveLogDerivedMetricDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
+	$query: MultiStageQueryInput!,
 	$logDerivedMetricQuery: LogDerivedMetricDefinitionInput!,
 	$dep: DependencyHandlingInput
 ) {
 	# @genqlient(flatten: true)
-	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
 		...LogDerivedMetricDatasetSaveResult
 	}
 }
@@ -257,11 +258,12 @@ mutation saveLogDerivedMetricDataset(
 mutation saveLogDerivedMetricDatasetDryRun(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
+	$query: MultiStageQueryInput!,
 	$logDerivedMetricQuery: LogDerivedMetricDefinitionInput!,
 	$dep: DependencyHandlingInput
 ) {
 	# @genqlient(flatten: true)
-	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, logDerivedMetricQuery:$logDerivedMetricQuery, dependencyHandling:$dep) {
 		...DatasetDryRunSaveResult
 	}
 }
