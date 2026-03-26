@@ -194,6 +194,9 @@ Optional:
 Required:
 
 - `column` (String)
+
+Optional:
+
 - `path` (String)
 
 
@@ -220,6 +223,9 @@ Required:
 
 - `column` (String)
 - `name` (String)
+
+Optional:
+
 - `path` (String)
 ## Import
 Import is supported using the following syntax:

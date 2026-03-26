@@ -172,7 +172,8 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 									},
 									"path": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+										Default:  "",
 									},
 								},
 							},
@@ -196,7 +197,8 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 						},
 						"path": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -400,16 +402,15 @@ func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *
 		return nil, nil, nil, diags
 	}
 
-	shapingStage := logDef.ShapingQuery
 	stageID := "stage-0"
-	if shapingStage.Id != nil && *shapingStage.Id != "" {
-		stageID = *shapingStage.Id
+	if logDef.ShapingQuery.Id != nil && *logDef.ShapingQuery.Id != "" {
+		stageID = *logDef.ShapingQuery.Id
 	} else {
-		shapingStage.Id = &stageID
+		logDef.ShapingQuery.Id = &stageID
 	}
 	queryInput := &gql.MultiStageQueryInput{
 		OutputStage: stageID,
-		Stages:      []gql.StageQueryInput{shapingStage},
+		Stages:      []gql.StageQueryInput{logDef.ShapingQuery},
 	}
 
 	overwriteSource := true
