@@ -112,19 +112,17 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 						EOF
 					}
 
-					aggregation {
-						function = "avg"
-						field_path {
-							column = "duration"
-							path   = ""
-						}
+				aggregation {
+					function = "avg"
+					field_path {
+						column = "duration"
 					}
+				}
 
-					metric_tag {
-						name   = "service"
-						column = "service"
-						path   = ""
-					}
+				metric_tag {
+					name   = "service"
+					column = "service"
+				}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix+"-updated"),
@@ -166,25 +164,22 @@ func TestAccObserveLogDerivedMetricDatasetWithTags(t *testing.T) {
 						pipeline = ""
 					}
 
-					aggregation {
-						function = "sum"
-						field_path {
-							column = "bytes"
-							path   = ""
-						}
+				aggregation {
+					function = "sum"
+					field_path {
+						column = "bytes"
 					}
+				}
 
-					metric_tag {
-						name   = "host"
-						column = "host"
-						path   = ""
-					}
+				metric_tag {
+					name   = "host"
+					column = "host"
+				}
 
-					metric_tag {
-						name   = "region"
-						column = "region"
-						path   = ""
-					}
+				metric_tag {
+					name   = "region"
+					column = "region"
+				}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
