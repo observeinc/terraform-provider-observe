@@ -235,57 +235,52 @@ func TestLookupShare(t *testing.T) {
 func TestLookupShareDuplicate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-
-		switch r.URL.Path {
-		case "/v1/shares/inbound":
-			// LIST endpoint - return two shares with same name
-			w.Write([]byte(`{
-				"shares": [
-					{
-						"id": "41012345",
-						"shareName": "DUPLICATE_SHARE",
-						"providerType": "Snowflake",
-						"status": {"state": "Active", "health": "Healthy"},
-						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
-						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
-						"tableCount": 15
-					},
-					{
-						"id": "41012346",
-						"shareName": "DUPLICATE_SHARE",
-						"providerType": "Snowflake",
-						"status": {"state": "Active", "health": "Healthy"},
-						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
-						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
-						"tableCount": 5
-					}
-				],
-				"meta": {"totalCount": 2}
-			}`))
-		case "/v1/shares/inbound/41012345", "/v1/shares/inbound/41012346":
-			// GET endpoints - return full details including SnowflakeConfig
-			shareId := "41012345"
-			tableCount := 15
-			if r.URL.Path == "/v1/shares/inbound/41012346" {
-				shareId = "41012346"
-				tableCount = 5
-			}
-			w.Write([]byte(fmt.Sprintf(`{
-				"id": "%s",
-				"shareName": "DUPLICATE_SHARE",
-				"providerType": "Snowflake",
-				"snowflakeConfig": {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{
+			"shares": [
+				{
+					"id": "41012345",
 					"shareName": "DUPLICATE_SHARE",
-					"providerAccount": "PROVIDER.REGION"
+					"providerType": "Snowflake",
+					"snowflakeConfig": {
+						"shareName": "SHARE_NAME",
+						"providerAccount": "PROVIDER.REGION"
+					},
+					"status": {
+						"state": "Active",
+						"health": "Healthy"
+					},
+					"createdBy": {"id": "123"},
+					"createdAt": "2026-01-15T10:30:00Z",
+					"updatedBy": {"id": "123"},
+					"updatedAt": "2026-03-20T14:22:00Z",
+					"tableCount": 15
 				},
-				"status": {"state": "Active", "health": "Healthy"},
-				"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
-				"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
-				"tableCount": %d
-			}`, shareId, tableCount)))
-		default:
-			w.WriteHeader(http.StatusNotFound)
-		}
+				{
+					"id": "41012346",
+					"shareName": "DUPLICATE_SHARE",
+					"providerType": "Snowflake",
+					"snowflakeConfig": {
+						"shareName": "SHARE_NAME",
+						"providerAccount": "PROVIDER.REGION"
+					},
+					"status": {
+						"state": "Active",
+						"health": "Healthy"
+					},
+					"createdBy": {"id": "123"},
+					"createdAt": "2026-01-15T10:30:00Z",
+					"updatedBy": {"id": "123"},
+					"updatedAt": "2026-03-20T14:22:00Z",
+					"tableCount": 5
+				}
+			],
+			"meta": {
+				"totalCount": 2,
+				"limit": 20,
+				"offset": 0
+			}
+		}`))
 	}))
 	defer server.Close()
 
