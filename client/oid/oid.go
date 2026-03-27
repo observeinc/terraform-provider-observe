@@ -57,6 +57,8 @@ const (
 	TypeIngestFilter            Type = "ingestfilter"
 	TypeIngestToken             Type = "ingesttoken"
 	TypeStorageIntegration      Type = "storageintegration"
+	TypeInboundShare            Type = "inboundshare"
+	TypeInboundShareTable       Type = "inboundsharetable"
 )
 
 func (t Type) IsValid() bool {
@@ -99,6 +101,8 @@ func (t Type) IsValid() bool {
 	case TypeIngestFilter:
 	case TypeIngestToken:
 	case TypeStorageIntegration:
+	case TypeInboundShare:
+	case TypeInboundShareTable:
 	default:
 		return false
 	}
