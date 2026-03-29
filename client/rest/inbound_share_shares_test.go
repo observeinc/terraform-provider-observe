@@ -150,62 +150,76 @@ func TestGetShareNotFound(t *testing.T) {
 }
 
 func TestLookupShare(t *testing.T) {
+	// The list endpoint returns shareName but NOT snowflakeConfig.
+	// LookupShare matches on the top-level shareName, then GETs each
+	// candidate to verify the providerAccount via snowflakeConfig.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
-			"shares": [
-				{
-					"id": "41012345",
-					"shareName": "ACME_CUSTOMER_DATA",
-					"providerType": "Snowflake",
-					"snowflakeConfig": {
+
+		switch r.URL.Path {
+		case "/v1/shares/inbound":
+			w.Write([]byte(`{
+				"shares": [
+					{
+						"id": "41012345",
 						"shareName": "CUSTOMER_SHARE_PROD",
-						"providerAccount": "ACME_CORP.US-EAST-1"
+						"providerType": "Snowflake",
+						"status": {"state": "Active", "health": "Healthy"},
+						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+						"tableCount": 15
 					},
-					"status": {
-						"state": "Active",
-						"health": "Healthy"
-					},
-					"createdBy": {"id": "123"},
-					"createdAt": "2026-01-15T10:30:00Z",
-					"updatedBy": {"id": "123"},
-					"updatedAt": "2026-03-20T14:22:00Z",
-					"tableCount": 15
-				},
-				{
-					"id": "41012346",
-					"shareName": "ACME_CUSTOMER_DATA",
-					"providerType": "Snowflake",
-					"snowflakeConfig": {
+					{
+						"id": "41012346",
 						"shareName": "CUSTOMER_SHARE_DEV",
-						"providerAccount": "OTHER_CORP.US-WEST-2"
-					},
-					"status": {
-						"state": "Active",
-						"health": "Healthy"
-					},
-					"createdBy": {"id": "123"},
-					"createdAt": "2026-01-15T10:30:00Z",
-					"updatedBy": {"id": "123"},
-					"updatedAt": "2026-03-20T14:22:00Z",
-					"tableCount": 5
-				}
-			],
-			"meta": {
-				"totalCount": 2,
-				"limit": 20,
-				"offset": 0
-			}
-		}`))
+						"providerType": "Snowflake",
+						"status": {"state": "Active", "health": "Healthy"},
+						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+						"tableCount": 5
+					}
+				],
+				"meta": {"totalCount": 2, "limit": 20, "offset": 0}
+			}`))
+		case "/v1/shares/inbound/41012345":
+			w.Write([]byte(`{
+				"id": "41012345",
+				"shareName": "CUSTOMER_SHARE_PROD",
+				"providerType": "Snowflake",
+				"snowflakeConfig": {
+					"shareName": "CUSTOMER_SHARE_PROD",
+					"providerAccount": "ACME_CORP.US-EAST-1"
+				},
+				"status": {"state": "Active", "health": "Healthy"},
+				"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+				"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+				"tableCount": 15
+			}`))
+		case "/v1/shares/inbound/41012346":
+			w.Write([]byte(`{
+				"id": "41012346",
+				"shareName": "CUSTOMER_SHARE_DEV",
+				"providerType": "Snowflake",
+				"snowflakeConfig": {
+					"shareName": "CUSTOMER_SHARE_DEV",
+					"providerAccount": "OTHER_CORP.US-WEST-2"
+				},
+				"status": {"state": "Active", "health": "Healthy"},
+				"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+				"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+				"tableCount": 5
+			}`))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}))
 	defer server.Close()
 
 	client := New(server.URL, server.Client())
 	ctx := context.Background()
 
-	// Test successful lookup with both shareName and providerAccount
-	share, err := client.LookupShare(ctx, "ACME_CUSTOMER_DATA", "ACME_CORP.US-EAST-1")
+	// Test successful lookup with shareName and providerAccount
+	share, err := client.LookupShare(ctx, "CUSTOMER_SHARE_PROD", "ACME_CORP.US-EAST-1")
 	if err != nil {
 		t.Fatalf("LookupShare failed: %v", err)
 	}
@@ -213,8 +227,8 @@ func TestLookupShare(t *testing.T) {
 		t.Errorf("Expected share ID 41012345, got %s", share.Id)
 	}
 
-	// Test that same shareName with different provider account returns different share
-	share2, err := client.LookupShare(ctx, "ACME_CUSTOMER_DATA", "OTHER_CORP.US-WEST-2")
+	// Test lookup of different share with different shareName and provider account
+	share2, err := client.LookupShare(ctx, "CUSTOMER_SHARE_DEV", "OTHER_CORP.US-WEST-2")
 	if err != nil {
 		t.Fatalf("LookupShare failed for second share: %v", err)
 	}
@@ -235,52 +249,57 @@ func TestLookupShare(t *testing.T) {
 func TestLookupShareDuplicate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
-			"shares": [
-				{
-					"id": "41012345",
-					"shareName": "DUPLICATE_SHARE",
-					"providerType": "Snowflake",
-					"snowflakeConfig": {
-						"shareName": "SHARE_NAME",
-						"providerAccount": "PROVIDER.REGION"
+
+		switch r.URL.Path {
+		case "/v1/shares/inbound":
+			// LIST endpoint - return two shares with same name
+			w.Write([]byte(`{
+				"shares": [
+					{
+						"id": "41012345",
+						"shareName": "DUPLICATE_SHARE",
+						"providerType": "Snowflake",
+						"status": {"state": "Active", "health": "Healthy"},
+						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+						"tableCount": 15
 					},
-					"status": {
-						"state": "Active",
-						"health": "Healthy"
-					},
-					"createdBy": {"id": "123"},
-					"createdAt": "2026-01-15T10:30:00Z",
-					"updatedBy": {"id": "123"},
-					"updatedAt": "2026-03-20T14:22:00Z",
-					"tableCount": 15
-				},
-				{
-					"id": "41012346",
-					"shareName": "DUPLICATE_SHARE",
-					"providerType": "Snowflake",
-					"snowflakeConfig": {
-						"shareName": "SHARE_NAME",
-						"providerAccount": "PROVIDER.REGION"
-					},
-					"status": {
-						"state": "Active",
-						"health": "Healthy"
-					},
-					"createdBy": {"id": "123"},
-					"createdAt": "2026-01-15T10:30:00Z",
-					"updatedBy": {"id": "123"},
-					"updatedAt": "2026-03-20T14:22:00Z",
-					"tableCount": 5
-				}
-			],
-			"meta": {
-				"totalCount": 2,
-				"limit": 20,
-				"offset": 0
+					{
+						"id": "41012346",
+						"shareName": "DUPLICATE_SHARE",
+						"providerType": "Snowflake",
+						"status": {"state": "Active", "health": "Healthy"},
+						"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+						"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+						"tableCount": 5
+					}
+				],
+				"meta": {"totalCount": 2, "limit": 20, "offset": 0}
+			}`))
+		case "/v1/shares/inbound/41012345", "/v1/shares/inbound/41012346":
+			// GET endpoints - return full details including SnowflakeConfig
+			shareId := "41012345"
+			tableCount := 15
+			if r.URL.Path == "/v1/shares/inbound/41012346" {
+				shareId = "41012346"
+				tableCount = 5
 			}
-		}`))
+			w.Write([]byte(fmt.Sprintf(`{
+				"id": "%s",
+				"shareName": "DUPLICATE_SHARE",
+				"providerType": "Snowflake",
+				"snowflakeConfig": {
+					"shareName": "DUPLICATE_SHARE",
+					"providerAccount": "PROVIDER.REGION"
+				},
+				"status": {"state": "Active", "health": "Healthy"},
+				"createdBy": {"id": "123"}, "createdAt": "2026-01-15T10:30:00Z",
+				"updatedBy": {"id": "123"}, "updatedAt": "2026-03-20T14:22:00Z",
+				"tableCount": %d
+			}`, shareId, tableCount)))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}))
 	defer server.Close()
 

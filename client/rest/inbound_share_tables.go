@@ -57,10 +57,20 @@ func (c *Client) GetInboundShareTable(ctx context.Context, shareId, tableId stri
 
 	// If there's a source dataset, populate it
 	if table.SourceDataset != nil {
+		// Validate that we have required fields
+		if table.SourceDataset.Id == "" {
+			return nil, fmt.Errorf("API response missing sourceDataset.id for table %s", tableId)
+		}
+		if table.SourceDataset.Label == "" {
+			return nil, fmt.Errorf("API response missing sourceDataset.label for table %s", tableId)
+		}
+
 		result.Dataset = InboundShareDataset{
 			Id:    table.SourceDataset.Id,
 			Label: table.SourceDataset.Label,
 		}
+	} else {
+		return nil, fmt.Errorf("API response missing sourceDataset for table %s", tableId)
 	}
 
 	return result, nil

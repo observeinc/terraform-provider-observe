@@ -32,3 +32,17 @@ func testAccPreCheck(t *testing.T) {
 		}
 	}
 }
+
+// testAccPreCheckInboundShare verifies prerequisites for inbound share tests.
+// Skips tests unless running in CI environment.
+func testAccPreCheckInboundShare(t *testing.T) {
+	// Run standard prechecks first
+	testAccPreCheck(t)
+
+	// Skip unless running in CI - these tests require external Snowflake share setup
+	if os.Getenv("CI") != "true" {
+		t.Skip("CI != true. Inbound share tests require manual Snowflake share setup that is only available in CI.")
+	}
+
+	// Note: TEST_INBOUND_* environment variables have defaults and don't need to be checked
+}

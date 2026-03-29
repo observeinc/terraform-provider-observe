@@ -184,19 +184,5 @@ func (c *Client) LookupShare(ctx context.Context, shareName, providerAccount str
 		}
 	}
 
-	// Validate exactly one match
-	if len(matches) == 0 {
-		return nil, ErrorWithStatusCode{
-			StatusCode: http.StatusNotFound,
-			Err:        fmt.Errorf("share with name %q and provider account %q not found", shareName, providerAccount),
-		}
-	}
-	if len(matches) > 1 {
-		return nil, ErrorWithStatusCode{
-			StatusCode: http.StatusConflict,
-			Err:        fmt.Errorf("found %d shares with name %q and provider account %q, expected exactly 1", len(matches), shareName, providerAccount),
-		}
-	}
-
 	return &matches[0], nil
 }

@@ -42,15 +42,15 @@ resource "observe_inbound_share_table" "metrics" {
   schema_name   = "PUBLIC"
   dataset_label = "Metrics"
   dataset_kind  = "Event"
-  
+
   valid_from_field = "timestamp_ms"
-  
+
   field_mapping {
     field      = "timestamp_ms"
     type       = "timestamp"
     conversion = "MillisecondsToTimestamp"
   }
-  
+
   field_mapping {
     field      = "duration_ms"
     type       = "duration"
