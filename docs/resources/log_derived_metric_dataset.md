@@ -167,7 +167,8 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
 - `description` (String) Dataset description.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `interval` (String) Aggregation interval as a duration string (e.g. "1m", "5m").
-- `metric_tag` (Block List) Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path. (see [below for nested schema](#nestedblock--metric_tag))
+- `metric_tag` (Block List) Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path
+identifying the source column. Tags become grouping dimensions on the resulting metric. (see [below for nested schema](#nestedblock--metric_tag))
 - `metric_type` (String) The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").
 
@@ -182,22 +183,22 @@ should be used when referring to this object in terraform manifests.
 
 Required:
 
-- `function` (String)
+- `function` (String) Aggregation function to apply. One of: count, count_distinct, sum, avg, min, max.
 
 Optional:
 
-- `field_path` (Block List, Max: 1) (see [below for nested schema](#nestedblock--aggregation--field_path))
+- `field_path` (Block List, Max: 1) Identifies the field to aggregate over. Required for sum, avg, min, max. Must not be set for count or count_distinct. (see [below for nested schema](#nestedblock--aggregation--field_path))
 
 <a id="nestedblock--aggregation--field_path"></a>
 ### Nested Schema for `aggregation.field_path`
 
 Required:
 
-- `column` (String)
+- `column` (String) Column name from the shaping query output to aggregate on.
 
 Optional:
 
-- `path` (String)
+- `path` (String) JSON path within the column to the numeric value. Use an empty string to reference the column itself.
 
 
 
@@ -221,12 +222,12 @@ results of this stage.
 
 Required:
 
-- `column` (String)
-- `name` (String)
+- `column` (String) Column name from the shaping query output to use as the tag value source.
+- `name` (String) Label for this metric tag. This becomes a dimension key on the resulting metric, used for grouping and filtering.
 
 Optional:
 
-- `path` (String)
+- `path` (String) JSON path within the column to the tag value. Use an empty string to reference the column itself.
 ## Import
 Import is supported using the following syntax:
 ```shell
