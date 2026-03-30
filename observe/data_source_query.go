@@ -161,13 +161,69 @@ func getOutputStagesCount(stages []Stage) int {
 	return c
 }
 
-func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics) {
-	inputIds := make(map[string]string)
-	for k, v := range data.Get("inputs").(map[string]interface{}) {
-		is, _ := oid.NewOID(v.(string))
-		inputIds[k] = is.Id
+func newInputDefinitions(inputMap map[string]interface{}) (map[string]*gql.InputDefinitionInput, []string, diag.Diagnostics) {
+	sortedNames := make([]string, 0, len(inputMap))
+	inputs := make(map[string]*gql.InputDefinitionInput, len(inputMap))
+	for name, raw := range inputMap {
+		is, err := oid.NewOID(raw.(string))
+		if err != nil {
+			return nil, nil, diag.FromErr(fmt.Errorf("input %q: %w", name, err))
+		}
+
+		id := is.Id
+		if id == "" {
+			return nil, nil, diag.FromErr(fmt.Errorf("input %q: empty dataset id", name))
+		}
+		if _, err := strconv.ParseInt(id, 10, 64); err != nil {
+			return nil, nil, diag.FromErr(fmt.Errorf("input %q: %w", name, errObjectIDInvalid))
+		}
+
+		inputs[name] = &gql.InputDefinitionInput{
+			InputName: name,
+			DatasetId: &id,
+		}
+		sortedNames = append(sortedNames, name)
+	}
+	sort.Strings(sortedNames)
+
+	if len(sortedNames) == 0 {
+		return nil, nil, diag.FromErr(errInputsMissing)
 	}
 
+	return inputs, sortedNames, nil
+}
+
+func pipelineReferencesInput(pipeline, inputName string) bool {
+	return strings.Contains(pipeline, fmt.Sprintf("@%s", inputName)) ||
+		strings.Contains(pipeline, fmt.Sprintf("@%q", inputName))
+}
+
+func firstReferencedInput(inputs map[string]*gql.InputDefinitionInput, sortedNames []string, pipeline string) *gql.InputDefinitionInput {
+	for _, name := range sortedNames {
+		input := inputs[name]
+		if pipelineReferencesInput(pipeline, input.InputName) {
+			return input
+		}
+	}
+	return nil
+}
+
+func appendReferencedInputs(stageInput *gql.StageQueryInput, defaultInput *gql.InputDefinitionInput, inputs map[string]*gql.InputDefinitionInput, sortedNames []string) {
+	stageInput.Input = append(stageInput.Input, *defaultInput)
+
+	for _, name := range sortedNames {
+		input := inputs[name]
+		if input == defaultInput {
+			continue
+		}
+
+		if pipelineReferencesInput(stageInput.Pipeline, input.InputName) {
+			stageInput.Input = append(stageInput.Input, *input)
+		}
+	}
+}
+
+func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics) {
 	stages := make([]Stage, 0)
 	for i := range data.Get("stage").([]interface{}) {
 		var stage Stage
@@ -197,30 +253,13 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 		return nil, diag.FromErr(errMoreThanOneOutputStages)
 	}
 
-	var sortedNames []string
-	inputs := make(map[string]*gql.InputDefinitionInput, len(inputIds))
-	for name, input := range inputIds {
-		input := input
-
-		if input == "" {
-			return nil, diag.FromErr(errInputEmpty)
-		}
-		if _, err := strconv.ParseInt(input, 10, 64); err != nil {
-			diagErr := fmt.Errorf("invalid dataset %s: %w", input, errObjectIDInvalid)
-			return nil, diag.FromErr(diagErr)
-		}
-		inputs[name] = &gql.InputDefinitionInput{
-			InputName: name,
-			DatasetId: &input,
-		}
-		sortedNames = append(sortedNames, name)
+	inputs, sortedNames, diags := newInputDefinitions(data.Get("inputs").(map[string]interface{}))
+	if diags.HasError() {
+		return nil, diags
 	}
-	sort.Strings(sortedNames)
 
 	var defaultInput *gql.InputDefinitionInput
 	switch len(inputs) {
-	case 0:
-		return nil, diag.FromErr(errInputsMissing)
 	case 1:
 		// if only one input is provided, us it as input for first stage
 		defaultInput = inputs[sortedNames[0]]
@@ -254,20 +293,9 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 			return nil, diag.FromErr(diagErr)
 		}
 
-		// construct stage inputs, first default, then any declared input that
-		// is referenced in pipeline.
-		stageInput.Input = append(stageInput.Input, *defaultInput)
-
-		for _, name := range sortedNames {
-			input := inputs[name]
-			if input == defaultInput {
-				continue
-			}
-
-			if strings.Contains(stage.Pipeline, fmt.Sprintf("@%s", input.InputName)) || strings.Contains(stage.Pipeline, fmt.Sprintf("@%q", input.InputName)) {
-				stageInput.Input = append(stageInput.Input, *input)
-			}
-		}
+		// Construct stage inputs, first default, then any declared input that
+		// is referenced in the pipeline.
+		appendReferencedInputs(&stageInput, defaultInput, inputs, sortedNames)
 
 		// stage is done, append to transform
 		query.Stages = append(query.Stages, stageInput)

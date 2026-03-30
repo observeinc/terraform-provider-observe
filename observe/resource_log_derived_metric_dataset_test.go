@@ -361,6 +361,41 @@ func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 	}
 }
 
+func TestNewShapingStageQueryInput_IncludesReferencedInputs(t *testing.T) {
+	reader := &mockResourceReader{
+		data: map[string]interface{}{
+			"shaping_query": []interface{}{
+				map[string]interface{}{
+					"inputs": map[string]interface{}{
+						"logs":  "o:::dataset:12345",
+						"users": "o:::dataset:67890",
+					},
+					"pipeline": "join @logs on true\nlookup @users user_id = id",
+					"stage_id": "shape-users",
+				},
+			},
+		},
+	}
+
+	stageInput, diags := newShapingStageQueryInput(reader)
+	if diags.HasError() {
+		t.Fatalf("unexpected diags: %v", diags)
+	}
+
+	if stageInput.Id == nil || *stageInput.Id != "shape-users" {
+		t.Fatalf("expected stage id shape-users, got %#v", stageInput.Id)
+	}
+	if len(stageInput.Input) != 2 {
+		t.Fatalf("expected 2 stage inputs, got %d", len(stageInput.Input))
+	}
+	if stageInput.Input[0].InputName != "logs" {
+		t.Fatalf("expected default input logs, got %q", stageInput.Input[0].InputName)
+	}
+	if stageInput.Input[1].InputName != "users" {
+		t.Fatalf("expected referenced secondary input users, got %q", stageInput.Input[1].InputName)
+	}
+}
+
 func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testing.T) {
 	const (
 		datasetID   = "12345"

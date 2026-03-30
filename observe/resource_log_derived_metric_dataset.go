@@ -3,9 +3,6 @@ package observe
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -262,37 +259,13 @@ func newShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, diag.D
 	}
 	m := raw[0].(map[string]interface{})
 
-	inputMap := m["inputs"].(map[string]interface{})
-	pipeline := m["pipeline"].(string)
-
-	sortedNames := make([]string, 0, len(inputMap))
-	inputs := make(map[string]*gql.InputDefinitionInput, len(inputMap))
-	for name, v := range inputMap {
-		is, err := oid.NewOID(v.(string))
-		if err != nil {
-			return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input %q: %w", name, err))
-		}
-		id := is.Id
-		if id == "" {
-			return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input %q: empty dataset id", name))
-		}
-		if _, err := strconv.ParseInt(id, 10, 64); err != nil {
-			return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input %q: %w", name, errObjectIDInvalid))
-		}
-		inputs[name] = &gql.InputDefinitionInput{
-			InputName: name,
-			DatasetId: &id,
-		}
-		sortedNames = append(sortedNames, name)
-	}
-	sort.Strings(sortedNames)
-
-	if len(sortedNames) == 0 {
-		return gql.StageQueryInput{}, diag.FromErr(errInputsMissing)
+	inputs, sortedNames, diags := newInputDefinitions(m["inputs"].(map[string]interface{}))
+	if diags.HasError() {
+		return gql.StageQueryInput{}, diags
 	}
 
 	stageInput := gql.StageQueryInput{
-		Pipeline: pipeline,
+		Pipeline: m["pipeline"].(string),
 	}
 
 	if v, ok := m["stage_id"]; ok && v.(string) != "" {
@@ -305,30 +278,13 @@ func newShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, diag.D
 	if len(inputs) == 1 {
 		defaultInput = inputs[sortedNames[0]]
 	} else {
-		for _, name := range sortedNames {
-			in := inputs[name]
-			if strings.Contains(pipeline, fmt.Sprintf("@%s", in.InputName)) ||
-				strings.Contains(pipeline, fmt.Sprintf("@%q", in.InputName)) {
-				defaultInput = in
-				break
-			}
-		}
+		defaultInput = firstReferencedInput(inputs, sortedNames, stageInput.Pipeline)
 		if defaultInput == nil {
 			defaultInput = inputs[sortedNames[0]]
 		}
 	}
 
-	stageInput.Input = append(stageInput.Input, *defaultInput)
-	for _, name := range sortedNames {
-		in := inputs[name]
-		if in == defaultInput {
-			continue
-		}
-		if strings.Contains(pipeline, fmt.Sprintf("@%s", in.InputName)) ||
-			strings.Contains(pipeline, fmt.Sprintf("@%q", in.InputName)) {
-			stageInput.Input = append(stageInput.Input, *in)
-		}
-	}
+	appendReferencedInputs(&stageInput, defaultInput, inputs, sortedNames)
 
 	return stageInput, nil
 }
