@@ -121,21 +121,25 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: validateEnums(gql.AllLogDerivedMetricAggregationFunctions),
 							DiffSuppressFunc: diffSuppressEnums,
+							Description:      descriptions.Get("log_derived_metric_dataset", "schema", "aggregation", "function"),
 						},
 						"field_path": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: descriptions.Get("log_derived_metric_dataset", "schema", "aggregation", "field_path", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"column": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: descriptions.Get("log_derived_metric_dataset", "schema", "aggregation", "field_path", "column"),
 									},
 									"path": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "",
+										Description: descriptions.Get("log_derived_metric_dataset", "schema", "aggregation", "field_path", "path"),
 									},
 								},
 							},
@@ -150,17 +154,20 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: descriptions.Get("log_derived_metric_dataset", "schema", "metric_tag", "name"),
 						},
 						"column": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: descriptions.Get("log_derived_metric_dataset", "schema", "metric_tag", "column"),
 						},
 						"path": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: descriptions.Get("log_derived_metric_dataset", "schema", "metric_tag", "path"),
 						},
 					},
 				},
