@@ -14,45 +14,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
-var allLogDerivedMetricAggregationFunctions = []gql.LogDerivedMetricAggregationFunction{
-	gql.LogDerivedMetricAggregationFunctionCount,
-	gql.LogDerivedMetricAggregationFunctionCountdistinct,
-	gql.LogDerivedMetricAggregationFunctionSum,
-	gql.LogDerivedMetricAggregationFunctionAvg,
-	gql.LogDerivedMetricAggregationFunctionMin,
-	gql.LogDerivedMetricAggregationFunctionMax,
-}
-
-var allMetricTypes = []gql.MetricType{
-	gql.MetricTypeCumulativecounter,
-	gql.MetricTypeCounter,
-	gql.MetricTypeRatepersec,
-	gql.MetricTypeDelta,
-	gql.MetricTypeGauge,
-	gql.MetricTypeTdigest,
-	gql.MetricTypeSample,
-	gql.MetricTypeHistogram,
-	gql.MetricTypeExponentialhistogram,
-}
-
-func parseMetricTypeSnake(s string) gql.MetricType {
-	for _, m := range allMetricTypes {
-		if toSnake(string(m)) == s {
-			return m
-		}
-	}
-	return gql.MetricType(s)
-}
-
-func parseLogDerivedAggFnSnake(s string) gql.LogDerivedMetricAggregationFunction {
-	for _, m := range allLogDerivedMetricAggregationFunctions {
-		if toSnake(string(m)) == s {
-			return m
-		}
-	}
-	return gql.LogDerivedMetricAggregationFunction(toCamel(s))
-}
-
 func resourceLogDerivedMetricDataset() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("log_derived_metric_dataset", "description"),
@@ -92,7 +53,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: validateEnums(allMetricTypes),
+				ValidateDiagFunc: validateEnums(gql.AllMetricTypes),
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "metric_type"),
 			},
@@ -158,7 +119,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 						"function": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateEnums(allLogDerivedMetricAggregationFunctions),
+							ValidateDiagFunc: validateEnums(gql.AllLogDerivedMetricAggregationFunctions),
 							DiffSuppressFunc: diffSuppressEnums,
 						},
 						"field_path": {
@@ -303,7 +264,7 @@ func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMet
 	}
 	agg := aggRaw[0].(map[string]interface{})
 	fnStr := agg["function"].(string)
-	fn := parseLogDerivedAggFnSnake(fnStr)
+	fn := gql.LogDerivedMetricAggregationFunction(toCamel(fnStr))
 
 	aggIn := gql.LogDerivedMetricAggregationInput{
 		Config: gql.LogDerivedMetricAggregationConfigInput{
@@ -341,7 +302,7 @@ func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMet
 	}
 
 	if v, ok := data.GetOk("metric_type"); ok {
-		mt := parseMetricTypeSnake(v.(string))
+		mt := gql.MetricType(toCamel(v.(string)))
 		out.MetricType = &mt
 	}
 	if v, ok := data.GetOk("unit"); ok {
