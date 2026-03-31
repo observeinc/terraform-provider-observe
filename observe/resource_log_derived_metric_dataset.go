@@ -182,9 +182,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 		return nil
 	}
 
-	if !(d.HasChange("input") || d.HasChange("query") || d.HasChange("aggregation") || d.HasChange("metric_name") ||
-		d.HasChange("metric_type") || d.HasChange("unit") || d.HasChange("interval") ||
-		d.HasChange("metric_tag") || d.HasChange("name")) {
+	if !(d.HasChange("input") || d.HasChange("query") || d.HasChange("name")) {
 		return nil
 	}
 
