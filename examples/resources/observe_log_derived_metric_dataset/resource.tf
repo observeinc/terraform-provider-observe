@@ -17,12 +17,8 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   unit        = "1"
   interval    = "1m"
 
-  shaping_query {
-    inputs = {
-      "logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter severity = \"ERROR\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter severity = \"ERROR\""
 
   aggregation {
     function = "count"
@@ -50,12 +46,8 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   unit        = "bytes"
   interval    = "5m"
 
-  shaping_query {
-    inputs = {
-      "access_logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter status_code >= 200 and status_code < 300"
-  }
+  input = observe_datastream.example.dataset
+  query = "filter status_code >= 200 and status_code < 300"
 
   aggregation {
     function = "sum"
@@ -80,12 +72,8 @@ resource "observe_log_derived_metric_dataset" "avg_response_time" {
   unit        = "milliseconds"
   interval    = "1m"
 
-  shaping_query {
-    inputs = {
-      "api_logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter endpoint != \"/health\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter endpoint != \"/health\""
 
   aggregation {
     function = "avg"
@@ -115,12 +103,8 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
   unit        = "users"
   interval    = "10m"
 
-  shaping_query {
-    inputs = {
-      "activity" = observe_datastream.example.dataset
-    }
-    pipeline = "filter action = \"login\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter action = \"login\""
 
   aggregation {
     function = "count_distinct"

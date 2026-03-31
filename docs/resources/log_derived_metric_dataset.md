@@ -33,12 +33,8 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   unit        = "1"
   interval    = "1m"
 
-  shaping_query {
-    inputs = {
-      "logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter severity = \"ERROR\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter severity = \"ERROR\""
 
   aggregation {
     function = "count"
@@ -66,12 +62,8 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   unit        = "bytes"
   interval    = "5m"
 
-  shaping_query {
-    inputs = {
-      "access_logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter status_code >= 200 and status_code < 300"
-  }
+  input = observe_datastream.example.dataset
+  query = "filter status_code >= 200 and status_code < 300"
 
   aggregation {
     function = "sum"
@@ -96,12 +88,8 @@ resource "observe_log_derived_metric_dataset" "avg_response_time" {
   unit        = "milliseconds"
   interval    = "1m"
 
-  shaping_query {
-    inputs = {
-      "api_logs" = observe_datastream.example.dataset
-    }
-    pipeline = "filter endpoint != \"/health\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter endpoint != \"/health\""
 
   aggregation {
     function = "avg"
@@ -131,12 +119,8 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
   unit        = "users"
   interval    = "10m"
 
-  shaping_query {
-    inputs = {
-      "activity" = observe_datastream.example.dataset
-    }
-    pipeline = "filter action = \"login\""
-  }
+  input = observe_datastream.example.dataset
+  query = "filter action = \"login\""
 
   aggregation {
     function = "count_distinct"
@@ -157,9 +141,9 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
 ### Required
 
 - `aggregation` (Block List, Min: 1, Max: 1) Aggregation configuration for the log-derived metric. (see [below for nested schema](#nestedblock--aggregation))
+- `input` (String) OID of the source dataset to derive metrics from.
 - `metric_name` (String) The name of the derived metric.
 - `name` (String) Dataset name. Must be unique within workspace.
-- `shaping_query` (Block List, Min: 1, Max: 1) The OPAL shaping query applied to the input dataset before aggregation. (see [below for nested schema](#nestedblock--shaping_query))
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
@@ -170,6 +154,8 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
 - `metric_tag` (Block List) Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path
 identifying the source column. Tags become grouping dimensions on the resulting metric. (see [below for nested schema](#nestedblock--metric_tag))
 - `metric_type` (String) The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
+- `query` (String) An OPAL pipeline applied to the input dataset before aggregation. If omitted or
+empty, rows from the input dataset are aggregated directly.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").
 
 ### Read-Only
@@ -194,7 +180,7 @@ Optional:
 
 Required:
 
-- `column` (String) Column name from the shaping query output to aggregate on.
+- `column` (String) Column name from the query output to aggregate on.
 
 Optional:
 
@@ -202,27 +188,12 @@ Optional:
 
 
 
-<a id="nestedblock--shaping_query"></a>
-### Nested Schema for `shaping_query`
-
-Required:
-
-- `inputs` (Map of String) The inputs map binds dataset OIDs to labels which can be referenced within
-stage pipelines.
-- `pipeline` (String) An OPAL snippet defining a transformation on the selected input.
-
-Optional:
-
-- `stage_id` (String) The stage alias is the label by which subsequent stages can refer to the
-results of this stage.
-
-
 <a id="nestedblock--metric_tag"></a>
 ### Nested Schema for `metric_tag`
 
 Required:
 
-- `column` (String) Column name from the shaping query output to use as the tag value source.
+- `column` (String) Column name from the query output to use as the tag value source.
 - `name` (String) Label for this metric tag. This becomes a dimension key on the resulting metric, used for grouping and filtering.
 
 Optional:

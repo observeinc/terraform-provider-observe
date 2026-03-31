@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -13,6 +14,9 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
+
+const ldmDefaultInputName = "input"
+const ldmDefaultStageID = "stage-0"
 
 func resourceLogDerivedMetricDataset() *schema.Resource {
 	return &schema.Resource{
@@ -81,33 +85,18 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("common", "schema", "icon_url"),
 			},
-			"shaping_query": {
-				Type:        schema.TypeList,
-				Required:    true,
-				MaxItems:    1,
-				Description: descriptions.Get("log_derived_metric_dataset", "schema", "shaping_query"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"inputs": {
-							Type:             schema.TypeMap,
-							Required:         true,
-							ValidateDiagFunc: validateMapValues(validateOID()),
-							Description:      descriptions.Get("transform", "schema", "inputs"),
-						},
-						"pipeline": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: diffSuppressPipeline,
-							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
-						},
-						"stage_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: descriptions.Get("transform", "schema", "stage", "alias"),
-						},
-					},
-				},
+			"input": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateOID(),
+				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "input"),
+			},
+			"query": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "",
+				DiffSuppressFunc: diffSuppressPipeline,
+				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "query"),
 			},
 			"aggregation": {
 				Type:        schema.TypeList,
@@ -193,7 +182,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 		return nil
 	}
 
-	if !(d.HasChange("shaping_query") || d.HasChange("aggregation") || d.HasChange("metric_name") ||
+	if !(d.HasChange("input") || d.HasChange("query") || d.HasChange("aggregation") || d.HasChange("metric_name") ||
 		d.HasChange("metric_type") || d.HasChange("unit") || d.HasChange("interval") ||
 		d.HasChange("metric_tag") || d.HasChange("name")) {
 		return nil
@@ -220,45 +209,37 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func newShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, diag.Diagnostics) {
-	raw := data.Get("shaping_query").([]interface{})
-	if len(raw) != 1 {
-		return gql.StageQueryInput{}, diag.Errorf("shaping_query must have exactly one block")
+func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, diag.Diagnostics) {
+	inputOIDStr := data.Get("input").(string)
+	parsedOID, err := oid.NewOID(inputOIDStr)
+	if err != nil {
+		return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input: %w", err))
 	}
-	m := raw[0].(map[string]interface{})
-
-	inputs, sortedNames, diags := newInputDefinitions(m["inputs"].(map[string]interface{}))
-	if diags.HasError() {
-		return gql.StageQueryInput{}, diags
+	datasetID := parsedOID.Id
+	if datasetID == "" {
+		return gql.StageQueryInput{}, diag.Errorf("input: empty dataset id")
 	}
-
-	stageInput := gql.StageQueryInput{
-		Pipeline: m["pipeline"].(string),
+	if _, err := strconv.ParseInt(datasetID, 10, 64); err != nil {
+		return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input: %w", errObjectIDInvalid))
 	}
 
-	if v, ok := m["stage_id"]; ok && v.(string) != "" {
-		s := v.(string)
-		stageInput.Id = &s
-	}
+	pipeline := data.Get("query").(string)
+	stageID := ldmDefaultStageID
 
-	// Include each declared input; also add secondary inputs referenced in pipeline via @name.
-	var defaultInput *gql.InputDefinitionInput
-	if len(inputs) == 1 {
-		defaultInput = inputs[sortedNames[0]]
-	} else {
-		defaultInput = firstReferencedInput(inputs, sortedNames, stageInput.Pipeline)
-		if defaultInput == nil {
-			defaultInput = inputs[sortedNames[0]]
-		}
-	}
-
-	appendReferencedInputs(&stageInput, defaultInput, inputs, sortedNames)
-
-	return stageInput, nil
+	return gql.StageQueryInput{
+		Id:       &stageID,
+		Pipeline: pipeline,
+		Input: []gql.InputDefinitionInput{
+			{
+				InputName: ldmDefaultInputName,
+				DatasetId: &datasetID,
+			},
+		},
+	}, nil
 }
 
 func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMetricDefinitionInput, diag.Diagnostics) {
-	shaping, diags := newShapingStageQueryInput(data)
+	shaping, diags := newLDMShapingStageQueryInput(data)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -309,7 +290,8 @@ func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMet
 	}
 
 	if v, ok := data.GetOk("metric_type"); ok {
-		mt := gql.MetricType(toCamel(v.(string)))
+		// we expect the metric to be in snake_case, so we convert it to camelCase with lowercase first letter
+		mt := gql.MetricType(toCamelLower(v.(string)))
 		out.MetricType = &mt
 	}
 	if v, ok := data.GetOk("unit"); ok {
@@ -330,14 +312,8 @@ func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *
 		return nil, nil, nil, diags
 	}
 
-	stageID := "stage-0"
-	if logDef.ShapingQuery.Id != nil && *logDef.ShapingQuery.Id != "" {
-		stageID = *logDef.ShapingQuery.Id
-	} else {
-		logDef.ShapingQuery.Id = &stageID
-	}
 	queryInput := &gql.MultiStageQueryInput{
-		OutputStage: stageID,
+		OutputStage: ldmDefaultStageID,
 		Stages:      []gql.StageQueryInput{logDef.ShapingQuery},
 	}
 
@@ -364,33 +340,13 @@ func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *
 	return input, queryInput, logDef, diags
 }
 
-func previousShapingQueryInputOIDVersion(data *schema.ResourceData, inputName, datasetID string) *string {
-	raw := data.Get("shaping_query").([]interface{})
-	if len(raw) != 1 || raw[0] == nil {
-		return nil
-	}
-
-	block, ok := raw[0].(map[string]interface{})
+func previousLDMInputOIDVersion(data *schema.ResourceData, datasetID string) *string {
+	prevOIDValue, ok := data.GetOk("input")
 	if !ok {
 		return nil
 	}
 
-	inputs, ok := block["inputs"].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	prevValue, ok := inputs[inputName]
-	if !ok {
-		return nil
-	}
-
-	prevOIDValue, ok := prevValue.(string)
-	if !ok {
-		return nil
-	}
-
-	prevOID, err := oid.NewOID(prevOIDValue)
+	prevOID, err := oid.NewOID(prevOIDValue.(string))
 	if err != nil || prevOID.Id != datasetID {
 		return nil
 	}
@@ -437,24 +393,19 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 	}
 
 	sq := ld.ShapingQuery
-	inputs := map[string]interface{}{}
 	for _, in := range sq.Input {
 		if in.DatasetId != nil && *in.DatasetId != "" {
 			inputOID := oid.OID{Type: oid.TypeDataset, Id: *in.DatasetId}
-			if version := previousShapingQueryInputOIDVersion(data, in.InputName, inputOID.Id); version != nil {
+			if version := previousLDMInputOIDVersion(data, inputOID.Id); version != nil {
 				inputOID.Version = version
 			}
-			inputs[in.InputName] = inputOID.String()
+			if err := data.Set("input", inputOID.String()); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+			break
 		}
 	}
-	shapingBlock := map[string]interface{}{
-		"inputs":   inputs,
-		"pipeline": sq.Pipeline,
-	}
-	if sq.Id != nil && *sq.Id != "" {
-		shapingBlock["stage_id"] = *sq.Id
-	}
-	if err := data.Set("shaping_query", []interface{}{shapingBlock}); err != nil {
+	if err := data.Set("query", sq.Pipeline); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

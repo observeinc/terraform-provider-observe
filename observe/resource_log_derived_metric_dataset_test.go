@@ -27,12 +27,7 @@ func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
 					unit        = "1"
 					interval    = "1m"
 
-					shaping_query {
-						inputs = {
-							"logs" = observe_datastream.test.dataset
-						}
-						pipeline = ""
-					}
+					input = observe_datastream.test.dataset
 
 					aggregation {
 						function = "count"
@@ -53,7 +48,6 @@ func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "gauge"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "1"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "shaping_query.0.stage_id", "stage-0"),
 					resource.TestCheckResourceAttrSet("observe_log_derived_metric_dataset.test", "oid"),
 				),
 			},
@@ -75,12 +69,7 @@ func TestAccObserveLogDerivedMetricDatasetDefaultsDoNotDrift(t *testing.T) {
 
 					metric_name = "error_count"
 
-					shaping_query {
-						inputs = {
-							"logs" = observe_datastream.test.dataset
-						}
-						pipeline = ""
-					}
+					input = observe_datastream.test.dataset
 
 					aggregation {
 						function = "count"
@@ -127,12 +116,7 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 					unit        = "1"
 					interval    = "1m"
 
-					shaping_query {
-						inputs = {
-							"logs" = observe_datastream.test.dataset
-						}
-						pipeline = ""
-					}
+					input = observe_datastream.test.dataset
 
 					aggregation {
 						function = "count"
@@ -157,26 +141,20 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 					unit        = "ms"
 					interval    = "5m"
 
-					shaping_query {
-						inputs = {
-							"logs" = observe_datastream.test.dataset
+					input = observe_datastream.test.dataset
+					query = "make_col duration:int64(duration_ms)"
+
+					aggregation {
+						function = "avg"
+						field_path {
+							column = "duration"
 						}
-						pipeline = <<-EOF
-							make_col duration:int64(duration_ms)
-						EOF
 					}
 
-				aggregation {
-					function = "avg"
-					field_path {
-						column = "duration"
+					metric_tag {
+						name   = "service"
+						column = "service"
 					}
-				}
-
-				metric_tag {
-					name   = "service"
-					column = "service"
-				}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix+"-updated"),
@@ -211,29 +189,24 @@ func TestAccObserveLogDerivedMetricDatasetWithTags(t *testing.T) {
 					unit        = "bytes"
 					interval    = "1m"
 
-					shaping_query {
-						inputs = {
-							"logs" = observe_datastream.test.dataset
+					input = observe_datastream.test.dataset
+
+					aggregation {
+						function = "sum"
+						field_path {
+							column = "bytes"
 						}
-						pipeline = ""
 					}
 
-				aggregation {
-					function = "sum"
-					field_path {
-						column = "bytes"
+					metric_tag {
+						name   = "host"
+						column = "host"
 					}
-				}
 
-				metric_tag {
-					name   = "host"
-					column = "host"
-				}
-
-				metric_tag {
-					name   = "region"
-					column = "region"
-				}
+					metric_tag {
+						name   = "region"
+						column = "region"
+					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
@@ -272,15 +245,8 @@ func TestLogDerivedMetricDefinitionInput_MetricTagsNeverNil(t *testing.T) {
 	reader := &mockResourceReader{
 		data: map[string]interface{}{
 			"metric_name": "error_count",
-			"shaping_query": []interface{}{
-				map[string]interface{}{
-					"inputs": map[string]interface{}{
-						"logs": "o:::dataset:12345",
-					},
-					"pipeline": "",
-					"stage_id": "",
-				},
-			},
+			"input":       "o:::dataset:12345",
+			"query":       "",
 			"aggregation": []interface{}{
 				map[string]interface{}{
 					"function":   "count",
@@ -325,15 +291,8 @@ func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 			"name":        "test-ldm",
 			"metric_name": "req_count",
 			"description": "test",
-			"shaping_query": []interface{}{
-				map[string]interface{}{
-					"inputs": map[string]interface{}{
-						"logs": "o:::dataset:12345",
-					},
-					"pipeline": "filter true",
-					"stage_id": "",
-				},
-			},
+			"input":       "o:::dataset:12345",
+			"query":       "filter true",
 			"aggregation": []interface{}{
 				map[string]interface{}{
 					"function":   "count",
@@ -353,54 +312,53 @@ func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 	if len(queryInput.Stages) != 1 {
 		t.Fatalf("expected 1 stage in query, got %d", len(queryInput.Stages))
 	}
-	if queryInput.OutputStage == "" {
-		t.Fatal("OutputStage must be set")
+	if queryInput.OutputStage != ldmDefaultStageID {
+		t.Fatalf("expected OutputStage %q, got %q", ldmDefaultStageID, queryInput.OutputStage)
 	}
 	if queryInput.Stages[0].Id == nil || *queryInput.Stages[0].Id != queryInput.OutputStage {
 		t.Fatal("stage ID must match OutputStage")
 	}
+	if queryInput.Stages[0].Pipeline != "filter true" {
+		t.Fatalf("expected pipeline 'filter true', got %q", queryInput.Stages[0].Pipeline)
+	}
+	if len(queryInput.Stages[0].Input) != 1 || queryInput.Stages[0].Input[0].InputName != ldmDefaultInputName {
+		t.Fatalf("expected single input named %q", ldmDefaultInputName)
+	}
 }
 
-func TestNewShapingStageQueryInput_IncludesReferencedInputs(t *testing.T) {
+func TestNewLDMShapingStageQueryInput_SingleInput(t *testing.T) {
 	reader := &mockResourceReader{
 		data: map[string]interface{}{
-			"shaping_query": []interface{}{
-				map[string]interface{}{
-					"inputs": map[string]interface{}{
-						"logs":  "o:::dataset:12345",
-						"users": "o:::dataset:67890",
-					},
-					"pipeline": "join @logs on true\nlookup @users user_id = id",
-					"stage_id": "shape-users",
-				},
-			},
+			"input": "o:::dataset:12345",
+			"query": "filter severity = \"ERROR\"",
 		},
 	}
 
-	stageInput, diags := newShapingStageQueryInput(reader)
+	stageInput, diags := newLDMShapingStageQueryInput(reader)
 	if diags.HasError() {
 		t.Fatalf("unexpected diags: %v", diags)
 	}
 
-	if stageInput.Id == nil || *stageInput.Id != "shape-users" {
-		t.Fatalf("expected stage id shape-users, got %#v", stageInput.Id)
+	if stageInput.Id == nil || *stageInput.Id != ldmDefaultStageID {
+		t.Fatalf("expected stage id %q, got %#v", ldmDefaultStageID, stageInput.Id)
 	}
-	if len(stageInput.Input) != 2 {
-		t.Fatalf("expected 2 stage inputs, got %d", len(stageInput.Input))
+	if len(stageInput.Input) != 1 {
+		t.Fatalf("expected 1 stage input, got %d", len(stageInput.Input))
 	}
-	if stageInput.Input[0].InputName != "logs" {
-		t.Fatalf("expected default input logs, got %q", stageInput.Input[0].InputName)
+	if stageInput.Input[0].InputName != ldmDefaultInputName {
+		t.Fatalf("expected input name %q, got %q", ldmDefaultInputName, stageInput.Input[0].InputName)
 	}
-	if stageInput.Input[1].InputName != "users" {
-		t.Fatalf("expected referenced secondary input users, got %q", stageInput.Input[1].InputName)
+	if *stageInput.Input[0].DatasetId != "12345" {
+		t.Fatalf("expected dataset id 12345, got %q", *stageInput.Input[0].DatasetId)
+	}
+	if stageInput.Pipeline != "filter severity = \"ERROR\"" {
+		t.Fatalf("unexpected pipeline: %q", stageInput.Pipeline)
 	}
 }
 
 func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testing.T) {
 	const (
 		datasetID   = "12345"
-		inputName   = "logs"
-		stageID     = "stage-0"
 		version     = "2026-03-26T12:34:56Z"
 		workspaceID = "456"
 	)
@@ -409,15 +367,8 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 		"workspace":   oid.WorkspaceOid(workspaceID).String(),
 		"name":        "test-ldm",
 		"metric_name": "error_count",
-		"shaping_query": []interface{}{
-			map[string]interface{}{
-				"inputs": map[string]interface{}{
-					inputName: oid.OID{Type: oid.TypeDataset, Id: datasetID, Version: stringPtr(version)}.String(),
-				},
-				"pipeline": "",
-				"stage_id": stageID,
-			},
-		},
+		"input":       oid.OID{Type: oid.TypeDataset, Id: datasetID, Version: stringPtr(version)}.String(),
+		"query":       "",
 		"aggregation": []interface{}{
 			map[string]interface{}{
 				"function": "count",
@@ -436,11 +387,11 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 			Unit:       "1",
 			Interval:   types.DurationScalar(time.Minute),
 			ShapingQuery: gql.StageQuery{
-				Id:       stringPtr(stageID),
+				Id:       stringPtr(ldmDefaultStageID),
 				Pipeline: "",
 				Input: []gql.StageQueryInputInputDefinition{
 					{
-						InputName: inputName,
+						InputName: ldmDefaultInputName,
 						DatasetId: stringPtr(datasetID),
 					},
 				},
@@ -459,15 +410,9 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 		t.Fatalf("unexpected diags: %v", diags)
 	}
 
-	shapingQuery := data.Get("shaping_query").([]interface{})
-	if len(shapingQuery) != 1 {
-		t.Fatalf("expected 1 shaping_query block, got %d", len(shapingQuery))
-	}
-
-	inputs := shapingQuery[0].(map[string]interface{})["inputs"].(map[string]interface{})
 	expectedOID := oid.OID{Type: oid.TypeDataset, Id: datasetID, Version: stringPtr(version)}.String()
-	if got := inputs[inputName].(string); got != expectedOID {
-		t.Fatalf("expected preserved versioned OID, got %q", got)
+	if got := data.Get("input").(string); got != expectedOID {
+		t.Fatalf("expected preserved versioned OID %q, got %q", expectedOID, got)
 	}
 }
 
