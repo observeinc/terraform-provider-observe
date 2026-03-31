@@ -75,7 +75,13 @@ func (c *Client) logResponse(ctx context.Context, resp *http.Response) {
 	}
 }
 
-// recursively unwrap error to figure out if it is temporary
+func shouldRetryRequest(resp *http.Response, err error) bool {
+	if err != nil {
+		return isTemporary(err)
+	}
+	return resp != nil && resp.StatusCode == http.StatusTooManyRequests
+}
+
 func isTemporary(err error) bool {
 	if t, ok := err.(net.Error); ok {
 		return t.Temporary()
@@ -129,11 +135,13 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 
 		resp, err = wrapped.RoundTrip(c.setTrace(req))
 		waitBeforeRetry := c.RetryWait
-		for retry := 0; err != nil && isTemporary(err) && retry < c.RetryCount; retry++ {
-			log.Printf("[WARN] request failed with temporary error: %s\n", err)
+		for retry := 0; shouldRetryRequest(resp, err) && retry < c.RetryCount; retry++ {
+			log.Printf("[WARN] retryable request error, retrying in %s (%d/%d)\n", waitBeforeRetry, retry+1, c.RetryCount)
 			time.Sleep(waitBeforeRetry)
-			waitBeforeRetry += c.RetryWait
-			log.Printf("[WARN] attempting recovery (%d/%d)\n", retry+1, c.RetryCount)
+			waitBeforeRetry *= 2
+			if waitBeforeRetry > meta.MaxRetryBackoff {
+				waitBeforeRetry = meta.MaxRetryBackoff
+			}
 			resp, err = wrapped.RoundTrip(req)
 		}
 		return
@@ -168,7 +176,7 @@ func New(c *Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to configure collect API: %w", err)
 	}
 
-	metaAPI, err := meta.New(customerURL+"/v1/meta", httpClient)
+	metaAPI, err := meta.New(customerURL+"/v1/meta", httpClient, meta.WithRetries(c.RetryCount, c.RetryWait))
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure meta API: %w", err)
 	}
