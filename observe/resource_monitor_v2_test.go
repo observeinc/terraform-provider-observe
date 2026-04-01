@@ -10,6 +10,56 @@ import (
 
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
 
+func TestAccObserveMonitorV2AnomalyNoDataRule(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "anomaly" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "anomaly"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						no_data_rules {
+							expiration = "30m"
+							anomaly {}
+						}
+						rules {
+							level = "informational"
+							anomaly {
+								compare_percentage = 50
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.anomaly", "workspace"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.anomaly", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.anomaly", "rule_kind", "anomaly"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.anomaly", "no_data_rules.0.expiration", "30m0s"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.anomaly", "rules.0.level", "informational"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.anomaly", "rules.0.anomaly.0.compare_percentage", "50"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveMonitorV2Count(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
