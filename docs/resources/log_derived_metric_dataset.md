@@ -23,6 +23,21 @@ resource "observe_datastream" "example" {
   name      = "Example Datastream"
 }
 
+# Simplest possible log-derived metric: only required fields
+resource "observe_log_derived_metric_dataset" "simple_count" {
+  workspace = data.observe_workspace.default.oid
+  name      = "Request Count"
+
+  metric_name = "request_count"
+
+  input = observe_datastream.example.dataset
+
+  aggregation {
+    function = "count"
+  }
+}
+
+# Log-derived metric counting errors per service
 resource "observe_log_derived_metric_dataset" "error_count" {
   workspace   = data.observe_workspace.default.oid
   name        = "Error Count Metric"
@@ -51,7 +66,7 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   }
 }
 
-# Log-derived metric with sum aggregation on a field
+# Log-derived metric with sum aggregation and a multiline query
 resource "observe_log_derived_metric_dataset" "total_bytes" {
   workspace   = data.observe_workspace.default.oid
   name        = "Total Bytes Transferred"
@@ -63,7 +78,10 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   interval    = "5m"
 
   input = observe_datastream.example.dataset
-  query = "filter status_code >= 200 and status_code < 300"
+  query = <<-EOT
+    filter status_code >= 200 and status_code < 300
+    filter content_type = "application/json"
+  EOT
 
   aggregation {
     function = "sum"
