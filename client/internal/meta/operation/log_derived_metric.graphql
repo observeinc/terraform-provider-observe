@@ -1,0 +1,56 @@
+# Log Derived Metric operations
+# Note: saveLogDerivedMetricDataset and saveLogDerivedMetricDatasetDryRun mutations
+# are already defined in dataset.graphql
+
+fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
+	metricName
+	metricType
+	unit
+	interval
+	shapingQuery {
+		# @genqlient(pointer: true)
+		id
+		pipeline
+		input {
+			inputName
+			datasetId
+			stageId
+		}
+	}
+	aggregation {
+		config {
+			function
+		}
+		fieldPath {
+			column
+			path
+		}
+	}
+	metricTags {
+		name
+		fieldPath {
+			column
+			path
+		}
+	}
+}
+
+query getLogDerivedMetricDataset($id: ObjectId!) {
+	dataset: dataset(id: $id) {
+		id
+		workspaceId
+		name
+		version
+		description
+		iconUrl
+		source
+		managedById
+		# @genqlient(flatten: true)
+		logDerivedMetricTable {
+			...LogDerivedMetricDefinition
+		}
+	}
+}
+
+
+

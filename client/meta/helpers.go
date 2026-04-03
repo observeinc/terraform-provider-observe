@@ -193,6 +193,27 @@ var AllRematerializationModes = []RematerializationMode{
 	RematerializationModeSkiprematerialization,
 }
 
+var AllMetricTypes = []MetricType{
+	MetricTypeCumulativecounter,
+	MetricTypeCounter,
+	MetricTypeRatepersec,
+	MetricTypeDelta,
+	MetricTypeGauge,
+	MetricTypeTdigest,
+	MetricTypeSample,
+	MetricTypeHistogram,
+	MetricTypeExponentialhistogram,
+}
+
+var AllLogDerivedMetricAggregationFunctions = []LogDerivedMetricAggregationFunction{
+	LogDerivedMetricAggregationFunctionCount,
+	LogDerivedMetricAggregationFunctionCountdistinct,
+	LogDerivedMetricAggregationFunctionSum,
+	LogDerivedMetricAggregationFunctionAvg,
+	LogDerivedMetricAggregationFunctionMin,
+	LogDerivedMetricAggregationFunctionMax,
+}
+
 const (
 	ErrNotFound = "NOT_FOUND"
 )
