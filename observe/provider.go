@@ -138,7 +138,7 @@ func Provider() *schema.Provider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"observe_dataset":           dataSourceDataset(),
+			// "observe_dataset":           dataSourceDataset(), // migrated to framework provider
 			"observe_link":              dataSourceLink(),
 			"observe_workspace":         dataSourceWorkspace(),
 			"observe_query":             dataSourceQuery(),
@@ -165,11 +165,11 @@ func Provider() *schema.Provider {
 			"observe_service_account":   dataSourceServiceAccount(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"observe_dataset":                   resourceDataset(),
+			// "observe_dataset":                   resourceDataset(), // migrated to framework provider
 			"observe_source_dataset":            resourceSourceDataset(),
 			"observe_link":                      resourceLink(),
 			"observe_bookmark_group":            resourceBookmarkGroup(),
-			"observe_bookmark":                  resourceBookmark(),
+			// observe_bookmark: migrated to plugin framework (fw_resource_bookmark.go)
 			"observe_http_post":                 resourceHTTPPost(),
 			"observe_channel_action":            resourceChannelAction(),
 			"observe_channel":                   resourceChannel(),

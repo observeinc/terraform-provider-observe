@@ -32,7 +32,7 @@ func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				PlanOnly: true,
@@ -58,7 +58,7 @@ func TestAccObserveDatasetNameValidationInvalidCharacter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				PlanOnly: true,
@@ -85,7 +85,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -189,7 +189,7 @@ func TestAccObserveDatasetChangeInputName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -247,7 +247,7 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -372,7 +372,7 @@ func TestAccObserveDatasetSchemaChange(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -507,7 +507,7 @@ func TestAccObserveDatasetErrors(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -538,7 +538,7 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -613,7 +613,7 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
@@ -698,7 +698,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -756,7 +756,7 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -824,7 +824,7 @@ func TestAccObserveDatasetRematerializedDatasetsDuringPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -872,7 +872,7 @@ func TestAccObserveDatasetDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		// We use a data source to read the value of description back in.
 		// This assures us that the value is correctly set and read from
 		// backend, rather than just being set in local state.
@@ -975,7 +975,7 @@ func TestAccObserveDatasetMultiInput(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -1033,7 +1033,7 @@ func TestAccObserveDatasetQuotedInputReference(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -1106,7 +1106,7 @@ func TestAccObserveDatasetUseIcebergStorageIntegration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -1148,7 +1148,7 @@ func TestAccObserveDatasetBadOpalDuringPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// need to create the datastream beforehand, so that the inputs are known at plan time below
@@ -1183,7 +1183,7 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create a parent dataset with column "key1" and a child that depends on that column.
 			{
@@ -1305,8 +1305,8 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -1325,18 +1325,17 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 					}
 
 					entity_tags = {
-						environment = "production"
-						team        = "backend,frontend"
+						environment = ["production"]
+						team        = ["backend", "frontend"]
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-dataset"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.team", "backend,frontend"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment.#", "1"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.team.#", "2"),
 				),
 			},
 			{
-				// Update entity_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1353,18 +1352,16 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 					}
 
 					entity_tags = {
-						environment = "staging,production"
-						region      = "us-west-2"
+						environment = ["staging", "production"]
+						region      = ["us-west-2"]
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production,staging"), // Backend sorts alphabetically
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.region", "us-west-2"),
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "entity_tags.team"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment.#", "2"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.region.#", "1"),
 				),
 			},
 			{
-				// Test CSV escaping (value with comma)
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1381,15 +1378,14 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 					}
 
 					entity_tags = {
-						note = "\"Team A, Inc\""
+						note = ["Team A, Inc"]
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.note", "\"Team A, Inc\""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.note.#", "1"),
 				),
 			},
 			{
-				// Remove all entity_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid

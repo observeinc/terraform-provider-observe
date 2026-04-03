@@ -15,7 +15,7 @@ func TestAccObserveSourceDataset(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
@@ -42,7 +42,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
@@ -113,7 +113,7 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
@@ -130,7 +130,7 @@ func TestAccObserveSourceDatasetNotFound(t *testing.T) {
 func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: configPreamble + `
@@ -147,7 +147,7 @@ func TestAccObserveSourceDatasetEmptyString(t *testing.T) {
 func TestAccObserveSourceDatasetInvalidID(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: configPreamble + `
@@ -166,7 +166,7 @@ func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(configPreamble+`
@@ -220,7 +220,7 @@ func TestAccObserveBuiltinDataset(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: configPreamble + `
