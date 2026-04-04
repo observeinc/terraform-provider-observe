@@ -70,14 +70,7 @@ extend type Mutation {
     """
     inviteUser(user: UserInput!): String!
 
-    """
-    When creating a workspace, all users for the customer will be granted
-    access to it through the ACL system. This is because we don't yet have
-    a UI to deal with selective access.
-    """
-    createWorkspace(definition: WorkspaceInput!): Project
     updateWorkspace(id: ObjectId!, definition: WorkspaceInput!): Project
-    deleteWorkspace(id: ObjectId!): ResultStatus!
 
     """
     Blobs are arbitrary JSON structs (limited to 128 kB in size) stored with

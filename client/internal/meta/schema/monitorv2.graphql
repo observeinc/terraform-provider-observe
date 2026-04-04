@@ -225,13 +225,6 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     runbook references.
     """
     investigationInfo: MonitorV2InvestigationInfo @deprecated(reason:"This is a POC field and not for production use.")
-    """
-    GovernorStatus represents the cost governor status of this monitor.
-    When a cost limit is configured (at monitor or customer level), this field
-    indicates whether the monitor is running normally, in a grace period, or
-    disabled due to exceeding cost limits.
-    """
-    governorStatus: MonitorV2GovernorStatus @goField(forceResolver: true)
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!

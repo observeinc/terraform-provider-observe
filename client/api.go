@@ -746,33 +746,6 @@ func (c *Client) GetPoller(ctx context.Context, id string) (*meta.Poller, error)
 	return c.Meta.GetPoller(ctx, id)
 }
 
-// CreateWorkspace creates a workspace
-func (c *Client) CreateWorkspace(ctx context.Context, input *meta.WorkspaceInput) (*meta.Workspace, error) {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	return c.Meta.CreateWorkspace(ctx, input)
-}
-
-// UpdateWorkspace updates a workspace
-func (c *Client) UpdateWorkspace(ctx context.Context, id string, input *meta.WorkspaceInput) (*meta.Workspace, error) {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	return c.Meta.UpdateWorkspace(ctx, id, input)
-}
-
-// DeleteWorkspace
-func (c *Client) DeleteWorkspace(ctx context.Context, id string) error {
-	if !c.Flags[flagObs2110] {
-		c.obs2110.Lock()
-		defer c.obs2110.Unlock()
-	}
-	return c.Meta.DeleteWorkspace(ctx, id)
-}
-
 // CreateDatastream creates a datastream
 func (c *Client) CreateDatastream(ctx context.Context, workspaceId string, input *meta.DatastreamInput) (*meta.Datastream, error) {
 	if !c.Flags[flagObs2110] {

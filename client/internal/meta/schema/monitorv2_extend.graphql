@@ -147,6 +147,25 @@ extend type Mutation {
     ): MonitorV2!
 }
 
+extend type MonitorV2 {
+    """
+    GovernorStatus represents the cost governor status of this monitor.
+    When a cost limit is configured (at monitor or customer level), this field
+    indicates whether the monitor is running normally, in a grace period, or
+    disabled due to exceeding cost limits.
+    """
+    governorStatus: MonitorV2GovernorStatus @goField(forceResolver: true)
+}
+
+extend type MonitorV2Alarm {
+    """
+    Context represents the set of values for which this alarm triggered. It
+    uniquely identifies an alarm for a given monitor and within a given
+    time range.
+    """
+    context: [MonitorV2ContextEntry!]!
+}
+
 type MonitorV2SourceEvaluation @goModel(model: "observe/meta/metatypes.MonitorV2SourceEvaluation") {
     query: MultiStageQuery!
 }
@@ -303,4 +322,15 @@ type MonitorV2GovernorStatus @goModel(model: "observe/meta/metatypes.MonitorV2Go
     will be disabled. This is null for Normal and CostDisabled states.
     """
     gracePeriodRemaining: Duration
+}
+
+type MonitorV2ContextEntry @goModel(model: "observe/meta/metatypes.MonitorV2ContextEntry") {
+    """
+    Column information for the context entry.
+    """
+    column: MonitorV2Column!
+    """
+    Value of this context entry for which the alarm triggered.
+    """
+    value: String!
 }

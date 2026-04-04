@@ -3,31 +3,10 @@ fragment Workspace on Project {
 	label
 }
 
-mutation createWorkspace($config: WorkspaceInput!) {
-	# @genqlient(flatten: true)
-	workspace: createWorkspace(definition: $config) {
-		...Workspace
-	}
-}
-
 query getWorkspace($id: ObjectId!) {
 	# @genqlient(flatten: true)
 	workspace: workspace(id: $id) {
 		...Workspace
-	}
-}
-
-mutation updateWorkspace($id: ObjectId!, $config: WorkspaceInput!) {
-	# @genqlient(flatten: true)
-	workspace: updateWorkspace(id:$id, definition: $config) {
-		...Workspace
-	}
-}
-
-mutation deleteWorkspace($id: ObjectId!) {
-	# @genqlient(flatten: true)
-	resultStatus: deleteWorkspace(id: $id) {
-		...ResultStatus
 	}
 }
 
