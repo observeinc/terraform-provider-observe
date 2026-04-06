@@ -102,17 +102,10 @@ func TestAccObserveInboundShareTable_Basic(t *testing.T) {
 					return rs.Primary.Attributes["share_id"] + "/" + rs.Primary.ID, nil
 				},
 				ImportStateVerify: true,
-				// TODO: Fix the backend API to return these fields in GET response
-				// These fields ARE stored in the backend (ExternalShareTable.SchemaMapping, etc.)
-				// but are NOT returned by GET /v1/shares/inbound/{shareId}/tables/{tableId}.
-				// Once the API is fixed, remove these from ImportStateVerifyIgnore.
-				ImportStateVerifyIgnore: []string{
-					"description",      // Stored but not returned by GET endpoint
-					"valid_from_field", // Stored but not returned by GET endpoint
-					"valid_to_field",   // Stored but not returned by GET endpoint
-					"field_mapping",    // Stored (as schemaMapping) but not returned by GET endpoint
-					"dataset_kind",     // Dataset kind not included in DatasetRef (only id/label)
-				},
+				// These fields are not yet returned by the sharein API in production:
+				// - description: cannot be reliably inferred from Dataset API
+				// - field_mapping: can only infer Drop conversions, not user-specified Direct mappings
+				ImportStateVerifyIgnore: []string{"description", "field_mapping"},
 			},
 		},
 		// Step 4: Destroy happens automatically - tests cleanup (untrack table, delete dataset)
@@ -256,6 +249,25 @@ func TestAccObserveInboundShareTable_EventDataset(t *testing.T) {
 					// Verify dataset was created successfully
 					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "dataset_oid"),
 					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "dataset_id"),
+				),
+			},
+			// Import and verify dataset_kind is correctly inferred from Dataset API
+			{
+				ResourceName: "observe_inbound_share_table.test",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources["observe_inbound_share_table.test"]
+					if !ok {
+						return "", fmt.Errorf("resource not found in state")
+					}
+					return rs.Primary.Attributes["share_id"] + "/" + rs.Primary.ID, nil
+				},
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"description", "field_mapping"},
+				Check: resource.ComposeTestCheckFunc(
+					// Verify Event kind is inferred correctly (has validFromField, no validToField)
+					resource.TestCheckResourceAttr("observe_inbound_share_table.test", "dataset_kind", "Event"),
+					resource.TestCheckResourceAttr("observe_inbound_share_table.test", "valid_from_field", "TIMESTAMP_TZ"),
 				),
 			},
 		},

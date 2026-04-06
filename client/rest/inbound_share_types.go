@@ -74,19 +74,25 @@ type TableSchema struct {
 }
 
 type InboundShareTable struct {
-	Id            string       `json:"id"`
-	Share         ShareRef     `json:"share"`
-	FullTablePath string       `json:"fullTablePath"` // "schema/table"
-	TableName     string       `json:"tableName"`
-	SchemaName    string       `json:"schemaName"`
-	TableType     string       `json:"tableType"` // "TABLE", "VIEW", etc.
-	Status        string       `json:"status"`    // Pending, Active, Inactive, Error
-	SourceDataset *DatasetRef  `json:"sourceDataset"`
-	TableSchema   *TableSchema `json:"tableSchema"`
-	CreatedBy     User         `json:"createdBy"`
-	CreatedAt     string       `json:"createdAt"`
-	UpdatedBy     User         `json:"updatedBy"`
-	UpdatedAt     string       `json:"updatedAt"`
+	Id             string                  `json:"id"`
+	Share          ShareRef                `json:"share"`
+	FullTablePath  string                  `json:"fullTablePath"` // "schema/table"
+	TableName      string                  `json:"tableName"`
+	SchemaName     string                  `json:"schemaName"`
+	TableType      string                  `json:"tableType"`     // "TABLE", "VIEW", etc.
+	Status         string                  `json:"status"`        // Pending, Active, Inactive, Error
+	SourceDataset  *DatasetRef             `json:"sourceDataset"` // Reference to the Observe dataset
+	TableSchema    *TableSchema            `json:"tableSchema"`   // Snowflake table schema (columns, types)
+	Description    string                  `json:"description,omitempty"`
+	DatasetLabel   string                  `json:"datasetLabel,omitempty"` // Name/label of the Observe dataset
+	DatasetKind    string                  `json:"datasetKind,omitempty"`  // Table, Event, Resource, Interval
+	ValidFromField string                  `json:"validFromField,omitempty"`
+	ValidToField   string                  `json:"validToField,omitempty"`
+	FieldMapping   map[string]FieldMapping `json:"fieldMapping,omitempty"` // Schema mapping (field name -> type conversion)
+	CreatedBy      User                    `json:"createdBy"`
+	CreatedAt      string                  `json:"createdAt"`
+	UpdatedBy      User                    `json:"updatedBy"`
+	UpdatedAt      string                  `json:"updatedAt"`
 }
 
 type TableListResponse struct {

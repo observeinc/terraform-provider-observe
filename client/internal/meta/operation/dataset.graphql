@@ -15,6 +15,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset

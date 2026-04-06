@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
@@ -169,6 +170,61 @@ func newTrackTableRequest(data *schema.ResourceData) (*rest.TrackTableRequest, d
 	return req, diags
 }
 
+// enrichResultFromDataset populates fields from the Dataset API that are not yet returned by the sharein API.
+// This is a workaround until the sharein API includes these fields in the GET response.
+// Returns an error if field mappings cannot be safely inferred - this prevents creating resources
+// with incomplete state that would be recreated later when the API is fixed.
+func enrichResultFromDataset(result *rest.TrackTableResponse, dataset *gql.Dataset) error {
+	// Only populate fields if they're missing from the sharein API response
+
+	// NOTE: We do NOT populate description from the Dataset API because:
+	// 1. Description updates are not yet supported in the backend (see doUpdateTableWithDataset)
+	// 2. When dataset_label changes, a new dataset is created with auto-generated description
+	// 3. We can't distinguish between user-provided and auto-generated descriptions
+	// 4. The sharein API will return description once it's added to the response schema
+
+	// ValidFromField and ValidToField are top-level fields on Dataset
+	if result.Table.ValidFromField == "" && dataset.ValidFromField != nil && *dataset.ValidFromField != "" {
+		result.Table.ValidFromField = *dataset.ValidFromField
+	}
+
+	if result.Table.ValidToField == "" && dataset.ValidToField != nil && *dataset.ValidToField != "" {
+		result.Table.ValidToField = *dataset.ValidToField
+	}
+
+	// Infer DatasetKind based on which timestamp fields are present
+	// This matches the Observe dataset semantics:
+	// - Interval: has both validFromField and validToField
+	// - Event: has validFromField but not validToField
+	// - Table: has neither (or could be Resource, but we default to Table)
+	if result.Table.DatasetKind == "" {
+		hasValidFrom := dataset.ValidFromField != nil && *dataset.ValidFromField != ""
+		hasValidTo := dataset.ValidToField != nil && *dataset.ValidToField != ""
+
+		if hasValidFrom && hasValidTo {
+			result.Table.DatasetKind = "Interval"
+		} else if hasValidFrom {
+			result.Table.DatasetKind = "Event"
+		} else {
+			result.Table.DatasetKind = "Table"
+		}
+	}
+
+	// NOTE: We do NOT populate field_mapping from inference or from the API because:
+	// 1. field_mapping is not yet returned by the sharein API in production
+	// 2. We cannot reliably infer user-specified Direct mappings (they're redundant)
+	// 3. Users specify field_mapping in config; it's sent to API but not read back
+	// 4. The sharein API will return field_mapping once it's deployed to prod
+
+	// Update the Dataset label if present
+	if dataset.Name != "" {
+		result.Dataset.Label = dataset.Name
+		result.Table.DatasetLabel = dataset.Name
+	}
+
+	return nil
+}
+
 func inboundShareTableToResourceData(result *rest.TrackTableResponse, data *schema.ResourceData) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -205,6 +261,37 @@ func inboundShareTableToResourceData(result *rest.TrackTableResponse, data *sche
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Set computed fields (may be populated from sharein API or Dataset API)
+	if table.Description != "" {
+		if err := data.Set("description", table.Description); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if table.DatasetKind != "" {
+		if err := data.Set("dataset_kind", table.DatasetKind); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if table.ValidFromField != "" {
+		if err := data.Set("valid_from_field", table.ValidFromField); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if table.ValidToField != "" {
+		if err := data.Set("valid_to_field", table.ValidToField); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	// NOTE: We do NOT set field_mapping in state because:
+	// 1. The sharein API doesn't return it in production yet
+	// 2. Users specify it in config, but we can't read it back
+	// 3. This avoids diffs between config and state
+	// Once the API returns field_mapping, we can populate it here
+
 	return diags
 }
 
@@ -229,6 +316,18 @@ func resourceInboundShareTableCreate(ctx context.Context, data *schema.ResourceD
 	// Set the resource ID to the table ID
 	data.SetId(result.Table.Id)
 
+	// Populate computed fields from Dataset API if they're not returned by the sharein API
+	if result.Dataset.Id != "" {
+		dataset, err := client.GetDataset(ctx, result.Dataset.Id)
+		if err != nil {
+			return diag.Errorf("failed to get dataset %s for field inference: %v", result.Dataset.Id, err)
+		}
+
+		if err := enrichResultFromDataset(result, dataset); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return append(diags, inboundShareTableToResourceData(result, data)...)
 }
 
@@ -250,7 +349,21 @@ func resourceInboundShareTableRead(ctx context.Context, data *schema.ResourceDat
 		return diag.Errorf("failed to retrieve tracked table: %v", err)
 	}
 
-	return inboundShareTableToResourceData(result, data)
+	// Populate computed fields from Dataset API if they're not returned by the sharein API
+	// This is a workaround until the sharein API returns these fields in the GET response
+	var diags diag.Diagnostics
+	if result.Dataset.Id != "" {
+		dataset, err := client.GetDataset(ctx, result.Dataset.Id)
+		if err != nil {
+			return diag.Errorf("failed to get dataset %s for field inference: %v", result.Dataset.Id, err)
+		}
+
+		if err := enrichResultFromDataset(result, dataset); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return append(diags, inboundShareTableToResourceData(result, data)...)
 }
 
 func resourceInboundShareTableUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -274,6 +387,10 @@ func resourceInboundShareTableUpdate(ctx context.Context, data *schema.ResourceD
 		req.DatasetLabel = stringPtr(data.Get("dataset_label").(string))
 		hasChanges = true
 	}
+
+	// NOTE: description updates are not yet supported by the backend
+	// The backend logs a warning and ignores the description field
+	// So we don't send it in updates to avoid confusion
 
 	if data.HasChange("valid_from_field") {
 		req.ValidFromField = stringPtr(data.Get("valid_from_field").(string))
@@ -335,7 +452,6 @@ func resourceInboundShareTableDelete(ctx context.Context, data *schema.ResourceD
 	return nil
 }
 
-
 // resourceInboundShareTableImport handles terraform import with a composite ID.
 //
 // Import ID format: "<share_oid>/<table_id>"
@@ -383,4 +499,3 @@ func resourceInboundShareTableImport(ctx context.Context, data *schema.ResourceD
 
 	return []*schema.ResourceData{data}, nil
 }
-
