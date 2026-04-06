@@ -15,26 +15,36 @@ func dataSourceInboundShare() *schema.Resource {
 		ReadContext: dataSourceInboundShareRead,
 
 		Schema: map[string]*schema.Schema{
-			// Input - either id OR (share_name + provider_account)
-			"share_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"id"},
-				RequiredWith:  []string{"provider_account"},
-				Description:   "The Snowflake share name to look up. Must be used with provider_account.",
-			},
-			"provider_account": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"id"},
-				RequiredWith:  []string{"share_name"},
-				Description:   "The Snowflake provider account (e.g., 'ACME_CORP.US-EAST-1'). Must be used with share_name.",
-			},
+			// Input - either id OR snowflake_config
 			"id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"share_name", "provider_account"},
-				Description:   "The ID of the share to look up. Cannot be used with share_name or provider_account.",
+				ConflictsWith: []string{"snowflake_config"},
+				Description:   "The ID of the share to look up. Cannot be used with snowflake_config.",
+			},
+			"snowflake_config": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"id"},
+				Description:   "Snowflake share configuration. Can be used as input for looking up the share, or as computed output containing the share's Snowflake configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"share_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "The Snowflake share name.",
+						},
+						"provider_account": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "The Snowflake provider account (e.g., 'ACME_CORP.US-EAST-1').",
+						},
+					},
+				},
 			},
 
 			// Outputs
@@ -83,17 +93,6 @@ func dataSourceInboundShare() *schema.Resource {
 				Computed:    true,
 				Description: "Last update timestamp.",
 			},
-			// Snowflake-specific config
-			"snowflake_share_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Snowflake share name (from SnowflakeConfig).",
-			},
-			"snowflake_provider_account": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Snowflake account providing the share.",
-			},
 		},
 	}
 }
@@ -111,15 +110,22 @@ func dataSourceInboundShareRead(ctx context.Context, d *schema.ResourceData, met
 		if err != nil {
 			return diag.Errorf("failed to get share %s: %v", shareId, err)
 		}
-	} else if shareName, ok := d.GetOk("share_name"); ok {
-		// Lookup by shareName and providerAccount (both required)
-		providerAccount := d.Get("provider_account").(string)
-		result, err = client.LookupShare(ctx, shareName.(string), providerAccount)
+	} else if v, ok := d.GetOk("snowflake_config"); ok {
+		// Lookup by snowflake_config (share_name + provider_account)
+		configs := v.([]interface{})
+		if len(configs) == 0 || configs[0] == nil {
+			return diag.Errorf("snowflake_config must be specified")
+		}
+		config := configs[0].(map[string]interface{})
+		shareName := config["share_name"].(string)
+		providerAccount := config["provider_account"].(string)
+
+		result, err = client.LookupShare(ctx, shareName, providerAccount)
 		if err != nil {
 			return diag.Errorf("failed to lookup share %s from provider %s: %v", shareName, providerAccount, err)
 		}
 	} else {
-		return diag.Errorf("either 'id' or both 'share_name' and 'provider_account' must be provided")
+		return diag.Errorf("either 'id' or 'snowflake_config' must be provided")
 	}
 
 	return setShareData(d, result)
@@ -134,9 +140,6 @@ func setShareData(d *schema.ResourceData, s *rest.Share) diag.Diagnostics {
 
 	// Set all computed fields
 	if err := d.Set("oid", s.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("share_name", s.ShareName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("provider_type", s.ProviderType); err != nil {
@@ -168,16 +171,19 @@ func setShareData(d *schema.ResourceData, s *rest.Share) diag.Diagnostics {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Snowflake-specific configuration
+	// Snowflake-specific configuration (output only - not used for input)
+	// Set snowflake_config as a computed block to match API shape
 	if s.SnowflakeConfig != nil {
-		if err := d.Set("snowflake_share_name", s.SnowflakeConfig.ShareName); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		snowflakeConfig := []interface{}{
+			map[string]interface{}{
+				"share_name":       s.SnowflakeConfig.ShareName,
+				"provider_account": s.SnowflakeConfig.ProviderAccount,
+			},
 		}
-		if err := d.Set("snowflake_provider_account", s.SnowflakeConfig.ProviderAccount); err != nil {
+		if err := d.Set("snowflake_config", snowflakeConfig); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
 	return diags
 }
-

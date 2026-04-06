@@ -34,9 +34,10 @@ import (
 //   - Provider type is correctly identified as "Snowflake"
 //
 // Lookup Method:
-//   The data source uses the share's Snowflake configuration (share name + provider account)
-//   to uniquely identify the share. This is more reliable than using the Observe display name
-//   which may not be unique.
+//
+//	The data source uses the share's Snowflake configuration (share name + provider account)
+//	to uniquely identify the share. This is more reliable than using the Observe display name
+//	which may not be unique.
 //
 // What this validates:
 //   - REST API client's LookupShare function works correctly
@@ -48,12 +49,14 @@ func TestAccObserveInboundShareDataSource_LookupByName(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				// Configure data source to look up share by name + provider
+				// Configure data source to look up share by snowflake_config
 				Config: fmt.Sprintf(`
 					# Look up an inbound share by its Snowflake share name and provider account
 					data "observe_inbound_share" "test" {
-						share_name       = "%s"  # Snowflake share name
-						provider_account = "%s"  # Snowflake provider account (format: ORG.ACCOUNT)
+						snowflake_config {
+							share_name       = "%s"  # Snowflake share name
+							provider_account = "%s"  # Snowflake provider account (format: ORG.ACCOUNT)
+						}
 					}
 				`, testInboundShareName, testInboundShareProvider),
 				Check: resource.ComposeTestCheckFunc(
@@ -61,8 +64,9 @@ func TestAccObserveInboundShareDataSource_LookupByName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.observe_inbound_share.test", "id"),
 					resource.TestCheckResourceAttrSet("data.observe_inbound_share.test", "oid"),
 
-					// Verify share configuration matches what we looked up
-					resource.TestCheckResourceAttr("data.observe_inbound_share.test", "snowflake_share_name", testInboundShareName),
+					// Verify snowflake_config output matches what we looked up
+					resource.TestCheckResourceAttr("data.observe_inbound_share.test", "snowflake_config.0.share_name", testInboundShareName),
+					resource.TestCheckResourceAttr("data.observe_inbound_share.test", "snowflake_config.0.provider_account", testInboundShareProvider),
 					resource.TestCheckResourceAttr("data.observe_inbound_share.test", "provider_type", "Snowflake"),
 
 					// Verify share is in a valid operational state
