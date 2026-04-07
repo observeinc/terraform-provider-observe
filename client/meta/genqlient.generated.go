@@ -5121,7 +5121,7 @@ type LogDerivedMetricDataset struct {
 	Id                    string                      `json:"id"`
 	WorkspaceId           string                      `json:"workspaceId"`
 	Name                  string                      `json:"name"`
-	Version               types.TimeScalar            `json:"version"`
+	LastSaved             types.TimeScalar            `json:"lastSaved"`
 	Description           *string                     `json:"description"`
 	IconUrl               *string                     `json:"iconUrl"`
 	Source                *string                     `json:"source"`
@@ -5138,8 +5138,8 @@ func (v *LogDerivedMetricDataset) GetWorkspaceId() string { return v.WorkspaceId
 // GetName returns LogDerivedMetricDataset.Name, and is useful for accessing the field via an interface.
 func (v *LogDerivedMetricDataset) GetName() string { return v.Name }
 
-// GetVersion returns LogDerivedMetricDataset.Version, and is useful for accessing the field via an interface.
-func (v *LogDerivedMetricDataset) GetVersion() types.TimeScalar { return v.Version }
+// GetLastSaved returns LogDerivedMetricDataset.LastSaved, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDataset) GetLastSaved() types.TimeScalar { return v.LastSaved }
 
 // GetDescription returns LogDerivedMetricDataset.Description, and is useful for accessing the field via an interface.
 func (v *LogDerivedMetricDataset) GetDescription() *string { return v.Description }
@@ -20804,7 +20804,7 @@ fragment LogDerivedMetricDataset on Dataset {
 	id
 	workspaceId
 	name
-	version
+	lastSaved
 	description
 	iconUrl
 	source
@@ -23718,7 +23718,7 @@ fragment LogDerivedMetricDataset on Dataset {
 	id
 	workspaceId
 	name
-	version
+	lastSaved
 	description
 	iconUrl
 	source

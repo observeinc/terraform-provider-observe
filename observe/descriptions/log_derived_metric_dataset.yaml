@@ -3,13 +3,11 @@ description: |
   that derives metrics from log data using an aggregation function and optional
   shaping query.
 schema:
-  name: |
-    Dataset name. Must be unique within workspace.
   description: |
     Dataset description.
   input: |
     OID of the source dataset to derive metrics from.
-  query: |
+  shaping_query: |
     An OPAL pipeline applied to the input dataset before aggregation. If omitted or
     empty, rows from the input dataset are aggregated directly.
   metric_name: |
