@@ -2,11 +2,9 @@ package observe
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
@@ -15,11 +13,9 @@ import (
 )
 
 func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+	config := configPreamble + datastreamConfigPreamble + `
 				resource "observe_log_derived_metric_dataset" "test" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%[1]s"
 					description = "test log-derived metric"
 
 					metric_name = "error_count"
@@ -32,7 +28,7 @@ func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
 					aggregation {
 						function = "count"
 					}
-				}`, randomPrefix)
+				}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -42,7 +38,6 @@ func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_log_derived_metric_dataset.test", "workspace"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "test log-derived metric"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "error_count"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "gauge"),
@@ -61,11 +56,9 @@ func TestAccObserveLogDerivedMetricDatasetCreate(t *testing.T) {
 }
 
 func TestAccObserveLogDerivedMetricDatasetDefaultsDoNotDrift(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+	config := configPreamble + datastreamConfigPreamble + `
 				resource "observe_log_derived_metric_dataset" "test" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%[1]s"
 
 					metric_name = "error_count"
 
@@ -74,7 +67,7 @@ func TestAccObserveLogDerivedMetricDatasetDefaultsDoNotDrift(t *testing.T) {
 					aggregation {
 						function = "count"
 					}
-				}`, randomPrefix)
+				}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -83,7 +76,6 @@ func TestAccObserveLogDerivedMetricDatasetDefaultsDoNotDrift(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "error_count"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
 				),
@@ -98,17 +90,14 @@ func TestAccObserveLogDerivedMetricDatasetDefaultsDoNotDrift(t *testing.T) {
 }
 
 func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				Config: configPreamble + datastreamConfigPreamble + `
 				resource "observe_log_derived_metric_dataset" "test" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%[1]s"
 					description = "initial description"
 
 					metric_name = "request_count"
@@ -121,28 +110,26 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 					aggregation {
 						function = "count"
 					}
-				}`, randomPrefix),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "initial description"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "request_count"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				Config: configPreamble + datastreamConfigPreamble + `
 				resource "observe_log_derived_metric_dataset" "test" {
 					workspace   = data.observe_workspace.default.oid
-					name        = "%[1]s-updated"
 					description = "updated description"
 
-					metric_name = "request_duration"
-					metric_type = "gauge"
-					unit        = "ms"
-					interval    = "5m"
+					metric_name    = "request_duration"
+					metric_type    = "gauge"
+					unit           = "ms"
+					interval       = "5m"
 
-					input = observe_datastream.test.dataset
-					query = "make_col duration:int64(duration_ms)"
+					input         = observe_datastream.test.dataset
+					shaping_query = "make_col duration:int64(duration_ms)"
 
 					aggregation {
 						function = "avg"
@@ -155,9 +142,8 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 						name   = "service"
 						column = "service"
 					}
-				}`, randomPrefix),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix+"-updated"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "updated description"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "request_duration"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "ms"),
@@ -172,17 +158,14 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 }
 
 func TestAccObserveLogDerivedMetricDatasetWithTags(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				Config: configPreamble + datastreamConfigPreamble + `
 				resource "observe_log_derived_metric_dataset" "test" {
 					workspace = data.observe_workspace.default.oid
-					name      = "%[1]s"
 
 					metric_name = "bytes_total"
 					metric_type = "cumulative_counter"
@@ -207,9 +190,8 @@ func TestAccObserveLogDerivedMetricDatasetWithTags(t *testing.T) {
 						name   = "region"
 						column = "region"
 					}
-				}`, randomPrefix),
+				}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "name", randomPrefix),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "bytes_total"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "cumulative_counter"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "sum"),
@@ -244,9 +226,9 @@ func (m *mockResourceReader) GetOk(key string) (interface{}, bool) {
 func TestLogDerivedMetricDefinitionInput_MetricTagsNeverNil(t *testing.T) {
 	reader := &mockResourceReader{
 		data: map[string]interface{}{
-			"metric_name": "error_count",
-			"input":       "o:::dataset:12345",
-			"query":       "",
+			"metric_name":   "error_count",
+			"input":         "o:::dataset:12345",
+			"shaping_query": "",
 			"aggregation": []interface{}{
 				map[string]interface{}{
 					"function":   "count",
@@ -288,11 +270,10 @@ func TestLogDerivedMetricDefinitionInput_MetricTagsNeverNil(t *testing.T) {
 func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 	reader := &mockResourceReader{
 		data: map[string]interface{}{
-			"name":        "test-ldm",
-			"metric_name": "req_count",
-			"description": "test",
-			"input":       "o:::dataset:12345",
-			"query":       "filter true",
+			"metric_name":   "req_count",
+			"description":   "test",
+			"input":         "o:::dataset:12345",
+			"shaping_query": "filter true",
 			"aggregation": []interface{}{
 				map[string]interface{}{
 					"function":   "count",
@@ -329,8 +310,8 @@ func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 func TestNewLDMShapingStageQueryInput_SingleInput(t *testing.T) {
 	reader := &mockResourceReader{
 		data: map[string]interface{}{
-			"input": "o:::dataset:12345",
-			"query": "filter severity = \"ERROR\"",
+			"input":         "o:::dataset:12345",
+			"shaping_query": "filter severity = \"ERROR\"",
 		},
 	}
 
@@ -364,11 +345,10 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 	)
 
 	data := schema.TestResourceDataRaw(t, resourceLogDerivedMetricDataset().Schema, map[string]interface{}{
-		"workspace":   oid.WorkspaceOid(workspaceID).String(),
-		"name":        "test-ldm",
-		"metric_name": "error_count",
-		"input":       oid.OID{Type: oid.TypeDataset, Id: datasetID, Version: stringPtr(version)}.String(),
-		"query":       "",
+		"workspace":     oid.WorkspaceOid(workspaceID).String(),
+		"metric_name":   "error_count",
+		"input":         oid.OID{Type: oid.TypeDataset, Id: datasetID, Version: stringPtr(version)}.String(),
+		"shaping_query": "",
 		"aggregation": []interface{}{
 			map[string]interface{}{
 				"function": "count",
@@ -380,7 +360,7 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 		Id:          "789",
 		WorkspaceId: workspaceID,
 		Name:        "test-ldm",
-		Version:     types.TimeScalar(time.Date(2026, 3, 26, 12, 0, 0, 0, time.UTC)),
+		LastSaved:   types.TimeScalar(time.Date(2026, 3, 26, 12, 0, 0, 0, time.UTC)),
 		LogDerivedMetricTable: &gql.LogDerivedMetricDefinition{
 			MetricName: "error_count",
 			MetricType: gql.MetricTypeGauge,

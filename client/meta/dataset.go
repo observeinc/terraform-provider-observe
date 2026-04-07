@@ -147,7 +147,7 @@ func (client *Client) GetLogDerivedMetricDataset(ctx context.Context, id string)
 }
 
 func (d *LogDerivedMetricDataset) Oid() *oid.OID {
-	version := d.Version.String()
+	version := d.LastSaved.String()
 	return &oid.OID{
 		Id:      d.Id,
 		Type:    oid.TypeDataset,

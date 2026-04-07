@@ -42,12 +42,6 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("common", "schema", "oid"),
 			},
-			"name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "name"),
-				ValidateDiagFunc: validateDatasetName(),
-			},
 			"metric_name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -91,12 +85,12 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				ValidateDiagFunc: validateOID(),
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "input"),
 			},
-			"query": {
+			"shaping_query": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "",
 				DiffSuppressFunc: diffSuppressPipeline,
-				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "query"),
+				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "shaping_query"),
 			},
 			"aggregation": {
 				Type:        schema.TypeList,
@@ -182,7 +176,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 		return nil
 	}
 
-	if !(d.HasChange("input") || d.HasChange("query") || d.HasChange("name")) {
+	if !(d.HasChange("input") || d.HasChange("shaping_query") || d.HasChange("metric_name")) {
 		return nil
 	}
 
@@ -221,7 +215,7 @@ func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, dia
 		return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input: %w", errObjectIDInvalid))
 	}
 
-	pipeline := data.Get("query").(string)
+	pipeline := data.Get("shaping_query").(string)
 	stageID := ldmDefaultStageID
 
 	return gql.StageQueryInput{
@@ -323,12 +317,6 @@ func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *
 	defType := gql.DatasetDefinitionTypeLogderivedmetric
 	input.DatasetDefinitionType = &defType
 
-	if v, ok := data.GetOk("name"); ok {
-		input.Label = v.(string)
-	} else {
-		return nil, nil, nil, diag.Errorf("name not set")
-	}
-
 	input.Description = stringPtr(data.Get("description").(string))
 
 	if v, ok := data.GetOk("icon_url"); ok {
@@ -362,9 +350,6 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 	ld := d.LogDerivedMetricTable
 
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if d.Description != nil {
@@ -403,7 +388,7 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 			break
 		}
 	}
-	if err := data.Set("query", sq.Pipeline); err != nil {
+	if err := data.Set("shaping_query", sq.Pipeline); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

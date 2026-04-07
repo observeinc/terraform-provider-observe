@@ -26,7 +26,6 @@ resource "observe_datastream" "example" {
 # Simplest possible log-derived metric: only required fields
 resource "observe_log_derived_metric_dataset" "simple_count" {
   workspace = data.observe_workspace.default.oid
-  name      = "Request Count"
 
   metric_name = "request_count"
 
@@ -40,7 +39,6 @@ resource "observe_log_derived_metric_dataset" "simple_count" {
 # Log-derived metric counting errors per service
 resource "observe_log_derived_metric_dataset" "error_count" {
   workspace   = data.observe_workspace.default.oid
-  name        = "Error Count Metric"
   description = "Counts error log lines per service"
 
   metric_name = "error_count"
@@ -48,8 +46,8 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   unit        = "1"
   interval    = "1m"
 
-  input = observe_datastream.example.dataset
-  query = "filter severity = \"ERROR\""
+  input         = observe_datastream.example.dataset
+  shaping_query = "filter severity = \"ERROR\""
 
   aggregation {
     function = "count"
@@ -66,10 +64,9 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   }
 }
 
-# Log-derived metric with sum aggregation and a multiline query
+# Log-derived metric with sum aggregation and a multiline shaping query
 resource "observe_log_derived_metric_dataset" "total_bytes" {
   workspace   = data.observe_workspace.default.oid
-  name        = "Total Bytes Transferred"
   description = "Sum of bytes transferred per service"
 
   metric_name = "bytes_transferred"
@@ -78,7 +75,7 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   interval    = "5m"
 
   input = observe_datastream.example.dataset
-  query = <<-EOT
+  shaping_query = <<-EOT
     filter status_code >= 200 and status_code < 300
     filter content_type = "application/json"
   EOT
@@ -99,15 +96,14 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
 # Log-derived metric with average aggregation and multiple tags
 resource "observe_log_derived_metric_dataset" "avg_response_time" {
   workspace = data.observe_workspace.default.oid
-  name      = "Average Response Time"
 
   metric_name = "response_time_avg"
   metric_type = "gauge"
   unit        = "milliseconds"
   interval    = "1m"
 
-  input = observe_datastream.example.dataset
-  query = "filter endpoint != \"/health\""
+  input         = observe_datastream.example.dataset
+  shaping_query = "filter endpoint != \"/health\""
 
   aggregation {
     function = "avg"
@@ -130,15 +126,14 @@ resource "observe_log_derived_metric_dataset" "avg_response_time" {
 # Log-derived metric with count_distinct aggregation
 resource "observe_log_derived_metric_dataset" "unique_users" {
   workspace = data.observe_workspace.default.oid
-  name      = "Unique Active Users"
 
   metric_name = "active_users"
   metric_type = "gauge"
   unit        = "users"
   interval    = "10m"
 
-  input = observe_datastream.example.dataset
-  query = "filter action = \"login\""
+  input         = observe_datastream.example.dataset
+  shaping_query = "filter action = \"login\""
 
   aggregation {
     function = "count_distinct"
@@ -161,7 +156,6 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
 - `aggregation` (Block List, Min: 1, Max: 1) Aggregation configuration for the log-derived metric. (see [below for nested schema](#nestedblock--aggregation))
 - `input` (String) OID of the source dataset to derive metrics from.
 - `metric_name` (String) The name of the derived metric.
-- `name` (String) Dataset name. Must be unique within workspace.
 - `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
@@ -172,7 +166,7 @@ resource "observe_log_derived_metric_dataset" "unique_users" {
 - `metric_tag` (Block List) Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path
 identifying the source column. Tags become grouping dimensions on the resulting metric. (see [below for nested schema](#nestedblock--metric_tag))
 - `metric_type` (String) The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
-- `query` (String) An OPAL pipeline applied to the input dataset before aggregation. If omitted or
+- `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. If omitted or
 empty, rows from the input dataset are aggregated directly.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").
 
