@@ -163,6 +163,7 @@ func Provider() *schema.Provider {
 			"observe_reference_table":   dataSourceReferenceTable(),
 			"observe_report":            dataSourceReport(),
 			"observe_service_account":   dataSourceServiceAccount(),
+			"observe_inbound_share":     dataSourceInboundShare(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   resourceDataset(),
@@ -208,6 +209,7 @@ func Provider() *schema.Provider {
 			"observe_service_account":           resourceServiceAccount(),
 			"observe_drop_filter":               resourceDropFilter(),
 			"observe_ingest_token":              resourceIngestToken(),
+			"observe_inbound_share_table":       resourceInboundShareTable(),
 		},
 		TerraformVersion: version.ProviderVersion,
 	}

@@ -1665,3 +1665,46 @@ func (c *Client) GetServiceAccount(ctx context.Context, id string) (*rest.Servic
 func (c *Client) ListServiceAccounts(ctx context.Context) ([]rest.ServiceAccountResource, error) {
 	return c.Rest.ListServiceAccounts(ctx)
 }
+
+/**
+ * Inbound Shares
+ */
+
+// Share operations
+func (c *Client) ListShares(ctx context.Context, params *rest.ListSharesParams) (*rest.ShareListResponse, error) {
+	return c.Rest.ListShares(ctx, params)
+}
+
+func (c *Client) GetShare(ctx context.Context, shareId string) (*rest.Share, error) {
+	return c.Rest.GetShare(ctx, shareId)
+}
+
+func (c *Client) LookupShare(ctx context.Context, shareName, providerAccount string) (*rest.Share, error) {
+	return c.Rest.LookupShare(ctx, shareName, providerAccount)
+}
+
+// Table operations
+func (c *Client) TrackTable(ctx context.Context, shareId string, req *rest.TrackTableRequest) (result *rest.TrackTableResponse, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.TrackTable(ctx, shareId, req)
+	})
+	return
+}
+
+func (c *Client) GetInboundShareTable(ctx context.Context, shareId, tableId string) (*rest.TrackTableResponse, error) {
+	return c.Rest.GetInboundShareTable(ctx, shareId, tableId)
+}
+
+func (c *Client) UpdateInboundShareTable(ctx context.Context, shareId, tableId string, req *rest.UpdateTableRequest) (result *rest.InboundShareTable, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateInboundShareTable(ctx, shareId, tableId, req)
+	})
+	return
+}
+
+func (c *Client) DeleteInboundShareTable(ctx context.Context, shareId, tableId string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteInboundShareTable(ctx, shareId, tableId)
+	})
+	return
+}

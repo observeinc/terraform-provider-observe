@@ -1287,6 +1287,8 @@ type Dataset struct {
 	OnDemandMaterializationLength *types.Int64Scalar                                   `json:"onDemandMaterializationLength"`
 	DataTableViewState            *types.JsonObject                                    `json:"dataTableViewState"`
 	StorageIntegrationId          *string                                              `json:"storageIntegrationId"`
+	ValidFromField                *string                                              `json:"validFromField"`
+	ValidToField                  *string                                              `json:"validToField"`
 	ForeignKeys                   []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
 	Transform                     *DatasetTransform                                    `json:"transform"`
 	Typedef                       DatasetTypedef                                       `json:"typedef"`
@@ -1347,6 +1349,12 @@ func (v *Dataset) GetDataTableViewState() *types.JsonObject { return v.DataTable
 
 // GetStorageIntegrationId returns Dataset.StorageIntegrationId, and is useful for accessing the field via an interface.
 func (v *Dataset) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
+
+// GetValidFromField returns Dataset.ValidFromField, and is useful for accessing the field via an interface.
+func (v *Dataset) GetValidFromField() *string { return v.ValidFromField }
+
+// GetValidToField returns Dataset.ValidToField, and is useful for accessing the field via an interface.
+func (v *Dataset) GetValidToField() *string { return v.ValidToField }
 
 // GetForeignKeys returns Dataset.ForeignKeys, and is useful for accessing the field via an interface.
 func (v *Dataset) GetForeignKeys() []DatasetForeignKeysForeignKey { return v.ForeignKeys }
@@ -19395,6 +19403,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset
@@ -21529,6 +21539,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset
@@ -21862,6 +21874,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset
@@ -22867,6 +22881,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset
@@ -23637,6 +23653,8 @@ fragment Dataset on Dataset {
 	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
+	validFromField
+	validToField
 	foreignKeys {
 		label
 		targetDataset
