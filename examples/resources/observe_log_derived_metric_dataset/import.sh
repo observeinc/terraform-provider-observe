@@ -1,1 +1,1 @@
-terraform import observe_log_derived_metric_dataset.example 123456789
+terraform import observe_log_derived_metric_dataset.simple_count 123456789
