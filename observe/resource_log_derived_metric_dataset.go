@@ -88,7 +88,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 			"shaping_query": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "",
+				Default:          "filter true",
 				DiffSuppressFunc: diffSuppressPipeline,
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "shaping_query"),
 			},
@@ -216,6 +216,9 @@ func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, dia
 	}
 
 	pipeline := data.Get("shaping_query").(string)
+	// if pipeline == "" {
+	// 	pipeline = "filter true"
+	// }
 	stageID := ldmDefaultStageID
 
 	return gql.StageQueryInput{
