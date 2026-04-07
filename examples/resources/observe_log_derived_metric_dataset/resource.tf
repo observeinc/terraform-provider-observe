@@ -58,7 +58,7 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   unit        = "bytes"
   interval    = "5m"
 
-  input = observe_datastream.example.dataset
+  input         = observe_datastream.example.dataset
   shaping_query = <<-EOT
     filter status_code >= 200 and status_code < 300
     filter content_type = "application/json"
