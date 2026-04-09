@@ -21,7 +21,7 @@ resource "observe_log_derived_metric_dataset" "simple_count" {
 
   metric_name = "prometheus_observation_count"
 
-  input = data.observe_datastream.default.dataset
+  input         = data.observe_datastream.default.dataset
   shaping_query = "filter OBSERVATION_KIND = \"prometheus\""
 
   aggregation {
@@ -39,7 +39,7 @@ resource "observe_log_derived_metric_dataset" "error_count" {
   unit        = "1"
   interval    = "1m"
 
-  input = data.observe_datastream.default.dataset
+  input         = data.observe_datastream.default.dataset
   shaping_query = <<-EOT
     filter OBSERVATION_KIND = "prometheus"
     make_col metric_name:string(EXTRA.__name__),
@@ -74,7 +74,7 @@ resource "observe_log_derived_metric_dataset" "total_bytes" {
   unit        = "bytes"
   interval    = "5m"
 
-  input = data.observe_datastream.default.dataset
+  input         = data.observe_datastream.default.dataset
   shaping_query = <<-EOT
     filter OBSERVATION_KIND = "prometheus"
     make_col metric_name:string(EXTRA.__name__),
@@ -111,7 +111,7 @@ resource "observe_log_derived_metric_dataset" "avg_gc_duration" {
   unit        = "seconds"
   interval    = "1m"
 
-  input = data.observe_datastream.default.dataset
+  input         = data.observe_datastream.default.dataset
   shaping_query = <<-EOT
     filter OBSERVATION_KIND = "prometheus"
     make_col metric_name:string(EXTRA.__name__),
@@ -150,7 +150,7 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
   unit        = "pods"
   interval    = "10m"
 
-  input = data.observe_datastream.default.dataset
+  input         = data.observe_datastream.default.dataset
   shaping_query = <<-EOT
     filter OBSERVATION_KIND = "prometheus"
     make_col pod_name:string(EXTRA.k8s_pod_name),
