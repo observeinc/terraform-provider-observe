@@ -14,137 +14,182 @@ that derives metrics from log data using an aggregation function and optional
 shaping query.
 ## Example Usage
 ```terraform
+terraform {
+  required_providers {
+    observe = {
+      source = "observeinc/observe"
+    }
+  }
+}
+
 data "observe_workspace" "default" {
   name = "Default"
 }
 
-resource "observe_datastream" "example" {
+data "observe_datastream" "default" {
   workspace = data.observe_workspace.default.oid
-  name      = "Example Datastream"
+  name      = "Default"
 }
 
-# Simplest possible log-derived metric: only required fields
+# Simplest possible log-derived metric: counts all Prometheus observations
 resource "observe_log_derived_metric_dataset" "simple_count" {
   workspace = data.observe_workspace.default.oid
 
-  metric_name = "request_count"
+  metric_name = "prometheus_observation_count"
 
-  input = observe_datastream.example.dataset
+  input = data.observe_datastream.default.dataset
+  shaping_query = "filter OBSERVATION_KIND = \"prometheus\""
 
   aggregation {
     function = "count"
   }
 }
 
-# Log-derived metric counting errors per service
+# Log-derived metric counting non-200 HTTP handler requests per job
 resource "observe_log_derived_metric_dataset" "error_count" {
   workspace   = data.observe_workspace.default.oid
-  description = "Counts error log lines per service"
+  description = "Counts non-200 promhttp handler requests per job"
 
-  metric_name = "error_count"
+  metric_name = "http_error_request_count"
   metric_type = "gauge"
   unit        = "1"
   interval    = "1m"
 
-  input         = observe_datastream.example.dataset
-  shaping_query = "filter severity = \"ERROR\""
+  input = data.observe_datastream.default.dataset
+  shaping_query = <<-EOT
+    filter OBSERVATION_KIND = "prometheus"
+    make_col metric_name:string(EXTRA.__name__),
+             response_code:string(EXTRA.code),
+             job_name:string(EXTRA.job)
+    filter metric_name = "promhttp_metric_handler_requests_total"
+    filter response_code != "200"
+  EOT
 
   aggregation {
     function = "count"
   }
 
   metric_tag {
-    name   = "service"
-    column = "service_name"
+    name   = "job"
+    column = "job_name"
   }
 
   metric_tag {
-    name   = "environment"
-    column = "env"
+    name   = "code"
+    column = "response_code"
   }
 }
 
-# Log-derived metric with sum aggregation and a multiline shaping query
+# Log-derived metric summing network bytes transmitted per job and namespace
 resource "observe_log_derived_metric_dataset" "total_bytes" {
   workspace   = data.observe_workspace.default.oid
-  description = "Sum of bytes transferred per service"
+  description = "Sum of network bytes transmitted per job and namespace"
 
-  metric_name = "bytes_transferred"
+  metric_name = "network_bytes_transmitted"
   metric_type = "cumulative_counter"
   unit        = "bytes"
   interval    = "5m"
 
-  input         = observe_datastream.example.dataset
+  input = data.observe_datastream.default.dataset
   shaping_query = <<-EOT
-    filter status_code >= 200 and status_code < 300
-    filter content_type = "application/json"
+    filter OBSERVATION_KIND = "prometheus"
+    make_col metric_name:string(EXTRA.__name__),
+             metric_value:float64(FIELDS.value),
+             job_name:string(EXTRA.job),
+             k8s_namespace:string(EXTRA.k8s_namespace_name)
+    filter metric_name = "process_network_transmit_bytes_total"
   EOT
 
   aggregation {
     function = "sum"
     field_path {
-      column = "bytes_sent"
+      column = "metric_value"
     }
   }
 
   metric_tag {
-    name   = "service"
-    column = "service_name"
+    name   = "job"
+    column = "job_name"
+  }
+
+  metric_tag {
+    name   = "namespace"
+    column = "k8s_namespace"
   }
 }
 
-# Log-derived metric with average aggregation and multiple tags
-resource "observe_log_derived_metric_dataset" "avg_response_time" {
+# Log-derived metric averaging GC duration (p50) per job and namespace
+resource "observe_log_derived_metric_dataset" "avg_gc_duration" {
   workspace = data.observe_workspace.default.oid
 
-  metric_name = "response_time_avg"
+  metric_name = "gc_duration_p50_avg"
   metric_type = "gauge"
-  unit        = "milliseconds"
+  unit        = "seconds"
   interval    = "1m"
 
-  input         = observe_datastream.example.dataset
-  shaping_query = "filter endpoint != \"/health\""
+  input = data.observe_datastream.default.dataset
+  shaping_query = <<-EOT
+    filter OBSERVATION_KIND = "prometheus"
+    make_col metric_name:string(EXTRA.__name__),
+             metric_value:float64(FIELDS.value),
+             quantile_label:string(EXTRA.quantile),
+             job_name:string(EXTRA.job),
+             k8s_namespace:string(EXTRA.k8s_namespace_name)
+    filter metric_name = "go_gc_duration_seconds"
+    filter quantile_label = "0.5"
+  EOT
 
   aggregation {
     function = "avg"
     field_path {
-      column = "response_time_ms"
+      column = "metric_value"
     }
   }
 
   metric_tag {
-    name   = "endpoint"
-    column = "endpoint"
+    name   = "job"
+    column = "job_name"
   }
 
   metric_tag {
-    name   = "method"
-    column = "http_method"
+    name   = "namespace"
+    column = "k8s_namespace"
   }
 }
 
-# Log-derived metric with count_distinct aggregation
-resource "observe_log_derived_metric_dataset" "unique_users" {
+# Log-derived metric counting distinct pods per namespace and job
+resource "observe_log_derived_metric_dataset" "unique_pods" {
   workspace = data.observe_workspace.default.oid
 
-  metric_name = "active_users"
+  metric_name = "active_pods"
   metric_type = "gauge"
-  unit        = "users"
+  unit        = "pods"
   interval    = "10m"
 
-  input         = observe_datastream.example.dataset
-  shaping_query = "filter action = \"login\""
+  input = data.observe_datastream.default.dataset
+  shaping_query = <<-EOT
+    filter OBSERVATION_KIND = "prometheus"
+    make_col pod_name:string(EXTRA.k8s_pod_name),
+             k8s_namespace:string(EXTRA.k8s_namespace_name),
+             job_name:string(EXTRA.job)
+    filter not is_null(pod_name)
+  EOT
 
   aggregation {
     function = "count_distinct"
     field_path {
-      column = "user_id"
+      column = "pod_name"
     }
   }
 
   metric_tag {
-    name   = "region"
-    column = "region"
+    name   = "namespace"
+    column = "k8s_namespace"
+  }
+
+  metric_tag {
+    name   = "job"
+    column = "job_name"
   }
 }
 ```
@@ -214,5 +259,5 @@ Optional:
 ## Import
 Import is supported using the following syntax:
 ```shell
-terraform import observe_log_derived_metric_dataset.example 123456789
+terraform import observe_log_derived_metric_dataset.simple_count 123456789
 ```
