@@ -12,6 +12,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
+	golang.org/x/oauth2 v0.13.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.11.0
 )

@@ -92,6 +92,7 @@ terraform plan
 - `http_client_timeout` (String) HTTP client timeout. Defaults to 2m.
 - `insecure` (Boolean) Skip TLS certificate validation.
 - `managing_object_id` (String) ID of an Observe object that serves as the parent (managing) object for all resources created by the provider (internal use).
+- `oauth2` (Block List, Max: 1) OAuth2 client credentials for M2M authentication. The provider exchanges the credentials for a JWT at the specified token URL. (see [below for nested schema](#nestedblock--oauth2))
 - `retry_count` (Number) Maximum number of retries on temporary network failures. Defaults to 3.
 - `retry_wait` (String) Time between retries. Defaults to 3s.
 - `skip_dataset_dry_runs` (Boolean) Skip making dry run API requests for dataset changes during the plan stage (for validation). This can speed up plan time, but means that certain classes of errors will not be detected until applying the changes (such as invalid OPAL).
@@ -99,3 +100,16 @@ terraform plan
 - `source_format` (String) Source identifier format.
 - `user_email` (String) User email. If supplied, `user_password` is also required.
 - `user_password` (String, Sensitive) Password for provided `user_email`.
+
+<a id="nestedblock--oauth2"></a>
+### Nested Schema for `oauth2`
+
+Required:
+
+- `client_id` (String) OAuth2 client ID.
+- `client_secret` (String, Sensitive) OAuth2 client secret.
+- `token_url` (String) Token endpoint URL (e.g. https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token).
+
+Optional:
+
+- `scope` (String) OAuth2 scope to request (e.g. api://<app-id>/.default).

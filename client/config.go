@@ -17,7 +17,16 @@ var (
 	ErrMissingPassword      = errors.New("password must be set when user email is provided")
 	ErrMissingRetryDuration = errors.New("retry duration must be larger than 0")
 	ErrMalformedSource      = errors.New("source identifier must follow \"category/comment\" format")
+	ErrOAuth2Conflict       = errors.New("oauth2 is mutually exclusive with api_token and user_email/user_password")
+	ErrOAuth2Incomplete     = errors.New("oauth2 requires client_id, client_secret, and token_url")
 )
+
+type OAuth2Config struct {
+	ClientID     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+	TokenURL     string   `json:"token_url"`
+	Scopes       []string `json:"scopes,omitempty"`
+}
 
 // Config contains all configuration attributes for our client.
 //
@@ -30,10 +39,11 @@ type Config struct {
 	Domain     string `json:"domain"`
 
 	// auth
-	UserAgent    *string `json:"user_agent"`
-	ApiToken     *string `json:"api_token"`
-	UserEmail    *string `json:"user_email"`
-	UserPassword *string `json:"user_password"`
+	UserAgent    *string       `json:"user_agent"`
+	ApiToken     *string       `json:"api_token"`
+	UserEmail    *string       `json:"user_email"`
+	UserPassword *string       `json:"user_password"`
+	OAuth2       *OAuth2Config `json:"oauth2,omitempty"`
 
 	// client options
 	Insecure bool `json:"insecure"`
@@ -86,6 +96,15 @@ func (c *Config) Validate() error {
 
 	if c.UserEmail != nil && c.UserPassword == nil {
 		return ErrMissingPassword
+	}
+
+	if c.OAuth2 != nil {
+		if c.ApiToken != nil || c.UserEmail != nil {
+			return ErrOAuth2Conflict
+		}
+		if c.OAuth2.ClientID == "" || c.OAuth2.ClientSecret == "" || c.OAuth2.TokenURL == "" {
+			return ErrOAuth2Incomplete
+		}
 	}
 
 	if c.RetryCount > 0 && c.RetryWait == time.Duration(0) {

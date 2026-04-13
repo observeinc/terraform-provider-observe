@@ -38,23 +38,61 @@ func Provider() *schema.Provider {
 				Optional:      true,
 				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_API_TOKEN", nil),
 				Description:   "An Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.",
-				ConflictsWith: []string{"user_email", "user_password"},
+				ConflictsWith: []string{"user_email", "user_password", "oauth2"},
 				Sensitive:     true,
 			},
 			"user_email": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_EMAIL", nil),
-				RequiredWith: []string{"user_password"},
-				Description:  "User email. If supplied, `user_password` is also required.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_USER_EMAIL", nil),
+				RequiredWith:  []string{"user_password"},
+				ConflictsWith: []string{"oauth2"},
+				Description:   "User email. If supplied, `user_password` is also required.",
 			},
 			"user_password": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc("OBSERVE_USER_PASSWORD", nil),
-				Description:  "Password for provided `user_email`.",
-				RequiredWith: []string{"user_email"},
-				Sensitive:    true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_USER_PASSWORD", nil),
+				Description:   "Password for provided `user_email`.",
+				RequiredWith:  []string{"user_email"},
+				ConflictsWith: []string{"oauth2"},
+				Sensitive:     true,
+			},
+			"oauth2": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"api_token", "user_email", "user_password"},
+				Description:   "OAuth2 client credentials for M2M authentication. The provider exchanges the credentials for a JWT at the specified token URL.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_CLIENT_ID", nil),
+							Description: "OAuth2 client ID.",
+						},
+						"client_secret": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Sensitive:   true,
+							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_CLIENT_SECRET", nil),
+							Description: "OAuth2 client secret.",
+						},
+						"token_url": {
+							Type:        schema.TypeString,
+							Required:    true,
+							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_TOKEN_URL", nil),
+							Description: "Token endpoint URL (e.g. https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token).",
+						},
+						"scope": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_SCOPE", nil),
+							Description: "OAuth2 scope to request (e.g. api://<app-id>/.default).",
+						},
+					},
+				},
 			},
 			"domain": {
 				Type:        schema.TypeString,
@@ -255,6 +293,22 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("user_password"); ok {
 			s := v.(string)
 			config.UserPassword = &s
+		}
+
+		if v, ok := data.GetOk("oauth2"); ok {
+			oauth2List := v.([]interface{})
+			if len(oauth2List) > 0 {
+				oauth2Map := oauth2List[0].(map[string]interface{})
+				oc := &observe.OAuth2Config{
+					ClientID:     oauth2Map["client_id"].(string),
+					ClientSecret: oauth2Map["client_secret"].(string),
+					TokenURL:     oauth2Map["token_url"].(string),
+				}
+				if scope, ok := oauth2Map["scope"].(string); ok && scope != "" {
+					oc.Scopes = []string{scope}
+				}
+				config.OAuth2 = oc
+			}
 		}
 
 		if v, ok := data.GetOk("insecure"); ok {

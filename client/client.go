@@ -13,6 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+
 	"github.com/observeinc/terraform-provider-observe/client/internal/collect"
 	"github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
@@ -31,6 +34,8 @@ type Client struct {
 
 	// our API does not allow concurrent FK creation, so we use a lock as a workaround
 	obs2110 sync.Mutex
+
+	tokenSource oauth2.TokenSource
 
 	Meta    *meta.Client
 	Rest    *rest.Client
@@ -127,14 +132,20 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 			c.logResponse(ctx, resp)
 		}()
 
-		// obtain token if needed - only first request requiring auth will login
-		if err := c.loginOnFirstRun(ctx); err != nil {
-			return nil, fmt.Errorf("failed to login: %w", err)
-		}
-
-		// set auth header only after having logged request
-		if c.ApiToken != nil {
-			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.ApiToken))
+		// obtain token if needed
+		if c.tokenSource != nil {
+			tok, err := c.tokenSource.Token()
+			if err != nil {
+				return nil, fmt.Errorf("failed to obtain oauth2 token: %w", err)
+			}
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, tok.AccessToken))
+		} else {
+			if err := c.loginOnFirstRun(ctx); err != nil {
+				return nil, fmt.Errorf("failed to login: %w", err)
+			}
+			if c.ApiToken != nil {
+				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s %s", c.CustomerID, *c.ApiToken))
+			}
 		}
 
 		resp, err = wrapped.RoundTrip(c.setTrace(req))
@@ -190,6 +201,21 @@ func New(c *Config) (*Client, error) {
 		Meta:    metaAPI,
 		Rest:    rest.New(customerURL, httpClient),
 		Collect: collectAPI,
+	}
+
+	if c.OAuth2 != nil {
+		cc := &clientcredentials.Config{
+			ClientID:     c.OAuth2.ClientID,
+			ClientSecret: c.OAuth2.ClientSecret,
+			TokenURL:     c.OAuth2.TokenURL,
+			Scopes:       c.OAuth2.Scopes,
+		}
+		tokenHTTPClient := &http.Client{
+			Timeout:   c.HTTPClientTimeout,
+			Transport: transport,
+		}
+		tokenCtx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenHTTPClient)
+		client.tokenSource = cc.TokenSource(tokenCtx)
 	}
 
 	httpClient.Transport = client.withMiddleware(transport)
