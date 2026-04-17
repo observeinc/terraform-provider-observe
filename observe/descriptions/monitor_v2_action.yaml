@@ -1,11 +1,49 @@
+description: |
+  Defines an action to take when a monitor triggers, such as sending an email
+  or making a webhook request. An action specifies the type (email or webhook),
+  the destination, and the message template. An action may be shared across
+  multiple monitors.
+
 schema:
-  name: >
-    Name of the monitor v2 action.
-  type: >
-    Type of action to take when the associated monitor triggers.
-  email: >
-    Configuration settings for email type actions.
-  webhook: >
-    Configuration settings for webhook type actions.
-  description: >
-    description for this monitor v2 action.
+  name: |
+    Name of the monitor v2 action. Must be unique within workspace.
+  type: |
+    Type of action to take when the monitor triggers. Valid values are `email` and `webhook`.
+  description: |
+    A brief description of the monitor v2 action.
+  oid: |
+    OID (Observe ID) for this object. This is the canonical identifier that
+    should be used when referring to this object in terraform manifests.
+  email:
+    description: |
+      Send an email as the alert action.
+    users: |
+      A list of Observe user OIDs to email.
+    addresses: |
+      A list of email addresses to email.
+    subject: |
+      The email subject template.
+    body: |
+      The email body template.
+    fragments: |
+      JSON object of named partial templates that can be referenced in the main
+      template using mustache partial syntax.
+  webhook:
+    description: |
+      Make a request to a URL as the alert action.
+    url: |
+      A webhook URL template to a destination that can be rendered.
+    method: |
+      HTTP request method to use for the webhook. Valid values are `post` and `put`.
+    body: |
+      The webhook body template.
+    headers:
+      description: |
+        HTTP headers to send along with the webhook request.
+      header: |
+        The header name.
+      value: |
+        A value template for the header that can be rendered.
+    fragments: |
+      JSON object of named partial templates that can be referenced in the main
+      template using mustache partial syntax.

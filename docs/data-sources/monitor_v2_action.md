@@ -36,7 +36,7 @@ data "observe_monitor_v2_action" "name_lookup" {
 
 - `id` (String) Resource ID for this object.
  One of either `id` or `name` must be provided.
-- `name` (String) Name of the monitor v2 action.
+- `name` (String) Name of the monitor v2 action. Must be unique within workspace.
  One of either `id` or `name` must be provided.
 - `workspace` (String, Deprecated) OID of the workspace this object is contained in.
 This field is optional and deprecated. Since each customer has exactly
@@ -45,13 +45,13 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
-- `description` (String) description for this monitor v2 action.
+- `description` (String) A brief description of the monitor v2 action.
 - `destination` (String)
-- `email` (Block List) Configuration settings for email type actions. (see [below for nested schema](#nestedblock--email))
+- `email` (Block List) Send an email as the alert action. (see [below for nested schema](#nestedblock--email))
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
-- `type` (String) Type of action to take when the associated monitor triggers.
-- `webhook` (Block List) Configuration settings for webhook type actions. (see [below for nested schema](#nestedblock--webhook))
+- `type` (String) Type of action to take when the monitor triggers. Valid values are `email` and `webhook`.
+- `webhook` (Block List) Make a request to a URL as the alert action. (see [below for nested schema](#nestedblock--webhook))
 
 <a id="nestedblock--email"></a>
 ### Nested Schema for `email`
