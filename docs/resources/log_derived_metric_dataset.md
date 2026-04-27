@@ -202,6 +202,8 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
 - `input` (String) OID of the source dataset to derive metrics from.
 - `metric_name` (String) The name of the derived metric.
 - `workspace` (String) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Optional
 

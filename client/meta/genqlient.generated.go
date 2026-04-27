@@ -12782,7 +12782,6 @@ func (v *__saveDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
 type __saveLogDerivedMetricDatasetDryRunInput struct {
 	WorkspaceId           string                          `json:"workspaceId"`
 	Dataset               DatasetInput                    `json:"dataset"`
-	Query                 MultiStageQueryInput            `json:"query"`
 	LogDerivedMetricQuery LogDerivedMetricDefinitionInput `json:"logDerivedMetricQuery"`
 	Dep                   *DependencyHandlingInput        `json:"dep"`
 }
@@ -12792,9 +12791,6 @@ func (v *__saveLogDerivedMetricDatasetDryRunInput) GetWorkspaceId() string { ret
 
 // GetDataset returns __saveLogDerivedMetricDatasetDryRunInput.Dataset, and is useful for accessing the field via an interface.
 func (v *__saveLogDerivedMetricDatasetDryRunInput) GetDataset() DatasetInput { return v.Dataset }
-
-// GetQuery returns __saveLogDerivedMetricDatasetDryRunInput.Query, and is useful for accessing the field via an interface.
-func (v *__saveLogDerivedMetricDatasetDryRunInput) GetQuery() MultiStageQueryInput { return v.Query }
 
 // GetLogDerivedMetricQuery returns __saveLogDerivedMetricDatasetDryRunInput.LogDerivedMetricQuery, and is useful for accessing the field via an interface.
 func (v *__saveLogDerivedMetricDatasetDryRunInput) GetLogDerivedMetricQuery() LogDerivedMetricDefinitionInput {
@@ -12808,7 +12804,6 @@ func (v *__saveLogDerivedMetricDatasetDryRunInput) GetDep() *DependencyHandlingI
 type __saveLogDerivedMetricDatasetInput struct {
 	WorkspaceId           string                          `json:"workspaceId"`
 	Dataset               DatasetInput                    `json:"dataset"`
-	Query                 MultiStageQueryInput            `json:"query"`
 	LogDerivedMetricQuery LogDerivedMetricDefinitionInput `json:"logDerivedMetricQuery"`
 	Dep                   *DependencyHandlingInput        `json:"dep"`
 }
@@ -12818,9 +12813,6 @@ func (v *__saveLogDerivedMetricDatasetInput) GetWorkspaceId() string { return v.
 
 // GetDataset returns __saveLogDerivedMetricDatasetInput.Dataset, and is useful for accessing the field via an interface.
 func (v *__saveLogDerivedMetricDatasetInput) GetDataset() DatasetInput { return v.Dataset }
-
-// GetQuery returns __saveLogDerivedMetricDatasetInput.Query, and is useful for accessing the field via an interface.
-func (v *__saveLogDerivedMetricDatasetInput) GetQuery() MultiStageQueryInput { return v.Query }
 
 // GetLogDerivedMetricQuery returns __saveLogDerivedMetricDatasetInput.LogDerivedMetricQuery, and is useful for accessing the field via an interface.
 func (v *__saveLogDerivedMetricDatasetInput) GetLogDerivedMetricQuery() LogDerivedMetricDefinitionInput {
@@ -23701,8 +23693,8 @@ func saveDatasetDryRun(
 
 // The query or mutation executed by saveLogDerivedMetricDataset.
 const saveLogDerivedMetricDataset_Operation = `
-mutation saveLogDerivedMetricDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
-	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
+mutation saveLogDerivedMetricDataset ($workspaceId: ObjectId!, $dataset: DatasetInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
 		... LogDerivedMetricDatasetSaveResult
 	}
 }
@@ -23781,7 +23773,6 @@ func saveLogDerivedMetricDataset(
 	client graphql.Client,
 	workspaceId string,
 	dataset DatasetInput,
-	query MultiStageQueryInput,
 	logDerivedMetricQuery LogDerivedMetricDefinitionInput,
 	dep *DependencyHandlingInput,
 ) (*saveLogDerivedMetricDatasetResponse, error) {
@@ -23791,7 +23782,6 @@ func saveLogDerivedMetricDataset(
 		Variables: &__saveLogDerivedMetricDatasetInput{
 			WorkspaceId:           workspaceId,
 			Dataset:               dataset,
-			Query:                 query,
 			LogDerivedMetricQuery: logDerivedMetricQuery,
 			Dep:                   dep,
 		},
@@ -23812,8 +23802,8 @@ func saveLogDerivedMetricDataset(
 
 // The query or mutation executed by saveLogDerivedMetricDatasetDryRun.
 const saveLogDerivedMetricDatasetDryRun_Operation = `
-mutation saveLogDerivedMetricDatasetDryRun ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
-	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
+mutation saveLogDerivedMetricDatasetDryRun ($workspaceId: ObjectId!, $dataset: DatasetInput!, $logDerivedMetricQuery: LogDerivedMetricDefinitionInput!, $dep: DependencyHandlingInput) {
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, logDerivedMetricQuery: $logDerivedMetricQuery, dependencyHandling: $dep) {
 		... DatasetDryRunSaveResult
 	}
 }
@@ -23838,7 +23828,6 @@ func saveLogDerivedMetricDatasetDryRun(
 	client graphql.Client,
 	workspaceId string,
 	dataset DatasetInput,
-	query MultiStageQueryInput,
 	logDerivedMetricQuery LogDerivedMetricDefinitionInput,
 	dep *DependencyHandlingInput,
 ) (*saveLogDerivedMetricDatasetDryRunResponse, error) {
@@ -23848,7 +23837,6 @@ func saveLogDerivedMetricDatasetDryRun(
 		Variables: &__saveLogDerivedMetricDatasetDryRunInput{
 			WorkspaceId:           workspaceId,
 			Dataset:               dataset,
-			Query:                 query,
 			LogDerivedMetricQuery: logDerivedMetricQuery,
 			Dep:                   dep,
 		},

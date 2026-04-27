@@ -3,6 +3,7 @@ package observe
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -151,15 +152,7 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 						column = "service"
 					}
 				}`, randomPrefix),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "updated description"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "update_request_duration"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "ms"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "avg"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.field_path.0.column", "duration"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_tag.0.name", "service"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_tag.0.column", "service"),
-				),
+				ExpectError: regexp.MustCompile("aggregation function cannot be changed"),
 			},
 		},
 	})

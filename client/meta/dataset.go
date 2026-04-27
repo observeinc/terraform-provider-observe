@@ -114,7 +114,7 @@ func (d *Dataset) Oid() *oid.OID {
 
 // SaveLogDerivedMetricDataset creates or updates a log-derived metric dataset.
 func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, ldmInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*LogDerivedMetricDataset, error) {
-	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *queryInput, *ldmInput, dependencyHandling)
+	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, wor
 		RematerializationMode: &rematerializationMode,
 	}
 
-	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *queryInput, *ldmInput, dependencyHandling)
+	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
 	if err != nil {
 		return nil, err
 	}
