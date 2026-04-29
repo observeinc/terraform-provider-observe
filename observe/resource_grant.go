@@ -291,6 +291,9 @@ var validGrantRoles []GrantRole
 
 var (
 	Administrator             GrantRole = createGrantRole("Administrator")
+	AichatCreator             GrantRole = createGrantRole("AichatCreator")
+	AichatEditor              GrantRole = createGrantRole("AichatEditor")
+	AichatViewer              GrantRole = createGrantRole("AichatViewer")
 	ApitokenCreator           GrantRole = createGrantRole("ApitokenCreator")
 	BookmarkManager           GrantRole = createGrantRole("BookmarkManager")
 	DashboardCreator          GrantRole = createGrantRole("DashboardCreator")
@@ -313,6 +316,9 @@ var (
 	ReferenceTableCreator     GrantRole = createGrantRole("ReferenceTableCreator")
 	ReportManager             GrantRole = createGrantRole("ReportManager")
 	ServiceAccountCreator     GrantRole = createGrantRole("ServiceAccountCreator")
+	ShareInManager            GrantRole = createGrantRole("ShareInManager")
+	ShareInViewer             GrantRole = createGrantRole("ShareInViewer")
+	SkillVisibilityEditor     GrantRole = createGrantRole("SkillVisibilityEditor")
 	UserDeleter               GrantRole = createGrantRole("UserDeleter")
 	UserInviter               GrantRole = createGrantRole("UserInviter")
 	WorksheetCreator          GrantRole = createGrantRole("WorksheetCreator")
@@ -326,9 +332,9 @@ func createGrantRole(role GrantRole) GrantRole {
 	return role
 }
 
-var createGrantRoles = []GrantRole{DashboardCreator, DatasetCreator, DatastreamCreator, MonitorCreator, WorksheetCreator}
-var editGrantRoles = []GrantRole{DashboardEditor, DatasetEditor, DatastreamEditor, MonitorEditor, WorksheetEditor}
-var viewGrantRoles = []GrantRole{DashboardViewer, DatasetViewer, DatastreamViewer, MonitorViewer, WorksheetViewer}
+var createGrantRoles = []GrantRole{AichatCreator, DashboardCreator, DatasetCreator, DatastreamCreator, MonitorCreator, WorksheetCreator}
+var editGrantRoles = []GrantRole{AichatEditor, DashboardEditor, DatasetEditor, DatastreamEditor, MonitorEditor, WorksheetEditor}
+var viewGrantRoles = []GrantRole{AichatViewer, DashboardViewer, DatasetViewer, DatastreamViewer, MonitorViewer, WorksheetViewer}
 
 // The following GrantRoles directly map to an RbacRole 1:1
 var roleMapping = map[GrantRole]gql.RbacRole{
@@ -342,6 +348,9 @@ var roleMapping = map[GrantRole]gql.RbacRole{
 	ReferenceTableCreator:     gql.RbacRoleReferencetablecreator,
 	ReportManager:             gql.RbacRoleReportmanager,
 	ServiceAccountCreator:     gql.RbacRoleServiceaccountcreator,
+	ShareInManager:            gql.RbacRoleShareinmanager,
+	ShareInViewer:             gql.RbacRoleShareinviewer,
+	SkillVisibilityEditor:     gql.RbacRoleSkillvisibilityeditor,
 	UserDeleter:               gql.RbacRoleUserdelete,
 	UserInviter:               gql.RbacRoleUserinvite,
 	WorksheetVisibilityEditor: gql.RbacRoleWorksheetvisibilityeditor,
@@ -354,9 +363,10 @@ var reverseRoleMapping = func() map[gql.RbacRole]GrantRole {
 	return m
 }()
 
-var validRbacV2Types = []oid.Type{oid.TypeDashboard, oid.TypeDataset, oid.TypeDatastream, oid.TypeMonitor, oid.TypeWorksheet}
+var validRbacV2Types = []oid.Type{oid.TypeAichat, oid.TypeDashboard, oid.TypeDataset, oid.TypeDatastream, oid.TypeMonitor, oid.TypeWorksheet}
 
 var createGrantRoleForType = map[oid.Type]GrantRole{
+	oid.TypeAichat:     AichatCreator,
 	oid.TypeDashboard:  DashboardCreator,
 	oid.TypeDataset:    DatasetCreator,
 	oid.TypeDatastream: DatastreamCreator,
@@ -365,6 +375,7 @@ var createGrantRoleForType = map[oid.Type]GrantRole{
 }
 
 var editGrantRoleForType = map[oid.Type]GrantRole{
+	oid.TypeAichat:     AichatEditor,
 	oid.TypeDashboard:  DashboardEditor,
 	oid.TypeDataset:    DatasetEditor,
 	oid.TypeDatastream: DatastreamEditor,
@@ -373,6 +384,7 @@ var editGrantRoleForType = map[oid.Type]GrantRole{
 }
 
 var viewGrantRoleForType = map[oid.Type]GrantRole{
+	oid.TypeAichat:     AichatViewer,
 	oid.TypeDashboard:  DashboardViewer,
 	oid.TypeDataset:    DatasetViewer,
 	oid.TypeDatastream: DatastreamViewer,
@@ -396,6 +408,8 @@ func (r GrantRole) ToRbacRole() (gql.RbacRole, error) {
 
 func (r GrantRole) ToType() *oid.Type {
 	switch r {
+	case AichatCreator, AichatEditor, AichatViewer:
+		return asPointer(oid.TypeAichat)
 	case DashboardCreator, DashboardEditor, DashboardViewer:
 		return asPointer(oid.TypeDashboard)
 	case DatasetCreator, DatasetEditor, DatasetViewer:

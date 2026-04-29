@@ -24,6 +24,7 @@ var validWorkspaceDefaultGrantPermissions = []WorkspaceDefaultGrantPermission{
 }
 
 var validWorkspaceDefaultGrantObjectTypes = []gql.ORType{
+	gql.ORTypeAichat,
 	gql.ORTypeDashboard,
 	gql.ORTypeDatastream,
 	gql.ORTypeMonitor,

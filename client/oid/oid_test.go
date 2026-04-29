@@ -45,6 +45,13 @@ func TestOid(t *testing.T) {
 				Id:   "o::123458:rbacgroup:8000002523",
 			},
 		},
+		{
+			Input: "o:::aichat:550e8400-e29b-41d4-a716-446655440000",
+			Expect: &OID{
+				Type: TypeAichat,
+				Id:   "550e8400-e29b-41d4-a716-446655440000",
+			},
+		},
 	}
 
 	for _, tt := range testcases {

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z0-9]+):(?P<id>\d+)(/(?P<version>.*))?`)
+	oidRegex      = regexp.MustCompile(`o:::(?P<type>[a-z0-9]+):(?P<id>[\da-f-]+)(/(?P<version>.*))?`)
 	ornRegex      = regexp.MustCompile(`o::(?P<customer>\d+):(?P<type>[a-z]+):(?P<id>\d+)?`)
 	errInvalidOID = errors.New("invalid oid")
 )
@@ -19,6 +19,7 @@ var (
 type Type string
 
 const (
+	TypeAichat                  Type = "aichat"
 	TypeApp                     Type = "app"
 	TypeAppDataSource           Type = "appdatasource"
 	TypeBoard                   Type = "board"
@@ -63,6 +64,7 @@ const (
 
 func (t Type) IsValid() bool {
 	switch t {
+	case TypeAichat:
 	case TypeApp:
 	case TypeAppDataSource:
 	case TypeBoard:

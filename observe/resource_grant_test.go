@@ -133,6 +133,39 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 	})
 }
 
+func TestAccObserveGrantGroupAichatView(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_rbac_group" "example" {
+					name      = "%[1]s"
+				}
+
+				# Uses a hardcoded OID because there is no observe_aichat resource.
+				# Also exercises UUID-based OID parsing (aichat IDs are UUIDs).
+				resource "observe_grant" "example" {
+					subject = observe_rbac_group.example.oid
+					role    = "aichat_viewer"
+					qualifier {
+						oid = "o:::aichat:550e8400-e29b-41d4-a716-446655440000"
+					}
+				}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
+					resource.TestCheckResourceAttr("observe_grant.example", "role", "aichat_viewer"),
+					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.#", "1"),
+					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.0.oid", "o:::aichat:550e8400-e29b-41d4-a716-446655440000"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveGrantGroupAdminWorkspace(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	resource.Test(t, resource.TestCase{
