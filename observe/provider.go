@@ -63,7 +63,7 @@ func Provider() *schema.Provider {
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"api_token", "user_email", "user_password"},
-				Description:   "OAuth2 client credentials for M2M authentication. The provider exchanges the credentials for a JWT at the specified token URL.",
+				Description:   "OAuth2 client credentials for M2M authentication. The provider exchanges the credentials for a JWT at the specified token URL. Note that you must first configure the OAuth2 integration in Observe. For true OIDC (Workload Identity) flows, omit `client_secret` and configure the environment to provide the token.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"client_id": {
@@ -73,17 +73,39 @@ func Provider() *schema.Provider {
 							Description: "OAuth2 client ID.",
 						},
 						"client_secret": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Sensitive:     true,
+							DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_OAUTH2_CLIENT_SECRET", nil),
+							Description:   "OAuth2 client secret. Required for standard M2M OAuth, but should be omitted for OIDC (Workload Identity) flows.",
+							ConflictsWith: []string{"oauth2.0.oidc_token", "oauth2.0.oidc_token_file_path"},
+						},
+						"oidc_token": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Sensitive:     true,
+							DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_OAUTH2_OIDC_TOKEN", nil),
+							Description:   "Explicit OIDC JWT token to use for authenticating with the IdP in OIDC (Workload Identity) flows.",
+							ConflictsWith: []string{"oauth2.0.oidc_token_file_path", "oauth2.0.client_secret"},
+						},
+						"oidc_token_file_path": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							DefaultFunc:   schema.EnvDefaultFunc("OBSERVE_OAUTH2_OIDC_TOKEN_FILE_PATH", nil),
+							Description:   "Path to a file containing an OIDC JWT token (e.g. for Kubernetes projected service account tokens).",
+							ConflictsWith: []string{"oauth2.0.oidc_token", "oauth2.0.client_secret"},
+						},
+						"oidc_audience": {
 							Type:        schema.TypeString,
-							Required:    true,
-							Sensitive:   true,
-							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_CLIENT_SECRET", nil),
-							Description: "OAuth2 client secret.",
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_OIDC_AUDIENCE", nil),
+							Description: "Audience to request when using OIDC (Workload Identity) flows (e.g. for GitHub Actions).",
 						},
 						"token_url": {
 							Type:        schema.TypeString,
 							Required:    true,
 							DefaultFunc: schema.EnvDefaultFunc("OBSERVE_OAUTH2_TOKEN_URL", nil),
-							Description: "Token endpoint URL (e.g. https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token).",
+							Description: "Token endpoint URL where the provider will exchange credentials (or OIDC token) for an Observe API token. This is required for both M2M and OIDC flows.",
 						},
 						"scope": {
 							Type:        schema.TypeString,
@@ -303,6 +325,15 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 					ClientID:     oauth2Map["client_id"].(string),
 					ClientSecret: oauth2Map["client_secret"].(string),
 					TokenURL:     oauth2Map["token_url"].(string),
+				}
+				if oidcToken, ok := oauth2Map["oidc_token"].(string); ok {
+					oc.OIDCToken = oidcToken
+				}
+				if oidcTokenFilePath, ok := oauth2Map["oidc_token_file_path"].(string); ok {
+					oc.OIDCTokenFilePath = oidcTokenFilePath
+				}
+				if oidcAudience, ok := oauth2Map["oidc_audience"].(string); ok {
+					oc.OIDCAudience = oidcAudience
 				}
 				if scope, ok := oauth2Map["scope"].(string); ok && scope != "" {
 					oc.Scopes = []string{scope}

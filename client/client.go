@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +11,9 @@ import (
 	"net/http"
 	"net/http/httptrace"
 	"net/http/httputil"
+	"net/url"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -204,20 +208,110 @@ func New(c *Config) (*Client, error) {
 	}
 
 	if c.OAuth2 != nil {
-		cc := &clientcredentials.Config{
-			ClientID:     c.OAuth2.ClientID,
-			ClientSecret: c.OAuth2.ClientSecret,
-			TokenURL:     c.OAuth2.TokenURL,
-			Scopes:       c.OAuth2.Scopes,
-		}
 		tokenHTTPClient := &http.Client{
 			Timeout:   c.HTTPClientTimeout,
 			Transport: transport,
 		}
-		tokenCtx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenHTTPClient)
-		client.tokenSource = cc.TokenSource(tokenCtx)
+
+		if c.OAuth2.ClientSecret != "" {
+			log.Printf("[INFO] Using OAuth2 Client Credentials authentication")
+			cc := &clientcredentials.Config{
+				ClientID:     c.OAuth2.ClientID,
+				ClientSecret: c.OAuth2.ClientSecret,
+				TokenURL:     c.OAuth2.TokenURL,
+				Scopes:       c.OAuth2.Scopes,
+			}
+			tokenCtx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenHTTPClient)
+			client.tokenSource = cc.TokenSource(tokenCtx)
+		} else {
+			log.Printf("[INFO] Using OIDC authentication")
+			client.tokenSource = oauth2.ReuseTokenSource(nil, &oidcTokenSource{
+				cfg:        c,
+				httpClient: tokenHTTPClient,
+			})
+		}
 	}
 
 	httpClient.Transport = client.withMiddleware(transport)
 	return client, nil
+}
+
+type oidcTokenSource struct {
+	cfg        *Config
+	httpClient *http.Client
+}
+
+func (s *oidcTokenSource) Token() (*oauth2.Token, error) {
+	oidcToken, err := s.fetchOIDCToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch OIDC token: %w", err)
+	}
+
+	cc := &clientcredentials.Config{
+		ClientID: s.cfg.OAuth2.ClientID,
+		TokenURL: s.cfg.OAuth2.TokenURL,
+		Scopes:   s.cfg.OAuth2.Scopes,
+		EndpointParams: url.Values{
+			"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
+			"client_assertion":      {oidcToken},
+		},
+		AuthStyle: oauth2.AuthStyleInParams,
+	}
+
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, s.httpClient)
+	ts := cc.TokenSource(ctx)
+	return ts.Token()
+}
+
+func (s *oidcTokenSource) fetchOIDCToken() (string, error) {
+	if s.cfg.OAuth2.OIDCToken != "" {
+		return s.cfg.OAuth2.OIDCToken, nil
+	}
+	if s.cfg.OAuth2.OIDCTokenFilePath != "" {
+		b, err := os.ReadFile(s.cfg.OAuth2.OIDCTokenFilePath)
+		if err != nil {
+			return "", fmt.Errorf("failed to read OIDC token file: %w", err)
+		}
+		return strings.TrimSpace(string(b)), nil
+	}
+	if reqURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"); reqURL != "" {
+		reqToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+		if reqToken == "" {
+			return "", fmt.Errorf("ACTIONS_ID_TOKEN_REQUEST_TOKEN not set but ACTIONS_ID_TOKEN_REQUEST_URL is")
+		}
+		if aud := s.cfg.OAuth2.OIDCAudience; aud != "" {
+			u, err := url.Parse(reqURL)
+			if err != nil {
+				return "", fmt.Errorf("failed to parse ACTIONS_ID_TOKEN_REQUEST_URL: %w", err)
+			}
+			q := u.Query()
+			q.Set("audience", aud)
+			u.RawQuery = q.Encode()
+			reqURL = u.String()
+		}
+		req, err := http.NewRequestWithContext(context.Background(), "GET", reqURL, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create GHA request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+reqToken)
+		resp, err := s.httpClient.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("failed to make request to ACTIONS_ID_TOKEN_REQUEST_URL: %w", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("github actions OIDC request returned status %d", resp.StatusCode)
+		}
+		var res struct {
+			Value string `json:"value"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+			return "", fmt.Errorf("failed to decode github actions OIDC response: %w", err)
+		}
+		return res.Value, nil
+	}
+	if tfcToken := os.Getenv("TFC_WORKLOAD_IDENTITY_TOKEN"); tfcToken != "" {
+		return tfcToken, nil
+	}
+	return "", fmt.Errorf("no OIDC token source found (checked oidc_token, oidc_token_file_path, GitHub Actions, Terraform Cloud). If you intended to use standard OAuth2 Client Credentials, ensure client_secret is set")
 }

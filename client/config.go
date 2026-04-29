@@ -18,14 +18,17 @@ var (
 	ErrMissingRetryDuration = errors.New("retry duration must be larger than 0")
 	ErrMalformedSource      = errors.New("source identifier must follow \"category/comment\" format")
 	ErrOAuth2Conflict       = errors.New("oauth2 is mutually exclusive with api_token and user_email/user_password")
-	ErrOAuth2Incomplete     = errors.New("oauth2 requires client_id, client_secret, and token_url")
+	ErrOAuth2Incomplete     = errors.New("oauth2 requires client_id, and token_url")
 )
 
 type OAuth2Config struct {
-	ClientID     string   `json:"client_id"`
-	ClientSecret string   `json:"client_secret"`
-	TokenURL     string   `json:"token_url"`
-	Scopes       []string `json:"scopes,omitempty"`
+	ClientID          string   `json:"client_id"`
+	ClientSecret      string   `json:"client_secret,omitempty"`
+	TokenURL          string   `json:"token_url"`
+	Scopes            []string `json:"scopes,omitempty"`
+	OIDCToken         string   `json:"oidc_token,omitempty"`
+	OIDCTokenFilePath string   `json:"oidc_token_file_path,omitempty"`
+	OIDCAudience      string   `json:"oidc_audience,omitempty"`
 }
 
 // Config contains all configuration attributes for our client.
@@ -102,7 +105,7 @@ func (c *Config) Validate() error {
 		if c.ApiToken != nil || c.UserEmail != nil {
 			return ErrOAuth2Conflict
 		}
-		if c.OAuth2.ClientID == "" || c.OAuth2.ClientSecret == "" || c.OAuth2.TokenURL == "" {
+		if c.OAuth2.ClientID == "" || c.OAuth2.TokenURL == "" {
 			return ErrOAuth2Incomplete
 		}
 	}
