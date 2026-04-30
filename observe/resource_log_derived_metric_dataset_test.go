@@ -138,7 +138,7 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 					metric_name    = "update_request_count_v2"
 					metric_type    = "cumulative_counter"
 					unit           = "requests"
-					interval       = "5m"
+					interval       = "1m"
 
 					input         = observe_datastream.test.dataset
 					shaping_query = "make_col service:string(FIELDS)"
@@ -157,7 +157,7 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "update_request_count_v2"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "cumulative_counter"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "requests"),
-					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "interval", "5m0s"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "interval", "1m0s"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "shaping_query", "make_col service:string(FIELDS)"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_tag.0.name", "service"),
