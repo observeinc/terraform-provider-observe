@@ -216,9 +216,6 @@ func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, dia
 	}
 
 	pipeline := data.Get("shaping_query").(string)
-	// if pipeline == "" {
-	// 	pipeline = "filter true"
-	// }
 	stageID := ldmDefaultStageID
 
 	return gql.StageQueryInput{
