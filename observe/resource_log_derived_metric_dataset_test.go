@@ -123,7 +123,45 @@ func TestAccObserveLogDerivedMetricDatasetUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "initial description"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "update_request_count"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "gauge"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "1"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "interval", "1m"),
 					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_log_derived_metric_dataset" "test" {
+					workspace   = data.observe_workspace.default.oid
+					description = "updated description"
+
+					metric_name    = "update_request_count_v2"
+					metric_type    = "cumulative_counter"
+					unit           = "requests"
+					interval       = "5m"
+
+					input         = observe_datastream.test.dataset
+					shaping_query = "make_col service:string(FIELDS)"
+
+					aggregation {
+						function = "count"
+					}
+
+					metric_tag {
+						name   = "service"
+						column = "service"
+					}
+				}`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "description", "updated description"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_name", "update_request_count_v2"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_type", "cumulative_counter"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "unit", "requests"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "interval", "5m"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "shaping_query", "make_col service:string(FIELDS)"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "aggregation.0.function", "count"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_tag.0.name", "service"),
+					resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.test", "metric_tag.0.column", "service"),
 				),
 			},
 			{
