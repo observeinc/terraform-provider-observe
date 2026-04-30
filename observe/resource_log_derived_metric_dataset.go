@@ -185,7 +185,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 	}
 
 	wsid, _ := oid.NewOID(d.Get("workspace").(string))
-	input, queryInput, logInput, diags := newLogDerivedMetricDatasetConfig(d)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(d)
 	if diags.HasError() {
 		return fmt.Errorf("invalid log-derived metric dataset config: %s", concatenateDiagnosticsToStr(diags))
 	}
@@ -193,7 +193,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 		input.Id = &id
 	}
 
-	_, err := client.SaveLogDerivedMetricDatasetDryRun(ctx, wsid.Id, input, queryInput, logInput)
+	_, err := client.SaveLogDerivedMetricDatasetDryRun(ctx, wsid.Id, input, logInput)
 	if err != nil {
 		return fmt.Errorf("log-derived metric dataset save dry-run failed: %s", err.Error())
 	}
@@ -440,13 +440,13 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 
 func resourceLogDerivedMetricDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
-	input, queryInput, logInput, diags := newLogDerivedMetricDatasetConfig(data)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data)
 	if diags.HasError() {
 		return diags
 	}
 
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
-	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid.Id, input, queryInput, logInput, gql.DefaultDependencyHandling())
+	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid.Id, input, logInput, gql.DefaultDependencyHandling())
 	if err != nil {
 		return diag.Errorf("failed to create log-derived metric dataset: %s", err)
 	}
@@ -470,7 +470,7 @@ func resourceLogDerivedMetricDatasetRead(ctx context.Context, data *schema.Resou
 
 func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
-	input, queryInput, logInput, diags := newLogDerivedMetricDatasetConfig(data)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data)
 	if diags.HasError() {
 		return diags
 	}
@@ -479,7 +479,7 @@ func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.Res
 	input.Id = &id
 	wsid, _ := oid.NewOID(data.Get("workspace").(string))
 
-	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid.Id, input, queryInput, logInput, gql.DefaultDependencyHandling())
+	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid.Id, input, logInput, gql.DefaultDependencyHandling())
 	if err != nil {
 		return diag.Errorf("failed to update log-derived metric dataset: %s", err)
 	}
