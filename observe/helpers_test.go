@@ -159,6 +159,24 @@ func TestToCamel(t *testing.T) {
 	}
 }
 
+func TestToCamelLower(t *testing.T) {
+	testcases := []struct {
+		Input  string
+		Expect string
+	}{
+		{Input: "gauge", Expect: "gauge"},
+		{Input: "cumulative_counter", Expect: "cumulativeCounter"},
+		{Input: "rate_per_sec", Expect: "ratePerSec"},
+		{Input: "exponential_histogram", Expect: "exponentialHistogram"},
+		{Input: "", Expect: ""},
+	}
+	for _, tt := range testcases {
+		if result := toCamelLower(tt.Input); result != tt.Expect {
+			t.Fatalf("toCamelLower(%q): expected %q, got %q", tt.Input, tt.Expect, result)
+		}
+	}
+}
+
 func TestValidateID(t *testing.T) {
 	testcases := []struct {
 		input  any

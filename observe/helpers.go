@@ -492,6 +492,17 @@ func toCamel(str string) string {
 	})
 }
 
+// toCamelLower is like toCamel but lowercases the first character,
+// producing camelCase instead of PascalCase. Use for enum types whose
+// GraphQL values start with a lowercase letter (e.g. MetricType).
+func toCamelLower(str string) string {
+	s := toCamel(str)
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
 func boolPtr(b bool) *bool {
 	return &b
 }

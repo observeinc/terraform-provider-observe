@@ -1,0 +1,61 @@
+fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
+	metricName
+	metricType
+	unit
+	# @genqlient(flatten: true)
+	shapingQuery {
+		...StageQuery
+	}
+	aggregation {
+		config {
+			... on SimpleLogDerivedMetricAggregationConfig {
+				function
+			}
+		}
+		fieldPath {
+			column
+			path
+		}
+	}
+	metricTags {
+		name
+		fieldPath {
+			column
+			path
+		}
+	}
+	interval
+}
+
+fragment LogDerivedMetricDataset on Dataset {
+	id
+	workspaceId
+	name
+	lastSaved
+	description
+	iconUrl
+	source
+	managedById
+	# @genqlient(flatten: true)
+	logDerivedMetricTable {
+		...LogDerivedMetricDefinition
+	}
+}
+
+fragment LogDerivedMetricDatasetSaveResult on DatasetSaveResult {
+	# @genqlient(flatten: true)
+	dataset {
+		...LogDerivedMetricDataset
+	}
+	# @genqlient(flatten: true)
+	errorDatasets {
+		...DatasetError
+	}
+}
+
+query getLogDerivedMetricDataset($id: ObjectId!) {
+	# @genqlient(flatten: true)
+	dataset: dataset(id: $id) {
+		...LogDerivedMetricDataset
+	}
+}

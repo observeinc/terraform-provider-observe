@@ -1,0 +1,42 @@
+description: |
+  Manages an Observe log-derived metric dataset. This resource creates a dataset
+  that derives metrics from log data using an aggregation function and optional
+  shaping query.
+schema:
+  description: |
+    Dataset description.
+  input: |
+    OID of the source dataset to derive metrics from.
+  shaping_query: |
+    An OPAL pipeline applied to the input dataset before aggregation. If omitted or
+    empty, rows from the input dataset are aggregated directly.
+  metric_name: |
+    The name of the derived metric.
+  metric_type: |
+    The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
+  unit: |
+    The unit of the derived metric (e.g. "bytes", "seconds").
+  interval: |
+    Aggregation interval as a duration string (e.g. "1m", "5m").
+  aggregation:
+    description: |
+      Aggregation configuration for the log-derived metric.
+    function: |
+      Aggregation function to apply. One of: count, count_distinct, sum, avg, min, max.
+    field_path:
+      description: |
+        Identifies the field to aggregate over. Required for sum, avg, min, max. Must not be set for count or count_distinct.
+      column: |
+        Column name from the query output to aggregate on.
+      path: |
+        JSON path within the column to the numeric value. Use an empty string to reference the column itself.
+  metric_tag:
+    description: |
+      Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path
+      identifying the source column. Tags become grouping dimensions on the resulting metric.
+    name: |
+      Label for this metric tag. This becomes a dimension key on the resulting metric, used for grouping and filtering.
+    column: |
+      Column name from the query output to use as the tag value source.
+    path: |
+      JSON path within the column to the tag value. Use an empty string to reference the column itself.
