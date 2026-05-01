@@ -37,3 +37,4 @@ test-report.xml
 test-output.json
 
 dist/
+.worktrees/
