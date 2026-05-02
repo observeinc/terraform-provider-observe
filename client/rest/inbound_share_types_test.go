@@ -150,3 +150,282 @@ func TestTrackTableResponseMarshaling(t *testing.T) {
 		t.Errorf("Expected Dataset.Kind to be Event, got %s", response.Dataset.Kind)
 	}
 }
+
+func TestDatasetRef_UnmarshalJSON_NestedShape(t *testing.T) {
+	jsonData := `{
+		"id": "41067890",
+		"record": {
+			"label": "Customer Events",
+			"description": "Snowflake share for customer events",
+			"icon": "icons/event"
+		}
+	}`
+
+	var ref DatasetRef
+	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if ref.Id != "41067890" {
+		t.Errorf("expected Id 41067890, got %q", ref.Id)
+	}
+	if ref.Record == nil {
+		t.Fatal("expected Record to be non-nil")
+	}
+	if ref.Record.Label != "Customer Events" {
+		t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
+	}
+	if ref.Record.Description != "Snowflake share for customer events" {
+		t.Errorf("expected Record.Description %q, got %q", "Snowflake share for customer events", ref.Record.Description)
+	}
+	if ref.Record.Icon != "icons/event" {
+		t.Errorf("expected Record.Icon %q, got %q", "icons/event", ref.Record.Icon)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_FlatShape(t *testing.T) {
+	jsonData := `{"id":"41067890","label":"Customer Events"}`
+
+	var ref DatasetRef
+	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if ref.Id != "41067890" {
+		t.Errorf("expected Id 41067890, got %q", ref.Id)
+	}
+	if ref.Record == nil {
+		t.Fatal("expected Record to be synthesised for flat shape")
+	}
+	if ref.Record.Label != "Customer Events" {
+		t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
+	}
+	if ref.Record.Description != "" {
+		t.Errorf("expected Record.Description empty for flat shape, got %q", ref.Record.Description)
+	}
+	if ref.Record.Icon != "" {
+		t.Errorf("expected Record.Icon empty for flat shape, got %q", ref.Record.Icon)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_IdOnly(t *testing.T) {
+	jsonData := `{"id":"41067890"}`
+
+	var ref DatasetRef
+	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if ref.Id != "41067890" {
+		t.Errorf("expected Id 41067890, got %q", ref.Id)
+	}
+	if ref.Record != nil {
+		t.Errorf("expected Record to be nil for id-only response, got %+v", ref.Record)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_BothPresent(t *testing.T) {
+	// During a transitional rollout the server could emit both the top-level
+	// label and the nested record. The nested form must win.
+	jsonData := `{
+		"id": "41067890",
+		"label": "old flat label",
+		"record": {"label": "new nested label"}
+	}`
+
+	var ref DatasetRef
+	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if ref.Record == nil {
+		t.Fatal("expected Record to be populated from nested shape")
+	}
+	if ref.Record.Label != "new nested label" {
+		t.Errorf("expected nested label to win, got %q", ref.Record.Label)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_EmptyLabel(t *testing.T) {
+	// An explicit empty flat label is treated as id-only (no synthesised
+	// blank brief). NOTE: this is deliberate and goes away with the spec §7
+	// cleanup PR — future refactors should not "fix" it to synthesise an
+	// empty brief.
+	jsonData := `{"id":"41067890","label":""}`
+
+	var ref DatasetRef
+	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if ref.Record != nil {
+		t.Errorf("expected Record to be nil for empty flat label, got %+v", ref.Record)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_MalformedJSON(t *testing.T) {
+	var ref DatasetRef
+	err := json.Unmarshal([]byte(`{`), &ref)
+	if err == nil {
+		t.Fatal("expected error for malformed JSON, got nil")
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_RecordWrongType(t *testing.T) {
+	// record arriving as a JSON string (rather than an object) must surface
+	// an error, not silently fall through to the flat or id-only branch.
+	jsonData := `{"id":"41067890","record":"not an object"}`
+
+	var ref DatasetRef
+	err := json.Unmarshal([]byte(jsonData), &ref)
+	if err == nil {
+		t.Fatal("expected error for record with non-object type, got nil")
+	}
+	// Invariant: on decode error the receiver is left zero. If a future
+	// refactor starts assigning d.Id or d.Record before the shape check,
+	// this will catch it.
+	if ref.Id != "" {
+		t.Errorf("expected ref.Id to be empty on decode error, got %q", ref.Id)
+	}
+	if ref.Record != nil {
+		t.Errorf("expected ref.Record to be nil on decode error, got %+v", ref.Record)
+	}
+}
+
+func TestDatasetRef_UnmarshalJSON_AdversarialInputs(t *testing.T) {
+	cases := []struct {
+		name    string
+		input   string
+		wantErr bool
+		check   func(t *testing.T, ref DatasetRef)
+	}{
+		{
+			name:  "RecordExplicitNull",
+			input: `{"id":"x","record":null}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "x" {
+					t.Errorf("expected Id %q, got %q", "x", ref.Id)
+				}
+				if ref.Record != nil {
+					t.Errorf("expected Record nil for explicit null, got %+v", ref.Record)
+				}
+			},
+		},
+		{
+			name:  "LabelExplicitNull",
+			input: `{"id":"x","label":null}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "x" {
+					t.Errorf("expected Id %q, got %q", "x", ref.Id)
+				}
+				if ref.Record != nil {
+					t.Errorf("expected Record nil for null label, got %+v", ref.Record)
+				}
+			},
+		},
+		{
+			name:    "RecordArrayType",
+			input:   `{"id":"x","record":[]}`,
+			wantErr: true,
+		},
+		{
+			name:  "DuplicateIdKeys",
+			input: `{"id":"a","id":"b"}`,
+			// encoding/json takes last-wins on duplicate keys; pin that so a
+			// future refactor that switches to a strict streaming decoder
+			// surfaces the change instead of silently flipping semantics.
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "b" {
+					t.Errorf("expected last-wins Id %q, got %q", "b", ref.Id)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var ref DatasetRef
+			err := json.Unmarshal([]byte(tc.input), &ref)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tc.check != nil {
+				tc.check(t, ref)
+			}
+		})
+	}
+}
+
+func TestTrackTableResponseMarshaling_NestedShape(t *testing.T) {
+	// Sibling of TestTrackTableResponseMarshaling (which exercises the flat
+	// wire shape). This fixture uses the post-migration nested form.
+	responseJSON := `{
+		"table": {
+			"id": "41056789",
+			"share": {
+				"id": "41012345",
+				"shareName": "ACME_CUSTOMER_DATA"
+			},
+			"fullTablePath": "PUBLIC/CUSTOMER_EVENTS",
+			"tableName": "CUSTOMER_EVENTS",
+			"schemaName": "PUBLIC",
+			"tableType": "TABLE",
+			"status": "Active",
+			"sourceDataset": {
+				"id": "41067890",
+				"record": {
+					"label": "Customer Events",
+					"description": "Snowflake share for customer events",
+					"icon": "icons/event"
+				}
+			},
+			"createdBy": {"id": "123"},
+			"createdAt": "2026-03-26T10:00:00Z",
+			"updatedBy": {"id": "123"},
+			"updatedAt": "2026-03-26T10:00:00Z"
+		},
+		"dataset": {
+			"id": "41067890",
+			"label": "Customer Events",
+			"kind": "Event",
+			"source": "sharein_table_41056789",
+			"createdBy": {"id": "123"},
+			"createdAt": "2026-03-26T10:00:00Z",
+			"updatedBy": {"id": "123"},
+			"updatedAt": "2026-03-26T10:00:00Z"
+		}
+	}`
+
+	var response TrackTableResponse
+	if err := json.Unmarshal([]byte(responseJSON), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	if response.Table.Id != "41056789" {
+		t.Errorf("Expected Table.Id 41056789, got %s", response.Table.Id)
+	}
+	if response.Table.SourceDataset == nil {
+		t.Fatal("Expected Table.SourceDataset to be non-nil")
+	}
+	if response.Table.SourceDataset.Record == nil {
+		t.Fatal("Expected Table.SourceDataset.Record to be populated by nested shape")
+	}
+	if response.Table.SourceDataset.Record.Label != "Customer Events" {
+		t.Errorf("Expected nested label 'Customer Events', got %s", response.Table.SourceDataset.Record.Label)
+	}
+	if response.Table.SourceDataset.Record.Description != "Snowflake share for customer events" {
+		t.Errorf("Expected nested description, got %q", response.Table.SourceDataset.Record.Description)
+	}
+	if response.Table.SourceDataset.Record.Icon != "icons/event" {
+		t.Errorf("Expected nested icon 'icons/event', got %q", response.Table.SourceDataset.Record.Icon)
+	}
+	if response.Dataset.Id != "41067890" {
+		t.Errorf("Expected Dataset.Id 41067890, got %s", response.Dataset.Id)
+	}
+}

@@ -55,22 +55,28 @@ func (c *Client) GetInboundShareTable(ctx context.Context, shareId, tableId stri
 		Table: table,
 	}
 
-	// If there's a source dataset, populate it
-	if table.SourceDataset != nil {
-		// Validate that we have required fields
-		if table.SourceDataset.Id == "" {
-			return nil, fmt.Errorf("API response missing sourceDataset.id for table %s", tableId)
-		}
-		if table.SourceDataset.Label == "" {
-			return nil, fmt.Errorf("API response missing sourceDataset.label for table %s", tableId)
-		}
-
-		result.Dataset = InboundShareDataset{
-			Id:    table.SourceDataset.Id,
-			Label: table.SourceDataset.Label,
-		}
-	} else {
+	// If there's a source dataset, populate it. DatasetRef.UnmarshalJSON
+	// normalises both the legacy flat shape and the nested shape into
+	// SourceDataset.Record, so the label is always read from Record.Label.
+	// The Record-nil and empty-Label branches are reported separately so
+	// operators can distinguish a missing record from a record whose label
+	// happened to be empty.
+	if table.SourceDataset == nil {
 		return nil, fmt.Errorf("API response missing sourceDataset for table %s", tableId)
+	}
+	if table.SourceDataset.Id == "" {
+		return nil, fmt.Errorf("API response missing sourceDataset.id for table %s", tableId)
+	}
+	if table.SourceDataset.Record == nil {
+		return nil, fmt.Errorf("API response missing sourceDataset.record for table %s", tableId)
+	}
+	if table.SourceDataset.Record.Label == "" {
+		return nil, fmt.Errorf("API response missing sourceDataset.record.label for table %s", tableId)
+	}
+
+	result.Dataset = InboundShareDataset{
+		Id:    table.SourceDataset.Id,
+		Label: table.SourceDataset.Record.Label,
 	}
 
 	return result, nil
