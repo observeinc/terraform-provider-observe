@@ -151,154 +151,105 @@ func TestTrackTableResponseMarshaling(t *testing.T) {
 	}
 }
 
-func TestDatasetRef_UnmarshalJSON_NestedShape(t *testing.T) {
-	jsonData := `{
-		"id": "41067890",
-		"record": {
-			"label": "Customer Events",
-			"description": "Snowflake share for customer events",
-			"icon": "icons/event"
-		}
-	}`
-
-	var ref DatasetRef
-	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if ref.Id != "41067890" {
-		t.Errorf("expected Id 41067890, got %q", ref.Id)
-	}
-	if ref.Record == nil {
-		t.Fatal("expected Record to be non-nil")
-	}
-	if ref.Record.Label != "Customer Events" {
-		t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
-	}
-	if ref.Record.Description != "Snowflake share for customer events" {
-		t.Errorf("expected Record.Description %q, got %q", "Snowflake share for customer events", ref.Record.Description)
-	}
-	if ref.Record.Icon != "icons/event" {
-		t.Errorf("expected Record.Icon %q, got %q", "icons/event", ref.Record.Icon)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_FlatShape(t *testing.T) {
-	jsonData := `{"id":"41067890","label":"Customer Events"}`
-
-	var ref DatasetRef
-	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if ref.Id != "41067890" {
-		t.Errorf("expected Id 41067890, got %q", ref.Id)
-	}
-	if ref.Record == nil {
-		t.Fatal("expected Record to be synthesised for flat shape")
-	}
-	if ref.Record.Label != "Customer Events" {
-		t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
-	}
-	if ref.Record.Description != "" {
-		t.Errorf("expected Record.Description empty for flat shape, got %q", ref.Record.Description)
-	}
-	if ref.Record.Icon != "" {
-		t.Errorf("expected Record.Icon empty for flat shape, got %q", ref.Record.Icon)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_IdOnly(t *testing.T) {
-	jsonData := `{"id":"41067890"}`
-
-	var ref DatasetRef
-	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if ref.Id != "41067890" {
-		t.Errorf("expected Id 41067890, got %q", ref.Id)
-	}
-	if ref.Record != nil {
-		t.Errorf("expected Record to be nil for id-only response, got %+v", ref.Record)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_BothPresent(t *testing.T) {
-	// During a transitional rollout the server could emit both the top-level
-	// label and the nested record. The nested form must win.
-	jsonData := `{
-		"id": "41067890",
-		"label": "old flat label",
-		"record": {"label": "new nested label"}
-	}`
-
-	var ref DatasetRef
-	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if ref.Record == nil {
-		t.Fatal("expected Record to be populated from nested shape")
-	}
-	if ref.Record.Label != "new nested label" {
-		t.Errorf("expected nested label to win, got %q", ref.Record.Label)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_EmptyLabel(t *testing.T) {
-	// An explicit empty flat label is treated as id-only (no synthesised
-	// blank brief). NOTE: this is deliberate and goes away with the spec §7
-	// cleanup PR — future refactors should not "fix" it to synthesise an
-	// empty brief.
-	jsonData := `{"id":"41067890","label":""}`
-
-	var ref DatasetRef
-	if err := json.Unmarshal([]byte(jsonData), &ref); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if ref.Record != nil {
-		t.Errorf("expected Record to be nil for empty flat label, got %+v", ref.Record)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_MalformedJSON(t *testing.T) {
-	var ref DatasetRef
-	err := json.Unmarshal([]byte(`{`), &ref)
-	if err == nil {
-		t.Fatal("expected error for malformed JSON, got nil")
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_RecordWrongType(t *testing.T) {
-	// record arriving as a JSON string (rather than an object) must surface
-	// an error, not silently fall through to the flat or id-only branch.
-	jsonData := `{"id":"41067890","record":"not an object"}`
-
-	var ref DatasetRef
-	err := json.Unmarshal([]byte(jsonData), &ref)
-	if err == nil {
-		t.Fatal("expected error for record with non-object type, got nil")
-	}
-	// Invariant: on decode error the receiver is left zero. If a future
-	// refactor starts assigning d.Id or d.Record before the shape check,
-	// this will catch it.
-	if ref.Id != "" {
-		t.Errorf("expected ref.Id to be empty on decode error, got %q", ref.Id)
-	}
-	if ref.Record != nil {
-		t.Errorf("expected ref.Record to be nil on decode error, got %+v", ref.Record)
-	}
-}
-
-func TestDatasetRef_UnmarshalJSON_AdversarialInputs(t *testing.T) {
+func TestDatasetRef_UnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		name    string
 		input   string
 		wantErr bool
 		check   func(t *testing.T, ref DatasetRef)
 	}{
+		{
+			name: "NestedShape",
+			input: `{
+				"id": "41067890",
+				"record": {
+					"label": "Customer Events",
+					"description": "Snowflake share for customer events",
+					"icon": "icons/event"
+				}
+			}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "41067890" {
+					t.Errorf("expected Id 41067890, got %q", ref.Id)
+				}
+				if ref.Record == nil {
+					t.Fatal("expected Record to be non-nil")
+				}
+				if ref.Record.Label != "Customer Events" {
+					t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
+				}
+				if ref.Record.Description != "Snowflake share for customer events" {
+					t.Errorf("expected Record.Description %q, got %q", "Snowflake share for customer events", ref.Record.Description)
+				}
+				if ref.Record.Icon != "icons/event" {
+					t.Errorf("expected Record.Icon %q, got %q", "icons/event", ref.Record.Icon)
+				}
+			},
+		},
+		{
+			name:  "FlatShape",
+			input: `{"id":"41067890","label":"Customer Events"}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "41067890" {
+					t.Errorf("expected Id 41067890, got %q", ref.Id)
+				}
+				if ref.Record == nil {
+					t.Fatal("expected Record to be synthesised for flat shape")
+				}
+				if ref.Record.Label != "Customer Events" {
+					t.Errorf("expected Record.Label %q, got %q", "Customer Events", ref.Record.Label)
+				}
+				if ref.Record.Description != "" {
+					t.Errorf("expected Record.Description empty for flat shape, got %q", ref.Record.Description)
+				}
+				if ref.Record.Icon != "" {
+					t.Errorf("expected Record.Icon empty for flat shape, got %q", ref.Record.Icon)
+				}
+			},
+		},
+		{
+			name:  "IdOnly",
+			input: `{"id":"41067890"}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "41067890" {
+					t.Errorf("expected Id 41067890, got %q", ref.Id)
+				}
+				if ref.Record != nil {
+					t.Errorf("expected Record to be nil for id-only response, got %+v", ref.Record)
+				}
+			},
+		},
+		{
+			// During a transitional rollout the server could emit both the
+			// top-level label and the nested record. The nested form must win.
+			name: "BothPresent_NestedWins",
+			input: `{
+				"id": "41067890",
+				"label": "old flat label",
+				"record": {"label": "new nested label"}
+			}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Record == nil {
+					t.Fatal("expected Record to be populated from nested shape")
+				}
+				if ref.Record.Label != "new nested label" {
+					t.Errorf("expected nested label to win, got %q", ref.Record.Label)
+				}
+			},
+		},
+		{
+			// Explicit empty flat label is treated as id-only: no synthesised
+			// blank brief. Deliberate; goes away when UnmarshalJSON is deleted
+			// post-migration — future refactors should not "fix" it to
+			// synthesise an empty brief.
+			name:  "FlatLabelEmpty",
+			input: `{"id":"41067890","label":""}`,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Record != nil {
+					t.Errorf("expected Record nil for empty flat label, got %+v", ref.Record)
+				}
+			},
+		},
 		{
 			name:  "RecordExplicitNull",
 			input: `{"id":"x","record":null}`,
@@ -324,16 +275,39 @@ func TestDatasetRef_UnmarshalJSON_AdversarialInputs(t *testing.T) {
 			},
 		},
 		{
+			name:    "MalformedJSON",
+			input:   `{`,
+			wantErr: true,
+		},
+		{
 			name:    "RecordArrayType",
 			input:   `{"id":"x","record":[]}`,
 			wantErr: true,
 		},
 		{
-			name:  "DuplicateIdKeys",
-			input: `{"id":"a","id":"b"}`,
+			// record arriving as a JSON string (rather than an object) must
+			// surface an error, not silently fall through to the flat or
+			// id-only branch. On decode error the receiver is left zero; a
+			// future refactor that assigns d.Id or d.Record before the shape
+			// check would fail the zero-state assertions below.
+			name:    "RecordWrongType",
+			input:   `{"id":"41067890","record":"not an object"}`,
+			wantErr: true,
+			check: func(t *testing.T, ref DatasetRef) {
+				if ref.Id != "" {
+					t.Errorf("expected ref.Id to be empty on decode error, got %q", ref.Id)
+				}
+				if ref.Record != nil {
+					t.Errorf("expected ref.Record to be nil on decode error, got %+v", ref.Record)
+				}
+			},
+		},
+		{
 			// encoding/json takes last-wins on duplicate keys; pin that so a
 			// future refactor that switches to a strict streaming decoder
 			// surfaces the change instead of silently flipping semantics.
+			name:  "DuplicateIdKeys_LastWins",
+			input: `{"id":"a","id":"b"}`,
 			check: func(t *testing.T, ref DatasetRef) {
 				if ref.Id != "b" {
 					t.Errorf("expected last-wins Id %q, got %q", "b", ref.Id)
@@ -346,13 +320,10 @@ func TestDatasetRef_UnmarshalJSON_AdversarialInputs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var ref DatasetRef
 			err := json.Unmarshal([]byte(tc.input), &ref)
-			if tc.wantErr {
-				if err == nil {
-					t.Fatal("expected error, got nil")
-				}
-				return
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
 			}
-			if err != nil {
+			if !tc.wantErr && err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if tc.check != nil {

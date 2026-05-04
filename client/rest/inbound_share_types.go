@@ -27,10 +27,9 @@ type User struct {
 // that need the human-readable metadata read Record.Label.
 //
 // NOTE: the custom UnmarshalJSON below accepts both the legacy flat
-// {id, label} wire shape and the new nested {id, record} shape. After the
-// server-side migration completes, the follow-up cleanup PR (see
-// docs/superpowers/specs/2026-05-02-datasetref-migration-design.md §7)
-// deletes UnmarshalJSON; the default struct unmarshaller is sufficient for
+// {id, label} wire shape and the new nested {id, record} shape during
+// the server-side migration. Once the migration completes, UnmarshalJSON
+// can be deleted; the default struct unmarshaller is sufficient for
 // nested-only wire traffic.
 type DatasetRef struct {
 	Id     string        `json:"id"`
