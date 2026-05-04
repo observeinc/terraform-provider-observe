@@ -1,6 +1,10 @@
 package rest
 
-import "github.com/observeinc/terraform-provider-observe/client/oid"
+import (
+	"encoding/json"
+
+	"github.com/observeinc/terraform-provider-observe/client/oid"
+)
 
 // Inbound Share API Types
 // Based on OpenAPI spec at /code/openapi/sharein/sharein.yaml
@@ -18,10 +22,59 @@ type User struct {
 	Name  string `json:"name,omitempty"`
 }
 
-// DatasetRef represents a reference to a dataset
+// DatasetRef represents a reference to a dataset. The Record field is
+// populated when the server-side expand projection is honoured; consumers
+// that need the human-readable metadata read Record.Label.
+//
+// NOTE: the custom UnmarshalJSON below accepts both the legacy flat
+// {id, label} wire shape and the new nested {id, record} shape during
+// the server-side migration. Once the migration completes, UnmarshalJSON
+// can be deleted; the default struct unmarshaller is sufficient for
+// nested-only wire traffic.
 type DatasetRef struct {
-	Id    string `json:"id"`
-	Label string `json:"label,omitempty"`
+	Id     string        `json:"id"`
+	Record *DatasetBrief `json:"record,omitempty"`
+}
+
+// DatasetBrief carries the embedded dataset metadata that accompanies a
+// dataset reference when the server-side expand projection is honoured.
+type DatasetBrief struct {
+	Label       string `json:"label,omitempty"`
+	Description string `json:"description,omitempty"`
+	Icon        string `json:"icon,omitempty"`
+}
+
+// UnmarshalJSON accepts BOTH the legacy flat shape ({"id":..., "label":...})
+// and the new nested shape ({"id":..., "record":{"label":...}}). The legacy
+// shape is normalised into the nested representation so consumers only deal
+// with one in-memory form. When both the top-level label and the nested
+// record are present (possible during a transitional rollout), the nested
+// form wins. A top-level JSON null decodes to DatasetRef{Id:"", Record:nil}
+// via the default code path — no special case is needed.
+//
+// An empty Id ("") is not rejected at decode time: it is up to the caller
+// (currently GetInboundShareTable in inbound_share_tables.go, which checks)
+// to validate the invariant. Future consumers that read DatasetRef.Id
+// directly inherit that responsibility.
+func (d *DatasetRef) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Id     string        `json:"id"`
+		Label  string        `json:"label"`
+		Record *DatasetBrief `json:"record"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	d.Id = raw.Id
+	switch {
+	case raw.Record != nil:
+		d.Record = raw.Record
+	case raw.Label != "":
+		d.Record = &DatasetBrief{Label: raw.Label}
+	default:
+		d.Record = nil
+	}
+	return nil
 }
 
 // Share Types
