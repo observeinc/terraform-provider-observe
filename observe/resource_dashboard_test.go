@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -3203,6 +3204,112 @@ func TestAccObserveDashboardEntityTags(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.team", "platform,sre"),
 					resource.TestCheckNoResourceAttr("observe_dashboard.first", "entity_tags.visibility"),
 				),
+			},
+		},
+	})
+}
+
+// Verify that dashboards whose parameters reference a correlation tag survive
+// the Read path used by both `terraform refresh` and `terraform import`. The
+// Dashboard GraphQL fragment must request `valueKind.tagName`; otherwise it is
+// silently dropped on read, `diffSuppressParameters` (which unmarshals into
+// []ParameterSpecInput and compares with cmp.Equal) sees a mismatch against the
+// user's HCL, and Terraform reports a perpetual diff.
+func TestAccObserveDashboardImport_CorrelationTagParameter(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	expectedTagName := randomPrefix + "-tag"
+
+	dashboardConfig := fmt.Sprintf(linkConfigPreamble+`
+		resource "observe_correlation_tag" "ctag" {
+			name    = "%[1]s-tag"
+			dataset = observe_dataset.a.oid
+			column  = "key"
+		}
+
+		resource "observe_dashboard" "with_correlation_tag" {
+			workspace  = data.observe_workspace.default.oid
+			name       = "%[1]s"
+			icon_url   = "test"
+			depends_on = [observe_correlation_tag.ctag]
+
+			stages = <<-EOF
+			[{
+				"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+				"input": [{
+					"inputName": "kubernetes/metrics/Container Metrics",
+					"inputRole": "Data",
+					"datasetId": "41042989"
+				}]
+			}]
+			EOF
+
+			parameters = jsonencode([
+				{
+					id        = "ctag_param"
+					name      = "Correlation Tag Param"
+					valueKind = {
+						type    = "CORRELATION_TAG"
+						tagName = "%[1]s-tag"
+					}
+				},
+			])
+		}
+	`, randomPrefix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: dashboardConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.with_correlation_tag", "name", randomPrefix),
+					resource.TestCheckResourceAttrWith(
+						"observe_dashboard.with_correlation_tag",
+						"parameters",
+						func(val string) error {
+							var params []struct {
+								Id        string `json:"id"`
+								ValueKind struct {
+									Type    string  `json:"type"`
+									TagName *string `json:"tagName"`
+								} `json:"valueKind"`
+							}
+							if err := json.Unmarshal([]byte(val), &params); err != nil {
+								return fmt.Errorf("failed to parse parameters JSON: %w", err)
+							}
+							if len(params) != 1 {
+								return fmt.Errorf("expected 1 parameter, got %d", len(params))
+							}
+							if got, want := params[0].ValueKind.Type, "CORRELATION_TAG"; got != want {
+								return fmt.Errorf("valueKind.type = %q, want %q", got, want)
+							}
+							if params[0].ValueKind.TagName == nil {
+								return fmt.Errorf("valueKind.tagName was dropped on read; expected %q", expectedTagName)
+							}
+							if got := *params[0].ValueKind.TagName; got != expectedTagName {
+								return fmt.Errorf("valueKind.tagName = %q, want %q", got, expectedTagName)
+							}
+							return nil
+						},
+					),
+				),
+			},
+			// Re-applying the same config must not produce drift. Without the fix
+			// the Read response loses tagName, diffSuppressParameters compares
+			// `tagName: nil` against `tagName: &"<tag>"` and reports a diff.
+			{
+				Config:             dashboardConfig,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Exercise `terraform import` directly. ImportStateVerify compares
+			// the imported state against the post-create state; if either Read
+			// path is incomplete the comparison will fail.
+			{
+				ResourceName:      "observe_dashboard.with_correlation_tag",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

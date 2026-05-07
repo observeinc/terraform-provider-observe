@@ -68,6 +68,7 @@ fragment Dashboard on Dashboard {
                 keyForDatasetId
                 # We don't support nested arrays; no need to query arrayItemType at this level
             }
+            tagName
         }
     }
     parameterValues {
