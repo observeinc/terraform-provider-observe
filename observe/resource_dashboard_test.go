@@ -3295,9 +3295,7 @@ func TestAccObserveDashboardImport_CorrelationTagParameter(t *testing.T) {
 					),
 				),
 			},
-			// Re-applying the same config must not produce drift. Without the fix
-			// the Read response loses tagName, diffSuppressParameters compares
-			// `tagName: nil` against `tagName: &"<tag>"` and reports a diff.
+			// Re-applying the same config must not produce drift.
 			{
 				Config:             dashboardConfig,
 				PlanOnly:           true,
