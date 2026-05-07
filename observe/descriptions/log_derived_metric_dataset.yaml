@@ -8,24 +8,31 @@ schema:
   input: |
     OID of the source dataset to derive metrics from.
   shaping_query: |
-    An OPAL pipeline applied to the input dataset before aggregation. If omitted or
-    empty, rows from the input dataset are aggregated directly.
+    An OPAL pipeline applied to the input dataset before aggregation. Defaults to
+    `filter true`, which leaves the input rows unchanged before aggregation.
   metric_name: |
     The name of the derived metric.
   metric_type: |
-    The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
+    Metric type for the derived metric. Accepted values are `cumulative_counter`,
+    `counter`, `rate_per_sec`, `delta`, `gauge`, `tdigest`, `sample`,
+    `histogram`, and `exponential_histogram`.
   unit: |
     The unit of the derived metric (e.g. "bytes", "seconds").
   interval: |
-    Aggregation interval as a duration string (e.g. "1m", "5m").
+    Aggregation interval as a Go duration string accepted by `time.ParseDuration`
+    (for example `30s`, `1m`, `5m`, or `1h`).
   aggregation:
     description: |
       Aggregation configuration for the log-derived metric.
     function: |
-      Aggregation function to apply. One of: count, count_distinct, sum, avg, min, max.
+      Aggregation function to apply. Accepted values are `count`,
+      `count_distinct`, `sum`, `avg`, `min`, and `max`.
     field_path:
       description: |
-        Identifies the field to aggregate over. Required for sum, avg, min, max. Must not be set for count or count_distinct.
+        Identifies the field to aggregate over when the selected function operates
+        on a specific value. `count` does not use `field_path`;
+        `count_distinct`, `sum`, `avg`, `min`, and `max` use it. The exact
+        combination is validated during dataset save.
       column: |
         Column name from the query output to aggregate on.
       path: |
