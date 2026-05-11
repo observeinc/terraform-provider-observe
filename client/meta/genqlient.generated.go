@@ -1180,6 +1180,7 @@ type DashboardParametersParameterSpecValueKindValueTypeSpec struct {
 	Type            ValueType                                                                         `json:"type"`
 	KeyForDatasetId *string                                                                           `json:"keyForDatasetId"`
 	ArrayItemType   *DashboardParametersParameterSpecValueKindValueTypeSpecArrayItemTypeValueTypeSpec `json:"arrayItemType"`
+	TagName         *string                                                                           `json:"tagName"`
 }
 
 // GetType returns DashboardParametersParameterSpecValueKindValueTypeSpec.Type, and is useful for accessing the field via an interface.
@@ -1193,6 +1194,11 @@ func (v *DashboardParametersParameterSpecValueKindValueTypeSpec) GetKeyForDatase
 // GetArrayItemType returns DashboardParametersParameterSpecValueKindValueTypeSpec.ArrayItemType, and is useful for accessing the field via an interface.
 func (v *DashboardParametersParameterSpecValueKindValueTypeSpec) GetArrayItemType() *DashboardParametersParameterSpecValueKindValueTypeSpecArrayItemTypeValueTypeSpec {
 	return v.ArrayItemType
+}
+
+// GetTagName returns DashboardParametersParameterSpecValueKindValueTypeSpec.TagName, and is useful for accessing the field via an interface.
+func (v *DashboardParametersParameterSpecValueKindValueTypeSpec) GetTagName() *string {
+	return v.TagName
 }
 
 // DashboardParametersParameterSpecValueKindValueTypeSpecArrayItemTypeValueTypeSpec includes the requested fields of the GraphQL type ValueTypeSpec.
@@ -19810,6 +19816,7 @@ fragment Dashboard on Dashboard {
 				type
 				keyForDatasetId
 			}
+			tagName
 		}
 	}
 	parameterValues {
@@ -23416,6 +23423,7 @@ fragment Dashboard on Dashboard {
 				type
 				keyForDatasetId
 			}
+			tagName
 		}
 	}
 	parameterValues {
