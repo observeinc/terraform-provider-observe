@@ -202,19 +202,20 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
 - `input` (String) OID of the source dataset to derive metrics from.
 - `metric_name` (String) The name of the derived metric.
 - `workspace` (String) OID of the workspace this object is contained in.
-This field is optional and deprecated. Since each customer has exactly
-one workspace, the server automatically assigns the correct workspace.
 
 ### Optional
 
 - `description` (String) Dataset description.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
-- `interval` (String) Aggregation interval as a duration string (e.g. "1m", "5m").
+- `interval` (String) Aggregation interval as a Go duration string accepted by `time.ParseDuration`
+(for example `30s`, `1m`, `5m`, or `1h`).
 - `metric_tag` (Block List) Tags (dimensions) to attach to the derived metric. Each tag specifies a name and a field path
 identifying the source column. Tags become grouping dimensions on the resulting metric. (see [below for nested schema](#nestedblock--metric_tag))
-- `metric_type` (String) The type of the derived metric, e.g. "gauge", "cumulative_counter", "delta".
-- `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. If omitted or
-empty, rows from the input dataset are aggregated directly.
+- `metric_type` (String) Metric type for the derived metric. Accepted values are `cumulative_counter`,
+`counter`, `rate_per_sec`, `delta`, `gauge`, `tdigest`, `sample`,
+`histogram`, and `exponential_histogram`.
+- `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. Defaults to
+`filter true`, which leaves the input rows unchanged before aggregation.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").
 
 ### Read-Only
@@ -228,11 +229,15 @@ should be used when referring to this object in terraform manifests.
 
 Required:
 
-- `function` (String) Aggregation function to apply. One of: count, count_distinct, sum, avg, min, max.
+- `function` (String) Aggregation function to apply. Accepted values are `count`,
+`count_distinct`, `sum`, `avg`, `min`, and `max`.
 
 Optional:
 
-- `field_path` (Block List, Max: 1) Identifies the field to aggregate over. Required for sum, avg, min, max. Must not be set for count or count_distinct. (see [below for nested schema](#nestedblock--aggregation--field_path))
+- `field_path` (Block List, Max: 1) Identifies the field to aggregate over when the selected function operates
+on a specific value. `count` does not use `field_path`;
+`count_distinct`, `sum`, `avg`, `min`, and `max` use it. The exact
+combination is validated during dataset save. (see [below for nested schema](#nestedblock--aggregation--field_path))
 
 <a id="nestedblock--aggregation--field_path"></a>
 ### Nested Schema for `aggregation.field_path`

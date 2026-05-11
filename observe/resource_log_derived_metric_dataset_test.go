@@ -379,6 +379,20 @@ func TestNewLDMShapingStageQueryInput_SingleInput(t *testing.T) {
 	}
 }
 
+func TestNewLDMShapingStageQueryInput_RejectsNonDatasetOID(t *testing.T) {
+	reader := &mockResourceReader{
+		data: map[string]interface{}{
+			"input":         oid.WorkspaceOid("12345").String(),
+			"shaping_query": "filter true",
+		},
+	}
+
+	_, diags := newLDMShapingStageQueryInput(reader)
+	if !diags.HasError() {
+		t.Fatal("expected diagnostics for a non-dataset input OID")
+	}
+}
+
 func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testing.T) {
 	const (
 		datasetID   = "12345"
@@ -448,5 +462,16 @@ func TestResourceLogDerivedMetricDatasetOptionalDefaultsAreComputed(t *testing.T
 		if !schema[field].Computed {
 			t.Fatalf("%s should be computed", field)
 		}
+	}
+}
+
+func TestResourceLogDerivedMetricDatasetShapingQueryDefault(t *testing.T) {
+	field := resourceLogDerivedMetricDataset().Schema["shaping_query"]
+
+	if !field.Optional {
+		t.Fatal("shaping_query should be optional")
+	}
+	if got := field.Default.(string); got != "filter true" {
+		t.Fatalf("expected shaping_query default %q, got %q", "filter true", got)
 	}
 }

@@ -35,7 +35,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeWorkspace),
-				Description:      descriptions.Get("common", "schema", "workspace"),
+				Description:      "OID of the workspace this object is contained in.",
 			},
 			"oid": {
 				Type:        schema.TypeString,
@@ -82,7 +82,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 			"input": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateOID(),
+				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "input"),
 			},
 			"shaping_query": {
@@ -206,6 +206,9 @@ func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, dia
 	parsedOID, err := oid.NewOID(inputOIDStr)
 	if err != nil {
 		return gql.StageQueryInput{}, diag.FromErr(fmt.Errorf("input: %w", err))
+	}
+	if parsedOID.Type != oid.TypeDataset {
+		return gql.StageQueryInput{}, diag.Errorf("input: oid type must be %s", oid.TypeDataset)
 	}
 	datasetID := parsedOID.Id
 	if datasetID == "" {
