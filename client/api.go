@@ -1772,3 +1772,31 @@ func (c *Client) DeleteInboundShareTable(ctx context.Context, shareId, tableId s
 	})
 	return
 }
+
+/**
+ * Skills
+ */
+func (c *Client) CreateSkill(ctx context.Context, input *rest.SkillCreateRequest) (result *rest.SkillResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateSkill(ctx, input)
+	})
+	return
+}
+
+func (c *Client) GetSkill(ctx context.Context, id string) (*rest.SkillResource, error) {
+	return c.Rest.GetSkill(ctx, id)
+}
+
+func (c *Client) UpdateSkill(ctx context.Context, id string, input *rest.SkillUpdateRequest) (result *rest.SkillResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateSkill(ctx, id, input)
+	})
+	return
+}
+
+func (c *Client) DeleteSkill(ctx context.Context, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteSkill(ctx, id)
+	})
+	return
+}

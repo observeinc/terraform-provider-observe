@@ -1,0 +1,12 @@
+description: |
+  A skill defines custom instructions for the AI-SRE agent. Skills allow you to teach the agent domain-specific knowledge, runbooks, and investigation procedures.
+
+schema:
+  label: |
+    The display name of the skill.
+  description: |
+    A short description of what the skill does and when it should be used. This text is pre-loaded into AI SRE context and helps it decide whether to invoke this skill during an investigation.
+  content: |
+    The full content of the skill, typically markdown instructions that the AI agent follows.
+  visibility: |
+    `Workspace` makes the skill available to everyone in the workspace for AI SRE; `Private` is a personal skill for the authenticated user only. Defaults to `Workspace`.

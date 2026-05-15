@@ -60,6 +60,7 @@ const (
 	TypeStorageIntegration      Type = "storageintegration"
 	TypeInboundShare            Type = "inboundshare"
 	TypeInboundShareTable       Type = "inboundsharetable"
+	TypeSkill                   Type = "skill"
 )
 
 func (t Type) IsValid() bool {
@@ -105,6 +106,7 @@ func (t Type) IsValid() bool {
 	case TypeStorageIntegration:
 	case TypeInboundShare:
 	case TypeInboundShareTable:
+	case TypeSkill:
 	default:
 		return false
 	}
