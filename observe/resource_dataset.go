@@ -172,15 +172,8 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("dataset", "schema", "rematerialization_mode"),
 			},
-			"entity_tags": {
-				Type:             schema.TypeMap,
-				Optional:         true,
-				DiffSuppressFunc: diffSuppressEntityTagValues,
-				Description:      descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldOptional(),
+			"entity_tags": entityTagsSchemaFieldOptional(),
 		},
 	}
 }
@@ -328,17 +321,13 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 
 	}
 
-	// Always set EntityTags, even if empty, to allow clearing tags
-	if v, ok := data.GetOk("entity_tags"); ok {
-		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
-	} else {
-		input.EntityTags = []gql.EntityTagMappingInput{}
-	}
+	// Always set ObjectTags, even if empty, to allow clearing tags
+	input.ObjectTags = objectTagsInputFromReader(data)
 
 	return input, query, diags
 }
 
-func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -397,8 +386,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		}
 	}
 
-	if err := data.Set("entity_tags", flattenEntityTagsToMap(d.EntityTags)); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		diags = append(diags, tagDiags...)
 	}
 
 	if diags.HasError() {
@@ -525,12 +516,13 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data)
+	return datasetToResourceData(result, data, false)
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	input, queryInput, diags := newDatasetConfig(data)
+	input, queryInput, configDiags := newDatasetConfig(data)
+	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
 	}
@@ -586,7 +578,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	return datasetToResourceData(result, data)
+	return datasetToResourceData(result, data, false)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

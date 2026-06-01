@@ -611,7 +611,7 @@ func TestAccObserveWorksheetCreate(t *testing.T) {
 	})
 }
 
-func TestAccObserveWorksheetEntityTags(t *testing.T) {
+func TestAccObserveWorksheetObjectTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -636,7 +636,7 @@ func TestAccObserveWorksheetEntityTags(t *testing.T) {
 					}]
 					EOF
 
-					entity_tags = {
+					object_tags = {
 						owner = "data-team"
 						type  = "analysis,reporting"
 					}
@@ -644,12 +644,12 @@ func TestAccObserveWorksheetEntityTags(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_worksheet.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.owner", "data-team"),
-					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.type", "analysis,reporting"),
+					resource.TestCheckResourceAttr("observe_worksheet.first", "object_tags.owner", "data-team"),
+					resource.TestCheckResourceAttr("observe_worksheet.first", "object_tags.type", "analysis,reporting"),
 				),
 			},
 			{
-				// Update entity_tags
+				// Update object_tags
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_worksheet" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -667,14 +667,14 @@ func TestAccObserveWorksheetEntityTags(t *testing.T) {
 					}]
 					EOF
 
-					entity_tags = {
+					object_tags = {
 						owner = "analytics-team"
 					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_worksheet.first", "entity_tags.owner", "analytics-team"),
-					resource.TestCheckNoResourceAttr("observe_worksheet.first", "entity_tags.type"),
+					resource.TestCheckResourceAttr("observe_worksheet.first", "object_tags.owner", "analytics-team"),
+					resource.TestCheckNoResourceAttr("observe_worksheet.first", "object_tags.type"),
 				),
 			},
 		},

@@ -62,15 +62,8 @@ func resourceBookmark() *schema.Resource {
 				ValidateDiagFunc: validateEnums(gql.AllBookmarkKindTypes),
 				DiffSuppressFunc: diffSuppressEnums,
 			},
-			"entity_tags": {
-				Type:             schema.TypeMap,
-				Optional:         true,
-				DiffSuppressFunc: diffSuppressEntityTagValues,
-				Description:      descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldOptional(),
+			"entity_tags": entityTagsSchemaFieldOptional(),
 		},
 	}
 }
@@ -97,17 +90,13 @@ func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, dia
 		input.BookmarkKind = &bookmarkKind
 	}
 
-	// Always set EntityTags, even if empty, to allow clearing tags
-	if v, ok := data.GetOk("entity_tags"); ok {
-		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
-	} else {
-		input.EntityTags = []gql.EntityTagMappingInput{}
-	}
+	// Always set ObjectTags, even if empty, to allow clearing tags
+	input.ObjectTags = objectTagsInputFromReader(data)
 
 	return input, diags
 }
 
-func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags diag.Diagnostics) {
+func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
 	if err := data.Set("name", b.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -142,8 +131,10 @@ func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags d
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("entity_tags", flattenEntityTagsToMap(b.EntityTags)); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, b.ObjectTags, mirrorDeprecatedTag); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		diags = append(diags, tagDiags...)
 	}
 
 	return diags
@@ -151,7 +142,8 @@ func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags d
 
 func resourceBookmarkCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newBookmarkConfig(data)
+	config, configDiags := newBookmarkConfig(data)
+	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
 	}
@@ -185,12 +177,13 @@ func resourceBookmarkRead(ctx context.Context, data *schema.ResourceData, meta i
 		})
 	}
 
-	return bookmarkToResourceData(result, data)
+	return bookmarkToResourceData(result, data, false)
 }
 
 func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newBookmarkConfig(data)
+	config, configDiags := newBookmarkConfig(data)
+	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
 	}
@@ -205,7 +198,7 @@ func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	return bookmarkToResourceData(result, data)
+	return bookmarkToResourceData(result, data, false)
 }
 
 func resourceBookmarkDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

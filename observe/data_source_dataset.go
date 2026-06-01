@@ -159,14 +159,8 @@ func dataSourceDataset() *schema.Resource {
 					},
 				},
 			},
-			"entity_tags": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldComputed(),
+			"entity_tags": entityTagsSchemaFieldComputed(),
 		},
 	}
 }
@@ -205,7 +199,7 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 	data.SetId(d.Id)
 
-	diags = datasetToResourceData(d, data)
+	diags = datasetToResourceData(d, data, true)
 	if d.CorrelationTagMappings != nil {
 		var cts []interface{}
 		for _, ct := range d.CorrelationTagMappings {

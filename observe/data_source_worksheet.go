@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceWorksheet() *schema.Resource {
@@ -51,14 +50,8 @@ func dataSourceWorksheet() *schema.Resource {
 				Computed:    true,
 				Description: schemaWorksheetJSONDescription,
 			},
-			"entity_tags": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldComputed(),
+			"entity_tags": entityTagsSchemaFieldComputed(),
 		},
 	}
 }
@@ -76,5 +69,5 @@ func dataSourceWorksheetRead(ctx context.Context, data *schema.ResourceData, met
 	}
 	data.SetId(ws.Id)
 
-	return worksheetToResourceData(ws, data)
+	return worksheetToResourceData(ws, data, true)
 }

@@ -12,7 +12,6 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 const (
@@ -60,15 +59,8 @@ func resourceWorksheet() *schema.Resource {
 				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaWorksheetJSONDescription,
 			},
-			"entity_tags": {
-				Type:             schema.TypeMap,
-				Optional:         true,
-				DiffSuppressFunc: diffSuppressEntityTagValues,
-				Description:      descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldOptional(),
+			"entity_tags": entityTagsSchemaFieldOptional(),
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -95,19 +87,15 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 		}
 	}
 
-	// Always set EntityTags, even if empty, to allow clearing tags
-	if v, ok := data.GetOk("entity_tags"); ok {
-		input.EntityTags = expandEntityTagsFromMap(v.(map[string]interface{}))
-	} else {
-		input.EntityTags = []gql.EntityTagMappingInput{}
-	}
+	// Always set ObjectTags, even if empty, to allow clearing tags
+	input.ObjectTags = objectTagsInputFromReader(data)
 
 	input.Visibility = asPointer(gql.ObjectVisibilityListed)
 
 	return input, diags
 }
 
-func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
+func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -147,8 +135,10 @@ func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags
 		}
 	}
 
-	if err := data.Set("entity_tags", flattenEntityTagsToMap(d.EntityTags)); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		diags = append(diags, tagDiags...)
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {
@@ -160,7 +150,8 @@ func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags
 
 func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newWorksheetConfig(data)
+	config, configDiags := newWorksheetConfig(data)
+	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
 	}
@@ -198,12 +189,13 @@ func resourceWorksheetRead(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	return worksheetToResourceData(result, data)
+	return worksheetToResourceData(result, data, false)
 }
 
 func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newWorksheetConfig(data)
+	config, configDiags := newWorksheetConfig(data)
+	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
 	}
@@ -222,7 +214,7 @@ func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	return worksheetToResourceData(result, data)
+	return worksheetToResourceData(result, data, false)
 }
 
 func resourceWorksheetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

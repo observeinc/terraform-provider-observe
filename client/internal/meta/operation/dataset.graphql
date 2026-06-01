@@ -72,8 +72,8 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	# @genqlient(typename: "EntityTagMapping")
-	entityTags {
+	# @genqlient(typename: "ObjectTagMapping")
+	objectTags {
 		key
 		values
 	}
