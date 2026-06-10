@@ -111,7 +111,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "workspace"),
 					resource.TestCheckResourceAttrSet("observe_dataset.first", "inputs.test"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "name", "THIS_VALUE_IS_INTENTIONALLY_WRONG_TO_TEST_SLACK_ALERT"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
