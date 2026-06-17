@@ -101,6 +101,7 @@ type AWSMetricsPollerConfig @goModel(model: "observe/meta/metatypes.AWSMetricsPo
 input AWSMetricsPollerConfigInput @goModel(model: "observe/meta/metatypes.AWSMetricsPollerConfigInput") {
     cloudWatchMetricsConfig: [AWSPollerMetricsInput!]!
     interval: Duration!
+    attachResourceTags: Boolean
 }
 
 

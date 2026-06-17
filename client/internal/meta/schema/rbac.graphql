@@ -41,9 +41,15 @@ extend type Query {
     rbacResourceStatements(ids: [ObjectId!]!): [RbacStatement!]!
 
     """
-    Get all RBAC resource statements for several resources at once
+    Get all RBAC resource statements for several resources at once.
+
+    If types is provided it must be the same length as ids, and types[i] is the
+    declared resource type of ids[i]. When supplied, statements are matched by
+    (id, type) so a grant whose declared type differs from the requested type is
+    not returned (the OB-61044 id-collision display bug). When omitted, matching
+    falls back to id alone for backwards compatibility.
     """
-    rbacResourceStatementsV2(ids: [RbacResourceId!]!): [RbacStatement!]!
+    rbacResourceStatementsV2(ids: [RbacResourceId!]!, types: [String!]): [RbacStatement!]!
 
     """
     Given a particular user, and a particular object/role request, return what would happen.

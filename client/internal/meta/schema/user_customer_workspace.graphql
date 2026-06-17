@@ -70,14 +70,7 @@ extend type Mutation {
     """
     inviteUser(user: UserInput!): String!
 
-    """
-    When creating a workspace, all users for the customer will be granted
-    access to it through the ACL system. This is because we don't yet have
-    a UI to deal with selective access.
-    """
-    createWorkspace(definition: WorkspaceInput!): Project @deprecated(reason: "each customer has exactly one workspace")
     updateWorkspace(id: ObjectId!, definition: WorkspaceInput!): Project
-    deleteWorkspace(id: ObjectId!): ResultStatus! @deprecated(reason: "each customer has exactly one workspace")
 
     """
     Blobs are arbitrary JSON structs (limited to 128 kB in size) stored with
@@ -459,10 +452,17 @@ type Bookmark @goModel(model: "observe/meta/metatypes.Bookmark") {
   userInfo: UserInfo! @goField(forceResolver:true)
   managedById: ObjectId
   bookmarkKind: BookmarkKind!
+
   """
+  Object tags for organizing and categorizing bookmarks.
+  """
+  objectTags: [ObjectTagMapping!]! @goField(forceResolver:true)
+
+  """
+  DEPRECATED: Use objectTags instead.
   Entity tags for organizing and categorizing bookmarks.
   """
-  entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+  entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
 }
 
 """
@@ -480,10 +480,17 @@ input BookmarkInput @goModel(model: "observe/meta/metatypes.BookmarkInput") {
   managedById: ObjectId
   workspaceId: ObjectId
   bookmarkKind: BookmarkKind
+
   """
+  Object tags for organizing and categorizing bookmarks.
+  """
+  objectTags: [ObjectTagMappingInput!]
+
+  """
+  DEPRECATED: Use objectTags instead.
   Entity tags for organizing and categorizing bookmarks.
   """
-  entityTags: [EntityTagMappingInput!]
+  entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 }
 
 type BookmarkGroup implements WorkspaceObject @goModel(model: "observe/meta/metatypes.BookmarkGroup") {

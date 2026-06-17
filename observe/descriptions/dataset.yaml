@@ -11,6 +11,8 @@ schema:
     paths between two datasets.
   on_demand_materialization_length: |
     The maximum on-demand materialization length for the dataset.
+    This is a deprecated field. The configuration has been migrated to the `Dataset.maximumOnDemandMaterializationDays` layered setting.
+    Changes to `on_demand_materialization_length` are no longer respected.
   acceleration_disabled: |
     Disables periodic materialization of the dataset
   acceleration_disabled_source: |

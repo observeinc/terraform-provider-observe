@@ -94,11 +94,11 @@ input LayeredSettingRecordsQueryInput @goModel(model: "observe/lsetting.LayeredS
     """
     This is for "the record lives in this workspace," NOT for "the record affects this workspace."
     """
-    workspaceId: ObjectId
+    workspaceId: ObjectId @deprecated(reason: "Setting records no longer have workspace ownership. This filter is ignored; use target.workspaceId for scope-based search.")
     """
     This is for "the record lives in this folder," NOT for "the record affects this folder."
     """
-    folderId: ObjectId
+    folderId: ObjectId @deprecated(reason: "Setting records no longer have folder ownership. This filter is ignored; use target.folderId for scope-based search.")
     """
     This is for "the record is managed by this object," NOT for "the record affects this object."
     """
@@ -185,10 +185,9 @@ input LayeredSettingRecordInput @goModel(model: "observe/lsetting.LayeredSetting
     """ This is the description of the settings record, not the description of the setting! """
     description: String
     iconUrl: String
-    workspaceId: ObjectId!
+    workspaceId: ObjectId @deprecated(reason: "Setting records no longer belong to a workspace. This field is ignored.")
     managedById: ObjectId @deprecated(reason: "managedById is no longer supported and will be ignored")
-
-    folderId: ObjectId
+    folderId: ObjectId @deprecated(reason: "Setting records no longer belong to a folder. This field is ignored.")
 }
 
 input SettingAndTargetScopeInput @goModel(model: "observe/lsetting.SettingAndTargetScopeInput") {
@@ -205,4 +204,3 @@ type DeletedLayeredSettingRecord @goModel(model: "observe/lsetting.DeletedLayere
     settingAndTargetScope: SettingAndTargetScope!
     id: ObjectId!
 }
-

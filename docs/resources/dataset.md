@@ -63,7 +63,9 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `freshness` (String) Target freshness for results. Tighten the freshness to increase the
 frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
-- `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
+- `on_demand_materialization_length` (String, Deprecated) The maximum on-demand materialization length for the dataset.
+This is a deprecated field. The configuration has been migrated to the `Dataset.maximumOnDemandMaterializationDays` layered setting.
+Changes to `on_demand_materialization_length` are no longer respected.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.

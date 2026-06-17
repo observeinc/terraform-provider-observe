@@ -85,8 +85,9 @@ func resourceDataset() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateDiagFunc: validateTimeDuration,
-				DiffSuppressFunc: diffSuppressTimeDuration,
+				DiffSuppressFunc: diffSuppressAlways,
 				Description:      descriptions.Get("dataset", "schema", "on_demand_materialization_length"),
+				Deprecated:       "the configuration of on_demand_materialization_length has been migrated to the Dataset.maximumOnDemandMaterializationDays layered setting. Changes to on_demand_materialization_length are no longer respected",
 			},
 			"freshness": {
 				Type:             schema.TypeString,
@@ -291,12 +292,6 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 		input.FreshnessDesired = types.Int64Scalar(t).Ptr()
 	}
 
-	if v, ok := data.GetOk("on_demand_materialization_length"); ok {
-		// we already validated in schema
-		t, _ := time.ParseDuration(v.(string))
-		input.OnDemandMaterializationLength = types.Int64Scalar(t).Ptr()
-	}
-
 	{
 		// always reset to empty string if description not set
 		input.Description = stringPtr(data.Get("description").(string))
@@ -354,12 +349,6 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 
 	if d.FreshnessDesired != nil {
 		if err := data.Set("freshness", d.FreshnessDesired.Duration().String()); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if d.OnDemandMaterializationLength != nil {
-		if err := data.Set("on_demand_materialization_length", d.OnDemandMaterializationLength.Duration().String()); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
