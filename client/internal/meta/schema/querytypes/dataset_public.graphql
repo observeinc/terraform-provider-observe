@@ -9,17 +9,13 @@ enum DatasetKind @goModel(model: "observe/compiler/comptypes.DatasetKind") {
 DatasetContentType describes the kind of data a dataset contains.
 This is a simplified replacement for the interface mechanism.
 """
-enum DatasetContentType @goModel(model: "observe/meta/metatypes.DatasetContentType") {
+enum DatasetContentType @goModel(model: "observe/compiler/comptypes.ContentType") {
     Unknown
     Resource
     Log
     Metric
-    MetricMetadata
     OTelSpan
     OTelTrace
-    ActionNotification
-    MergedNotification
-    MaterializedNotification
 }
 
 

@@ -1,5 +1,13 @@
 
 
+type LayeredCustomerAIAgent @goModel(model:"observe/meta/metatypes.LayeredCustomerAIAgent") {
+    memoriesEnabled: Boolean
+}
+
+input LayeredCustomerAIAgentInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAIAgentInput") {
+    memoriesEnabled: Boolean @goField(forceResolver: true)
+}
+
 type LayeredCustomerAIGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerAIGovernor") {
     hardLimitQuestionsPerDay: Int64
     softLimitQuestionsPerDay: Int64
@@ -167,6 +175,7 @@ input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatyp
 }
 
 type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
+    aIAgent: LayeredCustomerAIAgent!
     aIGovernor: LayeredCustomerAIGovernor!
     apps: LayeredCustomerApps!
     auth: LayeredCustomerAuth!
@@ -184,6 +193,7 @@ type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
 }
 
 input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
+    aIAgent: LayeredCustomerAIAgentInput
     aIGovernor: LayeredCustomerAIGovernorInput
     apps: LayeredCustomerAppsInput
     auth: LayeredCustomerAuthInput
@@ -628,6 +638,14 @@ extend type Mutation {
 }
 
 
+type LayeredUserAIAgent @goModel(model:"observe/meta/metatypes.LayeredUserAIAgent") {
+    memoriesEnabled: Boolean
+}
+
+input LayeredUserAIAgentInput @goModel(model:"observe/meta/metatypes.LayeredUserAIAgentInput") {
+    memoriesEnabled: Boolean @goField(forceResolver: true)
+}
+
 type LayeredUserAIGovernor @goModel(model:"observe/meta/metatypes.LayeredUserAIGovernor") {
     userHardLimitQuestionsPerDay: Int64
     userSoftLimitQuestionsPerDay: Int64
@@ -675,6 +693,7 @@ input LayeredUserScannerInput @goModel(model:"observe/meta/metatypes.LayeredUser
 }
 
 type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
+    aIAgent: LayeredUserAIAgent!
     aIGovernor: LayeredUserAIGovernor!
     auth: LayeredUserAuth!
     linkify: LayeredUserLinkify!
@@ -683,6 +702,7 @@ type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
 }
 
 input LayeredUserInput @goModel(model:"observe/meta/metatypes.LayeredUserInput") {
+    aIAgent: LayeredUserAIAgentInput
     aIGovernor: LayeredUserAIGovernorInput
     auth: LayeredUserAuthInput
     linkify: LayeredUserLinkifyInput

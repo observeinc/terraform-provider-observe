@@ -323,6 +323,7 @@ type Bookmark struct {
 	TargetIdKind ObjectKind   `json:"targetIdKind"`
 	GroupId      string       `json:"groupId"`
 	BookmarkKind BookmarkKind `json:"bookmarkKind"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing bookmarks.
 	EntityTags []EntityTagMapping `json:"entityTags"`
 }
@@ -432,6 +433,9 @@ type BookmarkInput struct {
 	ManagedById      *string          `json:"managedById"`
 	WorkspaceId      *string          `json:"workspaceId"`
 	BookmarkKind     *BookmarkKind    `json:"bookmarkKind"`
+	// Object tags for organizing and categorizing bookmarks.
+	ObjectTags []ObjectTagMappingInput `json:"objectTags"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing bookmarks.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 }
@@ -465,6 +469,9 @@ func (v *BookmarkInput) GetWorkspaceId() *string { return v.WorkspaceId }
 
 // GetBookmarkKind returns BookmarkInput.BookmarkKind, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetBookmarkKind() *BookmarkKind { return v.BookmarkKind }
+
+// GetObjectTags returns BookmarkInput.ObjectTags, and is useful for accessing the field via an interface.
+func (v *BookmarkInput) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
 
 // GetEntityTags returns BookmarkInput.EntityTags, and is useful for accessing the field via an interface.
 func (v *BookmarkInput) GetEntityTags() []EntityTagMappingInput { return v.EntityTags }
@@ -944,6 +951,7 @@ type Dashboard struct {
 	Stages          []DashboardStagesStageQuery                `json:"stages"`
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
 	ParameterValues []DashboardParameterValuesParameterBinding `json:"parameterValues"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing dashboards.
 	EntityTags []EntityTagMapping `json:"entityTags"`
 }
@@ -996,6 +1004,9 @@ type DashboardInput struct {
 	Links           []DashboardLinkInput    `json:"links"`
 	// Unlisted dashboards are not returned by dashboardSearch except for the creating user.
 	Visibility *ObjectVisibility `json:"visibility"`
+	// Object tags for organizing and categorizing dashboards.
+	ObjectTags []ObjectTagMappingInput `json:"objectTags"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing dashboards.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 }
@@ -1038,6 +1049,9 @@ func (v *DashboardInput) GetLinks() []DashboardLinkInput { return v.Links }
 
 // GetVisibility returns DashboardInput.Visibility, and is useful for accessing the field via an interface.
 func (v *DashboardInput) GetVisibility() *ObjectVisibility { return v.Visibility }
+
+// GetObjectTags returns DashboardInput.ObjectTags, and is useful for accessing the field via an interface.
+func (v *DashboardInput) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
 
 // GetEntityTags returns DashboardInput.EntityTags, and is useful for accessing the field via an interface.
 func (v *DashboardInput) GetEntityTags() []EntityTagMappingInput { return v.EntityTags }
@@ -1275,31 +1289,29 @@ func (v *DashboardStagesStageQueryInputInputDefinition) GetStageId() *string { r
 
 // Dataset includes the GraphQL fields of Dataset requested by the fragment Dataset.
 type Dataset struct {
-	WorkspaceId                string                     `json:"workspaceId"`
-	Id                         string                     `json:"id"`
-	Name                       string                     `json:"name"`
-	FreshnessDesired           *types.Int64Scalar         `json:"freshnessDesired"`
-	Description                *string                    `json:"description"`
-	IconUrl                    *string                    `json:"iconUrl"`
-	AccelerationDisabled       bool                       `json:"accelerationDisabled"`
-	AccelerationDisabledSource AccelerationDisabledSource `json:"accelerationDisabledSource"`
-	Version                    types.TimeScalar           `json:"version"`
-	LastSaved                  types.TimeScalar           `json:"lastSaved"`
-	PathCost                   *types.Int64Scalar         `json:"pathCost"`
-	Source                     *string                    `json:"source"`
-	ManagedById                *string                    `json:"managedById"`
-	// Optional custom configured override value of the on demand materialization
-	// range for the dataset.
-	OnDemandMaterializationLength *types.Int64Scalar                                   `json:"onDemandMaterializationLength"`
-	DataTableViewState            *types.JsonObject                                    `json:"dataTableViewState"`
-	StorageIntegrationId          *string                                              `json:"storageIntegrationId"`
-	ValidFromField                *string                                              `json:"validFromField"`
-	ValidToField                  *string                                              `json:"validToField"`
-	ForeignKeys                   []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
-	Transform                     *DatasetTransform                                    `json:"transform"`
-	Typedef                       DatasetTypedef                                       `json:"typedef"`
-	SourceTable                   *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
-	CorrelationTagMappings        []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
+	WorkspaceId                string                                               `json:"workspaceId"`
+	Id                         string                                               `json:"id"`
+	Name                       string                                               `json:"name"`
+	FreshnessDesired           *types.Int64Scalar                                   `json:"freshnessDesired"`
+	Description                *string                                              `json:"description"`
+	IconUrl                    *string                                              `json:"iconUrl"`
+	AccelerationDisabled       bool                                                 `json:"accelerationDisabled"`
+	AccelerationDisabledSource AccelerationDisabledSource                           `json:"accelerationDisabledSource"`
+	Version                    types.TimeScalar                                     `json:"version"`
+	LastSaved                  types.TimeScalar                                     `json:"lastSaved"`
+	PathCost                   *types.Int64Scalar                                   `json:"pathCost"`
+	Source                     *string                                              `json:"source"`
+	ManagedById                *string                                              `json:"managedById"`
+	DataTableViewState         *types.JsonObject                                    `json:"dataTableViewState"`
+	StorageIntegrationId       *string                                              `json:"storageIntegrationId"`
+	ValidFromField             *string                                              `json:"validFromField"`
+	ValidToField               *string                                              `json:"validToField"`
+	ForeignKeys                []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
+	Transform                  *DatasetTransform                                    `json:"transform"`
+	Typedef                    DatasetTypedef                                       `json:"typedef"`
+	SourceTable                *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
+	CorrelationTagMappings     []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing datasets.
 	EntityTags []EntityTagMapping `json:"entityTags"`
 }
@@ -1344,11 +1356,6 @@ func (v *Dataset) GetSource() *string { return v.Source }
 
 // GetManagedById returns Dataset.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dataset) GetManagedById() *string { return v.ManagedById }
-
-// GetOnDemandMaterializationLength returns Dataset.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
-func (v *Dataset) GetOnDemandMaterializationLength() *types.Int64Scalar {
-	return v.OnDemandMaterializationLength
-}
 
 // GetDataTableViewState returns Dataset.DataTableViewState, and is useful for accessing the field via an interface.
 func (v *Dataset) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
@@ -1613,13 +1620,13 @@ type DatasetInput struct {
 	FreshnessDecayDisabled *bool             `json:"freshnessDecayDisabled"`
 	DataTableViewState     *types.JsonObject `json:"dataTableViewState"`
 	StorageIntegrationId   *string           `json:"storageIntegrationId"`
-	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
-	// will use the default value in transformer config.
-	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
 	ManagedById *string `json:"managedById"`
 	// Optional list of rules to set the list of users and groups that can access the dataset
 	SharingRules []DatasetSharingRuleInput `json:"sharingRules"`
+	// Object tags for organizing and categorizing datasets.
+	ObjectTags []ObjectTagMappingInput `json:"objectTags"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing datasets.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 	// Defines the data retention of the dataset, in days. This will be applied to this dataset only
@@ -1690,16 +1697,14 @@ func (v *DatasetInput) GetDataTableViewState() *types.JsonObject { return v.Data
 // GetStorageIntegrationId returns DatasetInput.StorageIntegrationId, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
 
-// GetOnDemandMaterializationLength returns DatasetInput.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
-func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
-	return v.OnDemandMaterializationLength
-}
-
 // GetManagedById returns DatasetInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
 
 // GetSharingRules returns DatasetInput.SharingRules, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetSharingRules() []DatasetSharingRuleInput { return v.SharingRules }
+
+// GetObjectTags returns DatasetInput.ObjectTags, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
 
 // GetEntityTags returns DatasetInput.EntityTags, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetEntityTags() []EntityTagMappingInput { return v.EntityTags }
@@ -2438,8 +2443,9 @@ func (v *EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments
 // EntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
 // The GraphQL type's documentation follows.
 //
-// EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-// (datasets, dashboards, worksheets, monitors, etc.).
+// DEPRECATED: Use ObjectTagMapping instead.
+// EntityTagMapping represents a key-value mapping for entity tags.
+// Entity tags can be applied to dashboards, datasets, worksheets, etc.
 // Each mapping contains a tag key and a list of values associated with that key.
 type EntityTagMapping struct {
 	Key    string   `json:"key"`
@@ -2452,6 +2458,7 @@ func (v *EntityTagMapping) GetKey() string { return v.Key }
 // GetValues returns EntityTagMapping.Values, and is useful for accessing the field via an interface.
 func (v *EntityTagMapping) GetValues() []string { return v.Values }
 
+// DEPRECATED: Use ObjectTagMappingInput instead.
 // EntityTagMappingInput is the input type for EntityTagMapping.
 type EntityTagMappingInput struct {
 	Key    string   `json:"key"`
@@ -4944,7 +4951,7 @@ type LayeredSettingRecordInput struct {
 	// This is the description of the settings record, not the description of the setting!
 	Description *string `json:"description"`
 	IconUrl     *string `json:"iconUrl"`
-	WorkspaceId string  `json:"workspaceId"`
+	WorkspaceId *string `json:"workspaceId"`
 	ManagedById *string `json:"managedById,omitempty"`
 	FolderId    *string `json:"folderId"`
 }
@@ -4970,7 +4977,7 @@ func (v *LayeredSettingRecordInput) GetDescription() *string { return v.Descript
 func (v *LayeredSettingRecordInput) GetIconUrl() *string { return v.IconUrl }
 
 // GetWorkspaceId returns LayeredSettingRecordInput.WorkspaceId, and is useful for accessing the field via an interface.
-func (v *LayeredSettingRecordInput) GetWorkspaceId() string { return v.WorkspaceId }
+func (v *LayeredSettingRecordInput) GetWorkspaceId() *string { return v.WorkspaceId }
 
 // GetManagedById returns LayeredSettingRecordInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *LayeredSettingRecordInput) GetManagedById() *string { return v.ManagedById }
@@ -7182,6 +7189,21 @@ const (
 	MonitorV2AlarmLevelWarning       MonitorV2AlarmLevel = "Warning"
 )
 
+// MonitorV2AlarmMode controls how a monitor emits alarms across consecutive
+// evaluations.
+type MonitorV2AlarmMode string
+
+const (
+	// Each monitor evaluation that fires opens its own zero-duration alarm,
+	// independent of whether the previous evaluation asserted the same (group,
+	// level). This is the default behavior.
+	MonitorV2AlarmModePerrun MonitorV2AlarmMode = "PerRun"
+	// Consecutive monitor evaluations that re-assert the same (group, level)
+	// extend a single ongoing alarm, which remains active until an evaluation no
+	// longer asserts that level.
+	MonitorV2AlarmModeOngoing MonitorV2AlarmMode = "Ongoing"
+)
+
 // MonitorV2AnomalyRule includes the GraphQL fields of MonitorV2AnomalyRule requested by the fragment MonitorV2AnomalyRule.
 type MonitorV2AnomalyRule struct {
 	// ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
@@ -7220,6 +7242,7 @@ func (v *MonitorV2AnomalyRuleInput) GetCompareGroups() []MonitorV2ColumnComparis
 type MonitorV2AnomalyRuleTemplate struct {
 	// ComputationWindow describes the length of the window used to compute the average and the deviation.
 	// When not provided, the computation window will be dynamically chosen based on the lookbackTime provided.
+	// Must be between 1 hour and 7 days when provided.
 	ComputationWindow *types.DurationScalar `json:"computationWindow"`
 	// ValueColumnName indicates which of the columns in the input query to apply the basic algorithm and create
 	// bounds over.
@@ -7261,16 +7284,21 @@ func (v *MonitorV2AnomalyRuleTemplate) GetBasicAlgorithm() *types.JsonObject { r
 
 type MonitorV2AnomalyRuleTemplateInput struct {
 	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
+	Frequency             *types.DurationScalar            `json:"frequency"`
 	ValueColumnName       string                           `json:"valueColumnName"`
 	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
 	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
 	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm,omitempty"`
+	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetComputationWindow() *types.DurationScalar {
 	return v.ComputationWindow
 }
+
+// GetFrequency returns MonitorV2AnomalyRuleTemplateInput.Frequency, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetFrequency() *types.DurationScalar { return v.Frequency }
 
 // GetValueColumnName returns MonitorV2AnomalyRuleTemplateInput.ValueColumnName, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetValueColumnName() string { return v.ValueColumnName }
@@ -7288,6 +7316,20 @@ func (v *MonitorV2AnomalyRuleTemplateInput) GetNumStandardDeviations() types.Int
 // GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplateInput.BasicAlgorithm, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetBasicAlgorithm() *types.JsonObject {
 	return v.BasicAlgorithm
+}
+
+// GetBasicAlgorithmTyped returns MonitorV2AnomalyRuleTemplateInput.BasicAlgorithmTyped, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetBasicAlgorithmTyped() *MonitorV2BasicAlgorithmInput {
+	return v.BasicAlgorithmTyped
+}
+
+type MonitorV2BasicAlgorithmInput struct {
+	NumStandardDeviations types.Int64Scalar `json:"numStandardDeviations"`
+}
+
+// GetNumStandardDeviations returns MonitorV2BasicAlgorithmInput.NumStandardDeviations, and is useful for accessing the field via an interface.
+func (v *MonitorV2BasicAlgorithmInput) GetNumStandardDeviations() types.Int64Scalar {
+	return v.NumStandardDeviations
 }
 
 type MonitorV2BooleanOperator string
@@ -7356,8 +7398,9 @@ func (v *MonitorV2ColumnComparisonInput) GetColumn() MonitorV2ColumnInput { retu
 func (v *MonitorV2ColumnComparisonInput) GetOperator() *MonitorV2BooleanOperator { return v.Operator }
 
 type MonitorV2ColumnInput struct {
-	LinkColumn *MonitorV2LinkColumnInput `json:"linkColumn,omitempty"`
-	ColumnPath *MonitorV2ColumnPathInput `json:"columnPath,omitempty"`
+	LinkColumn     *MonitorV2LinkColumnInput     `json:"linkColumn,omitempty"`
+	ColumnPath     *MonitorV2ColumnPathInput     `json:"columnPath,omitempty"`
+	CorrelationTag *MonitorV2CorrelationTagInput `json:"correlationTag"`
 }
 
 // GetLinkColumn returns MonitorV2ColumnInput.LinkColumn, and is useful for accessing the field via an interface.
@@ -7365,6 +7408,11 @@ func (v *MonitorV2ColumnInput) GetLinkColumn() *MonitorV2LinkColumnInput { retur
 
 // GetColumnPath returns MonitorV2ColumnInput.ColumnPath, and is useful for accessing the field via an interface.
 func (v *MonitorV2ColumnInput) GetColumnPath() *MonitorV2ColumnPathInput { return v.ColumnPath }
+
+// GetCorrelationTag returns MonitorV2ColumnInput.CorrelationTag, and is useful for accessing the field via an interface.
+func (v *MonitorV2ColumnInput) GetCorrelationTag() *MonitorV2CorrelationTagInput {
+	return v.CorrelationTag
+}
 
 // MonitorV2ColumnPath includes the GraphQL fields of MonitorV2ColumnPath requested by the fragment MonitorV2ColumnPath.
 type MonitorV2ColumnPath struct {
@@ -7490,6 +7538,13 @@ func (v *MonitorV2ComparisonTermInput) GetComparison() MonitorV2ComparisonInput 
 // GetColumn returns MonitorV2ComparisonTermInput.Column, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonTermInput) GetColumn() MonitorV2ColumnInput { return v.Column }
 
+type MonitorV2CorrelationTagInput struct {
+	Tag string `json:"tag"`
+}
+
+// GetTag returns MonitorV2CorrelationTagInput.Tag, and is useful for accessing the field via an interface.
+func (v *MonitorV2CorrelationTagInput) GetTag() string { return v.Tag }
+
 // MonitorV2CountRule includes the GraphQL fields of MonitorV2CountRule requested by the fragment MonitorV2CountRule.
 type MonitorV2CountRule struct {
 	// CompareValues is a list of comparisons that provide an implicit AND where all comparisons must match.
@@ -7543,8 +7598,9 @@ func (v *MonitorV2CronSchedule) GetRawCron() *string { return v.RawCron }
 func (v *MonitorV2CronSchedule) GetTimezone() string { return v.Timezone }
 
 type MonitorV2CronScheduleInput struct {
-	RawCron  *string `json:"rawCron"`
-	Timezone string  `json:"timezone"`
+	RawCron   *string             `json:"rawCron"`
+	Timezone  string              `json:"timezone"`
+	AlarmMode *MonitorV2AlarmMode `json:"alarmMode"`
 }
 
 // GetRawCron returns MonitorV2CronScheduleInput.RawCron, and is useful for accessing the field via an interface.
@@ -7552,6 +7608,9 @@ func (v *MonitorV2CronScheduleInput) GetRawCron() *string { return v.RawCron }
 
 // GetTimezone returns MonitorV2CronScheduleInput.Timezone, and is useful for accessing the field via an interface.
 func (v *MonitorV2CronScheduleInput) GetTimezone() string { return v.Timezone }
+
+// GetAlarmMode returns MonitorV2CronScheduleInput.AlarmMode, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronScheduleInput) GetAlarmMode() *MonitorV2AlarmMode { return v.AlarmMode }
 
 // MonitorV2Definition includes the GraphQL fields of MonitorV2Definition requested by the fragment MonitorV2Definition.
 type MonitorV2Definition struct {
@@ -7641,16 +7700,17 @@ func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Sc
 func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
 
 type MonitorV2DefinitionInput struct {
-	InputQuery             MultiStageQueryInput        `json:"inputQuery"`
-	RuleTemplate           *MonitorV2RuleTemplateInput `json:"ruleTemplate,omitempty"`
-	NoDataRules            []MonitorV2NoDataRuleInput  `json:"noDataRules"`
-	Rules                  []MonitorV2RuleInput        `json:"rules"`
-	LookbackTime           *types.DurationScalar       `json:"lookbackTime"`
-	DataStabilizationDelay *types.DurationScalar       `json:"dataStabilizationDelay,omitempty"`
-	MaxAlertsPerHour       *types.Int64Scalar          `json:"maxAlertsPerHour,omitempty"`
-	Groupings              []MonitorV2ColumnInput      `json:"groupings"`
-	Scheduling             *MonitorV2SchedulingInput   `json:"scheduling"`
-	CustomVariables        *types.JsonObject           `json:"customVariables"`
+	InputQuery             MultiStageQueryInput           `json:"inputQuery"`
+	RuleTemplate           *MonitorV2RuleTemplateInput    `json:"ruleTemplate,omitempty"`
+	NoDataRules            []MonitorV2NoDataRuleInput     `json:"noDataRules"`
+	Rules                  []MonitorV2RuleInput           `json:"rules"`
+	LookbackTime           *types.DurationScalar          `json:"lookbackTime"`
+	DataStabilizationDelay *types.DurationScalar          `json:"dataStabilizationDelay,omitempty"`
+	MaxAlertsPerHour       *types.Int64Scalar             `json:"maxAlertsPerHour,omitempty"`
+	Groupings              []MonitorV2ColumnInput         `json:"groupings"`
+	Scheduling             *MonitorV2SchedulingInput      `json:"scheduling"`
+	CustomVariables        *types.JsonObject              `json:"customVariables"`
+	ServiceBindings        []MonitorV2ServiceBindingInput `json:"serviceBindings"`
 }
 
 // GetInputQuery returns MonitorV2DefinitionInput.InputQuery, and is useful for accessing the field via an interface.
@@ -7688,6 +7748,11 @@ func (v *MonitorV2DefinitionInput) GetScheduling() *MonitorV2SchedulingInput { r
 
 // GetCustomVariables returns MonitorV2DefinitionInput.CustomVariables, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInput) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
+
+// GetServiceBindings returns MonitorV2DefinitionInput.ServiceBindings, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInput) GetServiceBindings() []MonitorV2ServiceBindingInput {
+	return v.ServiceBindings
+}
 
 // MonitorV2DefinitionInputQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorV2DefinitionInputQueryMultiStageQuery struct {
@@ -8133,6 +8198,21 @@ type MonitorV2SearchResult struct {
 
 // GetResults returns MonitorV2SearchResult.Results, and is useful for accessing the field via an interface.
 func (v *MonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
+
+type MonitorV2ServiceBindingInput struct {
+	ServiceName *string `json:"serviceName"`
+	Environment *string `json:"environment"`
+	Namespace   *string `json:"namespace"`
+}
+
+// GetServiceName returns MonitorV2ServiceBindingInput.ServiceName, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingInput) GetServiceName() *string { return v.ServiceName }
+
+// GetEnvironment returns MonitorV2ServiceBindingInput.Environment, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingInput) GetEnvironment() *string { return v.Environment }
+
+// GetNamespace returns MonitorV2ServiceBindingInput.Namespace, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingInput) GetNamespace() *string { return v.Namespace }
 
 // MonitorV2ThresholdRule includes the GraphQL fields of MonitorV2ThresholdRule requested by the fragment MonitorV2ThresholdRule.
 type MonitorV2ThresholdRule struct {
@@ -8638,6 +8718,18 @@ const (
 	ObjectKindDashboard     ObjectKind = "Dashboard"
 )
 
+// ObjectTagMappingInput is the input type for ObjectTagMapping.
+type ObjectTagMappingInput struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
+// GetKey returns ObjectTagMappingInput.Key, and is useful for accessing the field via an interface.
+func (v *ObjectTagMappingInput) GetKey() string { return v.Key }
+
+// GetValues returns ObjectTagMappingInput.Values, and is useful for accessing the field via an interface.
+func (v *ObjectTagMappingInput) GetValues() []string { return v.Values }
+
 type ObjectVisibility string
 
 const (
@@ -8891,11 +8983,12 @@ func (v *PollerCloudWatchMetricsDimensionFilterInput) GetName() string { return 
 func (v *PollerCloudWatchMetricsDimensionFilterInput) GetValue() *string { return v.Value }
 
 type PollerCloudWatchMetricsInput struct {
-	Period        types.Int64Scalar                   `json:"period"`
-	Delay         types.Int64Scalar                   `json:"delay"`
-	Queries       []PollerCloudWatchMetricsQueryInput `json:"queries"`
-	Region        string                              `json:"region"`
-	AssumeRoleArn string                              `json:"assumeRoleArn"`
+	Period             types.Int64Scalar                   `json:"period"`
+	Delay              types.Int64Scalar                   `json:"delay"`
+	Queries            []PollerCloudWatchMetricsQueryInput `json:"queries"`
+	Region             string                              `json:"region"`
+	AssumeRoleArn      string                              `json:"assumeRoleArn"`
+	AttachResourceTags *bool                               `json:"attachResourceTags"`
 }
 
 // GetPeriod returns PollerCloudWatchMetricsInput.Period, and is useful for accessing the field via an interface.
@@ -8914,6 +9007,9 @@ func (v *PollerCloudWatchMetricsInput) GetRegion() string { return v.Region }
 
 // GetAssumeRoleArn returns PollerCloudWatchMetricsInput.AssumeRoleArn, and is useful for accessing the field via an interface.
 func (v *PollerCloudWatchMetricsInput) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
+// GetAttachResourceTags returns PollerCloudWatchMetricsInput.AttachResourceTags, and is useful for accessing the field via an interface.
+func (v *PollerCloudWatchMetricsInput) GetAttachResourceTags() *bool { return v.AttachResourceTags }
 
 type PollerCloudWatchMetricsQueryInput struct {
 	Namespace      string                                        `json:"namespace"`
@@ -11501,6 +11597,7 @@ type Worksheet struct {
 	ManagedById *string      `json:"managedById"`
 	WorkspaceId string       `json:"workspaceId"`
 	Stages      []StageQuery `json:"stages"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing worksheets.
 	EntityTags []EntityTagMapping `json:"entityTags"`
 }
@@ -11552,6 +11649,9 @@ type WorksheetInput struct {
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 	// Unlisted worksheets are not returned by worksheetSearch except for the creating user.
 	Visibility *ObjectVisibility `json:"visibility"`
+	// Object tags for organizing and categorizing worksheets.
+	ObjectTags []ObjectTagMappingInput `json:"objectTags"`
+	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing worksheets.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 	Label      *string                 `json:"label"`
@@ -11590,6 +11690,9 @@ func (v *WorksheetInput) GetParameterValues() []ParameterBindingInput { return v
 
 // GetVisibility returns WorksheetInput.Visibility, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetVisibility() *ObjectVisibility { return v.Visibility }
+
+// GetObjectTags returns WorksheetInput.ObjectTags, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
 
 // GetEntityTags returns WorksheetInput.EntityTags, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetEntityTags() []EntityTagMappingInput { return v.EntityTags }
@@ -11992,14 +12095,6 @@ func (v *__createSnowflakeOutboundShareInput) GetWorkspaceId() string { return v
 // GetInput returns __createSnowflakeOutboundShareInput.Input, and is useful for accessing the field via an interface.
 func (v *__createSnowflakeOutboundShareInput) GetInput() SnowflakeOutboundShareInput { return v.Input }
 
-// __createWorkspaceInput is used internally by genqlient
-type __createWorkspaceInput struct {
-	Config WorkspaceInput `json:"config"`
-}
-
-// GetConfig returns __createWorkspaceInput.Config, and is useful for accessing the field via an interface.
-func (v *__createWorkspaceInput) GetConfig() WorkspaceInput { return v.Config }
-
 // __deleteAppDataSourceInput is used internally by genqlient
 type __deleteAppDataSourceInput struct {
 	Id string `json:"id"`
@@ -12251,14 +12346,6 @@ type __deleteWorksheetInput struct {
 
 // GetId returns __deleteWorksheetInput.Id, and is useful for accessing the field via an interface.
 func (v *__deleteWorksheetInput) GetId() string { return v.Id }
-
-// __deleteWorkspaceInput is used internally by genqlient
-type __deleteWorkspaceInput struct {
-	Id string `json:"id"`
-}
-
-// GetId returns __deleteWorkspaceInput.Id, and is useful for accessing the field via an interface.
-func (v *__deleteWorkspaceInput) GetId() string { return v.Id }
 
 // __getAppDataSourceInput is used internally by genqlient
 type __getAppDataSourceInput struct {
@@ -13702,17 +13789,6 @@ type createSnowflakeOutboundShareResponse struct {
 // GetShare returns createSnowflakeOutboundShareResponse.Share, and is useful for accessing the field via an interface.
 func (v *createSnowflakeOutboundShareResponse) GetShare() SnowflakeOutboundShare { return v.Share }
 
-// createWorkspaceResponse is returned by createWorkspace on success.
-type createWorkspaceResponse struct {
-	// When creating a workspace, all users for the customer will be granted
-	// access to it through the ACL system. This is because we don't yet have
-	// a UI to deal with selective access.
-	Workspace *Workspace `json:"workspace"`
-}
-
-// GetWorkspace returns createWorkspaceResponse.Workspace, and is useful for accessing the field via an interface.
-func (v *createWorkspaceResponse) GetWorkspace() *Workspace { return v.Workspace }
-
 // currentUserResponse is returned by currentUser on success.
 type currentUserResponse struct {
 	User *User `json:"user"`
@@ -13983,14 +14059,6 @@ type deleteWorksheetResponse struct {
 
 // GetResultStatus returns deleteWorksheetResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *deleteWorksheetResponse) GetResultStatus() *ResultStatus { return v.ResultStatus }
-
-// deleteWorkspaceResponse is returned by deleteWorkspace on success.
-type deleteWorkspaceResponse struct {
-	ResultStatus ResultStatus `json:"resultStatus"`
-}
-
-// GetResultStatus returns deleteWorkspaceResponse.ResultStatus, and is useful for accessing the field via an interface.
-func (v *deleteWorkspaceResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // errorFields includes the GraphQL fields of TaskResultError requested by the fragment errorFields.
 // The GraphQL type's documentation follows.
@@ -17999,45 +18067,6 @@ func createSnowflakeOutboundShare(
 	return &data, err
 }
 
-// The query or mutation executed by createWorkspace.
-const createWorkspace_Operation = `
-mutation createWorkspace ($config: WorkspaceInput!) {
-	workspace: createWorkspace(definition: $config) {
-		... Workspace
-	}
-}
-fragment Workspace on Project {
-	id
-	label
-}
-`
-
-func createWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	config WorkspaceInput,
-) (*createWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "createWorkspace",
-		Query:  createWorkspace_Operation,
-		Variables: &__createWorkspaceInput{
-			Config: config,
-		},
-	}
-	var err error
-
-	var data createWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 // The query or mutation executed by currentUser.
 const currentUser_Operation = `
 query currentUser {
@@ -19319,46 +19348,6 @@ func deleteWorksheet(
 	return &data, err
 }
 
-// The query or mutation executed by deleteWorkspace.
-const deleteWorkspace_Operation = `
-mutation deleteWorkspace ($id: ObjectId!) {
-	resultStatus: deleteWorkspace(id: $id) {
-		... ResultStatus
-	}
-}
-fragment ResultStatus on ResultStatus {
-	success
-	errorMessage
-	detailedInfo
-}
-`
-
-func deleteWorkspace(
-	ctx context.Context,
-	client graphql.Client,
-	id string,
-) (*deleteWorkspaceResponse, error) {
-	req := &graphql.Request{
-		OpName: "deleteWorkspace",
-		Query:  deleteWorkspace_Operation,
-		Variables: &__deleteWorkspaceInput{
-			Id: id,
-		},
-	}
-	var err error
-
-	var data deleteWorkspaceResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 // The query or mutation executed by getApp.
 const getApp_Operation = `
 query getApp ($id: ObjectId!) {
@@ -19958,7 +19947,6 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
-	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -22183,7 +22171,6 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
-	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -22518,7 +22505,6 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
-	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -23526,7 +23512,6 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
-	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -24462,7 +24447,6 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
-	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField

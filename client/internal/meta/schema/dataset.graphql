@@ -365,10 +365,18 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     tags: [TagMapping!] @goField(forceResolver: true)
+
     """
+    Object tags for organizing and categorizing datasets.
+    """
+    objectTags: [ObjectTagMapping!]! @goField(forceResolver:true)
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing datasets.
     """
-    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+    entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
+
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time!
     isSourceDataset: Boolean
@@ -406,11 +414,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
-    """
-    Optional custom configured override value of the on demand materialization
-    range for the dataset.
-    """
-    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     defaultDashboardId: ObjectId @goField(forceResolver: true)
     defaultInstanceDashboardId: ObjectId @goField(forceResolver: true)
@@ -433,6 +436,13 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     hibernatedAt: Time @goField(forceResolver:true)
 
     logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true)
+
+    """
+    Returns the configured data retention period (in days) for this dataset.
+    The effective retention period may be different than this value and it is
+    available in the AccelerationInfo object of this dataset.
+    """
+    dataRetentionDays: Int64 @goField(omittable: true)
 
     datasetDefinitionType: DatasetDefinitionType
 
@@ -608,11 +618,6 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     freshnessDecayDisabled: Boolean
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
-    """
-    Max on-demand materialization length for the dataset (in nanoseconds). If not set
-    will use the default value in transformer config.
-    """
-    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     """
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.
@@ -625,9 +630,15 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     sharingRules: [DatasetSharingRuleInput!]
 
     """
+    Object tags for organizing and categorizing datasets.
+    """
+    objectTags: [ObjectTagMappingInput!]
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing datasets.
     """
-    entityTags: [EntityTagMappingInput!]
+    entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 
 
     """
