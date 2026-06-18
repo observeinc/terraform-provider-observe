@@ -11,28 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-var (
-	// common to all configs
-	defaultWorkspaceName = getenv("OBSERVE_WORKSPACE", "Default")
-	configPreamble       = fmt.Sprintf(`
-				data "observe_workspace" "default" {
-					name = "%s"
-				}`, defaultWorkspaceName)
-
-	// config preamble that creates a datastream without specifying workspace
-	datastreamNoWorkspacePreamble = `
-	resource "observe_datastream" "test_no_ws" {
-		name = "%[1]s"
-	}`
-)
-
-func getenv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
 func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -1442,6 +1420,16 @@ func TestAccObserveDatasetNoWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.no_ws", "name", randomPrefix+"-no-ws"),
 				),
 			},
+			testAccPlanOnlyNoDriftStep(fmt.Sprintf(datastreamNoWorkspacePreamble+`
+				resource "observe_dataset" "no_ws" {
+					name = "%[1]s-no-ws"
+
+					inputs = {
+						"test" = observe_datastream.test_no_ws.dataset
+					}
+
+					stage {}
+				}`, randomPrefix)),
 		},
 	})
 }

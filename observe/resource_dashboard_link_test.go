@@ -94,12 +94,7 @@ func TestAccDashboardLinkWithoutFolderOrWorkspace(t *testing.T) {
 	randomPrefix := "tf" + acctest.RandString(20)
 	t.Log("random prefix=", randomPrefix)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(linkConfigPreamble+`
+	config := fmt.Sprintf(linkConfigPreamble+`
 				resource "observe_folder" "default" {
 					workspace  = data.observe_workspace.default.oid
 					name       = "%[1]s"
@@ -143,7 +138,14 @@ func TestAccDashboardLinkWithoutFolderOrWorkspace(t *testing.T) {
 					from_dashboard = observe_dashboard.a_to_b.oid
 					to_dashboard   = observe_dashboard.b_to_a.oid
 					link_label     = "going nowhere"
-				}`, randomPrefix),
+				}`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_dashboard_link.example_without_folder_or_workspace", "workspace"),
 					resource.TestCheckResourceAttrSet("observe_dashboard_link.example_without_folder_or_workspace", "folder"),
@@ -151,6 +153,7 @@ func TestAccDashboardLinkWithoutFolderOrWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dashboard_link.example_without_folder_or_workspace", "link_label", "going nowhere"),
 				),
 			},
+			testAccPlanOnlyNoDriftStep(config),
 		},
 	})
 
