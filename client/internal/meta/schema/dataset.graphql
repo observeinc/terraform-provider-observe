@@ -414,6 +414,11 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
+    """
+    Optional custom configured override value of the on demand materialization
+    range for the dataset.
+    """
+    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead") @eol
 
     defaultDashboardId: ObjectId @goField(forceResolver: true)
     defaultInstanceDashboardId: ObjectId @goField(forceResolver: true)
@@ -618,6 +623,11 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     freshnessDecayDisabled: Boolean
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
+    """
+    Max on-demand materialization length for the dataset (in nanoseconds). If not set
+    will use the default value in transformer config.
+    """
+    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead") @eol
 
     """
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.

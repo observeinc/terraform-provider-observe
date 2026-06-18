@@ -74,6 +74,11 @@ func dataSourceDataset() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("dataset", "schema", "path_cost"),
 			},
+			"on_demand_materialization_length": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "on_demand_materialization_length"),
+			},
 			"freshness": {
 				Type:        schema.TypeString,
 				Computed:    true,

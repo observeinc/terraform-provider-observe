@@ -1289,28 +1289,31 @@ func (v *DashboardStagesStageQueryInputInputDefinition) GetStageId() *string { r
 
 // Dataset includes the GraphQL fields of Dataset requested by the fragment Dataset.
 type Dataset struct {
-	WorkspaceId                string                                               `json:"workspaceId"`
-	Id                         string                                               `json:"id"`
-	Name                       string                                               `json:"name"`
-	FreshnessDesired           *types.Int64Scalar                                   `json:"freshnessDesired"`
-	Description                *string                                              `json:"description"`
-	IconUrl                    *string                                              `json:"iconUrl"`
-	AccelerationDisabled       bool                                                 `json:"accelerationDisabled"`
-	AccelerationDisabledSource AccelerationDisabledSource                           `json:"accelerationDisabledSource"`
-	Version                    types.TimeScalar                                     `json:"version"`
-	LastSaved                  types.TimeScalar                                     `json:"lastSaved"`
-	PathCost                   *types.Int64Scalar                                   `json:"pathCost"`
-	Source                     *string                                              `json:"source"`
-	ManagedById                *string                                              `json:"managedById"`
-	DataTableViewState         *types.JsonObject                                    `json:"dataTableViewState"`
-	StorageIntegrationId       *string                                              `json:"storageIntegrationId"`
-	ValidFromField             *string                                              `json:"validFromField"`
-	ValidToField               *string                                              `json:"validToField"`
-	ForeignKeys                []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
-	Transform                  *DatasetTransform                                    `json:"transform"`
-	Typedef                    DatasetTypedef                                       `json:"typedef"`
-	SourceTable                *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
-	CorrelationTagMappings     []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
+	WorkspaceId                string                     `json:"workspaceId"`
+	Id                         string                     `json:"id"`
+	Name                       string                     `json:"name"`
+	FreshnessDesired           *types.Int64Scalar         `json:"freshnessDesired"`
+	Description                *string                    `json:"description"`
+	IconUrl                    *string                    `json:"iconUrl"`
+	AccelerationDisabled       bool                       `json:"accelerationDisabled"`
+	AccelerationDisabledSource AccelerationDisabledSource `json:"accelerationDisabledSource"`
+	Version                    types.TimeScalar           `json:"version"`
+	LastSaved                  types.TimeScalar           `json:"lastSaved"`
+	PathCost                   *types.Int64Scalar         `json:"pathCost"`
+	Source                     *string                    `json:"source"`
+	ManagedById                *string                    `json:"managedById"`
+	// Optional custom configured override value of the on demand materialization
+	// range for the dataset.
+	OnDemandMaterializationLength *types.Int64Scalar                                   `json:"onDemandMaterializationLength"`
+	DataTableViewState            *types.JsonObject                                    `json:"dataTableViewState"`
+	StorageIntegrationId          *string                                              `json:"storageIntegrationId"`
+	ValidFromField                *string                                              `json:"validFromField"`
+	ValidToField                  *string                                              `json:"validToField"`
+	ForeignKeys                   []DatasetForeignKeysForeignKey                       `json:"foreignKeys"`
+	Transform                     *DatasetTransform                                    `json:"transform"`
+	Typedef                       DatasetTypedef                                       `json:"typedef"`
+	SourceTable                   *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
+	CorrelationTagMappings        []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
 	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing datasets.
 	EntityTags []EntityTagMapping `json:"entityTags"`
@@ -1356,6 +1359,11 @@ func (v *Dataset) GetSource() *string { return v.Source }
 
 // GetManagedById returns Dataset.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dataset) GetManagedById() *string { return v.ManagedById }
+
+// GetOnDemandMaterializationLength returns Dataset.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
+func (v *Dataset) GetOnDemandMaterializationLength() *types.Int64Scalar {
+	return v.OnDemandMaterializationLength
+}
 
 // GetDataTableViewState returns Dataset.DataTableViewState, and is useful for accessing the field via an interface.
 func (v *Dataset) GetDataTableViewState() *types.JsonObject { return v.DataTableViewState }
@@ -1620,6 +1628,9 @@ type DatasetInput struct {
 	FreshnessDecayDisabled *bool             `json:"freshnessDecayDisabled"`
 	DataTableViewState     *types.JsonObject `json:"dataTableViewState"`
 	StorageIntegrationId   *string           `json:"storageIntegrationId"`
+	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
+	// will use the default value in transformer config.
+	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
 	ManagedById *string `json:"managedById"`
 	// Optional list of rules to set the list of users and groups that can access the dataset
@@ -1696,6 +1707,11 @@ func (v *DatasetInput) GetDataTableViewState() *types.JsonObject { return v.Data
 
 // GetStorageIntegrationId returns DatasetInput.StorageIntegrationId, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
+
+// GetOnDemandMaterializationLength returns DatasetInput.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
+	return v.OnDemandMaterializationLength
+}
 
 // GetManagedById returns DatasetInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
@@ -19947,6 +19963,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -22171,6 +22188,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -22505,6 +22523,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -23512,6 +23531,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField
@@ -24447,6 +24467,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField

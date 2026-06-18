@@ -51,6 +51,7 @@ frequency with which queries are run, which incurs higher transform costs.
 stage pipelines.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
+- `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.

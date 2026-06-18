@@ -114,6 +114,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
@@ -126,6 +127,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					workspace                        = data.observe_workspace.default.oid
 					name 	                         = "%[1]s-rename"
 					freshness                        = "1m"
+					on_demand_materialization_length = "48h39s"
 					path_cost                        = "1"
 
 					inputs = {
@@ -150,6 +152,7 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					// On demand mat length has a daily resolution
 					// So whatever the user sets here, we will round up the amount of days
 					// In this case, 48h39s is rounded up to 72h
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "72h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", "make_col x:1\n"),
@@ -157,6 +160,30 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "data_table_view_state", "{\"viewType\":\"Auto\"}"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
 				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+				resource "observe_dataset" "first" {
+					workspace                        = data.observe_workspace.default.oid
+					name 	                         = "%[1]s-rename"
+					freshness                        = "1m"
+					on_demand_materialization_length = "48h0m39s"
+					path_cost                        = 1
+
+					inputs = {
+						"test" = observe_datastream.test.dataset
+					}
+
+					acceleration_disabled = true
+					acceleration_disabled_source = "view"
+
+					stage {
+						pipeline = <<-EOF
+							make_col x:1
+						EOF
+					}
+				}`, randomPrefix),
+				Check: resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "72h0m0s"),
 			},
 		},
 	})
@@ -541,6 +568,7 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -568,6 +596,7 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "must_skip_rematerialization"),
 				),
@@ -614,6 +643,7 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -659,6 +689,7 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "rematerialize"),
 				),
@@ -697,6 +728,7 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -754,6 +786,7 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -781,6 +814,7 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
 				),

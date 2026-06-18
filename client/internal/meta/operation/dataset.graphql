@@ -12,6 +12,7 @@ fragment Dataset on Dataset {
 	pathCost
 	source
 	managedById
+	onDemandMaterializationLength
 	dataTableViewState
 	storageIntegrationId
 	validFromField

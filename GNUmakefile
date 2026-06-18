@@ -76,7 +76,7 @@ copy-gql-schema:
 	# The (?<!directive ) excludes the @eol directive definition.
 	# The (?! +""") prevents the description match from greedily spanning into adjacent
 	# fields when the @eol field is not directly preceded by its own description block.
-	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n +"""\n(?:(?! +""").+\n)+? +""")?\n.+(?<!directive )\@eol.*//g'
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n +"""\n(?:(?! +""").+\n)+? +""")?\n(?!.*onDemandMaterializationLength).+(?<!directive )\@eol.*//g'
 
 	# Strip out @owner directives from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @owner([^)]*)//g'
