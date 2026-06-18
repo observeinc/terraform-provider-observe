@@ -3,6 +3,7 @@ package observe
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -578,12 +579,13 @@ func TestAccObserveSourceDatasetNoWorkspace(t *testing.T) {
 	}
 
 	randomPrefix := acctest.RandomWithPrefix("tf")
+	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
 	config := fmt.Sprintf(`
 		resource "observe_source_dataset" "no_ws" {
 			name                     = "%[1]s"
 			schema                   = "EXTERNAL"
-			table_name               = "%[1]s_TABLE_NAME"
-			source_update_table_name = "%[1]s_SOURCE_UPDATE_TABLE_NAME"
+			table_name               = "%[2]s_TABLE_NAME"
+			source_update_table_name = "%[2]s_SOURCE_UPDATE_TABLE_NAME"
 			valid_from_field         = "TIMESTAMP"
 
 			field {
@@ -592,7 +594,7 @@ func TestAccObserveSourceDatasetNoWorkspace(t *testing.T) {
 				sql_type = "NUMBER(38,0)"
 			}
 		}
-	`, randomPrefix)
+	`, randomPrefix, randomTablePrefix)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
