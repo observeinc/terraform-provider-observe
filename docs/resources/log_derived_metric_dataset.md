@@ -201,7 +201,6 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
 - `aggregation` (Block List, Min: 1, Max: 1) Aggregation configuration for the log-derived metric. (see [below for nested schema](#nestedblock--aggregation))
 - `input` (String) OID of the source dataset to derive metrics from.
 - `metric_name` (String) The name of the derived metric.
-- `workspace` (String) OID of the workspace this object is contained in.
 
 ### Optional
 
@@ -217,6 +216,9 @@ identifying the source column. Tags become grouping dimensions on the resulting 
 - `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. Defaults to
 `filter true`, which leaves the input rows unchanged before aggregation.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").
+- `workspace` (String, Deprecated) OID of the workspace this object is contained in.
+This field is optional and deprecated. Since each customer has exactly
+one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 

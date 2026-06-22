@@ -117,6 +117,35 @@ func TestAccObserveDropFilterNoWorkspace(t *testing.T) {
 	})
 }
 
+func TestAccObserveLogDerivedMetricDatasetNoWorkspace(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	config := fmt.Sprintf(datastreamNoWorkspacePreamble+`
+		resource "observe_log_derived_metric_dataset" "no_ws" {
+			description = "no workspace test"
+			metric_name = "error_count"
+			metric_type = "gauge"
+			unit        = "1"
+			interval    = "1m"
+			input       = observe_datastream.test_no_ws.dataset
+
+			aggregation {
+				function = "count"
+			}
+		}`, randomPrefix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: testAccNoWorkspaceSteps(config,
+			resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.no_ws", "description", "no workspace test"),
+			resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.no_ws", "metric_name", "error_count"),
+			resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.no_ws", "metric_type", "gauge"),
+			resource.TestCheckResourceAttr("observe_log_derived_metric_dataset.no_ws", "aggregation.0.function", "count"),
+			resource.TestCheckResourceAttrSet("observe_log_derived_metric_dataset.no_ws", "oid"),
+		),
+	})
+}
+
 func TestAccObserveLinkNoWorkspace(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	config := fmt.Sprintf(linkConfigNoWorkspacePreamble(randomPrefix)+`
