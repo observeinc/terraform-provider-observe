@@ -53,6 +53,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     referencetable
     report
     serviceaccount
+    skill
     snowflakeshareoutbound
     storageintegration
     user

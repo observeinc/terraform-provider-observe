@@ -4,7 +4,7 @@ RematerializationAction is used to control the rematerialization behavior of con
 enum RematerializationAction @goModel(model: "observe/meta/metatypes.RematerializationAction") {
   """
   AbortOnRematerialization aborts the content upgrade if any rematerialization was to occur in
-  the datasets. This means even the downstream datasets that are outside of the content datasets 
+  the datasets. This means even the downstream datasets that are outside of the content datasets
   being rematerialized will cause the content upgrade to rollback.
   """
   AbortOnRematerialization
@@ -31,7 +31,7 @@ extend type Mutation {
       ensures the right set of correlation tags is present on this dataset.
     - The k8s entity dataset that the explorer fetches entity data from.
   """
-  updateKubernetesContent(input: KubernetesContentInput!): KubernetesContent!
+  updateKubernetesContent(input: KubernetesContentInput!, rematerializationAction: RematerializationAction): KubernetesContent!
 
   """
   Delete the Kubernetes Content for the current customer.
@@ -204,6 +204,18 @@ type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
   errorTrackingMetricsDatasetId: ObjectId!
 
   traceDatasetId: ObjectId!
+
+  """
+  Optional ObjectId of the dataset that the Trace Inspector's related-logs
+  panel should default to when showing logs for a span. This reflects the
+  customer-level value of the APM.traceInspectorRelatedLogsDataset layered
+  setting. Null means no preference is configured and clients should fall
+  back to the default Span Event dataset for OTel-based traces. Customers
+  using a custom logging dataset (for example Logs/explorer-logs) can set
+  this via the layered settings API or Terraform's
+  observe_layered_setting_record resource.
+  """
+  traceInspectorRelatedLogsDatasetId: ObjectId
 
   options: [TracingContentOption!]
 }

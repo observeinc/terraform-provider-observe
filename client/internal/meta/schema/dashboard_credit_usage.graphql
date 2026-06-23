@@ -1,0 +1,65 @@
+extend type Dashboard {
+    """
+    Contains information about the credit usage of the dashboard
+    """
+    creditUsage: DashboardCreditUsage! @goField(forceResolver: true)
+}
+
+
+type DashboardCreditUsage @goModel(model: "observe/meta/metatypes.DashboardCreditUsage") {
+    """
+    A list of tuples containing recent credit usage for a dashboard.  Returns 7 full days and the current partial day in UTC time.
+    This is up to 8 buckets; 7 full days and the current partial day.
+    Days without usage are not included.
+    """
+    dailyUsages: [CreditUsageTuple!]!
+
+    """
+    A list of tuples containing hourly credit usage for a dashboard. Returns the past 7 full days and current partial day in UTC time.
+    This is up to 24 * 7 + 24 = 192 buckets.
+    Hours without usage are not included.
+    """
+    hourlyUsages: [CreditUsageTuple!]!
+
+    """
+    The total amount of credits used in the last 24 hours
+    """
+    last24Hours: Float!
+
+    """
+    The total amount of credits used in the past 168 hours; 7 * 24.  Daylight savings time does not affect the range, you always
+    get back 168 hours (but the most recent hour is incomplete).
+    """
+    last7Days: Float!
+
+    """
+    The throttle limit for the dashboard
+    """
+    throttleLimit: Float!
+
+    """
+    The source of the throttle limit
+    """
+    throttleLimitSrc: DashboardLimitSource!
+
+    """
+    The hard limit for the dashboard
+    """
+    hardLimit: Float!
+
+    """
+    The source of the hard limit
+    """
+    hardLimitSrc: DashboardLimitSource!
+}
+
+"""
+DashboardLimitSource enumerates the scopes that can produce the throttle
+or hard limit reported for a dashboard. Distinct from LimitSource (which
+covers per-user scopes) so the per-surface vocabularies remain explicit.
+"""
+enum DashboardLimitSource @goModel(model: "observe/meta/metatypes.DashboardLimitSource") {
+    None
+    Customer
+    Dashboard
+}

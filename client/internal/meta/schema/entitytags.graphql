@@ -1,6 +1,25 @@
 """
-EntityTagMapping represents a key-value mapping for entity tags on workspace objects
-(datasets, dashboards, worksheets, monitors, etc.).
+ObjectTagMapping represents a key-value mapping for object tags.
+Object tags can be applied to dashboards, datasets, worksheets, etc.
+Each mapping contains a tag key and a list of values associated with that key.
+"""
+type ObjectTagMapping @goModel(model: "observe/meta/metatypes.ObjectTagMapping") {
+    key: String!
+    values: [String!]!
+}
+
+"""
+ObjectTagMappingInput is the input type for ObjectTagMapping.
+"""
+input ObjectTagMappingInput @goModel(model: "observe/meta/metatypes.ObjectTagMapping") {
+    key: String!
+    values: [String!]!
+}
+
+"""
+DEPRECATED: Use ObjectTagMapping instead.
+EntityTagMapping represents a key-value mapping for entity tags.
+Entity tags can be applied to dashboards, datasets, worksheets, etc.
 Each mapping contains a tag key and a list of values associated with that key.
 """
 type EntityTagMapping @goModel(model: "observe/meta/metatypes.EntityTagMapping") {
@@ -9,6 +28,7 @@ type EntityTagMapping @goModel(model: "observe/meta/metatypes.EntityTagMapping")
 }
 
 """
+DEPRECATED: Use ObjectTagMappingInput instead.
 EntityTagMappingInput is the input type for EntityTagMapping.
 """
 input EntityTagMappingInput @goModel(model: "observe/meta/metatypes.EntityTagMapping") {

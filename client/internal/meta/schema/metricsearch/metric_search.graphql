@@ -84,7 +84,7 @@ enum TagKind @goModel(model: "observe/meta/metatypes.TagKind") {
     """
     Correlation
     """
-    Automatic tags constructed from publishing a metric dataset. 
+    Automatic tags constructed from publishing a metric dataset.
     """
     Metric
 }
