@@ -38,9 +38,9 @@ extend type Query {
     Get sample notification data for a monitor with the provided monitor input.
     """
     monitorPreviewSampleDataQuery(workspaceId: ObjectId, monitorId: ObjectId, monitorInput: MonitorInput!, queryParams: QueryParams!): MonitorSampleData
-    
+
     """
-    Get monitorSampleData using monitorInput and the results from a previous run of a monitorPreviewQuery generated with the same monitorInput. 
+    Get monitorSampleData using monitorInput and the results from a previous run of a monitorPreviewQuery generated with the same monitorInput.
     Results from the previous run are identified by cursorId.
     """
     monitorPreviewSampleDataFromCursor(workspaceId: ObjectId, monitorId: ObjectId!, monitorInput: MonitorInput!, cursorId: String!): MonitorSampleData
@@ -119,9 +119,9 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     lastUpdateSource: String! @deprecated(reason:"never used, no longer supported will be ignored")
     """
     If the input is a resource, the backend creates a link or finds an existing link from the
-    monitor back to the resource if that resource comes from a dataset (rather than being created inline). 
+    monitor back to the resource if that resource comes from a dataset (rather than being created inline).
     This field contains the name of the link. This can be used to identify the link to use when grouping
-    a monitor by input resource. 
+    a monitor by input resource.
     """
     resourceInputLinkName: String! @goField(name:LinkName)
     """
@@ -977,7 +977,7 @@ type MonitorRender @goModel(model: "observe/meta/metatypes.MonitorRender") {
 type MustacheRender @goModel(model: "observe/meta/metatypes.MustacheRender") {
     emailSubject: String
     emailBody: String
-    
+
     webhookURL: String
     """
     WebhookHeaders is a json representation of map[string][]string.

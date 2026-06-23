@@ -21,6 +21,7 @@ enum Team @goModel(model: "observe/meta/apiowner.Team") {
     AI
     APM
     Query
+    Dataprocessing
 }
 
 """

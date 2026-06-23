@@ -97,10 +97,17 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     Unlisted dashboards are not returned by dashboardSearch except for the creating user.
     """
     visibility: ObjectVisibility!
+
     """
+    Object tags for organizing and categorizing dashboards.
+    """
+    objectTags: [ObjectTagMapping!]! @goField(forceResolver:true)
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing dashboards.
     """
-    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+    entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
 }
 
 enum ObjectVisibility @goModel(model: "observe/meta/metatypes.ObjectVisibility") {
@@ -135,9 +142,15 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
     visibility: ObjectVisibility
 
     """
+    Object tags for organizing and categorizing dashboards.
+    """
+    objectTags: [ObjectTagMappingInput!]
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing dashboards.
     """
-    entityTags: [EntityTagMappingInput!]
+    entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 }
 
 type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Worksheet") {
@@ -177,9 +190,15 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     visibility: ObjectVisibility!
 
     """
+    Object tags for organizing and categorizing worksheets.
+    """
+    objectTags: [ObjectTagMapping!]! @goField(forceResolver:true)
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing worksheets.
     """
-    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+    entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
 
 
     icon: String @goField(name:iconUrl) @deprecated(reason: "Use iconUrl")
@@ -211,9 +230,15 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     visibility: ObjectVisibility
 
     """
+    Object tags for organizing and categorizing worksheets.
+    """
+    objectTags: [ObjectTagMappingInput!]
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing worksheets.
     """
-    entityTags: [EntityTagMappingInput!]
+    entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 
     label: String @deprecated(reason: "Use name")
     icon: String @goField(name:iconUrl) @deprecated(reason: "Use iconUrl")

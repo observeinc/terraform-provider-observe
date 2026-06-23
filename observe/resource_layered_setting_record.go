@@ -6,15 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/exp/maps"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"golang.org/x/exp/maps"
 )
 
 func resourceLayeredSettingRecord() *schema.Resource {
@@ -92,7 +90,7 @@ func newLayeredSettingRecordConfig(data *schema.ResourceData, workspaceId string
 
 	ret := gql.LayeredSettingRecordInput{
 		Name:        name,
-		WorkspaceId: workspaceId,
+		WorkspaceId: &workspaceId,
 	}
 	ret.SettingAndTargetScope.Setting = setting
 	if diags = targetDecode(data, &ret.SettingAndTargetScope.Target); diags != nil {

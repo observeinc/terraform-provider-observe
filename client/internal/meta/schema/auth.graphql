@@ -63,13 +63,16 @@ extend type Mutation {
     If you are an admin, you can create an authtoken owned by a service account user.
     Note that the AuthtokenCreateResult is the only place where the clear-text authtoken is returned to you.
     It cannot be retrieved after the fact.
+    When replaceTokenId is set, that token is deleted after a successful create using the same permission
+    checks as deleteAuthtoken. The check runs before create; the mutation fails without creating a new token
+    if delete is not allowed.
     """
-    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId): AuthtokenCreateResult!
+    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId, replaceTokenId: String): AuthtokenCreateResult!
     updateAuthtoken(id: String!, input: AuthtokenInput!, newOwningUser: UserId): Authtoken!
     deleteAuthtoken(id: String!): ResultStatus!
     """
     "kinds" and "user" are both optional, but combine together with AND -- "delete all Login tokens for user 3"
-    Meanwhile, "kinds" is OR -- "delete all authtokens that are either Login or Sso" 
+    Meanwhile, "kinds" is OR -- "delete all authtokens that are either Login or Sso"
     You must specify at least one of them -- "delete all authtokens" is not a thing. (But you can delete all
     authtokens of all kinds by specifying those.)
     """

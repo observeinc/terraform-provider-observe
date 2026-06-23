@@ -8,8 +8,25 @@ extend type Query {
     """
     Allows frontend to retrieve the necessary OPAL and schema metadata to visualize an appropriate
     evaluated data preview for the user.
+
+    evalWindow is the user-visible time slice the preview should display (the
+    "evaluation" range, [start, end)). It is required for seasonal anomaly
+    monitors because the generated OPAL query depends on it. This parameter is
+    ignored for every other monitor type, which generates idempotent OPAL that
+    is not dependent on the query window.
+
+    The returned MonitorV2SourceEvaluation.queryWindow tells the caller which
+    time range to use when executing the returned query: it may be wider than
+    evalWindow because the OPAL needs extra data at runtime (e.g. the training
+    slice for a seasonal anomaly monitor). The caller MUST execute the query
+    with queryWindow but should keep displaying evalWindow in the UI -- the
+    widening is an execution detail, not a user-facing range.
+
+    When queryWindow is null, the returned query is window-independent and
+    the caller may execute it with any time range; this is the case for every
+    non-seasonal monitor type.
     """
-    evaluateMonitorV2Source(input: MonitorV2Input!): MonitorV2SourceEvaluation!
+    evaluateMonitorV2Source(input: MonitorV2Input!, evalWindow: TimeRangeInput): MonitorV2SourceEvaluation!
 
     """
     Accepts the same input as create or update, but for the purpose of showing to the user
@@ -179,6 +196,25 @@ Controls whether AI SRE automatically triages alerts for a monitor.
 enum MonitorV2AiTriagingMode @goModel(model: "observe/meta/metatypes.MonitorV2AiTriagingMode") {
   None
   Triage
+}
+
+"""
+MonitorV2AlarmMode controls how a monitor emits alarms across consecutive
+evaluations.
+"""
+enum MonitorV2AlarmMode @goModel(model: "observe/meta/metatypes.MonitorV2AlarmMode") {
+  """
+  Each monitor evaluation that fires opens its own zero-duration alarm,
+  independent of whether the previous evaluation asserted the same (group,
+  level). This is the default behavior.
+  """
+  PerRun
+  """
+  Consecutive monitor evaluations that re-assert the same (group, level)
+  extend a single ongoing alarm, which remains active until an evaluation no
+  longer asserts that level.
+  """
+  Ongoing
 }
 
 """
@@ -357,14 +393,14 @@ type MonitorV2DisabledByUser @goModel(model: "observe/meta/metatypes.MonitorV2Di
 
 """
 MonitorV2RuleKind describes the strategy used to inspect the input query.
- - Count is used when what you care to inspect is the number of rows/instances 
+ - Count is used when what you care to inspect is the number of rows/instances
    in the query result.
- - Threshold is when you want to inspect a numerical value within the query 
+ - Threshold is when you want to inspect a numerical value within the query
    results, not the presence of the rows themselves.
  - Promote is when you want to curate your own alerts using Observe's query
    language without the monitor doing any additional data modeling behind the
    scene.
- - Anomaly is when you want alert based on any irregularity noticed in the new 
+ - Anomaly is when you want alert based on any irregularity noticed in the new
    set of data using the expected trend from modeling the data in the past.
 """
 enum MonitorV2RuleKind @goModel(model: "observe/meta/metatypes.MonitorV2RuleKind") {
@@ -558,7 +594,11 @@ type MonitorV2Meta @goModel(model: "observe/meta/metatypes.MonitorV2Meta") {
     """
     outputDatasetID: ObjectId
     """
-    Describes the alert's schema installed by the transform-based monitor.
+    Describes the alert's schema for this monitor — the shape of the captured
+    values surfaced on each alarm. Populated for every monitor type
+    (transform, anomaly, scheduled/cron, and interval); the legacy install
+    path used to leave this null for scheduled and interval monitors but no
+    longer does.
     """
     alertSchema: MonitorV2AlertSchema
     """
@@ -605,11 +645,97 @@ input MonitorV2InvestigationInfoInput @goModel(model: "observe/meta/metatypes.Mo
 }
 
 
+"""
+MonitorV2ServiceBindingMatchMode selects how a service-binding dimension is
+matched. Exact matches a single concrete value; Wildcard matches any value, with
+the concrete value resolved from the monitor's groupings (or the input dataset's
+correlation-tag mappings) at detection time.
+"""
+enum MonitorV2ServiceBindingMatchMode @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingMatchMode") {
+  Exact
+  Wildcard
+}
+
+
+type MonitorV2ServiceBindingValue @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingValue") {
+    """
+    Literal value this dimension matches; null when matchMode is Wildcard.
+    """
+    value: String
+    """
+    How this dimension is matched. Exact matches value; Wildcard matches any value,
+    with the concrete value resolved from the monitor's groupings (or the input
+    dataset's correlation-tag mappings) at detection time.
+    """
+    matchMode: MonitorV2ServiceBindingMatchMode
+}
+
+input MonitorV2ServiceBindingValueInput @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingValueInput") {
+    """
+    Exact value to match. For a wildcard, leave this null and set matchMode: Wildcard.
+    """
+    value: String
+    """
+    How to match this dimension. Defaults to Exact when omitted. Exact requires a
+    value; an omitted value under Exact is rejected (a wildcard must be declared
+    explicitly). Wildcard requires no value; setting Wildcard alongside a value is
+    rejected.
+    """
+    matchMode: MonitorV2ServiceBindingMatchMode
+}
+
+type MonitorV2ServiceBinding @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBinding") {
+    "Service-name dimension of the binding."
+    serviceName: MonitorV2ServiceBindingValue!
+    "Environment dimension of the binding."
+    environment: MonitorV2ServiceBindingValue!
+    "Namespace dimension of the binding."
+    serviceNamespace: MonitorV2ServiceBindingValue!
+}
+
+input MonitorV2ServiceBindingInput @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingInput") {
+    "Service-name dimension of the binding."
+    serviceName: MonitorV2ServiceBindingValueInput!
+    "Environment dimension of the binding."
+    environment: MonitorV2ServiceBindingValueInput!
+    "Namespace dimension of the binding."
+    serviceNamespace: MonitorV2ServiceBindingValueInput!
+}
+
+
+type MonitorV2AlarmServiceBinding @goModel(model: "observe/meta/metatypes.MonitorV2AlarmServiceBinding") {
+    serviceName: String!
+    environment: String!
+    serviceNamespace: String!
+}
+
+input MonitorV2AlarmServiceBindingInput @goModel(model: "observe/meta/metatypes.MonitorV2AlarmServiceBindingInput") {
+    serviceName: String!
+    environment: String!
+    serviceNamespace: String!
+}
+
+
+type MonitorV2CorrelationTag @goModel(model: "observe/meta/metatypes.MonitorV2CorrelationTag") {
+    """
+    The correlation tag name, e.g. "service.name". The leading '#' is implied and
+    must not be included.
+    """
+    tag: String!
+}
+
+input MonitorV2CorrelationTagInput @goModel(model: "observe/meta/metatypes.MonitorV2CorrelationTagInput") {
+    tag: String!
+}
+
+
 type MonitorV2AlertSchema @goModel(model: "observe/meta/metatypes.MonitorV2AlertSchema") {
     """
     All the columns that are inside the captured values of the alert.
     """
     columns: [MonitorV2Column!]
+    """Per-tag canonical-column mappings derived at monitor save time; consumed by detection-time triplet binding."""
+    correlationTags: [CorrelationTagMapping!]
 }
 
 input MonitorV2AlertSchemaInput @goModel(model: "observe/meta/metatypes.MonitorV2AlertSchemaInput") {
@@ -659,7 +785,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     and automatically disabled by the system.
     Must be non-negative.  Default value when not provided is 100.
     Maximum value is typically 3600 (one alert per second) to ensure monitors are actionable.
-    When set to 0, the maximum value will be used. 
+    When set to 0, the maximum value will be used.
     Contact support if you need to increase this maximum and allow more
     than one alert per second.
     """
@@ -667,7 +793,7 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     """
     Groupings describes the groups that logically separate events/rows/etc from each other.
     When the input monitor dataset is of type resource and the monitor strategy is of type promote, this field should
-    either be left empty to be mutated with the primary keys of the resource dataset or it should only contain the 
+    either be left empty to be mutated with the primary keys of the resource dataset or it should only contain the
     primary keys of the dataset.
     """
     groupings: [MonitorV2Column!]
@@ -687,6 +813,23 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     mustache partials.
     """
     customVariables: JsonObject
+    """
+    ServiceBindings declares the (serviceName, environment, serviceNamespace) triplets a monitor's
+    alarms should be attributed to. The list shape is
+    kept for forward-compatibility; today at most one binding entry is supported.
+    Optional: when omitted/empty the monitor has no service binding and alarms are
+    written with NULL service / environment / namespace columns.
+
+    Validation rules (enforced at save time, gated by the service-monitoring feature flag):
+
+      1. At most one binding entry.
+      2. For each wildcard component in the binding, the monitor must supply a
+         backing column for the corresponding correlation tag - either via an
+         explicit MonitorV2Column.correlationTag grouping, or via a column-path
+         grouping that is itself tagged with the matching correlation tag on the
+         input dataset.
+    """
+    serviceBindings: [MonitorV2ServiceBinding!]
 }
 
 input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2DefinitionInput") {
@@ -700,6 +843,7 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
     groupings: [MonitorV2ColumnInput!]
     scheduling: MonitorV2SchedulingInput
     customVariables: JsonObject
+    serviceBindings: [MonitorV2ServiceBindingInput!]
 }
 
 
@@ -716,8 +860,14 @@ type MonitorV2AnomalyRuleTemplate @goModel(model: "observe/meta/metatypes.Monito
     """
     ComputationWindow describes the length of the window used to compute the average and the deviation.
     When not provided, the computation window will be dynamically chosen based on the lookbackTime provided.
+    Must be between 1 hour and 7 days when provided.
     """
-    computationWindow: Duration @deprecated(reason: "This field is currently NOT SUPPORTED and will be computed automatically by the backend. This value will be completely ignored and should not be provided.")
+    computationWindow: Duration
+    """
+    Frequency describes how often the anomaly evaluation runs. When not provided, the frequency will be
+    dynamically chosen based on the lookbackTime provided. Must be between 1 minute and 1 hour when provided.
+    """
+    frequency: Duration
     """
     ValueColumnName indicates which of the columns in the input query to apply the basic algorithm and create
     bounds over.
@@ -734,21 +884,96 @@ type MonitorV2AnomalyRuleTemplate @goModel(model: "observe/meta/metatypes.Monito
     """
     numStandardDeviations: Int64!
     """
-    BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the 
+    BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the
     computation window of data, it will calculate the average and standard deviations and then determine
     whether the new point is out of bound. As of now, it will be of type JsonObject in anticipation to
     introduce MonitorV2BasicAnomalyAlgorithm in the future only if the need for special fields appear.
     To use the basic algorithm, set this value to an empty object.
     """
-    basicAlgorithm: JsonObject
+    basicAlgorithm: JsonObject @deprecated(reason: "Use basicAlgorithmTyped: MonitorV2BasicAlgorithm instead. basicAlgorithm and basicAlgorithmTyped cannot both be set on the same monitor.")
+    """
+    BasicAlgorithmTyped is the typed replacement for the legacy basicAlgorithm JsonObject placeholder
+    and the preferred way to configure the basic standard-deviation anomaly family. Setting it
+    selects the same OPAL evaluation path that basicAlgorithm: {} did, so existing alerts behave
+    identically; new clients should use this field instead. The field is named "basicAlgorithmTyped"
+    only because the "basicAlgorithm" name is already taken by the deprecated placeholder; once
+    that placeholder is removed, this field is expected to be renamed to "basicAlgorithm".
+    Optional so that other algorithms (e.g. seasonal) can be selected by leaving this unset and
+    supplying their own typed config; the backend requires that exactly one anomaly algorithm be
+    configured per monitor and rejects basicAlgorithm + basicAlgorithmTyped together.
+    """
+    basicAlgorithmTyped: MonitorV2BasicAlgorithm
+    """
+    SeasonalAlgorithm makes the monitor use Prophet-based seasonal forecasting to evaluate data and
+    fire alerts. The training window is read from the rolled-up monitor dataset and a forecast is
+    produced for the evaluation window; data points outside the predicted yhat_lower/yhat_upper band
+    are flagged. Mutually exclusive with basicAlgorithm.
+    """
+    seasonalAlgorithm: MonitorV2SeasonalAlgorithm
 }
 
 input MonitorV2AnomalyRuleTemplateInput @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRuleTemplateInput") {
     computationWindow: Duration
+    frequency: Duration
     valueColumnName: String!
     compareFn: MonitorV2BoundComparisonFunction!
     numStandardDeviations: Int64!
-    basicAlgorithm: JsonObject
+    basicAlgorithm: JsonObject @deprecated(reason: "Use basicAlgorithmTyped: MonitorV2BasicAlgorithmInput instead. basicAlgorithm and basicAlgorithmTyped cannot both be set on the same monitor.")
+    basicAlgorithmTyped: MonitorV2BasicAlgorithmInput
+    seasonalAlgorithm: MonitorV2SeasonalAlgorithmInput
+}
+
+"""
+MonitorV2BasicAlgorithm carries the parameters that are specific to the basic standard-deviation
+based anomaly algorithm. It is referenced by MonitorV2AnomalyRuleTemplate.basicAlgorithmTyped; the
+legacy top-level numStandardDeviations and JsonObject basicAlgorithm fields remain accepted for
+backwards compatibility while clients migrate to this typed shape.
+"""
+type MonitorV2BasicAlgorithm @goModel(model: "observe/meta/metatypes.MonitorV2BasicAlgorithm") {
+    """
+    NumStandardDeviations defines how many standard deviations the data point has to be out of bounds
+    to be marked as a red point. Valid values are 1 to 5.
+    """
+    numStandardDeviations: Int64!
+}
+
+input MonitorV2BasicAlgorithmInput @goModel(model: "observe/meta/metatypes.MonitorV2BasicAlgorithmInput") {
+    numStandardDeviations: Int64!
+}
+
+"""
+MonitorV2SeasonalAlgorithm tunes the Prophet-based seasonal anomaly detector.
+"""
+type MonitorV2SeasonalAlgorithm @goModel(model: "observe/meta/metatypes.MonitorV2SeasonalAlgorithm") {
+    """
+    Sensitivity controls how easily the algorithm flags points as anomalous. When omitted
+    the server defaults to Medium, which mirrors Prophet's own default interval_width of 0.80.
+    See MonitorV2AnomalySeasonalSensitivity for the exact mapping from tier to interval_width.
+    """
+    sensitivity: MonitorV2AnomalySeasonalSensitivity
+}
+
+input MonitorV2SeasonalAlgorithmInput @goModel(model: "observe/meta/metatypes.MonitorV2SeasonalAlgorithmInput") {
+    sensitivity: MonitorV2AnomalySeasonalSensitivity
+}
+
+"""
+MonitorV2AnomalySeasonalSensitivity is a user-facing tier that maps to Prophet's interval_width
+parameter. Tiers are exposed instead of the raw float because interval_width has an inverse
+relationship with sensitivity (higher number = wider band = fewer anomalies), a recurring source
+of misuse, and so the server can retune the float mapping in the future without breaking
+existing monitor definitions.
+
+  - Low      maps to interval_width 0.95 (widest band, fewest anomalies)
+  - Medium   maps to interval_width 0.80 (Prophet's default, balanced)
+  - High     maps to interval_width 0.65 (narrower band, more anomalies)
+  - VeryHigh maps to interval_width 0.50 (tightest band, most anomalies)
+"""
+enum MonitorV2AnomalySeasonalSensitivity @goModel(model: "observe/meta/metatypes.MonitorV2AnomalySeasonalSensitivity") {
+    Low
+    Medium
+    High
+    VeryHigh
 }
 
 
@@ -792,11 +1017,17 @@ type MonitorV2CronSchedule @goModel(model: "observe/meta/metatypes.MonitorV2Cron
     is done relative to the desired timezone.
     """
     timezone: String!
+    """
+    Controls how alarms are emitted across consecutive monitor evaluations.
+    Defaults to PerRun when unset.
+    """
+    alarmMode: MonitorV2AlarmMode
 }
 
 input MonitorV2CronScheduleInput @goModel(model: "observe/meta/metatypes.MonitorV2CronScheduleInput") {
     rawCron: String
     timezone: String!
+    alarmMode: MonitorV2AlarmMode
 }
 
 
@@ -862,11 +1093,14 @@ type MonitorV2Column @goModel(model: "observe/meta/metatypes.MonitorV2Column") {
     Column path is any non-link typed column along with an optional path which the user wants to group by.
     """
     columnPath: MonitorV2ColumnPath
+    """Marks this column as a correlation-tag grouping (e.g. #service.name); mutually exclusive with linkColumn / columnPath. Resolved (tag, column) pair lands on MonitorV2AlertSchema.correlationTags at save time."""
+    correlationTag: MonitorV2CorrelationTag
 }
 
 input MonitorV2ColumnInput @goModel(model: "observe/meta/metatypes.MonitorV2ColumnInput") {
     linkColumn: MonitorV2LinkColumnInput
     columnPath: MonitorV2ColumnPathInput
+    correlationTag: MonitorV2CorrelationTagInput
 }
 
 
@@ -1349,6 +1583,8 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     """
     isInvalid: Boolean!
     stats: MonitorV2AlarmActionStats @goField(forceResolver: true)
+    """The (serviceName, environment, serviceNamespace) triplet this alarm is attributed to. Null when the monitor has no service binding declared or this alarm does not resolve to a triplet; all three fields are non-null when populated."""
+    resolvedServiceBinding: MonitorV2AlarmServiceBinding @goField(forceResolver: true)
 }
 
 input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2AlarmInput") {
@@ -1366,6 +1602,14 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     context: [MonitorV2ContextEntryInput!]
     isActive: Boolean!
     level: MonitorV2AlarmLevel!
+    """
+    The fully-resolved service-binding triplet for this alarm. Mirrors the
+    output-only `MonitorV2Alarm.resolvedServiceBinding` so callers can pipe a
+    preview alarm directly into template-dictionary generation and exercise
+    the `alert.apmUrl` plumbing. Optional; absent when the monitor has no
+    service binding.
+    """
+    resolvedServiceBinding: MonitorV2AlarmServiceBindingInput
 }
 
 
@@ -1770,6 +2014,18 @@ type MonitorV2SourceEvaluation @goModel(model: "observe/meta/metatypes.MonitorV2
     The OPAL query that, once executed, will produce the evaluation data preview.
     """
     query: MultiStageQuery!
+
+    """
+    The time window the caller MUST use when executing the returned query.
+    May be wider than the user-supplied evalWindow because the OPAL needs
+    extra data at runtime (e.g. the training slice for a seasonal anomaly
+    monitor). Callers should keep showing evalWindow in the UI -- the
+    widening is an execution detail and is not meant to be displayed to
+    the user.
+    When this field is null, the returned query is window-independent and
+    the caller may execute it with any time range.
+    """
+    queryWindow: TimeRange
 }
 
 type AnomalyEvaluationMetadata @goModel(model: "observe/meta/metatypes.AnomalyEvaluationMetadata") {

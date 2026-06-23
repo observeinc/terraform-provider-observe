@@ -23,6 +23,12 @@ extend type Query {
     ): DatasetsAffectedByDatasetUpdateResult
 
     datasetAndMonitorBillingInfo(workspaceId: ObjectId, atTime: Time): DatasetAndMonitorBillingInfo!
+
+    """
+    The customer-wide default MonitorV2Actions fired when a dataset that has no
+    explicit unhealthy-action binding becomes unhealthy. Requires admin:workspace.
+    """
+    defaultDatasetUnhealthyActions: [MonitorV2Action!]!
 }
 
 extend type Mutation {
@@ -61,6 +67,28 @@ extend type Mutation {
     updateBoard(id: ObjectId!, board: BoardInput!): Board!
     createBoard(datasetId: ObjectId!, type: BoardType!, board: BoardInput!): Board!
     deleteBoard(id: ObjectId!): ResultStatus!
+
+    """
+    Replace the full set of MonitorV2Actions bound to this dataset for
+    unhealthy events (set-replace). actionIds = [] clears all bindings.
+    Returns the updated dataset so the caller gets the fresh, RBAC-filtered
+    onUnhealthyActions without a second round-trip.
+    """
+    setDatasetUnhealthyActions(
+        datasetId: ObjectId!,
+        actionIds: [ObjectId!]!,
+    ): Dataset!
+
+    """
+    Replace the customer-wide default MonitorV2Actions fired when a dataset that
+    has no explicit unhealthy-action binding becomes unhealthy (set-replace).
+    actionIds = [] clears all defaults. Requires admin:workspace. Returns the
+    updated default actions (RBAC-filtered) so the caller avoids a second
+    round-trip.
+    """
+    setDefaultDatasetUnhealthyActions(
+        actionIds: [ObjectId!]!,
+    ): [MonitorV2Action!]!
 
 }
 
@@ -365,10 +393,18 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     tags: [TagMapping!] @goField(forceResolver: true)
+
     """
+    Object tags for organizing and categorizing datasets.
+    """
+    objectTags: [ObjectTagMapping!]! @goField(forceResolver:true)
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing datasets.
     """
-    entityTags: [EntityTagMapping!]! @goField(forceResolver:true)
+    entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
+
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time!
     isSourceDataset: Boolean
@@ -406,11 +442,6 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
-    """
-    Optional custom configured override value of the on demand materialization
-    range for the dataset.
-    """
-    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     defaultDashboardId: ObjectId @goField(forceResolver: true)
     defaultInstanceDashboardId: ObjectId @goField(forceResolver: true)
@@ -435,6 +466,22 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true)
 
     datasetDefinitionType: DatasetDefinitionType
+
+    """
+    Shared MonitorV2Actions invoked when the dataset becomes unhealthy
+    (currently: transform suspension). Empty list means no notification is
+    configured. Order is not significant; the consumer dispatches all bound
+    actions on each fire. This is the full id list visible to any dataset
+    reader; use onUnhealthyActions for the RBAC-filtered resolved actions.
+    """
+    onUnhealthyActionIds: [ObjectId!]! @goField(forceResolver:true)
+
+    """
+    The resolved MonitorV2Actions for onUnhealthyActionIds. Ids the viewer
+    cannot read are filtered out, so this list may be shorter than
+    onUnhealthyActionIds.
+    """
+    onUnhealthyActions: [MonitorV2Action!]! @goField(forceResolver:true)
 
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver: true)
@@ -608,11 +655,6 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     freshnessDecayDisabled: Boolean
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
-    """
-    Max on-demand materialization length for the dataset (in nanoseconds). If not set
-    will use the default value in transformer config.
-    """
-    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     """
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.
@@ -625,9 +667,15 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     sharingRules: [DatasetSharingRuleInput!]
 
     """
+    Object tags for organizing and categorizing datasets.
+    """
+    objectTags: [ObjectTagMappingInput!]
+
+    """
+    DEPRECATED: Use objectTags instead.
     Entity tags for organizing and categorizing datasets.
     """
-    entityTags: [EntityTagMappingInput!]
+    entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 
 
     """

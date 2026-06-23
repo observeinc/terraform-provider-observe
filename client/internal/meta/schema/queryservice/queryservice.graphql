@@ -457,6 +457,15 @@ interface TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWa
 }
 
 """
+Governor scope whose limit triggered a rate-limit task result.
+"""
+enum RateLimitScope @goModel(model: "observe/meta/metatypes.RateLimitScope") {
+    Customer
+    User
+    Dashboard
+}
+
+"""
 Warning that the customer is approaching the credit limit
 """
 type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWarningRateLimit") {
@@ -478,6 +487,10 @@ type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "ob
     Info of whether the customer was throttled by the QCM
     """
     throttled: Boolean!
+    """
+    The governor scope whose limit triggered this warning.
+    """
+    scope: RateLimitScope!
 }
 
 """
@@ -677,6 +690,10 @@ type TaskResultErrorRateLimit implements TaskResultError @goModel(model: "observ
     and shorter timeout.
     """
     hardLimitBlocked: Boolean!
+    """
+    The governor scope whose limit triggered this error.
+    """
+    scope: RateLimitScope!
 }
 
 """
