@@ -139,17 +139,70 @@ func resourceMonitorV2() *schema.Resource {
 										DiffSuppressFunc: diffSuppressEnums,
 										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
 									},
-									"num_standard_deviations": { // Int64!
+									"num_standard_deviations": { // @deprecated in GQL: use basic_algorithm_typed.num_standard_deviations
 										Type:        schema.TypeInt,
-										Required:    true,
-										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
-									},
-									"basic_algorithm": { // JsonObject
-										Type:        schema.TypeList,
 										Optional:    true,
-										MaxItems:    1,
-										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
-										Elem:        &schema.Resource{Schema: map[string]*schema.Schema{}},
+										Computed:    true,
+										Deprecated:  "Set num_standard_deviations inside the basic_algorithm_typed block instead. This field will be removed in a future version.",
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											// Suppress when basic_algorithm_typed carries the same value so that
+											// migrating from the deprecated top-level field to the typed block
+											// produces no spurious plan changes.
+											nested, _ := d.Get("rule_template.0.anomaly.0.basic_algorithm_typed.0.num_standard_deviations").(int)
+											oldVal := 0
+											fmt.Sscanf(old, "%d", &oldVal)
+											return nested != 0 && nested == oldVal
+										},
+									},
+									"basic_algorithm": { // @deprecated in GQL: was basicAlgorithm: JsonObject
+										Type:          schema.TypeList,
+										Optional:      true,
+										Computed:      true,
+										MaxItems:      1,
+										Deprecated:    "Use basic_algorithm_typed instead. This field will be removed in a future version.",
+										Description:   descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
+										ConflictsWith: []string{"rule_template.0.anomaly.0.seasonal_algorithm"},
+										Elem:          &schema.Resource{Schema: map[string]*schema.Schema{}},
+									},
+									"basic_algorithm_typed": { // MonitorV2BasicAlgorithmInput
+										Type:          schema.TypeList,
+										Optional:      true,
+										Computed:      true,
+										MaxItems:      1,
+										Description:   descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm_typed"),
+										ConflictsWith: []string{"rule_template.0.anomaly.0.seasonal_algorithm"},
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"num_standard_deviations": { // Int64!
+													Type:        schema.TypeInt,
+													Optional:    true,
+													Computed:    true,
+													Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+												},
+											},
+										},
+									},
+									"seasonal_algorithm": { // MonitorV2SeasonalAlgorithmInput
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										ConflictsWith: []string{
+											"rule_template.0.anomaly.0.basic_algorithm",
+											"rule_template.0.anomaly.0.basic_algorithm_typed",
+										},
+										Description:   descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "seasonal_algorithm"),
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"sensitivity": { // MonitorV2AnomalySeasonalSensitivity
+													Type:             schema.TypeString,
+													Optional:         true,
+													ValidateDiagFunc: validateEnums(gql.AllMonitorV2AnomalySeasonalSensitivities),
+													DiffSuppressFunc: diffSuppressEnums,
+													Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "sensitivity"),
+												},
+											},
+										},
 									},
 								},
 							},
@@ -1172,15 +1225,29 @@ func monitorV2FlattenRuleTemplate(gqlRuleTemplate gql.MonitorV2RuleTemplate) []i
 
 func monitorV2FlattenAnomalyRuleTemplate(gqlTemplate gql.MonitorV2AnomalyRuleTemplate) []interface{} {
 	template := map[string]interface{}{
-		"value_column_name":       gqlTemplate.ValueColumnName,
-		"compare_fn":              toSnake(string(gqlTemplate.CompareFn)),
-		"num_standard_deviations": int(gqlTemplate.NumStandardDeviations),
+		"value_column_name": gqlTemplate.ValueColumnName,
+		"compare_fn":        toSnake(string(gqlTemplate.CompareFn)),
 	}
 	if gqlTemplate.ComputationWindow != nil {
 		template["computation_window"] = gqlTemplate.ComputationWindow.String()
 	}
-	if gqlTemplate.BasicAlgorithm != nil {
+	if gqlTemplate.BasicAlgorithmTyped != nil {
+		nsdu := int(gqlTemplate.BasicAlgorithmTyped.NumStandardDeviations)
+		// Canonical new field.
+		template["basic_algorithm_typed"] = []interface{}{map[string]interface{}{
+			"num_standard_deviations": nsdu,
+		}}
+		// Populate deprecated fields (Computed) so configs still using the old
+		// layout — num_standard_deviations + basic_algorithm {} — don't drift.
+		template["num_standard_deviations"] = nsdu
 		template["basic_algorithm"] = []interface{}{map[string]interface{}{}}
+	}
+	if gqlTemplate.SeasonalAlgorithm != nil {
+		seasonal := map[string]interface{}{}
+		if gqlTemplate.SeasonalAlgorithm.Sensitivity != nil {
+			seasonal["sensitivity"] = toSnake(string(*gqlTemplate.SeasonalAlgorithm.Sensitivity))
+		}
+		template["seasonal_algorithm"] = []interface{}{seasonal}
 	}
 	return []interface{}{template}
 }
@@ -1829,7 +1896,21 @@ func newMonitorV2RuleTemplateInput(path string, data *schema.ResourceData) (rule
 func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData) (template *gql.MonitorV2AnomalyRuleTemplateInput, diags diag.Diagnostics) {
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	compareFn := gql.MonitorV2BoundComparisonFunction(toCamel(data.Get(fmt.Sprintf("%scompare_fn", path)).(string)))
-	numStdDevs := types.Int64Scalar(data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int))
+
+	// numStandardDeviations is required by the deployed backend on every
+	// MonitorV2AnomalyRuleTemplateInput regardless of which algorithm family
+	// the monitor uses. For basic monitors we send the user-provided value;
+	// for seasonal monitors the field is unused but still must be present, so
+	// we send a sensible default in range.
+	//
+	// Read from basic_algorithm_typed (new canonical) first, then fall back to
+	// the deprecated top-level num_standard_deviations for old-style configs.
+	numStdDevs := types.Int64Scalar(2)
+	if n := data.Get(fmt.Sprintf("%sbasic_algorithm_typed.0.num_standard_deviations", path)).(int); n != 0 {
+		numStdDevs = types.Int64Scalar(n)
+	} else if n := data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int); n != 0 {
+		numStdDevs = types.Int64Scalar(n)
+	}
 
 	template = &gql.MonitorV2AnomalyRuleTemplateInput{
 		ValueColumnName:       valueColumnName,
@@ -1837,9 +1918,19 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 		NumStandardDeviations: numStdDevs,
 	}
 
-	if _, ok := data.GetOk(fmt.Sprintf("%sbasic_algorithm", path)); ok {
-		ba := types.JsonObject("{}")
-		template.BasicAlgorithm = &ba
+	if _, ok := data.GetOk(fmt.Sprintf("%sseasonal_algorithm", path)); ok {
+		seasonal := &gql.MonitorV2SeasonalAlgorithmInput{}
+		if raw, ok := data.GetOk(fmt.Sprintf("%sseasonal_algorithm.0.sensitivity", path)); ok {
+			sensitivity := gql.MonitorV2AnomalySeasonalSensitivity(toCamel(raw.(string)))
+			seasonal.Sensitivity = &sensitivity
+		}
+		template.SeasonalAlgorithm = seasonal
+	} else {
+		// Basic algorithm: always use the new typed field regardless of which
+		// TF block the user configured (basic_algorithm_typed or deprecated basic_algorithm).
+		template.BasicAlgorithmTyped = &gql.MonitorV2BasicAlgorithmInput{
+			NumStandardDeviations: numStdDevs,
+		}
 	}
 
 	return template, diags

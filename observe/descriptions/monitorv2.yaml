@@ -66,9 +66,15 @@ schema:
       compare_fn: |
         The bound comparison function (Above, Below, AboveOrBelow) defining which direction(s) of standard deviation to consider out of bounds.
       num_standard_deviations: |
-        The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5).
+        The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5). Prefer setting this inside the `basic_algorithm` block; the top-level field is deprecated.
       basic_algorithm: |
-        Makes the monitor use the basic algorithm. Set to an empty block to enable. The basic algorithm computes the average and standard deviations over the computation window.
+        Deprecated. Use basic_algorithm_typed instead. Empty block that selects the basic standard-deviation anomaly algorithm; pair with the top-level num_standard_deviations field. Mutually exclusive with seasonal_algorithm.
+      basic_algorithm_typed: |
+        Configures the monitor to use the basic standard-deviation anomaly algorithm. Set num_standard_deviations inside this block. Supersedes the deprecated basic_algorithm block and top-level num_standard_deviations field. Mutually exclusive with seasonal_algorithm.
+      seasonal_algorithm: |
+        Configures the monitor to use Prophet-based seasonal forecasting. Set this block to enable; data points outside the predicted band are flagged. Mutually exclusive with `basic_algorithm`.
+      sensitivity: |
+        How tightly the forecast band hugs the historical signal. Higher tiers produce a narrower band and more anomalies. One of `low`, `medium`, `high`, `very_high`. When unset the backend uses its default tier.
   lookback_time: |
     optionally describes a duration that must be satisfied by this monitor. It applies to all rules, but is only applicable to rule kinds that utilize it.
   data_stabilization_delay: |
