@@ -98,10 +98,11 @@ resource "observe_monitor_v2" "anomaly_example" {
 
   rule_template {
     anomaly {
-      value_column_name       = "A_credits_adhoc_query_sum"
-      compare_fn              = "above"
-      num_standard_deviations = 3
-      basic_algorithm {}
+      value_column_name = "A_credits_adhoc_query_sum"
+      compare_fn        = "above"
+      basic_algorithm {
+        num_standard_deviations = 3
+      }
     }
   }
 
@@ -892,12 +893,13 @@ Optional:
 Required:
 
 - `compare_fn` (String) The bound comparison function (Above, Below, AboveOrBelow) defining which direction(s) of standard deviation to consider out of bounds.
-- `num_standard_deviations` (Number) The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5).
 - `value_column_name` (String) Indicates which of the columns in the input query to apply the basic algorithm and create bounds over.
 
 Optional:
 
-- `basic_algorithm` (Block List, Max: 1) Makes the monitor use the basic algorithm. Set to an empty block to enable. The basic algorithm computes the average and standard deviations over the computation window. (see [below for nested schema](#nestedblock--rule_template--anomaly--basic_algorithm))
+- `basic_algorithm` (Block List, Max: 1) Configures the monitor to use the basic standard-deviation anomaly algorithm. Set this block (with `num_standard_deviations`) to enable; the basic algorithm computes the average and standard deviations over the computation window. Mutually exclusive with `seasonal_algorithm`. (see [below for nested schema](#nestedblock--rule_template--anomaly--basic_algorithm))
+- `num_standard_deviations` (Number, Deprecated) The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5). Prefer setting this inside the `basic_algorithm` block; the top-level field is deprecated.
+- `seasonal_algorithm` (Block List, Max: 1) Configures the monitor to use Prophet-based seasonal forecasting. Set this block to enable; data points outside the predicted band are flagged. Mutually exclusive with `basic_algorithm`. (see [below for nested schema](#nestedblock--rule_template--anomaly--seasonal_algorithm))
 
 Read-Only:
 
@@ -905,6 +907,18 @@ Read-Only:
 
 <a id="nestedblock--rule_template--anomaly--basic_algorithm"></a>
 ### Nested Schema for `rule_template.anomaly.basic_algorithm`
+
+Optional:
+
+- `num_standard_deviations` (Number) The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5). Prefer setting this inside the `basic_algorithm` block; the top-level field is deprecated.
+
+
+<a id="nestedblock--rule_template--anomaly--seasonal_algorithm"></a>
+### Nested Schema for `rule_template.anomaly.seasonal_algorithm`
+
+Optional:
+
+- `sensitivity` (String) How tightly the forecast band hugs the historical signal. Higher tiers produce a narrower band and more anomalies. One of `low`, `medium`, `high`, `very_high`. When unset the backend uses its default tier.
 
 
 

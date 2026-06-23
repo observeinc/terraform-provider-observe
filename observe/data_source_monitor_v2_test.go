@@ -403,8 +403,9 @@ func TestAccObserveGetIDMonitorV2Anomaly(t *testing.T) {
 							anomaly {
 								value_column_name = "temp_number"
 								compare_fn = "above"
-								num_standard_deviations = 3
-								basic_algorithm {}
+								basic_algorithm {
+									num_standard_deviations = 3
+								}
 							}
 						}
 						no_data_rules {
@@ -430,7 +431,7 @@ func TestAccObserveGetIDMonitorV2Anomaly(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "anomaly"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.compare_fn", "above"),
-					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.num_standard_deviations", "3"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.basic_algorithm.0.num_standard_deviations", "3"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_template.0.anomaly.0.basic_algorithm.#", "1"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "no_data_rules.0.expiration", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rules.0.level", "informational"),

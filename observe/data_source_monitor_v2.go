@@ -134,16 +134,33 @@ func dataSourceMonitorV2() *schema.Resource {
 										Computed:    true,
 										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
 									},
-									"num_standard_deviations": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
-									},
 									"basic_algorithm": {
 										Type:        schema.TypeList,
 										Computed:    true,
 										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
-										Elem:        &schema.Resource{Schema: map[string]*schema.Schema{}},
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"num_standard_deviations": {
+													Type:        schema.TypeInt,
+													Computed:    true,
+													Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+												},
+											},
+										},
+									},
+									"seasonal_algorithm": {
+										Type:        schema.TypeList,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "seasonal_algorithm"),
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"sensitivity": {
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "sensitivity"),
+												},
+											},
+										},
 									},
 								},
 							},
