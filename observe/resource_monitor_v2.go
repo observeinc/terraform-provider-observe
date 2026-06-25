@@ -439,6 +439,17 @@ func resourceMonitorV2() *schema.Resource {
 										ValidateDiagFunc: validateStringIsTimezone,
 										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "timezone"),
 									},
+									"alarm_mode": { // MonitorV2AlarmMode
+										// No Default and not Computed: the backend rejects an
+										// explicit alarmMode for tenants without the feature
+										// flag, so we only send a value when the user sets one
+										// (see newMonitorV2ScheduledScheduleInput).
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmModes),
+										DiffSuppressFunc: diffSuppressEnums,
+										Description:      descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "alarm_mode"),
+									},
 								},
 							},
 						},
@@ -1235,6 +1246,9 @@ func monitorV2FlattenScheduledSchedule(gqlCronSchedule gql.MonitorV2CronSchedule
 	if gqlCronSchedule.RawCron != nil {
 		cronSchedule["raw_cron"] = *gqlCronSchedule.RawCron
 	}
+	if gqlCronSchedule.AlarmMode != nil {
+		cronSchedule["alarm_mode"] = toSnake(string(*gqlCronSchedule.AlarmMode))
+	}
 	return []any{cronSchedule}
 }
 
@@ -1476,6 +1490,14 @@ func newMonitorV2ScheduledScheduleInput(path string, data *schema.ResourceData) 
 	if rawCron, ok := data.GetOk(fmt.Sprintf("%sraw_cron", path)); ok {
 		rawCronStr, _ := rawCron.(string)
 		cron.RawCron = &rawCronStr
+	}
+
+	// alarm_mode is optional and gated by a customer feature flag on the
+	// backend, which rejects any non-nil alarmMode when the flag is off. Only
+	// send a value when the user explicitly set one (mirrors raw_cron above).
+	if v, ok := data.GetOk(fmt.Sprintf("%salarm_mode", path)); ok {
+		alarmMode := gql.MonitorV2AlarmMode(toCamel(v.(string)))
+		cron.AlarmMode = &alarmMode
 	}
 
 	return cron, nil

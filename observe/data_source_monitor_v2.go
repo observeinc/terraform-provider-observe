@@ -416,6 +416,11 @@ func dataSourceMonitorV2() *schema.Resource {
 										Required:    true,
 										Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "timezone"),
 									},
+									"alarm_mode": { // MonitorV2AlarmMode
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: descriptions.Get("monitorv2", "schema", "scheduling", "scheduled", "alarm_mode"),
+									},
 								},
 							},
 						},
