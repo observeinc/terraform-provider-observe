@@ -7614,6 +7614,9 @@ type MonitorV2CronSchedule struct {
 	// A timezone is required to ensure that interpretation of scheduling on the wall-clock
 	// is done relative to the desired timezone.
 	Timezone string `json:"timezone"`
+	// Controls how alarms are emitted across consecutive monitor evaluations.
+	// Defaults to PerRun when unset.
+	AlarmMode *MonitorV2AlarmMode `json:"alarmMode"`
 }
 
 // GetRawCron returns MonitorV2CronSchedule.RawCron, and is useful for accessing the field via an interface.
@@ -7621,6 +7624,9 @@ func (v *MonitorV2CronSchedule) GetRawCron() *string { return v.RawCron }
 
 // GetTimezone returns MonitorV2CronSchedule.Timezone, and is useful for accessing the field via an interface.
 func (v *MonitorV2CronSchedule) GetTimezone() string { return v.Timezone }
+
+// GetAlarmMode returns MonitorV2CronSchedule.AlarmMode, and is useful for accessing the field via an interface.
+func (v *MonitorV2CronSchedule) GetAlarmMode() *MonitorV2AlarmMode { return v.AlarmMode }
 
 type MonitorV2CronScheduleInput struct {
 	RawCron   *string             `json:"rawCron"`
@@ -17493,6 +17499,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -21369,6 +21376,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -23146,6 +23154,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -24119,6 +24128,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -24405,6 +24415,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -26334,6 +26345,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
+	alarmMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {

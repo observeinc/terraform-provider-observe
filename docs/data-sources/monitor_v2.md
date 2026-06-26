@@ -94,6 +94,7 @@ is done relative to the desired timezone.
 
 Read-Only:
 
+- `alarm_mode` (String) Controls how alarms are emitted across consecutive monitor evaluations. When unset, the provider sends no value and the backend applies its default behavior (`per_run`). `per_run` opens an independent zero-duration alarm for each evaluation that fires, regardless of whether the previous evaluation asserted the same (group, level). `ongoing` extends a single alarm across consecutive evaluations that re-assert the same (group, level), until an evaluation no longer asserts that level.
 - `raw_cron` (String) If specified, the raw cron is a crontab configuration to use to drive the scheduling.
 
 

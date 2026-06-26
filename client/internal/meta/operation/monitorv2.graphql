@@ -184,6 +184,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
     rawCron
     timezone
+    alarmMode
 }
 
 fragment MonitorV2Scheduling on MonitorV2Scheduling {

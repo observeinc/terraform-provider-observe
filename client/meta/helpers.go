@@ -149,6 +149,11 @@ var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
 	MonitorV2AlarmLevelNodata,
 }
 
+var AllMonitorV2AlarmModes = []MonitorV2AlarmMode{
+	MonitorV2AlarmModePerrun,
+	MonitorV2AlarmModeOngoing,
+}
+
 var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
 	MonitorV2ValueAggregationAllof,
 	MonitorV2ValueAggregationAnyof,

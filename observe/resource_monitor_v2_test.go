@@ -2,10 +2,13 @@ package observe
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
@@ -705,6 +708,235 @@ func TestAccObserveMonitorRawCron(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.raw_cron", "0 0 * * *"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.timezone", "America/New_York"),
 				),
+			},
+		},
+	})
+}
+
+// monitorV2AlarmModeConfig renders a cron-scheduled threshold monitor whose
+// scheduled block optionally carries an alarm_mode line. Pass "" to omit
+// alarm_mode entirely (the SlowLane-safe path that must send no alarmMode).
+func monitorV2AlarmModeConfig(prefix, alarmModeLine string) string {
+	return fmt.Sprintf(monitorV2ConfigPreamble+`
+		resource "observe_monitor_v2" "first" {
+			workspace = data.observe_workspace.default.oid
+			rule_kind = "threshold"
+			name = "%[1]s"
+			lookback_time = "10m"
+			inputs = {
+				"test" = observe_datastream.test.dataset
+			}
+			stage {
+				pipeline = "colmake temp_number:14, groupme:12"
+			}
+			rules {
+				level = "informational"
+				threshold {
+					compare_values {
+						compare_fn = "greater"
+						value_int64 = [0]
+					}
+					value_column_name = "temp_number"
+					aggregation = "all_of"
+				}
+			}
+			scheduling {
+				scheduled {
+					raw_cron = "0 0 * * *"
+					timezone = "America/New_York"
+					%[2]s
+				}
+			}
+		}
+
+		data "observe_monitor_v2" "lookup" {
+			id = observe_monitor_v2.first.id
+		}
+	`, prefix, alarmModeLine)
+}
+
+// TestMonitorV2AlarmModeSchema locks in the schema decision (Abhinav's review on
+// PR #334): alarm_mode is Optional with validation/diff-suppression, but must NOT
+// carry a Default or be Computed. A Default would make the provider send an
+// explicit alarmMode for every cron monitor, which the backend rejects on tenants
+// without the FlagEnableOngoingAlarms feature flag.
+func TestMonitorV2AlarmModeSchema(t *testing.T) {
+	scheduled := resourceMonitorV2().Schema["scheduling"].Elem.(*schema.Resource).
+		Schema["scheduled"].Elem.(*schema.Resource).Schema
+	field, ok := scheduled["alarm_mode"]
+	if !ok {
+		t.Fatal("alarm_mode field missing from the scheduled schema")
+	}
+	if !field.Optional {
+		t.Error("alarm_mode should be Optional")
+	}
+	if field.Computed {
+		t.Error("alarm_mode must NOT be Computed: we deliberately send nothing when unset so flagless tenants are not rejected")
+	}
+	if field.Default != nil {
+		t.Errorf("alarm_mode must NOT have a Default (got %v): a default forces an explicit alarmMode the backend rejects without the feature flag", field.Default)
+	}
+	if field.ValidateDiagFunc == nil {
+		t.Error("alarm_mode should have a ValidateDiagFunc")
+	}
+	if field.DiffSuppressFunc == nil {
+		t.Error("alarm_mode should have a DiffSuppressFunc")
+	}
+}
+
+// TestNewMonitorV2ScheduledScheduleInput_AlarmMode verifies the expander only
+// sends alarmMode when the user explicitly set it. The unset case returning nil
+// is the crux of the PR #334 fix and is checked without a backend or feature flag.
+func TestNewMonitorV2ScheduledScheduleInput_AlarmMode(t *testing.T) {
+	amPtr := func(m gql.MonitorV2AlarmMode) *gql.MonitorV2AlarmMode { return &m }
+
+	cases := []struct {
+		name      string
+		alarmMode interface{} // nil => omit from config
+		want      *gql.MonitorV2AlarmMode
+	}{
+		{"unset", nil, nil},
+		{"ongoing", "ongoing", amPtr(gql.MonitorV2AlarmModeOngoing)},
+		{"per_run", "per_run", amPtr(gql.MonitorV2AlarmModePerrun)},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			scheduled := map[string]interface{}{
+				"timezone": "America/New_York",
+				"raw_cron": "0 0 * * *",
+			}
+			if tc.alarmMode != nil {
+				scheduled["alarm_mode"] = tc.alarmMode
+			}
+			data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, map[string]interface{}{
+				"scheduling": []interface{}{
+					map[string]interface{}{
+						"scheduled": []interface{}{scheduled},
+					},
+				},
+			})
+
+			cron, diags := newMonitorV2ScheduledScheduleInput("scheduling.0.scheduled.0.", data)
+			if diags.HasError() {
+				t.Fatalf("unexpected diags: %v", diags)
+			}
+			switch {
+			case tc.want == nil:
+				if cron.AlarmMode != nil {
+					t.Fatalf("expected AlarmMode to be nil when unset, got %q", *cron.AlarmMode)
+				}
+			case cron.AlarmMode == nil:
+				t.Fatalf("expected AlarmMode %q, got nil", *tc.want)
+			case *cron.AlarmMode != *tc.want:
+				t.Fatalf("expected AlarmMode %q, got %q", *tc.want, *cron.AlarmMode)
+			}
+		})
+	}
+}
+
+// TestMonitorV2FlattenScheduledSchedule_AlarmMode verifies the read path: a nil
+// backend value leaves alarm_mode absent (so config-unset round-trips with no
+// diff), and a set value is snake-cased back into state.
+func TestMonitorV2FlattenScheduledSchedule_AlarmMode(t *testing.T) {
+	amPtr := func(m gql.MonitorV2AlarmMode) *gql.MonitorV2AlarmMode { return &m }
+
+	got := monitorV2FlattenScheduledSchedule(gql.MonitorV2CronSchedule{Timezone: "UTC"})
+	if _, ok := got[0].(map[string]any)["alarm_mode"]; ok {
+		t.Errorf("expected no alarm_mode key when AlarmMode is nil")
+	}
+
+	for _, tc := range []struct {
+		mode gql.MonitorV2AlarmMode
+		want string
+	}{
+		{gql.MonitorV2AlarmModeOngoing, "ongoing"},
+		{gql.MonitorV2AlarmModePerrun, "per_run"},
+	} {
+		got := monitorV2FlattenScheduledSchedule(gql.MonitorV2CronSchedule{
+			Timezone:  "UTC",
+			AlarmMode: amPtr(tc.mode),
+		})
+		if v := got[0].(map[string]any)["alarm_mode"]; v != tc.want {
+			t.Errorf("AlarmMode %q: expected flattened %q, got %v", tc.mode, tc.want, v)
+		}
+	}
+}
+
+// TestAccObserveMonitorV2AlarmMode exercises the alarm_mode lifecycle end to end:
+// the unset default path, setting/changing the value, case-insensitive diff
+// suppression, and clearing the value back to nil.
+//
+// NOTE: the steps that APPLY a non-nil alarm_mode (ongoing/per_run) require the
+// FlagEnableOngoingAlarms feature flag on the test tenant; otherwise the backend
+// returns "alarmMode is not enabled for this customer". The omit/plan-only steps
+// do not need the flag.
+func TestAccObserveMonitorV2AlarmMode(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	noAlarm := monitorV2AlarmModeConfig(randomPrefix, "")
+	ongoing := monitorV2AlarmModeConfig(randomPrefix, `alarm_mode = "ongoing"`)
+	perRun := monitorV2AlarmModeConfig(randomPrefix, `alarm_mode = "per_run"`)
+	ongoingPascal := monitorV2AlarmModeConfig(randomPrefix, `alarm_mode = "Ongoing"`)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// Default path: no alarm_mode set -> provider sends no alarmMode,
+				// backend returns nil, state is empty. Safe on flagless tenants.
+				Config: noAlarm,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.alarm_mode", ""),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.alarm_mode", ""),
+				),
+			},
+			// Re-applying the same config produces no diff.
+			testAccPlanOnlyNoDriftStep(noAlarm),
+			{
+				// Explicitly set ongoing (requires feature flag).
+				Config: ongoing,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.alarm_mode", "ongoing"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.alarm_mode", "ongoing"),
+				),
+			},
+			// Case-insensitive: "Ongoing" must diff-suppress against stored "ongoing".
+			testAccPlanOnlyNoDriftStep(ongoingPascal),
+			{
+				// Change the value (requires feature flag).
+				Config: perRun,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.alarm_mode", "per_run"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.alarm_mode", "per_run"),
+				),
+			},
+			{
+				// Removing alarm_mode clears it (the input fully replaces the
+				// stored value), leaving state empty with no perpetual diff.
+				Config: noAlarm,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "scheduling.0.scheduled.0.alarm_mode", ""),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "scheduling.0.scheduled.0.alarm_mode", ""),
+				),
+			},
+		},
+	})
+}
+
+// TestAccObserveMonitorV2AlarmModeInvalid verifies an unknown alarm_mode is
+// rejected at plan time by validateEnums (no backend write, no feature flag).
+func TestAccObserveMonitorV2AlarmModeInvalid(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      monitorV2AlarmModeConfig(randomPrefix, `alarm_mode = "bogus"`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("to be one of"),
 			},
 		},
 	})
