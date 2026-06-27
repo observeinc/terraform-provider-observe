@@ -154,6 +154,11 @@ var AllMonitorV2AlarmModes = []MonitorV2AlarmMode{
 	MonitorV2AlarmModeOngoing,
 }
 
+var AllMonitorV2ServiceBindingMatchModes = []MonitorV2ServiceBindingMatchMode{
+	MonitorV2ServiceBindingMatchModeExact,
+	MonitorV2ServiceBindingMatchModeWildcard,
+}
+
 var AllMonitorV2ValueAggregations = []MonitorV2ValueAggregation{
 	MonitorV2ValueAggregationAllof,
 	MonitorV2ValueAggregationAnyof,
