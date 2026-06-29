@@ -9342,16 +9342,17 @@ func (v *PollerConfigPollerAWSSnapshotConfig) GetIncludeActions() []string { ret
 
 // PollerConfigPollerCloudWatchMetricsConfig includes the requested fields of the GraphQL type PollerCloudWatchMetricsConfig.
 type PollerConfigPollerCloudWatchMetricsConfig struct {
-	Typename      *string                                                                              `json:"__typename"`
-	Retries       *types.Int64Scalar                                                                   `json:"retries"`
-	Interval      *types.DurationScalar                                                                `json:"interval"`
-	Tags          *types.JsonObject                                                                    `json:"tags"`
-	Chunk         *PollerConfigChunkPollerChunkConfig                                                  `json:"chunk"`
-	Period        types.Int64Scalar                                                                    `json:"period"`
-	Delay         types.Int64Scalar                                                                    `json:"delay"`
-	Region        string                                                                               `json:"region"`
-	AssumeRoleArn string                                                                               `json:"assumeRoleArn"`
-	Queries       []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig `json:"queries"`
+	Typename           *string                                                                              `json:"__typename"`
+	Retries            *types.Int64Scalar                                                                   `json:"retries"`
+	Interval           *types.DurationScalar                                                                `json:"interval"`
+	Tags               *types.JsonObject                                                                    `json:"tags"`
+	Chunk              *PollerConfigChunkPollerChunkConfig                                                  `json:"chunk"`
+	Period             types.Int64Scalar                                                                    `json:"period"`
+	Delay              types.Int64Scalar                                                                    `json:"delay"`
+	Region             string                                                                               `json:"region"`
+	AssumeRoleArn      string                                                                               `json:"assumeRoleArn"`
+	AttachResourceTags bool                                                                                 `json:"attachResourceTags"`
+	Queries            []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig `json:"queries"`
 }
 
 // GetTypename returns PollerConfigPollerCloudWatchMetricsConfig.Typename, and is useful for accessing the field via an interface.
@@ -9384,6 +9385,11 @@ func (v *PollerConfigPollerCloudWatchMetricsConfig) GetRegion() string { return 
 
 // GetAssumeRoleArn returns PollerConfigPollerCloudWatchMetricsConfig.AssumeRoleArn, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetAssumeRoleArn() string { return v.AssumeRoleArn }
+
+// GetAttachResourceTags returns PollerConfigPollerCloudWatchMetricsConfig.AttachResourceTags, and is useful for accessing the field via an interface.
+func (v *PollerConfigPollerCloudWatchMetricsConfig) GetAttachResourceTags() bool {
+	return v.AttachResourceTags
+}
 
 // GetQueries returns PollerConfigPollerCloudWatchMetricsConfig.Queries, and is useful for accessing the field via an interface.
 func (v *PollerConfigPollerCloudWatchMetricsConfig) GetQueries() []PollerConfigPollerCloudWatchMetricsConfigQueriesPollerCloudWatchMetricsQueryConfig {
@@ -17835,6 +17841,7 @@ fragment Poller on Poller {
 			delay
 			region
 			assumeRoleArn
+			attachResourceTags
 			queries {
 				namespace
 				metricNames
@@ -21612,6 +21619,7 @@ fragment Poller on Poller {
 			delay
 			region
 			assumeRoleArn
+			attachResourceTags
 			queries {
 				namespace
 				metricNames
@@ -26586,6 +26594,7 @@ fragment Poller on Poller {
 			delay
 			region
 			assumeRoleArn
+			attachResourceTags
 			queries {
 				namespace
 				metricNames
