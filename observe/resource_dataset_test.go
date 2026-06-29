@@ -1274,8 +1274,47 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 	})
 }
 
-// Test entity_tags field for datasets
-func TestAccObserveDatasetEntityTags(t *testing.T) {
+// Test deprecated entity_tags still works for optional rename compatibility.
+func TestAccObserveDatasetEntityTagsDeprecated(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(datastreamNoWorkspacePreamble+`
+				resource "observe_dataset" "first" {
+					name = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test_no_ws.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					entity_tags = {
+						environment = "production"
+					}
+				}`, randomPrefix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "object_tags.environment"),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
+// Test object_tags field for datasets
+func TestAccObserveDatasetObjectTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1298,19 +1337,19 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						environment = "production"
 						team        = "backend,frontend"
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-dataset"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.team", "backend,frontend"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.environment", "production"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.team", "backend,frontend"),
 				),
 			},
 			{
-				// Update entity_tags
+				// Update object_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1326,15 +1365,15 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						environment = "staging,production"
 						region      = "us-west-2"
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production,staging"), // Backend sorts alphabetically
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.region", "us-west-2"),
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "entity_tags.team"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.environment", "production,staging"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.region", "us-west-2"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "object_tags.team"),
 				),
 			},
 			{
@@ -1354,16 +1393,16 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						note = "\"Team A, Inc\""
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.note", "\"Team A, Inc\""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.note", "\"Team A, Inc\""),
 				),
 			},
 			{
-				// Remove all entity_tags
+				// Remove all object_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1380,7 +1419,7 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.%", "0"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.%", "0"),
 				),
 			},
 		},

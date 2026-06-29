@@ -323,9 +323,8 @@ type Bookmark struct {
 	TargetIdKind ObjectKind   `json:"targetIdKind"`
 	GroupId      string       `json:"groupId"`
 	BookmarkKind BookmarkKind `json:"bookmarkKind"`
-	// DEPRECATED: Use objectTags instead.
-	// Entity tags for organizing and categorizing bookmarks.
-	EntityTags []EntityTagMapping `json:"entityTags"`
+	// Object tags for organizing and categorizing bookmarks.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
 }
 
 // GetId returns Bookmark.Id, and is useful for accessing the field via an interface.
@@ -349,8 +348,8 @@ func (v *Bookmark) GetGroupId() string { return v.GroupId }
 // GetBookmarkKind returns Bookmark.BookmarkKind, and is useful for accessing the field via an interface.
 func (v *Bookmark) GetBookmarkKind() BookmarkKind { return v.BookmarkKind }
 
-// GetEntityTags returns Bookmark.EntityTags, and is useful for accessing the field via an interface.
-func (v *Bookmark) GetEntityTags() []EntityTagMapping { return v.EntityTags }
+// GetObjectTags returns Bookmark.ObjectTags, and is useful for accessing the field via an interface.
+func (v *Bookmark) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
 // BookmarkGroup includes the GraphQL fields of BookmarkGroup requested by the fragment BookmarkGroup.
 type BookmarkGroup struct {
@@ -951,9 +950,8 @@ type Dashboard struct {
 	Stages          []DashboardStagesStageQuery                `json:"stages"`
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
 	ParameterValues []DashboardParameterValuesParameterBinding `json:"parameterValues"`
-	// DEPRECATED: Use objectTags instead.
-	// Entity tags for organizing and categorizing dashboards.
-	EntityTags []EntityTagMapping `json:"entityTags"`
+	// Object tags for organizing and categorizing dashboards.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
 }
 
 // GetId returns Dashboard.Id, and is useful for accessing the field via an interface.
@@ -985,8 +983,8 @@ func (v *Dashboard) GetParameterValues() []DashboardParameterValuesParameterBind
 	return v.ParameterValues
 }
 
-// GetEntityTags returns Dashboard.EntityTags, and is useful for accessing the field via an interface.
-func (v *Dashboard) GetEntityTags() []EntityTagMapping { return v.EntityTags }
+// GetObjectTags returns Dashboard.ObjectTags, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
 type DashboardInput struct {
 	// if id is not specified, a new dashboard is created
@@ -1311,9 +1309,8 @@ type Dataset struct {
 	Typedef                    DatasetTypedef                                       `json:"typedef"`
 	SourceTable                *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
 	CorrelationTagMappings     []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
-	// DEPRECATED: Use objectTags instead.
-	// Entity tags for organizing and categorizing datasets.
-	EntityTags []EntityTagMapping `json:"entityTags"`
+	// Object tags for organizing and categorizing datasets.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
 }
 
 // GetWorkspaceId returns Dataset.WorkspaceId, and is useful for accessing the field via an interface.
@@ -1386,8 +1383,8 @@ func (v *Dataset) GetCorrelationTagMappings() []DatasetCorrelationTagMappingsCor
 	return v.CorrelationTagMappings
 }
 
-// GetEntityTags returns Dataset.EntityTags, and is useful for accessing the field via an interface.
-func (v *Dataset) GetEntityTags() []EntityTagMapping { return v.EntityTags }
+// GetObjectTags returns Dataset.ObjectTags, and is useful for accessing the field via an interface.
+func (v *Dataset) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
 // DatasetCorrelationTagMappingsCorrelationTagMapping includes the requested fields of the GraphQL type CorrelationTagMapping.
 type DatasetCorrelationTagMappingsCorrelationTagMapping struct {
@@ -2439,24 +2436,6 @@ func (v *EmailActionInput) GetIsHtml() *bool { return v.IsHtml }
 
 // GetFragments returns EmailActionInput.Fragments, and is useful for accessing the field via an interface.
 func (v *EmailActionInput) GetFragments() *types.JsonObject { return v.Fragments }
-
-// EntityTagMapping includes the requested fields of the GraphQL type EntityTagMapping.
-// The GraphQL type's documentation follows.
-//
-// DEPRECATED: Use ObjectTagMapping instead.
-// EntityTagMapping represents a key-value mapping for entity tags.
-// Entity tags can be applied to dashboards, datasets, worksheets, etc.
-// Each mapping contains a tag key and a list of values associated with that key.
-type EntityTagMapping struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
-// GetKey returns EntityTagMapping.Key, and is useful for accessing the field via an interface.
-func (v *EntityTagMapping) GetKey() string { return v.Key }
-
-// GetValues returns EntityTagMapping.Values, and is useful for accessing the field via an interface.
-func (v *EntityTagMapping) GetValues() []string { return v.Values }
 
 // DEPRECATED: Use ObjectTagMappingInput instead.
 // EntityTagMappingInput is the input type for EntityTagMapping.
@@ -8796,6 +8775,23 @@ const (
 	ObjectKindDashboard     ObjectKind = "Dashboard"
 )
 
+// ObjectTagMapping includes the requested fields of the GraphQL type ObjectTagMapping.
+// The GraphQL type's documentation follows.
+//
+// ObjectTagMapping represents a key-value mapping for object tags.
+// Object tags can be applied to dashboards, datasets, worksheets, etc.
+// Each mapping contains a tag key and a list of values associated with that key.
+type ObjectTagMapping struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
+// GetKey returns ObjectTagMapping.Key, and is useful for accessing the field via an interface.
+func (v *ObjectTagMapping) GetKey() string { return v.Key }
+
+// GetValues returns ObjectTagMapping.Values, and is useful for accessing the field via an interface.
+func (v *ObjectTagMapping) GetValues() []string { return v.Values }
+
 // ObjectTagMappingInput is the input type for ObjectTagMapping.
 type ObjectTagMappingInput struct {
 	Key    string   `json:"key"`
@@ -11676,9 +11672,8 @@ type Worksheet struct {
 	ManagedById *string      `json:"managedById"`
 	WorkspaceId string       `json:"workspaceId"`
 	Stages      []StageQuery `json:"stages"`
-	// DEPRECATED: Use objectTags instead.
-	// Entity tags for organizing and categorizing worksheets.
-	EntityTags []EntityTagMapping `json:"entityTags"`
+	// Object tags for organizing and categorizing worksheets.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
 }
 
 // GetId returns Worksheet.Id, and is useful for accessing the field via an interface.
@@ -11699,8 +11694,8 @@ func (v *Worksheet) GetWorkspaceId() string { return v.WorkspaceId }
 // GetStages returns Worksheet.Stages, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
 
-// GetEntityTags returns Worksheet.EntityTags, and is useful for accessing the field via an interface.
-func (v *Worksheet) GetEntityTags() []EntityTagMapping { return v.EntityTags }
+// GetObjectTags returns Worksheet.ObjectTags, and is useful for accessing the field via an interface.
+func (v *Worksheet) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
 // WorksheetIdLabel includes the GraphQL fields of Worksheet requested by the fragment WorksheetIdLabel.
 type WorksheetIdLabel struct {
@@ -17678,7 +17673,7 @@ fragment Bookmark on Bookmark {
 	targetIdKind
 	groupId
 	bookmarkKind
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -19583,7 +19578,7 @@ fragment Bookmark on Bookmark {
 	targetIdKind
 	groupId
 	bookmarkKind
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -19894,7 +19889,7 @@ fragment Dashboard on Dashboard {
 			... valueFields
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -20086,7 +20081,7 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -22144,7 +22139,7 @@ fragment Worksheet on Worksheet {
 	stages {
 		... StageQuery
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -22311,7 +22306,7 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -22645,7 +22640,7 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -23500,7 +23495,7 @@ fragment Dashboard on Dashboard {
 			... valueFields
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -23653,7 +23648,7 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -24590,7 +24585,7 @@ fragment Dataset on Dataset {
 			path
 		}
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
@@ -24658,7 +24653,7 @@ fragment Worksheet on Worksheet {
 	stages {
 		... StageQuery
 	}
-	entityTags {
+	objectTags {
 		key
 		values
 	}
