@@ -369,6 +369,13 @@ func resourceMonitorV2() *schema.Resource {
 				Elem:        monitorV2ColumnResource(),
 				Description: descriptions.Get("monitorv2", "schema", "groupings"),
 			},
+			"service_bindings": { // [MonitorV2ServiceBindingInput!]
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1, // backend supports at most one today; list kept for forward-compat
+				Elem:        monitorV2ServiceBindingDimensionResource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "description"),
+			},
 			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -698,6 +705,76 @@ func monitorV2ColumnResource() *schema.Resource {
 				Elem:        monitorV2ColumnPathResource(),
 				Description: descriptions.Get("monitorv2", "schema", "column_path", "description"),
 			},
+			"correlation_tag": { // MonitorV2CorrelationTagInput
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem:        monitorV2CorrelationTagResource(),
+				Description: descriptions.Get("monitorv2", "schema", "correlation_tag", "description"),
+			},
+		},
+	}
+}
+
+func monitorV2CorrelationTagResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"tag": { // String!
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitorv2", "schema", "correlation_tag", "tag"),
+			},
+		},
+	}
+}
+
+func monitorV2ServiceBindingValueResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2ServiceBindingValueInput
+		Schema: map[string]*schema.Schema{
+			"value": { // String
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "value"),
+			},
+			"match_mode": { // MonitorV2ServiceBindingMatchMode
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          toSnake(string(gql.MonitorV2ServiceBindingMatchModeExact)),
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ServiceBindingMatchModes),
+				DiffSuppressFunc: diffSuppressEnums,
+				Description:      descriptions.Get("monitorv2", "schema", "service_bindings", "match_mode"),
+			},
+		},
+	}
+}
+
+func monitorV2ServiceBindingDimensionResource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2ServiceBindingValueInput!
+		Schema: map[string]*schema.Schema{
+			"service_name": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				MaxItems:    1,
+				Elem:        monitorV2ServiceBindingValueResource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "service_name"),
+			},
+			"environment": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				MaxItems:    1,
+				Elem:        monitorV2ServiceBindingValueResource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "environment"),
+			},
+			"service_namespace": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				MaxItems:    1,
+				Elem:        monitorV2ServiceBindingValueResource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "service_namespace"),
+			},
 		},
 	}
 }
@@ -882,6 +959,12 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 
 	if monitor.Definition.Groupings != nil {
 		if err := data.Set("groupings", monitorV2FlattenGroupings(monitor.Definition.Groupings)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if monitor.Definition.ServiceBindings != nil {
+		if err := data.Set("service_bindings", monitorV2FlattenServiceBindings(monitor.Definition.ServiceBindings)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -1128,7 +1211,14 @@ func monitorV2FlattenColumn(gqlColumn gql.MonitorV2Column) []interface{} {
 	if gqlColumn.ColumnPath != nil {
 		column["column_path"] = monitorV2FlattenColumnPath(*gqlColumn.ColumnPath)
 	}
+	if gqlColumn.CorrelationTag != nil {
+		column["correlation_tag"] = monitorV2FlattenCorrelationTag(*gqlColumn.CorrelationTag)
+	}
 	return []interface{}{column}
+}
+
+func monitorV2FlattenCorrelationTag(gqlCorrelationTag gql.MonitorV2CorrelationTag) []interface{} {
+	return []interface{}{map[string]interface{}{"tag": gqlCorrelationTag.Tag}}
 }
 
 func monitorV2FlattenComparisons(gqlComparisons []gql.MonitorV2Comparison) []interface{} {
@@ -1188,9 +1278,38 @@ func monitorV2FlattenGroupings(gqlGroupings []gql.MonitorV2Column) []interface{}
 		if gqlGrouping.ColumnPath != nil {
 			grouping["column_path"] = monitorV2FlattenColumnPath(*gqlGrouping.ColumnPath)
 		}
+		if gqlGrouping.CorrelationTag != nil {
+			grouping["correlation_tag"] = monitorV2FlattenCorrelationTag(*gqlGrouping.CorrelationTag)
+		}
 		groupings = append(groupings, grouping)
 	}
 	return groupings
+}
+
+func monitorV2FlattenServiceBindings(gqlBindings []gql.MonitorV2ServiceBinding) []interface{} {
+	var bindings []interface{}
+	for _, b := range gqlBindings {
+		bindings = append(bindings, map[string]interface{}{
+			"service_name":      monitorV2FlattenServiceBindingValue(b.ServiceName),
+			"environment":       monitorV2FlattenServiceBindingValue(b.Environment),
+			"service_namespace": monitorV2FlattenServiceBindingValue(b.ServiceNamespace),
+		})
+	}
+	return bindings
+}
+
+func monitorV2FlattenServiceBindingValue(gqlValue gql.MonitorV2ServiceBindingValue) []interface{} {
+	value := map[string]interface{}{}
+	if gqlValue.Value != nil {
+		value["value"] = *gqlValue.Value
+	}
+	// MatchMode is nullable on read; default to "exact" to match the schema Default.
+	if gqlValue.MatchMode != nil {
+		value["match_mode"] = toSnake(string(*gqlValue.MatchMode))
+	} else {
+		value["match_mode"] = toSnake(string(gql.MonitorV2ServiceBindingMatchModeExact))
+	}
+	return []interface{}{value}
 }
 
 func monitorV2FlattenColumnPath(gqlColumnPath gql.MonitorV2ColumnPath) []interface{} {
@@ -1369,6 +1488,18 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 			groupings = append(groupings, *colInput)
 		}
 		defnInput.Groupings = groupings
+	}
+
+	if _, ok := data.GetOk("service_bindings"); ok {
+		serviceBindings := make([]gql.MonitorV2ServiceBindingInput, 0)
+		for i := range data.Get("service_bindings").([]interface{}) {
+			binding, diags := newMonitorV2ServiceBindingInput(fmt.Sprintf("service_bindings.%d.", i), data)
+			if diags.HasError() {
+				return nil, diags
+			}
+			serviceBindings = append(serviceBindings, *binding)
+		}
+		defnInput.ServiceBindings = serviceBindings
 	}
 	if lookbackTimeStr, ok := data.GetOk("lookback_time"); ok {
 		lookbackTime, err := types.ParseDurationScalar(lookbackTimeStr.(string))
@@ -1759,7 +1890,77 @@ func newMonitorV2ColumnInput(path string, data *schema.ResourceData) (column *gq
 		column.ColumnPath = columnPath
 	}
 
+	if _, ok := data.GetOk(fmt.Sprintf("%scorrelation_tag", path)); ok {
+		correlationTag, diags := newMonitorV2CorrelationTagInput(fmt.Sprintf("%scorrelation_tag.0.", path), data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		column.CorrelationTag = correlationTag
+	}
+
 	return column, diags
+}
+
+func newMonitorV2CorrelationTagInput(path string, data *schema.ResourceData) (tag *gql.MonitorV2CorrelationTagInput, diags diag.Diagnostics) {
+	// required
+	name := data.Get(fmt.Sprintf("%stag", path)).(string)
+
+	// instantiation
+	tag = &gql.MonitorV2CorrelationTagInput{Tag: name}
+
+	return tag, diags
+}
+
+func newMonitorV2ServiceBindingInput(path string, data *schema.ResourceData) (binding *gql.MonitorV2ServiceBindingInput, diags diag.Diagnostics) {
+	// all three dimensions are required
+	serviceName, diags := newMonitorV2ServiceBindingValueInput(fmt.Sprintf("%sservice_name.0.", path), data)
+	if diags.HasError() {
+		return nil, diags
+	}
+	environment, diags := newMonitorV2ServiceBindingValueInput(fmt.Sprintf("%senvironment.0.", path), data)
+	if diags.HasError() {
+		return nil, diags
+	}
+	serviceNamespace, diags := newMonitorV2ServiceBindingValueInput(fmt.Sprintf("%sservice_namespace.0.", path), data)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	binding = &gql.MonitorV2ServiceBindingInput{
+		ServiceName:      *serviceName,
+		Environment:      *environment,
+		ServiceNamespace: *serviceNamespace,
+	}
+
+	return binding, diags
+}
+
+func newMonitorV2ServiceBindingValueInput(path string, data *schema.ResourceData) (value *gql.MonitorV2ServiceBindingValueInput, diags diag.Diagnostics) {
+	value = &gql.MonitorV2ServiceBindingValueInput{}
+
+	// match_mode has a "exact" default, so data.Get always returns a non-empty string.
+	matchMode := gql.MonitorV2ServiceBindingMatchMode(toCamel(data.Get(fmt.Sprintf("%smatch_mode", path)).(string)))
+	value.MatchMode = &matchMode
+
+	// value is optional; an empty string is treated as absent.
+	if v, ok := data.GetOk(fmt.Sprintf("%svalue", path)); ok {
+		s := v.(string)
+		value.Value = &s
+	}
+
+	// Mirror the backend's value/match_mode pairing rule so users get a fast, local error.
+	switch matchMode {
+	case gql.MonitorV2ServiceBindingMatchModeExact:
+		if value.Value == nil {
+			return nil, diag.Errorf("service binding dimension with match_mode=exact requires a non-empty value (path %q)", path)
+		}
+	case gql.MonitorV2ServiceBindingMatchModeWildcard:
+		if value.Value != nil {
+			return nil, diag.Errorf("service binding dimension with match_mode=wildcard must not set value (path %q)", path)
+		}
+	}
+
+	return value, diags
 }
 
 func newMonitorV2LinkColumnInput(path string, data *schema.ResourceData) (column *gql.MonitorV2LinkColumnInput, diags diag.Diagnostics) {

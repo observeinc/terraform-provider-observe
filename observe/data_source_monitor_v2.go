@@ -356,6 +356,13 @@ func dataSourceMonitorV2() *schema.Resource {
 				Elem:        monitorV2ColumnDatasource(),
 				Description: descriptions.Get("monitorv2", "schema", "groupings"),
 			},
+			"service_bindings": { // [MonitorV2ServiceBindingInput!]
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2ServiceBindingDimensionDatasource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "description"),
+			},
 			"scheduling": { // MonitorV2SchedulingInput (required *only* for TF)
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -640,6 +647,70 @@ func monitorV2ColumnDatasource() *schema.Resource {
 				Computed:    true,
 				Elem:        monitorV2ColumnPathDatasource(),
 				Description: descriptions.Get("monitorv2", "schema", "column_path", "description"),
+			},
+			"correlation_tag": { // MonitorV2CorrelationTagInput
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2CorrelationTagDatasource(),
+				Description: descriptions.Get("monitorv2", "schema", "correlation_tag", "description"),
+			},
+		},
+	}
+}
+
+func monitorV2CorrelationTagDatasource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2CorrelationTagInput
+		Schema: map[string]*schema.Schema{
+			"tag": { // String!
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitorv2", "schema", "correlation_tag", "tag"),
+			},
+		},
+	}
+}
+
+func monitorV2ServiceBindingValueDatasource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2ServiceBindingValueInput
+		Schema: map[string]*schema.Schema{
+			"value": { // String
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "value"),
+			},
+			"match_mode": { // MonitorV2ServiceBindingMatchMode
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "match_mode"),
+			},
+		},
+	}
+}
+
+func monitorV2ServiceBindingDimensionDatasource() *schema.Resource {
+	return &schema.Resource{ // MonitorV2ServiceBindingValueInput!
+		Schema: map[string]*schema.Schema{
+			"service_name": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2ServiceBindingValueDatasource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "service_name"),
+			},
+			"environment": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2ServiceBindingValueDatasource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "environment"),
+			},
+			"service_namespace": { // MonitorV2ServiceBindingValueInput!
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Elem:        monitorV2ServiceBindingValueDatasource(),
+				Description: descriptions.Get("monitorv2", "schema", "service_bindings", "service_namespace"),
 			},
 		},
 	}

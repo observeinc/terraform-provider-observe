@@ -66,6 +66,7 @@ stage pipelines.
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rule_template` (Block List) Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more. (see [below for nested schema](#nestedblock--rule_template))
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
+- `service_bindings` (Block List) Declares the (service_name, environment, service_namespace) triplet this monitor's alarms are attributed to, aligned with OpenTelemetry semantic conventions. At most one binding is supported today. (see [below for nested schema](#nestedblock--service_bindings))
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
@@ -194,6 +195,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--actions--conditions--compare_terms--column--link_column))
 
 <a id="nestedblock--actions--conditions--compare_terms--column--column_path"></a>
@@ -203,6 +205,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--actions--conditions--compare_terms--column--correlation_tag"></a>
+### Nested Schema for `actions.conditions.compare_terms.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--actions--conditions--compare_terms--column--link_column"></a>
@@ -237,6 +247,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--groupings--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--groupings--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--groupings--link_column))
 
 <a id="nestedblock--groupings--column_path"></a>
@@ -246,6 +257,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--groupings--correlation_tag"></a>
+### Nested Schema for `groupings.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--groupings--link_column"></a>
@@ -288,6 +307,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--no_data_rules--anomaly--compare_groups--column--link_column))
 
 <a id="nestedblock--no_data_rules--anomaly--compare_groups--column--column_path"></a>
@@ -297,6 +317,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--no_data_rules--anomaly--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `no_data_rules.anomaly.compare_groups.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--no_data_rules--anomaly--compare_groups--column--link_column"></a>
@@ -348,6 +376,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--no_data_rules--threshold--compare_groups--column--link_column))
 
 <a id="nestedblock--no_data_rules--threshold--compare_groups--column--column_path"></a>
@@ -357,6 +386,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--no_data_rules--threshold--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `no_data_rules.threshold.compare_groups.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--no_data_rules--threshold--compare_groups--column--link_column"></a>
@@ -460,6 +497,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--link_column))
 
 <a id="nestedblock--rules--anomaly--compare_groups--column--column_path"></a>
@@ -469,6 +507,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--rules--anomaly--compare_groups--column--link_column"></a>
@@ -518,6 +564,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column))
 
 <a id="nestedblock--rules--count--compare_groups--column--column_path"></a>
@@ -527,6 +574,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--count--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.count.compare_groups.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--rules--count--compare_groups--column--link_column"></a>
@@ -589,6 +644,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--link_column))
 
 <a id="nestedblock--rules--promote--compare_columns--column--column_path"></a>
@@ -598,6 +654,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--promote--compare_columns--column--correlation_tag"></a>
+### Nested Schema for `rules.promote.compare_columns.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--rules--promote--compare_columns--column--link_column"></a>
@@ -649,6 +713,7 @@ Read-Only:
 Read-Only:
 
 - `column_path` (Block List) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--column_path))
+- `correlation_tag` (Block List) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--correlation_tag))
 - `link_column` (Block List) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column))
 
 <a id="nestedblock--rules--threshold--compare_groups--column--column_path"></a>
@@ -658,6 +723,14 @@ Read-Only:
 
 - `name` (String) The name of the column.
 - `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--threshold--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.correlation_tag`
+
+Read-Only:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
 
 
 <a id="nestedblock--rules--threshold--compare_groups--column--link_column"></a>
@@ -697,6 +770,43 @@ Read-Only:
 - `value_string` (List of String) list of size <=1 consisting of a string value.
 - `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
+
+
+
+<a id="nestedblock--service_bindings"></a>
+### Nested Schema for `service_bindings`
+
+Read-Only:
+
+- `environment` (Block List) Environment dimension of the binding (OTel `deployment.environment.name`). (see [below for nested schema](#nestedblock--service_bindings--environment))
+- `service_name` (Block List) Service-name dimension of the binding (OTel `service.name`). (see [below for nested schema](#nestedblock--service_bindings--service_name))
+- `service_namespace` (Block List) Namespace dimension of the binding (OTel `service.namespace`). (see [below for nested schema](#nestedblock--service_bindings--service_namespace))
+
+<a id="nestedblock--service_bindings--environment"></a>
+### Nested Schema for `service_bindings.environment`
+
+Read-Only:
+
+- `match_mode` (String) How the dimension is matched: `exact` (default) matches the given `value`; `wildcard` matches any value.
+- `value` (String) Literal value to match for this dimension.
+
+
+<a id="nestedblock--service_bindings--service_name"></a>
+### Nested Schema for `service_bindings.service_name`
+
+Read-Only:
+
+- `match_mode` (String) How the dimension is matched: `exact` (default) matches the given `value`; `wildcard` matches any value.
+- `value` (String) Literal value to match for this dimension.
+
+
+<a id="nestedblock--service_bindings--service_namespace"></a>
+### Nested Schema for `service_bindings.service_namespace`
+
+Read-Only:
+
+- `match_mode` (String) How the dimension is matched: `exact` (default) matches the given `value`; `wildcard` matches any value.
+- `value` (String) Literal value to match for this dimension.
 
 
 

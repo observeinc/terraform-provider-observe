@@ -7379,6 +7379,8 @@ type MonitorV2Column struct {
 	LinkColumn *MonitorV2LinkColumn `json:"linkColumn"`
 	// Column path is any non-link typed column along with an optional path which the user wants to group by.
 	ColumnPath *MonitorV2ColumnPath `json:"columnPath"`
+	// Marks this column as a correlation-tag grouping (e.g. #service.name); mutually exclusive with linkColumn / columnPath. Resolved (tag, column) pair lands on MonitorV2AlertSchema.correlationTags at save time.
+	CorrelationTag *MonitorV2CorrelationTag `json:"correlationTag"`
 }
 
 // GetLinkColumn returns MonitorV2Column.LinkColumn, and is useful for accessing the field via an interface.
@@ -7386,6 +7388,9 @@ func (v *MonitorV2Column) GetLinkColumn() *MonitorV2LinkColumn { return v.LinkCo
 
 // GetColumnPath returns MonitorV2Column.ColumnPath, and is useful for accessing the field via an interface.
 func (v *MonitorV2Column) GetColumnPath() *MonitorV2ColumnPath { return v.ColumnPath }
+
+// GetCorrelationTag returns MonitorV2Column.CorrelationTag, and is useful for accessing the field via an interface.
+func (v *MonitorV2Column) GetCorrelationTag() *MonitorV2CorrelationTag { return v.CorrelationTag }
 
 // MonitorV2ColumnComparison includes the GraphQL fields of MonitorV2ColumnComparison requested by the fragment MonitorV2ColumnComparison.
 type MonitorV2ColumnComparison struct {
@@ -7425,7 +7430,7 @@ func (v *MonitorV2ColumnComparisonInput) GetOperator() *MonitorV2BooleanOperator
 type MonitorV2ColumnInput struct {
 	LinkColumn     *MonitorV2LinkColumnInput     `json:"linkColumn,omitempty"`
 	ColumnPath     *MonitorV2ColumnPathInput     `json:"columnPath,omitempty"`
-	CorrelationTag *MonitorV2CorrelationTagInput `json:"correlationTag"`
+	CorrelationTag *MonitorV2CorrelationTagInput `json:"correlationTag,omitempty"`
 }
 
 // GetLinkColumn returns MonitorV2ColumnInput.LinkColumn, and is useful for accessing the field via an interface.
@@ -7563,6 +7568,16 @@ func (v *MonitorV2ComparisonTermInput) GetComparison() MonitorV2ComparisonInput 
 // GetColumn returns MonitorV2ComparisonTermInput.Column, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonTermInput) GetColumn() MonitorV2ColumnInput { return v.Column }
 
+// MonitorV2CorrelationTag includes the GraphQL fields of MonitorV2CorrelationTag requested by the fragment MonitorV2CorrelationTag.
+type MonitorV2CorrelationTag struct {
+	// The correlation tag name, e.g. "service.name". The leading '#' is implied and
+	// must not be included.
+	Tag string `json:"tag"`
+}
+
+// GetTag returns MonitorV2CorrelationTag.Tag, and is useful for accessing the field via an interface.
+func (v *MonitorV2CorrelationTag) GetTag() string { return v.Tag }
+
 type MonitorV2CorrelationTagInput struct {
 	Tag string `json:"tag"`
 }
@@ -7694,6 +7709,21 @@ type MonitorV2Definition struct {
 	// note: These are distinctly different than the action fragments, which are treated as
 	// mustache partials.
 	CustomVariables *types.JsonObject `json:"customVariables"`
+	// ServiceBindings declares the (serviceName, environment, serviceNamespace) triplets a monitor's
+	// alarms should be attributed to. The list shape is
+	// kept for forward-compatibility; today at most one binding entry is supported.
+	// Optional: when omitted/empty the monitor has no service binding and alarms are
+	// written with NULL service / environment / namespace columns.
+	//
+	// Validation rules (enforced at save time, gated by the service-monitoring feature flag):
+	//
+	// 1. At most one binding entry.
+	// 2. For each wildcard component in the binding, the monitor must supply a
+	// backing column for the corresponding correlation tag - either via an
+	// explicit MonitorV2Column.correlationTag grouping, or via a column-path
+	// grouping that is itself tagged with the matching correlation tag on the
+	// input dataset.
+	ServiceBindings []MonitorV2ServiceBinding `json:"serviceBindings"`
 }
 
 // GetInputQuery returns MonitorV2Definition.InputQuery, and is useful for accessing the field via an interface.
@@ -7729,6 +7759,11 @@ func (v *MonitorV2Definition) GetScheduling() *MonitorV2Scheduling { return v.Sc
 
 // GetCustomVariables returns MonitorV2Definition.CustomVariables, and is useful for accessing the field via an interface.
 func (v *MonitorV2Definition) GetCustomVariables() *types.JsonObject { return v.CustomVariables }
+
+// GetServiceBindings returns MonitorV2Definition.ServiceBindings, and is useful for accessing the field via an interface.
+func (v *MonitorV2Definition) GetServiceBindings() []MonitorV2ServiceBinding {
+	return v.ServiceBindings
+}
 
 type MonitorV2DefinitionInput struct {
 	InputQuery             MultiStageQueryInput           `json:"inputQuery"`
@@ -8239,6 +8274,27 @@ func (v *MonitorV2SeasonalAlgorithmInput) GetSensitivity() *MonitorV2AnomalySeas
 	return v.Sensitivity
 }
 
+// MonitorV2ServiceBinding includes the GraphQL fields of MonitorV2ServiceBinding requested by the fragment MonitorV2ServiceBinding.
+type MonitorV2ServiceBinding struct {
+	// Service-name dimension of the binding.
+	ServiceName MonitorV2ServiceBindingValue `json:"serviceName"`
+	// Environment dimension of the binding.
+	Environment MonitorV2ServiceBindingValue `json:"environment"`
+	// Namespace dimension of the binding.
+	ServiceNamespace MonitorV2ServiceBindingValue `json:"serviceNamespace"`
+}
+
+// GetServiceName returns MonitorV2ServiceBinding.ServiceName, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBinding) GetServiceName() MonitorV2ServiceBindingValue { return v.ServiceName }
+
+// GetEnvironment returns MonitorV2ServiceBinding.Environment, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBinding) GetEnvironment() MonitorV2ServiceBindingValue { return v.Environment }
+
+// GetServiceNamespace returns MonitorV2ServiceBinding.ServiceNamespace, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBinding) GetServiceNamespace() MonitorV2ServiceBindingValue {
+	return v.ServiceNamespace
+}
+
 type MonitorV2ServiceBindingInput struct {
 	// Service-name dimension of the binding.
 	ServiceName MonitorV2ServiceBindingValueInput `json:"serviceName"`
@@ -8273,6 +8329,24 @@ const (
 	MonitorV2ServiceBindingMatchModeExact    MonitorV2ServiceBindingMatchMode = "Exact"
 	MonitorV2ServiceBindingMatchModeWildcard MonitorV2ServiceBindingMatchMode = "Wildcard"
 )
+
+// MonitorV2ServiceBindingValue includes the GraphQL fields of MonitorV2ServiceBindingValue requested by the fragment MonitorV2ServiceBindingValue.
+type MonitorV2ServiceBindingValue struct {
+	// Literal value this dimension matches; null when matchMode is Wildcard.
+	Value *string `json:"value"`
+	// How this dimension is matched. Exact matches value; Wildcard matches any value,
+	// with the concrete value resolved from the monitor's groupings (or the input
+	// dataset's correlation-tag mappings) at detection time.
+	MatchMode *MonitorV2ServiceBindingMatchMode `json:"matchMode"`
+}
+
+// GetValue returns MonitorV2ServiceBindingValue.Value, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingValue) GetValue() *string { return v.Value }
+
+// GetMatchMode returns MonitorV2ServiceBindingValue.MatchMode, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingValue) GetMatchMode() *MonitorV2ServiceBindingMatchMode {
+	return v.MatchMode
+}
 
 type MonitorV2ServiceBindingValueInput struct {
 	// Exact value to match. For a wildcard, leave this null and set matchMode: Wildcard.
@@ -17353,6 +17427,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -17415,6 +17492,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -17425,6 +17505,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -17489,6 +17580,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -17500,6 +17594,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -21230,6 +21328,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -21292,6 +21393,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -21302,6 +21406,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -21366,6 +21481,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -21377,6 +21495,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -23008,6 +23130,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -23070,6 +23195,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -23080,6 +23208,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -23144,6 +23283,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -23155,6 +23297,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -23982,6 +24128,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -24044,6 +24193,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -24054,6 +24206,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -24118,6 +24281,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -24129,6 +24295,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -24269,6 +24439,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -24331,6 +24504,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -24341,6 +24517,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -24405,6 +24592,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -24416,6 +24606,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {
@@ -26199,6 +26393,9 @@ fragment MonitorV2Definition on MonitorV2Definition {
 		... MonitorV2Scheduling
 	}
 	customVariables
+	serviceBindings {
+		... MonitorV2ServiceBinding
+	}
 }
 fragment MonitorV2ActionRule on MonitorV2ActionRule {
 	actionID
@@ -26261,6 +26458,9 @@ fragment MonitorV2Column on MonitorV2Column {
 	columnPath {
 		... MonitorV2ColumnPath
 	}
+	correlationTag {
+		... MonitorV2CorrelationTag
+	}
 }
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	interval {
@@ -26271,6 +26471,17 @@ fragment MonitorV2Scheduling on MonitorV2Scheduling {
 	}
 	scheduled {
 		... MonitorV2CronSchedule
+	}
+}
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+	serviceName {
+		... MonitorV2ServiceBindingValue
+	}
+	environment {
+		... MonitorV2ServiceBindingValue
+	}
+	serviceNamespace {
+		... MonitorV2ServiceBindingValue
 	}
 }
 fragment MonitorV2ComparisonExpression on MonitorV2ComparisonExpression {
@@ -26335,6 +26546,9 @@ fragment MonitorV2ColumnPath on MonitorV2ColumnPath {
 	name
 	path
 }
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+	tag
+}
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
 	interval
 	randomize
@@ -26346,6 +26560,10 @@ fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
 	rawCron
 	timezone
 	alarmMode
+}
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+	value
+	matchMode
 }
 fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 	comparison {

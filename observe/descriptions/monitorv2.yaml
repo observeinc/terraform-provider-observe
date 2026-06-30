@@ -122,6 +122,24 @@ schema:
       Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources).
     name: |
       The name of the link column.
+  correlation_tag:
+    description: |
+      Marks this column as a correlation-tag grouping (e.g. `service.name`).
+    tag: |
+      The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
+  service_bindings:
+    description: |
+      Declares the (service_name, environment, service_namespace) triplet this monitor's alarms are attributed to, aligned with OpenTelemetry semantic conventions. At most one binding is supported today.
+    service_name: |
+      Service-name dimension of the binding (OTel `service.name`).
+    environment: |
+      Environment dimension of the binding (OTel `deployment.environment.name`).
+    service_namespace: |
+      Namespace dimension of the binding (OTel `service.namespace`).
+    value: |
+      Literal value to match for this dimension.
+    match_mode: |
+      How the dimension is matched: `exact` (default) matches the given `value`; `wildcard` matches any value.
   comparison:
     compare_fn: |
       the type of comparison (greater, less, equal, etc.)
