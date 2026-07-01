@@ -2,14 +2,14 @@ package observe
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
-	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
@@ -22,6 +22,23 @@ func resourceDropFilter() *schema.Resource {
 		DeleteContext: resourceIngestFilterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
+		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			// The source dataset of a drop filter is immutable server-side, so a
+			// change requires recreating the resource. The dataset OID embeds a
+			// version that is diff-suppressed, so compare ids directly here
+			// rather than setting ForceNew on the schema (which would trip on the
+			// "known after apply" version whenever the dataset is updated). This
+			// mirrors resource_dataset_query_filter.
+			if d.HasChange("source_dataset") {
+				oldVal, newVal := d.GetChange("source_dataset")
+				oldOid, oldErr := oid.NewOID(oldVal.(string))
+				newOid, newErr := oid.NewOID(newVal.(string))
+				if oldErr == nil && newErr == nil && oldOid.Id != newOid.Id {
+					d.ForceNew("source_dataset")
+				}
+			}
+			return nil
 		},
 		Schema: map[string]*schema.Schema{
 			"workspace": {
@@ -70,85 +87,45 @@ func resourceDropFilter() *schema.Resource {
 	}
 }
 
-func newIngestFilterConfig(data *schema.ResourceData) (input *gql.IngestFilterInput, diags diag.Diagnostics) {
-	var (
-		name               = data.Get("name").(string)
-		pipeline           = data.Get("pipeline").(string)
-		dropRate           = data.Get("drop_rate").(float64)
-		enabled            = data.Get("enabled").(bool)
-		sourceDatasetID, _ = oid.NewOID(data.Get("source_dataset").(string))
-	)
-	input = &gql.IngestFilterInput{
-		Name:            name,
-		Pipeline:        pipeline,
-		DropRate:        dropRate,
-		Enabled:         enabled,
-		SourceDatasetID: sourceDatasetID.Id,
-	}
-	return input, diags
-}
-
-func ingestFilterToResourceData(filter *gql.IngestFilter, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("workspace", oid.WorkspaceOid(filter.WorkspaceId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+func ingestFilterToResourceData(filter *rest.IngestFilterResource, data *schema.ResourceData) (diags diag.Diagnostics) {
+	setResourceData := func(key string, value interface{}) {
+		if err := data.Set(key, value); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	if err := data.Set("oid", oid.IngestFilterOid(filter.Id).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("source_dataset", oid.DatasetOid(filter.SourceDatasetID).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("name", filter.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("drop_rate", filter.DropRate); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("pipeline", filter.Pipeline); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("enabled", filter.Enabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	data.SetId(filter.Id)
+	setResourceData("oid", filter.Oid().String())
+	setResourceData("name", filter.Label)
+	setResourceData("pipeline", filter.Pipeline)
+	setResourceData("drop_rate", filter.DropRate)
+	setResourceData("enabled", filter.Enabled)
+	setResourceData("source_dataset", oid.DatasetOid(filter.SourceDataset.Id).String())
+	// workspace is intentionally not set: the REST API does not return a
+	// workspace, and the attribute is deprecated and ignored by the server.
 
 	return diags
 }
 
 func resourceIngestFilterCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newIngestFilterConfig(data)
-	if diags.HasError() {
-		return diags
+
+	sourceDatasetOid, err := oid.NewOID(data.Get("source_dataset").(string))
+	if err != nil {
+		return diag.Errorf("invalid source_dataset OID: %s", err.Error())
 	}
 
-	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
-	if err != nil {
-		return diag.FromErr(err)
+	req := &rest.IngestFilterCreateRequest{
+		Label:         data.Get("name").(string),
+		Pipeline:      data.Get("pipeline").(string),
+		DropRate:      data.Get("drop_rate").(float64),
+		Enabled:       data.Get("enabled").(bool),
+		SourceDataset: rest.DatasetRef{Id: sourceDatasetOid.Id},
 	}
-	filter, err := client.CreateIngestFilter(ctx, wsid, config)
+
+	filter, err := client.CreateIngestFilter(ctx, req)
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to create drop filter",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-	if len(filter.Errors) > 0 {
-		for _, v := range filter.Errors {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "failed to create drop filter",
-				Detail:   v.GetMessage(),
-			})
-		}
-		return diags
+		return diag.Errorf("failed to create drop filter: %s", err.Error())
 	}
 
 	data.SetId(filter.Id)
@@ -158,65 +135,40 @@ func resourceIngestFilterCreate(ctx context.Context, data *schema.ResourceData, 
 
 func resourceIngestFilterRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
+
 	filter, err := client.GetIngestFilter(ctx, data.Id())
 	if err != nil {
-		if gql.HasErrorCode(err, gql.ErrNotFound) {
+		if rest.HasStatusCode(err, http.StatusNotFound) {
 			data.SetId("")
 			return nil
 		}
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to retrieve drop filter [id=%s]", data.Id()),
-			Detail:   err.Error(),
-		})
+		return diag.Errorf("failed to retrieve drop filter [id=%s]: %s", data.Id(), err.Error())
 	}
-	if len(filter.Errors) > 0 {
-		for _, v := range filter.Errors {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("failed to retrieve drop filter [id=%s]", data.Id()),
-				Detail:   v.GetMessage(),
-			})
-		}
-		return diags
-	}
+
 	return ingestFilterToResourceData(filter, data)
 }
 
 func resourceIngestFilterUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, diags := newIngestFilterConfig(data)
-	if diags.HasError() {
-		return diags
+
+	req := &rest.IngestFilterUpdateRequest{
+		Label:    data.Get("name").(string),
+		Pipeline: data.Get("pipeline").(string),
+		DropRate: data.Get("drop_rate").(float64),
+		Enabled:  data.Get("enabled").(bool),
 	}
 
-	result, err := client.UpdateIngestFilter(ctx, data.Id(), config)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to update drop filter [id=%s]", data.Id()),
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-	if len(result.Errors) > 0 {
-		for _, v := range result.Errors {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("failed to update drop filter [id=%s]", data.Id()),
-				Detail:   v.GetMessage(),
-			})
-		}
-		return diags
+	if _, err := client.UpdateIngestFilter(ctx, data.Id(), req); err != nil {
+		return diag.Errorf("failed to update drop filter [id=%s]: %s", data.Id(), err.Error())
 	}
 
-	return ingestFilterToResourceData(result, data)
+	return append(diags, resourceIngestFilterRead(ctx, data, meta)...)
 }
 
 func resourceIngestFilterDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteIngestFilter(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete drop filter: %s", err)
+		return diag.Errorf("failed to delete drop filter: %s", err.Error())
 	}
 	return diags
 }
