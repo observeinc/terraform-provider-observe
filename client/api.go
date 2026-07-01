@@ -1666,18 +1666,33 @@ func (c *Client) DeleteIngestToken(ctx context.Context, id string) error {
 	return c.Meta.DeleteIngestToken(ctx, id)
 }
 
-func (c *Client) CreateIngestFilter(ctx context.Context, workspace string, input *meta.IngestFilterInput) (*meta.IngestFilter, error) {
-	return c.Meta.CreateIngestFilter(ctx, workspace, input)
+func (c *Client) CreateIngestFilter(ctx context.Context, req *rest.IngestFilterCreateRequest) (result *rest.IngestFilterResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateIngestFilter(ctx, req)
+	})
+	return
 }
 
-func (c *Client) GetIngestFilter(ctx context.Context, filterId string) (*meta.IngestFilter, error) {
-	return c.Meta.GetIngestFilter(ctx, filterId)
+func (c *Client) GetIngestFilter(ctx context.Context, id string) (*rest.IngestFilterResource, error) {
+	return c.Rest.GetIngestFilter(ctx, id)
 }
-func (c *Client) UpdateIngestFilter(ctx context.Context, filterId string, input *meta.IngestFilterInput) (*meta.IngestFilter, error) {
-	return c.Meta.UpdateIngestFilter(ctx, filterId, input)
+
+func (c *Client) UpdateIngestFilter(ctx context.Context, id string, req *rest.IngestFilterUpdateRequest) (result *rest.IngestFilterResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateIngestFilter(ctx, id, req)
+	})
+	return
 }
-func (c *Client) DeleteIngestFilter(ctx context.Context, filterId string) error {
-	return c.Meta.DeleteIngestFilter(ctx, filterId)
+
+func (c *Client) DeleteIngestFilter(ctx context.Context, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteIngestFilter(ctx, id)
+	})
+	return
+}
+
+func (c *Client) ListIngestFilters(ctx context.Context) ([]rest.IngestFilterResource, error) {
+	return c.Rest.ListIngestFilters(ctx)
 }
 
 /**

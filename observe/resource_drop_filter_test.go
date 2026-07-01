@@ -32,7 +32,7 @@ func TestIngestFilterDropRateTooLow(t *testing.T) {
 					enabled = true
 				}
 				`, randomPrefix),
-				ExpectError: regexp.MustCompile("dropRate must be between 0.0 and 1.0"),
+				ExpectError: regexp.MustCompile("dropRate.*not respecting minimum value constraint"),
 			},
 		},
 	})
