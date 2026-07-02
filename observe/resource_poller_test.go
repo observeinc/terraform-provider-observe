@@ -602,6 +602,33 @@ func TestAccObservePollerCloudWatchMetrics(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.query.0.resource_filter.#", "0"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s-%s"
+					icon_url  = "test"
+				}
+				resource "observe_poller" "first" {
+					workspace  = data.observe_workspace.default.oid
+					name       = "%s"
+					interval   = "5m"
+					datastream = observe_datastream.example.oid
+
+					cloudwatch_metrics {
+						assume_role_arn      = "arn:aws:iam::123456789012:role/metric-role"
+						region               = "us-west-2"
+						attach_resource_tags = true
+
+						query {
+							namespace = "AWS/EC2"
+						}
+					}
+				}`, randomPrefix, "pollers", randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_poller.first", "cloudwatch_metrics.0.attach_resource_tags", "true"),
+				),
+			},
 		},
 	})
 }

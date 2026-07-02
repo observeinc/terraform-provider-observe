@@ -24,6 +24,8 @@ schema:
       AWS Region to scrape from.
     assume_role_arn: |
       AWS role to assume when scraping AWS CloudWatch Metrics. External ID will be set to datastream ID.
+    attach_resource_tags: |
+      When enabled, the poller fetches and attaches AWS resource tags to collected metrics.
     query:
       description: |
         Query specification.
