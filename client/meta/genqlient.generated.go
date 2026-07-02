@@ -7250,15 +7250,21 @@ type MonitorV2AnomalyRuleTemplate struct {
 	// CompareFn allows the user to select one of above, below, or above or below standard deviations to be
 	// the bounds the data point has to be out.
 	CompareFn MonitorV2BoundComparisonFunction `json:"compareFn"`
-	// NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
-	// be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
-	NumStandardDeviations types.Int64Scalar `json:"numStandardDeviations"`
-	// BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the
-	// computation window of data, it will calculate the average and standard deviations and then determine
-	// whether the new point is out of bound. As of now, it will be of type JsonObject in anticipation to
-	// introduce MonitorV2BasicAnomalyAlgorithm in the future only if the need for special fields appear.
-	// To use the basic algorithm, set this value to an empty object.
-	BasicAlgorithm *types.JsonObject `json:"basicAlgorithm"`
+	// BasicAlgorithmTyped is the typed replacement for the legacy basicAlgorithm JsonObject placeholder
+	// and the preferred way to configure the basic standard-deviation anomaly family. Setting it
+	// selects the same OPAL evaluation path that basicAlgorithm: {} did, so existing alerts behave
+	// identically; new clients should use this field instead. The field is named "basicAlgorithmTyped"
+	// only because the "basicAlgorithm" name is already taken by the deprecated placeholder; once
+	// that placeholder is removed, this field is expected to be renamed to "basicAlgorithm".
+	// Optional so that other algorithms (e.g. seasonal) can be selected by leaving this unset and
+	// supplying their own typed config; the backend requires that exactly one anomaly algorithm be
+	// configured per monitor and rejects basicAlgorithm + basicAlgorithmTyped together.
+	BasicAlgorithmTyped *MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm `json:"basicAlgorithmTyped"`
+	// SeasonalAlgorithm makes the monitor use Prophet-based seasonal forecasting to evaluate data and
+	// fire alerts. The training window is read from the rolled-up monitor dataset and a forecast is
+	// produced for the evaluation window; data points outside the predicted yhat_lower/yhat_upper band
+	// are flagged. Mutually exclusive with basicAlgorithm.
+	SeasonalAlgorithm *MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm `json:"seasonalAlgorithm"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplate.ComputationWindow, and is useful for accessing the field via an interface.
@@ -7274,13 +7280,33 @@ func (v *MonitorV2AnomalyRuleTemplate) GetCompareFn() MonitorV2BoundComparisonFu
 	return v.CompareFn
 }
 
-// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplate.NumStandardDeviations, and is useful for accessing the field via an interface.
-func (v *MonitorV2AnomalyRuleTemplate) GetNumStandardDeviations() types.Int64Scalar {
-	return v.NumStandardDeviations
+// GetBasicAlgorithmTyped returns MonitorV2AnomalyRuleTemplate.BasicAlgorithmTyped, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetBasicAlgorithmTyped() *MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm {
+	return v.BasicAlgorithmTyped
 }
 
-// GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplate.BasicAlgorithm, and is useful for accessing the field via an interface.
-func (v *MonitorV2AnomalyRuleTemplate) GetBasicAlgorithm() *types.JsonObject { return v.BasicAlgorithm }
+// GetSeasonalAlgorithm returns MonitorV2AnomalyRuleTemplate.SeasonalAlgorithm, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplate) GetSeasonalAlgorithm() *MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm {
+	return v.SeasonalAlgorithm
+}
+
+// MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm includes the requested fields of the GraphQL type MonitorV2BasicAlgorithm.
+// The GraphQL type's documentation follows.
+//
+// MonitorV2BasicAlgorithm carries the parameters that are specific to the basic standard-deviation
+// based anomaly algorithm. It is referenced by MonitorV2AnomalyRuleTemplate.basicAlgorithmTyped; the
+// legacy top-level numStandardDeviations and JsonObject basicAlgorithm fields remain accepted for
+// backwards compatibility while clients migrate to this typed shape.
+type MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm struct {
+	// NumStandardDeviations defines how many standard deviations the data point has to be out of bounds
+	// to be marked as a red point. Valid values are 1 to 5.
+	NumStandardDeviations types.Int64Scalar `json:"numStandardDeviations"`
+}
+
+// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm.NumStandardDeviations, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm) GetNumStandardDeviations() types.Int64Scalar {
+	return v.NumStandardDeviations
+}
 
 type MonitorV2AnomalyRuleTemplateInput struct {
 	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
@@ -7288,9 +7314,9 @@ type MonitorV2AnomalyRuleTemplateInput struct {
 	ValueColumnName       string                           `json:"valueColumnName"`
 	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
 	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
-	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm,omitempty"`
-	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped"`
-	SeasonalAlgorithm     *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm"`
+	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
+	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
+	SeasonalAlgorithm     *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
@@ -7327,6 +7353,22 @@ func (v *MonitorV2AnomalyRuleTemplateInput) GetBasicAlgorithmTyped() *MonitorV2B
 // GetSeasonalAlgorithm returns MonitorV2AnomalyRuleTemplateInput.SeasonalAlgorithm, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetSeasonalAlgorithm() *MonitorV2SeasonalAlgorithmInput {
 	return v.SeasonalAlgorithm
+}
+
+// MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm includes the requested fields of the GraphQL type MonitorV2SeasonalAlgorithm.
+// The GraphQL type's documentation follows.
+//
+// MonitorV2SeasonalAlgorithm tunes the Prophet-based seasonal anomaly detector.
+type MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm struct {
+	// Sensitivity controls how easily the algorithm flags points as anomalous. When omitted
+	// the server defaults to Medium, which mirrors Prophet's own default interval_width of 0.80.
+	// See MonitorV2AnomalySeasonalSensitivity for the exact mapping from tier to interval_width.
+	Sensitivity *MonitorV2AnomalySeasonalSensitivity `json:"sensitivity"`
+}
+
+// GetSensitivity returns MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm.Sensitivity, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateSeasonalAlgorithmMonitorV2SeasonalAlgorithm) GetSensitivity() *MonitorV2AnomalySeasonalSensitivity {
+	return v.Sensitivity
 }
 
 // MonitorV2AnomalySeasonalSensitivity is a user-facing tier that maps to Prophet's interval_width
@@ -17538,8 +17580,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -21439,8 +21485,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -23241,8 +23291,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -24239,8 +24293,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -24550,8 +24608,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
@@ -26504,8 +26566,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
-	basicAlgorithm
+	basicAlgorithmTyped {
+		numStandardDeviations
+	}
+	seasonalAlgorithm {
+		sensitivity
+	}
 }
 fragment MonitorV2ThresholdRule on MonitorV2ThresholdRule {
 	compareValues {
