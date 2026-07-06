@@ -134,6 +134,12 @@ func dataSourceMonitorV2() *schema.Resource {
 										Computed:    true,
 										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "compare_fn"),
 									},
+									"num_standard_deviations": {
+										Type:        schema.TypeInt,
+										Computed:    true,
+										Deprecated:  "Set num_standard_deviations inside the basic_algorithm block instead. This field will be removed in a future version.",
+										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "num_standard_deviations"),
+									},
 									"basic_algorithm": {
 										Type:        schema.TypeList,
 										Computed:    true,
