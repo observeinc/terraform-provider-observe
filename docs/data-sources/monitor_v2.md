@@ -451,6 +451,7 @@ Read-Only:
 - `basic_algorithm` (List of Object) Configures the monitor to use the basic standard-deviation anomaly algorithm. Set num_standard_deviations inside this block to control the threshold. Mutually exclusive with seasonal_algorithm. (see [below for nested schema](#nestedatt--rule_template--anomaly--basic_algorithm))
 - `compare_fn` (String) The bound comparison function (Above, Below, AboveOrBelow) defining which direction(s) of standard deviation to consider out of bounds.
 - `computation_window` (String) The length of the window used to compute the average and the deviation. This value is automatically computed by the backend based on the evaluation window.
+- `num_standard_deviations` (Number, Deprecated) The number of standard deviations a data point must be out of bounds to be marked as anomalous (1 to 5). Prefer setting this inside the `basic_algorithm` block; the top-level field is deprecated.
 - `seasonal_algorithm` (List of Object) Configures the monitor to use Prophet-based seasonal forecasting. Set this block to enable; data points outside the predicted band are flagged. Mutually exclusive with `basic_algorithm`. (see [below for nested schema](#nestedatt--rule_template--anomaly--seasonal_algorithm))
 - `value_column_name` (String) Indicates which of the columns in the input query to apply the basic algorithm and create bounds over.
 
