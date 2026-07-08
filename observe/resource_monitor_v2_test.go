@@ -1917,11 +1917,6 @@ func TestAccObserveMonitorV2AnomalyWithNoDataRule(t *testing.T) {
 }
 
 func TestAccObserveMonitorV2AnomalySeasonal(t *testing.T) {
-	// The CI customer does not yet have the seasonal anomaly capability
-	// enabled, so monitor creation fails with "seasonal anomaly monitors are
-	// not enabled for this customer". Skip until the capability is rolled out
-	// to the test customer.
-	t.Skipf("skipping until seasonal anomaly monitors are enabled for the CI customer")
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
