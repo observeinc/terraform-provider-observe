@@ -551,14 +551,15 @@ Optional:
 
 Required:
 
-- `subject` (String)
+- `subject` (String) The email subject template.
 
 Optional:
 
-- `addresses` (List of String)
-- `body` (String)
-- `fragments` (String)
-- `users` (List of String)
+- `addresses` (List of String) A list of email addresses to email.
+- `body` (String) The email body template.
+- `fragments` (String) JSON object of named partial templates that can be referenced in the main
+template using mustache partial syntax.
+- `users` (List of String) A list of Observe user OIDs to email.
 
 
 <a id="nestedblock--actions--action--webhook"></a>
@@ -566,22 +567,23 @@ Optional:
 
 Required:
 
-- `body` (String)
-- `method` (String)
-- `url` (String)
+- `body` (String) The webhook body template.
+- `method` (String) HTTP request method to use for the webhook. Valid values are `post` and `put`.
+- `url` (String) A webhook URL template to a destination that can be rendered.
 
 Optional:
 
-- `fragments` (String)
-- `headers` (Block List) (see [below for nested schema](#nestedblock--actions--action--webhook--headers))
+- `fragments` (String) JSON object of named partial templates that can be referenced in the main
+template using mustache partial syntax.
+- `headers` (Block List) HTTP headers to send along with the webhook request. (see [below for nested schema](#nestedblock--actions--action--webhook--headers))
 
 <a id="nestedblock--actions--action--webhook--headers"></a>
 ### Nested Schema for `actions.action.webhook.headers`
 
 Required:
 
-- `header` (String)
-- `value` (String)
+- `header` (String) The header name.
+- `value` (String) A value template for the header that can be rendered.
 
 
 

@@ -11,10 +11,12 @@ import (
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func resourceMonitorV2Action() *schema.Resource {
 	return &schema.Resource{
+		Description:   descriptions.Get("monitor_v2_action", "description"),
 		CreateContext: resourceMonitorV2ActionCreate,
 		ReadContext:   resourceMonitorV2ActionRead,
 		UpdateContext: resourceMonitorV2ActionUpdate,
@@ -23,8 +25,7 @@ func resourceMonitorV2Action() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			// needed as input to CreateMonitorV2Action
-			"workspace": { // ObjectId!
+			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
@@ -32,39 +33,43 @@ func resourceMonitorV2Action() *schema.Resource {
 				DiffSuppressFunc: diffSuppressWorkspace,
 				Deprecated:       "workspace is no longer required and will be ignored. It may be removed in a future version.",
 			},
-			// fields of MonitorV2ActionInput
-			"type": { // MonitorV2ActionType!
+			"type": {
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
 				DiffSuppressFunc: diffSuppressEnums,
 				Required:         true,
+				Description:      descriptions.Get("monitor_v2_action", "schema", "type"),
 			},
-			"email": { // MonitorV2EmailDestinationInput
+			"email": {
 				Type:         schema.TypeList,
 				MaxItems:     1,
 				Optional:     true,
 				ExactlyOneOf: []string{"email", "webhook"},
+				Description:  descriptions.Get("monitor_v2_action", "schema", "email", "description"),
 				Elem:         monitorV2EmailActionInput(),
 			},
-			"webhook": { // MonitorV2WebhookDestinationInput
+			"webhook": {
 				Type:         schema.TypeList,
 				MaxItems:     1,
 				Optional:     true,
 				ExactlyOneOf: []string{"email", "webhook"},
+				Description:  descriptions.Get("monitor_v2_action", "schema", "webhook", "description"),
 				Elem:         monitorV2WebhookActionInput(),
 			},
-			"name": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "name"),
 			},
-			"description": { // String
-				Type:     schema.TypeString,
-				Optional: true,
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "description"),
 			},
-			// end of monitorV2ActionInput
-			"oid": { // ObjectId!
-				Type:     schema.TypeString,
-				Computed: true,
+			"oid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "oid"),
 			},
 		},
 	}
@@ -73,32 +78,37 @@ func resourceMonitorV2Action() *schema.Resource {
 func monitorV2EmailActionInput() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"subject": { // String
-				Type:     schema.TypeString,
-				Required: true,
+			"subject": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "email", "subject"),
 			},
-			"body": { // String
-				Type:     schema.TypeString,
-				Optional: true,
+			"body": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "email", "body"),
 			},
-			"fragments": { // JsonObject
+			"fragments": {
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateStringIsJSON,
 				DiffSuppressFunc: diffSuppressJSON,
 				Optional:         true,
+				Description:      descriptions.Get("monitor_v2_action", "schema", "email", "fragments"),
 			},
-			"users": { // [UserId!]
-				Type:     schema.TypeList,
-				Optional: true,
+			"users": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "email", "users"),
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validateOID(oid.TypeUser),
 				},
 			},
-			"addresses": { // [String!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+			"addresses": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "email", "addresses"),
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -107,30 +117,35 @@ func monitorV2EmailActionInput() *schema.Resource {
 func monitorV2WebhookActionInput() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"headers": { // [MonitorV2WebhookHeaderInput!]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     monitorV2WebhookHeaderInput(),
+			"headers": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "headers", "description"),
+				Elem:        monitorV2WebhookHeaderInput(),
 			},
-			"body": { // String
-				Type:     schema.TypeString,
-				Required: true,
+			"body": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "body"),
 			},
-			"fragments": { // JsonObject
+			"fragments": {
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validateStringIsJSON,
 				DiffSuppressFunc: diffSuppressJSON,
 				Optional:         true,
+				Description:      descriptions.Get("monitor_v2_action", "schema", "webhook", "fragments"),
 			},
-			"url": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+			"url": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "url"),
 			},
-			"method": { // MonitorV2HttpType!
+			"method": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2HttpTypes),
 				DiffSuppressFunc: diffSuppressEnums,
+				Description:      descriptions.Get("monitor_v2_action", "schema", "webhook", "method"),
 			},
 		},
 	}
@@ -139,13 +154,15 @@ func monitorV2WebhookActionInput() *schema.Resource {
 func monitorV2WebhookHeaderInput() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"header": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+			"header": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "headers", "header"),
 			},
-			"value": { // String!
-				Type:     schema.TypeString,
-				Required: true,
+			"value": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "headers", "value"),
 			},
 		},
 	}

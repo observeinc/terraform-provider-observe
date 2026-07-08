@@ -51,14 +51,14 @@ func dataSourceMonitorV2Action() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 				Elem:        monitorV2EmailActionDatasource(),
-				Description: descriptions.Get("monitor_v2_action", "schema", "email"),
+				Description: descriptions.Get("monitor_v2_action", "schema", "email", "description"),
 			},
 			"webhook": { // MonitorV2WebhookDestinationInput
 				Type:        schema.TypeList,
 				Optional:    true,
 				Computed:    true,
 				Elem:        monitorV2WebhookActionDatasource(),
-				Description: descriptions.Get("monitor_v2_action", "schema", "webhook"),
+				Description: descriptions.Get("monitor_v2_action", "schema", "webhook", "description"),
 			},
 			"description": { // String
 				Type:        schema.TypeString,
