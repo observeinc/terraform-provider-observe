@@ -1247,7 +1247,9 @@ func monitorV2FlattenAnomalyRuleTemplate(gqlTemplate gql.MonitorV2AnomalyRuleTem
 		template["num_standard_deviations"] = nsdu
 	}
 	if gqlTemplate.SeasonalAlgorithm != nil {
-		seasonal := map[string]interface{}{}
+		seasonal := map[string]interface{}{
+			"sensitivity": "",
+		}
 		if gqlTemplate.SeasonalAlgorithm.Sensitivity != nil {
 			seasonal["sensitivity"] = toSnake(string(*gqlTemplate.SeasonalAlgorithm.Sensitivity))
 		}
