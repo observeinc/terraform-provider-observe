@@ -7250,9 +7250,6 @@ type MonitorV2AnomalyRuleTemplate struct {
 	// CompareFn allows the user to select one of above, below, or above or below standard deviations to be
 	// the bounds the data point has to be out.
 	CompareFn MonitorV2BoundComparisonFunction `json:"compareFn"`
-	// NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
-	// be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
-	NumStandardDeviations types.Int64Scalar `json:"numStandardDeviations"`
 	// BasicAlgorithmTyped is the typed replacement for the legacy basicAlgorithm JsonObject placeholder
 	// and the preferred way to configure the basic standard-deviation anomaly family. Setting it
 	// selects the same OPAL evaluation path that basicAlgorithm: {} did, so existing alerts behave
@@ -7281,11 +7278,6 @@ func (v *MonitorV2AnomalyRuleTemplate) GetValueColumnName() string { return v.Va
 // GetCompareFn returns MonitorV2AnomalyRuleTemplate.CompareFn, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplate) GetCompareFn() MonitorV2BoundComparisonFunction {
 	return v.CompareFn
-}
-
-// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplate.NumStandardDeviations, and is useful for accessing the field via an interface.
-func (v *MonitorV2AnomalyRuleTemplate) GetNumStandardDeviations() types.Int64Scalar {
-	return v.NumStandardDeviations
 }
 
 // GetBasicAlgorithmTyped returns MonitorV2AnomalyRuleTemplate.BasicAlgorithmTyped, and is useful for accessing the field via an interface.
@@ -17588,7 +17580,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}
@@ -21494,7 +21485,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}
@@ -23301,7 +23291,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}
@@ -24304,7 +24293,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}
@@ -24620,7 +24608,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}
@@ -26579,7 +26566,6 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
 	computationWindow
 	valueColumnName
 	compareFn
-	numStandardDeviations
 	basicAlgorithmTyped {
 		numStandardDeviations
 	}

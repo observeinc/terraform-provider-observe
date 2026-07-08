@@ -1242,14 +1242,8 @@ func monitorV2FlattenAnomalyRuleTemplate(gqlTemplate gql.MonitorV2AnomalyRuleTem
 		template["basic_algorithm"] = []interface{}{map[string]interface{}{
 			"num_standard_deviations": nsdu,
 		}}
-		template["num_standard_deviations"] = nsdu
-	} else if nsdu := int(gqlTemplate.NumStandardDeviations); nsdu != 0 {
-		// Old monitors stored before basicAlgorithmTyped existed: the backend
-		// returns basicAlgorithmTyped=null and carries the value in the
-		// top-level numStandardDeviations field instead.
-		template["basic_algorithm"] = []interface{}{map[string]interface{}{
-			"num_standard_deviations": nsdu,
-		}}
+		// Populate the deprecated top-level field (Computed) so configs that
+		// still reference rule_template.0.anomaly.0.num_standard_deviations don't drift.
 		template["num_standard_deviations"] = nsdu
 	}
 	if gqlTemplate.SeasonalAlgorithm != nil {
