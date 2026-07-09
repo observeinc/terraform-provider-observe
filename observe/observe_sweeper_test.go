@@ -815,42 +815,16 @@ func dropFilterSweeper(pattern string) error {
 	}
 
 	ctx := context.Background()
-	workspaces, err := client.ListWorkspaces(ctx)
+	filters, err := client.ListIngestFilters(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list drop filters: %w", err)
 	}
 
-	for _, workspace := range workspaces {
-		result, err := client.Meta.Run(
-			ctx,
-			`query dropFilters($workspaceId: ObjectId!) {
-				searchIngestFilter(workspaceId: $workspaceId) {
-					results {
-						id
-						name
-					}
-				}
-			}`,
-			map[string]interface{}{
-				"workspaceId": workspace.Id,
-			},
-		)
-		if err != nil {
-			return fmt.Errorf("failed to lookup drop filters: %w", err)
-		}
-
-		result = result["searchIngestFilter"].(map[string]interface{})
-		for _, i := range result["results"].([]interface{}) {
-			var (
-				item = i.(map[string]interface{})
-				id   = item["id"].(string)
-				name = item["name"].(string)
-			)
-			if client.MatchName(name) {
-				log.Printf("[WARN] Deleting drop filter %s [id=%s]\n", name, id)
-				if err := client.DeleteIngestFilter(ctx, id); err != nil {
-					return err
-				}
+	for _, filter := range filters {
+		if client.MatchName(filter.Label) {
+			log.Printf("[WARN] Deleting drop filter %s [id=%s]\n", filter.Label, filter.Id)
+			if err := client.DeleteIngestFilter(ctx, filter.Id); err != nil {
+				return err
 			}
 		}
 	}
