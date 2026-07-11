@@ -22,10 +22,11 @@ Fetches data for an existing Observe dashboard.
 ### Read-Only
 
 - `description` (String) Dashboard description.
-- `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
+- `entity_tags` (Map of String, Deprecated) Use object_tags instead.
 - `icon_url` (String) Icon image.
 - `layout` (String) Dashboard layout in JSON format.
 - `name` (String) Dashboard name. Must be unique within workspace.
+- `object_tags` (Map of String) Object tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `oid` (String) The Observe ID for dashboard.
 - `parameter_values` (String) Dashboard parameter values in JSON format.
 - `parameters` (String) Dashboard parameters in JSON format.

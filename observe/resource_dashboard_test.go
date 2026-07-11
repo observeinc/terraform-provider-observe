@@ -3141,7 +3141,7 @@ func TestAccObserveDashboard_DefaultValueInt64(t *testing.T) {
 	})
 }
 
-func TestAccObserveDashboardEntityTags(t *testing.T) {
+func TestAccObserveDashboardObjectTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -3165,7 +3165,7 @@ func TestAccObserveDashboardEntityTags(t *testing.T) {
 					}]
 					EOF
 
-					entity_tags = {
+					object_tags = {
 						team       = "platform"
 						visibility = "public,internal"  # Will be sorted to "internal,public" by backend
 					}
@@ -3173,12 +3173,12 @@ func TestAccObserveDashboardEntityTags(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dashboard.first", "name", randomPrefix),
-					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.team", "platform"),
-					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.visibility", "internal,public"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_dashboard.first", "object_tags.team", "platform"),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "object_tags.visibility", "internal,public"), // Backend sorts alphabetically
 				),
 			},
 			{
-				// Update entity_tags
+				// Update object_tags
 				Config: fmt.Sprintf(configPreamble+`
 				resource "observe_dashboard" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -3195,14 +3195,14 @@ func TestAccObserveDashboardEntityTags(t *testing.T) {
 					}]
 					EOF
 
-					entity_tags = {
+					object_tags = {
 						team = "platform,sre"
 					}
 				}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dashboard.first", "entity_tags.team", "platform,sre"),
-					resource.TestCheckNoResourceAttr("observe_dashboard.first", "entity_tags.visibility"),
+					resource.TestCheckResourceAttr("observe_dashboard.first", "object_tags.team", "platform,sre"),
+					resource.TestCheckNoResourceAttr("observe_dashboard.first", "object_tags.visibility"),
 				),
 			},
 		},
