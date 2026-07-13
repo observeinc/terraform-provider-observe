@@ -6,7 +6,7 @@ VERSION?=$(shell git describe --tags --always)
 TESTARGS?=
 SWEEP?=^tf-\\d{16}
 SWEEP_DIR?=./observe
-OBSERVE_ROOT?=~/observe
+OBSERVE_ROOT?=../observe
 OBSERVE_DOCS_ROOT?=../observe-docs
 
 default: build
