@@ -109,6 +109,11 @@ func resourceDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      descriptions.Get("dataset", "schema", "acceleration_disabled_source"),
 			},
+			"acceleration_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "acceleration_type"),
+			},
 			"inputs": {
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -359,6 +364,10 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDepr
 	}
 
 	if err := data.Set("acceleration_disabled_source", toSnake(string(d.AccelerationDisabledSource))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := data.Set("acceleration_type", toSnake(string(d.AccelerationType))); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

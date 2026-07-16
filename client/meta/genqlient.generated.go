@@ -19,6 +19,25 @@ const (
 	AccelerationDisabledSourceView    AccelerationDisabledSource = "View"
 )
 
+type AccelerationType string
+
+const (
+	// Dataset can be accelerated by inserting new rows as they come in. This is
+	// the most efficient form of acceleration.
+	AccelerationTypeInsertonly AccelerationType = "InsertOnly"
+	// Dataset can be accelerated by aggregating new rows as they come in. This
+	// usually happens when we have a time-based aggregation, ex: timechart.
+	// Also efficient.
+	AccelerationTypeAggregation AccelerationType = "Aggregation"
+	// Dataset can be accelerated, but it's not insert-only or aggregation.
+	// Such acceleration usually requires reading more data than just
+	// the new rows, and rewrite existing data. It is usually less efficient
+	// than the other types.
+	AccelerationTypeOther AccelerationType = "Other"
+	// Dataset cannot be accelerated.
+	AccelerationTypeNotsupported AccelerationType = "NotSupported"
+)
+
 type ActionInput struct {
 	Name             *string               `json:"name"`
 	IconUrl          *string               `json:"iconUrl"`
@@ -1295,6 +1314,7 @@ type Dataset struct {
 	IconUrl                    *string                                              `json:"iconUrl"`
 	AccelerationDisabled       bool                                                 `json:"accelerationDisabled"`
 	AccelerationDisabledSource AccelerationDisabledSource                           `json:"accelerationDisabledSource"`
+	AccelerationType           AccelerationType                                     `json:"accelerationType"`
 	Version                    types.TimeScalar                                     `json:"version"`
 	LastSaved                  types.TimeScalar                                     `json:"lastSaved"`
 	PathCost                   *types.Int64Scalar                                   `json:"pathCost"`
@@ -1338,6 +1358,9 @@ func (v *Dataset) GetAccelerationDisabled() bool { return v.AccelerationDisabled
 func (v *Dataset) GetAccelerationDisabledSource() AccelerationDisabledSource {
 	return v.AccelerationDisabledSource
 }
+
+// GetAccelerationType returns Dataset.AccelerationType, and is useful for accessing the field via an interface.
+func (v *Dataset) GetAccelerationType() AccelerationType { return v.AccelerationType }
 
 // GetVersion returns Dataset.Version, and is useful for accessing the field via an interface.
 func (v *Dataset) GetVersion() types.TimeScalar { return v.Version }
@@ -17599,6 +17622,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	accelerationDisabledSource
+	accelerationType
 	version
 	lastSaved
 	pathCost
@@ -19697,6 +19721,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	accelerationDisabledSource
+	accelerationType
 	version
 	lastSaved
 	pathCost
@@ -20031,6 +20056,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	accelerationDisabledSource
+	accelerationType
 	version
 	lastSaved
 	pathCost
@@ -21063,6 +21089,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	accelerationDisabledSource
+	accelerationType
 	version
 	lastSaved
 	pathCost
@@ -22048,6 +22075,7 @@ fragment Dataset on Dataset {
 	iconUrl
 	accelerationDisabled
 	accelerationDisabledSource
+	accelerationType
 	version
 	lastSaved
 	pathCost

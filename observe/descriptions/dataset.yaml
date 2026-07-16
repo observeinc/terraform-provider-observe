@@ -17,6 +17,8 @@ schema:
     Disables periodic materialization of the dataset
   acceleration_disabled_source: |
     Source of disabled materialization
+  acceleration_type: |
+    Acceleration type of the dataset, as determined by its pipeline. One of "insert_only", "aggregation", "other", or "not_supported".
   data_table_view_state: |
     JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
   storage_integration: |
