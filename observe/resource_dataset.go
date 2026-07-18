@@ -33,6 +33,12 @@ var AllRematerializationModes = []TerraformRematerializationMode{
 	RematerializationModeMustSkipRematerialization,
 }
 
+var diagInefficientAcceleration = diag.Diagnostic{
+	Severity: diag.Warning,
+	Summary:  "Dataset has inefficient acceleration type",
+	Detail:   "This dataset's pipeline results in acceleration type 'other', which may require reading and rewriting existing data. Consider restructuring the pipeline to achieve insert_only or aggregation acceleration.",
+}
+
 func resourceDataset() *schema.Resource {
 	return &schema.Resource{
 		Description:   descriptions.Get("dataset", "description"),
@@ -506,6 +512,10 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
+	if result.AccelerationType == gql.AccelerationTypeOther {
+		diags = append(diags, diagInefficientAcceleration)
+	}
+
 	data.SetId(result.Id)
 	return append(diags, resourceDatasetRead(ctx, data, meta)...)
 }
@@ -587,7 +597,11 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	return datasetToResourceData(result, data, false)
+	if result.AccelerationType == gql.AccelerationTypeOther {
+		diags = append(diags, diagInefficientAcceleration)
+	}
+
+	return append(diags, datasetToResourceData(result, data, false)...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

@@ -81,6 +81,7 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
+- `acceleration_type` (String) Acceleration type of the dataset, as determined by its pipeline. One of "insert_only", "aggregation", "other", or "not_supported".
 - `id` (String) The ID of this resource.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
