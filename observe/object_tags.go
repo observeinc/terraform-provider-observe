@@ -68,19 +68,6 @@ func objectTagsSchemaFieldComputed() *schema.Schema {
 	}
 }
 
-// entityTagsSchemaFieldComputed returns deprecated entity_tags for data sources.
-func entityTagsSchemaFieldComputed() *schema.Schema {
-	return &schema.Schema{
-		Type:        schema.TypeMap,
-		Computed:    true,
-		Description: entityTagsDescription,
-		Deprecated:  entityTagsDeprecatedMessage,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
-		},
-	}
-}
-
 // objectTagsInputFromReader reads tags for Create/Update API calls.
 // Prefers entity_tags when set in config, matching the SDK v2 optional rename guide.
 func objectTagsInputFromReader(r objectTagsReader) []gql.ObjectTagMappingInput {
@@ -154,40 +141,19 @@ func entityTagsDeprecationDiags(r objectTagsReader) diag.Diagnostics {
 
 // setObjectTagsFromAPI writes tag values from the API into state and returns
 // deprecation warnings for resources using entity_tags.
-func setObjectTagsFromAPI(data *schema.ResourceData, tags []gql.ObjectTagMapping, mirrorDeprecatedTag bool) (diag.Diagnostics, error) {
-	var err error
-	if mirrorDeprecatedTag {
-		err = setObjectTagsOnDataSourceData(data, tags)
-	} else {
-		err = setObjectTagsOnResourceData(data, tags)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if mirrorDeprecatedTag {
-		return nil, nil
-	}
-	return entityTagsDeprecationDiags(data), nil
-}
-
-// setObjectTagsOnResourceData writes API tag values into state on the attribute the
-// practitioner configured (entity_tags preferred), matching the SDK v2 optional rename guide.
-func setObjectTagsOnResourceData(data *schema.ResourceData, tags []gql.ObjectTagMapping) error {
+func setObjectTagsFromAPI(data *schema.ResourceData, tags []gql.ObjectTagMapping) (diag.Diagnostics, error) {
 	flat := flattenObjectTagsToMap(tags)
 	field := activeObjectTagsField(data)
 	if field == "" {
 		field = "object_tags"
 	}
-	return data.Set(field, flat)
-}
-
-// setObjectTagsOnDataSourceData writes both attributes for computed rename compatibility.
-func setObjectTagsOnDataSourceData(data *schema.ResourceData, tags []gql.ObjectTagMapping) error {
-	flat := flattenObjectTagsToMap(tags)
-	if err := data.Set("object_tags", flat); err != nil {
-		return err
+	if err := data.Set(field, flat); err != nil {
+		return nil, err
 	}
-	return data.Set("entity_tags", flat)
+	if field == "entity_tags" {
+		return entityTagsDeprecationDiags(data), nil
+	}
+	return nil, nil
 }
 
 // parseCSVValues parses a CSV string and trims whitespace from each value.

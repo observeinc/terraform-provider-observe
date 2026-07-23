@@ -151,7 +151,7 @@ func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, d
 	return input, diags
 }
 
-func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
+func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -215,7 +215,7 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData, mirror
 		}
 	}
 
-	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else {
 		diags = append(diags, tagDiags...)
@@ -269,7 +269,7 @@ func resourceDashboardRead(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	return dashboardToResourceData(result, data, false)
+	return dashboardToResourceData(result, data)
 }
 
 func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -294,7 +294,7 @@ func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	return dashboardToResourceData(result, data, false)
+	return dashboardToResourceData(result, data)
 }
 
 func resourceDashboardDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
