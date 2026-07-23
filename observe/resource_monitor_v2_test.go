@@ -1428,14 +1428,11 @@ func TestAccObserveMonitorV2ServiceBindingsWildcard(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: allWildcard,
-				// ExpectNonEmptyPlan: applying the three correlation tags mutates the
-				// input dataset, bumping the version timestamp embedded in its OID. That
-				// re-resolved OID forces the ForceNew observe_correlation_tag resources to
-				// "replace" and churns the monitor's inputs map on the next plan. This is a
-				// correlation_tag/dataset OID-versioning artifact, NOT the service binding:
-				// the service_bindings and groupings blocks round-trip with no diff (verified
-				// in CI — only inputs churns). The Check below still asserts the wildcard
-				// binding created and reads back correctly.
+				// Creating a monitor for a new dataset updates the dataset's
+				// freshness configuration on first save, which bumps the version
+				// timestamp in its OID. The observe_correlation_tag resources
+				// store the full versioned OID, so they show a ForceNew diff on
+				// the next plan. Subsequent monitor updates are idempotent.
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "service_bindings.0.service_name.0.match_mode", "wildcard"),
@@ -1450,10 +1447,8 @@ func TestAccObserveMonitorV2ServiceBindingsWildcard(t *testing.T) {
 			{
 				// Update: flip service_namespace wildcard->exact, which lets us drop its
 				// correlation_tag grouping and backing tag. Exercises both a binding update
-				// and a change to the set of correlation-tag groupings (3 -> 2). Deleting the
-				// tag re-bumps the dataset OID, so the same churn applies (ExpectNonEmptyPlan).
-				Config:             nsExact,
-				ExpectNonEmptyPlan: true,
+				// and a change to the set of correlation-tag groupings (3 -> 2).
+				Config: nsExact,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "service_bindings.0.service_name.0.match_mode", "wildcard"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "service_bindings.0.environment.0.match_mode", "wildcard"),
