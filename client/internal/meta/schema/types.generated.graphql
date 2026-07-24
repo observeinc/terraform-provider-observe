@@ -53,6 +53,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     referencetable
     report
     serviceaccount
+    skill
     snowflakeshareoutbound
     storageintegration
     user
@@ -78,6 +79,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     DatastreamCreate
     DatastreamEdit
     DatastreamView
+    IcebergcatalogView
     InvestigatorGlobal
     MonitorCreate
     MonitorEdit
@@ -105,6 +107,7 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     DashboardVisibilityEditor
     DatasetAccelerator
     Editor
+    IcebergCatalogViewer
     Ingester
     InvestigatorGlobal
     Lister

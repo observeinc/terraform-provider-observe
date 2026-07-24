@@ -129,6 +129,7 @@ type PollerCloudWatchMetricsConfig implements PollerConfig @goModel(model: "obse
     queries: [PollerCloudWatchMetricsQueryConfig!]!
     region: String!
     assumeRoleArn: String!
+    attachResourceTags: Boolean!
 }
 
 type PollerCloudWatchMetricsQueryConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsQueryInput") {
@@ -252,7 +253,7 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
     enabled: Boolean!
     size: Int64
-} 
+}
 
 """
 Config is mandatory, but varies based on the poller kind
@@ -358,6 +359,7 @@ input PollerCloudWatchMetricsInput @goModel(model: "observe/meta/metatypes.Polle
     queries: [PollerCloudWatchMetricsQueryInput!]!
     region: String!
     assumeRoleArn: String!
+    attachResourceTags: Boolean = false
 }
 
 input PollerCloudWatchMetricsQueryInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsQueryInput") {

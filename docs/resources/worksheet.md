@@ -19,8 +19,9 @@ Manages an worksheet. Worksheets are used for ad-hoc analysis of datasets.
 
 ### Optional
 
-- `entity_tags` (Map of String) Entity tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
+- `entity_tags` (Map of String, Deprecated) Use object_tags instead.
 - `icon_url` (String) Icon image.
+- `object_tags` (Map of String) Object tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `workspace` (String, Deprecated) OID of workspace worksheet is contained in.
 
 ### Read-Only

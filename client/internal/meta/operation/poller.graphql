@@ -81,6 +81,7 @@ fragment Poller on Poller {
 			delay
 			region
 			assumeRoleArn
+			attachResourceTags
 			queries {
 				namespace
 				metricNames

@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request:
+  workflow_dispatch:
   schedule:
     - cron: '45 4 * * *' # 9:45pm PT
 
@@ -19,6 +20,8 @@ jobs:
       contents: read
       issues: read
       checks: write
+    outputs:
+      failed_tests: ${{ steps.failed_tests.outputs.tests }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -53,6 +56,34 @@ jobs:
           files: test-report.xml
           comment_mode: 'off'
           check_name: report
+      - name: Collect failed tests
+        id: failed_tests
+        if: failure()
+        run: |
+          if [ ! -f test-output.json ]; then
+            exit 0
+          fi
+          # Reconcile reruns (--rerun-fails) by taking each test's final outcome,
+          # so only genuinely-failed tests are reported. Subtests (names containing
+          # "/") are dropped in favor of their parent for a high-level overview, and
+          # the list is capped to keep the Slack message short.
+          tests=$(jq -rs '
+            [ .[] | select(.Test != null and (.Test | contains("/") | not)) ]
+            | group_by(.Package + " " + .Test)
+            | map({
+                name: ((.[0].Package | sub(".*/"; "")) + "." + .[0].Test),
+                action: (sort_by(.Time)[-1].Action)
+              })
+            | map(select(.action == "fail") | .name)
+            | unique
+            | (if length > 5 then .[0:5] + ["… and \(length - 5) more"] else . end)
+            | .[]
+          ' test-output.json)
+          {
+            echo "tests<<__EOF__"
+            echo "$tests"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
   generate:
     runs-on: ubuntu-latest
     steps:
@@ -68,3 +99,48 @@ jobs:
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "::error::Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
+
+  notify:
+    name: Notify Slack on failure
+    runs-on: ubuntu-latest
+    needs: [acceptance]
+    if: failure() && github.ref == 'refs/heads/master'
+    steps:
+      - name: Send Slack alert
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          FAILED_TESTS: ${{ needs.acceptance.outputs.failed_tests }}
+        run: |
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          # Top-level text is the notification/accessibility fallback; blocks render the rich layout.
+          fallback="❌ Terraform provider acceptance tests failed for ${GITHUB_REPOSITORY} (${GITHUB_REF_NAME}, ${GITHUB_EVENT_NAME}) — ${run_url}"
+          payload=$(jq -n \
+            --arg fallback "$fallback" \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg ref "$GITHUB_REF_NAME" \
+            --arg event "$GITHUB_EVENT_NAME" \
+            --arg run_url "$run_url" \
+            --arg failed "$FAILED_TESTS" '
+            {
+              text: $fallback,
+              blocks: (
+                [
+                  { type: "header", text: { type: "plain_text", text: "❌ Terraform provider acceptance tests failed", emoji: true } },
+                  { type: "context", elements: [
+                      { type: "mrkdwn", text: ("*\($repo)*  ·  `\($ref)`  ·  \($event)") }
+                  ] }
+                ]
+                + (
+                  if ($failed | gsub("\\s"; "")) != ""
+                  then [ { type: "section", text: { type: "mrkdwn", text: ("*Failed tests:*\n```\n\($failed)\n```") } } ]
+                  else []
+                  end
+                )
+                + [
+                  { type: "actions", elements: [
+                      { type: "button", text: { type: "plain_text", text: "View run", emoji: true }, url: $run_url }
+                  ] }
+                ]
+              )
+            }')
+          curl -sf -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"

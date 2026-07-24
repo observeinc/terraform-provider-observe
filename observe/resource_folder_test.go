@@ -68,6 +68,12 @@ func TestAccObserveFolderCreateNoWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_folder.no_ws", "icon_url", "test"),
 				),
 			},
+			testAccPlanOnlyNoDriftStep(fmt.Sprintf(`
+				resource "observe_folder" "no_ws" {
+					name     = "%[1]s"
+					icon_url = "test"
+				}
+				`, randomPrefix)),
 		},
 	})
 }

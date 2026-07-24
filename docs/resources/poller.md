@@ -115,6 +115,7 @@ Required:
 
 Optional:
 
+- `attach_resource_tags` (Boolean) When enabled, the poller fetches and attaches AWS resource tags to collected metrics.
 - `delay` (String) Collection delay. Must account for metrics availability via CloudWatch API.
 - `period` (String) Metric resolution. Must be a multiple of 60s. When omitted, poller interval will be used.
 

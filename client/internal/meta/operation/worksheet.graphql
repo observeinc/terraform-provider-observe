@@ -8,8 +8,8 @@ fragment Worksheet on Worksheet {
 	stages {
 		...StageQuery
 	}
-	# @genqlient(typename: "EntityTagMapping")
-	entityTags {
+	# @genqlient(typename: "ObjectTagMapping")
+	objectTags {
 		key
 		values
 	}

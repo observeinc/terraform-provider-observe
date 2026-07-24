@@ -21,8 +21,8 @@ resource "observe_dataset" "http_observations" {
     EOT
   }
 
-  # Optional: Entity tags for organizing and categorizing datasets
-  entity_tags = {
+  # Optional: Object tags for organizing and categorizing datasets
+  object_tags = {
     environment = "production"
     team        = "backend,frontend"
     category    = "observability"

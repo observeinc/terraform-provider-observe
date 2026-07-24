@@ -10,7 +10,6 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/binding"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
-	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceDashboard() *schema.Resource {
@@ -70,14 +69,8 @@ func dataSourceDashboard() *schema.Resource {
 				Computed:    true,
 				Description: schemaDashboardParameterValuesDescription,
 			},
-			"entity_tags": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: descriptions.Get("common", "schema", "entity_tags"),
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"object_tags": objectTagsSchemaFieldComputed(),
+			"entity_tags": entityTagsSchemaFieldComputed(),
 		},
 	}
 }
@@ -94,7 +87,7 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 	}
 	data.SetId(dashboard.Id)
 
-	diags = dashboardToResourceData(dashboard, data)
+	diags = dashboardToResourceData(dashboard, data, true)
 	if diags.HasError() {
 		return diags
 	}

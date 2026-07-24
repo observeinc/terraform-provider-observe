@@ -30,6 +30,10 @@ fragment MonitorV2LinkColumn on MonitorV2LinkColumn {
     }
 }
 
+fragment MonitorV2CorrelationTag on MonitorV2CorrelationTag {
+    tag
+}
+
 fragment MonitorV2Column on MonitorV2Column {
     # @genqlient(flatten: true)
     linkColumn {
@@ -38,6 +42,30 @@ fragment MonitorV2Column on MonitorV2Column {
     # @genqlient(flatten: true)
     columnPath {
         ...MonitorV2ColumnPath
+    }
+    # @genqlient(flatten: true)
+    correlationTag {
+        ...MonitorV2CorrelationTag
+    }
+}
+
+fragment MonitorV2ServiceBindingValue on MonitorV2ServiceBindingValue {
+    value
+    matchMode
+}
+
+fragment MonitorV2ServiceBinding on MonitorV2ServiceBinding {
+    # @genqlient(flatten: true)
+    serviceName {
+        ...MonitorV2ServiceBindingValue
+    }
+    # @genqlient(flatten: true)
+    environment {
+        ...MonitorV2ServiceBindingValue
+    }
+    # @genqlient(flatten: true)
+    serviceNamespace {
+        ...MonitorV2ServiceBindingValue
     }
 }
 
@@ -170,6 +198,10 @@ fragment MonitorV2Definition on MonitorV2Definition{
         ...MonitorV2Scheduling
     }
     customVariables
+    # @genqlient(flatten: true)
+    serviceBindings {
+        ...MonitorV2ServiceBinding
+    }
 }
 
 fragment MonitorV2IntervalSchedule on MonitorV2IntervalSchedule {
@@ -184,6 +216,7 @@ fragment MonitorV2TransformSchedule on MonitorV2TransformSchedule {
 fragment MonitorV2CronSchedule on MonitorV2CronSchedule {
     rawCron
     timezone
+    alarmMode
 }
 
 fragment MonitorV2Scheduling on MonitorV2Scheduling {
@@ -276,6 +309,7 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
 # @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
@@ -332,6 +366,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
 # @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
@@ -374,6 +409,7 @@ mutation createMonitorV2(
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
 # @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
@@ -452,6 +488,7 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
+# @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
 # @genqlient(for: "MonitorV2LinkColumnInput.meta", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnPathInput.path", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)

@@ -5,28 +5,31 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
-// Unit tests for expandEntityTagsFromMap and flattenEntityTagsToMap helper functions
+// Unit tests for expandObjectTagsFromMap and flattenObjectTagsToMap helper functions
 
-func TestExpandEntityTagsFromMap(t *testing.T) {
+func TestExpandObjectTagsFromMap(t *testing.T) {
 	testcases := []struct {
 		name     string
 		input    map[string]interface{}
-		expected []gql.EntityTagMappingInput
+		expected []gql.ObjectTagMappingInput
 	}{
 		{
 			name:     "empty map",
 			input:    map[string]interface{}{},
-			expected: []gql.EntityTagMappingInput{},
+			expected: []gql.ObjectTagMappingInput{},
 		},
 		{
 			name: "single value",
 			input: map[string]interface{}{
 				"environment": "production",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "environment", Values: []string{"production"}},
 			},
 		},
@@ -35,7 +38,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"team": "backend,frontend",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "team", Values: []string{"backend", "frontend"}},
 			},
 		},
@@ -44,7 +47,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"team": "backend, frontend, mobile",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "team", Values: []string{"backend", "frontend", "mobile"}},
 			},
 		},
@@ -53,7 +56,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"description": "Team Alpha,Team Beta",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "description", Values: []string{"Team Alpha", "Team Beta"}},
 			},
 		},
@@ -62,7 +65,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"team": "  backend  , frontend  ",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "team", Values: []string{"backend", "frontend"}},
 			},
 		},
@@ -71,7 +74,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"note": "\"Team A, Inc\"",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "note", Values: []string{"Team A, Inc"}},
 			},
 		},
@@ -80,7 +83,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"tags": "\"Team A, Inc\",backend,frontend",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "tags", Values: []string{"Team A, Inc", "backend", "frontend"}},
 			},
 		},
@@ -91,7 +94,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 				"team":        "backend,frontend",
 				"region":      "us-west-2",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "environment", Values: []string{"production"}},
 				{Key: "team", Values: []string{"backend", "frontend"}},
 				{Key: "region", Values: []string{"us-west-2"}},
@@ -102,7 +105,7 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 			input: map[string]interface{}{
 				"description": "Team  Alpha,Team  Beta",
 			},
-			expected: []gql.EntityTagMappingInput{
+			expected: []gql.ObjectTagMappingInput{
 				{Key: "description", Values: []string{"Team  Alpha", "Team  Beta"}},
 			},
 		},
@@ -110,36 +113,36 @@ func TestExpandEntityTagsFromMap(t *testing.T) {
 
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
-			result := expandEntityTagsFromMap(tt.input)
+			result := expandObjectTagsFromMap(tt.input)
 
 			// Sort both slices by Key for consistent comparison (maps are unordered)
-			sortEntityTagMappingInputByKey(result)
-			expectedCopy := make([]gql.EntityTagMappingInput, len(tt.expected))
+			sortObjectTagMappingInputByKey(result)
+			expectedCopy := make([]gql.ObjectTagMappingInput, len(tt.expected))
 			copy(expectedCopy, tt.expected)
-			sortEntityTagMappingInputByKey(expectedCopy)
+			sortObjectTagMappingInputByKey(expectedCopy)
 
 			if diff := cmp.Diff(result, expectedCopy); diff != "" {
-				t.Errorf("expandEntityTagsFromMap() mismatch (-got +want):\n%s", diff)
+				t.Errorf("expandObjectTagsFromMap() mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}
 }
 
-// TestFlattenEntityTagsToMap tests the flatten function
-func TestFlattenEntityTagsToMap(t *testing.T) {
+// TestFlattenObjectTagsToMap tests the flatten function
+func TestFlattenObjectTagsToMap(t *testing.T) {
 	testcases := []struct {
 		name     string
-		input    []gql.EntityTagMapping
+		input    []gql.ObjectTagMapping
 		expected map[string]interface{}
 	}{
 		{
 			name:     "empty slice",
-			input:    []gql.EntityTagMapping{},
+			input:    []gql.ObjectTagMapping{},
 			expected: map[string]interface{}{},
 		},
 		{
 			name: "single value",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "environment", Values: []string{"production"}},
 			},
 			expected: map[string]interface{}{
@@ -148,7 +151,7 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 		},
 		{
 			name: "multiple values",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "team", Values: []string{"backend", "frontend"}},
 			},
 			expected: map[string]interface{}{
@@ -157,7 +160,7 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 		},
 		{
 			name: "internal spaces preserved",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "description", Values: []string{"Team Alpha", "Team Beta"}},
 			},
 			expected: map[string]interface{}{
@@ -166,7 +169,7 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 		},
 		{
 			name: "CSV quoted values",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "note", Values: []string{"Team A, Inc"}},
 			},
 			expected: map[string]interface{}{
@@ -175,7 +178,7 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 		},
 		{
 			name: "mixed quoted and unquoted",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "tags", Values: []string{"Team A, Inc", "backend", "frontend"}},
 			},
 			expected: map[string]interface{}{
@@ -184,7 +187,7 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 		},
 		{
 			name: "multiple tags",
-			input: []gql.EntityTagMapping{
+			input: []gql.ObjectTagMapping{
 				{Key: "environment", Values: []string{"production"}},
 				{Key: "team", Values: []string{"backend", "frontend"}},
 				{Key: "region", Values: []string{"us-west-2"}},
@@ -204,16 +207,16 @@ func TestFlattenEntityTagsToMap(t *testing.T) {
 
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
-			result := flattenEntityTagsToMap(tt.input)
+			result := flattenObjectTagsToMap(tt.input)
 			if diff := cmp.Diff(result, tt.expected); diff != "" {
-				t.Errorf("flattenEntityTagsToMap() mismatch (-got +want):\n%s", diff)
+				t.Errorf("flattenObjectTagsToMap() mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}
 }
 
-// TestDiffSuppressEntityTagValues tests the diff suppression function
-func TestDiffSuppressEntityTagValues(t *testing.T) {
+// TestDiffSuppressObjectTagValues tests the diff suppression function
+func TestDiffSuppressObjectTagValues(t *testing.T) {
 	testcases := []struct {
 		name           string
 		old            string
@@ -239,17 +242,131 @@ func TestDiffSuppressEntityTagValues(t *testing.T) {
 
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
-			result := diffSuppressEntityTagValues("entity_tags.test", tt.old, tt.new, nil)
+			result := diffSuppressObjectTagValues("object_tags.test", tt.old, tt.new, nil)
 			if result != tt.shouldSuppress {
-				t.Errorf("diffSuppressEntityTagValues(%q, %q) = %v, want %v",
+				t.Errorf("diffSuppressObjectTagValues(%q, %q) = %v, want %v",
 					tt.old, tt.new, result, tt.shouldSuppress)
 			}
 		})
 	}
 }
 
-// Helper function to sort EntityTagMappingInput slices for testing
-func sortEntityTagMappingInputByKey(tags []gql.EntityTagMappingInput) {
+type stubObjectTagsReader map[string]interface{}
+
+func (s stubObjectTagsReader) GetOk(key string) (interface{}, bool) {
+	v, ok := s[key]
+	return v, ok
+}
+
+type stubObjectTagsReaderWithConfig struct {
+	stubObjectTagsReader
+	rawConfig cty.Value
+}
+
+func (s stubObjectTagsReaderWithConfig) GetRawConfig() cty.Value {
+	return s.rawConfig
+}
+
+func TestObjectTagsInputFromReader(t *testing.T) {
+	tags := map[string]interface{}{"team": "backend,frontend"}
+
+	t.Run("prefers entity_tags", func(t *testing.T) {
+		got := objectTagsInputFromReader(stubObjectTagsReader{
+			"object_tags": map[string]interface{}{"ignored": "value"},
+			"entity_tags": tags,
+		})
+		want := []gql.ObjectTagMappingInput{{Key: "team", Values: []string{"backend", "frontend"}}}
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("objectTagsInputFromReader() mismatch (-got +want):\n%s", diff)
+		}
+	})
+
+	t.Run("falls back to object_tags", func(t *testing.T) {
+		got := objectTagsInputFromReader(stubObjectTagsReader{"object_tags": tags})
+		want := []gql.ObjectTagMappingInput{{Key: "team", Values: []string{"backend", "frontend"}}}
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("objectTagsInputFromReader() mismatch (-got +want):\n%s", diff)
+		}
+	})
+
+	t.Run("prefers object_tags in config over entity_tags in state", func(t *testing.T) {
+		got := objectTagsInputFromReader(stubObjectTagsReaderWithConfig{
+			stubObjectTagsReader: stubObjectTagsReader{
+				"entity_tags": map[string]interface{}{"ignored": "value"},
+				"object_tags": tags,
+			},
+			rawConfig: cty.ObjectVal(map[string]cty.Value{
+				"object_tags": cty.MapVal(map[string]cty.Value{
+					"team": cty.StringVal("backend,frontend"),
+				}),
+			}),
+		})
+		want := []gql.ObjectTagMappingInput{{Key: "team", Values: []string{"backend", "frontend"}}}
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("objectTagsInputFromReader() mismatch (-got +want):\n%s", diff)
+		}
+	})
+
+	t.Run("empty when neither set", func(t *testing.T) {
+		got := objectTagsInputFromReader(stubObjectTagsReader{})
+		if len(got) != 0 {
+			t.Errorf("expected empty slice, got %v", got)
+		}
+	})
+}
+
+func TestEntityTagsDeprecationDiags(t *testing.T) {
+	t.Run("warns when entity_tags only in state", func(t *testing.T) {
+		diags := entityTagsDeprecationDiags(stubObjectTagsReader{
+			"entity_tags": map[string]interface{}{"env": "prod"},
+		})
+		if len(diags) != 1 || diags[0].Detail != entityTagsDeprecatedMessage {
+			t.Fatalf("expected deprecation warning, got %#v", diags)
+		}
+	})
+
+	t.Run("no warning when object_tags only in state", func(t *testing.T) {
+		diags := entityTagsDeprecationDiags(stubObjectTagsReader{
+			"object_tags": map[string]interface{}{"env": "prod"},
+		})
+		if len(diags) != 0 {
+			t.Fatalf("expected no warning, got %#v", diags)
+		}
+	})
+
+	t.Run("no warning when neither set", func(t *testing.T) {
+		diags := entityTagsDeprecationDiags(stubObjectTagsReader{})
+		if len(diags) != 0 {
+			t.Fatalf("expected no warning, got %#v", diags)
+		}
+	})
+}
+
+func TestEntityTagsSchemaValidateDeprecation(t *testing.T) {
+	res := Provider().ResourcesMap["observe_dataset"]
+	cfgVal := cty.ObjectVal(map[string]cty.Value{
+		"name": cty.StringVal("test"),
+		"entity_tags": cty.MapVal(map[string]cty.Value{
+			"env": cty.StringVal("prod"),
+		}),
+	})
+	config := terraform.NewResourceConfigShimmed(cfgVal, res.CoreConfigSchema())
+	diags := res.Validate(config)
+
+	var found bool
+	for _, d := range diags {
+		if d.Severity == diag.Warning && d.Detail == entityTagsDeprecatedMessage {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected entity_tags deprecation warning in validate diags, got %#v", diags)
+	}
+}
+
+// Helper function to sort ObjectTagMappingInput slices for testing
+func sortObjectTagMappingInputByKey(tags []gql.ObjectTagMappingInput) {
 	sort.Slice(tags, func(i, j int) bool {
 		return tags[i].Key < tags[j].Key
 	})

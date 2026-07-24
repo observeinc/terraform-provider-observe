@@ -11,28 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-var (
-	// common to all configs
-	defaultWorkspaceName = getenv("OBSERVE_WORKSPACE", "Default")
-	configPreamble       = fmt.Sprintf(`
-				data "observe_workspace" "default" {
-					name = "%s"
-				}`, defaultWorkspaceName)
-
-	// config preamble that creates a datastream without specifying workspace
-	datastreamNoWorkspacePreamble = `
-	resource "observe_datastream" "test_no_ws" {
-		name = "%[1]s"
-	}`
-)
-
-func getenv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
 func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -114,7 +92,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "acceleration_disabled_source", "view"),
@@ -152,7 +129,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 					// On demand mat length has a daily resolution
 					// So whatever the user sets here, we will round up the amount of days
 					// In this case, 48h39s is rounded up to 72h
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "72h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.alias", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.pipeline", "make_col x:1\n"),
@@ -183,7 +159,6 @@ func TestAccObserveDatasetUpdate(t *testing.T) {
 						EOF
 					}
 				}`, randomPrefix),
-				Check: resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "72h0m0s"),
 			},
 		},
 	})
@@ -568,7 +543,6 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -596,7 +570,6 @@ func TestAccObserveDatasetEditForward(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "must_skip_rematerialization"),
 				),
@@ -643,7 +616,6 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -689,7 +661,6 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "rematerialize"),
 				),
@@ -728,7 +699,6 @@ func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -786,7 +756,6 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "rematerialization_mode"),
 				),
@@ -814,7 +783,6 @@ func TestAccObserveDatasetEditForwardNoDryRun(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-1"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "freshness"),
 					resource.TestCheckNoResourceAttr("observe_dataset.first", "path_cost"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "on_demand_materialization_length", "768h0m0s"),
 					resource.TestCheckResourceAttr("observe_dataset.first", "stage.0.input", ""),
 					resource.TestCheckResourceAttr("observe_dataset.first", "rematerialization_mode", "skip_rematerialization"),
 				),
@@ -1306,8 +1274,47 @@ func TestAccObserveDatasetTestUpdateBroken(t *testing.T) {
 	})
 }
 
-// Test entity_tags field for datasets
-func TestAccObserveDatasetEntityTags(t *testing.T) {
+// Test deprecated entity_tags still works for optional rename compatibility.
+func TestAccObserveDatasetEntityTagsDeprecated(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(datastreamNoWorkspacePreamble+`
+				resource "observe_dataset" "first" {
+					name = "%[1]s-dataset"
+
+					inputs = {
+						"test" = observe_datastream.test_no_ws.dataset
+					}
+
+					stage {
+						pipeline = <<-EOF
+							filter true
+						EOF
+					}
+
+					entity_tags = {
+						environment = "production"
+					}
+				}`, randomPrefix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "object_tags.environment"),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
+// Test object_tags field for datasets
+func TestAccObserveDatasetObjectTags(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1330,19 +1337,19 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						environment = "production"
 						team        = "backend,frontend"
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dataset.first", "name", randomPrefix+"-dataset"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production"),
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.team", "backend,frontend"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.environment", "production"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.team", "backend,frontend"),
 				),
 			},
 			{
-				// Update entity_tags
+				// Update object_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1358,15 +1365,15 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						environment = "staging,production"
 						region      = "us-west-2"
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.environment", "production,staging"), // Backend sorts alphabetically
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.region", "us-west-2"),
-					resource.TestCheckNoResourceAttr("observe_dataset.first", "entity_tags.team"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.environment", "production,staging"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.region", "us-west-2"),
+					resource.TestCheckNoResourceAttr("observe_dataset.first", "object_tags.team"),
 				),
 			},
 			{
@@ -1386,16 +1393,16 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 						EOF
 					}
 
-					entity_tags = {
+					object_tags = {
 						note = "\"Team A, Inc\""
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.note", "\"Team A, Inc\""),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.note", "\"Team A, Inc\""),
 				),
 			},
 			{
-				// Remove all entity_tags
+				// Remove all object_tags
 				Config: fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
 				resource "observe_dataset" "first" {
 					workspace = data.observe_workspace.default.oid
@@ -1412,7 +1419,7 @@ func TestAccObserveDatasetEntityTags(t *testing.T) {
 					}
 				}`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("observe_dataset.first", "entity_tags.%", "0"),
+					resource.TestCheckResourceAttr("observe_dataset.first", "object_tags.%", "0"),
 				),
 			},
 		},
@@ -1442,6 +1449,16 @@ func TestAccObserveDatasetNoWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_dataset.no_ws", "name", randomPrefix+"-no-ws"),
 				),
 			},
+			testAccPlanOnlyNoDriftStep(fmt.Sprintf(datastreamNoWorkspacePreamble+`
+				resource "observe_dataset" "no_ws" {
+					name = "%[1]s-no-ws"
+
+					inputs = {
+						"test" = observe_datastream.test_no_ws.dataset
+					}
+
+					stage {}
+				}`, randomPrefix)),
 		},
 	})
 }

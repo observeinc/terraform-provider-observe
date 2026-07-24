@@ -421,6 +421,12 @@ func resourcePoller() *schema.Resource {
 							Description: descriptions.Get("poller", "schema", "cloudwatch_metrics", "assume_role_arn"),
 							Required:    true,
 						},
+						"attach_resource_tags": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: descriptions.Get("poller", "schema", "cloudwatch_metrics", "attach_resource_tags"),
+						},
 						"query": {
 							Type:     schema.TypeList,
 							Required: true,
@@ -652,6 +658,8 @@ func newPollerConfig(data *schema.ResourceData) (input *gql.PollerInput, diags d
 			AssumeRoleArn: data.Get("cloudwatch_metrics.0.assume_role_arn").(string),
 			Queries:       expandCloudWatchMetricsQueries(data, "cloudwatch_metrics.0.query"),
 		}
+		b := data.Get("cloudwatch_metrics.0.attach_resource_tags").(bool)
+		m.AttachResourceTags = &b
 
 		if v, ok := data.GetOk("cloudwatch_metrics.0.period"); ok {
 			str := v.(string)
@@ -954,10 +962,11 @@ func resourcePollerRead(ctx context.Context, data *schema.ResourceData, meta int
 			queries = append(queries, v)
 		}
 		cfg := map[string]any{
-			"delay":           time.Duration(int64(cloudWatchMetricsConfig.Delay) * int64(time.Second)).String(),
-			"region":          cloudWatchMetricsConfig.Region,
-			"assume_role_arn": cloudWatchMetricsConfig.AssumeRoleArn,
-			"query":           queries,
+			"delay":                time.Duration(int64(cloudWatchMetricsConfig.Delay) * int64(time.Second)).String(),
+			"region":               cloudWatchMetricsConfig.Region,
+			"assume_role_arn":      cloudWatchMetricsConfig.AssumeRoleArn,
+			"attach_resource_tags": cloudWatchMetricsConfig.AttachResourceTags,
+			"query":                queries,
 		}
 
 		period := time.Duration(int64(cloudWatchMetricsConfig.Period) * int64(time.Second))

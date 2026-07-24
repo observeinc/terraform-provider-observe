@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -134,7 +135,16 @@ func TestAccObserveGrantEveryoneWorksheetView(t *testing.T) {
 }
 
 func TestAccObserveGrantGroupAichatView(t *testing.T) {
+	if os.Getenv("CI") != "true" {
+		t.Skip("CI != true. This test requires a pre-existing aichat that is only available in the CI tenant.")
+	}
+
 	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	// This ID is pre-created in the tenant used for CI testing.
+	aichatID := "7dd33f72-55bf-4d09-81a0-b2b192cb533a"
+	aichatOID := fmt.Sprintf("o:::aichat:%s", aichatID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -151,15 +161,15 @@ func TestAccObserveGrantGroupAichatView(t *testing.T) {
 					subject = observe_rbac_group.example.oid
 					role    = "aichat_viewer"
 					qualifier {
-						oid = "o:::aichat:550e8400-e29b-41d4-a716-446655440000"
+						oid = "%[2]s"
 					}
 				}
-				`, randomPrefix),
+				`, randomPrefix, aichatOID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("observe_grant.example", "subject"),
 					resource.TestCheckResourceAttr("observe_grant.example", "role", "aichat_viewer"),
 					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.#", "1"),
-					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.0.oid", "o:::aichat:550e8400-e29b-41d4-a716-446655440000"),
+					resource.TestCheckResourceAttr("observe_grant.example", "qualifier.0.oid", aichatOID),
 				),
 			},
 		},
