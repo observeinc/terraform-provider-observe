@@ -140,6 +140,13 @@ var AllMonitorV2BoundComparisonFunctions = []MonitorV2BoundComparisonFunction{
 	MonitorV2BoundComparisonFunctionBelow,
 }
 
+var AllMonitorV2AnomalySeasonalSensitivities = []MonitorV2AnomalySeasonalSensitivity{
+	MonitorV2AnomalySeasonalSensitivityLow,
+	MonitorV2AnomalySeasonalSensitivityMedium,
+	MonitorV2AnomalySeasonalSensitivityHigh,
+	MonitorV2AnomalySeasonalSensitivityVeryhigh,
+}
+
 var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
 	MonitorV2AlarmLevelCritical,
 	MonitorV2AlarmLevelError,

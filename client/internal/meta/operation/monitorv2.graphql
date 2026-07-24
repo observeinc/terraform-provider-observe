@@ -123,8 +123,12 @@ fragment MonitorV2AnomalyRuleTemplate on MonitorV2AnomalyRuleTemplate {
     computationWindow
     valueColumnName
     compareFn
-    numStandardDeviations
-    basicAlgorithm
+    basicAlgorithmTyped {
+        numStandardDeviations
+    }
+    seasonalAlgorithm {
+        sensitivity
+    }
 }
 
 fragment MonitorV2NoDataRule on MonitorV2NoDataRule {
@@ -306,7 +310,8 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
-# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
@@ -363,7 +368,8 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
-# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
@@ -406,7 +412,8 @@ mutation createMonitorV2(
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
-# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)
@@ -485,7 +492,8 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
-# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithm", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.columnPath", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.correlationTag", omitempty: true)

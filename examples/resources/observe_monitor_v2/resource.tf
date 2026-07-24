@@ -80,10 +80,11 @@ resource "observe_monitor_v2" "anomaly_example" {
 
   rule_template {
     anomaly {
-      value_column_name       = "A_credits_adhoc_query_sum"
-      compare_fn              = "above"
-      num_standard_deviations = 3
-      basic_algorithm {}
+      value_column_name = "A_credits_adhoc_query_sum"
+      compare_fn        = "above"
+      basic_algorithm {
+        num_standard_deviations = 3
+      }
     }
   }
 
