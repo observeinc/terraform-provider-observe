@@ -1462,3 +1462,201 @@ func TestAccObserveDatasetNoWorkspace(t *testing.T) {
 		},
 	})
 }
+
+// oidVersionedRegex matches a dataset oid that carries a version suffix, e.g.
+// o:::dataset:12345/2024-03-15T10:22:00Z (legacy behavior, flag off).
+var oidVersionedRegex = regexp.MustCompile(`^o:::dataset:\d+/.+$`)
+
+// oidVersionFreeRegex matches a dataset oid with no version suffix, e.g.
+// o:::dataset:12345 (produced on first write when omit-dataset-oid-version is on).
+var oidVersionFreeRegex = regexp.MustCompile(`^o:::dataset:\d+$`)
+
+// TestAccObserveDatasetOmitOIDVersionNewResources verifies that datasets created
+// from scratch with the omit-dataset-oid-version flag enabled get a version-free
+// oid, and that editing an upstream dataset does not cascade a new version onto
+// its downstream dependents.
+func TestAccObserveDatasetOmitOIDVersionNewResources(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	// see TestAccObserveDatasetDefaultRematerializationMode for why terraform{} is needed
+	providerOn := `
+		terraform {}
+		provider "observe" {
+			flags = "omit-dataset-oid-version"
+		}
+	`
+
+	// datasetChain builds an A -> B chain where B's inputs reference A's oid.
+	// aPipeline lets us mutate A between steps to exercise the (non-)cascade.
+	datasetChain := func(aPipeline string) string {
+		return fmt.Sprintf(providerOn+configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "a" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-A"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				pipeline = <<-EOF
+					%[2]s
+				EOF
+			}
+		}
+
+		resource "observe_dataset" "b" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-B"
+
+			inputs = { "a" = observe_dataset.a.oid }
+
+			stage {
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+		}`, randomPrefix, aPipeline)
+	}
+
+	var bOID string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: datasetChain("make_col x:1"),
+				Check: resource.ComposeTestCheckFunc(
+					// oids are written without a version suffix on first create.
+					resource.TestMatchResourceAttr("observe_dataset.a", "oid", oidVersionFreeRegex),
+					resource.TestMatchResourceAttr("observe_dataset.b", "oid", oidVersionFreeRegex),
+					// B's reference to A resolves to A's version-free oid.
+					resource.TestMatchResourceAttr("observe_dataset.b", "inputs.a", oidVersionFreeRegex),
+					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
+						bOID = v
+						return nil
+					}),
+				),
+			},
+			{
+				// Edit A. Without the flag this would bump A's oid version and
+				// cascade a new version onto B; with the flag B must be untouched.
+				Config: datasetChain("make_col x:2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("observe_dataset.a", "oid", oidVersionFreeRegex),
+					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
+						if v != bOID {
+							return fmt.Errorf("downstream dataset oid changed (cascade not suppressed): was %q, now %q", bOID, v)
+						}
+						return nil
+					}),
+				),
+			},
+			// Re-plan must be empty: a frozen oid produces no phantom diffs.
+			testAccPlanOnlyNoDriftStep(datasetChain("make_col x:2")),
+		},
+	})
+}
+
+// TestAccObserveDatasetOmitOIDVersionMigration exercises the customer upgrade
+// path: datasets are created with the flag OFF (versioned oids in state), then
+// the flag is toggled ON. Toggling must be a no-op (no plan diff), and a
+// subsequent upstream edit must not cascade onto downstream dependents.
+func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	providerOff := `
+		terraform {}
+		provider "observe" {}
+	`
+	providerOn := `
+		terraform {}
+		provider "observe" {
+			flags = "omit-dataset-oid-version"
+		}
+	`
+
+	datasetChain := func(provider, aPipeline string) string {
+		return fmt.Sprintf(provider+configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "a" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-A"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				pipeline = <<-EOF
+					%[2]s
+				EOF
+			}
+		}
+
+		resource "observe_dataset" "b" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-B"
+
+			inputs = { "a" = observe_dataset.a.oid }
+
+			stage {
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+		}`, randomPrefix, aPipeline)
+	}
+
+	var aOID, bOID string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// Legacy behavior: created with the flag off, oids carry a version.
+				Config: datasetChain(providerOff, "make_col x:1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("observe_dataset.a", "oid", oidVersionedRegex),
+					resource.TestCheckResourceAttrWith("observe_dataset.a", "oid", func(v string) error {
+						aOID = v
+						return nil
+					}),
+					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
+						bOID = v
+						return nil
+					}),
+				),
+			},
+			{
+				// Toggle the flag on with no config change. The existing versioned
+				// oids are frozen in place, so this must be a pure no-op.
+				Config: datasetChain(providerOn, "make_col x:1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith("observe_dataset.a", "oid", func(v string) error {
+						if v != aOID {
+							return fmt.Errorf("upstream oid changed on flag toggle: was %q, now %q", aOID, v)
+						}
+						return nil
+					}),
+					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
+						if v != bOID {
+							return fmt.Errorf("downstream oid changed on flag toggle: was %q, now %q", bOID, v)
+						}
+						return nil
+					}),
+				),
+			},
+			{
+				// Edit A now that the flag is on. B must not get a cascaded version.
+				Config: datasetChain(providerOn, "make_col x:2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
+						if v != bOID {
+							return fmt.Errorf("downstream dataset oid changed (cascade not suppressed): was %q, now %q", bOID, v)
+						}
+						return nil
+					}),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(datasetChain(providerOn, "make_col x:2")),
+		},
+	})
+}

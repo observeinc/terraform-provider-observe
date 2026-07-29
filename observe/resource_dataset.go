@@ -198,10 +198,10 @@ type ResourceReader interface {
 
 func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	client := meta.(*observe.Client)
+	omitVersion := client.Flags[flagOmitDatasetOIDVersion]
 
-	if datasetRecomputeOID(d) {
-		err := d.SetNewComputed("oid")
-		if err != nil {
+	if !omitVersion && datasetRecomputeOID(d) {
+		if err := d.SetNewComputed("oid"); err != nil {
 			return err
 		}
 	}
@@ -338,7 +338,7 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 	return input, query, diags
 }
 
-func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersion bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -418,7 +418,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 		}
 	}
 
-	if err := data.Set("oid", d.Oid().String()); err != nil {
+	if err := setDatasetOID(data, d.Oid(), omitVersion); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -535,7 +535,7 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data)
+	return datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -601,7 +601,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diagInefficientAcceleration)
 	}
 
-	return append(diags, datasetToResourceData(result, data)...)
+	return append(diags, datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
