@@ -299,6 +299,22 @@ func convertFlags(s string) (map[string]bool, error) {
 	return flags, nil
 }
 
+// setDatasetOID writes a dataset oid into resource state.
+func setDatasetOID(data *schema.ResourceData, id *oid.OID, omitVersion bool) error {
+	// Default behavior: always write the current versioned oid.
+	if !omitVersion {
+		return data.Set("oid", id.String())
+	}
+	// omit-dataset-oid-version: If it's the first time we're writing this (new resource), then
+	// write a version-free oid. If there's already an existing oid, then leave it as is, freezing
+	// the version in place, keeping downstream inputs stable.
+	if data.Get("oid").(string) == "" {
+		id.Version = nil
+		return data.Set("oid", id.String())
+	}
+	return nil
+}
+
 // determine whether we expect a new dataset version
 func datasetRecomputeOID(d *schema.ResourceDiff) bool {
 	if len(d.GetChangedKeysPrefix("")) > 0 {

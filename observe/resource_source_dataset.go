@@ -68,7 +68,8 @@ func resourceSourceDataset() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			if datasetRecomputeOID(d) {
+			omitVersion := meta.(*observe.Client).Flags[flagOmitDatasetOIDVersion]
+			if !omitVersion && datasetRecomputeOID(d) {
 				return d.SetNewComputed("oid")
 			}
 			return nil

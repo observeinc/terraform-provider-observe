@@ -163,8 +163,9 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 
 func resourceLogDerivedMetricDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	client := meta.(*observe.Client)
+	omitVersion := client.Flags[flagOmitDatasetOIDVersion]
 
-	if datasetRecomputeOID(d) {
+	if !omitVersion && datasetRecomputeOID(d) {
 		if err := d.SetNewComputed("oid"); err != nil {
 			return err
 		}
@@ -348,7 +349,7 @@ func previousLDMInputOIDVersion(data *schema.ResourceData, datasetID string) *st
 	return prevOID.Version
 }
 
-func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data *schema.ResourceData) diag.Diagnostics {
+func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data *schema.ResourceData, omitVersion bool) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if d.LogDerivedMetricTable == nil {
@@ -436,7 +437,7 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("oid", d.Oid().String()); err != nil {
+	if err := setDatasetOID(data, d.Oid(), omitVersion); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -473,7 +474,7 @@ func resourceLogDerivedMetricDatasetRead(ctx context.Context, data *schema.Resou
 		}
 		return diag.Errorf("failed to read log-derived metric dataset: %s", err)
 	}
-	return logDerivedMetricDatasetToResourceData(d, data)
+	return logDerivedMetricDatasetToResourceData(d, data, client.Flags[flagOmitDatasetOIDVersion])
 }
 
 func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -495,7 +496,7 @@ func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.Res
 		return diag.Errorf("failed to update log-derived metric dataset: %s", err)
 	}
 
-	return logDerivedMetricDatasetToResourceData(result, data)
+	return logDerivedMetricDatasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
 }
 
 func resourceLogDerivedMetricDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {

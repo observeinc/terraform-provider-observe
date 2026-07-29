@@ -203,7 +203,7 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 	data.SetId(d.Id)
 
-	diags = datasetToResourceData(d, data)
+	diags = datasetToResourceData(d, data, client.Flags[flagOmitDatasetOIDVersion])
 	if d.CorrelationTagMappings != nil {
 		var cts []interface{}
 		for _, ct := range d.CorrelationTagMappings {
