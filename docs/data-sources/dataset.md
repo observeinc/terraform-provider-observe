@@ -40,6 +40,7 @@ one workspace, the server automatically assigns the correct workspace.
 
 - `acceleration_disabled` (Boolean)
 - `acceleration_disabled_source` (String)
+- `acceleration_type` (String) Acceleration type of the dataset, as determined by its pipeline. One of "insert_only", "aggregation", "other", or "not_supported".
 - `correlation_tag` (Block List) Correlation tags associated with this dataset. (see [below for nested schema](#nestedblock--correlation_tag))
 - `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.
 - `description` (String) Dataset description.

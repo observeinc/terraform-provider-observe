@@ -69,6 +69,11 @@ func dataSourceDataset() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"acceleration_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("dataset", "schema", "acceleration_type"),
+			},
 			"path_cost": {
 				Type:        schema.TypeInt,
 				Computed:    true,
