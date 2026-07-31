@@ -22,7 +22,6 @@ Fetches data for an existing Observe dashboard.
 ### Read-Only
 
 - `description` (String) Dashboard description.
-- `entity_tags` (Map of String, Deprecated) Use object_tags instead.
 - `icon_url` (String) Icon image.
 - `layout` (String) Dashboard layout in JSON format.
 - `name` (String) Dashboard name. Must be unique within workspace.

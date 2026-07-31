@@ -338,7 +338,7 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 	return input, query, diags
 }
 
-func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -401,7 +401,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDepr
 		}
 	}
 
-	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else {
 		diags = append(diags, tagDiags...)
@@ -437,6 +437,16 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 
 	inputs := make(map[string]interface{}, 0)
 	for name, input := range queryData.Inputs {
+		// Skip backend-derived Reference inputs (auto-derived from ^"link" traversals in
+		// the pipeline) unless the user explicitly declared them in config. The backend
+		// always re-derives them on every save, so including them in state creates a
+		// perpetual diff against any config that doesn't declare them.
+		if input.Role == gql.InputRoleReference {
+			if _, inConfig := data.GetOk(fmt.Sprintf("inputs.%s", name)); !inConfig {
+				continue
+			}
+		}
+
 		id := oid.OID{
 			Type: oid.TypeDataset,
 			Id:   *input.Dataset,
@@ -535,7 +545,7 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data, false)
+	return datasetToResourceData(result, data)
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -601,7 +611,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diagInefficientAcceleration)
 	}
 
-	return append(diags, datasetToResourceData(result, data, false)...)
+	return append(diags, datasetToResourceData(result, data)...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

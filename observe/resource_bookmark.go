@@ -96,7 +96,7 @@ func newBookmarkConfig(data *schema.ResourceData) (input *gql.BookmarkInput, dia
 	return input, diags
 }
 
-func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
+func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("name", b.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -131,7 +131,7 @@ func bookmarkToResourceData(b *gql.Bookmark, data *schema.ResourceData, mirrorDe
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if tagDiags, err := setObjectTagsFromAPI(data, b.ObjectTags, mirrorDeprecatedTag); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, b.ObjectTags); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else {
 		diags = append(diags, tagDiags...)
@@ -177,7 +177,7 @@ func resourceBookmarkRead(ctx context.Context, data *schema.ResourceData, meta i
 		})
 	}
 
-	return bookmarkToResourceData(result, data, false)
+	return bookmarkToResourceData(result, data)
 }
 
 func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -198,7 +198,7 @@ func resourceBookmarkUpdate(ctx context.Context, data *schema.ResourceData, meta
 		return diags
 	}
 
-	return bookmarkToResourceData(result, data, false)
+	return bookmarkToResourceData(result, data)
 }
 
 func resourceBookmarkDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

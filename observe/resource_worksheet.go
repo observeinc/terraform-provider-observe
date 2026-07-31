@@ -95,7 +95,7 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 	return input, diags
 }
 
-func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
+func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -135,7 +135,7 @@ func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData, mirror
 		}
 	}
 
-	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else {
 		diags = append(diags, tagDiags...)
@@ -189,7 +189,7 @@ func resourceWorksheetRead(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	return worksheetToResourceData(result, data, false)
+	return worksheetToResourceData(result, data)
 }
 
 func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -214,7 +214,7 @@ func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	return worksheetToResourceData(result, data, false)
+	return worksheetToResourceData(result, data)
 }
 
 func resourceWorksheetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
