@@ -441,7 +441,7 @@ func TestLogDerivedMetricDatasetToResourceData_PreservesInputOIDVersion(t *testi
 		},
 	}
 
-	diags := logDerivedMetricDatasetToResourceData(result, data)
+	diags := logDerivedMetricDatasetToResourceData(result, data, false)
 	if diags.HasError() {
 		t.Fatalf("unexpected diags: %v", diags)
 	}
