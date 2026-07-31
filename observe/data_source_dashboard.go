@@ -70,7 +70,6 @@ func dataSourceDashboard() *schema.Resource {
 				Description: schemaDashboardParameterValuesDescription,
 			},
 			"object_tags": objectTagsSchemaFieldComputed(),
-			"entity_tags": entityTagsSchemaFieldComputed(),
 		},
 	}
 }
@@ -87,7 +86,7 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 	}
 	data.SetId(dashboard.Id)
 
-	diags = dashboardToResourceData(dashboard, data, true)
+	diags = dashboardToResourceData(dashboard, data)
 	if diags.HasError() {
 		return diags
 	}

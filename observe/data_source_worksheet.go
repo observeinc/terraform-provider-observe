@@ -51,7 +51,6 @@ func dataSourceWorksheet() *schema.Resource {
 				Description: schemaWorksheetJSONDescription,
 			},
 			"object_tags": objectTagsSchemaFieldComputed(),
-			"entity_tags": entityTagsSchemaFieldComputed(),
 		},
 	}
 }
@@ -69,5 +68,5 @@ func dataSourceWorksheetRead(ctx context.Context, data *schema.ResourceData, met
 	}
 	data.SetId(ws.Id)
 
-	return worksheetToResourceData(ws, data, true)
+	return worksheetToResourceData(ws, data)
 }

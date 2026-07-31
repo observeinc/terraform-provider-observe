@@ -338,7 +338,7 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 	return input, query, diags
 }
 
-func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDeprecatedTag bool) (diags diag.Diagnostics) {
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -401,7 +401,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, mirrorDepr
 		}
 	}
 
-	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags, mirrorDeprecatedTag); err != nil {
+	if tagDiags, err := setObjectTagsFromAPI(data, d.ObjectTags); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else {
 		diags = append(diags, tagDiags...)
@@ -535,7 +535,7 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data, false)
+	return datasetToResourceData(result, data)
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -601,7 +601,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diagInefficientAcceleration)
 	}
 
-	return append(diags, datasetToResourceData(result, data, false)...)
+	return append(diags, datasetToResourceData(result, data)...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
