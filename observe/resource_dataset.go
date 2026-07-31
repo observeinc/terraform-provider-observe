@@ -502,7 +502,7 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	result, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+	saveResult, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -512,11 +512,11 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	if result.AccelerationType == gql.AccelerationTypeOther {
+	diags = appendDownstreamWarnings(diags, saveResult.ErrorDatasets)
+	if saveResult.Dataset.AccelerationType == gql.AccelerationTypeOther {
 		diags = append(diags, diagInefficientAcceleration)
 	}
-
-	data.SetId(result.Id)
+	data.SetId(saveResult.Dataset.Id)
 	return append(diags, resourceDatasetRead(ctx, data, meta)...)
 }
 
@@ -535,7 +535,8 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
+	diags = appendCompilationWarning(diags, data.Id(), result.CompilationError)
+	return append(diags, datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -587,7 +588,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		dependencyHandling.RematerializationMode = &mode
 	}
 
-	result, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+	saveResult, err := client.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -597,11 +598,11 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		return diags
 	}
 
-	if result.AccelerationType == gql.AccelerationTypeOther {
+	diags = appendDownstreamWarnings(diags, saveResult.ErrorDatasets)
+	if saveResult.Dataset.AccelerationType == gql.AccelerationTypeOther {
 		diags = append(diags, diagInefficientAcceleration)
 	}
-
-	return append(diags, datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])...)
+	return append(diags, datasetToResourceData(saveResult.Dataset, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -652,6 +653,39 @@ func rematerializationErrorStr(dematerializedDatasets []gql.DatasetMaterializati
 	}
 	sb.WriteString(`. If rematerialization is acceptable, remove rematerialization_mode and try again`)
 	return sb.String()
+}
+
+// appendDownstreamWarnings emits a warning diagnostic for each errorDatasets entry that
+// represents a newly-introduced compile break (hasExistingError == false).
+func appendDownstreamWarnings(diags diag.Diagnostics, errorDatasets []gql.DatasetError) diag.Diagnostics {
+	for _, e := range errorDatasets {
+		if !e.HasExistingError {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("downstream dataset %q [id=%s] has a new compile error", e.DatasetName, e.DatasetId),
+				Detail:   e.Text,
+			})
+		}
+	}
+	return diags
+}
+
+// appendCompilationWarning emits a warning diagnostic when a dataset currently has a
+// compilation error, distinguishing between an error in its own OPAL and one inherited
+// from an upstream dependency.
+func appendCompilationWarning(diags diag.Diagnostics, id string, ce *gql.DatasetCompilationError) diag.Diagnostics {
+	if ce == nil {
+		return diags
+	}
+	detail := ce.Error
+	if ce.ErrorInDatasetId != id {
+		detail = fmt.Sprintf("error originates in upstream dataset [id=%s]: %s", ce.ErrorInDatasetId, ce.Error)
+	}
+	return append(diags, diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  fmt.Sprintf("dataset [id=%s] has a compilation error", id),
+		Detail:   detail,
+	})
 }
 
 func getRematerializationMode(client *observe.Client, data ResourceReader) TerraformRematerializationMode {

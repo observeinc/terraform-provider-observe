@@ -40,6 +40,10 @@ fragment LogDerivedMetricDataset on Dataset {
 	logDerivedMetricTable {
 		...LogDerivedMetricDefinition
 	}
+	compilationError {
+		error
+		errorInDatasetId
+	}
 }
 
 fragment LogDerivedMetricDatasetSaveResult on DatasetSaveResult {

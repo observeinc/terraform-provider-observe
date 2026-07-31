@@ -30,10 +30,14 @@ func DefaultDependencyHandling() *DependencyHandlingInput {
 	return &DependencyHandlingInput{SaveMode: &mode}
 }
 
-// SaveDataset creates and updates datasets
-func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, dependencyHandling *DependencyHandlingInput) (*Dataset, error) {
+// SaveDataset creates or updates a dataset and returns the full save result,
+// including any downstream errorDatasets populated by the backend's dependency walk.
+func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput, dependencyHandling *DependencyHandlingInput) (*DatasetSaveResult, error) {
 	resp, err := saveDataset(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)
-	return datasetOrError(resp.DatasetSaveResult, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.DatasetSaveResult, nil
 }
 
 // SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful when rematerialization_mode is set to "skip_rematerialization"
@@ -112,13 +116,14 @@ func (d *Dataset) Oid() *oid.OID {
 	}
 }
 
-// SaveLogDerivedMetricDataset creates or updates a log-derived metric dataset.
-func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, ldmInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*LogDerivedMetricDataset, error) {
+// SaveLogDerivedMetricDataset creates or updates a log-derived metric dataset and
+// returns the full save result, including any downstream errorDatasets.
+func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspaceId string, input *DatasetInput, ldmInput *LogDerivedMetricDefinitionInput, dependencyHandling *DependencyHandlingInput) (*LogDerivedMetricDatasetSaveResult, error) {
 	resp, err := saveLogDerivedMetricDataset(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
 	if err != nil {
 		return nil, err
 	}
-	return resp.DatasetSaveResult.Dataset, nil
+	return resp.DatasetSaveResult, nil
 }
 
 // SaveLogDerivedMetricDatasetDryRun performs a preflight check for a log-derived metric dataset save.
