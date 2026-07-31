@@ -455,12 +455,13 @@ func resourceLogDerivedMetricDatasetCreate(ctx context.Context, data *schema.Res
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid, input, logInput, gql.DefaultDependencyHandling())
+	saveResult, err := client.SaveLogDerivedMetricDataset(ctx, wsid, input, logInput, gql.DefaultDependencyHandling())
 	if err != nil {
 		return diag.Errorf("failed to create log-derived metric dataset: %s", err)
 	}
 
-	data.SetId(result.Id)
+	diags = appendDownstreamWarnings(diags, saveResult.ErrorDatasets)
+	data.SetId(saveResult.Dataset.Id)
 	return append(diags, resourceLogDerivedMetricDatasetRead(ctx, data, meta)...)
 }
 
@@ -474,7 +475,9 @@ func resourceLogDerivedMetricDatasetRead(ctx context.Context, data *schema.Resou
 		}
 		return diag.Errorf("failed to read log-derived metric dataset: %s", err)
 	}
-	return logDerivedMetricDatasetToResourceData(d, data, client.Flags[flagOmitDatasetOIDVersion])
+	var diags diag.Diagnostics
+	diags = appendLDMCompilationWarning(diags, data.Id(), d.CompilationError)
+	return append(diags, logDerivedMetricDatasetToResourceData(d, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -491,12 +494,13 @@ func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.Res
 		return diag.FromErr(err)
 	}
 
-	result, err := client.SaveLogDerivedMetricDataset(ctx, wsid, input, logInput, gql.DefaultDependencyHandling())
+	saveResult, err := client.SaveLogDerivedMetricDataset(ctx, wsid, input, logInput, gql.DefaultDependencyHandling())
 	if err != nil {
 		return diag.Errorf("failed to update log-derived metric dataset: %s", err)
 	}
 
-	return logDerivedMetricDatasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
+	diags = appendDownstreamWarnings(diags, saveResult.ErrorDatasets)
+	return append(diags, logDerivedMetricDatasetToResourceData(saveResult.Dataset, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceLogDerivedMetricDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -505,4 +509,19 @@ func resourceLogDerivedMetricDatasetDelete(ctx context.Context, data *schema.Res
 		return diag.Errorf("failed to delete log-derived metric dataset: %s", err)
 	}
 	return nil
+}
+
+func appendLDMCompilationWarning(diags diag.Diagnostics, id string, ce *gql.LogDerivedMetricDatasetCompilationError) diag.Diagnostics {
+	if ce == nil {
+		return diags
+	}
+	detail := ce.Error
+	if ce.ErrorInDatasetId != id {
+		detail = fmt.Sprintf("error originates in upstream dataset [id=%s]: %s", ce.ErrorInDatasetId, ce.Error)
+	}
+	return append(diags, diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  fmt.Sprintf("dataset [id=%s] has a compilation error", id),
+		Detail:   detail,
+	})
 }

@@ -78,6 +78,10 @@ fragment Dataset on Dataset {
 		key
 		values
 	}
+	compilationError {
+		error
+		errorInDatasetId
+	}
 }
 
 fragment DatasetIdName on Dataset {

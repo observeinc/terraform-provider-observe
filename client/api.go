@@ -72,7 +72,7 @@ func (c *Client) GetDataset(ctx context.Context, id string) (*meta.Dataset, erro
 	return c.Meta.GetDataset(ctx, id)
 }
 
-func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.Dataset, error) {
+func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.DatasetSaveResult, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
@@ -113,7 +113,7 @@ func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	return c.Meta.DeleteDataset(ctx, id)
 }
 
-func (c *Client) SaveLogDerivedMetricDataset(ctx context.Context, wsid string, input *meta.DatasetInput, ldmInput *meta.LogDerivedMetricDefinitionInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.LogDerivedMetricDataset, error) {
+func (c *Client) SaveLogDerivedMetricDataset(ctx context.Context, wsid string, input *meta.DatasetInput, ldmInput *meta.LogDerivedMetricDefinitionInput, dependencyHandling *meta.DependencyHandlingInput) (*meta.LogDerivedMetricDatasetSaveResult, error) {
 	if !c.Flags[flagObs2110] {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()

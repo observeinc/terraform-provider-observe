@@ -1330,7 +1330,8 @@ type Dataset struct {
 	SourceTable                *DatasetSourceTableSourceTableDefinition             `json:"sourceTable"`
 	CorrelationTagMappings     []DatasetCorrelationTagMappingsCorrelationTagMapping `json:"correlationTagMappings"`
 	// Object tags for organizing and categorizing datasets.
-	ObjectTags []ObjectTagMapping `json:"objectTags"`
+	ObjectTags       []ObjectTagMapping       `json:"objectTags"`
+	CompilationError *DatasetCompilationError `json:"compilationError"`
 }
 
 // GetWorkspaceId returns Dataset.WorkspaceId, and is useful for accessing the field via an interface.
@@ -1408,6 +1409,27 @@ func (v *Dataset) GetCorrelationTagMappings() []DatasetCorrelationTagMappingsCor
 
 // GetObjectTags returns Dataset.ObjectTags, and is useful for accessing the field via an interface.
 func (v *Dataset) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
+
+// GetCompilationError returns Dataset.CompilationError, and is useful for accessing the field via an interface.
+func (v *Dataset) GetCompilationError() *DatasetCompilationError { return v.CompilationError }
+
+// DatasetCompilationError includes the requested fields of the GraphQL type CompilationError.
+// The GraphQL type's documentation follows.
+//
+// A dataset could fail to compile either because its OPAL was wrong or
+// because one of its dependencies' OPAL was wrong. CompilationError of
+// a dataset tells you the compilation error string and also where the
+// error originated.
+type DatasetCompilationError struct {
+	Error            string `json:"error"`
+	ErrorInDatasetId string `json:"errorInDatasetId"`
+}
+
+// GetError returns DatasetCompilationError.Error, and is useful for accessing the field via an interface.
+func (v *DatasetCompilationError) GetError() string { return v.Error }
+
+// GetErrorInDatasetId returns DatasetCompilationError.ErrorInDatasetId, and is useful for accessing the field via an interface.
+func (v *DatasetCompilationError) GetErrorInDatasetId() string { return v.ErrorInDatasetId }
 
 // DatasetCorrelationTagMappingsCorrelationTagMapping includes the requested fields of the GraphQL type CorrelationTagMapping.
 type DatasetCorrelationTagMappingsCorrelationTagMapping struct {
@@ -3388,15 +3410,16 @@ func (v *LogDerivedMetricAggregationInput) GetFieldPath() *MetricTagPathInput { 
 
 // LogDerivedMetricDataset includes the GraphQL fields of Dataset requested by the fragment LogDerivedMetricDataset.
 type LogDerivedMetricDataset struct {
-	Id                    string                      `json:"id"`
-	WorkspaceId           string                      `json:"workspaceId"`
-	Name                  string                      `json:"name"`
-	LastSaved             types.TimeScalar            `json:"lastSaved"`
-	Description           *string                     `json:"description"`
-	IconUrl               *string                     `json:"iconUrl"`
-	Source                *string                     `json:"source"`
-	ManagedById           *string                     `json:"managedById"`
-	LogDerivedMetricTable *LogDerivedMetricDefinition `json:"logDerivedMetricTable"`
+	Id                    string                                   `json:"id"`
+	WorkspaceId           string                                   `json:"workspaceId"`
+	Name                  string                                   `json:"name"`
+	LastSaved             types.TimeScalar                         `json:"lastSaved"`
+	Description           *string                                  `json:"description"`
+	IconUrl               *string                                  `json:"iconUrl"`
+	Source                *string                                  `json:"source"`
+	ManagedById           *string                                  `json:"managedById"`
+	LogDerivedMetricTable *LogDerivedMetricDefinition              `json:"logDerivedMetricTable"`
+	CompilationError      *LogDerivedMetricDatasetCompilationError `json:"compilationError"`
 }
 
 // GetId returns LogDerivedMetricDataset.Id, and is useful for accessing the field via an interface.
@@ -3426,6 +3449,31 @@ func (v *LogDerivedMetricDataset) GetManagedById() *string { return v.ManagedByI
 // GetLogDerivedMetricTable returns LogDerivedMetricDataset.LogDerivedMetricTable, and is useful for accessing the field via an interface.
 func (v *LogDerivedMetricDataset) GetLogDerivedMetricTable() *LogDerivedMetricDefinition {
 	return v.LogDerivedMetricTable
+}
+
+// GetCompilationError returns LogDerivedMetricDataset.CompilationError, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDataset) GetCompilationError() *LogDerivedMetricDatasetCompilationError {
+	return v.CompilationError
+}
+
+// LogDerivedMetricDatasetCompilationError includes the requested fields of the GraphQL type CompilationError.
+// The GraphQL type's documentation follows.
+//
+// A dataset could fail to compile either because its OPAL was wrong or
+// because one of its dependencies' OPAL was wrong. CompilationError of
+// a dataset tells you the compilation error string and also where the
+// error originated.
+type LogDerivedMetricDatasetCompilationError struct {
+	Error            string `json:"error"`
+	ErrorInDatasetId string `json:"errorInDatasetId"`
+}
+
+// GetError returns LogDerivedMetricDatasetCompilationError.Error, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDatasetCompilationError) GetError() string { return v.Error }
+
+// GetErrorInDatasetId returns LogDerivedMetricDatasetCompilationError.ErrorInDatasetId, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDatasetCompilationError) GetErrorInDatasetId() string {
+	return v.ErrorInDatasetId
 }
 
 // LogDerivedMetricDatasetSaveResult includes the GraphQL fields of DatasetSaveResult requested by the fragment LogDerivedMetricDatasetSaveResult.
@@ -17737,6 +17785,10 @@ fragment Dataset on Dataset {
 		key
 		values
 	}
+	compilationError {
+		error
+		errorInDatasetId
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18373,6 +18425,10 @@ fragment LogDerivedMetricDataset on Dataset {
 	managedById
 	logDerivedMetricTable {
 		... LogDerivedMetricDefinition
+	}
+	compilationError {
+		error
+		errorInDatasetId
 	}
 }
 fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
@@ -19840,6 +19896,10 @@ fragment Dataset on Dataset {
 		key
 		values
 	}
+	compilationError {
+		error
+		errorInDatasetId
+	}
 }
 fragment StageQuery on StageQuery {
 	id
@@ -20174,6 +20234,10 @@ fragment Dataset on Dataset {
 	objectTags {
 		key
 		values
+	}
+	compilationError {
+		error
+		errorInDatasetId
 	}
 }
 fragment StageQuery on StageQuery {
@@ -21212,6 +21276,10 @@ fragment Dataset on Dataset {
 		key
 		values
 	}
+	compilationError {
+		error
+		errorInDatasetId
+	}
 }
 fragment DatasetError on DatasetError {
 	datasetId
@@ -21347,6 +21415,10 @@ fragment LogDerivedMetricDataset on Dataset {
 	managedById
 	logDerivedMetricTable {
 		... LogDerivedMetricDefinition
+	}
+	compilationError {
+		error
+		errorInDatasetId
 	}
 }
 fragment DatasetError on DatasetError {
@@ -22205,6 +22277,10 @@ fragment Dataset on Dataset {
 	objectTags {
 		key
 		values
+	}
+	compilationError {
+		error
+		errorInDatasetId
 	}
 }
 fragment StageQuery on StageQuery {
