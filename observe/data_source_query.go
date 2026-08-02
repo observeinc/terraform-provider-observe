@@ -499,6 +499,24 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 // 	return diags
 // }
 
+// inputIsUsed reports whether any stage uses inputName, either by naming it as
+// that stage's explicit input or by referencing @inputName in its pipeline.
+//
+// This is what the write path attaches to a stage, so an input no stage uses is
+// dropped on save: it goes into no stage, and MultiStageQueryInput has no
+// top-level input list to carry it. See appendReferencedInputs.
+func inputIsUsed(stages []*Stage, inputName string) bool {
+	for _, stage := range stages {
+		if stage.Input != nil && *stage.Input == inputName {
+			return true
+		}
+		if pipelineReferencesInput(stage.Pipeline, inputName) {
+			return true
+		}
+	}
+	return false
+}
+
 // flattenQuery converts the API's stage representation into the provider's
 // internal Query/Stage types. When dedentPipelines is true, each stage's
 // pipeline text is passed through dedentPipeline before being stored; see

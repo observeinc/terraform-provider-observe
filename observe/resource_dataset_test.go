@@ -1930,3 +1930,72 @@ func TestAccObserveDatasetLinkDerivedInputNoPerpetualDiff(t *testing.T) {
 	})
 }
 
+// TestFlattenAndSetQueryUnusedInputs covers which declared inputs are carried forward when the
+// backend response omits them. An input no stage uses is dropped on save, so carrying it forward
+// is what stops it reappearing as a planned addition on every plan; anything else missing was
+// changed outside Terraform and must still surface as a diff.
+func TestFlattenAndSetQueryUnusedInputs(t *testing.T) {
+	const (
+		primaryID = "11111"
+		secondID  = "22222"
+	)
+	stageID := "stage-0"
+
+	// Simulates the backend response: only the default input is stored, whatever the config
+	// declared, because an input no stage uses is never attached to a stage on write.
+	buildStages := func(pipeline string) []gql.StageQuery {
+		return []gql.StageQuery{{
+			Id:       stringPtr(stageID),
+			Pipeline: pipeline,
+			Input: []gql.StageQueryInputInputDefinition{
+				{InputName: "primary", InputRole: gql.InputRoleData, DatasetId: stringPtr(primaryID)},
+			},
+		}}
+	}
+
+	buildData := func(pipeline, secondInput string) *schema.ResourceData {
+		return schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name": "test",
+			"inputs": map[string]interface{}{
+				"primary":   oid.OID{Type: oid.TypeDataset, Id: primaryID}.String(),
+				secondInput: oid.OID{Type: oid.TypeDataset, Id: secondID}.String(),
+			},
+			"stage": []interface{}{map[string]interface{}{"pipeline": pipeline, "alias": "", "input": "primary", "output_stage": false}},
+		})
+	}
+
+	t.Run("input that no stage uses is kept in state", func(t *testing.T) {
+		// "orphan" is declared but never used, so the write path drops it and the backend
+		// has no record of it. Carrying it forward is what keeps the plan clean.
+		const pipeline = "filter true"
+		data := buildData(pipeline, "orphan")
+		if _, diags := flattenAndSetQuery(data, buildStages(pipeline), stageID, false); diags.HasError() {
+			t.Fatalf("flattenAndSetQuery: %v", diags)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if _, ok := inputs["orphan"]; !ok {
+			t.Errorf("unused input should be kept in state, got %v", inputs)
+		}
+		if len(inputs) != 2 {
+			t.Errorf("expected exactly 2 inputs in state, got %d: %v", len(inputs), inputs)
+		}
+	})
+
+	t.Run("used input removed outside terraform is still surfaced as a diff", func(t *testing.T) {
+		// A stage references @joined, so this is not an input the write path drops. Its
+		// absence from the response means something removed it outside Terraform, which
+		// must stay out of state so the plan shows it and the next apply restores it.
+		const pipeline = `join @joined`
+		data := buildData(pipeline, "joined")
+		if _, diags := flattenAndSetQuery(data, buildStages(pipeline), stageID, false); diags.HasError() {
+			t.Fatalf("flattenAndSetQuery: %v", diags)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if _, ok := inputs["joined"]; ok {
+			t.Errorf("used input missing from the response should not be carried forward, got %v", inputs)
+		}
+		if len(inputs) != 1 {
+			t.Errorf("expected exactly 1 input in state, got %d: %v", len(inputs), inputs)
+		}
+	})
+}
