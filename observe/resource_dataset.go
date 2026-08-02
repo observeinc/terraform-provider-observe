@@ -412,10 +412,8 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil && d.Transform.Current.Query != nil {
-		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage)
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+		_, queryDiags := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage)
+		diags = append(diags, queryDiags...)
 	}
 
 	if err := data.Set("oid", d.Oid().String()); err != nil {
@@ -425,14 +423,16 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags dia
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, error) {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
 
 	queryData, err := flattenQuery(gqlstages, outputStage)
 	if err != nil {
-		return nil, err
+		return nil, diag.FromErr(err)
 	}
 
 	inputs := make(map[string]interface{}, 0)
@@ -452,8 +452,32 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 		inputs[name] = id.String()
 	}
 
+	// Carry forward only the inputs the write path is known to drop: the ones no stage
+	// uses. Those never reach the API, so without this every plan would show them as a
+	// fresh addition that applying never resolves. Warn too, since the declaration has
+	// no effect.
+	//
+	// Anything else missing from the response was changed outside Terraform, so it stays
+	// out of state and surfaces as a diff for the next apply to restore.
+	for name, prior := range data.Get("inputs").(map[string]interface{}) {
+		if _, ok := inputs[name]; ok {
+			continue
+		}
+		if inputIsUsed(queryData.Stages, name) {
+			continue
+		}
+
+		inputs[name] = prior
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  fmt.Sprintf("input %q is not used by any stage", name),
+			Detail: "Observe does not save inputs that no stage references, so this one is not stored. " +
+				"Remove it from inputs, or reference it from a stage pipeline as @" + name + ".",
+		})
+	}
+
 	if err := data.Set("inputs", inputs); err != nil {
-		return nil, err
+		return nil, diag.FromErr(err)
 	}
 
 	stages := make([]interface{}, len(queryData.Stages))
@@ -474,10 +498,10 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 	}
 
 	if err := data.Set("stage", stages); err != nil {
-		return nil, err
+		return nil, append(diags, diag.FromErr(err)...)
 	}
 
-	return queryData.StageIds, nil
+	return queryData.StageIds, diags
 }
 
 func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
