@@ -9,6 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
@@ -1460,5 +1463,76 @@ func TestAccObserveDatasetNoWorkspace(t *testing.T) {
 					stage {}
 				}`, randomPrefix)),
 		},
+	})
+}
+
+// TestFlattenAndSetQueryReferenceInputFiltering guards against the perpetual-diff bug where
+// backend-derived Reference inputs (auto-created from ^"link" traversals) bleed into state and
+// cause a never-converging planned removal on every subsequent plan.
+func TestFlattenAndSetQueryReferenceInputFiltering(t *testing.T) {
+	const (
+		dataID = "11111"
+		refID1 = "22222"
+		refID2 = "33333"
+	)
+	stageID := "stage-0"
+	refName1 := "Ref Dataset from usage of some link"
+	refName2 := "Other Ref Dataset from usage of other link"
+
+	// Simulates the backend response: one user-declared Data input and two Reference inputs
+	// that were auto-derived from the ^"link" operators in the pipeline.
+	buildStages := func() []gql.StageQuery {
+		return []gql.StageQuery{{
+			Id:       stringPtr(stageID),
+			Pipeline: `lookup ^"some link" | lookup ^"other link"`,
+			Input: []gql.StageQueryInputInputDefinition{
+				{InputName: "data_input", InputRole: gql.InputRoleData, DatasetId: stringPtr(dataID)},
+				{InputName: refName1, InputRole: gql.InputRoleReference, DatasetId: stringPtr(refID1)},
+				{InputName: refName2, InputRole: gql.InputRoleReference, DatasetId: stringPtr(refID2)},
+			},
+		}}
+	}
+
+	t.Run("reference inputs absent from config are not written to state", func(t *testing.T) {
+		// Config declares only the Data input; neither Reference input is present.
+		data := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name":   "test",
+			"inputs": map[string]interface{}{"data_input": oid.OID{Type: oid.TypeDataset, Id: dataID}.String()},
+			"stage":  []interface{}{map[string]interface{}{"pipeline": "filter true", "alias": "", "input": "", "output_stage": false}},
+		})
+		if _, err := flattenAndSetQuery(data, buildStages(), stageID); err != nil {
+			t.Fatalf("flattenAndSetQuery: %v", err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if len(inputs) != 1 {
+			t.Errorf("expected exactly 1 input in state, got %d: %v", len(inputs), inputs)
+		}
+	})
+
+	t.Run("only the reference input declared in config is kept; undeclared one is not added", func(t *testing.T) {
+		// Config declares refName1 but not refName2; both come back from the backend.
+		// This covers the backward-compat case where a user explicitly declared one Reference
+		// input as a workaround — it must be preserved while the undeclared one is still filtered.
+		data := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name": "test",
+			"inputs": map[string]interface{}{
+				"data_input": oid.OID{Type: oid.TypeDataset, Id: dataID}.String(),
+				refName1:     oid.OID{Type: oid.TypeDataset, Id: refID1}.String(),
+			},
+			"stage": []interface{}{map[string]interface{}{"pipeline": "filter true", "alias": "", "input": "", "output_stage": false}},
+		})
+		if _, err := flattenAndSetQuery(data, buildStages(), stageID); err != nil {
+			t.Fatalf("flattenAndSetQuery: %v", err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if _, ok := inputs[refName1]; !ok {
+			t.Errorf("explicitly-declared Reference input %q should be kept in state", refName1)
+		}
+		if _, ok := inputs[refName2]; ok {
+			t.Errorf("undeclared Reference input %q should not appear in state", refName2)
+		}
+		if len(inputs) != 2 {
+			t.Errorf("expected exactly 2 inputs in state, got %d: %v", len(inputs), inputs)
+		}
 	})
 }
