@@ -20,6 +20,7 @@ const (
 	schemaWorksheetIconDescription      = "Icon image."
 	schemaWorksheetJSONDescription      = "Worksheet definition in JSON format."
 	schemaWorksheetOIDDescription       = "The Observe ID for worksheet."
+	schemaWorksheetBindingsDescription  = "Internal field. Do not use."
 )
 
 func resourceWorksheet() *schema.Resource {
