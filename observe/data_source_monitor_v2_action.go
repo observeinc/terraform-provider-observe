@@ -2,10 +2,12 @@ package observe
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	"github.com/observeinc/terraform-provider-observe/client/binding"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
@@ -74,6 +76,11 @@ func dataSourceMonitorV2Action() *schema.Resource {
 			"destination": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"_bindings": { // internal, used for generating bindings for cross-tenant export
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: descriptions.Get("monitor_v2_action", "schema", "_bindings"),
 			},
 		},
 	}
@@ -187,5 +194,44 @@ func dataSourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceDat
 	}
 
 	data.SetId(act.Id)
-	return resourceMonitorV2ActionRead(ctx, data, meta)
+	diags = resourceMonitorV2ActionRead(ctx, data, meta)
+	if diags.HasError() {
+		return diags
+	}
+
+	if client.ExportObjectBindings {
+		if err := generateMonitorV2ActionBindings(ctx, act, data, client); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return diags
+}
+
+// generateMonitorV2ActionBindings generates bindings for use in cross-tenant exports. See binding.go for details.
+func generateMonitorV2ActionBindings(ctx context.Context, act *gql.MonitorV2Action, data *schema.ResourceData, client *observe.Client) error {
+	bindFor := binding.NewKindSet(binding.KindWorkspace, binding.KindUser)
+	gen, err := binding.NewGenerator(ctx, binding.KindMonitorV2Action, act.Name, client, bindFor)
+	if err != nil {
+		return fmt.Errorf("failed to initialize binding generator: %w", err)
+	}
+
+	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(act.WorkspaceId))
+	if err := data.Set("workspace", workspaceRef); err != nil {
+		return err
+	}
+
+	// walk the email field to replace user OIDs with local variable references
+	if emailVal := data.Get("email"); emailVal != nil {
+		gen.Generate(emailVal)
+		if err := data.Set("email", emailVal); err != nil {
+			return err
+		}
+	}
+
+	bindingsJson, err := gen.GetBindingsJson()
+	if err != nil {
+		return err
+	}
+	return data.Set("_bindings", string(bindingsJson))
 }

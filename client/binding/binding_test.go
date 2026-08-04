@@ -58,11 +58,11 @@ func prepareResourceCacheFixture() ResourceCache {
 	}
 	disambiguator := 1
 	existingResourceNames := make(map[string]struct{})
-	r.addEntry(KindDataset, "dataset_1", dataset1Id, true, &disambiguator, existingResourceNames)
-	r.addEntry(KindDataset, "dataset_2", "41000200", true, &disambiguator, existingResourceNames)
-	r.addEntry(KindWorkspace, "Test wks", workspaceId, false, &disambiguator, existingResourceNames)
-	r.addEntry(KindWorksheet, "worksheet_1", "41000201", true, &disambiguator, existingResourceNames)
-	r.addEntry(KindUser, "basic_user", "41000100", true, &disambiguator, existingResourceNames)
+	r.addEntry(KindDataset, "dataset_1", "dataset_1", dataset1Id, true, &disambiguator, existingResourceNames)
+	r.addEntry(KindDataset, "dataset_2", "dataset_2", "41000200", true, &disambiguator, existingResourceNames)
+	r.addEntry(KindWorkspace, "Test wks", "Test wks", workspaceId, false, &disambiguator, existingResourceNames)
+	r.addEntry(KindWorksheet, "worksheet_1", "worksheet_1", "41000201", true, &disambiguator, existingResourceNames)
+	r.addEntry(KindUser, "basic@example.com", "basic_user", "41000100", true, &disambiguator, existingResourceNames)
 	r.workspaceEntry = r.LookupId(KindWorkspace, workspaceId)
 	return r
 }
@@ -123,6 +123,69 @@ func TestGenerateJson(t *testing.T) {
 	}
 	if !reflect.DeepEqual(output, expected) {
 		t.Fatalf("expected %#v, got %#v", expected, output)
+	}
+}
+
+func TestGenerateWithArrays(t *testing.T) {
+	g := prepareGeneratorFixture()
+
+	// scalars inside an array should be walked and replaced with local refs
+	input := map[string]interface{}{
+		"users": []interface{}{
+			// full OID for a user — should be bound via TryBindOid
+			"o:::user:41000100",
+		},
+	}
+	g.Generate(input)
+	users, ok := input["users"].([]interface{})
+	if !ok || len(users) != 1 {
+		t.Fatalf("expected users to remain a slice of length 1, got %#v", input["users"])
+	}
+	expectedRef := "${local.binding__type_name__user_basic_user}"
+	if users[0] != expectedRef {
+		t.Fatalf("expected %s, got %s", expectedRef, users[0])
+	}
+
+	// arrays of maps should also be walked recursively
+	g2 := prepareGeneratorFixture()
+	input2 := map[string]interface{}{
+		"items": []interface{}{
+			map[string]interface{}{
+				"datasetId": dataset1Id,
+			},
+		},
+	}
+	g2.Generate(input2)
+	items, ok := input2["items"].([]interface{})
+	if !ok || len(items) != 1 {
+		t.Fatalf("expected items slice length 1, got %#v", input2["items"])
+	}
+	item, ok := items[0].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected items[0] to be a map, got %T", items[0])
+	}
+	expectedDatasetRef := "${local.binding__type_name__dataset_dataset_1}"
+	if item["datasetId"] != expectedDatasetRef {
+		t.Fatalf("expected %s, got %s", expectedDatasetRef, item["datasetId"])
+	}
+
+	// nested arrays of scalars (array of array of OID strings)
+	g3 := prepareGeneratorFixture()
+	inner := []interface{}{"o:::user:41000100"}
+	input3 := map[string]interface{}{
+		"nested": []interface{}{inner},
+	}
+	g3.Generate(input3)
+	outerSlice, ok := input3["nested"].([]interface{})
+	if !ok || len(outerSlice) != 1 {
+		t.Fatalf("expected nested slice length 1, got %#v", input3["nested"])
+	}
+	innerSlice, ok := outerSlice[0].([]interface{})
+	if !ok || len(innerSlice) != 1 {
+		t.Fatalf("expected inner slice length 1, got %#v", outerSlice[0])
+	}
+	if innerSlice[0] != expectedRef {
+		t.Fatalf("expected %s, got %s", expectedRef, innerSlice[0])
 	}
 }
 

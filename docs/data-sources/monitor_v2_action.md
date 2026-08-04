@@ -45,6 +45,7 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
+- `_bindings` (String) Internal field. Do not use.
 - `description` (String) description for this monitor v2 action.
 - `destination` (String)
 - `email` (Block List) Configuration settings for email type actions. (see [below for nested schema](#nestedblock--email))
