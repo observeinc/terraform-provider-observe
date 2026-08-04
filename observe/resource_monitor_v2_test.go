@@ -1428,12 +1428,6 @@ func TestAccObserveMonitorV2ServiceBindingsWildcard(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: allWildcard,
-				// Creating a monitor for a new dataset updates the dataset's
-				// freshness configuration on first save, which bumps the version
-				// timestamp in its OID. The observe_correlation_tag resources
-				// store the full versioned OID, so they show a ForceNew diff on
-				// the next plan. Subsequent monitor updates are idempotent.
-				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "service_bindings.0.service_name.0.match_mode", "wildcard"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "service_bindings.0.service_name.0.value", ""),
