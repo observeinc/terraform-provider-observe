@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	flagCacheClient       = "cache-client"
-	tfSourceFormatDefault = "terraform/%s"
+	flagCacheClient           = "cache-client"
+	flagOmitDatasetOIDVersion = "omit-dataset-oid-version"
+	tfSourceFormatDefault     = "terraform/%s"
 )
 
 // Provider returns observe terraform provider
