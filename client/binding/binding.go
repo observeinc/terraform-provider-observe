@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -36,8 +37,8 @@ var (
 )
 
 type ResourceCacheEntry struct {
-	TfName string
-	Label  string
+	TfName    string
+	LookupKey string
 }
 
 type ResourceCache struct {
@@ -60,7 +61,7 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 	if err != nil {
 		return cache, err
 	}
-	cache.addEntry(KindWorkspace, workspaces[0].Label, workspaces[0].Oid().String(), false, nil, make(map[string]struct{}))
+	cache.addEntry(KindWorkspace, workspaces[0].Label, workspaces[0].Label, workspaces[0].Oid().String(), false, nil, make(map[string]struct{}))
 	cache.workspaceOid = workspaces[0].Oid()
 	cache.workspaceEntry = cache.LookupId(KindWorkspace, cache.workspaceOid.String())
 
@@ -75,7 +76,7 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, ds := range datasets {
-				cache.addEntry(KindDataset, ds.Name, ds.Id, true, &disambiguator, existingResourceNames)
+				cache.addEntry(KindDataset, ds.Name, ds.Name, ds.Id, true, &disambiguator, existingResourceNames)
 			}
 		case KindWorksheet:
 			worksheets, err := client.ListWorksheetIdLabelOnly(ctx, cache.workspaceOid.Id)
@@ -83,7 +84,7 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, wk := range worksheets {
-				cache.addEntry(KindWorksheet, wk.Label, wk.Id, true, &disambiguator, existingResourceNames)
+				cache.addEntry(KindWorksheet, wk.Label, wk.Label, wk.Id, true, &disambiguator, existingResourceNames)
 			}
 		case KindUser:
 			users, err := client.ListUsers(ctx)
@@ -91,7 +92,10 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, user := range users {
-				cache.addEntry(KindUser, user.Label, user.Id.String(), true, &disambiguator, existingResourceNames)
+				// lookupKey is the email because observe_user is looked up by email, not display name.
+				// Use FormatInt (not user.Id.String()) — String() JSON-quotes the number ("2347"),
+				// but OID parsing captures the bare digits (2347), so the cache keys must match.
+				cache.addEntry(KindUser, user.Email, user.Label, strconv.FormatInt(int64(user.Id), 10), true, &disambiguator, existingResourceNames)
 			}
 		case KindMonitorV2Action:
 			actions, err := client.SearchMonitorV2Action(ctx, &cache.workspaceOid.Id, nil)
@@ -99,15 +103,15 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 				return cache, err
 			}
 			for _, action := range actions {
-				cache.addEntry(KindMonitorV2Action, action.Name, action.Id, true, &disambiguator, existingResourceNames)
+				cache.addEntry(KindMonitorV2Action, action.Name, action.Name, action.Id, true, &disambiguator, existingResourceNames)
 			}
 		}
 	}
 	return cache, nil
 }
 
-func (c *ResourceCache) addEntry(kind Kind, label string, id string, addPrefix bool, disambiguator *int, existingNames map[string]struct{}) {
-	resourceName := sanitizeIdentifier(label)
+func (c *ResourceCache) addEntry(kind Kind, lookupKey string, displayName string, id string, addPrefix bool, disambiguator *int, existingNames map[string]struct{}) {
+	resourceName := sanitizeIdentifier(displayName)
 	if _, found := existingNames[resourceName]; found {
 		resourceName = fmt.Sprintf("%s_%d", resourceName, *disambiguator)
 		*disambiguator++
@@ -122,8 +126,8 @@ func (c *ResourceCache) addEntry(kind Kind, label string, id string, addPrefix b
 		tfName = fmt.Sprintf("%s_%s", kind, resourceName)
 	}
 	c.idToLabel[Ref{Kind: kind, Key: id}] = ResourceCacheEntry{
-		TfName: tfName,
-		Label:  label,
+		TfName:    tfName,
+		LookupKey: lookupKey,
 	}
 }
 
@@ -202,7 +206,7 @@ func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, 
 	// process into local var ref
 	insertPrefix := kind == KindWorkspace
 	terraformLocal := g.fmtTfLocalVar(kind, e, insertPrefix)
-	g.bindings[Ref{Kind: kind, Key: e.Label}] = Target{
+	g.bindings[Ref{Kind: kind, Key: e.LookupKey}] = Target{
 		TfName:            e.TfName,
 		TfLocalBindingVar: terraformLocal,
 		IsOid:             isOid,
@@ -213,20 +217,19 @@ func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, 
 // Generate walks the provided data structure and for all ids encountered,
 // generates a binding for it, and replaces the id with a local variable reference
 func (g *Generator) Generate(data interface{}) {
-	mapOverJsonStringKeys(data, func(key string, value string, jsonMapNode map[string]interface{}) {
+	mapOverJsonStringKeys(data, func(key string, value string) string {
 		if valueOid, err := oid.NewOID(value); err == nil {
-			jsonMapNode[key], _ = g.TryBindOid(*valueOid)
-		} else {
-			kinds := guessKindFromKey(key)
-			for _, kind := range kinds {
-				// try bind the name
-				maybeRef, didBind := g.TryBindId(kind, value)
-				if didBind {
-					jsonMapNode[key] = maybeRef
-					break
-				}
+			ref, _ := g.TryBindOid(*valueOid)
+			return ref
+		}
+		kinds := guessKindFromKey(key)
+		for _, kind := range kinds {
+			maybeRef, didBind := g.TryBindId(kind, value)
+			if didBind {
+				return maybeRef
 			}
 		}
+		return value
 	})
 }
 
@@ -262,7 +265,7 @@ func (g *Generator) GetBindings() (BindingsObject, error) {
 			TfName:            workspaceTarget.TfName,
 			IsOid:             true,
 		},
-		WorkspaceName: g.cache.workspaceEntry.Label,
+		WorkspaceName: g.cache.workspaceEntry.LookupKey,
 	}, nil
 }
 
@@ -342,7 +345,7 @@ func guessKindFromKey(key string) []Kind {
 	}
 }
 
-func mapOverJsonStringKeys(data interface{}, f func(key string, value string, jsonMapNode map[string]interface{})) {
+func mapOverJsonStringKeys(data interface{}, f func(key string, value string) string) {
 	var stack []interface{}
 	stack = append(stack, data)
 	for len(stack) > 0 {
@@ -353,7 +356,7 @@ func mapOverJsonStringKeys(data interface{}, f func(key string, value string, js
 			for k, v := range jsonNode {
 				switch kvValue := v.(type) {
 				case string:
-					f(k, kvValue, jsonNode)
+					jsonNode[k] = f(k, kvValue)
 				// if value looks like a composite type, push onto stack for further
 				// processing
 				case map[string]interface{}:
@@ -363,8 +366,15 @@ func mapOverJsonStringKeys(data interface{}, f func(key string, value string, js
 				}
 			}
 		case []interface{}:
-			for _, object := range jsonNode {
-				stack = append(stack, object)
+			for i, v := range jsonNode {
+				switch val := v.(type) {
+				case string:
+					jsonNode[i] = f("", val)
+				case map[string]interface{}:
+					stack = append(stack, val)
+				case []interface{}:
+					stack = append(stack, val)
+				}
 			}
 		}
 	}

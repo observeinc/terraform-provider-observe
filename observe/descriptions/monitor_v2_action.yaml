@@ -9,3 +9,5 @@ schema:
     Configuration settings for webhook type actions.
   description: >
     description for this monitor v2 action.
+  _bindings: >
+    Internal field. Do not use.
