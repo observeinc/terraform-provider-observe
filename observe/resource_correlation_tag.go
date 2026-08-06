@@ -127,6 +127,13 @@ func resourceCorrelationTagRead(ctx context.Context, data *schema.ResourceData, 
 		// Mark the correlation tag as deleted.
 		data.SetId("")
 	}
+
+	// Normalize dataset to unversioned OID so state matches config.
+	if client.Flags[flagOmitDatasetOIDVersion] {
+		if err := data.Set(correlationTagDatasetKey, oid.DatasetOid(cTagParams.Dataset).String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
 	return diags
 }
 

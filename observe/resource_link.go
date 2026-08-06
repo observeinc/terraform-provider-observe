@@ -169,8 +169,19 @@ func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta inter
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO: we may need to set source and target, but if we do we must pass
-	// through version info in OID
+	// Normalize source/target to unversioned OIDs so state matches config.
+	if client.Flags[flagOmitDatasetOIDVersion] {
+		if link.SourceDataset != nil && link.SourceDataset.DatasetId != nil {
+			if err := data.Set("source", oid.DatasetOid(*link.SourceDataset.DatasetId).String()); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+		if link.TargetDataset != nil && link.TargetDataset.DatasetId != nil {
+			if err := data.Set("target", oid.DatasetOid(*link.TargetDataset.DatasetId).String()); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+	}
 
 	if err := data.Set("fields", fields); err != nil {
 		diags = append(diags, diag.FromErr(err)...)

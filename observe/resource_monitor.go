@@ -815,10 +815,10 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 
-	return monitorToResourceData(data, monitor)
+	return monitorToResourceData(data, monitor, client.Flags[flagOmitDatasetOIDVersion])
 }
 
-func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (diags diag.Diagnostics) {
+func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor, omitVersion bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -859,12 +859,12 @@ func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage)
+	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage, omitVersion)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := data.Set("rule", flattenRule(data, monitor.Rule, stageIds)); err != nil {
+	if err := data.Set("rule", flattenRule(data, monitor.Rule, stageIds, omitVersion)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -881,7 +881,7 @@ func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (dia
 	return diags
 }
 
-func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []string) interface{} {
+func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []string, omitVersion bool) interface{} {
 	rule := map[string]interface{}{
 		"source_column": input.GetSourceColumn(),
 	}
@@ -969,12 +969,14 @@ func flattenRule(data *schema.ResourceData, input gql.MonitorRule, stageIds []st
 
 		if logRule.SourceLogDatasetId != nil {
 			id := oid.DatasetOid(*logRule.SourceLogDatasetId)
-			// check for existing version timestamp we can maintain
-			// same approach as in flattenAndSetQuery() for input datasets
-			if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
-				prv, err := oid.NewOID(v.(string))
-				if err == nil && id.Id == prv.Id {
-					id.Version = prv.Version
+			if !omitVersion {
+				// check for existing version timestamp we can maintain
+				// same approach as in flattenAndSetQuery() for input datasets
+				if v, ok := data.GetOk("rule.0.log.0.source_log_dataset"); ok {
+					prv, err := oid.NewOID(v.(string))
+					if err == nil && id.Id == prv.Id {
+						id.Version = prv.Version
+					}
 				}
 			}
 			log["source_log_dataset"] = id.String()
