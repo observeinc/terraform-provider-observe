@@ -232,6 +232,29 @@ func resourcePreferredPathRead(ctx context.Context, data *schema.ResourceData, m
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Normalize source/reverse_from to unversioned OIDs so state matches config.
+	if client.Flags[flagOmitDatasetOIDVersion] {
+		if err := data.Set("source", oid.DatasetOid(path.SourceDataset).String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		steps := data.Get("step").([]interface{})
+		for i, apiStep := range path.Path {
+			if i >= len(steps) {
+				break
+			}
+			if apiStep.ReverseFromDataset == nil {
+				continue
+			}
+			step := steps[i].(map[string]interface{})
+			step["reverse_from"] = oid.DatasetOid(*apiStep.ReverseFromDataset).String()
+			steps[i] = step
+		}
+		if err := data.Set("step", steps); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 

@@ -398,7 +398,7 @@ func dataSourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta 
 		return
 	}
 	data.SetId(m.Id)
-	diags = monitorToResourceData(data, m)
+	diags = monitorToResourceData(data, m, client.Flags[flagOmitDatasetOIDVersion])
 	if diags.HasError() {
 		return diags
 	}

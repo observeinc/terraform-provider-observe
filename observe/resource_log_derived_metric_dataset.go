@@ -388,8 +388,10 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 	for _, in := range sq.Input {
 		if in.DatasetId != nil && *in.DatasetId != "" {
 			inputOID := oid.OID{Type: oid.TypeDataset, Id: *in.DatasetId}
-			if version := previousLDMInputOIDVersion(data, inputOID.Id); version != nil {
-				inputOID.Version = version
+			if !omitVersion {
+				if version := previousLDMInputOIDVersion(data, inputOID.Id); version != nil {
+					inputOID.Version = version
+				}
 			}
 			if err := data.Set("input", inputOID.String()); err != nil {
 				diags = append(diags, diag.FromErr(err)...)

@@ -412,7 +412,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersio
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil && d.Transform.Current.Query != nil {
-		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage)
+		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage, omitVersion)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -425,7 +425,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersio
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, error) {
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string, omitVersion bool) ([]string, error) {
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
@@ -442,11 +442,13 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 			Id:   *input.Dataset,
 		}
 
-		// check for existing version timestamp we can maintain
-		if v, ok := data.GetOk(fmt.Sprintf("inputs.%s", name)); ok {
-			prv, err := oid.NewOID(v.(string))
-			if err == nil && id.Id == prv.Id {
-				id.Version = prv.Version
+		if !omitVersion {
+			// check for existing version timestamp we can maintain
+			if v, ok := data.GetOk(fmt.Sprintf("inputs.%s", name)); ok {
+				prv, err := oid.NewOID(v.(string))
+				if err == nil && id.Id == prv.Id {
+					id.Version = prv.Version
+				}
 			}
 		}
 		inputs[name] = id.String()
