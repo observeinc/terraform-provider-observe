@@ -124,6 +124,12 @@ func resourceResourceGrantsRead(ctx context.Context, d *schema.ResourceData, m i
 		return diag.Errorf("failed to get grants: %s", err.Error())
 	}
 
+	// Normalize OID to unversioned so state matches config.
+	if client.Flags[flagOmitDatasetOIDVersion] {
+		resourceOid.Version = nil
+		d.SetId(resourceOid.String())
+	}
+
 	return grantsToResourceData(*resourceOid, grants, d)
 }
 

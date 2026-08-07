@@ -1566,6 +1566,11 @@ func TestAccObserveDatasetOmitOIDVersionNewResources(t *testing.T) {
 // path: datasets are created with the flag OFF (versioned oids in state), then
 // the flag is toggled ON. Toggling must be a no-op (no plan diff), and a
 // subsequent upstream edit must not cascade onto downstream dependents.
+//
+// Dataset B takes inputs from both resource A and a data source (the "System"
+// system dataset), which is the scenario that originally exposed the bug: data
+// source OIDs were always emitted without a version, causing a mismatch against
+// the versioned values preserved in B's state.
 func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -1582,6 +1587,14 @@ func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
 
 	datasetChain := func(provider, aPipeline string) string {
 		return fmt.Sprintf(provider+configPreamble+datastreamConfigPreamble+`
+		data "observe_dataset" "system" {
+			name = "System"
+		}
+
+		data "observe_rbac_group" "everyone" {
+			name = "Everyone"
+		}
+
 		resource "observe_dataset" "a" {
 			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-A"
@@ -1606,10 +1619,46 @@ func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
 					filter true
 				EOF
 			}
+		}
+
+		resource "observe_dataset" "c" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-C"
+
+			inputs = { "system" = data.observe_dataset.system.oid }
+
+			stage {
+				pipeline = <<-EOF
+					filter false
+				EOF
+			}
+		}
+
+		resource "observe_link" "a_to_system" {
+			workspace = data.observe_workspace.default.oid
+			source    = observe_dataset.a.oid
+			target    = data.observe_dataset.system.oid
+			fields    = ["BUNDLE_TIMESTAMP"]
+			label     = "%[1]s-link"
+		}
+
+		resource "observe_correlation_tag" "on_a" {
+			dataset = observe_dataset.a.oid
+			name    = "%[1]s-ctag"
+			column  = "EXTRA"
+		}
+
+		resource "observe_resource_grants" "on_system" {
+			oid = data.observe_dataset.system.oid
+
+			grant {
+				subject = data.observe_rbac_group.everyone.oid
+				role    = "dataset_viewer"
+			}
 		}`, randomPrefix, aPipeline)
 	}
 
-	var aOID, bOID string
+	var bOID string
 
 	// Serial: overriding provider config mutates the shared testAccProvider
 	// instance, and this test also changes that config between steps.
@@ -1622,31 +1671,35 @@ func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
 				Config: datasetChain(providerOff, "make_col x:1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("observe_dataset.a", "oid", oidVersionedRegex),
-					resource.TestCheckResourceAttrWith("observe_dataset.a", "oid", func(v string) error {
-						aOID = v
-						return nil
-					}),
+					// With the flag off, dataset OID references in other resources
+					// preserve the versioned value in state.
+					resource.TestMatchResourceAttr("observe_dataset.c", "inputs.system", oidVersionedRegex),
+					resource.TestMatchResourceAttr("observe_link.a_to_system", "source", oidVersionedRegex),
+					resource.TestMatchResourceAttr("observe_resource_grants.on_system", "oid", oidVersionedRegex),
 					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
 						bOID = v
 						return nil
 					}),
 				),
 			},
+			// Verify that toggling the flag is a pure no-op: normalization on Read
+			// must converge state to unversioned before plan comparison so that no
+			// resources are marked for update.
+			testAccPlanOnlyNoDriftStep(datasetChain(providerOn, "make_col x:1")),
 			{
-				// Toggle the flag on with no config change. The existing versioned
-				// oids are frozen in place, so this must be a pure no-op.
+				// Apply with the flag on. OIDs are now normalized to version-free
+				// in state; capture them for subsequent assertions.
 				Config: datasetChain(providerOn, "make_col x:1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrWith("observe_dataset.a", "oid", func(v string) error {
-						if v != aOID {
-							return fmt.Errorf("upstream oid changed on flag toggle: was %q, now %q", aOID, v)
-						}
-						return nil
-					}),
+					resource.TestMatchResourceAttr("observe_dataset.a", "oid", oidVersionFreeRegex),
+					resource.TestMatchResourceAttr("observe_dataset.b", "oid", oidVersionFreeRegex),
+					// All OID references normalize to unversioned on flag toggle.
+					resource.TestMatchResourceAttr("data.observe_dataset.system", "oid", oidVersionFreeRegex),
+					resource.TestMatchResourceAttr("observe_dataset.c", "inputs.system", oidVersionFreeRegex),
+					resource.TestMatchResourceAttr("observe_link.a_to_system", "source", oidVersionFreeRegex),
+					resource.TestMatchResourceAttr("observe_resource_grants.on_system", "oid", oidVersionFreeRegex),
 					resource.TestCheckResourceAttrWith("observe_dataset.b", "oid", func(v string) error {
-						if v != bOID {
-							return fmt.Errorf("downstream oid changed on flag toggle: was %q, now %q", bOID, v)
-						}
+						bOID = v
 						return nil
 					}),
 				),

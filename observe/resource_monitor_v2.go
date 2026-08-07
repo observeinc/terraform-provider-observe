@@ -956,7 +956,7 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	_, err := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
+	_, err := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage, client.Flags[flagOmitDatasetOIDVersion])
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
