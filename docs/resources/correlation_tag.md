@@ -52,4 +52,8 @@ Then the path to the key "c" would be "a.b.c" or "a['b']['c']"
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
+## Import
+Import is supported using the following syntax:
+```shell
+terraform import observe_correlation_tag.example '{"Dataset":"1414010","Tag":"service.name","Path":{"Column":"service"}}'
+```

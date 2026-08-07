@@ -25,6 +25,9 @@ func resourceCorrelationTag() *schema.Resource {
 		CreateContext: resourceCorrelationTagCreate,
 		ReadContext:   resourceCorrelationTagRead,
 		DeleteContext: resourceCorrelationTagDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			correlationTagDatasetKey: {
 				Type:             schema.TypeString,
@@ -120,13 +123,27 @@ func resourceCorrelationTagRead(ctx context.Context, data *schema.ResourceData, 
 	if err != nil {
 		return diag.Errorf("failed to deconstruct correlation tag id: %s", err.Error())
 	}
+
 	isPresent, err := client.IsCorrelationTagPresent(ctx, cTagParams.Dataset, cTagParams.Tag, cTagParams.Path)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	} else if !isPresent {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if !isPresent {
 		// Mark the correlation tag as deleted.
 		data.SetId("")
+		return diags
 	}
+
+	// The ID is the only source of truth for these fields (correlation tags have no backend
+	// id of their own), so populate them here. This makes Read self-sufficient, which is what
+	// lets plain ID-based import work via schema.ImportStatePassthroughContext.
+	data.Set(correlationTagDatasetKey, oid.DatasetOid(cTagParams.Dataset).String())
+	data.Set(correlationTagNameKey, cTagParams.Tag)
+	data.Set(correlationTagColumnKey, cTagParams.Path.Column)
+	if cTagParams.Path.Path != nil && *cTagParams.Path.Path != "" {
+		data.Set(correlationTagPathKey, *cTagParams.Path.Path)
+	}
+
 	return diags
 }
 
