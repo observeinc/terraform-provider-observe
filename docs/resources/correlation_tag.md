@@ -4,10 +4,19 @@ page_title: "observe_correlation_tag Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
   A correlation tag can be attached to columns of a dataset. These tags are later used to correlate multiple datasets.
+  A correlation tag is uniquely identified by its (dataset, name, column, path)
+  combination rather than by a separate ID. If a correlation tag with the same
+  combination already exists -- for example, created previously through the UI --
+  this resource adopts it instead of failing.
 ---
 # observe_correlation_tag
 
 A correlation tag can be attached to columns of a dataset. These tags are later used to correlate multiple datasets.
+
+A correlation tag is uniquely identified by its (dataset, name, column, path)
+combination rather than by a separate ID. If a correlation tag with the same
+combination already exists -- for example, created previously through the UI --
+this resource adopts it instead of failing.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
