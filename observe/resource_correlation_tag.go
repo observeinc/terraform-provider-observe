@@ -101,13 +101,28 @@ func resourceCorrelationTagCreate(ctx context.Context, data *schema.ResourceData
 		return diags
 	}
 
-	err := client.CreateCorrelationTag(ctx, params.Dataset, params.Tag, params.Path)
+	// A correlation tag isn't a first-class object with its own identity -- it's
+	// just a (dataset, tag, path) triple, and that triple is its entire state. If
+	// it already exists (e.g. someone created it in the UI, or in another
+	// `apply`), there's nothing left to reconcile, so adopt it into this resource
+	// instead of failing.
+	isPresent, err := client.IsCorrelationTagPresent(ctx, params.Dataset, params.Tag, params.Path)
 	if err != nil {
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "failed to create correlation tag",
+			Summary:  "failed to check for existing correlation tag",
 			Detail:   err.Error(),
 		})
+	}
+
+	if !isPresent {
+		if err := client.CreateCorrelationTag(ctx, params.Dataset, params.Tag, params.Path); err != nil {
+			return append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "failed to create correlation tag",
+				Detail:   err.Error(),
+			})
+		}
 	}
 
 	data.SetId(constructCorrelationTagId(params.Dataset, params.Tag, params.Path))
