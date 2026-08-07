@@ -962,6 +962,7 @@ const (
 type Dashboard struct {
 	Id              string                                     `json:"id"`
 	Name            string                                     `json:"name"`
+	Description     *string                                    `json:"description"`
 	IconUrl         *string                                    `json:"iconUrl"`
 	WorkspaceId     string                                     `json:"workspaceId"`
 	ManagedById     *string                                    `json:"managedById"`
@@ -978,6 +979,9 @@ func (v *Dashboard) GetId() string { return v.Id }
 
 // GetName returns Dashboard.Name, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetName() string { return v.Name }
+
+// GetDescription returns Dashboard.Description, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetDescription() *string { return v.Description }
 
 // GetIconUrl returns Dashboard.IconUrl, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetIconUrl() *string { return v.IconUrl }
@@ -17501,6 +17505,7 @@ query getDashboard ($id: ObjectId!) {
 fragment Dashboard on Dashboard {
 	id
 	name
+	description
 	iconUrl
 	workspaceId
 	managedById
@@ -21015,6 +21020,7 @@ mutation saveDashboard ($dashboardInput: DashboardInput!) {
 fragment Dashboard on Dashboard {
 	id
 	name
+	description
 	iconUrl
 	workspaceId
 	managedById

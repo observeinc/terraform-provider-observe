@@ -160,6 +160,12 @@ func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if d.Description != nil {
+		if err := data.Set("description", *d.Description); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	if d.IconUrl != nil {
 		if err := data.Set("icon_url", *d.IconUrl); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

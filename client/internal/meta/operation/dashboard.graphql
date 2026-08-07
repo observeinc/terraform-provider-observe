@@ -35,6 +35,7 @@ fragment valueFields on Value {
 fragment Dashboard on Dashboard {
     id
     name
+    description
     iconUrl
     workspaceId
     managedById
