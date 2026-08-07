@@ -6,6 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func TestCorrelationTagCreation(t *testing.T) {
@@ -27,6 +30,30 @@ func TestCorrelationTagCreation(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_correlation_tag.example", "column", "key"),
 					resource.TestCheckResourceAttrSet("observe_correlation_tag.example", "dataset"),
 				),
+			},
+			{
+				ResourceName: "observe_correlation_tag.example",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources["observe_correlation_tag.example"]
+					if !ok {
+						return "", fmt.Errorf("resource not found in state")
+					}
+					// Reconstruct the JSON ID from resource attributes
+					datasetOid, _ := oid.NewOID(rs.Primary.Attributes["dataset"])
+					params := correlationTagParameters{
+						Dataset: datasetOid.Id,
+						Tag:     rs.Primary.Attributes["name"],
+						Path: gql.LinkFieldInput{
+							Column: rs.Primary.Attributes["column"],
+						},
+					}
+					if path, ok := rs.Primary.Attributes["path"]; ok && path != "" {
+						params.Path.Path = &path
+					}
+					return constructCorrelationTagId(params.Dataset, params.Tag, params.Path), nil
+				},
+				ImportStateVerify: true,
 			},
 			// Using the same config, there should not be any diff.
 			{

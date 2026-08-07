@@ -3,6 +3,7 @@ package observe
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -25,6 +26,9 @@ func resourceCorrelationTag() *schema.Resource {
 		CreateContext: resourceCorrelationTagCreate,
 		ReadContext:   resourceCorrelationTagRead,
 		DeleteContext: resourceCorrelationTagDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceCorrelationTagImport,
+		},
 		Schema: map[string]*schema.Schema{
 			correlationTagDatasetKey: {
 				Type:             schema.TypeString,
@@ -141,6 +145,36 @@ func resourceCorrelationTagDelete(ctx context.Context, data *schema.ResourceData
 		return diag.Errorf("failed to delete correlation tag: %s", err.Error())
 	}
 	return diags
+}
+
+func resourceCorrelationTagImport(ctx context.Context, data *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*observe.Client)
+
+	// Parse the JSON-encoded ID
+	params, err := deconstructCorrelationTagId(data.Id())
+	if err != nil {
+		return nil, fmt.Errorf("invalid correlation tag ID format: %w", err)
+	}
+
+	// Verify the tag exists
+	isPresent, err := client.IsCorrelationTagPresent(ctx, params.Dataset, params.Tag, params.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify correlation tag exists: %w", err)
+	}
+	if !isPresent {
+		return nil, fmt.Errorf("correlation tag not found with ID: %s", data.Id())
+	}
+
+	// Set the schema fields
+	datasetOID := oid.DatasetOid(params.Dataset)
+	data.Set(correlationTagDatasetKey, datasetOID.String())
+	data.Set(correlationTagNameKey, params.Tag)
+	data.Set(correlationTagColumnKey, params.Path.Column)
+	if params.Path.Path != nil && *params.Path.Path != "" {
+		data.Set(correlationTagPathKey, *params.Path.Path)
+	}
+
+	return []*schema.ResourceData{data}, nil
 }
 
 type correlationTagParameters struct {
