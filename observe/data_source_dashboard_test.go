@@ -22,9 +22,10 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 			{
 				Config: fmt.Sprintf(configPreamble+`
 					resource "observe_dashboard" "first" {
-						workspace = data.observe_workspace.default.oid
-						name      = "%s"
-						icon_url  = "test"
+						workspace   = data.observe_workspace.default.oid
+						name        = "%[1]s"
+						description = "%[1]s description"
+						icon_url    = "test"
 						stages = <<-EOF
 						[{
 							"pipeline": "filter field = \"cpu_usage_core_seconds\"\ncolmake cpu_used: value - lag(value, 1), groupby(clusterUid, namespace, podName, containerName)\ncolmake cpu_used: case(\n cpu_used < 0, value, // stream reset for cumulativeCounter metric\n true, cpu_used)\ncoldrop field, value",
@@ -38,12 +39,14 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 					}
 
 					data "observe_dashboard" "lookup" {
-						id        = observe_dashboard.first.id
+						id = observe_dashboard.first.id
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.first", "description", randomPrefix+" description"),
 					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "description", randomPrefix+" description"),
 				),
 			},
 		},
