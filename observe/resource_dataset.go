@@ -473,6 +473,29 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 		stages[i] = s
 	}
 
+	// Re-insert orphan stages that the backend pruned. The backend silently
+	// drops stages whose output no subsequent stage consumes; without this,
+	// config (N stages) and state (N-1 stages) diverge on every plan.
+	if configRaw := data.Get("stage").([]interface{}); len(configRaw) > len(stages) {
+		orphanSet := make(map[int]bool)
+		for _, idx := range detectOrphanStages(stagesFromList(configRaw)) {
+			orphanSet[idx] = true
+		}
+		if len(orphanSet) == len(configRaw)-len(stages) {
+			merged := make([]interface{}, 0, len(configRaw))
+			backendIdx := 0
+			for i, raw := range configRaw {
+				if orphanSet[i] {
+					merged = append(merged, raw)
+				} else if backendIdx < len(stages) {
+					merged = append(merged, stages[backendIdx])
+					backendIdx++
+				}
+			}
+			stages = merged
+		}
+	}
+
 	if err := data.Set("stage", stages); err != nil {
 		return nil, err
 	}
