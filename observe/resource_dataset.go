@@ -467,8 +467,8 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 		}
 		if stage.Input != nil {
 			s["input"] = stage.Input
-		} else if i == 0 {
-			s["input"] = data.Get("stage.0.input")
+		} else {
+			s["input"] = data.Get(fmt.Sprintf("stage.%d.input", i))
 		}
 		stages[i] = s
 	}
