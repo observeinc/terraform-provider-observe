@@ -141,8 +141,12 @@ func entityTagsDeprecationDiags(r objectTagsReader) diag.Diagnostics {
 
 // setObjectTagsFromAPI writes tag values from the API into state and returns
 // deprecation warnings for resources using entity_tags.
+// When tags is empty, nil is written so the field is null in state rather than {}.
 func setObjectTagsFromAPI(data *schema.ResourceData, tags []gql.ObjectTagMapping) (diag.Diagnostics, error) {
-	flat := flattenObjectTagsToMap(tags)
+	var flat map[string]interface{}
+	if len(tags) > 0 {
+		flat = flattenObjectTagsToMap(tags)
+	}
 	field := activeObjectTagsField(data)
 	if field == "" {
 		field = "object_tags"
