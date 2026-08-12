@@ -160,7 +160,15 @@ func resourceDatasetQueryFilterRead(ctx context.Context, data *schema.ResourceDa
 		return diag.Errorf("failed to retrieve dataset query filter: %s", err.Error())
 	}
 
-	return datasetQueryFilterToResourceData(result, data)
+	diags = datasetQueryFilterToResourceData(result, data)
+
+	// Normalize dataset to unversioned OID so state matches config.
+	if client.Flags[flagOmitDatasetOIDVersion] {
+		if err := data.Set("dataset", oid.DatasetOid(datasetOid.Id).String()); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	return diags
 }
 
 func resourceDatasetQueryFilterUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
