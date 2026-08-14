@@ -491,7 +491,11 @@ func dataSourceQueryRead(ctx context.Context, data *schema.ResourceData, meta in
 // 	return diags
 // }
 
-func flattenQuery(gqlStages []gql.StageQuery, outputStage string) (*Query, error) {
+// flattenQuery converts the API's stage representation into the provider's
+// internal Query/Stage types. When dedentPipelines is true, each stage's
+// pipeline text is passed through dedentPipeline before being stored; see
+// that function for why only the monitor v2 data source opts into this.
+func flattenQuery(gqlStages []gql.StageQuery, outputStage string, dedentPipelines bool) (*Query, error) {
 	query := &Query{Inputs: make(map[string]*Input)}
 
 	// first reconstruct all inputs
@@ -509,8 +513,12 @@ func flattenQuery(gqlStages []gql.StageQuery, outputStage string) (*Query, error
 	}
 
 	for i, gqlStage := range gqlStages {
+		pipeline := gqlStage.Pipeline
+		if dedentPipelines {
+			pipeline = dedentPipeline(pipeline)
+		}
 		stage := &Stage{
-			Pipeline: gqlStage.Pipeline,
+			Pipeline: pipeline,
 		}
 
 		stageId := ""
