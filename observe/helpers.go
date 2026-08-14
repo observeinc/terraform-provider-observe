@@ -427,6 +427,53 @@ func diffSuppressOIDVersion(k, prv, nxt string, d *schema.ResourceData) bool {
 	return o.Type == n.Type && o.Id == n.Id
 }
 
+// dedentPipeline removes the leading whitespace common to every line of an
+// OPAL pipeline, while keeping continuation lines indented relative to the
+// verb lines around them.
+//
+// terraform show renders a multi-line pipeline value as a `<<-EOT` heredoc,
+// but doesn't render a shared indent consistently across a pipeline's lines.
+// A pipeline where every line carries the same indent, e.g.
+//
+//	filter column1 = "hello"
+//	filter column2 = "world"
+//
+// comes back out of terraform show with the first line unchanged and every
+// later line pushed over further, e.g.
+//
+//	filter column1 = "hello"
+//	    filter column2 = "world"
+//
+// OPAL parses using the leftmost column of the first line, so it rejects
+// that second line as "unexpected spaces". A pipeline with no indentation to
+// begin with has nothing for terraform show to mismatch, which is why this
+// dedents pipeline text down to column 0 before it reaches state.
+func dedentPipeline(s string) string {
+	lines := strings.Split(s, "\n")
+
+	minIndent := -1
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			// Blank lines say nothing about the pipeline's indentation.
+			continue
+		}
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		if minIndent < 0 || indent < minIndent {
+			minIndent = indent
+		}
+	}
+
+	if minIndent <= 0 {
+		return s
+	}
+
+	for i, line := range lines {
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		lines[i] = line[min(indent, minIndent):]
+	}
+	return strings.Join(lines, "\n")
+}
+
 func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
 	prvTrimmed := strings.TrimRightFunc(prv, unicode.IsSpace)
 	nxtTrimmed := strings.TrimRightFunc(nxt, unicode.IsSpace)
