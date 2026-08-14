@@ -143,6 +143,7 @@ func dataSourceMonitorV2() *schema.Resource {
 									"basic_algorithm": {
 										Type:        schema.TypeList,
 										Computed:    true,
+										Optional:    true,
 										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "basic_algorithm"),
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -157,6 +158,7 @@ func dataSourceMonitorV2() *schema.Resource {
 									"seasonal_algorithm": {
 										Type:        schema.TypeList,
 										Computed:    true,
+										Optional:    true,
 										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "seasonal_algorithm"),
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
