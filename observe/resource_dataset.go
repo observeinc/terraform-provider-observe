@@ -492,10 +492,7 @@ func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	dependencyHandling := gql.DefaultDependencyHandling()
-	if mode, ok := data.GetOk("rematerialization_mode"); ok {
-		rematerializationMode := gql.RematerializationMode(toCamel(mode.(string)))
-		dependencyHandling.RematerializationMode = &rematerializationMode
-
+	if _, ok := data.GetOk("rematerialization_mode"); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "rematerialization_mode on a new dataset is a no-op",
