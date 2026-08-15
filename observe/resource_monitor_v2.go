@@ -271,8 +271,7 @@ func resourceMonitorV2() *schema.Resource {
 			},
 			"rules": { // [MonitorV2RuleInput!]!
 				Type:        schema.TypeList,
-				Required:    true,
-				MinItems:    1,
+				Optional:    true,
 				Description: descriptions.Get("monitorv2", "schema", "rules", "description"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
