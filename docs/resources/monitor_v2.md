@@ -130,7 +130,6 @@ resource "observe_monitor_v2" "anomaly_example" {
 stage pipelines.
 - `name` (String) Monitor name.
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
-- `rules` (Block List, Min: 1) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
 - `stage` (Block List, Min: 1) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
@@ -148,6 +147,7 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 - `max_alerts_per_hour` (Number) Overrides the default value of max alerts generated in a single hour before the monitor is deactivated for safety. A value of 0 means "no limit". If unset, defaults to 100 (note that we use -1 in the Terraform state to indicate null/unset due to Terraform limitations).
 - `no_data_rules` (Block List, Max: 1) No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind. (see [below for nested schema](#nestedblock--no_data_rules))
 - `rule_template` (Block List, Max: 1) Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more. (see [below for nested schema](#nestedblock--rule_template))
+- `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
 - `scheduling` (Block List, Max: 1) Holds information about when the monitor should evaluate. The types of scheduling (transform, scheduled, and interval@deprecated) are exclusive. If omitted, defaults to transform. (see [below for nested schema](#nestedblock--scheduling))
 - `service_bindings` (Block List, Max: 1) Declares the (service_name, environment, service_namespace) triplet this monitor's alarms are attributed to, aligned with OpenTelemetry semantic conventions. At most one binding is supported today. (see [below for nested schema](#nestedblock--service_bindings))
 - `workspace` (String, Deprecated) OID of the workspace this object is contained in.
@@ -156,355 +156,6 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 - `id` (String) The ID of this resource.
 - `oid` (String)
-
-<a id="nestedblock--rules"></a>
-### Nested Schema for `rules`
-
-Required:
-
-- `level` (String) The alarm level (Critical, Error, Informational, None, Warning).
-
-Optional:
-
-- `anomaly` (Block List, Max: 1) The anomaly rule fires when the percentage of data points out of bounds within the evaluation window meets or exceeds the specified threshold. (see [below for nested schema](#nestedblock--rules--anomaly))
-- `count` (Block List, Max: 1) The count rule to apply to incoming data. (see [below for nested schema](#nestedblock--rules--count))
-- `promote` (Block List, Max: 1) The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
-If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition. (see [below for nested schema](#nestedblock--rules--promote))
-- `threshold` (Block List, Max: 1) Gives flexibility for threshold and range-based monitors to trigger on values. To look for sustained behavior (CPU > 80 for 5 mins), specify lookbackTime. (see [below for nested schema](#nestedblock--rules--threshold))
-
-<a id="nestedblock--rules--anomaly"></a>
-### Nested Schema for `rules.anomaly`
-
-Optional:
-
-- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups))
-- `compare_percentage` (Number) The percentage of points that needs to be out of bound within the evaluation window for the monitor to trigger the anomaly rule (0 to 100).
-
-<a id="nestedblock--rules--anomaly--compare_groups"></a>
-### Nested Schema for `rules.anomaly.compare_groups`
-
-Required:
-
-- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column))
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--compare_values))
-
-<a id="nestedblock--rules--anomaly--compare_groups--column"></a>
-### Nested Schema for `rules.anomaly.compare_groups.column`
-
-Optional:
-
-- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--column_path))
-- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--correlation_tag))
-- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--link_column))
-
-<a id="nestedblock--rules--anomaly--compare_groups--column--column_path"></a>
-### Nested Schema for `rules.anomaly.compare_groups.column.column_path`
-
-Required:
-
-- `name` (String) The name of the column.
-
-Optional:
-
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
-<a id="nestedblock--rules--anomaly--compare_groups--column--correlation_tag"></a>
-### Nested Schema for `rules.anomaly.compare_groups.column.correlation_tag`
-
-Required:
-
-- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
-
-
-<a id="nestedblock--rules--anomaly--compare_groups--column--link_column"></a>
-### Nested Schema for `rules.anomaly.compare_groups.column.link_column`
-
-Required:
-
-- `name` (String) The name of the link column.
-
-
-
-<a id="nestedblock--rules--anomaly--compare_groups--compare_values"></a>
-### Nested Schema for `rules.anomaly.compare_groups.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-
-
-<a id="nestedblock--rules--count"></a>
-### Nested Schema for `rules.count`
-
-Required:
-
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_values))
-
-Optional:
-
-- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--count--compare_groups))
-
-<a id="nestedblock--rules--count--compare_values"></a>
-### Nested Schema for `rules.count.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-<a id="nestedblock--rules--count--compare_groups"></a>
-### Nested Schema for `rules.count.compare_groups`
-
-Required:
-
-- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column))
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_groups--compare_values))
-
-<a id="nestedblock--rules--count--compare_groups--column"></a>
-### Nested Schema for `rules.count.compare_groups.column`
-
-Optional:
-
-- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--column_path))
-- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--correlation_tag))
-- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column))
-
-<a id="nestedblock--rules--count--compare_groups--column--column_path"></a>
-### Nested Schema for `rules.count.compare_groups.column.column_path`
-
-Required:
-
-- `name` (String) The name of the column.
-
-Optional:
-
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
-<a id="nestedblock--rules--count--compare_groups--column--correlation_tag"></a>
-### Nested Schema for `rules.count.compare_groups.column.correlation_tag`
-
-Required:
-
-- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
-
-
-<a id="nestedblock--rules--count--compare_groups--column--link_column"></a>
-### Nested Schema for `rules.count.compare_groups.column.link_column`
-
-Required:
-
-- `name` (String) The name of the link column.
-
-
-
-<a id="nestedblock--rules--count--compare_groups--compare_values"></a>
-### Nested Schema for `rules.count.compare_groups.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-
-
-<a id="nestedblock--rules--promote"></a>
-### Nested Schema for `rules.promote`
-
-Optional:
-
-- `compare_columns` (Block List) Specifies the one or multiple values you'd like to compare against the column. (see [below for nested schema](#nestedblock--rules--promote--compare_columns))
-
-<a id="nestedblock--rules--promote--compare_columns"></a>
-### Nested Schema for `rules.promote.compare_columns`
-
-Required:
-
-- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column))
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--compare_values))
-
-<a id="nestedblock--rules--promote--compare_columns--column"></a>
-### Nested Schema for `rules.promote.compare_columns.column`
-
-Optional:
-
-- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--column_path))
-- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--correlation_tag))
-- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--link_column))
-
-<a id="nestedblock--rules--promote--compare_columns--column--column_path"></a>
-### Nested Schema for `rules.promote.compare_columns.column.column_path`
-
-Required:
-
-- `name` (String) The name of the column.
-
-Optional:
-
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
-<a id="nestedblock--rules--promote--compare_columns--column--correlation_tag"></a>
-### Nested Schema for `rules.promote.compare_columns.column.correlation_tag`
-
-Required:
-
-- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
-
-
-<a id="nestedblock--rules--promote--compare_columns--column--link_column"></a>
-### Nested Schema for `rules.promote.compare_columns.column.link_column`
-
-Required:
-
-- `name` (String) The name of the link column.
-
-
-
-<a id="nestedblock--rules--promote--compare_columns--compare_values"></a>
-### Nested Schema for `rules.promote.compare_columns.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-
-
-<a id="nestedblock--rules--threshold"></a>
-### Nested Schema for `rules.threshold`
-
-Required:
-
-- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
-- `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
-
-Optional:
-
-- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups))
-- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
-
-<a id="nestedblock--rules--threshold--compare_groups"></a>
-### Nested Schema for `rules.threshold.compare_groups`
-
-Required:
-
-- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column))
-- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--compare_values))
-
-<a id="nestedblock--rules--threshold--compare_groups--column"></a>
-### Nested Schema for `rules.threshold.compare_groups.column`
-
-Optional:
-
-- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--column_path))
-- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--correlation_tag))
-- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column))
-
-<a id="nestedblock--rules--threshold--compare_groups--column--column_path"></a>
-### Nested Schema for `rules.threshold.compare_groups.column.column_path`
-
-Required:
-
-- `name` (String) The name of the column.
-
-Optional:
-
-- `path` (String) The path of the path, if the name refers to a column with a JSON object.
-
-
-<a id="nestedblock--rules--threshold--compare_groups--column--correlation_tag"></a>
-### Nested Schema for `rules.threshold.compare_groups.column.correlation_tag`
-
-Required:
-
-- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
-
-
-<a id="nestedblock--rules--threshold--compare_groups--column--link_column"></a>
-### Nested Schema for `rules.threshold.compare_groups.column.link_column`
-
-Required:
-
-- `name` (String) The name of the link column.
-
-
-
-<a id="nestedblock--rules--threshold--compare_groups--compare_values"></a>
-### Nested Schema for `rules.threshold.compare_groups.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-
-<a id="nestedblock--rules--threshold--compare_values"></a>
-### Nested Schema for `rules.threshold.compare_values`
-
-Required:
-
-- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
-
-Optional:
-
-- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
-- `value_duration` (List of String) list of size <=1 consisting of a duration value.
-- `value_float64` (List of Number) list of size <=1 consisting of a float value.
-- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
-- `value_string` (List of String) list of size <=1 consisting of a string value.
-- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
-
-
-
 
 <a id="nestedblock--stage"></a>
 ### Nested Schema for `stage`
@@ -919,6 +570,355 @@ Optional:
 Optional:
 
 - `sensitivity` (String) How tightly the forecast band hugs the historical signal. Higher tiers produce a narrower band and more anomalies. One of `low`, `medium`, `high`, `very_high`. When unset the backend uses its default tier.
+
+
+
+
+<a id="nestedblock--rules"></a>
+### Nested Schema for `rules`
+
+Required:
+
+- `level` (String) The alarm level (Critical, Error, Informational, None, Warning).
+
+Optional:
+
+- `anomaly` (Block List, Max: 1) The anomaly rule fires when the percentage of data points out of bounds within the evaluation window meets or exceeds the specified threshold. (see [below for nested schema](#nestedblock--rules--anomaly))
+- `count` (Block List, Max: 1) The count rule to apply to incoming data. (see [below for nested schema](#nestedblock--rules--count))
+- `promote` (Block List, Max: 1) The monitor will promote each event in the raw input dataset into an alert. For now, the promote rule will ignore link columns and only care about columnWithPath.
+If multiple compareColumns are specified in one promote rule, it will act as an AND condition. When defined through separate promote rules, it will act as an OR condition. (see [below for nested schema](#nestedblock--rules--promote))
+- `threshold` (Block List, Max: 1) Gives flexibility for threshold and range-based monitors to trigger on values. To look for sustained behavior (CPU > 80 for 5 mins), specify lookbackTime. (see [below for nested schema](#nestedblock--rules--threshold))
+
+<a id="nestedblock--rules--anomaly"></a>
+### Nested Schema for `rules.anomaly`
+
+Optional:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups))
+- `compare_percentage` (Number) The percentage of points that needs to be out of bound within the evaluation window for the monitor to trigger the anomaly rule (0 to 100).
+
+<a id="nestedblock--rules--anomaly--compare_groups"></a>
+### Nested Schema for `rules.anomaly.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--compare_values))
+
+<a id="nestedblock--rules--anomaly--compare_groups--column"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--column_path))
+- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--correlation_tag))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--anomaly--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.correlation_tag`
+
+Required:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.anomaly.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--rules--anomaly--compare_groups--compare_values"></a>
+### Nested Schema for `rules.anomaly.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+
+<a id="nestedblock--rules--count"></a>
+### Nested Schema for `rules.count`
+
+Required:
+
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_values))
+
+Optional:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--count--compare_groups))
+
+<a id="nestedblock--rules--count--compare_values"></a>
+### Nested Schema for `rules.count.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+<a id="nestedblock--rules--count--compare_groups"></a>
+### Nested Schema for `rules.count.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--count--compare_groups--compare_values))
+
+<a id="nestedblock--rules--count--compare_groups--column"></a>
+### Nested Schema for `rules.count.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--column_path))
+- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--correlation_tag))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--count--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--count--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.count.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--count--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.count.compare_groups.column.correlation_tag`
+
+Required:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
+
+
+<a id="nestedblock--rules--count--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.count.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--rules--count--compare_groups--compare_values"></a>
+### Nested Schema for `rules.count.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+
+<a id="nestedblock--rules--promote"></a>
+### Nested Schema for `rules.promote`
+
+Optional:
+
+- `compare_columns` (Block List) Specifies the one or multiple values you'd like to compare against the column. (see [below for nested schema](#nestedblock--rules--promote--compare_columns))
+
+<a id="nestedblock--rules--promote--compare_columns"></a>
+### Nested Schema for `rules.promote.compare_columns`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--compare_values))
+
+<a id="nestedblock--rules--promote--compare_columns--column"></a>
+### Nested Schema for `rules.promote.compare_columns.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--column_path))
+- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--correlation_tag))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--promote--compare_columns--column--link_column))
+
+<a id="nestedblock--rules--promote--compare_columns--column--column_path"></a>
+### Nested Schema for `rules.promote.compare_columns.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--promote--compare_columns--column--correlation_tag"></a>
+### Nested Schema for `rules.promote.compare_columns.column.correlation_tag`
+
+Required:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
+
+
+<a id="nestedblock--rules--promote--compare_columns--column--link_column"></a>
+### Nested Schema for `rules.promote.compare_columns.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--rules--promote--compare_columns--compare_values"></a>
+### Nested Schema for `rules.promote.compare_columns.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+
+<a id="nestedblock--rules--threshold"></a>
+### Nested Schema for `rules.threshold`
+
+Required:
+
+- `aggregation` (String) The query aggregator (AllOf, AnyOf, AvgOf, Max, Min, SumOf) for the value monitor type.
+- `value_column_name` (String) Indicates which column in the input query has the value to apply the aggregation.
+
+Optional:
+
+- `compare_groups` (Block List) list of comparisons made against the columns which the monitor is grouped by. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups))
+- `compare_values` (Block List) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_values))
+
+<a id="nestedblock--rules--threshold--compare_groups"></a>
+### Nested Schema for `rules.threshold.compare_groups`
+
+Required:
+
+- `column` (Block List, Min: 1, Max: 1) Represents two possible column types (link column, columnPath) of an observe dataset. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column))
+- `compare_values` (Block List, Min: 1) list of comparisons that provide an implicit AND where all comparisons must match. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--compare_values))
+
+<a id="nestedblock--rules--threshold--compare_groups--column"></a>
+### Nested Schema for `rules.threshold.compare_groups.column`
+
+Optional:
+
+- `column_path` (Block List, Max: 1) Specifies how the user wants to group by a specific column name or a JSON object column that has a path. (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--column_path))
+- `correlation_tag` (Block List, Max: 1) Marks this column as a correlation-tag grouping (e.g. `service.name`). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--correlation_tag))
+- `link_column` (Block List, Max: 1) Identifies a link-type column created by connecting two different datasets' columns (primary sources & destination sources). (see [below for nested schema](#nestedblock--rules--threshold--compare_groups--column--link_column))
+
+<a id="nestedblock--rules--threshold--compare_groups--column--column_path"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.column_path`
+
+Required:
+
+- `name` (String) The name of the column.
+
+Optional:
+
+- `path` (String) The path of the path, if the name refers to a column with a JSON object.
+
+
+<a id="nestedblock--rules--threshold--compare_groups--column--correlation_tag"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.correlation_tag`
+
+Required:
+
+- `tag` (String) The correlation tag name, e.g. "service.name". The leading '#' is implied and must not be included.
+
+
+<a id="nestedblock--rules--threshold--compare_groups--column--link_column"></a>
+### Nested Schema for `rules.threshold.compare_groups.column.link_column`
+
+Required:
+
+- `name` (String) The name of the link column.
+
+
+
+<a id="nestedblock--rules--threshold--compare_groups--compare_values"></a>
+### Nested Schema for `rules.threshold.compare_groups.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
+
+
+
+<a id="nestedblock--rules--threshold--compare_values"></a>
+### Nested Schema for `rules.threshold.compare_values`
+
+Required:
+
+- `compare_fn` (String) the type of comparison (greater, less, equal, etc.)
+
+Optional:
+
+- `value_bool` (List of Boolean) list of size <=1 consisting of a boolean value.
+- `value_duration` (List of String) list of size <=1 consisting of a duration value.
+- `value_float64` (List of Number) list of size <=1 consisting of a float value.
+- `value_int64` (List of Number) list of size <=1 consisting of an integer value.
+- `value_string` (List of String) list of size <=1 consisting of a string value.
+- `value_timestamp` (List of String) list of size <=1 consisting of a timestamp value.
 
 
 
