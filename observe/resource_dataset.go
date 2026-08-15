@@ -412,7 +412,7 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersio
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil && d.Transform.Current.Query != nil {
-		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage)
+		_, err := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage, false)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -425,12 +425,16 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersio
 	return diags
 }
 
-func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string) ([]string, error) {
+// flattenAndSetQuery flattens gqlstages and writes the result into data's
+// "inputs" and "stage" attributes. dedentPipelines is forwarded to
+// flattenQuery; see dedentPipeline for why only the monitor v2 data source
+// passes true.
+func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, outputStage string, dedentPipelines bool) ([]string, error) {
 	if len(gqlstages) == 0 {
 		return make([]string, 0), nil
 	}
 
-	queryData, err := flattenQuery(gqlstages, outputStage)
+	queryData, err := flattenQuery(gqlstages, outputStage, dedentPipelines)
 	if err != nil {
 		return nil, err
 	}

@@ -859,7 +859,7 @@ func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage)
+	stageIds, err := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage, false)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

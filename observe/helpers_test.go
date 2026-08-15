@@ -270,6 +270,68 @@ func TestValidateUID(t *testing.T) {
 	}
 }
 
+func TestDedentPipeline(t *testing.T) {
+	testcases := []struct {
+		Name   string
+		Input  string
+		Expect string
+	}{
+		{
+			Name:   "empty",
+			Input:  "",
+			Expect: "",
+		},
+		{
+			Name:   "already at column zero",
+			Input:  "filter asv = \"idp\"\nstatsby Total: count()",
+			Expect: "filter asv = \"idp\"\nstatsby Total: count()",
+		},
+		{
+			Name:   "single indented line",
+			Input:  "  filter asv = \"idp\"",
+			Expect: "filter asv = \"idp\"",
+		},
+		{
+			Name:   "uniform indent on every line",
+			Input:  "  filter asv = \"idp\"\n  filter logGroup ~ \"pipeline\"\n  statsby Total: count()",
+			Expect: "filter asv = \"idp\"\nfilter logGroup ~ \"pipeline\"\nstatsby Total: count()",
+		},
+		{
+			Name:   "continuation lines keep their relative indent",
+			Input:  "  filter asv = \"idp\"\n  statsby\n      Total: count()",
+			Expect: "filter asv = \"idp\"\nstatsby\n    Total: count()",
+		},
+		{
+			Name:   "continuation lines when the first verb is already at column zero",
+			Input:  "filter asv = \"idp\"\nstatsby\n    Total: count()",
+			Expect: "filter asv = \"idp\"\nstatsby\n    Total: count()",
+		},
+		{
+			Name:   "blank lines are not padded out to the common indent",
+			Input:  "    filter asv = \"idp\"\n  \n    statsby Total: count()",
+			Expect: "filter asv = \"idp\"\n\nstatsby Total: count()",
+		},
+		{
+			Name:   "trailing newline preserved",
+			Input:  "  filter asv = \"idp\"\n",
+			Expect: "filter asv = \"idp\"\n",
+		},
+		{
+			Name:   "tab indent",
+			Input:  "\tfilter asv = \"idp\"\n\tstatsby Total: count()",
+			Expect: "filter asv = \"idp\"\nstatsby Total: count()",
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run(tt.Name, func(t *testing.T) {
+			if result := dedentPipeline(tt.Input); result != tt.Expect {
+				t.Fatalf("dedentPipeline(%q) = %q, expected %q", tt.Input, result, tt.Expect)
+			}
+		})
+	}
+}
+
 // newMultilineErrorRegexp creates a regexp that matches the given string,
 // allowing for any whitespace (including newlines) anywhere a space is present
 // in the input. The Terraform provider test framework executes the Terraform

@@ -791,7 +791,10 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 	}
 
 	data.SetId(m.Id)
-	diags = monitorV2ToResourceData(ctx, m, data, client)
+	// Dedent stage pipelines: terraform show mismatches the indentation of a
+	// pipeline's lines when rendering this data source's state as HCL. See
+	// dedentPipeline.
+	diags = monitorV2ToResourceData(ctx, m, data, client, true)
 	if diags.HasError() {
 		return diags
 	}

@@ -916,7 +916,7 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		return diag.Errorf("failed to read monitorv2: %s", err.Error())
 	}
 
-	return monitorV2ToResourceData(ctx, monitor, data, client)
+	return monitorV2ToResourceData(ctx, monitor, data, client, false)
 }
 
 func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -927,7 +927,12 @@ func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, met
 	return diags
 }
 
-func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client) (diags diag.Diagnostics) {
+// dedentPipelines controls whether stage pipeline text is dedented as it's
+// written into state. Only the monitor v2 data source passes true, to guard
+// against a terraform show quirk that mismatches the indentation of a
+// pipeline's lines; see dedentPipeline. The monitor v2 resource passes false
+// to leave its own Read path unchanged.
+func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client, dedentPipelines bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -956,7 +961,7 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	_, err := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage)
+	_, err := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage, dedentPipelines)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
