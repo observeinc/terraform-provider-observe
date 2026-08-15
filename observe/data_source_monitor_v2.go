@@ -799,6 +799,12 @@ func dataSourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceMonitorV2().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if client.ExportObjectBindings {
 		err := generateMonitorV2Bindings(ctx, m, data, client)
 		if err != nil {
