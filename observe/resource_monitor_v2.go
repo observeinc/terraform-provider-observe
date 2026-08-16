@@ -123,10 +123,13 @@ func resourceMonitorV2() *schema.Resource {
 							Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "description"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"computation_window": { // Duration (backend-computed from evaluation window)
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "computation_window"),
+									"computation_window": { // Duration
+										Type:             schema.TypeString,
+										Optional:         true,
+										Computed:         true,
+										ValidateDiagFunc: validateTimeDuration,
+										DiffSuppressFunc: diffSuppressDuration,
+										Description:      descriptions.Get("monitorv2", "schema", "rule_template", "anomaly", "computation_window"),
 									},
 									"value_column_name": { // String!
 										Type:        schema.TypeString,
@@ -1927,6 +1930,16 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 		ValueColumnName:       valueColumnName,
 		CompareFn:             compareFn,
 		NumStandardDeviations: numStdDevs,
+	}
+
+	// computationWindow is optional on the backend: when omitted, the backend picks a
+	// value dynamically based on lookback_time. Only send it when the user set it.
+	if v, ok := data.GetOk(fmt.Sprintf("%scomputation_window", path)); ok {
+		computationWindow, err := types.ParseDurationScalar(v.(string))
+		if err != nil {
+			return nil, diag.Errorf("computation_window is invalid: %s", err.Error())
+		}
+		template.ComputationWindow = computationWindow
 	}
 
 	if _, ok := data.GetOk(fmt.Sprintf("%sseasonal_algorithm", path)); ok {

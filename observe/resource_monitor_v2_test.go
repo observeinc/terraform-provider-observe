@@ -1809,6 +1809,7 @@ func TestAccObserveMonitorV2Anomaly(t *testing.T) {
 							anomaly {
 								value_column_name = "temp_number"
 								compare_fn = "above_or_below"
+								computation_window = "2h"
 								basic_algorithm {
 									num_standard_deviations = 2
 								}
@@ -1834,6 +1835,7 @@ func TestAccObserveMonitorV2Anomaly(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "anomaly"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.value_column_name", "temp_number"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.compare_fn", "above_or_below"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.computation_window", "2h0m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_template.0.anomaly.0.basic_algorithm.0.num_standard_deviations", "2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.anomaly.0.compare_percentage", "25"),
