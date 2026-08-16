@@ -182,6 +182,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "Enable generating object ID-name bindings for cross-tenant export/import (internal use).",
 			},
+			"export_mode": {
+				Type:        schema.TypeBool,
+				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_EXPORT_MODE", false),
+				Optional:    true,
+				Description: "Signal that state will be rendered into HCL configuration, escaping template markers in string values (internal use).",
+			},
 			"default_rematerialization_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -384,6 +390,10 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 
 		if v, ok := data.GetOk("export_object_bindings"); ok {
 			config.ExportObjectBindings = v.(bool)
+		}
+
+		if v, ok := data.GetOk("export_mode"); ok {
+			config.ExportMode = v.(bool)
 		}
 
 		// trace identifier to attach to all HTTP requests in the traceparent header

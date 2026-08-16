@@ -81,6 +81,12 @@ func dataSourceWorksheetRead(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceWorksheet().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if client.ExportObjectBindings {
 		err := generateWorksheetBindings(ctx, ws, data, client)
 		if err != nil {
