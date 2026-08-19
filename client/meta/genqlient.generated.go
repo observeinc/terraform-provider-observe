@@ -960,18 +960,34 @@ const (
 
 // Dashboard includes the GraphQL fields of Dashboard requested by the fragment Dashboard.
 type Dashboard struct {
-	Id              string                                     `json:"id"`
-	Name            string                                     `json:"name"`
-	Description     *string                                    `json:"description"`
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	WorkspaceId string  `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	// Object tags for organizing and categorizing dashboards.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
+	// Version of the dashboard content model.
+	//
+	// - 0: content is exposed through the layout, stages, and parameters
+	// fields, and definition is null.
+	// - 2 and above: content is exposed as a single definition document,
+	// and the layout, stages, and parameters fields are empty.
+	SchemaVersion   int                                        `json:"schemaVersion"`
 	IconUrl         *string                                    `json:"iconUrl"`
-	WorkspaceId     string                                     `json:"workspaceId"`
-	ManagedById     *string                                    `json:"managedById"`
 	Layout          *types.JsonObject                          `json:"layout"`
 	Stages          []DashboardStagesStageQuery                `json:"stages"`
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
 	ParameterValues []DashboardParameterValuesParameterBinding `json:"parameterValues"`
-	// Object tags for organizing and categorizing dashboards.
-	ObjectTags []ObjectTagMapping `json:"objectTags"`
+	// Dashboard content as a single JSON document: titled sections with
+	// their placed cards (query, parameter, markdown, and image), any
+	// off-grid query cards, and dashboard-level settings such as the
+	// default filter and time range.
+	//
+	// Populated only when schemaVersion is 2 or above; null when
+	// schemaVersion is 0, where layout, stages, and parameters carry the
+	// content instead.
+	Definition *types.JsonObject `json:"definition"`
 }
 
 // GetId returns Dashboard.Id, and is useful for accessing the field via an interface.
@@ -983,14 +999,20 @@ func (v *Dashboard) GetName() string { return v.Name }
 // GetDescription returns Dashboard.Description, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetDescription() *string { return v.Description }
 
-// GetIconUrl returns Dashboard.IconUrl, and is useful for accessing the field via an interface.
-func (v *Dashboard) GetIconUrl() *string { return v.IconUrl }
-
 // GetWorkspaceId returns Dashboard.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetManagedById returns Dashboard.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetManagedById() *string { return v.ManagedById }
+
+// GetObjectTags returns Dashboard.ObjectTags, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
+
+// GetSchemaVersion returns Dashboard.SchemaVersion, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetSchemaVersion() int { return v.SchemaVersion }
+
+// GetIconUrl returns Dashboard.IconUrl, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetIconUrl() *string { return v.IconUrl }
 
 // GetLayout returns Dashboard.Layout, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetLayout() *types.JsonObject { return v.Layout }
@@ -1006,8 +1028,8 @@ func (v *Dashboard) GetParameterValues() []DashboardParameterValuesParameterBind
 	return v.ParameterValues
 }
 
-// GetObjectTags returns Dashboard.ObjectTags, and is useful for accessing the field via an interface.
-func (v *Dashboard) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
+// GetDefinition returns Dashboard.Definition, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetDefinition() *types.JsonObject { return v.Definition }
 
 type DashboardInput struct {
 	// if id is not specified, a new dashboard is created
@@ -17506,9 +17528,14 @@ fragment Dashboard on Dashboard {
 	id
 	name
 	description
-	iconUrl
 	workspaceId
 	managedById
+	objectTags {
+		key
+		values
+	}
+	schemaVersion
+	iconUrl
 	layout
 	stages {
 		id
@@ -17545,10 +17572,7 @@ fragment Dashboard on Dashboard {
 			... valueFields
 		}
 	}
-	objectTags {
-		key
-		values
-	}
+	definition
 }
 fragment valueFields on Value {
 	bool
@@ -21021,9 +21045,14 @@ fragment Dashboard on Dashboard {
 	id
 	name
 	description
-	iconUrl
 	workspaceId
 	managedById
+	objectTags {
+		key
+		values
+	}
+	schemaVersion
+	iconUrl
 	layout
 	stages {
 		id
@@ -21060,10 +21089,7 @@ fragment Dashboard on Dashboard {
 			... valueFields
 		}
 	}
-	objectTags {
-		key
-		values
-	}
+	definition
 }
 fragment valueFields on Value {
 	bool

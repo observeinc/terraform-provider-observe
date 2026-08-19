@@ -21,6 +21,7 @@ Fetches data for an existing Observe dashboard.
 
 ### Read-Only
 
+- `definition` (String) Dashboard content as a single JSON document. Required when `schema_version` is `2` or higher, and mutually exclusive with `stages`, `layout`, and `parameters`. **Alpha:** part of the `definition` content model (`schema_version` >= `2`); the document shape is not generally available and may change in backwards-incompatible ways. Must be enabled for your account.
 - `description` (String) Dashboard description.
 - `icon_url` (String) Icon image.
 - `layout` (String) Dashboard layout in JSON format.
@@ -29,5 +30,6 @@ Fetches data for an existing Observe dashboard.
 - `oid` (String) The Observe ID for dashboard.
 - `parameter_values` (String) Dashboard parameter values in JSON format.
 - `parameters` (String) Dashboard parameters in JSON format.
+- `schema_version` (Number) Dashboard content model version. Set to `2` or higher to manage the dashboard through its `definition` document; when unset (or less than `2`), the dashboard is managed through `stages`, `layout`, and `parameters`. **Alpha:** managing a dashboard through `definition` (`schema_version` >= `2`) is an alpha feature that is not generally available and is subject to backwards-incompatible changes in future releases. It must be enabled for your account; otherwise API requests are rejected. Not recommended for production dashboards.
 - `stages` (String) Dashboard stages in JSON format.
 - `workspace` (String) OID of workspace dashboard is contained in.

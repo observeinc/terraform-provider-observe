@@ -53,6 +53,49 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 	})
 }
 
+// Verify the data source reads back the new content-model fields (schema_version and
+// definition) for a schema_version >= 2 dashboard.
+func TestAccObserveSourceDashboardV2(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					resource "observe_dashboard" "v2" {
+						name           = "%[1]s"
+						schema_version = 2
+						definition = jsonencode({
+							layout = {
+								sections = [
+									{
+										title = "Overview"
+										cards = []
+									},
+								]
+							}
+						})
+					}
+
+					data "observe_dashboard" "lookup" {
+						id = observe_dashboard.v2.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "schema_version", "2"),
+					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "definition"),
+					// The legacy content fields are empty for a new-model dashboard.
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "stages", ""),
+					checkDefinitionSectionTitle("data.observe_dashboard.lookup", "Overview"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

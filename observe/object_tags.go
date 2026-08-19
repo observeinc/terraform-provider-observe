@@ -82,6 +82,19 @@ func objectTagsInputFromReader(r objectTagsReader) []gql.ObjectTagMappingInput {
 	return expandObjectTagsFromMap(v.(map[string]interface{}))
 }
 
+// objectTagsMapFromReader reads tags for REST Create/Update API calls, returning
+// the map[key][]values shape the REST API expects. It reuses objectTagsInputFromReader
+// so entity_tags/object_tags precedence and CSV parsing stay consistent with the
+// GraphQL write path.
+func objectTagsMapFromReader(r objectTagsReader) map[string][]string {
+	inputs := objectTagsInputFromReader(r)
+	result := make(map[string][]string, len(inputs))
+	for _, t := range inputs {
+		result[t.Key] = t.Values
+	}
+	return result
+}
+
 func tagFieldInRawConfig(cfg cty.Value, field string) bool {
 	if cfg.IsNull() || !cfg.Type().IsObjectType() {
 		return false
