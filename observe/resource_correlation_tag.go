@@ -24,14 +24,35 @@ func resourceCorrelationTag() *schema.Resource {
 		Description:   descriptions.Get("correlation_tag", "description"),
 		CreateContext: resourceCorrelationTagCreate,
 		ReadContext:   resourceCorrelationTagRead,
+		UpdateContext: resourceCorrelationTagUpdate,
 		DeleteContext: resourceCorrelationTagDelete,
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			// If the dataset ID has changed, we need to recreate the resource. See comments on ForceNew below.
+			if d.HasChange(correlationTagDatasetKey) {
+				// Ignore version changes
+				oldVal, newVal := d.GetChange(correlationTagDatasetKey)
+				oldOid, oldErr := oid.NewOID(oldVal.(string))
+				newOid, newErr := oid.NewOID(newVal.(string))
+				if oldErr == nil && newErr == nil && oldOid.Id != newOid.Id {
+					d.ForceNew(correlationTagDatasetKey)
+				}
+			}
+			return nil
+		},
 		Schema: map[string]*schema.Schema{
 			correlationTagDatasetKey: {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateOID(oid.TypeDataset),
 				Description:      descriptions.Get("correlation_tag", "schema", correlationTagDatasetKey),
-				ForceNew:         true,
+				DiffSuppressFunc: diffSuppressOIDVersion,
+				// We should be enforcing ForceNew here, but unfortunately because the dataset oids contain a version,
+				// the value of the oid is always "(known after apply)" when a dataset is updated. This means
+				// that even though we're diff suppressing the version, the correlation tag will always
+				// be recreated when the dataset is updated, because terraform can't guarantee the new value of
+				// the oid during the plan stage. Instead doing it in the CustomizeDiff above, which does not
+				// consider "(known after apply)" changes.
+				// ForceNew:         true,
 			},
 			correlationTagNameKey: {
 				Type:        schema.TypeString,
@@ -143,6 +164,15 @@ func resourceCorrelationTagRead(ctx context.Context, data *schema.ResourceData, 
 		data.SetId("")
 	}
 	return diags
+}
+
+// resourceCorrelationTagUpdate is a no-op: correlation tags are immutable on the backend, so the
+// only way to change them is to recreate. All fields except dataset are ForceNew; dataset changes
+// are handled by CustomizeDiff (ForceNew when the dataset ID changes, suppressed when only the
+// OID version changes). This function exists solely to satisfy the Terraform SDK requirement that
+// resources with non-ForceNew fields define an Update.
+func resourceCorrelationTagUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	return resourceCorrelationTagRead(ctx, data, meta)
 }
 
 func resourceCorrelationTagDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
