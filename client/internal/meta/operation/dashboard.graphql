@@ -39,6 +39,9 @@ fragment Dashboard on Dashboard {
     iconUrl
     workspaceId
     managedById
+    schemaVersion
+    # @genqlient(pointer: true)
+    definition
     # @genqlient(pointer: true)
     layout
     stages {

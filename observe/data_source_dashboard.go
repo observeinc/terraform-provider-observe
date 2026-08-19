@@ -49,6 +49,16 @@ func dataSourceDashboard() *schema.Resource {
 				Computed:    true,
 				Description: schemaDashboardIconDescription,
 			},
+			"schema_version": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: schemaDashboardSchemaVersionDescription,
+			},
+			"definition": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDashboardDefinitionDescription,
+			},
 			"stages": {
 				Type:        schema.TypeString,
 				Computed:    true,

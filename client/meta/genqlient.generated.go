@@ -960,12 +960,28 @@ const (
 
 // Dashboard includes the GraphQL fields of Dashboard requested by the fragment Dashboard.
 type Dashboard struct {
-	Id              string                                     `json:"id"`
-	Name            string                                     `json:"name"`
-	Description     *string                                    `json:"description"`
-	IconUrl         *string                                    `json:"iconUrl"`
-	WorkspaceId     string                                     `json:"workspaceId"`
-	ManagedById     *string                                    `json:"managedById"`
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	IconUrl     *string `json:"iconUrl"`
+	WorkspaceId string  `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	// Version of the dashboard content model.
+	//
+	// - 0: content is exposed through the layout, stages, and parameters
+	// fields, and definition is null.
+	// - 2 and above: content is exposed as a single definition document,
+	// and the layout, stages, and parameters fields are empty.
+	SchemaVersion int `json:"schemaVersion"`
+	// Dashboard content as a single JSON document: titled sections with
+	// their placed cards (query, parameter, markdown, and image), any
+	// off-grid query cards, and dashboard-level settings such as the
+	// default filter and time range.
+	//
+	// Populated only when schemaVersion is 2 or above; null when
+	// schemaVersion is 0, where layout, stages, and parameters carry the
+	// content instead.
+	Definition      *types.JsonObject                          `json:"definition"`
 	Layout          *types.JsonObject                          `json:"layout"`
 	Stages          []DashboardStagesStageQuery                `json:"stages"`
 	Parameters      []DashboardParametersParameterSpec         `json:"parameters"`
@@ -991,6 +1007,12 @@ func (v *Dashboard) GetWorkspaceId() string { return v.WorkspaceId }
 
 // GetManagedById returns Dashboard.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetManagedById() *string { return v.ManagedById }
+
+// GetSchemaVersion returns Dashboard.SchemaVersion, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetSchemaVersion() int { return v.SchemaVersion }
+
+// GetDefinition returns Dashboard.Definition, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetDefinition() *types.JsonObject { return v.Definition }
 
 // GetLayout returns Dashboard.Layout, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetLayout() *types.JsonObject { return v.Layout }
@@ -17509,6 +17531,8 @@ fragment Dashboard on Dashboard {
 	iconUrl
 	workspaceId
 	managedById
+	schemaVersion
+	definition
 	layout
 	stages {
 		id
@@ -21024,6 +21048,8 @@ fragment Dashboard on Dashboard {
 	iconUrl
 	workspaceId
 	managedById
+	schemaVersion
+	definition
 	layout
 	stages {
 		id
