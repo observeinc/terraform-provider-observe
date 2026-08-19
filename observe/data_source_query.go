@@ -148,7 +148,8 @@ type Stage struct {
 
 // Input references an existing data source
 type Input struct {
-	Dataset *string ` json:"dataset,omitempty"`
+	Dataset *string       `json:"dataset,omitempty"`
+	Role    gql.InputRole `json:"role,omitempty"`
 }
 
 func getOutputStagesCount(stages []Stage) int {
@@ -504,7 +505,7 @@ func flattenQuery(gqlStages []gql.StageQuery, outputStage string, dedentPipeline
 		for _, i := range stageQuery.Input {
 			if i.GetDatasetId() != nil {
 				datasetID := *i.GetDatasetId()
-				query.Inputs[i.InputName] = &Input{Dataset: &datasetID}
+				query.Inputs[i.InputName] = &Input{Dataset: &datasetID, Role: i.InputRole}
 			}
 			if i.StageId != nil && *i.StageId != "" {
 				stageIDs[*i.StageId] = i.InputName

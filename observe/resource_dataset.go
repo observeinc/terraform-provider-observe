@@ -441,6 +441,16 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 
 	inputs := make(map[string]interface{}, 0)
 	for name, input := range queryData.Inputs {
+		// Skip backend-derived Reference inputs (auto-derived from ^"link" traversals in
+		// the pipeline) unless the user explicitly declared them in config. The backend
+		// always re-derives them on every save, so including them in state creates a
+		// perpetual diff against any config that doesn't declare them.
+		if input.Role == gql.InputRoleReference {
+			if _, inConfig := data.GetOk(fmt.Sprintf("inputs.%s", name)); !inConfig {
+				continue
+			}
+		}
+
 		id := oid.OID{
 			Type: oid.TypeDataset,
 			Id:   *input.Dataset,
