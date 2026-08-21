@@ -3,11 +3,11 @@
 page_title: "observe_filedrop Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  A Filedrop loads files from a cloud object storage service (currently S3) directly into Observe, bypassing the Observe collection API. Filedrop is currently in preview and is not available by default. To inquire about Filedrop's availability, contact support@observeinc.com.
+  A Filedrop loads files from a cloud object storage service (currently S3) directly into Observe, bypassing the Observe collection API.
 ---
 # observe_filedrop
 
-A Filedrop loads files from a cloud object storage service (currently S3) directly into Observe, bypassing the Observe collection API. Filedrop is currently in preview and is not available by default. To inquire about Filedrop's availability, contact support@observeinc.com.
+A Filedrop loads files from a cloud object storage service (currently S3) directly into Observe, bypassing the Observe collection API.
 ## Example Usage
 ```terraform
 data "observe_workspace" "default" {
