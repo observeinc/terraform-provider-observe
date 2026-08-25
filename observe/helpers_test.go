@@ -332,6 +332,60 @@ func TestDedentPipeline(t *testing.T) {
 	}
 }
 
+// TestDiffSuppressStageQueryInput_DatasetIdOIDVsBare exercises the fix for the
+// perpetual diff described in task-364 §2e: a stage's top-level input[].datasetId
+// is stored and returned by the backend as a bare numeric id, even when config
+// supplies a full dataset OID. Without normalization, the two forms compare as
+// unequal strings and the diff never converges.
+func TestDiffSuppressStageQueryInput_DatasetIdOIDVsBare(t *testing.T) {
+	testcases := []struct {
+		name     string
+		prv      string
+		nxt      string
+		suppress bool
+	}{
+		{
+			name:     "full OID in config, bare id in state -> suppressed",
+			prv:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			nxt:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"o:::dataset:41036871"}]}]`,
+			suppress: true,
+		},
+		{
+			name:     "bare id in config, full OID in state -> suppressed",
+			prv:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"o:::dataset:41036871"}]}]`,
+			nxt:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			suppress: true,
+		},
+		{
+			name:     "both bare and equal -> suppressed",
+			prv:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			nxt:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			suppress: true,
+		},
+		{
+			name:     "different dataset ids -> not suppressed",
+			prv:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			nxt:      `[{"pipeline":"","input":[{"inputName":"a","inputRole":"Data","datasetId":"o:::dataset:99999999"}]}]`,
+			suppress: false,
+		},
+		{
+			name:     "pipeline text changed -> not suppressed",
+			prv:      `[{"pipeline":"filter a","input":[{"inputName":"a","inputRole":"Data","datasetId":"41036871"}]}]`,
+			nxt:      `[{"pipeline":"filter b","input":[{"inputName":"a","inputRole":"Data","datasetId":"o:::dataset:41036871"}]}]`,
+			suppress: false,
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := diffSuppressStageQueryInput("stages", tt.prv, tt.nxt, nil)
+			if got != tt.suppress {
+				t.Errorf("diffSuppressStageQueryInput() = %v, want %v", got, tt.suppress)
+			}
+		})
+	}
+}
+
 // newMultilineErrorRegexp creates a regexp that matches the given string,
 // allowing for any whitespace (including newlines) anywhere a space is present
 // in the input. The Terraform provider test framework executes the Terraform

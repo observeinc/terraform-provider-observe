@@ -373,6 +373,39 @@ func diffSuppressJSON(k, prv, nxt string, d *schema.ResourceData) bool {
 	return reflect.DeepEqual(prvValue, nxtValue)
 }
 
+// bareDatasetId strips the OID wrapper from a dataset OID (e.g. "o:::dataset:41036871"),
+// returning just the numeric id ("41036871"). Values that aren't a dataset OID (already
+// bare, nil, or some other OID type) are returned unchanged.
+//
+// This exists because a dashboard's stage input.datasetId isn't a typed OID field the way
+// dataset references are almost everywhere else in the provider — it's a string inside the
+// "stages" JSON blob, so nothing normalizes it on write. The backend stores and returns it
+// as a bare id regardless of which form was sent, so a config using the full OID form (e.g.
+// from a datastream's .dataset attribute) diffs against state forever. A more structured
+// schema for dashboard stages is planned, but this JSON blob will need to keep working for
+// existing configs for a while yet.
+func bareDatasetId(id *string) *string {
+	if id == nil {
+		return nil
+	}
+	if o, err := oid.NewOID(*id); err == nil && o.Type == oid.TypeDataset {
+		return &o.Id
+	}
+	return id
+}
+
+// normalizeStageInputDatasetIds rewrites every stage's top-level input[].datasetId to its
+// bare numeric form in place, so diffSuppressStageQueryInput can compare it against the
+// backend's response. This does not touch inputList[].datasetId, which lives further inside
+// the stage's opaque layout blob and is returned as a full OID rather than normalized.
+func normalizeStageInputDatasetIds(stages []gql.StageQueryInput) {
+	for i := range stages {
+		for j := range stages[i].Input {
+			stages[i].Input[j].DatasetId = bareDatasetId(stages[i].Input[j].DatasetId)
+		}
+	}
+}
+
 func diffSuppressStageQueryInput(k, prv, nxt string, d *schema.ResourceData) bool {
 	prvValue := make([]gql.StageQueryInput, 0)
 	nxtValue := make([]gql.StageQueryInput, 0)
@@ -382,6 +415,8 @@ func diffSuppressStageQueryInput(k, prv, nxt string, d *schema.ResourceData) boo
 	if err := json.Unmarshal([]byte(nxt), &nxtValue); err != nil {
 		return false
 	}
+	normalizeStageInputDatasetIds(prvValue)
+	normalizeStageInputDatasetIds(nxtValue)
 	layoutTransform := cmp.Transformer("layoutStringToMap", func(o types.JsonObject) map[string]interface{} {
 		result, _ := o.Map()
 		return result
