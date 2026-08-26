@@ -441,6 +441,17 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 
 	inputs := make(map[string]interface{}, 0)
 	for name, input := range queryData.Inputs {
+		// Skip backend-only inputs (see Input.BackendOnly) unless the user explicitly
+		// declared them in config. This provider's own write path could never have sent
+		// one, so it can only have come from the backend (e.g. auto-added from a
+		// "^<link>" traversal), which re-derives it on every save — including it in
+		// state creates a perpetual diff against any config that doesn't declare it.
+		if input.BackendOnly {
+			if _, inConfig := data.GetOk(fmt.Sprintf("inputs.%s", name)); !inConfig {
+				continue
+			}
+		}
+
 		id := oid.OID{
 			Type: oid.TypeDataset,
 			Id:   *input.Dataset,

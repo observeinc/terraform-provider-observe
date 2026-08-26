@@ -148,7 +148,15 @@ type Stage struct {
 
 // Input references an existing data source
 type Input struct {
-	Dataset *string ` json:"dataset,omitempty"`
+	Dataset *string `json:"dataset,omitempty"`
+	// BackendOnly reports whether this input can only have come from the backend itself
+	// (for example, auto-added from a "^<link>" traversal): this provider's own write path
+	// (newQuery / appendReferencedInputs) would never send it, for any stage that carries
+	// it — it's never that stage's default input (API convention: always index 0 in
+	// StageQuery.Input) nor ever referenced via "@name"/"@\"name\"" in that stage's
+	// pipeline text. Such an input round-trips into state regardless of config; see
+	// flattenAndSetQuery for why that requires special handling.
+	BackendOnly bool `json:"-"`
 }
 
 func getOutputStagesCount(stages []Stage) int {
@@ -501,10 +509,20 @@ func flattenQuery(gqlStages []gql.StageQuery, outputStage string, dedentPipeline
 	// first reconstruct all inputs
 	stageIDs := make(map[string]string)
 	for _, stageQuery := range gqlStages {
-		for _, i := range stageQuery.Input {
+		for idx, i := range stageQuery.Input {
 			if i.GetDatasetId() != nil {
 				datasetID := *i.GetDatasetId()
-				query.Inputs[i.InputName] = &Input{Dataset: &datasetID}
+				// See Input.BackendOnly: this stage's default input is always at index 0
+				// (the same convention appendReferencedInputs writes in), and anything
+				// else can only be backend-derived if the pipeline never names it with
+				// "@". An input is backend-only overall only if it's backend-only in
+				// every stage that carries it.
+				backendOnly := idx != 0 && !pipelineReferencesInput(stageQuery.Pipeline, i.InputName)
+				if existing, ok := query.Inputs[i.InputName]; ok {
+					existing.BackendOnly = existing.BackendOnly && backendOnly
+				} else {
+					query.Inputs[i.InputName] = &Input{Dataset: &datasetID, BackendOnly: backendOnly}
+				}
 			}
 			if i.StageId != nil && *i.StageId != "" {
 				stageIDs[*i.StageId] = i.InputName

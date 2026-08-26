@@ -9,6 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
 func TestAccObserveDatasetNameValidationTooLong(t *testing.T) {
@@ -1667,3 +1670,207 @@ func TestAccObserveDatasetOmitOIDVersionMigration(t *testing.T) {
 		},
 	})
 }
+
+// TestFlattenAndSetQueryReferenceInputFiltering guards against the perpetual-diff bug where
+// backend-derived inputs (auto-added from "^<link>" traversals, e.g. label(^"some link")) bleed
+// into state and cause a never-converging planned removal on every subsequent plan. The filter
+// does not key off InputRole: live testing against a real backend showed these auto-added inputs
+// actually come back with InputRole=Data, not Reference, for ordinary dataset pipelines (Reference
+// is only used by a couple of narrow, unrelated backend mechanisms). Instead it mirrors what this
+// provider's own write path (newQuery/appendReferencedInputs) would ever send for a stage: the
+// stage's default input (API convention: always index 0), or one explicitly "@name"-referenced in
+// that stage's pipeline. Anything else can only have come from the backend itself.
+func TestFlattenAndSetQueryReferenceInputFiltering(t *testing.T) {
+	const (
+		dataID = "11111"
+		refID1 = "22222"
+		refID2 = "33333"
+	)
+	stageID := "stage-0"
+	refName1 := "Ref Dataset from usage of some link"
+	refName2 := "Other Ref Dataset from usage of other link"
+
+	// Simulates the backend response: one user-declared default input (index 0) and two
+	// backend-derived inputs auto-added from the "^<link>" traversals in the pipeline. Note
+	// InputRole is Data for all three, matching what a real backend actually returns for this
+	// case -- the filter must not rely on it.
+	buildStages := func() []gql.StageQuery {
+		return []gql.StageQuery{{
+			Id:       stringPtr(stageID),
+			Pipeline: `lookup ^"some link" | lookup ^"other link"`,
+			Input: []gql.StageQueryInputInputDefinition{
+				{InputName: "data_input", InputRole: gql.InputRoleData, DatasetId: stringPtr(dataID)},
+				{InputName: refName1, InputRole: gql.InputRoleData, DatasetId: stringPtr(refID1)},
+				{InputName: refName2, InputRole: gql.InputRoleData, DatasetId: stringPtr(refID2)},
+			},
+		}}
+	}
+
+	t.Run("backend-derived inputs absent from config are not written to state", func(t *testing.T) {
+		// Config declares only the default input; neither derived input is present.
+		data := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name":   "test",
+			"inputs": map[string]interface{}{"data_input": oid.OID{Type: oid.TypeDataset, Id: dataID}.String()},
+			"stage":  []interface{}{map[string]interface{}{"pipeline": "filter true", "alias": "", "input": "", "output_stage": false}},
+		})
+		if _, err := flattenAndSetQuery(data, buildStages(), stageID, false); err != nil {
+			t.Fatalf("flattenAndSetQuery: %v", err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if len(inputs) != 1 {
+			t.Errorf("expected exactly 1 input in state, got %d: %v", len(inputs), inputs)
+		}
+	})
+
+	t.Run("only the derived input declared in config is kept; undeclared one is not added", func(t *testing.T) {
+		// Config declares refName1 but not refName2; both come back from the backend.
+		// This covers the backward-compat case where a user explicitly declared one derived
+		// input as a workaround — it must be preserved while the undeclared one is still filtered.
+		data := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name": "test",
+			"inputs": map[string]interface{}{
+				"data_input": oid.OID{Type: oid.TypeDataset, Id: dataID}.String(),
+				refName1:     oid.OID{Type: oid.TypeDataset, Id: refID1}.String(),
+			},
+			"stage": []interface{}{map[string]interface{}{"pipeline": "filter true", "alias": "", "input": "", "output_stage": false}},
+		})
+		if _, err := flattenAndSetQuery(data, buildStages(), stageID, false); err != nil {
+			t.Fatalf("flattenAndSetQuery: %v", err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if _, ok := inputs[refName1]; !ok {
+			t.Errorf("explicitly-declared derived input %q should be kept in state", refName1)
+		}
+		if _, ok := inputs[refName2]; ok {
+			t.Errorf("undeclared derived input %q should not appear in state", refName2)
+		}
+		if len(inputs) != 2 {
+			t.Errorf("expected exactly 2 inputs in state, got %d: %v", len(inputs), inputs)
+		}
+	})
+
+	t.Run("a non-default input explicitly @-referenced in the pipeline is always kept, even undeclared", func(t *testing.T) {
+		// "joined" is not the stage's default (it's not index 0) but the pipeline binds it by
+		// name via "@joined" -- exactly what this provider's own write path would send. It must
+		// never be filtered, regardless of whether config declares it, because it is not
+		// backend-only: the provider can and does write it itself.
+		joinedID := "44444"
+		stages := []gql.StageQuery{{
+			Id:       stringPtr(stageID),
+			Pipeline: `join on(a = @joined.b), c:@joined.c`,
+			Input: []gql.StageQueryInputInputDefinition{
+				{InputName: "data_input", InputRole: gql.InputRoleData, DatasetId: stringPtr(dataID)},
+				{InputName: "joined", InputRole: gql.InputRoleData, DatasetId: stringPtr(joinedID)},
+			},
+		}}
+		data := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{
+			"name":   "test",
+			"inputs": map[string]interface{}{"data_input": oid.OID{Type: oid.TypeDataset, Id: dataID}.String()},
+			"stage":  []interface{}{map[string]interface{}{"pipeline": "filter true", "alias": "", "input": "", "output_stage": false}},
+		})
+		if _, err := flattenAndSetQuery(data, stages, stageID, false); err != nil {
+			t.Fatalf("flattenAndSetQuery: %v", err)
+		}
+		inputs := data.Get("inputs").(map[string]interface{})
+		if _, ok := inputs["joined"]; !ok {
+			t.Errorf("@-referenced input %q should be kept in state even though config doesn't declare it", "joined")
+		}
+	})
+}
+
+// TestAccObserveDatasetLinkDerivedInputNoPerpetualDiff is a full acceptance-test regression
+// guard for the perpetual-diff bug fixed by flattenAndSetQuery's BackendOnly filtering: a
+// dataset whose pipeline traverses a link via "^<link label>" (here label(^"...")) gets an
+// implicit input named "<target> from usage of <link label>" auto-added by the backend on
+// every save. Before the fix, that input round-tripped into Terraform state even though the
+// config never declares it, so every subsequent plan showed it being removed, forever. This
+// creates the real link-derived scenario against a live backend and asserts the plan stays
+// empty on a second, unchanged apply -- proving the diff doesn't come back.
+func TestAccObserveDatasetLinkDerivedInputNoPerpetualDiff(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "target" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-target"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				pipeline = <<-EOF
+					colmake key:"k1", label_val:"target-label"
+					set_label label_val
+				EOF
+			}
+		}
+
+		resource "observe_dataset" "source" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-source"
+
+			inputs = {
+				"test"   = observe_datastream.test.dataset
+				"target" = observe_dataset.target.oid
+			}
+
+			stage {
+				input = "test"
+				pipeline = <<-EOF
+					filter false
+					colmake key:"k1"
+					makeresource primarykey(key)
+					set_link "%[1]s-link", key:@"target".key
+				EOF
+			}
+		}
+
+		resource "observe_link" "source_to_target" {
+			workspace = data.observe_workspace.default.oid
+			source    = observe_dataset.source.oid
+			target    = observe_dataset.target.oid
+			fields    = ["key:key"]
+			label     = "%[1]s-link"
+		}
+
+		// Traverses the link via label(^"<link label>") without declaring the target as an
+		// input -- this is exactly the pattern that used to leave a "<target> from usage of
+		// <link label>" input stuck in state, undeclared and perpetually removed on plan.
+		resource "observe_dataset" "consumer" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-consumer"
+
+			inputs = { "source" = observe_dataset.source.oid }
+
+			stage {
+				input = "source"
+				pipeline = <<-EOF
+					make_col linked_label:label(^"%[1]s-link")
+				EOF
+			}
+
+			depends_on = [observe_link.source_to_target]
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_dataset.consumer", "oid"),
+					// The backend-derived "<target> from usage of <link label>" input must
+					// not appear in state: only the explicitly declared "source" input should.
+					resource.TestCheckResourceAttr("observe_dataset.consumer", "inputs.%", "1"),
+					resource.TestCheckResourceAttrSet("observe_dataset.consumer", "inputs.source"),
+				),
+			},
+			// Re-plan must be empty: the backend re-derives the same link input on every
+			// save, so if it ever leaked back into state this step would catch the perpetual
+			// removal diff that motivated this fix.
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
