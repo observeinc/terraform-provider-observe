@@ -93,7 +93,7 @@ func resourceDataset() *schema.Resource {
 				ValidateDiagFunc: validateTimeDuration,
 				DiffSuppressFunc: diffSuppressAlways,
 				Description:      descriptions.Get("dataset", "schema", "on_demand_materialization_length"),
-				Deprecated:       "the configuration of on_demand_materialization_length has been migrated to the Dataset.maximumOnDemandMaterializationDays layered setting. Changes to on_demand_materialization_length are no longer respected",
+				Deprecated:       "on_demand_materialization_length is no longer configurable via Terraform. Contact Observe support to update the maximum on-demand materialization length for this dataset.",
 			},
 			"freshness": {
 				Type:             schema.TypeString,
