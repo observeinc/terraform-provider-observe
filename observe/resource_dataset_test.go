@@ -350,6 +350,62 @@ func TestAccObserveDatasetChangeStageName(t *testing.T) {
 	})
 }
 
+// TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff is a full acceptance-test regression
+// guard for the perpetual-diff bug fixed by flattenAndSetQuery's per-stage config fallback: a
+// stage whose "input" explicitly names the immediately preceding stage's alias (a valid but
+// redundant form) had that value silently cleared from state on every read, because the
+// config-preserving fallback only applied to stage 0. Every subsequent plan then showed the
+// value being re-added, forever. This creates the real redundant-alias-input scenario against
+// a live backend and asserts the plan stays empty on a second, unchanged apply -- proving the
+// diff doesn't come back.
+func TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "chained" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-chained"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				alias    = "base_stage"
+				input    = "test"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+
+			// input explicitly names stage 0's alias -- the redundant form that used to be
+			// cleared from state on every read.
+			stage {
+				input    = "base_stage"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.chained", "stage.0.alias", "base_stage"),
+					resource.TestCheckResourceAttr("observe_dataset.chained", "stage.1.input", "base_stage"),
+				),
+			},
+			// Re-plan must be empty: before the fix, flattenAndSetQuery cleared stage 1's
+			// input on every read, so this step would catch the perpetual "+ input" diff
+			// that motivated this fix.
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
 // Verify we can coldrop if no downstream affected
 func TestAccObserveDatasetSchemaChange(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
