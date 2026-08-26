@@ -716,12 +716,14 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 		return nil, diag.Errorf("no query provided")
 	}
 
-	rule, diags := newMonitorRuleConfig(data)
+	rule, ruleDiags := newMonitorRuleConfig(data)
+	diags = append(diags, ruleDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	notificationSpec, diags := newNotificationSpecConfig(data)
+	notificationSpec, notificationDiags := newNotificationSpecConfig(data)
+	diags = append(diags, notificationDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}

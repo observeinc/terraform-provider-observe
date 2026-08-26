@@ -206,6 +206,91 @@ func pipelineReferencesInput(pipeline, inputName string) bool {
 		strings.Contains(pipeline, fmt.Sprintf("@%q", inputName))
 }
 
+// stagesFromList converts the []interface{} representation of the "stage" attribute
+// (as returned by schema.ResourceData.Get) into a []Stage slice for analysis.
+func stagesFromList(raw []interface{}) []Stage {
+	stages := make([]Stage, len(raw))
+	for i, v := range raw {
+		m, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		var s Stage
+		if alias, ok := m["alias"].(string); ok && alias != "" {
+			s.Alias = &alias
+		}
+		if input, ok := m["input"].(string); ok && input != "" {
+			s.Input = &input
+		}
+		if pipeline, ok := m["pipeline"].(string); ok {
+			s.Pipeline = pipeline
+		}
+		if outputStage, ok := m["output_stage"].(bool); ok {
+			s.OutputStage = outputStage
+		}
+		stages[i] = s
+	}
+	return stages
+}
+
+// detectOrphanStages returns the indices of stages not reachable from the output stage.
+// The Observe backend prunes unreachable stages after save; if the provider does not
+// account for this, config and state diverge on every plan.
+func detectOrphanStages(stages []Stage) []int {
+	if len(stages) == 0 {
+		return nil
+	}
+
+	outputIdx := len(stages) - 1
+	for i, s := range stages {
+		if s.OutputStage {
+			outputIdx = i
+			break
+		}
+	}
+
+	aliasToIdx := make(map[string]int, len(stages))
+	for i, s := range stages {
+		if s.Alias != nil {
+			aliasToIdx[*s.Alias] = i
+		}
+	}
+
+	reachable := make(map[int]bool, len(stages))
+	worklist := []int{outputIdx}
+	for len(worklist) > 0 {
+		i := worklist[0]
+		worklist = worklist[1:]
+		if reachable[i] {
+			continue
+		}
+		reachable[i] = true
+		s := stages[i]
+
+		if s.Input != nil {
+			if j, ok := aliasToIdx[*s.Input]; ok {
+				worklist = append(worklist, j)
+			}
+		} else if i > 0 {
+			worklist = append(worklist, i-1)
+		}
+
+		for alias, j := range aliasToIdx {
+			if pipelineReferencesInput(s.Pipeline, alias) {
+				worklist = append(worklist, j)
+			}
+		}
+	}
+
+	var orphans []int
+	for i := range stages {
+		if !reachable[i] {
+			orphans = append(orphans, i)
+		}
+	}
+	return orphans
+}
+
 func firstReferencedInput(inputs map[string]*gql.InputDefinitionInput, sortedNames []string, pipeline string) *gql.InputDefinitionInput {
 	for _, name := range sortedNames {
 		input := inputs[name]
@@ -256,12 +341,22 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 		stages = append(stages, stage)
 	}
 
-	outputStagesCount := getOutputStagesCount(stages)
-	if outputStagesCount > 1 {
-		return nil, diag.FromErr(errMoreThanOneOutputStages)
+	var diags diag.Diagnostics
+	for _, idx := range detectOrphanStages(stages) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Stage has no effect",
+			Detail:   fmt.Sprintf("stage %d is not used by the output stage, directly or transitively, so the Observe backend will not persist it. Terraform will keep showing a diff for this stage on every plan. Remove it, or make a later stage read from it explicitly. This will become an error in a future provider version.", idx),
+		})
 	}
 
-	inputs, sortedNames, diags := newInputDefinitions(data.Get("inputs").(map[string]interface{}))
+	outputStagesCount := getOutputStagesCount(stages)
+	if outputStagesCount > 1 {
+		return nil, append(diags, diag.FromErr(errMoreThanOneOutputStages)...)
+	}
+
+	inputs, sortedNames, inputDiags := newInputDefinitions(data.Get("inputs").(map[string]interface{}))
+	diags = append(diags, inputDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -291,14 +386,14 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 			v, ok := inputs[*stage.Input]
 			if !ok {
 				diagErr := fmt.Errorf("stage-%d: %q: %w", i, *stage.Input, errStageInputUnresolved)
-				return nil, diag.FromErr(diagErr)
+				return nil, append(diags, diag.FromErr(diagErr)...)
 			}
 			defaultInput = v
 		}
 
 		if defaultInput == nil {
 			diagErr := fmt.Errorf("stage-%d: %w", i, errStageInputMissing)
-			return nil, diag.FromErr(diagErr)
+			return nil, append(diags, diag.FromErr(diagErr)...)
 		}
 
 		// Construct stage inputs, first default, then any declared input that
@@ -329,10 +424,10 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 	}
 	// a query must have at least one stage
 	if query.OutputStage == "" {
-		return nil, diag.FromErr(errStagesMissing)
+		return nil, append(diags, diag.FromErr(errStagesMissing)...)
 	}
 
-	return &query, nil
+	return &query, diags
 }
 
 func newQueryConfig(data *schema.ResourceData) (query []*gql.StageInput, params *gql.QueryParams, diags diag.Diagnostics) {

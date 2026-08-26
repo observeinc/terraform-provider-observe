@@ -1512,7 +1512,8 @@ func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.Moni
 		}
 		rules = append(rules, *rule)
 	}
-	scheduling, diags := newMonitorV2SchedulingInput("scheduling.0.", data)
+	scheduling, schedulingDiags := newMonitorV2SchedulingInput("scheduling.0.", data)
+	diags = append(diags, schedulingDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}
