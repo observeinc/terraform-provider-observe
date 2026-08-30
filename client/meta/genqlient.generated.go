@@ -5151,6 +5151,8 @@ type MonitorV2 struct {
 	// contain the action definition regardless of whether the definition is
 	// shared or provided inline.
 	ActionRules []MonitorV2ActionRule `json:"actionRules"`
+	// Object tags for organizing and categorizing monitors.
+	ObjectTags []ObjectTagMapping `json:"objectTags"`
 }
 
 // GetId returns MonitorV2.Id, and is useful for accessing the field via an interface.
@@ -5191,6 +5193,9 @@ func (v *MonitorV2) GetDefinition() MonitorV2Definition { return v.Definition }
 
 // GetActionRules returns MonitorV2.ActionRules, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetActionRules() []MonitorV2ActionRule { return v.ActionRules }
+
+// GetObjectTags returns MonitorV2.ObjectTags, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
 // MonitorV2Action includes the GraphQL fields of MonitorV2Action requested by the fragment MonitorV2Action.
 type MonitorV2Action struct {
@@ -15026,6 +15031,10 @@ fragment MonitorV2 on MonitorV2 {
 	actionRules {
 		... MonitorV2ActionRule
 	}
+	objectTags {
+		key
+		values
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -18742,6 +18751,10 @@ fragment MonitorV2 on MonitorV2 {
 	actionRules {
 		... MonitorV2ActionRule
 	}
+	objectTags {
+		key
+		values
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -20551,6 +20564,10 @@ fragment MonitorV2 on MonitorV2 {
 	actionRules {
 		... MonitorV2ActionRule
 	}
+	objectTags {
+		key
+		values
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -21555,6 +21572,10 @@ fragment MonitorV2 on MonitorV2 {
 	actionRules {
 		... MonitorV2ActionRule
 	}
+	objectTags {
+		key
+		values
+	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
@@ -21869,6 +21890,10 @@ fragment MonitorV2 on MonitorV2 {
 	}
 	actionRules {
 		... MonitorV2ActionRule
+	}
+	objectTags {
+		key
+		values
 	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {
@@ -23674,6 +23699,10 @@ fragment MonitorV2 on MonitorV2 {
 	}
 	actionRules {
 		... MonitorV2ActionRule
+	}
+	objectTags {
+		key
+		values
 	}
 }
 fragment MonitorV2Definition on MonitorV2Definition {

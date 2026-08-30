@@ -631,6 +631,7 @@ func resourceMonitorV2() *schema.Resource {
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
 			},
+			"object_tags": objectTagsSchemaFieldOptionalNoConflict(),
 			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
@@ -953,6 +954,14 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 
 	if err := data.Set("disabled", monitor.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// monitor_v2 has no deprecated entity_tags field, so tagDiags is always empty
+	// today; kept in the usual shape in case that changes.
+	if tagDiags, err := setObjectTagsFromAPI(data, monitor.ObjectTags); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		diags = append(diags, tagDiags...)
 	}
 
 	if err := data.Set("oid", monitor.Oid().String()); err != nil {
@@ -1489,6 +1498,9 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 		input.Description = stringPtr(v.(string))
 	}
 	input.Disabled = boolPtr(data.Get("disabled").(bool))
+
+	// Always set ObjectTags, even if empty, to allow clearing tags
+	input.ObjectTags = objectTagsInputFromReader(data)
 
 	return input, diags
 }

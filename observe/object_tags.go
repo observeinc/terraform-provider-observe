@@ -41,6 +41,14 @@ func objectTagsSchemaFieldOptional() *schema.Schema {
 	}
 }
 
+// objectTagsSchemaFieldOptionalNoConflict returns object_tags for resources that never had
+// the deprecated entity_tags field, so there's nothing to declare a conflict with.
+func objectTagsSchemaFieldOptionalNoConflict() *schema.Schema {
+	s := objectTagsSchemaFieldOptional()
+	s.ConflictsWith = nil
+	return s
+}
+
 // entityTagsSchemaFieldOptional returns the deprecated entity_tags attribute for resources.
 func entityTagsSchemaFieldOptional() *schema.Schema {
 	return &schema.Schema{

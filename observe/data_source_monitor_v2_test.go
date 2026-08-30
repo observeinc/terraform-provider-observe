@@ -94,6 +94,11 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 							send_end_notifications = false
 							send_reminders_interval = "15m"
 						}
+
+						object_tags = {
+							environment = "production"
+							team        = "backend,frontend"
+						}
 					}
 
 					data "observe_user" "system" {
@@ -125,6 +130,8 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.conditions.0.compare_terms.1.column.0.column_path.0.name", "kind"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.send_end_notifications", "false"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "actions.0.send_reminders_interval", "15m0s"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "object_tags.environment", "production"),
+					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "object_tags.team", "backend,frontend"),
 				),
 			},
 		},
