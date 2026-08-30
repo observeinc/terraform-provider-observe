@@ -5245,9 +5245,10 @@ func (v *MonitorV2Action) GetCreatedDate() types.TimeScalar { return v.CreatedDa
 // time for the saveMonitorV2WithActions function. This emulates what the primitives
 // do using MonitorV2ActionInput and MonitorV2ActionRuleInput.
 //
-// One of `action` or `actionID` is required. The `actionID` references an existing
-// action (typically a shared action) or the `action` can be defined and created
-// in this input.
+// At least one of `action` or `actionID` is required. `actionID` on its own references
+// an existing action (typically a shared action) and `action` on its own is defined and
+// created here. Supplying both updates the action named by `actionID` in place, which is
+// how an inline action's definition is edited without re-creating the action.
 //
 // The remaining parameters (like `levels` and others) are to bind the
 // relationship (see saveMonitorV2Relations) to the monitor.
@@ -5570,14 +5571,13 @@ func (v *MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm)
 }
 
 type MonitorV2AnomalyRuleTemplateInput struct {
-	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
-	Frequency             *types.DurationScalar            `json:"frequency"`
-	ValueColumnName       string                           `json:"valueColumnName"`
-	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
-	NumStandardDeviations types.Int64Scalar                `json:"numStandardDeviations"`
-	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
-	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
-	SeasonalAlgorithm     *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
+	ComputationWindow   *types.DurationScalar            `json:"computationWindow,omitempty"`
+	Frequency           *types.DurationScalar            `json:"frequency"`
+	ValueColumnName     string                           `json:"valueColumnName"`
+	CompareFn           MonitorV2BoundComparisonFunction `json:"compareFn"`
+	BasicAlgorithm      *types.JsonObject                `json:"basicAlgorithm"`
+	BasicAlgorithmTyped *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
+	SeasonalAlgorithm   *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
@@ -5594,11 +5594,6 @@ func (v *MonitorV2AnomalyRuleTemplateInput) GetValueColumnName() string { return
 // GetCompareFn returns MonitorV2AnomalyRuleTemplateInput.CompareFn, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetCompareFn() MonitorV2BoundComparisonFunction {
 	return v.CompareFn
-}
-
-// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplateInput.NumStandardDeviations, and is useful for accessing the field via an interface.
-func (v *MonitorV2AnomalyRuleTemplateInput) GetNumStandardDeviations() types.Int64Scalar {
-	return v.NumStandardDeviations
 }
 
 // GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplateInput.BasicAlgorithm, and is useful for accessing the field via an interface.
@@ -5882,11 +5877,24 @@ type MonitorV2CorrelationTag struct {
 func (v *MonitorV2CorrelationTag) GetTag() string { return v.Tag }
 
 type MonitorV2CorrelationTagInput struct {
-	Tag string `json:"tag"`
+	Tag  string                            `json:"tag"`
+	Meta *MonitorV2CorrelationTagMetaInput `json:"meta"`
 }
 
 // GetTag returns MonitorV2CorrelationTagInput.Tag, and is useful for accessing the field via an interface.
 func (v *MonitorV2CorrelationTagInput) GetTag() string { return v.Tag }
+
+// GetMeta returns MonitorV2CorrelationTagInput.Meta, and is useful for accessing the field via an interface.
+func (v *MonitorV2CorrelationTagInput) GetMeta() *MonitorV2CorrelationTagMetaInput { return v.Meta }
+
+type MonitorV2CorrelationTagMetaInput struct {
+	SrcFields []MonitorV2ColumnPathInput `json:"srcFields"`
+}
+
+// GetSrcFields returns MonitorV2CorrelationTagMetaInput.SrcFields, and is useful for accessing the field via an interface.
+func (v *MonitorV2CorrelationTagMetaInput) GetSrcFields() []MonitorV2ColumnPathInput {
+	return v.SrcFields
+}
 
 // MonitorV2CountRule includes the GraphQL fields of MonitorV2CountRule requested by the fragment MonitorV2CountRule.
 type MonitorV2CountRule struct {
@@ -6198,18 +6206,22 @@ const (
 )
 
 type MonitorV2Input struct {
-	SharingRules      []MonitorSharingRuleInput        `json:"sharingRules"`
-	Disabled          *bool                            `json:"disabled,omitempty"`
-	Comment           *string                          `json:"comment"`
-	Definition        MonitorV2DefinitionInput         `json:"definition"`
-	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
-	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
-	AiTriagingMode    *MonitorV2AiTriagingMode         `json:"aiTriagingMode"`
-	Name              string                           `json:"name"`
-	IconUrl           *string                          `json:"iconUrl,omitempty"`
-	Description       *string                          `json:"description,omitempty"`
-	ManagedById       *string                          `json:"managedById,omitempty"`
-	FolderId          *string                          `json:"folderId,omitempty"`
+	SharingRules                     []MonitorSharingRuleInput        `json:"sharingRules"`
+	Disabled                         *bool                            `json:"disabled,omitempty"`
+	Comment                          *string                          `json:"comment"`
+	Definition                       MonitorV2DefinitionInput         `json:"definition"`
+	RuleKind                         MonitorV2RuleKind                `json:"ruleKind"`
+	InvestigationInfo                *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
+	AiTriagingMode                   *MonitorV2AiTriagingMode         `json:"aiTriagingMode"`
+	AiSreMaxInvestigationsPerMonitor *types.Int64Scalar               `json:"aiSreMaxInvestigationsPerMonitor"`
+	AiSreInvestigationWindowSeconds  *types.Int64Scalar               `json:"aiSreInvestigationWindowSeconds"`
+	// Object tags for organizing and categorizing monitors.
+	ObjectTags  []ObjectTagMappingInput `json:"objectTags"`
+	Name        string                  `json:"name"`
+	IconUrl     *string                 `json:"iconUrl,omitempty"`
+	Description *string                 `json:"description,omitempty"`
+	ManagedById *string                 `json:"managedById,omitempty"`
+	FolderId    *string                 `json:"folderId,omitempty"`
 }
 
 // GetSharingRules returns MonitorV2Input.SharingRules, and is useful for accessing the field via an interface.
@@ -6234,6 +6246,19 @@ func (v *MonitorV2Input) GetInvestigationInfo() *MonitorV2InvestigationInfoInput
 
 // GetAiTriagingMode returns MonitorV2Input.AiTriagingMode, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetAiTriagingMode() *MonitorV2AiTriagingMode { return v.AiTriagingMode }
+
+// GetAiSreMaxInvestigationsPerMonitor returns MonitorV2Input.AiSreMaxInvestigationsPerMonitor, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetAiSreMaxInvestigationsPerMonitor() *types.Int64Scalar {
+	return v.AiSreMaxInvestigationsPerMonitor
+}
+
+// GetAiSreInvestigationWindowSeconds returns MonitorV2Input.AiSreInvestigationWindowSeconds, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetAiSreInvestigationWindowSeconds() *types.Int64Scalar {
+	return v.AiSreInvestigationWindowSeconds
+}
+
+// GetObjectTags returns MonitorV2Input.ObjectTags, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
 
 // GetName returns MonitorV2Input.Name, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetName() string { return v.Name }
@@ -6426,14 +6451,18 @@ func (v *MonitorV2PromoteRuleInput) GetCompareColumns() []MonitorV2ColumnCompari
 // - Failed: The last error occured after the last runtime and is less than a week old.
 // - Warnings: The last warning occured after the last runtime and is less than a week old.
 // - Disabled: The monitor is not running because it is disabled by the user or by the system due to chronic failures.
+// - ClusterPassive: The monitor is not running because this cluster is the passive side of a failover pair.
+// - Initializing: An anomaly monitor whose dataset is still materializing training data; it cannot evaluate yet. initializationProgressPercent reports 0-100 warm-up progress while in this state.
 // - Running: The default state. If no other status is indicated, the monitor is running.
 type MonitorV2RollupStatus string
 
 const (
-	MonitorV2RollupStatusDisabled MonitorV2RollupStatus = "Disabled"
-	MonitorV2RollupStatusFailed   MonitorV2RollupStatus = "Failed"
-	MonitorV2RollupStatusRunning  MonitorV2RollupStatus = "Running"
-	MonitorV2RollupStatusWarnings MonitorV2RollupStatus = "Warnings"
+	MonitorV2RollupStatusDisabled       MonitorV2RollupStatus = "Disabled"
+	MonitorV2RollupStatusFailed         MonitorV2RollupStatus = "Failed"
+	MonitorV2RollupStatusRunning        MonitorV2RollupStatus = "Running"
+	MonitorV2RollupStatusWarnings       MonitorV2RollupStatus = "Warnings"
+	MonitorV2RollupStatusInitializing   MonitorV2RollupStatus = "Initializing"
+	MonitorV2RollupStatusClusterpassive MonitorV2RollupStatus = "ClusterPassive"
 )
 
 // MonitorV2Rule includes the GraphQL fields of MonitorV2Rule requested by the fragment MonitorV2Rule.
@@ -6569,12 +6598,22 @@ type MonitorV2SearchResult struct {
 func (v *MonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
 
 type MonitorV2SeasonalAlgorithmInput struct {
-	Sensitivity *MonitorV2AnomalySeasonalSensitivity `json:"sensitivity"`
+	Sensitivity   *MonitorV2AnomalySeasonalSensitivity `json:"sensitivity"`
+	DailyPeriods  *types.Int64Scalar                   `json:"dailyPeriods"`
+	WeeklyPeriods *types.Int64Scalar                   `json:"weeklyPeriods"`
 }
 
 // GetSensitivity returns MonitorV2SeasonalAlgorithmInput.Sensitivity, and is useful for accessing the field via an interface.
 func (v *MonitorV2SeasonalAlgorithmInput) GetSensitivity() *MonitorV2AnomalySeasonalSensitivity {
 	return v.Sensitivity
+}
+
+// GetDailyPeriods returns MonitorV2SeasonalAlgorithmInput.DailyPeriods, and is useful for accessing the field via an interface.
+func (v *MonitorV2SeasonalAlgorithmInput) GetDailyPeriods() *types.Int64Scalar { return v.DailyPeriods }
+
+// GetWeeklyPeriods returns MonitorV2SeasonalAlgorithmInput.WeeklyPeriods, and is useful for accessing the field via an interface.
+func (v *MonitorV2SeasonalAlgorithmInput) GetWeeklyPeriods() *types.Int64Scalar {
+	return v.WeeklyPeriods
 }
 
 // MonitorV2ServiceBinding includes the GraphQL fields of MonitorV2ServiceBinding requested by the fragment MonitorV2ServiceBinding.

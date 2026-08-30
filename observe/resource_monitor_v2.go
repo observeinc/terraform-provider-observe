@@ -1909,26 +1909,9 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	compareFn := gql.MonitorV2BoundComparisonFunction(toCamel(data.Get(fmt.Sprintf("%scompare_fn", path)).(string)))
 
-	// numStandardDeviations is required by the deployed backend on every
-	// MonitorV2AnomalyRuleTemplateInput regardless of which algorithm family
-	// the monitor uses. For basic monitors we send the user-provided value;
-	// for seasonal monitors the field is unused but still must be present, so
-	// we send a sensible default in range.
-	//
-	// Read from basic_algorithm.num_standard_deviations (canonical) first, then
-	// fall back to the deprecated top-level field for old-style configs that
-	// pair basic_algorithm {} with num_standard_deviations at the anomaly level.
-	numStdDevs := types.Int64Scalar(2)
-	if n := data.Get(fmt.Sprintf("%sbasic_algorithm.0.num_standard_deviations", path)).(int); n != 0 {
-		numStdDevs = types.Int64Scalar(n)
-	} else if n := data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int); n != 0 {
-		numStdDevs = types.Int64Scalar(n)
-	}
-
 	template = &gql.MonitorV2AnomalyRuleTemplateInput{
-		ValueColumnName:       valueColumnName,
-		CompareFn:             compareFn,
-		NumStandardDeviations: numStdDevs,
+		ValueColumnName: valueColumnName,
+		CompareFn:       compareFn,
 	}
 
 	// computationWindow is optional on the backend: when omitted, the backend picks a
@@ -1950,6 +1933,21 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 		template.SeasonalAlgorithm = seasonal
 	} else {
 		// Basic algorithm: always write basicAlgorithmTyped to the API.
+		//
+		// numStandardDeviations is required by the deployed backend on
+		// basicAlgorithmTyped when using the basic algorithm family; seasonal
+		// monitors don't use it.
+		//
+		// Read from basic_algorithm.num_standard_deviations (canonical) first, then
+		// fall back to the deprecated top-level field for old-style configs that
+		// pair basic_algorithm {} with num_standard_deviations at the anomaly level.
+		numStdDevs := types.Int64Scalar(2)
+		if n := data.Get(fmt.Sprintf("%sbasic_algorithm.0.num_standard_deviations", path)).(int); n != 0 {
+			numStdDevs = types.Int64Scalar(n)
+		} else if n := data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int); n != 0 {
+			numStdDevs = types.Int64Scalar(n)
+		}
+
 		template.BasicAlgorithmTyped = &gql.MonitorV2BasicAlgorithmInput{
 			NumStandardDeviations: numStdDevs,
 		}

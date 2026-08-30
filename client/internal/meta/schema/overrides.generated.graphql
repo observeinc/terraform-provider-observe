@@ -117,11 +117,15 @@ input LayeredCustomerMonitorGovernorInput @goModel(model:"observe/meta/metatypes
 }
 
 type LayeredCustomerMonitorV2 @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorV2") {
+    aiSreInvestigationWindowSecondsPerCustomer: Int64
+    aiSreMaxInvestigationsPerCustomer: Int64
     blockNonEmailNotifications: Boolean
     blockSlackPagerDutyActions: Boolean
 }
 
 input LayeredCustomerMonitorV2Input @goModel(model:"observe/meta/metatypes.LayeredCustomerMonitorV2Input") {
+    aiSreInvestigationWindowSecondsPerCustomer: Int64 @goField(forceResolver: true)
+    aiSreMaxInvestigationsPerCustomer: Int64 @goField(forceResolver: true)
     blockNonEmailNotifications: Boolean @goField(forceResolver: true)
     blockSlackPagerDutyActions: Boolean @goField(forceResolver: true)
 }
