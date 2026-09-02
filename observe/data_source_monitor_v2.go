@@ -566,6 +566,7 @@ func dataSourceMonitorV2() *schema.Resource {
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
 			},
+			"object_tags": objectTagsSchemaFieldComputed(),
 			"_bindings": { // internal, used for generating bindings for cross-tenant export
 				Type:        schema.TypeString,
 				Computed:    true,

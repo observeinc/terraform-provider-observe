@@ -310,6 +310,8 @@ In descending order of priority, the values are:
  - Failed: The last error occured after the last runtime and is less than a week old.
  - Warnings: The last warning occured after the last runtime and is less than a week old.
  - Disabled: The monitor is not running because it is disabled by the user or by the system due to chronic failures.
+ - ClusterPassive: The monitor is not running because this cluster is the passive side of a failover pair.
+ - Initializing: An anomaly monitor whose dataset is still materializing training data; it cannot evaluate yet. initializationProgressPercent reports 0-100 warm-up progress while in this state.
  - Running: The default state. If no other status is indicated, the monitor is running.
 """
 enum MonitorV2RollupStatus @goModel(model: "observe/meta/metatypes.MonitorV2RollupStatus") {
@@ -317,6 +319,8 @@ enum MonitorV2RollupStatus @goModel(model: "observe/meta/metatypes.MonitorV2Roll
   Failed
   Running
   Warnings
+  Initializing
+  ClusterPassive
 }
 
 """
@@ -459,11 +463,32 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     """
     governorStatus: MonitorV2GovernorStatus @goField(forceResolver: true)
     """
+    AiSreUsage reports AI SRE auto-triage investigation counts for this monitor,
+    within the active enforcement window and with that window's limit.
+    Null when aiTriagingMode is not Triage.
+
+    Detail views only: do NOT select this from a list query. It is not batched by
+    a dataloader, so every monitor costs its own COUNT over monitor_v2_alarm, and
+    a searchMonitorV2 that selects it runs one query per result. Keep it out of
+    fragments that list queries reuse, and select it in the detail query itself.
+    Adding a loader is not a drop-in fix either: each monitor's window may differ,
+    so a single IN with one cutoff cannot serve a whole batch.
+    """
+    aiSreUsage: MonitorV2AiSreUsage @goField(forceResolver: true)
+    """
     AnomalyEvaluationMetadata contains computed anomaly detection parameters
     derived from the monitor definition. Only populated for anomaly monitors,
     null for all other monitor types.
     """
     anomalyEvaluationMetadata: AnomalyEvaluationMetadata @goField(forceResolver: true)
+    """
+    InitializationProgressPercent reports an anomaly monitor's 0-100 warm-up
+    progress toward having enough materialized training data to evaluate. It is
+    non-null only when rollupStatus is Initializing (null otherwise, including
+    for all non-anomaly monitors). Computed from the same materialization check
+    that guards evaluation.
+    """
+    initializationProgressPercent: Int64 @goField(forceResolver: true)
     definition: MonitorV2Definition!
     """
     Describes the type of each of the rules in the definition (they must all be the same type).
@@ -507,6 +532,22 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     Controls whether an AI SRE investigation is automatically triggered when this monitor fires an alert.
     """
     aiTriagingMode: MonitorV2AiTriagingMode
+    """
+    Per-monitor override for the AI SRE investigation cap, counted over
+    aiSreInvestigationWindowSeconds.
+    nil = use the account-level default (currently 10); 0 = unlimited; N = cap at N per window.
+    """
+    aiSreMaxInvestigationsPerMonitor: Int64
+    """
+    Per-monitor override for the rolling window (in seconds) over which
+    aiSreMaxInvestigationsPerMonitor is counted.
+    nil = use the account-level default (currently 24h); must be greater than 0 if set.
+    """
+    aiSreInvestigationWindowSeconds: Int64
+    """
+    Object tags for organizing and categorizing monitors.
+    """
+    objectTags: [ObjectTagMapping!]! @goField(forceResolver: true)
     id: ObjectId!
     workspaceId: ObjectId!
     name: String!
@@ -533,6 +574,12 @@ input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
     ruleKind: MonitorV2RuleKind!
     investigationInfo: MonitorV2InvestigationInfoInput
     aiTriagingMode: MonitorV2AiTriagingMode
+    aiSreMaxInvestigationsPerMonitor: Int64
+    aiSreInvestigationWindowSeconds: Int64
+    """
+    Object tags for organizing and categorizing monitors.
+    """
+    objectTags: [ObjectTagMappingInput!]
     name: String!
     iconUrl: String
     description: String
@@ -722,10 +769,27 @@ type MonitorV2CorrelationTag @goModel(model: "observe/meta/metatypes.MonitorV2Co
     must not be included.
     """
     tag: String!
+    """
+    Optional resolution context for the tag (the resolved backing column path(s) it expands to).
+    Frontend only needs to provide this on input when it wants a preview of the template fields.
+    """
+    meta: MonitorV2CorrelationTagMeta
 }
 
 input MonitorV2CorrelationTagInput @goModel(model: "observe/meta/metatypes.MonitorV2CorrelationTagInput") {
     tag: String!
+    meta: MonitorV2CorrelationTagMetaInput
+}
+
+type MonitorV2CorrelationTagMeta @goModel(model: "observe/meta/metatypes.MonitorV2CorrelationTagMeta") {
+    """
+    The physical backing columns the correlation tag resolves to.
+    """
+    srcFields: [MonitorV2ColumnPath!]
+}
+
+input MonitorV2CorrelationTagMetaInput @goModel(model: "observe/meta/metatypes.MonitorV2CorrelationTagMetaInput") {
+    srcFields: [MonitorV2ColumnPathInput!]
 }
 
 
@@ -879,11 +943,6 @@ type MonitorV2AnomalyRuleTemplate @goModel(model: "observe/meta/metatypes.Monito
     """
     compareFn: MonitorV2BoundComparisonFunction!
     """
-    NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
-    be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
-    """
-    numStandardDeviations: Int64!
-    """
     BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the
     computation window of data, it will calculate the average and standard deviations and then determine
     whether the new point is out of bound. As of now, it will be of type JsonObject in anticipation to
@@ -917,7 +976,6 @@ input MonitorV2AnomalyRuleTemplateInput @goModel(model: "observe/meta/metatypes.
     frequency: Duration
     valueColumnName: String!
     compareFn: MonitorV2BoundComparisonFunction!
-    numStandardDeviations: Int64!
     basicAlgorithm: JsonObject @deprecated(reason: "Use basicAlgorithmTyped: MonitorV2BasicAlgorithmInput instead. basicAlgorithm and basicAlgorithmTyped cannot both be set on the same monitor.")
     basicAlgorithmTyped: MonitorV2BasicAlgorithmInput
     seasonalAlgorithm: MonitorV2SeasonalAlgorithmInput
@@ -951,10 +1009,37 @@ type MonitorV2SeasonalAlgorithm @goModel(model: "observe/meta/metatypes.MonitorV
     See MonitorV2AnomalySeasonalSensitivity for the exact mapping from tier to interval_width.
     """
     sensitivity: MonitorV2AnomalySeasonalSensitivity
+    """
+    Daily seasonality cycle length, in days. Optional: accepted values are
+    integers in [1, 30], or null (omit the field) to disable daily
+    seasonality. 0 is not accepted; omit the field rather than passing 0 to
+    turn the daily cycle off, so "unset" and "disabled" are the same state
+    and no daily component is fit.
+
+    1 fits a standard 24-hour cycle. Values above 1 fit a proportionally
+    longer cycle (2 = 48 h, 3 = 72 h, etc.). The training window is set to 5x
+    the largest configured period, capped at 90 days (see weeklyPeriods).
+    When both periods are omitted, the default training window is 35 days.
+    """
+    dailyPeriods: Int64
+    """
+    Weekly seasonality cycle length, in weeks. Optional: accepted values are
+    integers in [1, 4], or null (omit the field) to disable weekly
+    seasonality. 0 is not accepted; omit the field rather than passing 0 to
+    turn the weekly cycle off, so "unset" and "disabled" are the same state
+    and no weekly component is fit.
+
+    1 fits a standard 7-day cycle. Values above 1 fit a proportionally longer
+    cycle (2 = 14 days, 3 = 21 days, etc.). The training window is set to 5x
+    the configured period in days, capped at 90 days.
+    """
+    weeklyPeriods: Int64
 }
 
 input MonitorV2SeasonalAlgorithmInput @goModel(model: "observe/meta/metatypes.MonitorV2SeasonalAlgorithmInput") {
     sensitivity: MonitorV2AnomalySeasonalSensitivity
+    dailyPeriods: Int64
+    weeklyPeriods: Int64
 }
 
 """
@@ -1565,6 +1650,9 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     Context represents the set of values for which this alarm triggered. It
     uniquely identifies an alarm for a given monitor and within a given
     time range.
+
+    The group-by values the alarm fired on are dataset values, so    (OB-65908). groupingHash is a hash of them and stays loggable, which is what
+    lets logically grouped alarms still be correlated in telemetry.
     """
     context: [MonitorV2ContextEntry!]!
     """
@@ -1583,7 +1671,7 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     """
     isInvalid: Boolean!
     stats: MonitorV2AlarmActionStats @goField(forceResolver: true)
-    """The (serviceName, environment, serviceNamespace) triplet this alarm is attributed to. Null when the monitor has no service binding declared or this alarm does not resolve to a triplet; all three fields are non-null when populated."""
+    """The (serviceName, environment, serviceNamespace) triplet this alarm is attributed to. Null only when the monitor has no service binding declared; otherwise present, with any dimension that did not resolve to a value represented as an empty string."""
     resolvedServiceBinding: MonitorV2AlarmServiceBinding @goField(forceResolver: true)
 }
 
@@ -2054,12 +2142,18 @@ type RenderedTemplate @goModel(model: "observe/meta/metatypes.RenderedTemplate")
 }
 
 type RenderedEmail @goModel(model: "observe/meta/metatypes.RenderedEmail") {
+    """
+    Rendered email action.
+    """
     action: MonitorV2EmailAction!
-}
+    }
 
 type RenderedWebhook @goModel(model: "observe/meta/metatypes.RenderedWebhook") {
+    """
+    Rendered, so it carries dataset values — see RenderedEmail.action (OB-65908).
+    """
     action: MonitorV2WebhookAction!
-}
+    }
 
 type MonitorV2AlarmSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2AlarmSearchResult") {
     results: [MonitorV2Alarm!]!
@@ -2136,9 +2230,10 @@ MonitorV2ActionAndRelationInput allows for defining a relation and an optional a
 time for the saveMonitorV2WithActions function. This emulates what the primitives
 do using MonitorV2ActionInput and MonitorV2ActionRuleInput.
 
-One of `action` or `actionID` is required. The `actionID` references an existing
-action (typically a shared action) or the `action` can be defined and created
-in this input.
+At least one of `action` or `actionID` is required. `actionID` on its own references
+an existing action (typically a shared action) and `action` on its own is defined and
+created here. Supplying both updates the action named by `actionID` in place, which is
+how an inline action's definition is edited without re-creating the action.
 
 The remaining parameters (like `levels` and others) are to bind the
 relationship (see saveMonitorV2Relations) to the monitor.
@@ -2215,6 +2310,24 @@ type MonitorV2GovernorUsage @goModel(model: "observe/meta/metatypes.MonitorV2Gov
     usageWindow: Duration!
 }
 
+"""
+MonitorV2AiSreUsage describes AI SRE auto-triage investigation counts for a monitor.
+"""
+type MonitorV2AiSreUsage @goModel(model: "observe/meta/metatypes.MonitorV2AiSreUsage") {
+    """
+    Number of AI SRE investigations dispatched within the enforcement window.
+    """
+    investigationsInWindow: Int64!
+    """
+    Per-monitor investigation cap for the window. 0 means unlimited.
+    """
+    limit: Int64!
+    """
+    The enforcement window duration over which investigationsInWindow is counted.
+    """
+    window: Duration!
+}
+
 type MonitorV2ContextEntry @goModel(model: "observe/meta/metatypes.MonitorV2ContextEntry") {
     """
     Column information for the context entry.
@@ -2222,11 +2335,12 @@ type MonitorV2ContextEntry @goModel(model: "observe/meta/metatypes.MonitorV2Cont
     column: MonitorV2Column!
     """
     Value of this context entry for which the alarm triggered.
+
     """
     value: String!
-}
+    }
 
 input MonitorV2ContextEntryInput @goModel(model: "observe/meta/metatypes.MonitorV2ContextEntryInput") {
     column: MonitorV2ColumnInput!
     value: String!
-}
+    }

@@ -631,6 +631,7 @@ func resourceMonitorV2() *schema.Resource {
 				},
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
 			},
+			"object_tags": objectTagsSchemaFieldOptionalNoConflict(),
 			// the following fields are those that aren't given as input to CU ops, but can be read by R ops.
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
@@ -953,6 +954,14 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 
 	if err := data.Set("disabled", monitor.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// monitor_v2 has no deprecated entity_tags field, so tagDiags is always empty
+	// today; kept in the usual shape in case that changes.
+	if tagDiags, err := setObjectTagsFromAPI(data, monitor.ObjectTags); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		diags = append(diags, tagDiags...)
 	}
 
 	if err := data.Set("oid", monitor.Oid().String()); err != nil {
@@ -1490,6 +1499,9 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	}
 	input.Disabled = boolPtr(data.Get("disabled").(bool))
 
+	// Always set ObjectTags, even if empty, to allow clearing tags
+	input.ObjectTags = objectTagsInputFromReader(data)
+
 	return input, diags
 }
 
@@ -1909,26 +1921,9 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 	valueColumnName := data.Get(fmt.Sprintf("%svalue_column_name", path)).(string)
 	compareFn := gql.MonitorV2BoundComparisonFunction(toCamel(data.Get(fmt.Sprintf("%scompare_fn", path)).(string)))
 
-	// numStandardDeviations is required by the deployed backend on every
-	// MonitorV2AnomalyRuleTemplateInput regardless of which algorithm family
-	// the monitor uses. For basic monitors we send the user-provided value;
-	// for seasonal monitors the field is unused but still must be present, so
-	// we send a sensible default in range.
-	//
-	// Read from basic_algorithm.num_standard_deviations (canonical) first, then
-	// fall back to the deprecated top-level field for old-style configs that
-	// pair basic_algorithm {} with num_standard_deviations at the anomaly level.
-	numStdDevs := types.Int64Scalar(2)
-	if n := data.Get(fmt.Sprintf("%sbasic_algorithm.0.num_standard_deviations", path)).(int); n != 0 {
-		numStdDevs = types.Int64Scalar(n)
-	} else if n := data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int); n != 0 {
-		numStdDevs = types.Int64Scalar(n)
-	}
-
 	template = &gql.MonitorV2AnomalyRuleTemplateInput{
-		ValueColumnName:       valueColumnName,
-		CompareFn:             compareFn,
-		NumStandardDeviations: numStdDevs,
+		ValueColumnName: valueColumnName,
+		CompareFn:       compareFn,
 	}
 
 	// computationWindow is optional on the backend: when omitted, the backend picks a
@@ -1950,6 +1945,21 @@ func newMonitorV2AnomalyRuleTemplateInput(path string, data *schema.ResourceData
 		template.SeasonalAlgorithm = seasonal
 	} else {
 		// Basic algorithm: always write basicAlgorithmTyped to the API.
+		//
+		// numStandardDeviations is required by the deployed backend on
+		// basicAlgorithmTyped when using the basic algorithm family; seasonal
+		// monitors don't use it.
+		//
+		// Read from basic_algorithm.num_standard_deviations (canonical) first, then
+		// fall back to the deprecated top-level field for old-style configs that
+		// pair basic_algorithm {} with num_standard_deviations at the anomaly level.
+		numStdDevs := types.Int64Scalar(2)
+		if n := data.Get(fmt.Sprintf("%sbasic_algorithm.0.num_standard_deviations", path)).(int); n != 0 {
+			numStdDevs = types.Int64Scalar(n)
+		} else if n := data.Get(fmt.Sprintf("%snum_standard_deviations", path)).(int); n != 0 {
+			numStdDevs = types.Int64Scalar(n)
+		}
+
 		template.BasicAlgorithmTyped = &gql.MonitorV2BasicAlgorithmInput{
 			NumStandardDeviations: numStdDevs,
 		}

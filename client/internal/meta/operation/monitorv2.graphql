@@ -347,6 +347,11 @@ fragment MonitorV2 on MonitorV2 {
     actionRules {
         ...MonitorV2ActionRule
     }
+    # @genqlient(typename: "ObjectTagMapping")
+    objectTags {
+        key
+        values
+    }
 }
 
 # definitions of monitorv2 CRUD ops

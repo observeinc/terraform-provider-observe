@@ -1992,3 +1992,136 @@ func TestAccObserveMonitorV2AnomalySeasonal(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveMonitorV2ObjectTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								filter true
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+
+						object_tags = {
+							environment = "production"
+							team        = "backend,frontend"
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "object_tags.environment", "production"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "object_tags.team", "backend,frontend"),
+				),
+			},
+			{
+				// Update object_tags
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								filter true
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+
+						object_tags = {
+							environment = "staging,production"
+							region      = "us-west-2"
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "object_tags.environment", "production,staging"), // Backend sorts alphabetically
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "object_tags.region", "us-west-2"),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.team"),
+				),
+			},
+			{
+				// Clear object_tags
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "first" {
+						workspace = data.observe_workspace.default.oid
+						rule_kind = "count"
+						name = "%[1]s"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = <<-EOF
+								filter true
+							EOF
+						}
+						rules {
+							level = "informational"
+							count {
+								compare_values {
+									compare_fn = "greater"
+									value_int64 = [0]
+								}
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.environment"),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.region"),
+				),
+			},
+		},
+	})
+}
