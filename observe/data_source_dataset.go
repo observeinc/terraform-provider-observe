@@ -215,5 +215,11 @@ func dataSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta 
 		}
 		data.Set("correlation_tag", cts)
 	}
+
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceDataset().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return
 }

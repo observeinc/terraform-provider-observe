@@ -65,5 +65,15 @@ func dataSourceBoardRead(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	data.SetId(board.Id)
-	return boardToResourceData(board, data)
+	diags := boardToResourceData(board, data)
+	if diags.HasError() {
+		return diags
+	}
+
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceBoard().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	return diags
 }

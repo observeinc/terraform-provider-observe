@@ -359,3 +359,74 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 		},
 	})
 }
+
+func TestAccObserveSourceDashboard_ExportMode(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	// Provider with export_mode = true escapes HCL template markers in string
+	// attribute values so that the exported state is valid HCL configuration.
+	providerPreamble := `
+		terraform {} # trick the testing framework into not mangling our config
+		provider "observe" {
+			export_mode = true
+		}
+	`
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
+					data "observe_oid" "dataset" {
+						oid = observe_datastream.test.dataset
+					}
+
+					resource "observe_dashboard" "with_markers" {
+						workspace   = data.observe_workspace.default.oid
+						name        = "%[1]s"
+						description = "unresolved $${app.sqs.poll-delay-ms} is a startup param"
+						stages = <<-EOF
+						[{
+							"pipeline": "filter contains(message, \"$${\")\ncolmake cpu_used: value - lag(value, 1)",
+							"input": [{
+								"inputName": "test",
+								"inputRole": "Data",
+								"datasetId": "${data.observe_oid.dataset.id}"
+							}]
+						}]
+						EOF
+						layout = jsonencode({})
+					}
+
+					data "observe_dashboard" "lookup" {
+						id = observe_dashboard.with_markers.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					// description: ${...} → $${...}
+					resource.TestCheckResourceAttr(
+						"data.observe_dashboard.lookup", "description",
+						"unresolved $${app.sqs.poll-delay-ms} is a startup param",
+					),
+					// stages: verify ${ is escaped in the JSON blob
+					// (%{ escaping is covered by unit tests — a literal %{
+					// cannot survive a heredoc→API round-trip without being
+					// consumed as an HCL template directive)
+					resource.TestCheckResourceAttrWith("data.observe_dashboard.lookup", "stages", func(val string) error {
+						if !strings.Contains(val, `$${`) {
+							return fmt.Errorf("stages should contain escaped $${} markers, got: %s", val)
+						}
+						return nil
+					}),
+					// name: no markers, stays unchanged
+					resource.TestCheckResourceAttr(
+						"data.observe_dashboard.lookup", "name",
+						randomPrefix,
+					),
+				),
+			},
+		},
+	})
+}
+

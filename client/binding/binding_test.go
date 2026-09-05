@@ -189,6 +189,67 @@ func TestGenerateWithArrays(t *testing.T) {
 	}
 }
 
+// TestSanitizeIdentifierStableUnderEscaping verifies that escaping HCL template
+// markers in a name does not shift the sanitized identifier. This is critical
+// because sanitizeIdentifier determines resource addresses, import commands, and
+// local-variable names — a change here would silently rename resources across
+// all exported configs. The stability relies on replaceInvalid using a `+`
+// quantifier (runs of invalid characters collapse to one underscore), so both
+// `${` and `$${` collapse identically.
+func TestSanitizeIdentifierStableUnderEscaping(t *testing.T) {
+	tests := []struct {
+		name     string
+		raw      string // name before escaping
+		escaped  string // name after escaping
+		expected string // expected sanitized result (same for both)
+	}{
+		{
+			name:     "interpolation marker",
+			raw:      "a ${b} c",
+			escaped:  "a $${b} c",
+			expected: "a_b_c",
+		},
+		{
+			name:     "directive marker",
+			raw:      "a %{if x}y%{endif} z",
+			escaped:  "a %%{if x}y%%{endif} z",
+			expected: "a_if_x_y_endif_z",
+		},
+		{
+			name:     "env-style name",
+			raw:      "my ${env}-monitor",
+			escaped:  "my $${env}-monitor",
+			expected: "my_env_-monitor",
+		},
+		{
+			name:     "already-escaped",
+			raw:      "a $${b} c",
+			escaped:  "a $$${b} c",
+			expected: "a_b_c",
+		},
+		{
+			name:     "no markers",
+			raw:      "plain-name_123",
+			escaped:  "plain-name_123",
+			expected: "plain-name_123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotRaw := sanitizeIdentifier(tt.raw)
+			gotEscaped := sanitizeIdentifier(tt.escaped)
+			if gotRaw != gotEscaped {
+				t.Errorf("sanitizeIdentifier diverges:\n  raw(%q)     = %q\n  escaped(%q) = %q",
+					tt.raw, gotRaw, tt.escaped, gotEscaped)
+			}
+			if gotRaw != tt.expected {
+				t.Errorf("sanitizeIdentifier(%q) = %q, want %q", tt.raw, gotRaw, tt.expected)
+			}
+		})
+	}
+}
+
 func TestInsertBindingsObjectJson(t *testing.T) {
 	g := prepareGeneratorFixture()
 	g.TryBindId(KindDataset, dataset1Id)

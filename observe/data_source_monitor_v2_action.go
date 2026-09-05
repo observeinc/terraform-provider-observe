@@ -199,6 +199,12 @@ func dataSourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceDat
 		return diags
 	}
 
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceMonitorV2Action().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if client.ExportObjectBindings {
 		if err := generateMonitorV2ActionBindings(ctx, act, data, client); err != nil {
 			return diag.FromErr(err)
