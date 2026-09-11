@@ -39,7 +39,8 @@ func resourceSnowflakeOutboundShare() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "A descriptive name for the share. This will be included in the Snowflake share name.",
+				ForceNew:    true,
+				Description: "A descriptive name for the share. This will be included in the Snowflake share name. Changing this value forces a new resource to be created.",
 			},
 			"description": {
 				Type:        schema.TypeString,

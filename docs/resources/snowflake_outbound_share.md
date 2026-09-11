@@ -15,7 +15,7 @@ Manages an outbound Snowflake share, which allows you to share datasets with an 
 ### Required
 
 - `account` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--account))
-- `name` (String) A descriptive name for the share. This will be included in the Snowflake share name.
+- `name` (String) A descriptive name for the share. This will be included in the Snowflake share name. Changing this value forces a new resource to be created.
 
 ### Optional
 
