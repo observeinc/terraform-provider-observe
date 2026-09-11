@@ -4,8 +4,7 @@ page_title: "observe_ingest_route Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
   A non-default ingest route that sends matching observations to a source dataset.
-
-  Terraform does not manage route layout. The route create API always creates disabled routes. When `enabled` is true, the provider enables the new route with a follow-up update before reading state. Default routes and routes managed by another Observe object are not supported as Terraform resources.
+  Terraform does not manage route layout. The route create API always creates disabled routes. When enabled is true, the provider enables the new route with a follow-up update before reading state. Default routes and routes managed by another Observe object are not supported as Terraform resources.
 ---
 # observe_ingest_route
 
@@ -35,7 +34,7 @@ resource "observe_ingest_route" "logs_copy" {
 
 - `destination_id` (String) The primary source dataset ID that receives matching observations.
 - `pipeline` (String) A non-empty OPAL match predicate. Empty pipelines identify default routes and are not supported.
-- `type` (String) The observation type for this route. Changing it creates a replacement route. Accepted values: `otellogs`, `otelmetrics`, `oteltraces`, `prometheus`, `k8sentity`, `any`.
+- `type` (String) The observation type for this route. Changing it creates a replacement route. Accepted values: `otellogs`, `otelmetrics`, `oteltraces`, `prometheus`, `k8sentity`, `any`
 
 ### Optional
 
@@ -44,6 +43,7 @@ resource "observe_ingest_route" "logs_copy" {
 
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `route_id` (String) The route ID. Use this value with `type` when configuring `observe_ingest_route_order`.
 ## Import
 Import is supported using the following syntax:

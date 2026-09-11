@@ -3,9 +3,8 @@
 page_title: "observe_ingest_route_order Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Manages the priority prefix for non-default, unmanaged ingest routes of one type. The configured `route_ids` run first. Undeclared non-default routes keep their existing relative order after that prefix.
-
-  The provider excludes managed routes from ordering requests and includes the default route last. Terraform does not manage route layout. Reference `observe_ingest_route.<name>.route_id` when the same configuration creates a route. Destroying this resource does not change route priority.
+  Manages the priority prefix for non-default, unmanaged ingest routes of one type. The configured route_ids run first. Undeclared non-default routes keep their existing relative order after that prefix.
+  The provider excludes managed routes from ordering requests and includes the default route last. Terraform does not manage route layout. Reference observe_ingest_route.<name>.route_id when the same configuration creates a route. Destroying this resource does not change route priority.
 ---
 # observe_ingest_route_order
 
@@ -35,7 +34,11 @@ resource "observe_ingest_route_order" "logs" {
 ### Required
 
 - `route_ids` (List of String) Route IDs, in highest-to-lowest priority order. Each must identify an existing non-default, unmanaged route of this type.
-- `type` (String) The observation type whose route order is managed. Changing it creates a replacement resource. Accepted values: `otellogs`, `otelmetrics`, `oteltraces`, `prometheus`, `k8sentity`, `any`.
+- `type` (String) The observation type whose route order is managed. Changing it creates a replacement resource. Accepted values: `otellogs`, `otelmetrics`, `oteltraces`, `prometheus`, `k8sentity`, `any`
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 ## Import
 Import is supported using the following syntax:
 ```shell
