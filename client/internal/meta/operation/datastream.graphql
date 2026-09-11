@@ -5,6 +5,23 @@ fragment Datastream on Datastream {
 	description
 	workspaceId
 	datasetId
+	directWrite {
+		prometheus {
+			datasetId
+		}
+		otelLogs {
+			datasetId
+		}
+		otelMetrics {
+			datasetId
+		}
+		k8sEntity {
+			datasetId
+		}
+		otelTrace {
+			spanDatasetId
+		}
+	}
 }
 
 mutation createDatastream($workspaceId: ObjectId!, $datastream: DatastreamInput!) {

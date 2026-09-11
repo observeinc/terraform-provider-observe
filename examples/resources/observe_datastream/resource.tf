@@ -5,4 +5,5 @@ data "observe_workspace" "default" {
 resource "observe_datastream" "example" {
   workspace = data.observe_workspace.default.oid
   name      = "My Datastream"
+  type      = "OtelLogs"
 }

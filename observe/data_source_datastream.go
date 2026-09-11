@@ -61,6 +61,11 @@ func dataSourceDatastream() *schema.Resource {
 				Computed:    true,
 				Description: schemaDatastreamDatasetDescription,
 			},
+			"type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDatastreamTypeDescription,
+			},
 		},
 	}
 }
@@ -98,5 +103,5 @@ func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, me
 		return
 	}
 	data.SetId(d.Id)
-	return datastreamToResourceData(d, data)
+	return resourceDatastreamToResourceData(d, data)
 }
