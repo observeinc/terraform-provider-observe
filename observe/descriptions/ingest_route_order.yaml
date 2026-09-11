@@ -1,0 +1,10 @@
+description:
+  |-
+  Manages the priority prefix for non-default, unmanaged ingest routes of one type. The configured `route_ids` run first. Undeclared non-default routes keep their existing relative order after that prefix.
+
+  The provider excludes managed routes from ordering requests and includes the default route last. Terraform does not manage route layout. Reference `observe_ingest_route.<name>.route_id` when the same configuration creates a route. Destroying this resource does not change route priority.
+schema:
+  type:
+    The observation type whose route order is managed. Changing it creates a replacement resource.
+  route_ids:
+    Route IDs, in highest-to-lowest priority order. Each must identify an existing non-default, unmanaged route of this type.

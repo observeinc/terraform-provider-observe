@@ -271,6 +271,8 @@ func Provider() *schema.Provider {
 			"observe_report":                     resourceReport(),
 			"observe_service_account":            resourceServiceAccount(),
 			"observe_drop_filter":                resourceDropFilter(),
+			"observe_ingest_route":               resourceIngestRoute(),
+			"observe_ingest_route_order":         resourceIngestRouteOrder(),
 			"observe_ingest_token":               resourceIngestToken(),
 			"observe_inbound_share_table":        resourceInboundShareTable(),
 			"observe_skill":                      resourceSkill(),
