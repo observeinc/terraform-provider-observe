@@ -17,7 +17,7 @@ const (
 	schemaDatastreamNameDescription        = "Datastream name. Must be unique within workspace."
 	schemaDatastreamDescriptionDescription = "Datastream description."
 	schemaDatastreamIconDescription        = "Icon image."
-	schemaDatastreamTypeDescription        = "Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Changing this value forces Terraform to create a new datastream."
+	schemaDatastreamTypeDescription        = "Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Omitting this value creates an `Any` type datastream. Changing this value forces Terraform to create a new datastream."
 	schemaDatastreamOIDDescription         = "The Observe ID for datastream."
 	schemaDatastreamDatasetDescription     = "The Observe ID for datastream origin dataset."
 )

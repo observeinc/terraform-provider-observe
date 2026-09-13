@@ -38,4 +38,4 @@ data "observe_datastream" "example" {
 - `description` (String) Datastream description.
 - `icon_url` (String) Icon image.
 - `oid` (String) The Observe ID for datastream.
-- `type` (String) Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Changing this value forces Terraform to create a new datastream.
+- `type` (String) Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Omitting this value creates an `Any` type datastream. Changing this value forces Terraform to create a new datastream.
