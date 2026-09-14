@@ -118,7 +118,7 @@ func TestDatastreamToResourceDataMapsDirectWriteType(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.typeName, func(t *testing.T) {
 			data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{})
-			diags := resourceDatastreamToResourceData(&gql.Datastream{
+			diags := datastreamToResourceData(&gql.Datastream{
 				Id:          "41030001",
 				Name:        "typed",
 				WorkspaceId: "41030002",
@@ -136,7 +136,7 @@ func TestDatastreamToResourceDataMapsDirectWriteType(t *testing.T) {
 
 func TestDatastreamToResourceDataLeavesUntypedTypeUnset(t *testing.T) {
 	data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "untyped",
 		WorkspaceId: "41030002",
@@ -153,7 +153,7 @@ func TestDatastreamToResourceDataPreservesTypeWhenDirectWriteIsOmitted(t *testin
 	data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{
 		"type": "OtelLogs",
 	})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "legacy",
 		WorkspaceId: "41030002",
@@ -170,7 +170,7 @@ func TestDatastreamToResourceDataPreservesTypeForMultiTypeDatastream(t *testing.
 	data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{
 		"type": "OtelLogs",
 	})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "legacy",
 		WorkspaceId: "41030002",
@@ -191,7 +191,7 @@ func TestDatastreamToResourceDataPreservesTypeForEmptyDirectWrite(t *testing.T) 
 	data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{
 		"type": "OtelLogs",
 	})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "legacy",
 		WorkspaceId: "41030002",
@@ -220,7 +220,7 @@ func TestDatastreamToResourceDataUsesDirectWriteDataset(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{})
-			diags := resourceDatastreamToResourceData(&gql.Datastream{
+			diags := datastreamToResourceData(&gql.Datastream{
 				Id:          "41030001",
 				Name:        "typed",
 				WorkspaceId: "41030002",
@@ -239,7 +239,7 @@ func TestDatastreamToResourceDataUsesDirectWriteDataset(t *testing.T) {
 func TestDatastreamToResourceDataPrefersTopLevelDataset(t *testing.T) {
 	topLevelDataset := "41030020"
 	data := schema.TestResourceDataRaw(t, resourceDatastream().Schema, map[string]interface{}{})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "typed",
 		WorkspaceId: "41030002",
@@ -258,7 +258,7 @@ func TestDatastreamToResourceDataPrefersTopLevelDataset(t *testing.T) {
 
 func TestDatastreamToResourceDataSupportsTypedDataSourceSchema(t *testing.T) {
 	data := schema.TestResourceDataRaw(t, dataSourceDatastream().Schema, map[string]interface{}{})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "typed",
 		WorkspaceId: "41030002",
@@ -276,7 +276,7 @@ func TestDatastreamToResourceDataSupportsTypedDataSourceSchema(t *testing.T) {
 
 func TestDatastreamToResourceDataLeavesMultiTypeDataSourceReadable(t *testing.T) {
 	data := schema.TestResourceDataRaw(t, dataSourceDatastream().Schema, map[string]interface{}{})
-	diags := resourceDatastreamToResourceData(&gql.Datastream{
+	diags := datastreamToResourceData(&gql.Datastream{
 		Id:          "41030001",
 		Name:        "invalid",
 		WorkspaceId: "41030002",

@@ -103,5 +103,5 @@ func dataSourceDatastreamRead(ctx context.Context, data *schema.ResourceData, me
 		return
 	}
 	data.SetId(d.Id)
-	return resourceDatastreamToResourceData(d, data)
+	return datastreamToResourceData(d, data)
 }

@@ -17,7 +17,7 @@ const (
 	schemaDatastreamNameDescription        = "Datastream name. Must be unique within workspace."
 	schemaDatastreamDescriptionDescription = "Datastream description."
 	schemaDatastreamIconDescription        = "Icon image."
-	schemaDatastreamTypeDescription        = "Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Omitting this value creates an `Any` type datastream. Changing this value forces Terraform to create a new datastream."
+	schemaDatastreamTypeDescription        = "Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`."
 	schemaDatastreamOIDDescription         = "The Observe ID for datastream."
 	schemaDatastreamDatasetDescription     = "The Observe ID for datastream origin dataset."
 )
@@ -66,7 +66,7 @@ func resourceDatastream() *schema.Resource {
 				Computed:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateStringInSlice(datastreamTypes, false),
-				Description:      schemaDatastreamTypeDescription,
+				Description:      schemaDatastreamTypeDescription + " Omitting `type` during initial creation creates an `Any` type datastream. Removing `type` from an existing resource's configuration retains its current type; it does not convert it to `Any`. Explicitly changing `type` forces Terraform to create a new datastream.",
 			},
 			"oid": {
 				Type:        schema.TypeString,
@@ -154,11 +154,6 @@ func datastreamToResourceData(d *gql.Datastream, data *schema.ResourceData) (dia
 		}
 	}
 
-	return diags
-}
-
-func resourceDatastreamToResourceData(d *gql.Datastream, data *schema.ResourceData) (diags diag.Diagnostics) {
-	diags = datastreamToResourceData(d, data)
 	if typeName := datastreamDirectWriteType(d.DirectWrite); typeName != "" {
 		if err := data.Set("type", typeName); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -251,7 +246,7 @@ func resourceDatastreamRead(ctx context.Context, data *schema.ResourceData, meta
 		})
 	}
 
-	return resourceDatastreamToResourceData(result, data)
+	return datastreamToResourceData(result, data)
 }
 
 func resourceDatastreamUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -273,7 +268,7 @@ func resourceDatastreamUpdate(ctx context.Context, data *schema.ResourceData, me
 		return diags
 	}
 
-	return resourceDatastreamToResourceData(result, data)
+	return datastreamToResourceData(result, data)
 }
 
 func resourceDatastreamDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
