@@ -31,6 +31,7 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Acceptance tests
+        id: acceptance_tests
         run: make testacc
         env:
           # Environment variables for configuring the provider
@@ -56,6 +57,7 @@ jobs:
           files: test-report.xml
           comment_mode: 'off'
           check_name: report
+          fail_on: ${{ steps.acceptance_tests.outcome == 'success' && 'nothing' || 'test failures' }}
       - name: Collect failed tests
         id: failed_tests
         if: failure()
