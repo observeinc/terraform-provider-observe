@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	observeclient "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
@@ -35,6 +36,37 @@ func TestIngestRouteOrderImportID(t *testing.T) {
 	}
 	if len(imported) != 1 || imported[0].Get("type") != "otellogs" {
 		t.Fatalf("unexpected imported state %#v", imported)
+	}
+}
+
+func TestCheckImportedIngestRouteOrderAcceptsAdditionalRemoteRoutes(t *testing.T) {
+	expectedRouteIDs := []string{"secondary", "primary"}
+	check := checkImportedIngestRouteOrder(&expectedRouteIDs)
+	states := []*terraform.InstanceState{{
+		Attributes: map[string]string{
+			"route_ids.#": "3",
+			"route_ids.0": "secondary",
+			"route_ids.1": "primary",
+			"route_ids.2": "tenant-route",
+		},
+	}}
+	if err := check(states); err != nil {
+		t.Fatalf("check imported route order: %v", err)
+	}
+}
+
+func TestCheckImportedIngestRouteOrderRejectsSwappedPrefix(t *testing.T) {
+	expectedRouteIDs := []string{"secondary", "primary"}
+	check := checkImportedIngestRouteOrder(&expectedRouteIDs)
+	states := []*terraform.InstanceState{{
+		Attributes: map[string]string{
+			"route_ids.#": "2",
+			"route_ids.0": "primary",
+			"route_ids.1": "secondary",
+		},
+	}}
+	if err := check(states); err == nil {
+		t.Fatal("expected swapped route order error")
 	}
 }
 
@@ -135,7 +167,11 @@ func TestResourceIngestRouteCreateEnablesConfiguredRoute(t *testing.T) {
 		}{method: request.Method, body: body})
 		writer.Header().Set("Content-Type", "application/json")
 		switch request.Method {
-		case http.MethodPost, http.MethodPatch, http.MethodGet:
+		case http.MethodPost:
+			writer.WriteHeader(http.StatusCreated)
+			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","enabled":false}`))
+		case http.MethodPatch, http.MethodGet:
+			writer.WriteHeader(http.StatusOK)
 			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","enabled":true}`))
 		default:
 			t.Errorf("unexpected method %s", request.Method)
@@ -162,6 +198,9 @@ func TestResourceIngestRouteCreateEnablesConfiguredRoute(t *testing.T) {
 	if len(requests) != 3 {
 		t.Fatalf("requests = %d, want 3", len(requests))
 	}
+	if got, want := []string{requests[0].method, requests[1].method, requests[2].method}, []string{http.MethodPost, http.MethodPatch, http.MethodGet}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("request sequence = %v, want %v", got, want)
+	}
 	if _, ok := requests[0].body["enabled"]; ok {
 		t.Errorf("create request contains enabled: %#v", requests[0].body)
 	}
@@ -171,15 +210,20 @@ func TestResourceIngestRouteCreateEnablesConfiguredRoute(t *testing.T) {
 }
 
 func TestResourceIngestRouteCreateLeavesDisabledRouteUnpatched(t *testing.T) {
-	requestCount := 0
+	requests := make([]string, 0, 2)
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		requestCount++
-		if request.Method == http.MethodPatch {
-			t.Errorf("disabled route must not be patched after creation")
-			return
-		}
+		requests = append(requests, request.Method)
 		writer.Header().Set("Content-Type", "application/json")
-		_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","enabled":false}`))
+		switch request.Method {
+		case http.MethodPost:
+			writer.WriteHeader(http.StatusCreated)
+			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","enabled":false}`))
+		case http.MethodGet:
+			writer.WriteHeader(http.StatusOK)
+			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","enabled":false}`))
+		default:
+			t.Errorf("unexpected method %s", request.Method)
+		}
 	}))
 	defer server.Close()
 
@@ -193,8 +237,69 @@ func TestResourceIngestRouteCreateLeavesDisabledRouteUnpatched(t *testing.T) {
 	if diags := resourceIngestRouteCreate(context.Background(), data, client); diags.HasError() {
 		t.Fatalf("create disabled ingest route: %v", diags)
 	}
-	if requestCount != 2 {
-		t.Errorf("requests = %d, want POST then GET", requestCount)
+	if want := []string{http.MethodPost, http.MethodGet}; !reflect.DeepEqual(requests, want) {
+		t.Errorf("request sequence = %v, want %v", requests, want)
+	}
+}
+
+func TestResourceIngestRouteCreateUsesDefaultEnabledAndSendsSecondaryDestination(t *testing.T) {
+	requests := make([]struct {
+		method string
+		body   map[string]interface{}
+	}, 0, 3)
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		var body map[string]interface{}
+		if request.Method != http.MethodGet {
+			if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+				t.Errorf("decode request body: %v", err)
+				return
+			}
+		}
+		requests = append(requests, struct {
+			method string
+			body   map[string]interface{}
+		}{method: request.Method, body: body})
+		writer.Header().Set("Content-Type", "application/json")
+		switch request.Method {
+		case http.MethodPost:
+			writer.WriteHeader(http.StatusCreated)
+			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","secondaryDestinationId":"41008888","enabled":false}`))
+		case http.MethodPatch, http.MethodGet:
+			writer.WriteHeader(http.StatusOK)
+			_, _ = writer.Write([]byte(`{"id":"41030001","type":"otellogs","pipeline":"filter true","destinationId":"41007777","secondaryDestinationId":"41008888","enabled":true}`))
+		default:
+			t.Errorf("unexpected method %s", request.Method)
+		}
+	}))
+	defer server.Close()
+
+	data := schema.TestResourceDataRaw(t, resourceIngestRoute().Schema, map[string]interface{}{
+		"type":                     "otellogs",
+		"pipeline":                 "filter true",
+		"destination_id":           "41007777",
+		"secondary_destination_id": "41008888",
+	})
+	client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+	if diags := resourceIngestRouteCreate(context.Background(), data, client); diags.HasError() {
+		t.Fatalf("create ingest route: %v", diags)
+	}
+	if len(requests) != 3 {
+		t.Fatalf("requests = %d, want 3", len(requests))
+	}
+	if got, want := []string{requests[0].method, requests[1].method, requests[2].method}, []string{http.MethodPost, http.MethodPatch, http.MethodGet}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("request sequence = %v, want %v", got, want)
+	}
+	if _, ok := requests[0].body["enabled"]; ok {
+		t.Errorf("create request contains enabled: %#v", requests[0].body)
+	}
+	if _, ok := requests[0].body["layout"]; ok {
+		t.Errorf("create request contains layout: %#v", requests[0].body)
+	}
+	if got, want := requests[0].body["secondaryDestinationId"], "41008888"; got != want {
+		t.Errorf("secondaryDestinationId = %#v, want %q", got, want)
+	}
+	if requests[1].method != http.MethodPatch || requests[1].body["enabled"] != true {
+		t.Errorf("enable request = %#v, want PATCH enabled=true", requests[1])
 	}
 }
 
@@ -279,6 +384,49 @@ func TestResourceIngestRouteUpdateClearsSecondaryDestination(t *testing.T) {
 	}
 }
 
+func TestResourceIngestRouteDelete(t *testing.T) {
+	for _, testCase := range []struct {
+		name       string
+		statusCode int
+		body       string
+		wantError  bool
+		wantID     string
+	}{
+		{name: "success", statusCode: http.StatusNoContent, wantID: ""},
+		{name: "json not found", statusCode: http.StatusNotFound, body: `{"message":"missing"}`, wantID: ""},
+		{name: "empty not found", statusCode: http.StatusNotFound, wantID: ""},
+		{name: "server error", statusCode: http.StatusInternalServerError, body: `{"message":"failed"}`, wantError: true, wantID: "otellogs/41030001"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				if request.Method != http.MethodDelete {
+					t.Errorf("method = %s, want DELETE", request.Method)
+				}
+				if request.URL.Path != "/v1/ingest/routes/otellogs/41030001" {
+					t.Errorf("delete path = %q, want exact item path", request.URL.Path)
+				}
+				if testCase.body != "" {
+					writer.Header().Set("Content-Type", "application/json")
+				}
+				writer.WriteHeader(testCase.statusCode)
+				_, _ = writer.Write([]byte(testCase.body))
+			}))
+			defer server.Close()
+
+			data := schema.TestResourceDataRaw(t, resourceIngestRoute().Schema, map[string]interface{}{})
+			data.SetId("otellogs/41030001")
+			client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+			diags := resourceIngestRouteDelete(context.Background(), data, client)
+			if diags.HasError() != testCase.wantError {
+				t.Errorf("delete diagnostics = %v, want error = %t", diags, testCase.wantError)
+			}
+			if got := data.Id(); got != testCase.wantID {
+				t.Errorf("state ID = %q, want %q", got, testCase.wantID)
+			}
+		})
+	}
+}
+
 func TestResourceIngestRouteOrderReadUsesConfiguredType(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/v1/ingest/routes/otellogs" {
@@ -328,6 +476,40 @@ func TestResourceIngestRouteReadKeepsValidatedTypeWhenResponseOmitsType(t *testi
 	}
 	if requestCount != 2 {
 		t.Errorf("read requests = %d, want 2", requestCount)
+	}
+}
+
+func TestResourceIngestRouteReadClearsNotFoundState(t *testing.T) {
+	for _, testCase := range []struct {
+		name string
+		body string
+	}{
+		{name: "json", body: `{"message":"missing"}`},
+		{name: "empty body"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				if request.URL.Path != "/v1/ingest/routes/otellogs/41030001" {
+					t.Errorf("route path = %q, want exact item path", request.URL.Path)
+				}
+				if testCase.body != "" {
+					writer.Header().Set("Content-Type", "application/json")
+				}
+				writer.WriteHeader(http.StatusNotFound)
+				_, _ = writer.Write([]byte(testCase.body))
+			}))
+			defer server.Close()
+
+			data := schema.TestResourceDataRaw(t, resourceIngestRoute().Schema, map[string]interface{}{})
+			data.SetId("otellogs/41030001")
+			client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+			if diags := resourceIngestRouteRead(context.Background(), data, client); diags.HasError() {
+				t.Fatalf("read ingest route: %v", diags)
+			}
+			if data.Id() != "" {
+				t.Errorf("state ID = %q, want cleared", data.Id())
+			}
+		})
 	}
 }
 
@@ -465,6 +647,26 @@ func TestResourceIngestRouteOrderReadDropsMissingManagedAndDefaultConfiguredRout
 	}
 	if got, want := makeStrSlice(data.Get("route_ids").([]interface{})), []string{"configured"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("route_ids = %v, want %v", got, want)
+	}
+}
+
+func TestResourceIngestRouteOrderReadAllowsNoEligibleRoutes(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write([]byte(`{"ingestRoutes":[{"id":"managed","pipeline":"filter true","managedBy":{"id":"manager"}},{"id":"default","pipeline":""}]}`))
+	}))
+	defer server.Close()
+
+	data := schema.TestResourceDataRaw(t, resourceIngestRouteOrder().Schema, map[string]interface{}{
+		"type":      "otellogs",
+		"route_ids": []interface{}{"configured"},
+	})
+	client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+	if diags := resourceIngestRouteOrderRead(context.Background(), data, client); diags.HasError() {
+		t.Fatalf("read route order: %v", diags)
+	}
+	if got := makeStrSlice(data.Get("route_ids").([]interface{})); len(got) != 0 {
+		t.Errorf("route_ids = %v, want empty", got)
 	}
 }
 
@@ -622,5 +824,65 @@ func TestResourceIngestRouteOrderReconcileRetriesBadOrderingAfterRelist(t *testi
 	}
 	if got, want := secondOrdering, []string{"configured", "concurrent", "other", "default"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("retry ordering = %v, want %v", got, want)
+	}
+}
+
+func TestResourceIngestRouteOrderReconcileStopsAfterMaxBadRequests(t *testing.T) {
+	patchRequests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		switch request.Method {
+		case http.MethodGet:
+			_, _ = writer.Write([]byte(`{"ingestRoutes":[{"id":"configured","pipeline":"filter true"},{"id":"default","pipeline":""}]}`))
+		case http.MethodPatch:
+			patchRequests++
+			writer.WriteHeader(http.StatusBadRequest)
+			_, _ = writer.Write([]byte(`{"message":"bad ordering"}`))
+		default:
+			t.Errorf("method = %s, want GET or PATCH", request.Method)
+		}
+	}))
+	defer server.Close()
+
+	data := schema.TestResourceDataRaw(t, resourceIngestRouteOrder().Schema, map[string]interface{}{
+		"type":      "otellogs",
+		"route_ids": []interface{}{"configured"},
+	})
+	client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+	if diags := resourceIngestRouteOrderReconcile(context.Background(), data, client); !diags.HasError() {
+		t.Fatal("expected ordering failure diagnostic")
+	}
+	if patchRequests != maxOrderingAttempts {
+		t.Errorf("PATCH requests = %d, want %d", patchRequests, maxOrderingAttempts)
+	}
+}
+
+func TestResourceIngestRouteOrderReconcileDoesNotRetryServerError(t *testing.T) {
+	patchRequests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		switch request.Method {
+		case http.MethodGet:
+			_, _ = writer.Write([]byte(`{"ingestRoutes":[{"id":"configured","pipeline":"filter true"},{"id":"default","pipeline":""}]}`))
+		case http.MethodPatch:
+			patchRequests++
+			writer.WriteHeader(http.StatusInternalServerError)
+			_, _ = writer.Write([]byte(`{"message":"failed"}`))
+		default:
+			t.Errorf("method = %s, want GET or PATCH", request.Method)
+		}
+	}))
+	defer server.Close()
+
+	data := schema.TestResourceDataRaw(t, resourceIngestRouteOrder().Schema, map[string]interface{}{
+		"type":      "otellogs",
+		"route_ids": []interface{}{"configured"},
+	})
+	client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
+	if diags := resourceIngestRouteOrderReconcile(context.Background(), data, client); !diags.HasError() {
+		t.Fatal("expected ordering failure diagnostic")
+	}
+	if patchRequests != 1 {
+		t.Errorf("PATCH requests = %d, want 1", patchRequests)
 	}
 }

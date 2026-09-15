@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -39,6 +41,9 @@ func TestIngestRouteClient(t *testing.T) {
 		case r.Method == http.MethodGet:
 			_, _ = w.Write([]byte(`{"ingestRoutes": [` + ingestRouteJSON + `]}`))
 		case r.Method == http.MethodDelete:
+			if r.URL.Path != "/v1/ingest/routes/otellogs/41030001" {
+				t.Errorf("delete path = %q, want route item path", r.URL.Path)
+			}
 			w.WriteHeader(http.StatusNoContent)
 		default:
 			t.Errorf("unexpected method %s", r.Method)
@@ -119,6 +124,55 @@ func TestUpdateIngestRoutePrioritiesPreservesBadRequestStatus(t *testing.T) {
 	if !HasStatusCode(err, http.StatusBadRequest) {
 		t.Fatalf("priority update error = %v, want HTTP 400", err)
 	}
+}
+
+func TestResponseWrapperPreservesStatusForErrorBodies(t *testing.T) {
+	for _, testCase := range []struct {
+		name        string
+		statusCode  int
+		body        string
+		wantMessage string
+	}{
+		{name: "empty", statusCode: http.StatusInternalServerError, wantMessage: "internal server error"},
+		{name: "plain text", statusCode: http.StatusServiceUnavailable, body: "  temporarily unavailable\n", wantMessage: "temporarily unavailable"},
+		{name: "html", statusCode: http.StatusBadGateway, body: "<html>upstream error</html>", wantMessage: "<html>upstream error</html>"},
+		{name: "json empty message", statusCode: http.StatusBadRequest, body: `{"message":""}`, wantMessage: "bad request"},
+		{name: "json message", statusCode: http.StatusConflict, body: `{"message":"route already exists"}`, wantMessage: "route already exists"},
+		{name: "nonstandard empty", statusCode: 599, wantMessage: "http error"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			body := &closeTrackingReadCloser{Reader: bytes.NewBufferString(testCase.body)}
+			response := &http.Response{
+				StatusCode: testCase.statusCode,
+				Body:       body,
+			}
+
+			_, err := responseWrapper(response, nil)
+			if !body.closed {
+				t.Error("response body was not closed")
+			}
+			var statusError ErrorWithStatusCode
+			if !errors.As(err, &statusError) {
+				t.Fatalf("wrapped error = %v, want ErrorWithStatusCode", err)
+			}
+			if statusError.StatusCode != testCase.statusCode {
+				t.Errorf("status code = %d, want HTTP %d", statusError.StatusCode, testCase.statusCode)
+			}
+			if got := statusError.Err.Error(); got != testCase.wantMessage {
+				t.Errorf("message = %q, want %q", got, testCase.wantMessage)
+			}
+		})
+	}
+}
+
+type closeTrackingReadCloser struct {
+	io.Reader
+	closed bool
+}
+
+func (reader *closeTrackingReadCloser) Close() error {
+	reader.closed = true
+	return nil
 }
 
 const ingestRouteJSON = `{"id":"41030001","type":"otellogs","pipeline":"filter true","layout":{"x":"server-only"},"destinationId":"41007777","secondaryDestinationId":"41008888","enabled":true,"managedBy":null}`
