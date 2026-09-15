@@ -53,6 +53,64 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 	})
 }
 
+// Verify the data source reads back the new content-model fields (schema_version and
+// definition) for a schema_version >= 2 dashboard.
+func TestAccObserveSourceDashboardRest(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					resource "observe_dashboard" "rest" {
+						name           = "%[1]s"
+						schema_version = 2
+						definition = jsonencode({
+							layout = {
+								sections = [
+									{
+										title = "Overview"
+										cards = []
+									},
+								]
+							}
+						})
+					}
+
+					data "observe_dashboard" "lookup" {
+						id = observe_dashboard.rest.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "schema_version", "2"),
+					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "definition"),
+					// The legacy content fields are empty for a new-model dashboard.
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "stages", ""),
+					resource.TestCheckResourceAttrWith("data.observe_dashboard.lookup", "definition", func(val string) error {
+						var def struct {
+							Layout struct {
+								Sections []struct {
+									Title string `json:"title"`
+								} `json:"sections"`
+							} `json:"layout"`
+						}
+						if err := json.Unmarshal([]byte(val), &def); err != nil {
+							return err
+						}
+						if len(def.Layout.Sections) != 1 || def.Layout.Sections[0].Title != "Overview" {
+							return fmt.Errorf("definition did not round-trip through the data source: %s", val)
+						}
+						return nil
+					}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 

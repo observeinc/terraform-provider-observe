@@ -3,11 +3,46 @@ package observe
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
+
+// TestValidateDashboardSchemaVersion is a pure unit test (no TF_ACC needed) for the
+// alpha warning attached to schema_version: it must emit a warning only when the value
+// is >= 2, and must never produce an error diagnostic.
+func TestValidateDashboardSchemaVersion(t *testing.T) {
+	cases := map[string]struct {
+		in       int
+		wantWarn bool
+	}{
+		"unset/zero":  {0, false},
+		"v1-explicit": {1, false},
+		"v2-alpha":    {2, true},
+		"v3":          {3, true},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			diags := validateDashboardSchemaVersion(tc.in, cty.Path{})
+			if diags.HasError() {
+				t.Fatalf("schema_version=%d: unexpected error diagnostics: %#v", tc.in, diags)
+			}
+			gotWarn := false
+			for _, d := range diags {
+				if d.Severity == diag.Warning {
+					gotWarn = true
+				}
+			}
+			if gotWarn != tc.wantWarn {
+				t.Fatalf("schema_version=%d: got warning=%v, want %v", tc.in, gotWarn, tc.wantWarn)
+			}
+		})
+	}
+}
 
 var (
 	dashboardConfigPreamble = `
@@ -3308,6 +3343,234 @@ func TestAccObserveDashboardImport_CorrelationTagParameter(t *testing.T) {
 				ResourceName:      "observe_dashboard.with_correlation_tag",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// dashboardRestConfig renders a schema_version = 2 dashboard whose content is carried
+// entirely by `definition`. The document shape (a layout of titled sections holding
+// placed cards) mirrors the content model the dashboards REST API accepts; a single
+// self-contained markdown card avoids any dataset dependency. `title` lets a caller
+// mutate the definition between steps to exercise the REST PATCH update path.
+func dashboardRestConfig(name, title string) string {
+	return fmt.Sprintf(`
+	resource "observe_dashboard" "rest" {
+		name           = "%[1]s"
+		description    = "%[1]s description"
+		schema_version = 2
+		definition = jsonencode({
+			layout = {
+				sections = [
+					{
+						title = "%[2]s"
+						cards = [
+							{
+								type     = "markdown"
+								geometry = { x = 0, y = 0, w = 12, h = 3 }
+								markdown = { title = "Welcome", body = "# %[1]s\n\nManaged by Terraform." }
+							},
+						]
+					},
+				]
+			}
+		})
+	}
+	`, name, title)
+}
+
+// dashboardRestSectionTitle unmarshals a dashboard definition and returns the title of
+// its single layout section, so tests can assert the definition round-trips through the
+// REST create/PATCH paths and the GraphQL read.
+func dashboardRestSectionTitle(val string) (string, error) {
+	var def struct {
+		Layout struct {
+			Sections []struct {
+				Title string `json:"title"`
+			} `json:"sections"`
+		} `json:"layout"`
+	}
+	if err := json.Unmarshal([]byte(val), &def); err != nil {
+		return "", fmt.Errorf("failed to parse definition JSON: %w", err)
+	}
+	if len(def.Layout.Sections) != 1 {
+		return "", fmt.Errorf("expected 1 section in definition, got %d: %s", len(def.Layout.Sections), val)
+	}
+	return def.Layout.Sections[0].Title, nil
+}
+
+// Verify we can create and update a schema_version >= 2 dashboard. Create routes through
+// the REST POST and update routes through the REST PATCH; both are followed by a
+// GraphQL read. The intervening PlanOnly steps assert there is no perpetual diff (the
+// legacy content fields must stay empty for a new-model dashboard), and the final step
+// exercises `terraform import`.
+func TestAccObserveDashboardRestCreate(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// schema_version = 2 routes create through the REST API.
+				Config: dashboardRestConfig(randomPrefix, "Overview"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "name", randomPrefix),
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "schema_version", "2"),
+					resource.TestCheckResourceAttrSet("observe_dashboard.rest", "definition"),
+					resource.TestCheckResourceAttrSet("observe_dashboard.rest", "oid"),
+					// Legacy content fields must stay empty for a new-model dashboard.
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "stages", ""),
+					resource.TestCheckResourceAttrWith("observe_dashboard.rest", "definition", func(val string) error {
+						title, err := dashboardRestSectionTitle(val)
+						if err != nil {
+							return err
+						}
+						if title != "Overview" {
+							return fmt.Errorf("definition did not round-trip: section title = %q, want %q", title, "Overview")
+						}
+						return nil
+					}),
+				),
+			},
+			// Re-applying the same config must not produce drift.
+			testAccPlanOnlyNoDriftStep(dashboardRestConfig(randomPrefix, "Overview")),
+			{
+				// Changing only `definition` routes the update through REST PATCH.
+				Config: dashboardRestConfig(randomPrefix, "Overview Updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "schema_version", "2"),
+					resource.TestCheckResourceAttrWith("observe_dashboard.rest", "definition", func(val string) error {
+						title, err := dashboardRestSectionTitle(val)
+						if err != nil {
+							return err
+						}
+						if title != "Overview Updated" {
+							return fmt.Errorf("definition update did not round-trip: section title = %q, want %q", title, "Overview Updated")
+						}
+						return nil
+					}),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(dashboardRestConfig(randomPrefix, "Overview Updated")),
+			{
+				// Changing only `name` also routes the update through REST PATCH.
+				Config: dashboardRestConfig(randomPrefix+"-renamed", "Overview Updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "name", randomPrefix+"-renamed"),
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "schema_version", "2"),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(dashboardRestConfig(randomPrefix+"-renamed", "Overview Updated")),
+			{
+				ResourceName:      "observe_dashboard.rest",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Verify the legacy/new content-model split is enforced client-side (in CustomizeDiff):
+// a schema_version >= 2 dashboard is described entirely by `definition` and must not
+// also set the legacy content fields.
+func TestAccObserveDashboardRestConflictsWithStages(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_dashboard" "rest" {
+					name           = "%[1]s"
+					schema_version = 2
+					definition     = jsonencode({ layout = { sections = [] } })
+					stages = <<-EOF
+					[{
+						"pipeline": "filter field = \"cpu_usage_core_seconds\"",
+						"input": [{
+							"inputName": "kubernetes/metrics/Container Metrics",
+							"inputRole": "Data",
+							"datasetId": "41042989"
+						}]
+					}]
+					EOF
+				}
+				`, randomPrefix),
+				ExpectError: regexp.MustCompile(`'stages' must not be set when schema_version >= 2`),
+			},
+		},
+	})
+}
+
+// Verify that schema_version >= 2 requires `definition` to be set.
+func TestAccObserveDashboardRestRequiresDefinition(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "observe_dashboard" "rest" {
+					name           = "%[1]s"
+					schema_version = 2
+				}
+				`, randomPrefix),
+				ExpectError: regexp.MustCompile(`schema_version >= 2 requires 'definition' to be set`),
+			},
+		},
+	})
+}
+
+// Verify object_tags create and update for a schema_version >= 2 dashboard, mirroring
+// TestAccObserveDashboardObjectTags for the REST create/PATCH paths.
+func TestAccObserveDashboardRestObjectTags(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	restConfigWithTags := func(objectTags string) string {
+		return fmt.Sprintf(`
+		resource "observe_dashboard" "rest" {
+			name           = "%[1]s"
+			schema_version = 2
+			definition = jsonencode({
+				layout = {
+					sections = []
+				}
+			})
+			object_tags = {
+				%[2]s
+			}
+		}
+		`, randomPrefix, objectTags)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: restConfigWithTags(`
+					team       = "platform"
+					visibility = "public,internal" # Will be sorted to "internal,public" by backend
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "object_tags.team", "platform"),
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "object_tags.visibility", "internal,public"), // Backend sorts alphabetically
+				),
+			},
+			{
+				// Update object_tags through REST PATCH.
+				Config: restConfigWithTags(`
+					team = "platform,sre"
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dashboard.rest", "object_tags.team", "platform,sre"),
+					resource.TestCheckNoResourceAttr("observe_dashboard.rest", "object_tags.visibility"),
+				),
 			},
 		},
 	})

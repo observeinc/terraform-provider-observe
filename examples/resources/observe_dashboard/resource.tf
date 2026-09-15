@@ -38,3 +38,40 @@ resource "observe_dashboard" "example" {
     visibility = "public,internal"
   }
 }
+
+# A schema_version = 2 dashboard is described entirely by a single JSON
+# `definition` document: a layout of titled sections holding placed cards. It is
+# created and updated through the REST API, and `stages`, `layout`, and
+# `parameters` must not be set. Updates send only the fields that changed
+# (merge-patch semantics).
+#
+# Alpha: managing a dashboard through `definition` (schema_version >= 2) is an alpha
+# feature that must be enabled for your account and may change in
+# backwards-incompatible ways. Not recommended for production dashboards.
+resource "observe_dashboard" "example_rest" {
+  name           = "example-rest"
+  schema_version = 2
+  definition = jsonencode({
+    layout = {
+      sections = [
+        {
+          title = "Overview"
+          cards = [
+            {
+              type     = "markdown"
+              geometry = { x = 0, y = 0, w = 12, h = 3 }
+              markdown = {
+                title = "Welcome"
+                body  = "# Service overview\n\nManaged by Terraform."
+              }
+            },
+          ]
+        },
+      ]
+    }
+  })
+
+  object_tags = {
+    team = "platform"
+  }
+}
