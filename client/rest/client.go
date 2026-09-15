@@ -61,17 +61,33 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
+const maxErrorResponseBodyBytes = 4 * 1024
+
 func responseWrapper(resp *http.Response, err error) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
 	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
 		defer resp.Body.Close()
-		var errResponse errorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&errResponse); err != nil {
-			return nil, fmt.Errorf("got status code %d, but failed to decode error message: %w", resp.StatusCode, err)
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, maxErrorResponseBodyBytes))
+		message := ""
+		if readErr == nil {
+			var errResponse errorResponse
+			jsonBody := json.Unmarshal(body, &errResponse) == nil
+			if jsonBody {
+				message = strings.TrimSpace(errResponse.Message)
+			}
+			if !jsonBody {
+				message = strings.TrimSpace(string(body))
+			}
 		}
-		return nil, ErrorWithStatusCode{StatusCode: resp.StatusCode, Err: errors.New(errResponse.Message)}
+		if message == "" {
+			message = strings.ToLower(http.StatusText(resp.StatusCode))
+		}
+		if message == "" {
+			message = "http error"
+		}
+		return nil, ErrorWithStatusCode{StatusCode: resp.StatusCode, Err: errors.New(message)}
 	}
 	return resp, nil
 }
