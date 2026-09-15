@@ -2122,12 +2122,13 @@ func (v *DatasetTypedefInput) GetLinkDesc() *DatasetLinkSchemaInput { return v.L
 
 // Datastream includes the GraphQL fields of Datastream requested by the fragment Datastream.
 type Datastream struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	IconUrl     *string `json:"iconUrl"`
-	Description *string `json:"description"`
-	WorkspaceId string  `json:"workspaceId"`
-	DatasetId   *string `json:"datasetId"`
+	Id          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	IconUrl     *string                `json:"iconUrl"`
+	Description *string                `json:"description"`
+	WorkspaceId string                 `json:"workspaceId"`
+	DatasetId   *string                `json:"datasetId"`
+	DirectWrite *DatastreamDirectWrite `json:"directWrite"`
 }
 
 // GetId returns Datastream.Id, and is useful for accessing the field via an interface.
@@ -2148,12 +2149,123 @@ func (v *Datastream) GetWorkspaceId() string { return v.WorkspaceId }
 // GetDatasetId returns Datastream.DatasetId, and is useful for accessing the field via an interface.
 func (v *Datastream) GetDatasetId() *string { return v.DatasetId }
 
+// GetDirectWrite returns Datastream.DirectWrite, and is useful for accessing the field via an interface.
+func (v *Datastream) GetDirectWrite() *DatastreamDirectWrite { return v.DirectWrite }
+
+// DatastreamDirectWrite includes the requested fields of the GraphQL type DatastreamDirectWrite.
+type DatastreamDirectWrite struct {
+	Prometheus  *DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus `json:"prometheus"`
+	OtelLogs    *DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo             `json:"otelLogs"`
+	OtelMetrics *DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo          `json:"otelMetrics"`
+	K8sEntity   *DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo            `json:"k8sEntity"`
+	OtelTrace   *DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace   `json:"otelTrace"`
+}
+
+// GetPrometheus returns DatastreamDirectWrite.Prometheus, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWrite) GetPrometheus() *DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus {
+	return v.Prometheus
+}
+
+// GetOtelLogs returns DatastreamDirectWrite.OtelLogs, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWrite) GetOtelLogs() *DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo {
+	return v.OtelLogs
+}
+
+// GetOtelMetrics returns DatastreamDirectWrite.OtelMetrics, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWrite) GetOtelMetrics() *DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo {
+	return v.OtelMetrics
+}
+
+// GetK8sEntity returns DatastreamDirectWrite.K8sEntity, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWrite) GetK8sEntity() *DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo {
+	return v.K8sEntity
+}
+
+// GetOtelTrace returns DatastreamDirectWrite.OtelTrace, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWrite) GetOtelTrace() *DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace {
+	return v.OtelTrace
+}
+
+type DatastreamDirectWriteInput struct {
+	Prometheus  *bool `json:"prometheus"`
+	OtelLogs    *bool `json:"otelLogs"`
+	OtelMetrics *bool `json:"otelMetrics"`
+	K8sEntity   *bool `json:"k8sEntity"`
+	OtelTrace   *bool `json:"otelTrace"`
+}
+
+// GetPrometheus returns DatastreamDirectWriteInput.Prometheus, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteInput) GetPrometheus() *bool { return v.Prometheus }
+
+// GetOtelLogs returns DatastreamDirectWriteInput.OtelLogs, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteInput) GetOtelLogs() *bool { return v.OtelLogs }
+
+// GetOtelMetrics returns DatastreamDirectWriteInput.OtelMetrics, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteInput) GetOtelMetrics() *bool { return v.OtelMetrics }
+
+// GetK8sEntity returns DatastreamDirectWriteInput.K8sEntity, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteInput) GetK8sEntity() *bool { return v.K8sEntity }
+
+// GetOtelTrace returns DatastreamDirectWriteInput.OtelTrace, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteInput) GetOtelTrace() *bool { return v.OtelTrace }
+
+// DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo includes the requested fields of the GraphQL type DatastreamDirectWriteInfo.
+type DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo struct {
+	DatasetId string `json:"datasetId"`
+}
+
+// GetDatasetId returns DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo.DatasetId, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteK8sEntityDatastreamDirectWriteInfo) GetDatasetId() string {
+	return v.DatasetId
+}
+
+// DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo includes the requested fields of the GraphQL type DatastreamDirectWriteInfo.
+type DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo struct {
+	DatasetId string `json:"datasetId"`
+}
+
+// GetDatasetId returns DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo.DatasetId, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteOtelLogsDatastreamDirectWriteInfo) GetDatasetId() string {
+	return v.DatasetId
+}
+
+// DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo includes the requested fields of the GraphQL type DatastreamDirectWriteInfo.
+type DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo struct {
+	DatasetId string `json:"datasetId"`
+}
+
+// GetDatasetId returns DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo.DatasetId, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteOtelMetricsDatastreamDirectWriteInfo) GetDatasetId() string {
+	return v.DatasetId
+}
+
+// DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace includes the requested fields of the GraphQL type DatastreamDirectWriteInfoOtelTrace.
+type DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace struct {
+	SpanDatasetId string `json:"spanDatasetId"`
+}
+
+// GetSpanDatasetId returns DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace.SpanDatasetId, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWriteOtelTraceDatastreamDirectWriteInfoOtelTrace) GetSpanDatasetId() string {
+	return v.SpanDatasetId
+}
+
+// DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus includes the requested fields of the GraphQL type DatastreamDirectWriteInfoPrometheus.
+type DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus struct {
+	DatasetId string `json:"datasetId"`
+}
+
+// GetDatasetId returns DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus.DatasetId, and is useful for accessing the field via an interface.
+func (v *DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus) GetDatasetId() string {
+	return v.DatasetId
+}
+
 type DatastreamInput struct {
-	Name             string  `json:"name"`
-	Description      *string `json:"description"`
-	IconUrl          *string `json:"iconUrl"`
-	Disabled         *bool   `json:"disabled"`
-	ExternalSourceId *string `json:"externalSourceId"`
+	Name             string                      `json:"name"`
+	Description      *string                     `json:"description"`
+	IconUrl          *string                     `json:"iconUrl"`
+	Disabled         *bool                       `json:"disabled"`
+	ExternalSourceId *string                     `json:"externalSourceId"`
+	DirectWrite      *DatastreamDirectWriteInput `json:"directWrite"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -2170,6 +2282,9 @@ func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
 
 // GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
+
+// GetDirectWrite returns DatastreamInput.DirectWrite, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetDirectWrite() *DatastreamDirectWriteInput { return v.DirectWrite }
 
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
@@ -14406,6 +14521,23 @@ fragment Datastream on Datastream {
 	description
 	workspaceId
 	datasetId
+	directWrite {
+		prometheus {
+			datasetId
+		}
+		otelLogs {
+			datasetId
+		}
+		otelMetrics {
+			datasetId
+		}
+		k8sEntity {
+			datasetId
+		}
+		otelTrace {
+			spanDatasetId
+		}
+	}
 }
 `
 
@@ -17986,6 +18118,23 @@ fragment Datastream on Datastream {
 	description
 	workspaceId
 	datasetId
+	directWrite {
+		prometheus {
+			datasetId
+		}
+		otelLogs {
+			datasetId
+		}
+		otelMetrics {
+			datasetId
+		}
+		k8sEntity {
+			datasetId
+		}
+		otelTrace {
+			spanDatasetId
+		}
+	}
 }
 `
 
@@ -20292,6 +20441,23 @@ fragment Datastream on Datastream {
 	description
 	workspaceId
 	datasetId
+	directWrite {
+		prometheus {
+			datasetId
+		}
+		otelLogs {
+			datasetId
+		}
+		otelMetrics {
+			datasetId
+		}
+		k8sEntity {
+			datasetId
+		}
+		otelTrace {
+			spanDatasetId
+		}
+	}
 }
 `
 
@@ -23075,6 +23241,23 @@ fragment Datastream on Datastream {
 	description
 	workspaceId
 	datasetId
+	directWrite {
+		prometheus {
+			datasetId
+		}
+		otelLogs {
+			datasetId
+		}
+		otelMetrics {
+			datasetId
+		}
+		k8sEntity {
+			datasetId
+		}
+		otelTrace {
+			spanDatasetId
+		}
+	}
 }
 `
 
