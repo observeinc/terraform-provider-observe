@@ -122,6 +122,7 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
     externalSourceId: ObjectId
+    directWrite: DatastreamDirectWrite @goField(forceResolver:true)
 
 
 }
@@ -132,6 +133,7 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     iconUrl: String
     disabled: Boolean
     externalSourceId: ObjectId
+    directWrite: DatastreamDirectWriteInput
 
 
 }
