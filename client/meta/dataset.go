@@ -36,16 +36,40 @@ func (client *Client) SaveDataset(ctx context.Context, workspaceId string, input
 	return datasetOrError(resp.DatasetSaveResult, err)
 }
 
-// SaveDatasetDryRun saves a dataset with pre-flight checks - this is useful when rematerialization_mode is set to "skip_rematerialization"
-func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) (*DatasetDryRunSaveResult, error) {
+// dryRunDependencyHandling is the dependency handling shared by every preflight (dry-run)
+// save: validate the dataset and its dependencies without committing anything, and evaluate
+// the change as a skip-rematerialization save so the backend can report what such a save
+// would dematerialize.
+func dryRunDependencyHandling() *DependencyHandlingInput {
 	saveMode := SaveModePreflightDatasetAndDependencies
 	rematerializationMode := RematerializationModeSkiprematerialization
-	dependencyHandling := &DependencyHandlingInput{
+	return &DependencyHandlingInput{
 		SaveMode:              &saveMode,
 		RematerializationMode: &rematerializationMode,
 	}
+}
 
-	resp, err := saveDatasetDryRun(ctx, client.Gql, workspaceId, *input, *queryInput, dependencyHandling)
+// SaveDatasetDryRun validates a dataset save without committing it. An invalid dataset (bad
+// OPAL, for instance) comes back as an error.
+//
+// It asks for the validation outcome and nothing else. Callers that need to know which
+// datasets the save would dematerialize must use SaveDatasetDryRunWithRematerialization, which
+// is materially more expensive.
+func (client *Client) SaveDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) (*DatasetDryRunSaveResult, error) {
+	resp, err := saveDatasetDryRun(ctx, client.Gql, workspaceId, *input, *queryInput, dryRunDependencyHandling())
+	if err != nil {
+		return nil, err
+	}
+	return resp.DatasetSaveResult, nil
+}
+
+// SaveDatasetDryRunWithRematerialization is SaveDatasetDryRun plus the list of datasets the
+// save would dematerialize.
+//
+// Requesting that list makes the backend walk the transformer graph synchronously, which
+// measured ~11.5s per call on a large tenant, so call this only when the result is acted on.
+func (client *Client) SaveDatasetDryRunWithRematerialization(ctx context.Context, workspaceId string, input *DatasetInput, queryInput *MultiStageQueryInput) (*DatasetDryRunRematerializationSaveResult, error) {
+	resp, err := saveDatasetDryRunWithRematerialization(ctx, client.Gql, workspaceId, *input, *queryInput, dryRunDependencyHandling())
 	if err != nil {
 		return nil, err
 	}
@@ -121,16 +145,11 @@ func (client *Client) SaveLogDerivedMetricDataset(ctx context.Context, workspace
 	return resp.DatasetSaveResult.Dataset, nil
 }
 
-// SaveLogDerivedMetricDatasetDryRun performs a preflight check for a log-derived metric dataset save.
+// SaveLogDerivedMetricDatasetDryRun validates a log-derived metric dataset save without
+// committing it. Like SaveDatasetDryRun it requests the validation outcome only; no caller
+// reads a dematerialization list for this resource.
 func (client *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, workspaceId string, input *DatasetInput, ldmInput *LogDerivedMetricDefinitionInput) (*DatasetDryRunSaveResult, error) {
-	saveMode := SaveModePreflightDatasetAndDependencies
-	rematerializationMode := RematerializationModeSkiprematerialization
-	dependencyHandling := &DependencyHandlingInput{
-		SaveMode:              &saveMode,
-		RematerializationMode: &rematerializationMode,
-	}
-
-	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *ldmInput, dependencyHandling)
+	resp, err := saveLogDerivedMetricDatasetDryRun(ctx, client.Gql, workspaceId, *input, *ldmInput, dryRunDependencyHandling())
 	if err != nil {
 		return nil, err
 	}
