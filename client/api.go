@@ -104,6 +104,25 @@ func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta
 	return c.Meta.SaveDatasetDryRun(ctx, wsid, input, queryInput)
 }
 
+// SaveDatasetDryRunWithRematerialization is SaveDatasetDryRun plus the list of datasets the
+// save would dematerialize. It costs a synchronous transformer graph walk in the backend, so
+// use SaveDatasetDryRun unless that list is acted on.
+func (c *Client) SaveDatasetDryRunWithRematerialization(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) (*meta.DatasetDryRunRematerializationSaveResult, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+
+	if c.Config.Source != nil {
+		input.Source = c.Config.Source
+	}
+	if c.Config.ManagingObjectID != nil {
+		input.ManagedById = c.Config.ManagingObjectID
+	}
+
+	return c.Meta.SaveDatasetDryRunWithRematerialization(ctx, wsid, input, queryInput)
+}
+
 // DeleteDataset by ID
 func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 	if !c.Flags[flagObs2110] {

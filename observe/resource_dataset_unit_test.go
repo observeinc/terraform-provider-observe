@@ -1,10 +1,13 @@
 package observe
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/internal/gqltest"
 )
 
 // TestFlattenAndSetQueryStageInput tests that flattenAndSetQuery correctly
@@ -192,6 +195,59 @@ func TestFlattenAndSetQueryStageInput(t *testing.T) {
 				if got != want {
 					t.Errorf("stage[%d].input = %q, want %q", i, got, want)
 				}
+			}
+		})
+	}
+}
+
+// TestDryRunDematerializedDatasets checks the rematerialization_mode gate on the preflight
+// ("dry run") save: only must_skip_rematerialization, the one mode that acts on the
+// dematerialization list, may ask the backend to compute it. The backend answers that request
+// with a synchronous transformer graph walk, and a plan issues one preflight per dataset, so
+// asking for it under the other modes is pure cost.
+//
+// The stub always reports a dematerialized dataset, which lets each case assert what the caller
+// actually gets: the guard still sees the list under must_skip_rematerialization, and the other
+// modes see an empty list because they never requested the field.
+func TestDryRunDematerializedDatasets(t *testing.T) {
+	const response = `{"data":{"datasetSaveResult":{"errorDatasets":[],` +
+		`"dematerializedDatasets":[{"dataset":{"id":"41000001","name":"downstream"}}]}}}`
+
+	for _, tt := range []struct {
+		mode                       TerraformRematerializationMode
+		wantDematerializedDatasets bool
+	}{
+		{mode: RematerializationModeRematerialize, wantDematerializedDatasets: false},
+		{mode: RematerializationModeSkipRematerialization, wantDematerializedDatasets: false},
+		{mode: RematerializationModeMustSkipRematerialization, wantDematerializedDatasets: true},
+	} {
+		t.Run(string(tt.mode), func(t *testing.T) {
+			recorder := gqltest.New(t, response)
+			client := &observe.Client{
+				Config: &observe.Config{},
+				Meta:   &gql.Client{Gql: recorder.Client()},
+			}
+
+			dematerializedDatasets, err := dryRunDematerializedDatasets(
+				context.Background(),
+				client,
+				"41000215",
+				&gql.DatasetInput{},
+				&gql.MultiStageQueryInput{},
+				tt.mode,
+			)
+			if err != nil {
+				t.Fatalf("dryRunDematerializedDatasets(%s): %s", tt.mode, err)
+			}
+
+			request := recorder.OnlyRequest()
+			if got := request.RequestedFields(t)["dematerializedDatasets"]; got != tt.wantDematerializedDatasets {
+				t.Errorf("%s: preflight requests dematerializedDatasets = %t, want %t\noperation:\n%s",
+					tt.mode, got, tt.wantDematerializedDatasets, request.Query)
+			}
+			if got := len(dematerializedDatasets) > 0; got != tt.wantDematerializedDatasets {
+				t.Errorf("%s: got %d dematerialized datasets, want any = %t",
+					tt.mode, len(dematerializedDatasets), tt.wantDematerializedDatasets)
 			}
 		})
 	}

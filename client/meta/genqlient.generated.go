@@ -1491,8 +1491,12 @@ const (
 	DatasetDefinitionTypeLogderivedmetric DatasetDefinitionType = "LogDerivedMetric"
 )
 
-// DatasetDryRunSaveResult includes the GraphQL fields of DatasetSaveResult requested by the fragment DatasetDryRunSaveResult.
-type DatasetDryRunSaveResult struct {
+// DatasetDryRunRematerializationSaveResult adds the list of datasets a save would
+// dematerialize. Only rematerialization_mode = must_skip_rematerialization reads it, to turn a
+// non-empty list into a hard error. See the comment on DatasetDryRunSaveResult for the cost.
+type DatasetDryRunRematerializationSaveResult struct {
+	// Information about errors that occur in the affected, and/or downstream datasets
+	ErrorDatasets []DatasetError `json:"errorDatasets"`
 	// Changing a dataset definition might make currently materialized data obsolete,
 	// in which case we dematerialize (throw away) this data and recompute new data.
 	// This is the list of datasets that would get dematerialized.
@@ -1506,10 +1510,31 @@ type DatasetDryRunSaveResult struct {
 	DematerializedDatasets []DatasetMaterialization `json:"dematerializedDatasets"`
 }
 
-// GetDematerializedDatasets returns DatasetDryRunSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
-func (v *DatasetDryRunSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
+// GetErrorDatasets returns DatasetDryRunRematerializationSaveResult.ErrorDatasets, and is useful for accessing the field via an interface.
+func (v *DatasetDryRunRematerializationSaveResult) GetErrorDatasets() []DatasetError {
+	return v.ErrorDatasets
+}
+
+// GetDematerializedDatasets returns DatasetDryRunRematerializationSaveResult.DematerializedDatasets, and is useful for accessing the field via an interface.
+func (v *DatasetDryRunRematerializationSaveResult) GetDematerializedDatasets() []DatasetMaterialization {
 	return v.DematerializedDatasets
 }
+
+// DatasetDryRunSaveResult is the default preflight selection. It carries the validation
+// outcome and nothing else.
+//
+// Deliberately does not select dematerializedDatasets: the backend answers that field by
+// running a synchronous transformer graph walk (~11.5s per call), which is why it sits behind
+// a response field mask server-side. Selecting it here made every terraform plan pay for a
+// list almost no caller reads. Callers that do read it use
+// DatasetDryRunRematerializationSaveResult below.
+type DatasetDryRunSaveResult struct {
+	// Information about errors that occur in the affected, and/or downstream datasets
+	ErrorDatasets []DatasetError `json:"errorDatasets"`
+}
+
+// GetErrorDatasets returns DatasetDryRunSaveResult.ErrorDatasets, and is useful for accessing the field via an interface.
+func (v *DatasetDryRunSaveResult) GetErrorDatasets() []DatasetError { return v.ErrorDatasets }
 
 // DatasetError includes the GraphQL fields of DatasetError requested by the fragment DatasetError.
 type DatasetError struct {
@@ -11452,6 +11477,30 @@ func (v *__saveDatasetDryRunInput) GetQuery() MultiStageQueryInput { return v.Qu
 // GetDep returns __saveDatasetDryRunInput.Dep, and is useful for accessing the field via an interface.
 func (v *__saveDatasetDryRunInput) GetDep() *DependencyHandlingInput { return v.Dep }
 
+// __saveDatasetDryRunWithRematerializationInput is used internally by genqlient
+type __saveDatasetDryRunWithRematerializationInput struct {
+	WorkspaceId string                   `json:"workspaceId"`
+	Dataset     DatasetInput             `json:"dataset"`
+	Query       MultiStageQueryInput     `json:"query"`
+	Dep         *DependencyHandlingInput `json:"dep"`
+}
+
+// GetWorkspaceId returns __saveDatasetDryRunWithRematerializationInput.WorkspaceId, and is useful for accessing the field via an interface.
+func (v *__saveDatasetDryRunWithRematerializationInput) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetDataset returns __saveDatasetDryRunWithRematerializationInput.Dataset, and is useful for accessing the field via an interface.
+func (v *__saveDatasetDryRunWithRematerializationInput) GetDataset() DatasetInput { return v.Dataset }
+
+// GetQuery returns __saveDatasetDryRunWithRematerializationInput.Query, and is useful for accessing the field via an interface.
+func (v *__saveDatasetDryRunWithRematerializationInput) GetQuery() MultiStageQueryInput {
+	return v.Query
+}
+
+// GetDep returns __saveDatasetDryRunWithRematerializationInput.Dep, and is useful for accessing the field via an interface.
+func (v *__saveDatasetDryRunWithRematerializationInput) GetDep() *DependencyHandlingInput {
+	return v.Dep
+}
+
 // __saveDatasetInput is used internally by genqlient
 type __saveDatasetInput struct {
 	WorkspaceId string                   `json:"workspaceId"`
@@ -13469,6 +13518,21 @@ type saveDatasetDryRunResponse struct {
 
 // GetDatasetSaveResult returns saveDatasetDryRunResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
 func (v *saveDatasetDryRunResponse) GetDatasetSaveResult() *DatasetDryRunSaveResult {
+	return v.DatasetSaveResult
+}
+
+// saveDatasetDryRunWithRematerializationResponse is returned by saveDatasetDryRunWithRematerialization on success.
+type saveDatasetDryRunWithRematerializationResponse struct {
+	// Create a dataset if you don't provide an input id.  It will also make sure
+	// that the provided transform is published with that dataset. This is the
+	// general "update the things" function to use.  If dependencyHandling is not
+	// specified, then the default is to apply changes but ignore downstream
+	// datasets or errors therein.
+	DatasetSaveResult *DatasetDryRunRematerializationSaveResult `json:"datasetSaveResult"`
+}
+
+// GetDatasetSaveResult returns saveDatasetDryRunWithRematerializationResponse.DatasetSaveResult, and is useful for accessing the field via an interface.
+func (v *saveDatasetDryRunWithRematerializationResponse) GetDatasetSaveResult() *DatasetDryRunRematerializationSaveResult {
 	return v.DatasetSaveResult
 }
 
@@ -21502,18 +21566,15 @@ mutation saveDatasetDryRun ($workspaceId: ObjectId!, $dataset: DatasetInput!, $q
 	}
 }
 fragment DatasetDryRunSaveResult on DatasetSaveResult {
-	dematerializedDatasets {
-		... DatasetMaterialization
+	errorDatasets {
+		... DatasetError
 	}
 }
-fragment DatasetMaterialization on DatasetMaterialization {
-	dataset {
-		... DatasetIdName
-	}
-}
-fragment DatasetIdName on Dataset {
-	name
-	id
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
 }
 `
 
@@ -21538,6 +21599,70 @@ func saveDatasetDryRun(
 	var err error
 
 	var data saveDatasetDryRunResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by saveDatasetDryRunWithRematerialization.
+const saveDatasetDryRunWithRematerialization_Operation = `
+mutation saveDatasetDryRunWithRematerialization ($workspaceId: ObjectId!, $dataset: DatasetInput!, $query: MultiStageQueryInput!, $dep: DependencyHandlingInput) {
+	datasetSaveResult: saveDataset(workspaceId: $workspaceId, dataset: $dataset, query: $query, dependencyHandling: $dep) {
+		... DatasetDryRunRematerializationSaveResult
+	}
+}
+fragment DatasetDryRunRematerializationSaveResult on DatasetSaveResult {
+	errorDatasets {
+		... DatasetError
+	}
+	dematerializedDatasets {
+		... DatasetMaterialization
+	}
+}
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
+}
+fragment DatasetMaterialization on DatasetMaterialization {
+	dataset {
+		... DatasetIdName
+	}
+}
+fragment DatasetIdName on Dataset {
+	name
+	id
+}
+`
+
+func saveDatasetDryRunWithRematerialization(
+	ctx context.Context,
+	client graphql.Client,
+	workspaceId string,
+	dataset DatasetInput,
+	query MultiStageQueryInput,
+	dep *DependencyHandlingInput,
+) (*saveDatasetDryRunWithRematerializationResponse, error) {
+	req := &graphql.Request{
+		OpName: "saveDatasetDryRunWithRematerialization",
+		Query:  saveDatasetDryRunWithRematerialization_Operation,
+		Variables: &__saveDatasetDryRunWithRematerializationInput{
+			WorkspaceId: workspaceId,
+			Dataset:     dataset,
+			Query:       query,
+			Dep:         dep,
+		},
+	}
+	var err error
+
+	var data saveDatasetDryRunWithRematerializationResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -21666,18 +21791,15 @@ mutation saveLogDerivedMetricDatasetDryRun ($workspaceId: ObjectId!, $dataset: D
 	}
 }
 fragment DatasetDryRunSaveResult on DatasetSaveResult {
-	dematerializedDatasets {
-		... DatasetMaterialization
+	errorDatasets {
+		... DatasetError
 	}
 }
-fragment DatasetMaterialization on DatasetMaterialization {
-	dataset {
-		... DatasetIdName
-	}
-}
-fragment DatasetIdName on Dataset {
-	name
-	id
+fragment DatasetError on DatasetError {
+	datasetId
+	datasetName
+	text
+	hasExistingError
 }
 `
 
