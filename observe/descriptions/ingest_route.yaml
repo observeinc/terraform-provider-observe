@@ -1,0 +1,18 @@
+description:
+  |-
+  A non-default ingest route that sends matching observations to a source dataset.
+
+  Terraform does not manage route layout. The route create API always creates disabled routes. When `enabled` is true, the provider enables the new route with a follow-up update before reading state. Default routes and routes managed by another Observe object are not supported as Terraform resources.
+schema:
+  route_id:
+    The route ID. Use this value with `type` when configuring `observe_ingest_route_order`.
+  type:
+    The observation type for this route. Changing it creates a replacement route.
+  pipeline:
+    A non-empty OPAL match predicate. Empty pipelines identify default routes and are not supported.
+  destination_id:
+    The primary source dataset ID that receives matching observations.
+  secondary_destination_id:
+    An optional secondary source dataset ID that also receives matching observations. Removing this value clears the API secondary destination.
+  enabled:
+    Whether the route evaluates incoming observations. Defaults to true. The provider enables the route after creating it because the create API always creates disabled routes.
