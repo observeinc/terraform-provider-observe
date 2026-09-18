@@ -69,6 +69,9 @@ type Config struct {
 	// enable extra queries needed to export bindings
 	ExportObjectBindings bool `json:"export_object_bindings"`
 
+	// signals that state will be rendered into HCL configuration (escapes template markers)
+	ExportMode bool `json:"export_mode"`
+
 	// Allow setting default materialization mode for dataset resources
 	DefaultRematerializationMode *string `json:"default_rematerialization_mode"`
 

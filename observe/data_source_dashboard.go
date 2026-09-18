@@ -91,6 +91,12 @@ func dataSourceDashboardRead(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
+	if client.ExportMode {
+		if err := escapeExportedStrings(data, dataSourceDashboard().Schema); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if client.ExportObjectBindings {
 		err := generateDashboardBindings(ctx, dashboard, data, client)
 		if err != nil {
