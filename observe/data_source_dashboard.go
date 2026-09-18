@@ -49,6 +49,16 @@ func dataSourceDashboard() *schema.Resource {
 				Computed:    true,
 				Description: schemaDashboardIconDescription,
 			},
+			"schema_version": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: schemaDashboardSchemaVersionDescription,
+			},
+			"definition": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: schemaDashboardDefinitionDescription,
+			},
 			"stages": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -114,9 +124,9 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 		return err
 	}
 
-	// generate bindings for stages, parameters, parameter_values, and layout,
-	// replacing the original ids in the json data with local variable references
-	for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
+	// generate bindings for definition, stages, parameters, parameter_values, and
+	// layout, replacing the original ids in the json data with local variable references
+	for _, field := range []string{"definition", "stages", "parameters", "parameter_values", "layout"} {
 		jsonWithRawIds := data.Get(field).(string)
 		if jsonWithRawIds == "" {
 			continue
@@ -130,17 +140,23 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 		}
 	}
 
-	// insert the bindings into the layout field to be used to generate data sources
-	// and local variable definitions at a later point
-	layout := data.Get("layout").(string)
-	if layout == "" {
-		layout = "{}"
+	// Insert the bindings into whichever field carries the dashboard's content, to be
+	// used to generate data sources and local variable definitions at a later point. A
+	// schema_version >= 2 dashboard carries its content entirely in definition; layout
+	// is left empty in that case, so definition is the bindings carrier instead.
+	bindingsField := "layout"
+	if dashboardUsesRestAPI(dashboard.SchemaVersion) {
+		bindingsField = "definition"
 	}
-	layoutWithBindings, err := gen.InsertBindingsObjectJson([]byte(layout))
+	bindingsCarrier := data.Get(bindingsField).(string)
+	if bindingsCarrier == "" {
+		bindingsCarrier = "{}"
+	}
+	carrierWithBindings, err := gen.InsertBindingsObjectJson([]byte(bindingsCarrier))
 	if err != nil {
 		return err
 	}
-	if err := data.Set("layout", string(layoutWithBindings)); err != nil {
+	if err := data.Set(bindingsField, string(carrierWithBindings)); err != nil {
 		return err
 	}
 	return nil

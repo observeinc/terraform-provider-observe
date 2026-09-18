@@ -983,6 +983,27 @@ func (c *Client) DeleteDashboard(ctx context.Context, id string) error {
 	return c.Meta.DeleteDashboard(ctx, id)
 }
 
+// CreateDashboardRest creates a schemaVersion >= 2 dashboard through the REST API.
+// Legacy dashboards (schema_version < 2) continue to use CreateDashboard (GraphQL
+// saveDashboard).
+func (c *Client) CreateDashboardRest(ctx context.Context, input *rest.DashboardCreateInput) (*rest.Dashboard, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Rest.CreateDashboard(ctx, input)
+}
+
+// UpdateDashboardRest updates a schemaVersion >= 2 dashboard through the REST API using
+// PATCH (merge-patch) semantics: only the fields set on input are changed.
+func (c *Client) UpdateDashboardRest(ctx context.Context, id string, input *rest.DashboardPatchInput) (*rest.Dashboard, error) {
+	if !c.Flags[flagObs2110] {
+		c.obs2110.Lock()
+		defer c.obs2110.Unlock()
+	}
+	return c.Rest.UpdateDashboard(ctx, id, input)
+}
+
 func (c *Client) GetDefaultDashboard(ctx context.Context, dsid string) (*string, error) {
 	return c.Meta.GetDefaultDashboard(ctx, dsid)
 }

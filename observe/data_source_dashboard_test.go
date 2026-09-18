@@ -53,6 +53,49 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 	})
 }
 
+// Verify the data source reads back the new content-model fields (schema_version and
+// definition) for a schema_version >= 2 dashboard.
+func TestAccObserveSourceDashboardV2(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					resource "observe_dashboard" "v2" {
+						name           = "%[1]s"
+						schema_version = 2
+						definition = jsonencode({
+							layout = {
+								sections = [
+									{
+										title = "Overview"
+										cards = []
+									},
+								]
+							}
+						})
+					}
+
+					data "observe_dashboard" "lookup" {
+						id = observe_dashboard.v2.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "schema_version", "2"),
+					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "definition"),
+					// The legacy content fields are empty for a new-model dashboard.
+					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "stages", ""),
+					checkDefinitionSectionTitle("data.observe_dashboard.lookup", "Overview"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -351,6 +394,129 @@ func TestAccObserveSourceDashboard_ExportWithBindingsEmptyLayout(t *testing.T) {
 						actual_id := parametersPartial[0].ValueKind.KeyForDatasetId
 						if actual_id != expected_id {
 							return fmt.Errorf("expected %#v, got %#v", expected_id, actual_id)
+						}
+						return nil
+					}),
+				),
+			},
+		},
+	})
+}
+
+// dashboardV2InputDatasetID returns the dataset id bound to one card's query input in a
+// schema_version >= 2 dashboard definition, identified by its position (section, card,
+// input).
+func dashboardV2InputDatasetID(val string, sectionIdx, cardIdx, inputIdx int) (string, error) {
+	var def struct {
+		Layout struct {
+			Sections []struct {
+				Cards []struct {
+					Query struct {
+						Content struct {
+							Inputs []struct {
+								Source struct {
+									Dataset struct {
+										Id string `json:"id"`
+									} `json:"dataset"`
+								} `json:"source"`
+							} `json:"inputs"`
+						} `json:"content"`
+					} `json:"query"`
+				} `json:"cards"`
+			} `json:"sections"`
+		} `json:"layout"`
+	}
+	if err := json.Unmarshal([]byte(val), &def); err != nil {
+		return "", fmt.Errorf("failed to parse definition JSON: %w", err)
+	}
+	if sectionIdx >= len(def.Layout.Sections) {
+		return "", fmt.Errorf("expected section %d in definition, got %d sections: %s", sectionIdx, len(def.Layout.Sections), val)
+	}
+	cards := def.Layout.Sections[sectionIdx].Cards
+	if cardIdx >= len(cards) {
+		return "", fmt.Errorf("expected card %d in section %d, got %d cards: %s", cardIdx, sectionIdx, len(cards), val)
+	}
+	inputs := cards[cardIdx].Query.Content.Inputs
+	if inputIdx >= len(inputs) {
+		return "", fmt.Errorf("expected input %d in card %d, got %d inputs: %s", inputIdx, cardIdx, len(inputs), val)
+	}
+	return inputs[inputIdx].Source.Dataset.Id, nil
+}
+
+// TestAccObserveSourceDashboard_ExportWithBindingsSchemaV2 verifies that cross-tenant
+// export bindings are generated for a schema_version >= 2 dashboard's `definition`
+// field, the same way they already are for legacy stages/parameters/parameter_values/
+// layout.
+func TestAccObserveSourceDashboard_ExportWithBindingsSchemaV2(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	// this is really nasty, but basically if the hashicorp terraform provider testing
+	// framework detects a terraform block, it will output the config verbatim instead of
+	// trying to insert another resource. their logic is literally `strings.Contains(s.Config, "terraform {")`
+	// (hashicorp/terraform-plugin-sdk/v2/helper/resource/teststep_providers.go:24), so
+	// there must be a space between the "terraform" and the "{"
+	providerPreamble := `
+		terraform {} # trick the testing framework into not mangling our config
+		provider "observe" {
+			export_object_bindings = true
+		}
+	`
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(providerPreamble+configPreamble+datastreamConfigPreamble+`
+					data "observe_oid" "dataset" {
+						oid = observe_datastream.test.dataset
+					}
+
+					resource "observe_dashboard" "first" {
+						name           = "%[1]s"
+						schema_version = 2
+						definition = jsonencode({
+							layout = {
+								sections = [
+									{
+										title = "Overview"
+										cards = [
+											{
+												type     = "query"
+												geometry = { x = 0, y = 0, w = 12, h = 3 }
+												query    = {
+													content = {
+														pipeline = ["filter true"]
+														inputs = [
+															{
+																name   = "test"
+																source = {
+																	type    = "dataset"
+																	dataset = { id = data.observe_oid.dataset.id }
+																}
+															},
+														]
+													}
+												}
+											},
+										]
+									},
+								]
+							}
+						})
+					}
+
+					data "observe_dashboard" "lookup" {
+						id = observe_dashboard.first.id
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith("data.observe_dashboard.lookup", "definition", func(val string) error {
+						actualId, err := dashboardV2InputDatasetID(val, 0, 0, 0)
+						if err != nil {
+							return err
+						}
+						expectedId := fmt.Sprintf("${local.binding__dashboard_%[1]s__dataset_%[1]s}", randomPrefix)
+						if actualId != expectedId {
+							return fmt.Errorf("expected definition's dataset id to be replaced with a binding reference: expected %#v, got %#v", expectedId, actualId)
 						}
 						return nil
 					}),
