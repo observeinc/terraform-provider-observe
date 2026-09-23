@@ -149,12 +149,6 @@ func (c *Client) GetLogDerivedMetricDataset(ctx context.Context, id string) (*me
 	return c.Meta.GetLogDerivedMetricDataset(ctx, id)
 }
 
-// List all datasets, but only asks for id and name to prevent looping in expensive
-// resolvers
-func (c *Client) ListDatasetsIdNameOnly(ctx context.Context) ([]*meta.DatasetIdName, error) {
-	return c.Meta.ListDatasetsIdNameOnly(ctx)
-}
-
 // GetWorkspace by ID
 func (c *Client) GetWorkspace(ctx context.Context, id string) (*meta.Workspace, error) {
 	return c.Meta.GetWorkspace(ctx, id)
