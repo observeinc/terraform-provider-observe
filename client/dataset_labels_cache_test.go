@@ -375,3 +375,37 @@ func TestDatasetLabelCacheInvalidatedByMutations(t *testing.T) {
 		t.Fatalf("%d requests after clear, want 3", n)
 	}
 }
+
+func TestDatasetLabelCacheInvalidatedBySuccessfulSaves(t *testing.T) {
+	visible := map[int64]string{}
+	for i := int64(1); i <= 6; i++ {
+		visible[i] = "x"
+	}
+	s := newLabelServer(t, visible)
+	c := newClientWithMockGql(func(req *graphql.Request, resp *graphql.Response) error {
+		resultID := map[string]string{"saveDataset": "3", "saveLogDerivedMetricDataset": "5"}[req.OpName]
+		return json.Unmarshal([]byte(`{"datasetSaveResult":{"dataset":{"id":"`+resultID+`"}}}`), resp.Data)
+	})
+	c.Rest = rest.New(s.baseURL, http.DefaultClient)
+
+	all := []string{"1", "2", "3", "4", "5", "6"}
+	lookup(t, c, all...)
+	id := "1"
+	if _, err := c.SaveDataset(context.Background(), "ws", &meta.DatasetInput{Id: &id}, &meta.MultiStageQueryInput{}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.SaveLogDerivedMetricDataset(context.Background(), "ws", &meta.DatasetInput{}, &meta.LogDerivedMetricDefinitionInput{}, nil); err != nil {
+		t.Fatal(err)
+	}
+	lookup(t, c, all...)
+
+	requests := s.snapshot()
+	if len(requests) != 2 {
+		t.Fatalf("requests %v", requests)
+	}
+	refetched := requests[1]
+	sort.Slice(refetched, func(i, j int) bool { return refetched[i] < refetched[j] })
+	if !reflect.DeepEqual(refetched, []int64{1, 3, 5}) {
+		t.Fatalf("refetched %v, want input and result IDs [1 3 5]", refetched)
+	}
+}
