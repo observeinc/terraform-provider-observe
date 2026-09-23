@@ -417,8 +417,11 @@ func newMultilineErrorRegexp(s string) *regexp.Regexp {
 // What this does and does not settle: an indented heredoc only produces a diff if the
 // backend returns pipeline text whose *leading* whitespace differs from what was sent. If
 // the backend stores the text verbatim, both sides carry the same indent and the
-// comparison succeeds without any suppression being needed. That half needs a live
-// backend -- see TestAccObserveDatasetIndentedPipelineHeredocNoPerpetualDiff.
+// comparison succeeds without any suppression being needed. That half needed a live
+// backend, and TestAccObserveDatasetIndentedPipelineHeredocNoPerpetualDiff answered it on
+// 2026-09-23: it passes, so the backend does NOT alter the text and there is no diff. The
+// leading-indent gap pinned below is therefore latent, not active -- it would only bite if
+// backend behaviour changed.
 //
 // So this test's value is bounding the hypothesis: the observation that 40% of one
 // tenant's payloads contain pipeline whitespace is not by itself evidence of a diff,

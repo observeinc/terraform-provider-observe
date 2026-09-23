@@ -432,10 +432,21 @@ func TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff(t *testing.T) {
 // fix belongs server-side -- reject the save naming the unreachable stages, or persist them
 // verbatim -- and this test is what will prove it landed.
 //
-// Expected to FAIL until OB-67132 is fixed. Keep it failing rather than skipping it only
-// while the answer is still being gathered; once confirmed, skip with a reference until the
-// server change ships.
+// CONFIRMED against a live backend on 2026-09-23, deterministically (4/4 attempts): the
+// create step never even reached the re-plan, failing its own check with
+//
+//	observe_dataset.orphan: Attribute 'stage.#' expected "3", got "2"
+//
+// Three stages submitted, two persisted, HTTP 200. So the round trip is broken at save
+// time, before any question of a diff arises.
+//
+// Skipped so it does not block CI. Remove the skip when OB-67132 lands -- and note the
+// assertions below assume the "persist them verbatim" resolution. If the server instead
+// rejects the save (the option OB-67132 prefers, since it surfaces the mistake where it is
+// made), this test should be rewritten to assert that error rather than a successful apply.
 func TestAccObserveDatasetOrphanStageNoPerpetualDiff(t *testing.T) {
+	t.Skip("OB-67132: the backend accepts 3 stages and persists 2; re-enable when it rejects or persists unreachable stages")
+
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
 	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
@@ -504,9 +515,13 @@ func TestAccObserveDatasetOrphanStageNoPerpetualDiff(t *testing.T) {
 // pipeline whitespace, which does not distinguish "the text differs" from "the text differs in
 // a way diffSuppressPipeline already forgives".
 //
-// This test settles it either way, and a pass is as useful as a failure: it kills the
-// hypothesis. See TestDiffSuppressPipelineWhitespace for the offline half, which pins exactly
-// which whitespace differences the suppressor forgives.
+// RESOLVED 2026-09-23: this PASSES against a live backend, so the hypothesis is dead. The
+// backend returns pipeline text whose leading whitespace matches what was sent, so an
+// indented heredoc does not diff and datasets need no dedent on read. Kept as a regression
+// guard, since the conclusion depends on backend behaviour that could change.
+//
+// See TestDiffSuppressPipelineWhitespace for the offline half, which pins exactly which
+// whitespace differences the suppressor forgives.
 func TestAccObserveDatasetIndentedPipelineHeredocNoPerpetualDiff(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
@@ -548,8 +563,9 @@ EOF
 // classes nobody has enumerated yet, which matters because this is a recurring family: nine
 // perpetual-diff tickets over three years, none fixed before the v0.14.67 batch.
 //
-// If this fails while all the narrow tests pass, there is a mechanism we have not named, and
-// bisecting the attributes in this config is the fastest way to find it.
+// Passes as of 2026-09-23, so no unnamed mechanism is reachable through this combination of
+// attributes. If it ever fails while the narrow tests pass, there is a mechanism we have not
+// named, and bisecting the attributes in this config is the fastest way to find it.
 func TestAccObserveDatasetMultiStageIdempotent(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
