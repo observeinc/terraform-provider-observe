@@ -54,13 +54,9 @@ const (
 	FailNetwork
 )
 
-// Operation names accepted by Fail and Count, besides GraphQL operation names.
-const (
-	// OpRestDatasets is GET /v1/datasets.
-	OpRestDatasets = "rest:datasets"
-	// OpListDatasetsIdNameOnly is the GraphQL whole-tenant dataset listing.
-	OpListDatasetsIdNameOnly = "listDatasetsIdNameOnly"
-)
+// OpRestDatasets names GET /v1/datasets for Fail and Count, which otherwise
+// take GraphQL operation names.
+const OpRestDatasets = "rest:datasets"
 
 // Server is a fake Observe API. Unknown operations fail the test.
 type Server struct {
@@ -183,14 +179,6 @@ func (s *Server) serveGraphQL(w http.ResponseWriter, r *http.Request) {
 				map[string]interface{}{"id": tenant.Workspace.ID, "label": tenant.Workspace.Label},
 			},
 		}
-	case OpListDatasetsIdNameOnly:
-		matches := make([]interface{}, 0, len(tenant.Datasets))
-		for _, ds := range tenant.Datasets {
-			matches = append(matches, map[string]interface{}{
-				"dataset": map[string]interface{}{"id": ds.ID, "name": ds.Label},
-			})
-		}
-		data = map[string]interface{}{"datasets": matches}
 	case "listWorksheetsIdLabelOnly":
 		matches := make([]interface{}, 0, len(tenant.Worksheets))
 		for _, wk := range tenant.Worksheets {

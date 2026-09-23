@@ -177,12 +177,6 @@ func (c *Client) CreateSourceDataset(ctx context.Context, workspaceId string, da
 	return c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
 }
 
-// List all datasets, but only asks for id and name to prevent looping in expensive
-// resolvers
-func (c *Client) ListDatasetsIdNameOnly(ctx context.Context) ([]*meta.DatasetIdName, error) {
-	return c.Meta.ListDatasetsIdNameOnly(ctx)
-}
-
 // UpdateSourceDataset updates the existing source dataset
 func (c *Client) UpdateSourceDataset(ctx context.Context, workspaceId string, id string, dataset *meta.DatasetDefinitionInput, table *meta.SourceTableDefinitionInput) (*meta.Dataset, error) {
 	if !c.Flags[flagObs2110] {
