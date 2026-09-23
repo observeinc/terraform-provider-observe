@@ -3,13 +3,14 @@
 // instead, created by looking up the objects by name using data sources.
 // Overall, the process works like so:
 //	1. The Observe backend adds a data source with the `export_object_bindings` flag set.
-//  2. When the data source is read, a Generator is created, which iterates through all fields
-//     that could contain ids, and for each id found:
-//      a. The Generator looks up the corresponding resource name and generates a local variable reference
-//      b. The id is replaced with that reference.
-//      c. In addition, the Generator adds a "binding" entry to its internal state. This binding
-//         includes all the information necessary for later generating a data source that fetches
-//         the resource by name, and the local variable definition for the above reference.
+//  2. When the data source is read, a Generator is created, and then:
+//      a. Collect walks all fields that could contain ids and records dataset candidates.
+//      b. Resolve looks up the labels of all candidates in one pass. All I/O happens here or in
+//         NewGenerator.
+//      c. Generate/TryBind replace each known id with a local variable reference, and add a
+//         "binding" entry to the Generator's internal state. This binding includes all the
+//         information necessary for later generating a data source that fetches the resource
+//         by name, and the local variable definition for the above reference.
 //  3. Finally, we aggregate all the bindings from above and insert it somewhere into the data
 //     source state (typically an internal "_bindings" field).
 //  4. The Observe backend then extracts those bindings from the data source state, and uses
@@ -43,16 +44,21 @@ type ResourceCacheEntry struct {
 
 type ResourceCache struct {
 	idToLabel       map[Ref]ResourceCacheEntry
+	datasetLabels   map[string]string   // resolved dataset id -> label
+	absentDatasets  map[string]struct{} // looked up but not found
 	workspaceOid    *oid.OID
 	workspaceEntry  *ResourceCacheEntry
 	forResourceKind Kind
 	forResourceName string
 }
 
-// NewResourceCache loads all resources of the given kinds and creates a cache of id -> label mappings
+// NewResourceCache loads all resources of the given kinds except datasets, which
+// Generator.Resolve looks up by id.
 func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client, forResourceKind Kind, forResourceName string) (ResourceCache, error) {
 	var cache = ResourceCache{
 		idToLabel:       make(map[Ref]ResourceCacheEntry),
+		datasetLabels:   make(map[string]string),
+		absentDatasets:  make(map[string]struct{}),
 		forResourceKind: forResourceKind,
 		forResourceName: sanitizeIdentifier(forResourceName),
 	}
@@ -70,14 +76,6 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 		existingResourceNames := make(map[string]struct{})
 		disambiguator := 1
 		switch resourceKind {
-		case KindDataset:
-			datasets, err := client.ListDatasetsIdNameOnly(ctx)
-			if err != nil {
-				return cache, err
-			}
-			for _, ds := range datasets {
-				cache.addEntry(KindDataset, ds.Name, ds.Name, ds.Id, true, &disambiguator, existingResourceNames)
-			}
 		case KindWorksheet:
 			worksheets, err := client.ListWorksheetIdLabelOnly(ctx, cache.workspaceOid.Id)
 			if err != nil {
@@ -112,9 +110,11 @@ func NewResourceCache(ctx context.Context, kinds KindSet, client *observe.Client
 
 func (c *ResourceCache) addEntry(kind Kind, lookupKey string, displayName string, id string, addPrefix bool, disambiguator *int, existingNames map[string]struct{}) {
 	resourceName := sanitizeIdentifier(displayName)
-	if _, found := existingNames[resourceName]; found {
-		resourceName = fmt.Sprintf("%s_%d", resourceName, *disambiguator)
-		*disambiguator++
+	for base := resourceName; ; *disambiguator++ {
+		if _, found := existingNames[resourceName]; !found {
+			break
+		}
+		resourceName = fmt.Sprintf("%s_%d", base, *disambiguator)
 	}
 	var empty struct{}
 	existingNames[resourceName] = empty
@@ -139,17 +139,25 @@ func (c *ResourceCache) LookupId(kind Kind, id string) *ResourceCacheEntry {
 	return &maybeEnt
 }
 
+// DatasetLabeler resolves dataset ids to labels, omitting absent or hidden ids.
+type DatasetLabeler interface {
+	LookupDatasetLabels(ctx context.Context, ids []string) (map[string]string, error)
+}
+
 type Generator struct {
 	resourceType    Kind
 	resourceName    string
 	enabledBindings KindSet
 	bindings        Mapping
 	cache           ResourceCache
+	labeler         DatasetLabeler
+	candidates      map[string]struct{} // collected dataset ids awaiting Resolve
+	err             error               // first binding error, reported by GetBindings
 }
 
-// NewGenerator creates a new binding generator for the given resource type and name,
-// which keeps track of all the bindings generated for raw ids found through later
-// calls to Generate and TryBind.
+// NewGenerator creates a new binding generator for the given resource type and name.
+// Callers Collect all ids, call Resolve once, then Generate/TryBind; none of the
+// latter perform I/O.
 func NewGenerator(ctx context.Context, resourceType Kind, resourceName string,
 	client *observe.Client, enabledBindings KindSet) (Generator, error) {
 	rc, err := NewResourceCache(ctx, enabledBindings, client, resourceType, resourceName)
@@ -163,7 +171,101 @@ func NewGenerator(ctx context.Context, resourceType Kind, resourceName string,
 		enabledBindings: enabledBindings,
 		bindings:        bindings,
 		cache:           rc,
+		labeler:         client,
+		candidates:      make(map[string]struct{}),
 	}, nil
+}
+
+// Collect records the dataset ids that Generate would try to bind in data.
+func (g *Generator) Collect(data interface{}) {
+	g.walk(data, false)
+}
+
+// CollectId records id as a candidate for a later TryBindId.
+func (g *Generator) CollectId(kind Kind, id string) {
+	if _, enabled := g.enabledBindings[kind]; !enabled || kind != KindDataset || !isDatasetId(id) {
+		return
+	}
+	g.candidates[id] = struct{}{}
+}
+
+// CollectOid records oidObj as a candidate for a later TryBindOid.
+func (g *Generator) CollectOid(oidObj oid.OID) {
+	if kind, ok := resolveOidToKind(oidObj); ok {
+		g.CollectId(kind, oidObj.Id)
+	}
+}
+
+// Resolve looks up all collected dataset ids not yet resolved, in id order, and
+// names them. Fails on lookup errors and on distinct datasets sharing a label.
+func (g *Generator) Resolve(ctx context.Context) error {
+	var ids []string
+	for id := range g.candidates {
+		_, known := g.cache.datasetLabels[id]
+		_, absent := g.cache.absentDatasets[id]
+		if !known && !absent {
+			ids = append(ids, id)
+		}
+	}
+	g.candidates = make(map[string]struct{})
+	if len(ids) == 0 {
+		return nil
+	}
+	labels, err := g.labeler.LookupDatasetLabels(ctx, ids)
+	if err != nil {
+		return fmt.Errorf("failed to look up datasets: %w", err)
+	}
+	for _, id := range ids {
+		if label, ok := labels[id]; ok {
+			g.cache.datasetLabels[id] = label
+		} else {
+			g.cache.absentDatasets[id] = struct{}{}
+		}
+	}
+	return g.nameDatasets()
+}
+
+// nameDatasets rebuilds dataset cache entries in numeric id order, so names do
+// not depend on collection or response order. Ids are canonical positive
+// decimals (isDatasetId), so ordering by length then text is numeric order.
+func (g *Generator) nameDatasets() error {
+	ids := make([]string, 0, len(g.cache.datasetLabels))
+	for id := range g.cache.datasetLabels {
+		ids = append(ids, id)
+	}
+	sort.Slice(ids, func(i, j int) bool {
+		if len(ids[i]) != len(ids[j]) {
+			return len(ids[i]) < len(ids[j])
+		}
+		return ids[i] < ids[j]
+	})
+	idByLabel := make(map[string]string, len(ids))
+	for _, id := range ids {
+		label := g.cache.datasetLabels[id]
+		if other, dup := idByLabel[label]; dup {
+			return fmt.Errorf("datasets %s and %s share the label %q and cannot be told apart by an export binding", other, id, label)
+		}
+		idByLabel[label] = id
+	}
+	disambiguator := 1
+	existingNames := make(map[string]struct{})
+	for _, id := range ids {
+		label := g.cache.datasetLabels[id]
+		g.cache.addEntry(KindDataset, label, label, id, true, &disambiguator, existingNames)
+	}
+	return nil
+}
+
+// isDatasetId reports whether id is a canonical positive decimal id.
+func isDatasetId(id string) bool {
+	n, err := strconv.ParseInt(id, 10, 64)
+	return err == nil && n > 0 && strconv.FormatInt(n, 10) == id
+}
+
+func (g *Generator) fail(err error) {
+	if g.err == nil {
+		g.err = err
+	}
 }
 
 // lookup by kind and id, if valid then return a local variable reference,
@@ -200,13 +302,23 @@ func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, 
 		// lookup
 		e = g.cache.LookupId(kind, id)
 		if e == nil {
+			if kind == KindDataset && isDatasetId(id) {
+				if _, absent := g.cache.absentDatasets[id]; !absent {
+					g.fail(fmt.Errorf("internal error: dataset %s was not collected before Resolve", id))
+				}
+			}
 			return id, false
 		}
 	}
 	// process into local var ref
 	insertPrefix := kind == KindWorkspace
 	terraformLocal := g.fmtTfLocalVar(kind, e, insertPrefix)
-	g.bindings[Ref{Kind: kind, Key: e.LookupKey}] = Target{
+	ref := Ref{Kind: kind, Key: e.LookupKey}
+	if prev, ok := g.bindings[ref]; ok && kind == KindDataset && prev.IsOid != isOid {
+		// a binding holds one IsOid, so one local cannot serve both forms
+		g.fail(fmt.Errorf("dataset %q is referenced both by id and by oid, which export bindings do not support", e.LookupKey))
+	}
+	g.bindings[ref] = Target{
 		TfName:            e.TfName,
 		TfLocalBindingVar: terraformLocal,
 		IsOid:             isOid,
@@ -217,15 +329,25 @@ func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, 
 // Generate walks the provided data structure and for all ids encountered,
 // generates a binding for it, and replaces the id with a local variable reference
 func (g *Generator) Generate(data interface{}) {
+	g.walk(data, true)
+}
+
+// walk visits every id candidate in data, binding it if bind is set and
+// collecting it otherwise.
+func (g *Generator) walk(data interface{}, bind bool) {
 	mapOverJsonStringKeys(data, func(key string, value string) string {
 		if valueOid, err := oid.NewOID(value); err == nil {
+			if !bind {
+				g.CollectOid(*valueOid)
+				return value
+			}
 			ref, _ := g.TryBindOid(*valueOid)
 			return ref
 		}
-		kinds := guessKindFromKey(key)
-		for _, kind := range kinds {
-			maybeRef, didBind := g.TryBindId(kind, value)
-			if didBind {
+		for _, kind := range guessKindFromKey(key) {
+			if !bind {
+				g.CollectId(kind, value)
+			} else if maybeRef, didBind := g.TryBindId(kind, value); didBind {
 				return maybeRef
 			}
 		}
@@ -233,16 +355,21 @@ func (g *Generator) Generate(data interface{}) {
 	})
 }
 
-// GenerateJson does the same as Generate, but accepts a raw json string
+// GenerateJson does the same as Generate, but accepts a raw json string. It
+// returns the Generator's first error, if any.
 func (g *Generator) GenerateJson(jsonStr []byte) ([]byte, error) {
 	return transformJson(jsonStr, func(dataPtr *interface{}) error {
 		g.Generate(*dataPtr)
-		return nil
+		return g.err
 	})
 }
 
-// GetBindings returns the bindings generated so far
+// GetBindings returns the bindings generated so far, or the first error from
+// generating them.
 func (g *Generator) GetBindings() (BindingsObject, error) {
+	if g.err != nil {
+		return BindingsObject{}, g.err
+	}
 	enabledList := make([]Kind, 0)
 	for binding := range g.enabledBindings {
 		enabledList = append(enabledList, binding)

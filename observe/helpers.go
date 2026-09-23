@@ -24,6 +24,45 @@ import (
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
+// setAll sets each field of data to its value.
+func setAll(data *schema.ResourceData, values map[string]interface{}) error {
+	for field, value := range values {
+		if err := data.Set(field, value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// decodeJsonFields decodes the non-empty JSON string fields of data.
+func decodeJsonFields(data *schema.ResourceData, fields ...string) (map[string]interface{}, error) {
+	decoded := make(map[string]interface{}, len(fields))
+	for _, field := range fields {
+		raw := data.Get(field).(string)
+		if raw == "" {
+			continue
+		}
+		var v interface{}
+		if err := json.Unmarshal([]byte(raw), &v); err != nil {
+			return nil, fmt.Errorf("failed to parse field '%s': %w", field, err)
+		}
+		decoded[field] = v
+	}
+	return decoded, nil
+}
+
+// encodeJsonFields replaces each value with its JSON encoding.
+func encodeJsonFields(values map[string]interface{}) error {
+	for field, v := range values {
+		b, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Errorf("failed to serialize field '%s': %w", field, err)
+		}
+		values[field] = string(b)
+	}
+	return nil
+}
+
 var (
 	errObjectIDInvalid         = errors.New("object id is invalid")
 	errNameMissing             = errors.New("name not set")

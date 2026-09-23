@@ -118,26 +118,23 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
-	// generate binding for workspace
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
+	workspaceOid := oid.WorkspaceOid(dashboard.WorkspaceId)
+	values, err := decodeJsonFields(data, "definition", "stages", "parameters", "parameter_values", "layout")
+	if err != nil {
+		return err
+	}
+	gen.CollectOid(workspaceOid)
+	for _, v := range values {
+		gen.Collect(v)
+	}
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
-	// generate bindings for definition, stages, parameters, parameter_values, and
-	// layout, replacing the original ids in the json data with local variable references
-	for _, field := range []string{"definition", "stages", "parameters", "parameter_values", "layout"} {
-		jsonWithRawIds := data.Get(field).(string)
-		if jsonWithRawIds == "" {
-			continue
-		}
-		jsonWithReferences, err := gen.GenerateJson([]byte(jsonWithRawIds))
-		if err != nil {
-			return fmt.Errorf("failed to generate bindings for field '%s': %w", field, err)
-		}
-		if err := data.Set(field, string(jsonWithReferences)); err != nil {
-			return err
-		}
+	// replace the original ids in the json data with local variable references
+	workspaceRef, _ := gen.TryBindOid(workspaceOid)
+	for _, v := range values {
+		gen.Generate(v)
 	}
 
 	// Insert the bindings into whichever field carries the dashboard's content, to be
@@ -148,16 +145,19 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 	if dashboardUsesRestAPI(dashboard.SchemaVersion) {
 		bindingsField = "definition"
 	}
-	bindingsCarrier := data.Get(bindingsField).(string)
-	if bindingsCarrier == "" {
-		bindingsCarrier = "{}"
+	if _, ok := values[bindingsField]; !ok {
+		values[bindingsField] = map[string]interface{}{}
 	}
-	carrierWithBindings, err := gen.InsertBindingsObjectJson([]byte(bindingsCarrier))
-	if err != nil {
+	carrier, ok := values[bindingsField].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("field '%s' is not a JSON object", bindingsField)
+	}
+	if err := gen.InsertBindingsObject(carrier); err != nil {
 		return err
 	}
-	if err := data.Set(bindingsField, string(carrierWithBindings)); err != nil {
+	if err := encodeJsonFields(values); err != nil {
 		return err
 	}
-	return nil
+	values["workspace"] = workspaceRef
+	return setAll(data, values)
 }
