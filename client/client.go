@@ -48,6 +48,8 @@ type Client struct {
 	resolveWorkspace   sync.Once
 	cachedWorkspaceID  string
 	cachedWorkspaceErr error
+
+	datasetLabels datasetLabelCache
 }
 
 // login to retrieve a valid token, only need to do this once
