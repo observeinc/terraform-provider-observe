@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-cty/cty"
@@ -396,4 +397,107 @@ func TestDiffSuppressStageQueryInput_DatasetIdOIDVsBare(t *testing.T) {
 func newMultilineErrorRegexp(s string) *regexp.Regexp {
 	s = strings.ReplaceAll(s, " ", `\s`)
 	return regexp.MustCompile(s)
+}
+
+// TestDiffSuppressPipelineWhitespace pins exactly which whitespace differences
+// diffSuppressPipeline forgives, which is the offline half of the OB-67134 question:
+// does a pipeline written with a non-indented heredoc (<<EOF rather than <<-EOF)
+// perpetually diff on datasets?
+//
+// The suppressor trims trailing whitespace on both sides and nothing else, so:
+//
+//   - trailing whitespace, including the "\n    " a <<EOF heredoc leaves behind, is
+//     forgiven;
+//   - leading indentation is NOT.
+//
+// dedentPipeline would remove a common leading indent, but datasets never reach it:
+// resource_dataset.go passes dedentPipelines=false to flattenAndSetQuery, and only the
+// monitor v2 data source passes true.
+//
+// What this does and does not settle: an indented heredoc only produces a diff if the
+// backend returns pipeline text whose *leading* whitespace differs from what was sent. If
+// the backend stores the text verbatim, both sides carry the same indent and the
+// comparison succeeds without any suppression being needed. That half needs a live
+// backend -- see TestAccObserveDatasetIndentedPipelineHeredocNoPerpetualDiff.
+//
+// So this test's value is bounding the hypothesis: the observation that 40% of one
+// tenant's payloads contain pipeline whitespace is not by itself evidence of a diff,
+// because the trailing-whitespace case those payloads exhibit is precisely the case that
+// is already forgiven.
+func TestDiffSuppressPipelineWhitespace(t *testing.T) {
+	cases := []struct {
+		name string
+		// prv is what the read put in state, nxt is what config asks for.
+		prv, nxt     string
+		wantSuppress bool
+	}{
+		{
+			name:         "identical",
+			prv:          "filter true",
+			nxt:          "filter true",
+			wantSuppress: true,
+		},
+		{
+			// What a <<EOF heredoc leaves at the end of the value. Already forgiven, which
+			// is why trailing-whitespace payload differences are not evidence of a diff.
+			name:         "trailing_newline_and_spaces_forgiven",
+			prv:          "filter true",
+			nxt:          "filter true\n    ",
+			wantSuppress: true,
+		},
+		{
+			name:         "trailing_whitespace_on_either_side_forgiven",
+			prv:          "filter true\n\t\n",
+			nxt:          "filter true",
+			wantSuppress: true,
+		},
+		{
+			// The case that would bite: only reachable if the backend strips or alters
+			// leading indentation, since datasets do not dedent on read.
+			name:         "leading_indent_not_forgiven",
+			prv:          "filter true",
+			nxt:          "\tfilter true",
+			wantSuppress: false,
+		},
+		{
+			name:         "leading_indent_on_a_later_line_not_forgiven",
+			prv:          "filter true\nfilter false",
+			nxt:          "filter true\n    filter false",
+			wantSuppress: false,
+		},
+		{
+			// Confirms the gap is specifically the missing dedent: these two are equal
+			// once dedentPipeline runs, and still diff without it.
+			name:         "uniform_indent_would_be_equal_after_dedent",
+			prv:          "filter true\nfilter false",
+			nxt:          "    filter true\n    filter false",
+			wantSuppress: false,
+		},
+		{
+			name:         "genuinely_different_text_not_forgiven",
+			prv:          "filter true",
+			nxt:          "filter false",
+			wantSuppress: false,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			if got := diffSuppressPipeline("stage.0.pipeline", tc.prv, tc.nxt, nil); got != tc.wantSuppress {
+				t.Errorf("diffSuppressPipeline(%q, %q) = %v, want %v", tc.prv, tc.nxt, got, tc.wantSuppress)
+			}
+
+			// Second half of the claim: dedenting both sides first would close the gap for
+			// the uniform-indent cases. Recorded, not enabled -- turning dedent on for
+			// datasets rewrites what lands in state for every existing dataset and causes a
+			// one-time diff for every user, so it needs a migration (OB-67134).
+			dedentedEqual := dedentPipeline(strings.TrimRightFunc(tc.prv, unicode.IsSpace)) ==
+				dedentPipeline(strings.TrimRightFunc(tc.nxt, unicode.IsSpace))
+			if tc.name == "uniform_indent_would_be_equal_after_dedent" && !dedentedEqual {
+				t.Error("dedentPipeline did not make uniformly-indented pipelines compare equal; " +
+					"the OB-67134 remedy of comparing dedented text would not work")
+			}
+		})
+	}
 }

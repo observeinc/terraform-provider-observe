@@ -406,6 +406,205 @@ func TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff(t *testing.T) {
 	})
 }
 
+// The three tests below exist to *classify* the dataset perpetual-diff family, not just to
+// guard fixes. v0.14.67 shipped five perpetual-diff fixes and two acceptance tests
+// (TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff,
+// TestAccObserveDatasetLinkDerivedInputNoPerpetualDiff). On the tenant that motivated those
+// fixes, the upgrade cut plan-time dry runs by 74% and then stopped, and we cannot tell from
+// server-side telemetry which mechanism is still firing: that tenant's submitted payloads are
+// stable (775 of 782 datasets send exactly one structurally distinct payload over 24h), so the
+// surviving diff lives in a field the provider normalises outbound but not inbound and
+// therefore never reaches us. An acceptance test can see what telemetry cannot.
+//
+// A failure here is a finding, not necessarily a regression. See OB-67133.
+
+// OB-67132: an unreachable ("orphan") stage -- one that no later stage names as an input and
+// that the output stage does not reach transitively -- is accepted by the backend, which then
+// persists only the reachable stages and returns 200. A read therefore returns fewer stages
+// than were submitted, terraform compares that to config, and reports a change forever;
+// applying re-sends the same document and the next refresh loses it again.
+//
+// The provider already diagnoses this from the client side: detectOrphanStages emits a "Stage
+// has no effect" warning naming the offending index. It cannot *fix* it. The config-fallback
+// pattern #360 used for stage input works because there the value exists and is merely
+// unrecoverable from the response; for a dropped stage the provider would have to fabricate
+// into state an object the backend does not have, which makes state lie about reality. So the
+// fix belongs server-side -- reject the save naming the unreachable stages, or persist them
+// verbatim -- and this test is what will prove it landed.
+//
+// Expected to FAIL until OB-67132 is fixed. Keep it failing rather than skipping it only
+// while the answer is still being gathered; once confirmed, skip with a reference until the
+// server change ships.
+func TestAccObserveDatasetOrphanStageNoPerpetualDiff(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "orphan" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-orphan"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				alias    = "base"
+				input    = "test"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+
+			// Unreachable: aliased, but nothing downstream reads "side", and it is not the
+			// output stage. The backend drops it on save.
+			stage {
+				alias    = "side"
+				input    = "base"
+				pipeline = <<-EOF
+					filter false
+				EOF
+			}
+
+			// Output stage, reading "base" rather than "side" -- so "side" is orphaned.
+			stage {
+				input    = "base"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					// If this reports fewer than 3, the backend dropped the orphan and the
+					// round trip is already broken before the plan step below runs.
+					resource.TestCheckResourceAttr("observe_dataset.orphan", "stage.#", "3"),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
+// OB-67134: a pipeline written with a non-indented heredoc (<<EOF rather than <<-EOF) keeps
+// its leading indentation in the config value. diffSuppressPipeline trims *trailing*
+// whitespace on both sides only, so leading indentation is not suppressed; dedentPipeline
+// exists but datasets pass dedentPipelines=false to flattenAndSetQuery (only the monitor v2
+// data source passes true). So config carries the indent into state and out again.
+//
+// Whether that diffs depends entirely on the backend: if it stores pipeline text verbatim,
+// config and state carry the same indentation and there is no diff, whatever the heredoc
+// style. This only bites if the backend alters the text -- normalising, reformatting, or
+// stripping indentation -- which has never been established. The hypothesis has been open on
+// OBSSD-5083 for weeks on the strength of 40% of one tenant's payloads still containing
+// pipeline whitespace, which does not distinguish "the text differs" from "the text differs in
+// a way diffSuppressPipeline already forgives".
+//
+// This test settles it either way, and a pass is as useful as a failure: it kills the
+// hypothesis. See TestDiffSuppressPipelineWhitespace for the offline half, which pins exactly
+// which whitespace differences the suppressor forgives.
+func TestAccObserveDatasetIndentedPipelineHeredocNoPerpetualDiff(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	// Deliberately <<EOF, not <<-EOF: terraform preserves the leading tabs in the value.
+	// The closing marker sits at column 0 so the heredoc style is unambiguous.
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "indented" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-indented"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				input    = "test"
+				pipeline = <<EOF
+	filter true
+	filter true
+EOF
+			}
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
+// A deliberately broad idempotency guard: build a representative multi-stage dataset using the
+// features real configs combine -- aliases, an explicit input, a chained stage, a multi-line
+// pipeline, an indented heredoc body, optional metadata -- and assert the second plan is
+// empty. The narrow tests above each pin one known mechanism; this one is meant to catch the
+// classes nobody has enumerated yet, which matters because this is a recurring family: nine
+// perpetual-diff tickets over three years, none fixed before the v0.14.67 batch.
+//
+// If this fails while all the narrow tests pass, there is a mechanism we have not named, and
+// bisecting the attributes in this config is the fastest way to find it.
+func TestAccObserveDatasetMultiStageIdempotent(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "representative" {
+			workspace   = data.observe_workspace.default.oid
+			name        = "%[1]s-representative"
+			description = "multi-stage idempotency guard"
+			freshness   = "4m"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				alias    = "extracted"
+				input    = "test"
+				pipeline = <<-EOF
+					filter true
+					make_col extra:string("x")
+				EOF
+			}
+
+			stage {
+				alias    = "filtered"
+				input    = "extracted"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+
+			// Chains implicitly from the preceding stage, the form most configs use.
+			stage {
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.representative", "stage.#", "3"),
+					resource.TestCheckResourceAttr("observe_dataset.representative", "stage.0.alias", "extracted"),
+					resource.TestCheckResourceAttr("observe_dataset.representative", "stage.1.input", "extracted"),
+				),
+			},
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
 // Verify we can coldrop if no downstream affected
 func TestAccObserveDatasetSchemaChange(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
