@@ -85,7 +85,13 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 		input.ManagedById = c.Config.ManagingObjectID
 	}
 
-	return c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+	result, err := c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+	if result != nil {
+		c.invalidateSavedDatasetLabel(input.Id, result.Id)
+	} else {
+		c.invalidateSavedDatasetLabel(input.Id, "")
+	}
+	return result, err
 }
 
 func (c *Client) SaveDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, queryInput *meta.MultiStageQueryInput) (*meta.DatasetDryRunSaveResult, error) {
@@ -110,6 +116,7 @@ func (c *Client) DeleteDataset(ctx context.Context, id string) error {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.invalidateDatasetLabel(id)
 	return c.Meta.DeleteDataset(ctx, id)
 }
 
@@ -126,7 +133,13 @@ func (c *Client) SaveLogDerivedMetricDataset(ctx context.Context, wsid string, i
 		input.ManagedById = c.Config.ManagingObjectID
 	}
 
-	return c.Meta.SaveLogDerivedMetricDataset(ctx, wsid, input, ldmInput, dependencyHandling)
+	result, err := c.Meta.SaveLogDerivedMetricDataset(ctx, wsid, input, ldmInput, dependencyHandling)
+	if result != nil {
+		c.invalidateSavedDatasetLabel(input.Id, result.Id)
+	} else {
+		c.invalidateSavedDatasetLabel(input.Id, "")
+	}
+	return result, err
 }
 
 func (c *Client) SaveLogDerivedMetricDatasetDryRun(ctx context.Context, wsid string, input *meta.DatasetInput, ldmInput *meta.LogDerivedMetricDefinitionInput) (*meta.DatasetDryRunSaveResult, error) {
@@ -177,6 +190,7 @@ func (c *Client) UpdateSourceDataset(ctx context.Context, workspaceId string, id
 		defer c.obs2110.Unlock()
 	}
 	dataset.Dataset.Id = &id
+	defer c.invalidateDatasetLabel(id)
 	return c.Meta.SaveSourceDataset(ctx, workspaceId, dataset, table)
 }
 
@@ -839,6 +853,7 @@ func (c *Client) UpdateDatastream(ctx context.Context, id string, input *meta.Da
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.clearDatasetLabels()
 	return c.Meta.UpdateDatastream(ctx, id, input)
 }
 
@@ -848,6 +863,7 @@ func (c *Client) DeleteDatastream(ctx context.Context, id string) error {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.clearDatasetLabels()
 	return c.Meta.DeleteDatastream(ctx, id)
 }
 
@@ -1542,6 +1558,7 @@ func (c *Client) UpdateReferenceTable(ctx context.Context, id string, input *res
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.clearDatasetLabels()
 	result, err := c.Rest.UpdateReferenceTable(ctx, id, input)
 	if err != nil {
 		return nil, err
@@ -1555,6 +1572,7 @@ func (c *Client) UpdateReferenceTableMetadata(ctx context.Context, id string, in
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.clearDatasetLabels()
 	result, err := c.Rest.UpdateReferenceTableMetadata(ctx, id, input)
 	if err != nil {
 		return nil, err
@@ -1568,6 +1586,7 @@ func (c *Client) DeleteReferenceTable(ctx context.Context, id string) error {
 		c.obs2110.Lock()
 		defer c.obs2110.Unlock()
 	}
+	defer c.clearDatasetLabels()
 	return c.Rest.DeleteReferenceTable(ctx, id)
 }
 
@@ -1758,6 +1777,7 @@ func (c *Client) GetInboundShareTable(ctx context.Context, shareId, tableId stri
 
 func (c *Client) UpdateInboundShareTable(ctx context.Context, shareId, tableId string, req *rest.UpdateTableRequest) (result *rest.InboundShareTable, err error) {
 	c.maybeRunConcurrently(func() {
+		defer c.clearDatasetLabels()
 		result, err = c.Rest.UpdateInboundShareTable(ctx, shareId, tableId, req)
 	})
 	return
@@ -1765,6 +1785,7 @@ func (c *Client) UpdateInboundShareTable(ctx context.Context, shareId, tableId s
 
 func (c *Client) DeleteInboundShareTable(ctx context.Context, shareId, tableId string) (err error) {
 	c.maybeRunConcurrently(func() {
+		defer c.clearDatasetLabels()
 		err = c.Rest.DeleteInboundShareTable(ctx, shareId, tableId)
 	})
 	return
