@@ -168,9 +168,19 @@ func resourceDataset() *schema.Resource {
 							Description:      descriptions.Get("transform", "schema", "stage", "pipeline"),
 						},
 						"output_stage": {
-							Type:        schema.TypeBool,
-							Default:     false,
-							Optional:    true,
+							Type:     schema.TypeBool,
+							Default:  false,
+							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// ignore output_stage for last stage, because it won't be set anyway.
+								// newQuery sends the last stage as the output stage whether or not it
+								// is declared, so flattenQuery cannot tell an explicit
+								// "output_stage = true" there from an omitted one, and deliberately
+								// reports false. Declaring it on the last stage is a no-op either way,
+								// so suppress rather than let it diff on every plan.
+								stage := d.Get("stage").([]interface{})
+								return k == fmt.Sprintf("stage.%d.output_stage", len(stage)-1)
+							},
 							Description: descriptions.Get("transform", "schema", "stage", "output_stage"),
 						},
 					},
