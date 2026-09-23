@@ -1,0 +1,68 @@
+{
+  "_bindings": {
+    "kinds": [
+      "dataset",
+      "workspace"
+    ],
+    "mappings": {
+      "dataset:Kubernetes/Container Logs": {
+        "is_oid": false,
+        "tf_local_binding_var": "binding__worksheet_log_explorer__dataset_kubernetes_container_logs",
+        "tf_name": "worksheet_log_explorer__dataset_kubernetes_container_logs"
+      },
+      "dataset:Tracing/Span": {
+        "is_oid": false,
+        "tf_local_binding_var": "binding__worksheet_log_explorer__dataset_tracing_span",
+        "tf_name": "worksheet_log_explorer__dataset_tracing_span"
+      },
+      "dataset:usage/Monitor Messages": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__worksheet_log_explorer__dataset_usage_monitor_messages",
+        "tf_name": "worksheet_log_explorer__dataset_usage_monitor_messages"
+      },
+      "workspace:Default": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__worksheet_log_explorer__workspace_default",
+        "tf_name": "workspace_default"
+      }
+    },
+    "workspace": {
+      "is_oid": true,
+      "tf_local_binding_var": "binding__worksheet_log_explorer__workspace_default",
+      "tf_name": "workspace_default"
+    },
+    "workspace_name": "Default"
+  },
+  "queries": [
+    {
+      "id": "q1",
+      "layout": {
+        "id": "${local.binding__worksheet_log_explorer__dataset_tracing_span}"
+      },
+      "stages": [
+        {
+          "input": [
+            {
+              "datasetId": "${local.binding__worksheet_log_explorer__dataset_kubernetes_container_logs}",
+              "inputName": "a"
+            },
+            {
+              "datasetId": "${local.binding__worksheet_log_explorer__dataset_usage_monitor_messages}",
+              "inputName": "b"
+            },
+            {
+              "datasetId": "41009999",
+              "inputName": "c"
+            }
+          ],
+          "stageID": "s1"
+        }
+      ]
+    },
+    {
+      "id": "41000201",
+      "stages": []
+    }
+  ],
+  "workspace": "${local.binding__worksheet_log_explorer__workspace_default}"
+}
