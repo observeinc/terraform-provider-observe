@@ -108,40 +108,40 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
-	// generate binding for workspace
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
+	workspaceOid := oid.WorkspaceOid(dashboard.WorkspaceId)
+	values, err := decodeJsonFields(data, "stages", "parameters", "parameter_values", "layout")
+	if err != nil {
+		return err
+	}
+	gen.CollectOid(workspaceOid)
+	for _, v := range values {
+		gen.Collect(v)
+	}
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
-	// generate bindings for stages, parameters, parameter_values, and layout,
-	// replacing the original ids in the json data with local variable references
-	for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
-		jsonWithRawIds := data.Get(field).(string)
-		if jsonWithRawIds == "" {
-			continue
-		}
-		jsonWithReferences, err := gen.GenerateJson([]byte(jsonWithRawIds))
-		if err != nil {
-			return fmt.Errorf("failed to generate bindings for field '%s': %w", field, err)
-		}
-		if err := data.Set(field, string(jsonWithReferences)); err != nil {
-			return err
-		}
+	// replace the original ids in the json data with local variable references
+	workspaceRef, _ := gen.TryBindOid(workspaceOid)
+	for _, v := range values {
+		gen.Generate(v)
 	}
 
 	// insert the bindings into the layout field to be used to generate data sources
 	// and local variable definitions at a later point
-	layout := data.Get("layout").(string)
-	if layout == "" {
-		layout = "{}"
+	if _, ok := values["layout"]; !ok {
+		values["layout"] = map[string]interface{}{}
 	}
-	layoutWithBindings, err := gen.InsertBindingsObjectJson([]byte(layout))
-	if err != nil {
+	layout, ok := values["layout"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("field 'layout' is not a JSON object")
+	}
+	if err := gen.InsertBindingsObject(layout); err != nil {
 		return err
 	}
-	if err := data.Set("layout", string(layoutWithBindings)); err != nil {
+	if err := encodeJsonFields(values); err != nil {
 		return err
 	}
-	return nil
+	values["workspace"] = workspaceRef
+	return setAll(data, values)
 }
