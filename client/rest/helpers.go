@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -15,11 +16,6 @@ func (e ErrorWithStatusCode) Error() string {
 }
 
 func HasStatusCode(err error, code int) bool {
-	if err == nil {
-		return false
-	}
-	if errWithStatusCode, ok := err.(ErrorWithStatusCode); ok {
-		return errWithStatusCode.StatusCode == code
-	}
-	return false
+	var errWithStatusCode ErrorWithStatusCode
+	return errors.As(err, &errWithStatusCode) && errWithStatusCode.StatusCode == code
 }

@@ -154,9 +154,16 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 
 		resp, err = wrapped.RoundTrip(c.setTrace(req))
 		waitBeforeRetry := c.RetryWait
-		for retry := 0; shouldRetryRequest(resp, err) && retry < c.RetryCount; retry++ {
+		for retry := 0; shouldRetryRequest(resp, err) && retry < c.RetryCount && ctx.Err() == nil; retry++ {
 			log.Printf("[WARN] retryable request error, retrying in %s (%d/%d)\n", waitBeforeRetry, retry+1, c.RetryCount)
-			time.Sleep(waitBeforeRetry)
+			if resp != nil {
+				resp.Body.Close()
+			}
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(waitBeforeRetry):
+			}
 			waitBeforeRetry *= 2
 			if waitBeforeRetry > meta.MaxRetryBackoff {
 				waitBeforeRetry = meta.MaxRetryBackoff
