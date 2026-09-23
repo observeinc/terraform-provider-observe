@@ -98,28 +98,37 @@ func generateWorksheetBindings(ctx context.Context, ws *gql.Worksheet, data *sch
 		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(ws.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
+	workspaceOid := oid.WorkspaceOid(ws.WorkspaceId)
+	gen.CollectOid(workspaceOid)
+	queriesJson := data.Get("queries").(string)
+	if queriesJson != "" {
+		if err := gen.CollectJson([]byte(queriesJson)); err != nil {
+			return fmt.Errorf("failed to collect bindings for field 'queries': %w", err)
+		}
+	}
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
-	queriesJson := data.Get("queries").(string)
+	rewritten := make(map[string]string, 3)
+	rewritten["workspace"], _ = gen.TryBindOid(workspaceOid)
 	if queriesJson != "" {
 		queriesWithReferences, err := gen.GenerateJson([]byte(queriesJson))
 		if err != nil {
 			return fmt.Errorf("failed to generate bindings for field 'queries': %w", err)
 		}
-		if err := data.Set("queries", string(queriesWithReferences)); err != nil {
-			return err
-		}
+		rewritten["queries"] = string(queriesWithReferences)
 	}
-
 	bindingsJson, err := gen.GetBindingsJson()
 	if err != nil {
 		return err
 	}
-	if err := data.Set("_bindings", string(bindingsJson)); err != nil {
-		return err
+	rewritten["_bindings"] = string(bindingsJson)
+
+	for field, value := range rewritten {
+		if err := data.Set(field, value); err != nil {
+			return err
+		}
 	}
 	return nil
 }

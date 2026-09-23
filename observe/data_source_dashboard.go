@@ -108,40 +108,52 @@ func generateDashboardBindings(ctx context.Context, dashboard *gql.Dashboard, da
 		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
-	// generate binding for workspace
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(dashboard.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
+	workspaceOid := oid.WorkspaceOid(dashboard.WorkspaceId)
+	gen.CollectOid(workspaceOid)
+	fields := []string{"stages", "parameters", "parameter_values", "layout"}
+	rewritten := make(map[string]string, len(fields)+1)
+	for _, field := range fields {
+		if raw := data.Get(field).(string); raw != "" {
+			if err := gen.CollectJson([]byte(raw)); err != nil {
+				return fmt.Errorf("failed to collect bindings for field '%s': %w", field, err)
+			}
+			rewritten[field] = raw
+		}
+	}
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
-	// generate bindings for stages, parameters, parameter_values, and layout,
-	// replacing the original ids in the json data with local variable references
-	for _, field := range []string{"stages", "parameters", "parameter_values", "layout"} {
-		jsonWithRawIds := data.Get(field).(string)
-		if jsonWithRawIds == "" {
+	// replace the original ids in the json data with local variable references
+	rewritten["workspace"], _ = gen.TryBindOid(workspaceOid)
+	for _, field := range fields {
+		raw, ok := rewritten[field]
+		if !ok {
 			continue
 		}
-		jsonWithReferences, err := gen.GenerateJson([]byte(jsonWithRawIds))
+		jsonWithReferences, err := gen.GenerateJson([]byte(raw))
 		if err != nil {
 			return fmt.Errorf("failed to generate bindings for field '%s': %w", field, err)
 		}
-		if err := data.Set(field, string(jsonWithReferences)); err != nil {
-			return err
-		}
+		rewritten[field] = string(jsonWithReferences)
 	}
 
 	// insert the bindings into the layout field to be used to generate data sources
 	// and local variable definitions at a later point
-	layout := data.Get("layout").(string)
-	if layout == "" {
+	layout, ok := rewritten["layout"]
+	if !ok {
 		layout = "{}"
 	}
 	layoutWithBindings, err := gen.InsertBindingsObjectJson([]byte(layout))
 	if err != nil {
 		return err
 	}
-	if err := data.Set("layout", string(layoutWithBindings)); err != nil {
-		return err
+	rewritten["layout"] = string(layoutWithBindings)
+
+	for field, value := range rewritten {
+		if err := data.Set(field, value); err != nil {
+			return err
+		}
 	}
 	return nil
 }

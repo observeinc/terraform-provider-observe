@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -70,6 +71,7 @@ type Server struct {
 	tenant   Tenant
 	failures map[string]Failure
 	counts   map[string]int
+	queries  []string // raw queries of GET /v1/datasets
 }
 
 // New starts a fake serving tenant; it is closed on test cleanup.
@@ -117,6 +119,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodPost && r.URL.Path == "/v1/meta":
 		s.serveGraphQL(w, r)
 	case r.Method == http.MethodGet && r.URL.Path == "/v1/datasets":
+		s.mu.Lock()
+		s.queries = append(s.queries, r.URL.RawQuery)
+		s.mu.Unlock()
 		if s.fail(w, OpRestDatasets) {
 			return
 		}
@@ -271,4 +276,65 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		panic(fmt.Sprintf("bindingtest: encoding response: %s", err))
 	}
+}
+
+var localRef = regexp.MustCompile(`\$\{local\.([A-Za-z0-9_-]+)\}`)
+
+// UndefinedLocals returns the ${local.X} references in doc that bindingsJSON
+// (a serialized binding.BindingsObject) does not define.
+func UndefinedLocals(doc interface{}, bindingsJSON []byte) ([]string, error) {
+	var b struct {
+		Mappings map[string]struct {
+			TfLocalBindingVar string `json:"tf_local_binding_var"`
+		} `json:"mappings"`
+		Workspace struct {
+			TfLocalBindingVar string `json:"tf_local_binding_var"`
+		} `json:"workspace"`
+	}
+	if err := json.Unmarshal(bindingsJSON, &b); err != nil {
+		return nil, err
+	}
+	defined := map[string]bool{b.Workspace.TfLocalBindingVar: true}
+	for _, t := range b.Mappings {
+		defined[t.TfLocalBindingVar] = true
+	}
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		return nil, err
+	}
+	var undefined []string
+	for _, m := range localRef.FindAllStringSubmatch(string(raw), -1) {
+		if !defined[m[1]] {
+			undefined = append(undefined, m[1])
+		}
+	}
+	return undefined, nil
+}
+
+// DatasetFilterIDs returns the ids named by each GET /v1/datasets filter.
+func (s *Server) DatasetFilterIDs() [][]string {
+	s.mu.Lock()
+	queries := append([]string(nil), s.queries...)
+	s.mu.Unlock()
+	var out [][]string
+	for _, raw := range queries {
+		q, err := url.ParseQuery(raw)
+		if err != nil {
+			s.t.Errorf("bindingtest: parsing query %q: %s", raw, err)
+			continue
+		}
+		match := idInFilter.FindStringSubmatch(q.Get("filter"))
+		if match == nil {
+			s.t.Errorf("bindingtest: unsupported dataset filter %q", q.Get("filter"))
+			continue
+		}
+		var ids []string
+		for _, id := range strings.Split(match[1], ",") {
+			if id = strings.TrimSpace(id); id != "" {
+				ids = append(ids, id)
+			}
+		}
+		out = append(out, ids)
+	}
+	return out
 }
