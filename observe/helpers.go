@@ -509,6 +509,33 @@ func dedentPipeline(s string) string {
 	return strings.Join(lines, "\n")
 }
 
+// diffTouchesAny reports whether the planned diff actually changes any attribute under one of
+// the given top-level keys.
+//
+// Prefer this over d.HasChange wherever the answer gates expensive work. HasChange never
+// consults the diff: ResourceDiff.getChange reads its "old" value from the state level and its
+// "new" value from a merge over [state, config, diff, newDiff] (see
+// MultiLevelFieldReader.ReadFieldMerge), so "new" is the raw config value. DiffSuppressFunc,
+// meanwhile, works by *omitting* the attribute from the diff -- the SDK logs "Ignoring change
+// due to DiffSuppressFunc" and drops it. The two never meet, so every difference the plan
+// suppresses is still a change as far as HasChange is concerned.
+//
+// That gap is not theoretical. dataset.stage carries three suppressors (pipeline trailing
+// whitespace, alias on the last stage, output_stage on the last stage), so a configuration
+// that plans completely clean could still report HasChange("stage") == true for every managed
+// dataset and pay a dry-run save for each one.
+//
+// GetChangedKeysPrefix reads the diff's attributes directly, so it sees exactly what the plan
+// will render and nothing more.
+func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
+	for _, k := range keys {
+		if len(d.GetChangedKeysPrefix(k)) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
 	prvTrimmed := strings.TrimRightFunc(prv, unicode.IsSpace)
 	nxtTrimmed := strings.TrimRightFunc(nxt, unicode.IsSpace)

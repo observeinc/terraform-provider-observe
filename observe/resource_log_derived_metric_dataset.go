@@ -179,7 +179,9 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 		return nil
 	}
 
-	if !(d.HasChange("input") || d.HasChange("shaping_query") || d.HasChange("metric_name")) {
+	// See diffTouchesAny: d.HasChange would also fire for differences a DiffSuppressFunc hides,
+	// making a no-op plan pay a dry-run save per resource.
+	if d.Id() != "" && !diffTouchesAny(d, "input", "shaping_query", "metric_name") {
 		return nil
 	}
 
