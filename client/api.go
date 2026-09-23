@@ -86,11 +86,11 @@ func (c *Client) SaveDataset(ctx context.Context, wsid string, input *meta.Datas
 	}
 
 	result, err := c.Meta.SaveDataset(ctx, wsid, input, queryInput, dependencyHandling)
+	var resultID string
 	if result != nil {
-		c.invalidateSavedDatasetLabel(input.Id, result.Id)
-	} else {
-		c.invalidateSavedDatasetLabel(input.Id, "")
+		resultID = result.Id
 	}
+	c.invalidateSavedDatasetLabel(input.Id, resultID)
 	return result, err
 }
 
@@ -134,11 +134,11 @@ func (c *Client) SaveLogDerivedMetricDataset(ctx context.Context, wsid string, i
 	}
 
 	result, err := c.Meta.SaveLogDerivedMetricDataset(ctx, wsid, input, ldmInput, dependencyHandling)
+	var resultID string
 	if result != nil {
-		c.invalidateSavedDatasetLabel(input.Id, result.Id)
-	} else {
-		c.invalidateSavedDatasetLabel(input.Id, "")
+		resultID = result.Id
 	}
+	c.invalidateSavedDatasetLabel(input.Id, resultID)
 	return result, err
 }
 
