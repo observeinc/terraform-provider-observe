@@ -267,10 +267,8 @@ func TestBindingExportActionMakesNoDatasetRequests(t *testing.T) {
 	if err := e.generate(context.Background(), e.seed(t), fake.Client()); err != nil {
 		t.Fatal(err)
 	}
-	for _, op := range []string{bindingtest.OpListDatasetsIdNameOnly, bindingtest.OpRestDatasets} {
-		if n := fake.Count(op); n != 0 {
-			t.Errorf("%s: got %d requests, want 0", op, n)
-		}
+	if n := fake.Count(bindingtest.OpRestDatasets); n != 0 {
+		t.Errorf("got %d dataset requests, want 0", n)
 	}
 }
 

@@ -185,15 +185,6 @@ query listDatasets{
 	}
 }
 
-query listDatasetsIdNameOnly {
-	datasets: datasetSearch {
-		# @genqlient(flatten: true)
-		dataset {
-			...DatasetIdName
-		}
-	}
-}
-
 # @genqlient(for: "DatasetFieldTypeInput.nullable", omitempty: true)
 # @genqlient(for: "DatasetInput.deleted", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)

@@ -61,7 +61,6 @@ const (
 	OpRestDatasets = "rest:datasets"
 
 	OpListWorkspaces            = "listWorkspaces"
-	OpListDatasetsIdNameOnly    = "listDatasetsIdNameOnly"
 	OpListWorksheetsIdLabelOnly = "listWorksheetsIdLabelOnly"
 	OpListUsers                 = "listUsers"
 	OpSearchMonitorV2Action     = "searchMonitorV2Action"
@@ -188,14 +187,6 @@ func (s *Server) serveGraphQL(w http.ResponseWriter, r *http.Request) {
 				map[string]interface{}{"id": tenant.Workspace.ID, "label": tenant.Workspace.Label},
 			},
 		}
-	case OpListDatasetsIdNameOnly:
-		matches := make([]interface{}, 0, len(tenant.Datasets))
-		for _, ds := range tenant.Datasets {
-			matches = append(matches, map[string]interface{}{
-				"dataset": map[string]interface{}{"id": ds.ID, "name": ds.Label},
-			})
-		}
-		data = map[string]interface{}{"datasets": matches}
 	case OpListWorksheetsIdLabelOnly:
 		matches := make([]interface{}, 0, len(tenant.Worksheets))
 		for _, wk := range tenant.Worksheets {
