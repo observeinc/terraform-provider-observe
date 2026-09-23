@@ -1,0 +1,133 @@
+{
+  "layout": {
+    "bindings": {
+      "kinds": [
+        "dataset",
+        "workspace"
+      ],
+      "mappings": {
+        "dataset:Kubernetes/Container Logs": {
+          "is_oid": false,
+          "tf_local_binding_var": "binding__dashboard_ops_overview__dataset_kubernetes_container_logs",
+          "tf_name": "dashboard_ops_overview__dataset_kubernetes_container_logs"
+        },
+        "dataset:Shared Id Dataset": {
+          "is_oid": false,
+          "tf_local_binding_var": "binding__dashboard_ops_overview__dataset_shared_id_dataset",
+          "tf_name": "dashboard_ops_overview__dataset_shared_id_dataset"
+        },
+        "dataset:Tracing/Span": {
+          "is_oid": false,
+          "tf_local_binding_var": "binding__dashboard_ops_overview__dataset_tracing_span",
+          "tf_name": "dashboard_ops_overview__dataset_tracing_span"
+        },
+        "dataset:usage/Monitor Messages": {
+          "is_oid": true,
+          "tf_local_binding_var": "binding__dashboard_ops_overview__dataset_usage_monitor_messages",
+          "tf_name": "dashboard_ops_overview__dataset_usage_monitor_messages"
+        },
+        "workspace:Default": {
+          "is_oid": false,
+          "tf_local_binding_var": "binding__dashboard_ops_overview__workspace_default",
+          "tf_name": "workspace_default"
+        }
+      },
+      "workspace": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__dashboard_ops_overview__workspace_default",
+        "tf_name": "workspace_default"
+      },
+      "workspace_name": "Default"
+    },
+    "count": "41000123",
+    "gridLayout": {
+      "sections": [
+        {
+          "items": [
+            {
+              "card": {
+                "cardType": "stage",
+                "datasetId": "${local.binding__dashboard_ops_overview__dataset_kubernetes_container_logs}",
+                "stageId": "stage-1"
+              }
+            },
+            {
+              "card": {
+                "id": "${local.binding__dashboard_ops_overview__dataset_shared_id_dataset}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "otherWorkspace": {
+      "workspaceId": "41000002"
+    },
+    "stageListLayout": {
+      "inputs": [
+        [
+          "${local.binding__dashboard_ops_overview__dataset_usage_monitor_messages}",
+          "o:::dataset:abcdef",
+          "o:::user:41000100",
+          "o:::dataset:41009999"
+        ]
+      ]
+    },
+    "workspaceId": "${local.binding__dashboard_ops_overview__workspace_default}"
+  },
+  "parameter_values": [
+    {
+      "id": "ds_param",
+      "value": {
+        "datasetref": {
+          "datasetId": "${local.binding__dashboard_ops_overview__dataset_tracing_span}"
+        }
+      }
+    },
+    {
+      "id": "user",
+      "value": {
+        "userId": "41000100"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "defaultValue": {
+        "datasetref": {
+          "datasetId": "${local.binding__dashboard_ops_overview__dataset_tracing_span}"
+        }
+      },
+      "id": "ds_param",
+      "valueKind": {
+        "keyForDatasetId": "${local.binding__dashboard_ops_overview__dataset_kubernetes_container_logs}",
+        "type": "DATASETREF"
+      }
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage-1",
+      "input": [
+        {
+          "datasetId": "${local.binding__dashboard_ops_overview__dataset_kubernetes_container_logs}",
+          "inputName": "logs",
+          "inputRole": "Data"
+        },
+        {
+          "datasetId": "41009999",
+          "inputName": "gone"
+        },
+        {
+          "datasetId": "abc",
+          "inputName": "bad"
+        }
+      ],
+      "params": {
+        "sourceDatasetId": "${local.binding__dashboard_ops_overview__dataset_usage_monitor_messages}"
+      },
+      "pipeline": "filter true"
+    }
+  ],
+  "workspace": "${local.binding__dashboard_ops_overview__workspace_default}"
+}
