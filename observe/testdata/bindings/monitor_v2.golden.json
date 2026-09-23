@@ -1,0 +1,63 @@
+{
+  "_bindings": {
+    "kinds": [
+      "dataset",
+      "monitor_v2_action",
+      "workspace"
+    ],
+    "mappings": {
+      "dataset:Kubernetes/Container Logs": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_latency_slo__dataset_kubernetes_container_logs",
+        "tf_name": "monitor_v2_latency_slo__dataset_kubernetes_container_logs"
+      },
+      "dataset:Tracing/Span": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_latency_slo__dataset_tracing_span",
+        "tf_name": "monitor_v2_latency_slo__dataset_tracing_span"
+      },
+      "monitor_v2_action:Page Oncall": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_latency_slo__monitor_v2_action_page_oncall",
+        "tf_name": "monitor_v2_latency_slo__monitor_v2_action_page_oncall"
+      },
+      "workspace:Default": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_latency_slo__workspace_default",
+        "tf_name": "workspace_default"
+      }
+    },
+    "workspace": {
+      "is_oid": true,
+      "tf_local_binding_var": "binding__monitor_v2_latency_slo__workspace_default",
+      "tf_name": "workspace_default"
+    },
+    "workspace_name": "Default"
+  },
+  "actions": [
+    {
+      "action": [],
+      "conditions": [],
+      "levels": [
+        "error"
+      ],
+      "oid": "${local.binding__monitor_v2_latency_slo__monitor_v2_action_page_oncall}",
+      "send_end_notifications": false,
+      "send_reminders_interval": ""
+    },
+    {
+      "action": [],
+      "conditions": [],
+      "levels": [],
+      "oid": "o:::monitorv2action:41000799",
+      "send_end_notifications": false,
+      "send_reminders_interval": ""
+    }
+  ],
+  "inputs": {
+    "gone": "o:::dataset:41009999",
+    "logs": "${local.binding__monitor_v2_latency_slo__dataset_kubernetes_container_logs}",
+    "spans": "${local.binding__monitor_v2_latency_slo__dataset_tracing_span}"
+  },
+  "workspace": "${local.binding__monitor_v2_latency_slo__workspace_default}"
+}
