@@ -159,10 +159,12 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 			if resp != nil {
 				resp.Body.Close()
 			}
+			timer := time.NewTimer(waitBeforeRetry)
 			select {
 			case <-ctx.Done():
+				timer.Stop()
 				return nil, ctx.Err()
-			case <-time.After(waitBeforeRetry):
+			case <-timer.C:
 			}
 			waitBeforeRetry *= 2
 			if waitBeforeRetry > meta.MaxRetryBackoff {
