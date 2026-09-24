@@ -13206,28 +13206,6 @@ type listDatasetsDatasetsProject struct {
 // GetDatasets returns listDatasetsDatasetsProject.Datasets, and is useful for accessing the field via an interface.
 func (v *listDatasetsDatasetsProject) GetDatasets() []Dataset { return v.Datasets }
 
-// listDatasetsIdNameOnlyDatasetsDatasetMatch includes the requested fields of the GraphQL type DatasetMatch.
-type listDatasetsIdNameOnlyDatasetsDatasetMatch struct {
-	Dataset DatasetIdName `json:"dataset"`
-}
-
-// GetDataset returns listDatasetsIdNameOnlyDatasetsDatasetMatch.Dataset, and is useful for accessing the field via an interface.
-func (v *listDatasetsIdNameOnlyDatasetsDatasetMatch) GetDataset() DatasetIdName { return v.Dataset }
-
-// listDatasetsIdNameOnlyResponse is returned by listDatasetsIdNameOnly on success.
-type listDatasetsIdNameOnlyResponse struct {
-	// Parameter searchMode defaults to InclusiveMode, which means "any matches,
-	// counts" sorted by better-scoring.  If you pass in ExclusiveMode, then you
-	// get "must match each thing" behavior, which may end up returning no datasets
-	// at all quite easily.
-	Datasets []listDatasetsIdNameOnlyDatasetsDatasetMatch `json:"datasets"`
-}
-
-// GetDatasets returns listDatasetsIdNameOnlyResponse.Datasets, and is useful for accessing the field via an interface.
-func (v *listDatasetsIdNameOnlyResponse) GetDatasets() []listDatasetsIdNameOnlyDatasetsDatasetMatch {
-	return v.Datasets
-}
-
 // listDatasetsResponse is returned by listDatasets on success.
 type listDatasetsResponse struct {
 	Datasets []listDatasetsDatasetsProject `json:"datasets"`
@@ -20073,43 +20051,6 @@ func listDatasets(
 	var err error
 
 	var data listDatasetsResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-// The query or mutation executed by listDatasetsIdNameOnly.
-const listDatasetsIdNameOnly_Operation = `
-query listDatasetsIdNameOnly {
-	datasets: datasetSearch {
-		dataset {
-			... DatasetIdName
-		}
-	}
-}
-fragment DatasetIdName on Dataset {
-	name
-	id
-}
-`
-
-func listDatasetsIdNameOnly(
-	ctx context.Context,
-	client graphql.Client,
-) (*listDatasetsIdNameOnlyResponse, error) {
-	req := &graphql.Request{
-		OpName: "listDatasetsIdNameOnly",
-		Query:  listDatasetsIdNameOnly_Operation,
-	}
-	var err error
-
-	var data listDatasetsIdNameOnlyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

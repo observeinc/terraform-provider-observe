@@ -102,10 +102,8 @@ func TestFakeDisabledKindsUntouched(t *testing.T) {
 	if len(b.Mappings) != 0 {
 		t.Errorf("got mappings %v, want none", b.Mappings)
 	}
-	for _, op := range []string{bindingtest.OpListDatasetsIdNameOnly, bindingtest.OpRestDatasets} {
-		if n := fake.Count(op); n != 0 {
-			t.Errorf("%s: got %d requests, want 0", op, n)
-		}
+	if n := fake.Count(bindingtest.OpRestDatasets); n != 0 {
+		t.Errorf("got %d dataset requests, want 0", n)
 	}
 }
 
