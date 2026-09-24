@@ -433,26 +433,34 @@ func TestDiffSuppressPipelineWhitespace(t *testing.T) {
 		// prv is what the read put in state, nxt is what config asks for.
 		prv, nxt     string
 		wantSuppress bool
+		// wantDedentEqual records whether dedenting both sides first would make them compare
+		// equal, i.e. whether the OB-67134 remedy of comparing dedented text would close the
+		// gap for this input. Asserted for every case rather than one, so the claim cannot be
+		// orphaned by a rename.
+		wantDedentEqual bool
 	}{
 		{
-			name:         "identical",
-			prv:          "filter true",
-			nxt:          "filter true",
-			wantSuppress: true,
+			name:            "identical",
+			prv:             "filter true",
+			nxt:             "filter true",
+			wantSuppress:    true,
+			wantDedentEqual: true,
 		},
 		{
 			// What a <<EOF heredoc leaves at the end of the value. Already forgiven, which
 			// is why trailing-whitespace payload differences are not evidence of a diff.
-			name:         "trailing_newline_and_spaces_forgiven",
-			prv:          "filter true",
-			nxt:          "filter true\n    ",
-			wantSuppress: true,
+			name:            "trailing_newline_and_spaces_forgiven",
+			prv:             "filter true",
+			nxt:             "filter true\n    ",
+			wantSuppress:    true,
+			wantDedentEqual: true,
 		},
 		{
-			name:         "trailing_whitespace_on_either_side_forgiven",
-			prv:          "filter true\n\t\n",
-			nxt:          "filter true",
-			wantSuppress: true,
+			name:            "trailing_whitespace_on_either_side_forgiven",
+			prv:             "filter true\n\t\n",
+			nxt:             "filter true",
+			wantSuppress:    true,
+			wantDedentEqual: true,
 		},
 		{
 			// The case that would bite: only reachable if the backend strips or alters
@@ -461,26 +469,34 @@ func TestDiffSuppressPipelineWhitespace(t *testing.T) {
 			prv:          "filter true",
 			nxt:          "\tfilter true",
 			wantSuppress: false,
+			// Dedent WOULD close this one: a single indented line dedents to column 0.
+			wantDedentEqual: true,
 		},
 		{
 			name:         "leading_indent_on_a_later_line_not_forgiven",
 			prv:          "filter true\nfilter false",
 			nxt:          "filter true\n    filter false",
 			wantSuppress: false,
+			// Dedent would NOT close this one, and that bounds the OB-67134 remedy:
+			// dedentPipeline strips the indent COMMON to every line, so a ragged pipeline
+			// whose first line is already flush has minIndent 0 and is returned untouched.
+			wantDedentEqual: false,
 		},
 		{
 			// Confirms the gap is specifically the missing dedent: these two are equal
 			// once dedentPipeline runs, and still diff without it.
-			name:         "uniform_indent_would_be_equal_after_dedent",
-			prv:          "filter true\nfilter false",
-			nxt:          "    filter true\n    filter false",
-			wantSuppress: false,
+			name:            "uniform_indent_would_be_equal_after_dedent",
+			prv:             "filter true\nfilter false",
+			nxt:             "    filter true\n    filter false",
+			wantSuppress:    false,
+			wantDedentEqual: true,
 		},
 		{
-			name:         "genuinely_different_text_not_forgiven",
-			prv:          "filter true",
-			nxt:          "filter false",
-			wantSuppress: false,
+			name:            "genuinely_different_text_not_forgiven",
+			prv:             "filter true",
+			nxt:             "filter false",
+			wantSuppress:    false,
+			wantDedentEqual: false,
 		},
 	}
 
@@ -491,15 +507,16 @@ func TestDiffSuppressPipelineWhitespace(t *testing.T) {
 				t.Errorf("diffSuppressPipeline(%q, %q) = %v, want %v", tc.prv, tc.nxt, got, tc.wantSuppress)
 			}
 
-			// Second half of the claim: dedenting both sides first would close the gap for
-			// the uniform-indent cases. Recorded, not enabled -- turning dedent on for
-			// datasets rewrites what lands in state for every existing dataset and causes a
-			// one-time diff for every user, so it needs a migration (OB-67134).
+			// Second half of the claim: would comparing DEDENTED text on both sides close
+			// the gap? Recorded per case, not enabled -- turning dedent on for datasets
+			// rewrites what lands in state for every existing dataset and causes a one-time
+			// diff for every user, so it needs a migration (OB-67134).
 			dedentedEqual := dedentPipeline(strings.TrimRightFunc(tc.prv, unicode.IsSpace)) ==
 				dedentPipeline(strings.TrimRightFunc(tc.nxt, unicode.IsSpace))
-			if tc.name == "uniform_indent_would_be_equal_after_dedent" && !dedentedEqual {
-				t.Error("dedentPipeline did not make uniformly-indented pipelines compare equal; " +
-					"the OB-67134 remedy of comparing dedented text would not work")
+			if dedentedEqual != tc.wantDedentEqual {
+				t.Errorf("dedent-then-compare = %v, want %v -- the OB-67134 remedy of comparing "+
+					"dedented text behaves differently than recorded for this input",
+					dedentedEqual, tc.wantDedentEqual)
 			}
 		})
 	}
