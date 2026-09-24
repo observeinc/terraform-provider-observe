@@ -2,6 +2,8 @@ package observe
 
 import (
 	"context"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -187,5 +189,160 @@ func TestDatasetDryRunGateAlwaysValidatesOnCreate(t *testing.T) {
 	_, _, touches := datasetGateVerdict(t, map[string]string{}, baseDatasetConfig("filter true"))
 	if !touches {
 		t.Error("gate skipped validation on create; an invalid new dataset would not be caught at plan time")
+	}
+}
+
+// TestValidationKeysExistInSchema guards the cheap way this gate can rot.
+//
+// GetChangedKeysPrefix on a key that does not exist in the schema matches nothing and returns
+// an empty slice, so a typo or a renamed attribute does not fail -- it silently disables
+// validation for that field, forever, with no diagnostic. Assert the lists name real
+// attributes.
+func TestValidationKeysExistInSchema(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		schema map[string]*schema.Schema
+		keys   []string
+	}{
+		{"observe_dataset", resourceDataset().Schema, datasetValidationKeys},
+		{"observe_log_derived_metric_dataset", resourceLogDerivedMetricDataset().Schema, logDerivedMetricValidationKeys},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if len(tc.keys) == 0 {
+				t.Fatal("validation key list is empty; the dry run would never run")
+			}
+			for _, k := range tc.keys {
+				if _, ok := tc.schema[k]; !ok {
+					t.Errorf("validation key %q is not an attribute of %s; "+
+						"GetChangedKeysPrefix will never match it and validation for it is silently off", k, tc.name)
+				}
+			}
+		})
+	}
+}
+
+// TestGateNeverSkipsAValidationRelevantUpdate pins the gate to terraform's own update decision.
+//
+// The decision lives in vendored SDK code we do not own -- helper/schema/grpc_provider.go,
+// PlanResourceChange: `if diff == nil || len(diff.Attributes) == 0 { PlannedState = PriorState }`
+// -- so the two cannot be unified into one call. Instead assert the safety property directly
+// against the real SDK output:
+//
+//	gate says "skip validation"  =>  the plan updates nothing under any validated key
+//
+// That is the property whose violation caused the original bug in reverse (the old HasChange
+// gate validated when the plan updated nothing). If a vendored SDK upgrade moves the decision,
+// changes what GetChangedKeysPrefix reads, or alters when DiffSuppressFunc prunes, this fails
+// rather than drifting silently.
+//
+// The converse is asserted too, but note it is the weaker direction: it only holds because the
+// gate's key list is a subset of the schema, which TestValidationKeysExistInSchema covers.
+func TestGateNeverSkipsAValidationRelevantUpdate(t *testing.T) {
+	cases := []struct {
+		name  string
+		state map[string]string
+		cfg   map[string]interface{}
+	}{
+		{
+			// Suppressed-only: the case the fix exists for.
+			name:  "suppressed_trailing_whitespace",
+			state: baseDatasetState("filter true"),
+			cfg:   baseDatasetConfig("filter true\n    "),
+		},
+		{
+			name:  "identical",
+			state: baseDatasetState("filter true"),
+			cfg:   baseDatasetConfig("filter true"),
+		},
+		{
+			name:  "real_pipeline_change",
+			state: baseDatasetState("filter true"),
+			cfg:   baseDatasetConfig("filter false"),
+		},
+		{
+			name:  "real_name_change",
+			state: baseDatasetState("filter true"),
+			cfg: func() map[string]interface{} {
+				c := baseDatasetConfig("filter true")
+				c["name"] = "renamed"
+				return c
+			}(),
+		},
+		{
+			name:  "real_inputs_change",
+			state: baseDatasetState("filter true"),
+			cfg: func() map[string]interface{} {
+				c := baseDatasetConfig("filter true")
+				c["inputs"] = map[string]interface{}{"test": "o:::dataset:41000099"}
+				return c
+			}(),
+		},
+		{
+			// An update confined to a NON-validated attribute. The backend does not need to
+			// re-validate the query for it, so the gate should skip -- and this is the case
+			// that would regress if someone "simplified" the gate to
+			// len(GetChangedKeysPrefix("")) > 0.
+			name:  "unvalidated_attribute_only",
+			state: baseDatasetState("filter true"),
+			cfg: func() map[string]interface{} {
+				c := baseDatasetConfig("filter true")
+				c["description"] = "changed"
+				return c
+			}(),
+		},
+		{
+			name:  "create",
+			state: map[string]string{},
+			cfg:   baseDatasetConfig("filter true"),
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			r := resourceDataset()
+
+			var skip bool
+			r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				// Exactly the gate in validateDatasetChanges.
+				skip = d.Id() != "" && !diffTouchesAny(d, datasetValidationKeys...)
+				return nil
+			}
+
+			state := &terraform.InstanceState{ID: tc.state["id"], Attributes: tc.state}
+			diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(tc.cfg), nil)
+			if err != nil {
+				t.Fatalf("Diff error: %v", err)
+			}
+
+			// What terraform will actually update, restricted to the validated keys. Restricting
+			// matters: our own CustomizeDiff may add unrelated keys (resourceDatasetCustomizeDiff
+			// calls SetNewComputed("oid")), and those are re-diffed after CustomizeDiff returns,
+			// so the final diff is a superset of what the gate saw.
+			updatedValidated := []string{}
+			if diff != nil {
+				for k := range diff.Attributes {
+					for _, key := range datasetValidationKeys {
+						if k == key || strings.HasPrefix(k, key+".") {
+							updatedValidated = append(updatedValidated, k)
+							break
+						}
+					}
+				}
+			}
+			sort.Strings(updatedValidated)
+
+			// THE INVARIANT.
+			if skip && len(updatedValidated) > 0 {
+				t.Errorf("gate skipped validation, but terraform will update validated attributes %v -- "+
+					"an unvalidated change would reach the backend", updatedValidated)
+			}
+			// And the other direction: never pay for validation when nothing validated changes.
+			if !skip && len(updatedValidated) == 0 && state.ID != "" {
+				t.Errorf("gate would validate, but terraform updates nothing under %v -- "+
+					"this is the wasted-preflight bug returning", datasetValidationKeys)
+			}
+			t.Logf("skipValidation=%-5v updatesValidatedAttrs=%v", skip, updatedValidated)
+		})
 	}
 }

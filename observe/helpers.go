@@ -509,24 +509,33 @@ func dedentPipeline(s string) string {
 	return strings.Join(lines, "\n")
 }
 
-// diffTouchesAny reports whether the planned diff actually changes any attribute under one of
-// the given top-level keys.
+// diffTouchesAny reports whether terraform will actually update any attribute under one of the
+// given top-level keys.
 //
-// Prefer this over d.HasChange wherever the answer gates expensive work. HasChange never
-// consults the diff: ResourceDiff.getChange reads its "old" value from the state level and its
-// "new" value from a merge over [state, config, diff, newDiff] (see
-// MultiLevelFieldReader.ReadFieldMerge), so "new" is the raw config value. DiffSuppressFunc,
-// meanwhile, works by *omitting* the attribute from the diff -- the SDK logs "Ignoring change
-// due to DiffSuppressFunc" and drops it. The two never meet, so every difference the plan
-// suppresses is still a change as far as HasChange is concerned.
+// It is deliberately expressed the same way terraform's own update decision is. The SDK plans
+// an update iff the diff has attributes -- helper/schema/grpc_provider.go, PlanResourceChange:
 //
-// That gap is not theoretical. dataset.stage carries three suppressors (pipeline trailing
-// whitespace, alias on the last stage, output_stage on the last stage), so a configuration
-// that plans completely clean could still report HasChange("stage") == true for every managed
-// dataset and pay a dry-run save for each one.
+//	if diff == nil || len(diff.Attributes) == 0 {
+//	    resp.PlannedState = req.PriorState   // no change; core never calls ApplyResourceChange
+//	    return resp, nil
+//	}
 //
-// GetChangedKeysPrefix reads the diff's attributes directly, so it sees exactly what the plan
-// will render and nothing more.
+// GetChangedKeysPrefix iterates that same diff.Attributes map, so this predicate is a
+// key-scoped form of the same test, over the same data, and cannot disagree with it about
+// whether a given attribute is being updated.
+//
+// Do NOT reach for d.HasChange here. HasChange never consults the diff: ResourceDiff.getChange
+// reads "old" from the state level and "new" from a merge over [state, config, diff, newDiff]
+// (MultiLevelFieldReader.ReadFieldMerge), so "new" is the raw config value. DiffSuppressFunc
+// works by *omitting* the attribute from the diff, so its verdict is invisible to HasChange --
+// which means every difference the plan suppresses still reads as a change. dataset.stage
+// carries three suppressors (pipeline trailing whitespace, alias and output_stage on the last
+// stage), and that gap made a plan reporting "No changes" still issue one dry-run save per
+// dataset.
+//
+// TestGateNeverSkipsAValidationRelevantUpdate pins the agreement against the real SDK, so a
+// vendored SDK upgrade that moves or redefines the decision fails the build rather than
+// silently drifting.
 func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
 	for _, k := range keys {
 		if len(d.GetChangedKeysPrefix(k)) > 0 {
