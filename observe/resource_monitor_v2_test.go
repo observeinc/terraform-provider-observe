@@ -162,7 +162,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 							expiration = "30m"
 							threshold {
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						rules {
@@ -173,7 +173,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 								compare_groups {
 									column {
 										column_path {
@@ -201,12 +201,12 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.value_column_name", "temp_number"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "min"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.value_column_name", "temp_number"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "min"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.column.0.column_path.0.name", "groupme"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.compare_fn", "not_equal"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.value_int64.0", "12"),
@@ -688,7 +688,7 @@ func TestAccObserveMonitorIntervals(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						scheduling {
@@ -744,7 +744,7 @@ func TestAccObserveMonitorRawCron(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						scheduling {
@@ -796,7 +796,7 @@ func monitorV2AlarmModeConfig(prefix, alarmModeLine string) string {
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation = "all_of"
+					aggregation = "min"
 				}
 			}
 			scheduling {
@@ -1024,7 +1024,7 @@ func monitorV2ServiceBindingsConfig(prefix, bindingBlock string) string {
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation = "all_of"
+					aggregation = "min"
 				}
 			}
 			%[2]s
@@ -1126,7 +1126,7 @@ func monitorV2ServiceBindingsWildcardConfig(prefix string, nsWildcard bool) stri
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation       = "all_of"
+					aggregation       = "min"
 				}
 			}
 			groupings {
