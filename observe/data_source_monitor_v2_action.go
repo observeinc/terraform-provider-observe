@@ -216,22 +216,29 @@ func generateMonitorV2ActionBindings(ctx context.Context, act *gql.MonitorV2Acti
 		return fmt.Errorf("failed to initialize binding generator: %w", err)
 	}
 
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(act.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
+	workspaceOid := oid.WorkspaceOid(act.WorkspaceId)
+	values := map[string]interface{}{}
+	if emailVal := data.Get("email"); emailVal != nil {
+		values["email"] = emailVal
+	}
+	gen.CollectOid(workspaceOid)
+	for _, v := range values {
+		gen.Collect(v)
+	}
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
 	// walk the email field to replace user OIDs with local variable references
-	if emailVal := data.Get("email"); emailVal != nil {
-		gen.Generate(emailVal)
-		if err := data.Set("email", emailVal); err != nil {
-			return err
-		}
+	workspaceRef, _ := gen.TryBindOid(workspaceOid)
+	for _, v := range values {
+		gen.Generate(v)
 	}
-
 	bindingsJson, err := gen.GetBindingsJson()
 	if err != nil {
 		return err
 	}
-	return data.Set("_bindings", string(bindingsJson))
+	values["workspace"] = workspaceRef
+	values["_bindings"] = string(bindingsJson)
+	return setAll(data, values)
 }
