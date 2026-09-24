@@ -229,6 +229,7 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                    resourceDataset(),
+			"observe_source_dataset":             resourceSourceDataset(),
 			"observe_log_derived_metric_dataset": resourceLogDerivedMetricDataset(),
 			"observe_link":                       resourceLink(),
 			"observe_bookmark_group":             resourceBookmarkGroup(),
