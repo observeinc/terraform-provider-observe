@@ -3,7 +3,6 @@ package observe
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -598,38 +597,6 @@ func TestAccObserveDatasetOutboundShareNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("observe_dataset_outbound_share.no_ws", "name", randomPrefix),
 			resource.TestCheckResourceAttrSet("observe_dataset_outbound_share.no_ws", "oid"),
-		),
-	})
-}
-
-func TestAccObserveSourceDatasetNoWorkspace(t *testing.T) {
-	if os.Getenv("CI") != "true" {
-		t.Skip("CI != true. This test requires manual setup that has only been performed on the CI account's Snowflake database.")
-	}
-
-	randomPrefix := acctest.RandomWithPrefix("tf")
-	randomTablePrefix := strings.Replace(randomPrefix, "-", "_", -1)
-	config := fmt.Sprintf(`
-		resource "observe_source_dataset" "no_ws" {
-			name                     = "%[1]s"
-			schema                   = "EXTERNAL"
-			table_name               = "%[2]s_TABLE_NAME"
-			source_update_table_name = "%[2]s_SOURCE_UPDATE_TABLE_NAME"
-			valid_from_field         = "TIMESTAMP"
-
-			field {
-				name     = "TIMESTAMP"
-				type     = "timestamp"
-				sql_type = "NUMBER(38,0)"
-			}
-		}
-	`, randomPrefix, randomTablePrefix)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: testAccNoWorkspaceSteps(config,
-			resource.TestCheckResourceAttr("observe_source_dataset.no_ws", "name", randomPrefix),
 		),
 	})
 }

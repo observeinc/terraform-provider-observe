@@ -1443,48 +1443,6 @@ func (v *DatasetCorrelationTagMappingsCorrelationTagMappingPathLinkField) GetPat
 	return v.Path
 }
 
-type DatasetDefinitionInput struct {
-	Dataset  DatasetInput                    `json:"dataset"`
-	Schema   []DatasetFieldDefInput          `json:"schema"`
-	Metadata *DatasetDefinitionMetadataInput `json:"metadata"`
-}
-
-// GetDataset returns DatasetDefinitionInput.Dataset, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionInput) GetDataset() DatasetInput { return v.Dataset }
-
-// GetSchema returns DatasetDefinitionInput.Schema, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionInput) GetSchema() []DatasetFieldDefInput { return v.Schema }
-
-// GetMetadata returns DatasetDefinitionInput.Metadata, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionInput) GetMetadata() *DatasetDefinitionMetadataInput { return v.Metadata }
-
-// All of the values of DatasetDefinitionMetadataInput are optional, but you
-// can't, for example, reference a dataset from another dataset until you define
-// its primary key, and it won't be an event dataset without having a
-// validFromField.
-type DatasetDefinitionMetadataInput struct {
-	ValidFromField *string    `json:"validFromField"`
-	ValidToField   *string    `json:"validToField"`
-	LabelField     *string    `json:"labelField"`
-	PrimaryKey     []string   `json:"primaryKey"`
-	Keys           [][]string `json:"keys"`
-}
-
-// GetValidFromField returns DatasetDefinitionMetadataInput.ValidFromField, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionMetadataInput) GetValidFromField() *string { return v.ValidFromField }
-
-// GetValidToField returns DatasetDefinitionMetadataInput.ValidToField, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionMetadataInput) GetValidToField() *string { return v.ValidToField }
-
-// GetLabelField returns DatasetDefinitionMetadataInput.LabelField, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionMetadataInput) GetLabelField() *string { return v.LabelField }
-
-// GetPrimaryKey returns DatasetDefinitionMetadataInput.PrimaryKey, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionMetadataInput) GetPrimaryKey() []string { return v.PrimaryKey }
-
-// GetKeys returns DatasetDefinitionMetadataInput.Keys, and is useful for accessing the field via an interface.
-func (v *DatasetDefinitionMetadataInput) GetKeys() [][]string { return v.Keys }
-
 type DatasetDefinitionType string
 
 const (
@@ -1532,52 +1490,6 @@ func (v *DatasetError) GetText() string { return v.Text }
 
 // GetHasExistingError returns DatasetError.HasExistingError, and is useful for accessing the field via an interface.
 func (v *DatasetError) GetHasExistingError() bool { return v.HasExistingError }
-
-type DatasetFieldDefInput struct {
-	Name         string                `json:"name"`
-	Type         DatasetFieldTypeInput `json:"type"`
-	IsEnum       *bool                 `json:"isEnum"`
-	IsSearchable *bool                 `json:"isSearchable"`
-	IsHidden     *bool                 `json:"isHidden"`
-	IsConst      *bool                 `json:"isConst"`
-	IsMetric     *bool                 `json:"isMetric"`
-}
-
-// GetName returns DatasetFieldDefInput.Name, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetName() string { return v.Name }
-
-// GetType returns DatasetFieldDefInput.Type, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetType() DatasetFieldTypeInput { return v.Type }
-
-// GetIsEnum returns DatasetFieldDefInput.IsEnum, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetIsEnum() *bool { return v.IsEnum }
-
-// GetIsSearchable returns DatasetFieldDefInput.IsSearchable, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetIsSearchable() *bool { return v.IsSearchable }
-
-// GetIsHidden returns DatasetFieldDefInput.IsHidden, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetIsHidden() *bool { return v.IsHidden }
-
-// GetIsConst returns DatasetFieldDefInput.IsConst, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetIsConst() *bool { return v.IsConst }
-
-// GetIsMetric returns DatasetFieldDefInput.IsMetric, and is useful for accessing the field via an interface.
-func (v *DatasetFieldDefInput) GetIsMetric() *bool { return v.IsMetric }
-
-type DatasetFieldTypeInput struct {
-	Rep      string               `json:"rep"`
-	Def      *DatasetTypedefInput `json:"def"`
-	Nullable *bool                `json:"nullable,omitempty"`
-}
-
-// GetRep returns DatasetFieldTypeInput.Rep, and is useful for accessing the field via an interface.
-func (v *DatasetFieldTypeInput) GetRep() string { return v.Rep }
-
-// GetDef returns DatasetFieldTypeInput.Def, and is useful for accessing the field via an interface.
-func (v *DatasetFieldTypeInput) GetDef() *DatasetTypedefInput { return v.Def }
-
-// GetNullable returns DatasetFieldTypeInput.Nullable, and is useful for accessing the field via an interface.
-func (v *DatasetFieldTypeInput) GetNullable() *bool { return v.Nullable }
 
 // DatasetForeignKeysForeignKey includes the requested fields of the GraphQL type ForeignKey.
 type DatasetForeignKeysForeignKey struct {
@@ -1740,33 +1652,6 @@ func (v *DatasetInput) GetDataRetentionDays() *types.Int64Scalar { return v.Data
 func (v *DatasetInput) GetDatasetDefinitionType() *DatasetDefinitionType {
 	return v.DatasetDefinitionType
 }
-
-type DatasetLinkSchemaInput struct {
-	TargetDataset    *types.Int64Scalar `json:"targetDataset"`
-	TargetStageLabel *string            `json:"targetStageLabel"`
-	TargetLabelField *string            `json:"targetLabelField"`
-	Label            string             `json:"label"`
-	SrcFields        []string           `json:"srcFields"`
-	DstFields        []string           `json:"dstFields"`
-}
-
-// GetTargetDataset returns DatasetLinkSchemaInput.TargetDataset, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetTargetDataset() *types.Int64Scalar { return v.TargetDataset }
-
-// GetTargetStageLabel returns DatasetLinkSchemaInput.TargetStageLabel, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetTargetStageLabel() *string { return v.TargetStageLabel }
-
-// GetTargetLabelField returns DatasetLinkSchemaInput.TargetLabelField, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetTargetLabelField() *string { return v.TargetLabelField }
-
-// GetLabel returns DatasetLinkSchemaInput.Label, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetLabel() string { return v.Label }
-
-// GetSrcFields returns DatasetLinkSchemaInput.SrcFields, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetSrcFields() []string { return v.SrcFields }
-
-// GetDstFields returns DatasetLinkSchemaInput.DstFields, and is useful for accessing the field via an interface.
-func (v *DatasetLinkSchemaInput) GetDstFields() []string { return v.DstFields }
 
 // DatasetMaterialization includes the GraphQL fields of DatasetMaterialization requested by the fragment DatasetMaterialization.
 // The GraphQL type's documentation follows.
@@ -2104,21 +1989,6 @@ func (v *DatasetTypedefDefObjectTypedefFieldsObjectFieldDefTypeObjectFieldType) 
 func (v *DatasetTypedefDefObjectTypedefFieldsObjectFieldDefTypeObjectFieldType) GetNullable() *bool {
 	return v.Nullable
 }
-
-type DatasetTypedefInput struct {
-	Anykey   *bool                   `json:"anykey"`
-	Fields   []DatasetFieldDefInput  `json:"fields"`
-	LinkDesc *DatasetLinkSchemaInput `json:"linkDesc"`
-}
-
-// GetAnykey returns DatasetTypedefInput.Anykey, and is useful for accessing the field via an interface.
-func (v *DatasetTypedefInput) GetAnykey() *bool { return v.Anykey }
-
-// GetFields returns DatasetTypedefInput.Fields, and is useful for accessing the field via an interface.
-func (v *DatasetTypedefInput) GetFields() []DatasetFieldDefInput { return v.Fields }
-
-// GetLinkDesc returns DatasetTypedefInput.LinkDesc, and is useful for accessing the field via an interface.
-func (v *DatasetTypedefInput) GetLinkDesc() *DatasetLinkSchemaInput { return v.LinkDesc }
 
 // Datastream includes the GraphQL fields of Datastream requested by the fragment Datastream.
 type Datastream struct {
@@ -9569,56 +9439,6 @@ func (v *SourceLocInput) GetRow() types.Int64Scalar { return v.Row }
 // GetCol returns SourceLocInput.Col, and is useful for accessing the field via an interface.
 func (v *SourceLocInput) GetCol() types.Int64Scalar { return v.Col }
 
-type SourceTableDefinitionInput struct {
-	Schema                       string                            `json:"schema"`
-	TableName                    string                            `json:"tableName"`
-	Fields                       []SourceTableFieldDefinitionInput `json:"fields"`
-	ValidFromField               *string                           `json:"validFromField"`
-	BatchSeqField                *string                           `json:"batchSeqField"`
-	IsInsertOnly                 *bool                             `json:"isInsertOnly,omitempty"`
-	SourceUpdateTableName        *string                           `json:"sourceUpdateTableName"`
-	TableChangeTrackingMechanism *TableChangeTrackingMechanism     `json:"tableChangeTrackingMechanism"`
-}
-
-// GetSchema returns SourceTableDefinitionInput.Schema, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetSchema() string { return v.Schema }
-
-// GetTableName returns SourceTableDefinitionInput.TableName, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetTableName() string { return v.TableName }
-
-// GetFields returns SourceTableDefinitionInput.Fields, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetFields() []SourceTableFieldDefinitionInput { return v.Fields }
-
-// GetValidFromField returns SourceTableDefinitionInput.ValidFromField, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetValidFromField() *string { return v.ValidFromField }
-
-// GetBatchSeqField returns SourceTableDefinitionInput.BatchSeqField, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetBatchSeqField() *string { return v.BatchSeqField }
-
-// GetIsInsertOnly returns SourceTableDefinitionInput.IsInsertOnly, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetIsInsertOnly() *bool { return v.IsInsertOnly }
-
-// GetSourceUpdateTableName returns SourceTableDefinitionInput.SourceUpdateTableName, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetSourceUpdateTableName() *string {
-	return v.SourceUpdateTableName
-}
-
-// GetTableChangeTrackingMechanism returns SourceTableDefinitionInput.TableChangeTrackingMechanism, and is useful for accessing the field via an interface.
-func (v *SourceTableDefinitionInput) GetTableChangeTrackingMechanism() *TableChangeTrackingMechanism {
-	return v.TableChangeTrackingMechanism
-}
-
-type SourceTableFieldDefinitionInput struct {
-	Name    string `json:"name"`
-	SqlType string `json:"sqlType"`
-}
-
-// GetName returns SourceTableFieldDefinitionInput.Name, and is useful for accessing the field via an interface.
-func (v *SourceTableFieldDefinitionInput) GetName() string { return v.Name }
-
-// GetSqlType returns SourceTableFieldDefinitionInput.SqlType, and is useful for accessing the field via an interface.
-func (v *SourceTableFieldDefinitionInput) GetSqlType() string { return v.SqlType }
-
 type StageInput struct {
 	// unique ID that other stages can reference in their InputDefinitionInput
 	StageId string `json:"stageId"`
@@ -9917,21 +9737,6 @@ func (v *StageQueryInputInputDefinition) GetDatasetPath() *string { return v.Dat
 
 // GetStageId returns StageQueryInputInputDefinition.StageId, and is useful for accessing the field via an interface.
 func (v *StageQueryInputInputDefinition) GetStageId() *string { return v.StageId }
-
-// Specifies the mechanism for how changes are tracked for a source table. None is specified for
-// non-source tables. Update specifies that and update table is used to track changes. CDC specifies that
-// Snowflake CDC is enabled for the datastream and is used to track changes.
-// NOTE: CDC is not widely available / is in development.
-type TableChangeTrackingMechanism string
-
-const (
-	// Not specified
-	TableChangeTrackingMechanismNone TableChangeTrackingMechanism = "None"
-	// Update table
-	TableChangeTrackingMechanismUpdatetable TableChangeTrackingMechanism = "UpdateTable"
-	// cdc
-	TableChangeTrackingMechanismCdc TableChangeTrackingMechanism = "CDC"
-)
 
 // TaskResult includes the GraphQL fields of TaskResult requested by the fragment TaskResult.
 // The GraphQL type's documentation follows.
@@ -11551,28 +11356,6 @@ func (v *__saveMonitorV2WithActionsInput) GetInput() MonitorV2Input { return v.I
 func (v *__saveMonitorV2WithActionsInput) GetActions() []MonitorV2ActionAndRelationInput {
 	return v.Actions
 }
-
-// __saveSourceDatasetInput is used internally by genqlient
-type __saveSourceDatasetInput struct {
-	WorkspaceId       string                     `json:"workspaceId"`
-	DatasetDefinition DatasetDefinitionInput     `json:"datasetDefinition"`
-	SourceTable       SourceTableDefinitionInput `json:"sourceTable"`
-	Dep               *DependencyHandlingInput   `json:"dep"`
-}
-
-// GetWorkspaceId returns __saveSourceDatasetInput.WorkspaceId, and is useful for accessing the field via an interface.
-func (v *__saveSourceDatasetInput) GetWorkspaceId() string { return v.WorkspaceId }
-
-// GetDatasetDefinition returns __saveSourceDatasetInput.DatasetDefinition, and is useful for accessing the field via an interface.
-func (v *__saveSourceDatasetInput) GetDatasetDefinition() DatasetDefinitionInput {
-	return v.DatasetDefinition
-}
-
-// GetSourceTable returns __saveSourceDatasetInput.SourceTable, and is useful for accessing the field via an interface.
-func (v *__saveSourceDatasetInput) GetSourceTable() SourceTableDefinitionInput { return v.SourceTable }
-
-// GetDep returns __saveSourceDatasetInput.Dep, and is useful for accessing the field via an interface.
-func (v *__saveSourceDatasetInput) GetDep() *DependencyHandlingInput { return v.Dep }
 
 // __saveWorksheetInput is used internally by genqlient
 type __saveWorksheetInput struct {
@@ -13547,25 +13330,6 @@ type saveMonitorV2WithActionsResponse struct {
 
 // GetMonitorV2 returns saveMonitorV2WithActionsResponse.MonitorV2, and is useful for accessing the field via an interface.
 func (v *saveMonitorV2WithActionsResponse) GetMonitorV2() MonitorV2 { return v.MonitorV2 }
-
-// saveSourceDatasetDatasetDatasetSaveResult includes the requested fields of the GraphQL type DatasetSaveResult.
-type saveSourceDatasetDatasetDatasetSaveResult struct {
-	// This is what you got out when saving
-	Dataset *Dataset `json:"dataset"`
-}
-
-// GetDataset returns saveSourceDatasetDatasetDatasetSaveResult.Dataset, and is useful for accessing the field via an interface.
-func (v *saveSourceDatasetDatasetDatasetSaveResult) GetDataset() *Dataset { return v.Dataset }
-
-// saveSourceDatasetResponse is returned by saveSourceDataset on success.
-type saveSourceDatasetResponse struct {
-	Dataset *saveSourceDatasetDatasetDatasetSaveResult `json:"dataset"`
-}
-
-// GetDataset returns saveSourceDatasetResponse.Dataset, and is useful for accessing the field via an interface.
-func (v *saveSourceDatasetResponse) GetDataset() *saveSourceDatasetDatasetDatasetSaveResult {
-	return v.Dataset
-}
 
 // saveWorksheetResponse is returned by saveWorksheet on success.
 type saveWorksheetResponse struct {
@@ -22344,141 +22108,6 @@ func saveMonitorV2WithActions(
 	var err error
 
 	var data saveMonitorV2WithActionsResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
-// The query or mutation executed by saveSourceDataset.
-const saveSourceDataset_Operation = `
-mutation saveSourceDataset ($workspaceId: ObjectId!, $datasetDefinition: DatasetDefinitionInput!, $sourceTable: SourceTableDefinitionInput!, $dep: DependencyHandlingInput) {
-	dataset: saveSourceDataset(workspaceId: $workspaceId, datasetDefinition: $datasetDefinition, sourceTable: $sourceTable, dependencyHandling: $dep) {
-		dataset {
-			... Dataset
-		}
-	}
-}
-fragment Dataset on Dataset {
-	workspaceId
-	id
-	name
-	freshnessDesired
-	description
-	iconUrl
-	accelerationDisabled
-	accelerationDisabledSource
-	accelerationType
-	version
-	lastSaved
-	pathCost
-	source
-	managedById
-	dataTableViewState
-	storageIntegrationId
-	validFromField
-	validToField
-	foreignKeys {
-		label
-		targetDataset
-		srcFields
-		dstFields
-	}
-	transform {
-		current {
-			query {
-				outputStage
-				stages {
-					... StageQuery
-				}
-			}
-		}
-	}
-	typedef {
-		label
-		def {
-			anykey
-			fields {
-				name
-				type {
-					rep
-					nullable
-				}
-				isEnum
-				isSearchable
-				isHidden
-				isConst
-				isMetric
-			}
-		}
-	}
-	sourceTable {
-		schema
-		partitions {
-			name
-		}
-		sourceUpdateTableName
-		isInsertOnly
-		batchSeqField
-		validFromField
-		fields {
-			name
-			sqlType
-		}
-	}
-	correlationTagMappings {
-		tag
-		path {
-			column
-			path
-		}
-	}
-	objectTags {
-		key
-		values
-	}
-}
-fragment StageQuery on StageQuery {
-	id
-	pipeline
-	params
-	layout
-	input {
-		inputName
-		inputRole
-		datasetId
-		datasetPath
-		stageId
-	}
-}
-`
-
-func saveSourceDataset(
-	ctx context.Context,
-	client graphql.Client,
-	workspaceId string,
-	datasetDefinition DatasetDefinitionInput,
-	sourceTable SourceTableDefinitionInput,
-	dep *DependencyHandlingInput,
-) (*saveSourceDatasetResponse, error) {
-	req := &graphql.Request{
-		OpName: "saveSourceDataset",
-		Query:  saveSourceDataset_Operation,
-		Variables: &__saveSourceDatasetInput{
-			WorkspaceId:       workspaceId,
-			DatasetDefinition: datasetDefinition,
-			SourceTable:       sourceTable,
-			Dep:               dep,
-		},
-	}
-	var err error
-
-	var data saveSourceDatasetResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
