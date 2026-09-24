@@ -14,7 +14,7 @@ import (
 // and is no longer supported. The resource is kept as a no-op so that existing
 // configurations and state still plan and apply: it never calls the Observe
 // API, and it will be removed in a future release.
-const sourceDatasetDeprecationMessage = "observe_source_dataset is no longer supported and will be removed in a future release. " +
+const sourceDatasetDeprecationMessage = "`observe_source_dataset` is no longer supported and will be removed in a future release. " +
 	"It no longer calls the Observe API: existing resources are kept in state unchanged, updates are not applied, " +
 	"and destroying one only removes it from state without deleting the dataset. " +
 	"Remove it from your configuration, or run `terraform state rm` on it."
