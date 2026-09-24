@@ -229,7 +229,7 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 
 	// Only do server-side validation if one of the following fields actually changes ("name"
 	// because we enforce uniqueness). A create has no state to compare against, so it always
-	// validates. See diffTouchesAny for why this cannot use d.HasChange: stage carries three
+	// validates. See diffTouchesAny for why this cannot use d.HasChange: stage carries two
 	// DiffSuppressFuncs, and HasChange reports a change for every difference they hide, so a
 	// no-op plan used to issue one dry run per dataset.
 	if !needsDryRunValidation(d, datasetValidationKeys) {

@@ -535,6 +535,15 @@ func dedentPipeline(s string) string {
 // TestGateNeverSkipsAValidationRelevantUpdate pins the agreement against the real SDK, so a
 // vendored SDK upgrade that moves or redefines the decision fails the build rather than
 // silently drifting.
+func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
+	for _, k := range keys {
+		if len(d.GetChangedKeysPrefix(k)) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // needsDryRunValidation reports whether a plan-time dry-run save is warranted for a resource
 // whose validity the backend must confirm when one of validationKeys is updated.
 //
@@ -549,15 +558,6 @@ func needsDryRunValidation(d *schema.ResourceDiff, validationKeys []string) bool
 		return true
 	}
 	return diffTouchesAny(d, validationKeys...)
-}
-
-func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
-	for _, k := range keys {
-		if len(d.GetChangedKeysPrefix(k)) > 0 {
-			return true
-		}
-	}
-	return false
 }
 
 func diffSuppressPipeline(k, prv, nxt string, d *schema.ResourceData) bool {
