@@ -22,7 +22,8 @@ func datasetGateVerdict(t *testing.T, stateAttrs map[string]string, cfg map[stri
 	r := resourceDataset()
 	r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		hasChange = d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name")
-		touches = d.Id() == "" || diffTouchesAny(d, "inputs", "stage", "name")
+		// The production gate itself, not a copy of it.
+		touches = needsDryRunValidation(d, datasetValidationKeys)
 		return nil
 	}
 
@@ -78,7 +79,8 @@ func baseDatasetConfig(pipeline string) map[string]interface{} {
 // validateDatasetChanges gates its dry run on whether inputs/stage/name changed. It used to
 // ask d.HasChange, which does not consult the diff: it takes "old" from state and "new" from a
 // merge that includes the config level, so it returns true for any difference a
-// DiffSuppressFunc hides. stage carries three such suppressors. The observable result on a
+// DiffSuppressFunc hides. stage carries two such suppressors today -- pipeline (trailing
+// whitespace) and alias (last stage) -- and both are exercised below. The observable result on a
 // large tenant was a terraform plan that reported "No changes. Your infrastructure matches the
 // configuration." after 18.7 minutes, having issued ~782 dry runs -- one per managed dataset.
 //
@@ -104,6 +106,24 @@ func TestDatasetDryRunGateIgnoresSuppressedDiffs(t *testing.T) {
 			name:          "suppressed_only_trailing_whitespace",
 			state:         baseDatasetState("filter true"),
 			cfg:           baseDatasetConfig("filter true\n    "),
+			wantPlanEmpty: true,
+			wantHasChange: true,
+			wantTouches:   false,
+		},
+		{
+			// The second suppressor on stage: alias on the LAST stage is suppressed
+			// (flattenQuery cannot return it, so it would otherwise diff forever). With a
+			// single stage, index 0 IS the last stage. Same shape as the whitespace case:
+			// plan empty, HasChange true, diff-based gate false.
+			name:  "suppressed_only_last_stage_alias",
+			state: baseDatasetState("filter true"),
+			cfg: func() map[string]interface{} {
+				c := baseDatasetConfig("filter true")
+				c["stage"] = []interface{}{
+					map[string]interface{}{"input": "test", "pipeline": "filter true", "alias": "ignored"},
+				}
+				return c
+			}(),
 			wantPlanEmpty: true,
 			wantHasChange: true,
 			wantTouches:   false,
@@ -255,6 +275,18 @@ func TestGateNeverSkipsAValidationRelevantUpdate(t *testing.T) {
 			cfg:   baseDatasetConfig("filter true"),
 		},
 		{
+			// The other stage suppressor; see TestDatasetDryRunGateIgnoresSuppressedDiffs.
+			name:  "suppressed_last_stage_alias",
+			state: baseDatasetState("filter true"),
+			cfg: func() map[string]interface{} {
+				c := baseDatasetConfig("filter true")
+				c["stage"] = []interface{}{
+					map[string]interface{}{"input": "test", "pipeline": "filter true", "alias": "ignored"},
+				}
+				return c
+			}(),
+		},
+		{
 			name:  "real_pipeline_change",
 			state: baseDatasetState("filter true"),
 			cfg:   baseDatasetConfig("filter false"),
@@ -304,8 +336,9 @@ func TestGateNeverSkipsAValidationRelevantUpdate(t *testing.T) {
 
 			var skip bool
 			r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				// Exactly the gate in validateDatasetChanges.
-				skip = d.Id() != "" && !diffTouchesAny(d, datasetValidationKeys...)
+				// The production gate itself, so an edit to it cannot leave this test
+				// passing against a stale expression.
+				skip = !needsDryRunValidation(d, datasetValidationKeys)
 				return nil
 			}
 

@@ -529,13 +529,28 @@ func dedentPipeline(s string) string {
 // (MultiLevelFieldReader.ReadFieldMerge), so "new" is the raw config value. DiffSuppressFunc
 // works by *omitting* the attribute from the diff, so its verdict is invisible to HasChange --
 // which means every difference the plan suppresses still reads as a change. dataset.stage
-// carries three suppressors (pipeline trailing whitespace, alias and output_stage on the last
-// stage), and that gap made a plan reporting "No changes" still issue one dry-run save per
-// dataset.
+// carries suppressors on pipeline (trailing whitespace) and alias (last stage), and that gap
+// made a plan reporting "No changes" still issue one dry-run save per dataset.
 //
 // TestGateNeverSkipsAValidationRelevantUpdate pins the agreement against the real SDK, so a
 // vendored SDK upgrade that moves or redefines the decision fails the build rather than
 // silently drifting.
+// needsDryRunValidation reports whether a plan-time dry-run save is warranted for a resource
+// whose validity the backend must confirm when one of validationKeys is updated.
+//
+// This is the single definition of that gate: the resource CustomizeDiff paths and the tests
+// that pin their behaviour both call it, so an edit here cannot leave the tests exercising a
+// stale copy of the predicate while still passing.
+//
+// A create always validates -- there is no prior state to compare against, and an invalid new
+// resource should be caught at plan time.
+func needsDryRunValidation(d *schema.ResourceDiff, validationKeys []string) bool {
+	if d.Id() == "" {
+		return true
+	}
+	return diffTouchesAny(d, validationKeys...)
+}
+
 func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
 	for _, k := range keys {
 		if len(d.GetChangedKeysPrefix(k)) > 0 {

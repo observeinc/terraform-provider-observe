@@ -232,7 +232,7 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 	// validates. See diffTouchesAny for why this cannot use d.HasChange: stage carries three
 	// DiffSuppressFuncs, and HasChange reports a change for every difference they hide, so a
 	// no-op plan used to issue one dry run per dataset.
-	if d.Id() != "" && !diffTouchesAny(d, datasetValidationKeys...) {
+	if !needsDryRunValidation(d, datasetValidationKeys) {
 		return nil
 	}
 

@@ -184,7 +184,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 
 	// See diffTouchesAny: d.HasChange would also fire for differences a DiffSuppressFunc hides,
 	// making a no-op plan pay a dry-run save per resource.
-	if d.Id() != "" && !diffTouchesAny(d, logDerivedMetricValidationKeys...) {
+	if !needsDryRunValidation(d, logDerivedMetricValidationKeys) {
 		return nil
 	}
 
