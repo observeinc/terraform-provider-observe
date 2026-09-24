@@ -259,25 +259,61 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 		input.Id = &id
 	}
 
-	result, err := client.SaveDatasetDryRun(ctx, wsid, input, queryInput)
-	if err != nil {
-		return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
-	}
-
 	// Ideally in addition to erroring for "must_skip_rematerialization", we'd also emit warnings
 	// for "skip_rematerialization". But terraform doesn't let us emit warnings in CustomizeDiff.
 	rematerializationMode := getRematerializationMode(client, d)
-	if rematerializationMode == RematerializationModeMustSkipRematerialization && len(result.DematerializedDatasets) > 0 {
-		return errors.New(rematerializationErrorStr(result.DematerializedDatasets))
+	dematerializedDatasets, err := dryRunDematerializedDatasets(ctx, client, wsid, input, queryInput, rematerializationMode)
+	if err != nil {
+		return fmt.Errorf("dataset save dry-run failed: %s", err.Error())
+	}
+	if len(dematerializedDatasets) > 0 {
+		return errors.New(rematerializationErrorStr(dematerializedDatasets))
 	}
 
-	// We could also check result.ErrorDatasets here for any downstream errors. But there
-	// may be cases when downstream dataset must be temporarily broken in order to make
-	// certain changes one dataset at a time. So not erroring here to allow such changes.
-	// Unfortunately, terraform won't let us emit a warning here. In the future, may
-	// consider erroring in such cases by default and having some field/flag to ignore them.
+	// We could also check the dry run's ErrorDatasets here for any downstream errors (they sit
+	// on the result dryRunDematerializedDatasets discards). But there may be cases when
+	// downstream dataset must be temporarily broken in order to make certain changes one
+	// dataset at a time. So not erroring here to allow such changes. Unfortunately, terraform
+	// won't let us emit a warning here. In the future, may consider erroring in such cases by
+	// default and having some field/flag to ignore them.
 
 	return nil
+}
+
+// dryRunDematerializedDatasets runs the preflight ("dry run") save that validates a dataset
+// before terraform commits to it, and reports which datasets that save would dematerialize.
+//
+// The dematerialization list is requested only for must_skip_rematerialization, the one mode
+// that acts on it by turning a non-empty list into a hard error. Asking for it is not free: the
+// backend answers by walking the transformer graph synchronously, measured at ~11.5s per call
+// on a large tenant, and a plan issues one preflight per dataset in the configuration. Every
+// other mode therefore gets validation only and a nil list, which leaves the callers' len() > 0
+// checks with the same answer they acted on when the field was always fetched and then
+// discarded.
+//
+// Validation itself is unaffected: an invalid dataset comes back as an error from the save in
+// both branches.
+//
+// If the skip_rematerialization warning noted in validateDatasetChanges is ever implemented,
+// add that mode here so it receives the list too.
+func dryRunDematerializedDatasets(
+	ctx context.Context,
+	client *observe.Client,
+	wsid string,
+	input *gql.DatasetInput,
+	queryInput *gql.MultiStageQueryInput,
+	rematerializationMode TerraformRematerializationMode,
+) ([]gql.DatasetMaterialization, error) {
+	if rematerializationMode != RematerializationModeMustSkipRematerialization {
+		_, err := client.SaveDatasetDryRun(ctx, wsid, input, queryInput)
+		return nil, err
+	}
+
+	result, err := client.SaveDatasetDryRunWithRematerialization(ctx, wsid, input, queryInput)
+	if err != nil {
+		return nil, err
+	}
+	return result.DematerializedDatasets, nil
 }
 
 func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
@@ -607,18 +643,18 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 	// Something could have changed in the environment between them resulting in new dematerializations.
 	rematerializationMode := getRematerializationMode(client, data)
 	if rematerializationMode == RematerializationModeMustSkipRematerialization {
-		if result, err := client.SaveDatasetDryRun(ctx, wsid, input, queryInput); err != nil {
+		if dematerializedDatasets, err := dryRunDematerializedDatasets(ctx, client, wsid, input, queryInput, rematerializationMode); err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
 				Detail:   err.Error(),
 			})
 			return diags
-		} else if len(result.DematerializedDatasets) > 0 {
+		} else if len(dematerializedDatasets) > 0 {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
-				Detail:   rematerializationErrorStr(result.DematerializedDatasets),
+				Detail:   rematerializationErrorStr(dematerializedDatasets),
 			})
 			return diags
 		}
