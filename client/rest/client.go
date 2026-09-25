@@ -96,7 +96,17 @@ func (c *Client) request(
 	method, path, contentType string,
 	body io.Reader,
 ) (*http.Response, error) {
-	req, err := http.NewRequest(method, c.endpoint+path, body)
+	return c.requestWithContext(context.Background(), method, path, contentType, body)
+}
+
+// requestWithContext returns the response for a 2xx status, which the caller
+// must close; other statuses return ErrorWithStatusCode.
+func (c *Client) requestWithContext(
+	ctx context.Context,
+	method, path, contentType string,
+	body io.Reader,
+) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, body)
 	if err != nil {
 		return nil, err
 	}
