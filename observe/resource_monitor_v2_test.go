@@ -218,6 +218,87 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 	})
 }
 
+// TestAccObserveMonitorV2DeprecatedAggregations protects compatibility with
+// backends that accept deprecated AllOf and AnyOf aggregations. It will remain
+// red until the backend returns deprecation warnings outside GraphQL errors[].
+func TestAccObserveMonitorV2DeprecatedAggregations(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(monitorV2ConfigPreamble+`
+					resource "observe_monitor_v2" "all_of" {
+						workspace     = data.observe_workspace.default.oid
+						rule_kind     = "threshold"
+						name          = "%[1]s-all-of"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						rules {
+							level = "informational"
+							threshold {
+								compare_values {
+									compare_fn  = "greater"
+									value_int64 = [0]
+								}
+								value_column_name = "temp_number"
+								aggregation       = "all_of"
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+					}
+
+					resource "observe_monitor_v2" "any_of" {
+						workspace     = data.observe_workspace.default.oid
+						rule_kind     = "threshold"
+						name          = "%[1]s-any-of"
+						lookback_time = "30m"
+						inputs = {
+							"test" = observe_datastream.test.dataset
+						}
+						stage {
+							pipeline = "colmake temp_number:14"
+						}
+						rules {
+							level = "informational"
+							threshold {
+								compare_values {
+									compare_fn  = "greater"
+									value_int64 = [0]
+								}
+								value_column_name = "temp_number"
+								aggregation       = "any_of"
+							}
+						}
+						scheduling {
+							transform {
+								freshness_goal = "15m"
+							}
+						}
+					}
+				`, randomPrefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.all_of", "id"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.all_of", "rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttrSet("observe_monitor_v2.any_of", "id"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.any_of", "rules.0.threshold.0.aggregation", "any_of"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccObserveMonitorV2Promote(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
