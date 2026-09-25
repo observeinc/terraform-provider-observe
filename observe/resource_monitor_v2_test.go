@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,6 +15,62 @@ import (
 )
 
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
+
+func TestMonitorV2AggregationSchemaUsesDeprecationValidator(t *testing.T) {
+	resourceSchema := resourceMonitorV2().Schema
+	noDataThreshold := resourceSchema["no_data_rules"].Elem.(*schema.Resource).Schema["threshold"].Elem.(*schema.Resource).Schema
+	ruleThreshold := resourceSchema["rules"].Elem.(*schema.Resource).Schema["threshold"].Elem.(*schema.Resource).Schema
+
+	if noDataThreshold["aggregation"].ValidateDiagFunc == nil || ruleThreshold["aggregation"].ValidateDiagFunc == nil {
+		t.Fatal("both threshold aggregation fields must have validation")
+	}
+
+	path := cty.Path{cty.GetAttrStep{Name: "aggregation"}}
+	for name, field := range map[string]*schema.Schema{
+		"no_data_rules": noDataThreshold["aggregation"],
+		"rules":         ruleThreshold["aggregation"],
+	} {
+		diags := field.ValidateDiagFunc("all_of", path)
+		if len(diags) != 1 || diags[0].Severity != diag.Warning {
+			t.Fatalf("%s aggregation should emit a warning, got %v", name, diags)
+		}
+	}
+}
+
+func TestValidateMonitorV2ValueAggregation(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		severity diag.Severity
+		detail   string
+		want     int
+	}{
+		{name: "all_of", value: "all_of", severity: diag.Warning, detail: monitorV2AllOfDeprecation, want: 1},
+		{name: "uppercase_all_of", value: "ALL_OF", severity: diag.Warning, detail: monitorV2AllOfDeprecation, want: 1},
+		{name: "any_of", value: "any_of", severity: diag.Warning, detail: monitorV2AnyOfDeprecation, want: 1},
+		{name: "mixed_case_any_of", value: "Any_Of", severity: diag.Warning, detail: monitorV2AnyOfDeprecation, want: 1},
+		{name: "min", value: "min", want: 0},
+		{name: "invalid", value: "invalid", severity: diag.Error, want: 1},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path := cty.Path{cty.GetAttrStep{Name: "aggregation"}}
+			diags := validateMonitorV2ValueAggregation(test.value, path)
+			if len(diags) != test.want {
+				t.Fatalf("expected %d diagnostics, got %v", test.want, diags)
+			}
+			if test.want == 0 {
+				return
+			}
+			if diags[0].Severity != test.severity || diags[0].Detail != test.detail {
+				t.Fatalf("unexpected diagnostic: %v", diags[0])
+			}
+			if test.severity == diag.Warning && (len(diags[0].AttributePath) != len(path) || diags[0].AttributePath[0].(cty.GetAttrStep).Name != "aggregation") {
+				t.Fatalf("unexpected attribute path: %v", diags[0].AttributePath)
+			}
+		})
+	}
+}
 
 func TestAccObserveMonitorV2Count(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
@@ -104,7 +162,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 							expiration = "30m"
 							threshold {
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						rules {
@@ -115,7 +173,7 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 								compare_groups {
 									column {
 										column_path {
@@ -143,12 +201,12 @@ func TestAccObserveMonitorV2Threshold(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rule_kind", "threshold"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.expiration", "30m0s"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.value_column_name", "temp_number"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "no_data_rules.0.threshold.0.aggregation", "min"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.level", "informational"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.compare_fn", "greater"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_values.0.value_int64.0", "0"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.value_column_name", "temp_number"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "all_of"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.aggregation", "min"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.column.0.column_path.0.name", "groupme"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.compare_fn", "not_equal"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "rules.0.threshold.0.compare_groups.0.compare_values.0.value_int64.0", "12"),
@@ -630,7 +688,7 @@ func TestAccObserveMonitorIntervals(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						scheduling {
@@ -686,7 +744,7 @@ func TestAccObserveMonitorRawCron(t *testing.T) {
 									value_int64 = [0]
 								}
 								value_column_name = "temp_number"
-								aggregation = "all_of"
+								aggregation = "min"
 							}
 						}
 						scheduling {
@@ -738,7 +796,7 @@ func monitorV2AlarmModeConfig(prefix, alarmModeLine string) string {
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation = "all_of"
+					aggregation = "min"
 				}
 			}
 			scheduling {
@@ -966,7 +1024,7 @@ func monitorV2ServiceBindingsConfig(prefix, bindingBlock string) string {
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation = "all_of"
+					aggregation = "min"
 				}
 			}
 			%[2]s
@@ -1068,7 +1126,7 @@ func monitorV2ServiceBindingsWildcardConfig(prefix string, nsWildcard bool) stri
 						value_int64 = [0]
 					}
 					value_column_name = "temp_number"
-					aggregation       = "all_of"
+					aggregation       = "min"
 				}
 			}
 			groupings {

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
@@ -14,6 +15,27 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
+
+const (
+	monitorV2AllOfDeprecation = "The all_of aggregation is deprecated. Use min instead."
+	monitorV2AnyOfDeprecation = "The any_of aggregation is deprecated. Use max instead."
+)
+
+func validateMonitorV2ValueAggregation(i interface{}, path cty.Path) (diags diag.Diagnostics) {
+	diags = validateEnums(gql.AllMonitorV2ValueAggregations)(i, path)
+	if len(diags) > 0 {
+		return diags
+	}
+
+	switch strings.ToLower(i.(string)) {
+	case "all_of":
+		return diag.Diagnostics{{Severity: diag.Warning, Summary: "Argument is deprecated", Detail: monitorV2AllOfDeprecation, AttributePath: path}}
+	case "any_of":
+		return diag.Diagnostics{{Severity: diag.Warning, Summary: "Argument is deprecated", Detail: monitorV2AnyOfDeprecation, AttributePath: path}}
+	default:
+		return nil
+	}
+}
 
 func resourceMonitorV2() *schema.Resource {
 	return &schema.Resource{
@@ -236,7 +258,7 @@ func resourceMonitorV2() *schema.Resource {
 									"aggregation": { // MonitorV2ValueAggregation!
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
+										ValidateDiagFunc: validateMonitorV2ValueAggregation,
 										Description:      descriptions.Get("monitorv2", "schema", "no_data_rules", "threshold", "aggregation"),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]
@@ -329,7 +351,7 @@ func resourceMonitorV2() *schema.Resource {
 									"aggregation": { // MonitorV2ValueAggregation!
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ValueAggregations),
+										ValidateDiagFunc: validateMonitorV2ValueAggregation,
 										Description:      descriptions.Get("monitorv2", "schema", "rules", "threshold", "aggregation"),
 									},
 									"compare_groups": { // [MonitorV2ColumnComparisonInput!]

@@ -214,14 +214,25 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 	return nil
 }
 
+// datasetValidationKeys are the dataset attributes whose update requires the backend to
+// validate the result ("name" because we enforce uniqueness server-side). Declared once so the
+// gate and TestValidationKeysExistInSchema cannot disagree: a typo or a renamed schema field
+// would otherwise silently disable validation forever, since GetChangedKeysPrefix on a key
+// that does not exist simply returns nothing.
+var datasetValidationKeys = []string{"inputs", "stage", "name"}
+
 func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	// Skip dry-run validation if configured to do so
 	if client.SkipDatasetDryRuns {
 		return nil
 	}
 
-	// Only do server-side validation if one of the following fields change ("name" because we enforce uniqueness)
-	if !(d.HasChange("inputs") || d.HasChange("stage") || d.HasChange("name")) {
+	// Only do server-side validation if one of the following fields actually changes ("name"
+	// because we enforce uniqueness). A create has no state to compare against, so it always
+	// validates. See diffTouchesAny for why this cannot use d.HasChange: stage carries two
+	// DiffSuppressFuncs, and HasChange reports a change for every difference they hide, so a
+	// no-op plan used to issue one dry run per dataset.
+	if !needsDryRunValidation(d, datasetValidationKeys) {
 		return nil
 	}
 

@@ -174,12 +174,17 @@ func resourceLogDerivedMetricDatasetCustomizeDiff(ctx context.Context, d *schema
 	return validateLogDerivedMetricDatasetChanges(ctx, d, client)
 }
 
+// logDerivedMetricValidationKeys mirrors datasetValidationKeys for this resource; see there.
+var logDerivedMetricValidationKeys = []string{"input", "shaping_query", "metric_name"}
+
 func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	if client.SkipDatasetDryRuns {
 		return nil
 	}
 
-	if !(d.HasChange("input") || d.HasChange("shaping_query") || d.HasChange("metric_name")) {
+	// See diffTouchesAny: d.HasChange would also fire for differences a DiffSuppressFunc hides,
+	// making a no-op plan pay a dry-run save per resource.
+	if !needsDryRunValidation(d, logDerivedMetricValidationKeys) {
 		return nil
 	}
 
