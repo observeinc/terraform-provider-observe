@@ -98,11 +98,6 @@ func (client *Client) ListDatasetsIdNameOnly(ctx context.Context) (ds []*Dataset
 	return result, nil
 }
 
-func (client *Client) SaveSourceDataset(ctx context.Context, workspaceId string, input *DatasetDefinitionInput, sourceInput *SourceTableDefinitionInput) (*Dataset, error) {
-	resp, err := saveSourceDataset(ctx, client.Gql, workspaceId, *input, *sourceInput, DefaultDependencyHandling())
-	return datasetOrError(resp.Dataset, err)
-}
-
 func (d *Dataset) Oid() *oid.OID {
 	version := d.LastSaved.String()
 	return &oid.OID{

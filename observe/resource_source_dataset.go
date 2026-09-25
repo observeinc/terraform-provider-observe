@@ -3,18 +3,23 @@ package observe
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	observe "github.com/observeinc/terraform-provider-observe/client"
-	gql "github.com/observeinc/terraform-provider-observe/client/meta"
-	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
+// observe_source_dataset used to register a raw Snowflake table as a dataset
+// via the saveSourceDataset mutation. It was only ever meant for internal use
+// and is no longer supported. The resource is kept as a no-op so that existing
+// configurations and state still plan and apply: it never calls the Observe
+// API, and it will be removed in a future release.
+const sourceDatasetDeprecationMessage = "`observe_source_dataset` is no longer supported and will be removed in a future release. " +
+	"It no longer calls the Observe API: existing resources are kept in state unchanged, updates are not applied, " +
+	"and destroying one only removes it from state without deleting the dataset. " +
+	"Remove it from your configuration, or run `terraform state rm` on it."
+
 var sourceDatasetFieldResource = &schema.Resource{
-	Description: "Manages a source dataset directly, including low level Snowflake configuration like the table name. This is an advanced resource. In most cases, you should use a datastream instead.",
 	Schema: map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
@@ -31,9 +36,7 @@ var sourceDatasetFieldResource = &schema.Resource{
 		"is_enum": {
 			Type:     schema.TypeBool,
 			Optional: true,
-			// TODO(luke): Do not use DefaultFunc instead of Default.
-			// sourceDatasetToResourceData assumes that we are using Default.
-			Default: false,
+			Default:  false,
 		},
 		"is_searchable": {
 			Type:     schema.TypeBool,
@@ -60,20 +63,14 @@ var sourceDatasetFieldResource = &schema.Resource{
 
 func resourceSourceDataset() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSourceDatasetCreate,
-		ReadContext:   resourceSourceDatasetRead,
-		UpdateContext: resourceSourceDatasetUpdate,
-		DeleteContext: resourceSourceDatasetDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			omitVersion := meta.(*observe.Client).Flags[flagOmitDatasetOIDVersion]
-			if !omitVersion && datasetRecomputeOID(d) {
-				return d.SetNewComputed("oid")
-			}
-			return nil
-		},
+		Description:        "Deprecated and non-functional. " + sourceDatasetDeprecationMessage,
+		DeprecationMessage: sourceDatasetDeprecationMessage,
+		CreateContext:      resourceSourceDatasetCreate,
+		ReadContext:        resourceSourceDatasetRead,
+		UpdateContext:      resourceSourceDatasetUpdate,
+		DeleteContext:      resourceSourceDatasetDelete,
+		// The schema is unchanged from the functional resource so that existing
+		// configurations and state remain valid.
 		Schema: map[string]*schema.Schema{
 			"workspace": {
 				Type:             schema.TypeString,
@@ -140,264 +137,34 @@ func resourceSourceDataset() *schema.Resource {
 	}
 }
 
-func newSourceDatasetConfig(data *schema.ResourceData) (*gql.DatasetDefinitionInput, *gql.SourceTableDefinitionInput, error) {
-	description := data.Get("description").(string)
-	input := gql.DatasetDefinitionInput{
-		Dataset: gql.DatasetInput{
-			Label: data.Get("name").(string),
-			// always reset to empty string if description not set
-			Description: &description,
-		},
-	}
-	if v, ok := data.GetOk("icon_url"); ok {
-		input.Dataset.IconUrl = stringPtr(v.(string))
-	}
-	if v, ok := data.GetOk("freshness"); ok {
-		// we already validated in schema
-		freshnessParsed, _ := time.ParseDuration(v.(string))
-		input.Dataset.FreshnessDesired = types.Int64Scalar(freshnessParsed).Ptr()
-	}
-
-	sourceUpdateTableName := data.Get("source_update_table_name").(string)
-	validFromField := data.Get("valid_from_field").(string)
-	sourceInput := gql.SourceTableDefinitionInput{
-		Schema:                data.Get("schema").(string),
-		TableName:             data.Get("table_name").(string),
-		SourceUpdateTableName: &sourceUpdateTableName,
-		ValidFromField:        &validFromField,
-	}
-	if v, ok := data.GetOk("batch_seq_field"); ok {
-		sourceInput.BatchSeqField = stringPtr(v.(string))
-	}
-	if v, ok := data.GetOk("is_insert_only"); ok {
-		sourceInput.IsInsertOnly = boolPtr(v.(bool))
-	}
-
-	for _, fieldRaw := range data.Get("field").(*schema.Set).List() {
-		field := fieldRaw.(map[string]interface{})
-		isEnum := field["is_enum"].(bool)
-		isSearchable := field["is_searchable"].(bool)
-		isHidden := field["is_hidden"].(bool)
-		isConst := field["is_const"].(bool)
-		isMetric := field["is_metric"].(bool)
-		input.Schema = append(input.Schema, gql.DatasetFieldDefInput{
-			Name: field["name"].(string),
-			Type: gql.DatasetFieldTypeInput{
-				Rep: field["type"].(string),
-			},
-			IsEnum:       &isEnum,
-			IsSearchable: &isSearchable,
-			IsHidden:     &isHidden,
-			IsConst:      &isConst,
-			IsMetric:     &isMetric,
-		})
-		sourceInput.Fields = append(sourceInput.Fields, gql.SourceTableFieldDefinitionInput{
-			Name:    field["name"].(string),
-			SqlType: field["sql_type"].(string),
-		})
-	}
-
-	// Check that the `valid_from_field` refers to an actual field
-	for _, field := range sourceInput.Fields {
-		if validFromField == field.Name {
-			return &input, &sourceInput, nil
-		}
-	}
-	return nil, nil, fmt.Errorf("valid_from_field %q does not refer to a valid field", validFromField)
+// Creating a new resource is refused rather than faked: a fake resource would
+// have no dataset behind it and an empty oid for anything that references it.
+func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.Diagnostics{{
+		Severity: diag.Error,
+		Summary:  "observe_source_dataset can no longer be created",
+		Detail:   sourceDatasetDeprecationMessage,
+	}}
 }
 
-func sourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData) (diags diag.Diagnostics) {
-	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("name", d.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := data.Set("schema", d.SourceTable.Schema); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if len(d.SourceTable.Partitions) == 1 {
-		tableName := d.SourceTable.Partitions[0].Name
-		if err := data.Set("table_name", tableName); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		errorMessage := fmt.Sprintf("Unable to set table_name, expected 1 partition but found %d", len(d.SourceTable.Partitions))
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Invalid number of partitions",
-			Detail:   errorMessage,
-		})
-
-		return diags
-	}
-
-	if d.SourceTable.SourceUpdateTableName != nil {
-		if err := data.Set("source_update_table_name", d.SourceTable.SourceUpdateTableName); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if d.SourceTable.BatchSeqField != nil {
-		if err := data.Set("batch_seq_field", d.SourceTable.BatchSeqField); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if err := data.Set("is_insert_only", d.SourceTable.IsInsertOnly); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if d.SourceTable.ValidFromField != nil {
-		if err := data.Set("valid_from_field", d.SourceTable.ValidFromField); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	fieldDefsMap := make(map[string]gql.DatasetTypedefDefObjectTypedefFieldsObjectFieldDef)
-	for _, d := range d.Typedef.Def.Fields {
-		fieldDefsMap[d.Name] = d
-	}
-
-	fields := schema.NewSet(schema.HashResource(sourceDatasetFieldResource), nil)
-	for _, field := range d.SourceTable.Fields {
-		fieldDef := fieldDefsMap[field.Name]
-		f := map[string]interface{}{
-			"name":          field.Name,
-			"type":          fieldDef.Type.Rep,
-			"sql_type":      field.SqlType,
-			"is_enum":       sourceDatasetFieldResource.Schema["is_enum"].Default,
-			"is_searchable": sourceDatasetFieldResource.Schema["is_searchable"].Default,
-			"is_hidden":     sourceDatasetFieldResource.Schema["is_hidden"].Default,
-			"is_const":      sourceDatasetFieldResource.Schema["is_const"].Default,
-			"is_metric":     sourceDatasetFieldResource.Schema["is_metric"].Default,
-		}
-
-		if fieldDef.IsEnum != nil {
-			f["is_enum"] = *fieldDef.IsEnum
-		}
-		if fieldDef.IsSearchable != nil {
-			f["is_searchable"] = *fieldDef.IsSearchable
-		}
-		if fieldDef.IsHidden != nil {
-			f["is_hidden"] = *fieldDef.IsHidden
-		}
-		if fieldDef.IsConst != nil {
-			f["is_const"] = *fieldDef.IsConst
-		}
-		if fieldDef.IsMetric != nil {
-			f["is_metric"] = *fieldDef.IsMetric
-		}
-
-		fields.Add(f)
-	}
-	if err := data.Set("field", fields); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if d.FreshnessDesired != nil {
-		if err := data.Set("freshness", d.FreshnessDesired.Duration().String()); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if d.Description != nil {
-		if err := data.Set("description", d.Description); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if d.IconUrl != nil {
-		if err := data.Set("icon_url", d.IconUrl); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if diags.HasError() {
-		return diags
-	}
-
-	if err := data.Set("oid", d.Oid().String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+// Read leaves the existing state untouched so that references such as
+// observe_source_dataset.x.oid keep resolving.
+func resourceSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return nil
 }
 
-func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	input, sourceInput, err := newSourceDatasetConfig(data)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	result, err := client.CreateSourceDataset(ctx, wsid, input, sourceInput)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to create dataset",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	data.SetId(result.Id)
-	return append(diags, resourceSourceDatasetRead(ctx, data, meta)...)
+func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.Diagnostics{{
+		Severity: diag.Warning,
+		Summary:  "observe_source_dataset changes were not applied",
+		Detail:   fmt.Sprintf("Dataset %s was not modified. %s", data.Get("oid"), sourceDatasetDeprecationMessage),
+	}}
 }
 
-func resourceSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	result, err := client.GetSourceDataset(ctx, data.Id())
-	if err != nil {
-		if gql.HasErrorCode(err, gql.ErrNotFound) {
-			data.SetId("")
-			return nil
-		}
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to retrieve dataset [id=%s]", data.Id()),
-			Detail:   err.Error(),
-		})
-	}
-
-	return sourceDatasetToResourceData(result, data)
-}
-
-func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	input, sourceInput, err := newSourceDatasetConfig(data)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	wsid, err := client.ResolveWorkspaceID(ctx, maybeString(data.GetOk("workspace")))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	result, err := client.UpdateSourceDataset(ctx, wsid, data.Id(), input, sourceInput)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to update dataset [id=%s]", data.Id()),
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	return sourceDatasetToResourceData(result, data)
-}
-
-func resourceSourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	client := meta.(*observe.Client)
-	if err := client.DeleteDataset(ctx, data.Id()); err != nil {
-		return diag.Errorf("failed to delete dataset: %s", err)
-	}
-	return diags
+func resourceSourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.Diagnostics{{
+		Severity: diag.Warning,
+		Summary:  "observe_source_dataset removed from state only",
+		Detail:   fmt.Sprintf("Dataset %s was not deleted. Delete it in Observe if it is no longer needed.", data.Get("oid")),
+	}}
 }
