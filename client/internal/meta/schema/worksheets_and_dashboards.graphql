@@ -78,6 +78,28 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
 
     folderId: ObjectId!
 
+    """
+    Version of the dashboard content model.
+
+    - 0: content is exposed through the layout, stages, and parameters
+      fields, and definition is null.
+    - 2 and above: content is exposed as a single definition document,
+      and the layout, stages, and parameters fields are empty.
+    """
+    schemaVersion: Int!
+
+    """
+    Dashboard content as a single JSON document: titled sections with
+    their placed cards (query, parameter, markdown, and image), any
+    off-grid query cards, and dashboard-level settings such as the
+    default filter and time range.
+
+    Populated only when schemaVersion is 2 or above; null when
+    schemaVersion is 0, where layout, stages, and parameters carry the
+    content instead.
+    """
+    definition: JsonObject @goField(forceResolver: true)
+
     layout: JsonObject!
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]

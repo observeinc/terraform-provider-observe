@@ -33,12 +33,25 @@ fragment valueFields on Value {
 }
 
 fragment Dashboard on Dashboard {
+    # Common to both content models.
     id
     name
     description
-    iconUrl
     workspaceId
     managedById
+    # @genqlient(typename: "ObjectTagMapping")
+    objectTags {
+        key
+        values
+    }
+
+    # schemaVersion selects which content model below applies: 0 is legacy; 2 and
+    # above is v2.
+    schemaVersion
+
+    # Legacy content model (schemaVersion < 2): managed through stages, layout,
+    # parameters, and parameterValues. iconUrl is legacy-only too.
+    iconUrl
     # @genqlient(pointer: true)
     layout
     stages {
@@ -78,11 +91,10 @@ fragment Dashboard on Dashboard {
             ...valueFields
         }
     }
-    # @genqlient(typename: "ObjectTagMapping")
-    objectTags {
-        key
-        values
-    }
+
+    # v2 content model (schemaVersion >= 2): managed entirely through definition.
+    # @genqlient(pointer: true)
+    definition
 }
 
 query getDashboard($id: ObjectId!) {
