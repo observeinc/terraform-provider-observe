@@ -196,3 +196,25 @@ func TestFlattenAndSetQueryStageInput(t *testing.T) {
 		})
 	}
 }
+
+// TestDatasetWorkspaceOnlySetOnResource guards that the data source leaves the
+// deprecated workspace attribute unset, so export-to-Terraform does not emit it.
+func TestDatasetWorkspaceOnlySetOnResource(t *testing.T) {
+	ds := &gql.Dataset{Id: "41000001", WorkspaceId: "41000215", Name: "test-dataset"}
+
+	dataSource := schema.TestResourceDataRaw(t, dataSourceDataset().Schema, map[string]interface{}{"id": ds.Id})
+	if diags := datasetToResourceData(ds, dataSource, false); diags.HasError() {
+		t.Fatalf("datasetToResourceData: %v", diags)
+	}
+	if v, ok := dataSource.GetOk("workspace"); ok {
+		t.Errorf("data source workspace = %q, want unset", v)
+	}
+
+	res := schema.TestResourceDataRaw(t, resourceDataset().Schema, map[string]interface{}{"name": ds.Name})
+	if diags := resourceDatasetToResourceData(ds, res, false); diags.HasError() {
+		t.Fatalf("resourceDatasetToResourceData: %v", diags)
+	}
+	if got, want := res.Get("workspace").(string), "o:::workspace:41000215"; got != want {
+		t.Errorf("resource workspace = %q, want %q", got, want)
+	}
+}

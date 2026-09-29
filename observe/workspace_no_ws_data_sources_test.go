@@ -48,6 +48,7 @@ func TestAccObserveDatasetDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_dataset.lookup", "name", randomPrefix+"-b"),
+			resource.TestCheckNoResourceAttr("data.observe_dataset.lookup", "workspace"),
 		),
 	})
 }

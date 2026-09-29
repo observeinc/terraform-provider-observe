@@ -349,11 +349,18 @@ func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQu
 	return input, query, diags
 }
 
-func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersion bool) (diags diag.Diagnostics) {
+// resourceDatasetToResourceData also records the deprecated workspace attribute.
+// The data source intentionally leaves workspace null so it is omitted from
+// `terraform show` output, which the Observe export-to-Terraform flow renders
+// into resource HCL.
+func resourceDatasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersion bool) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	return append(diags, datasetToResourceData(d, data, omitVersion)...)
+}
 
+func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersion bool) (diags diag.Diagnostics) {
 	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -583,7 +590,7 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 		})
 	}
 
-	return datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
+	return resourceDatasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])
 }
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -649,7 +656,7 @@ func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta 
 		diags = append(diags, diagInefficientAcceleration)
 	}
 
-	return append(diags, datasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])...)
+	return append(diags, resourceDatasetToResourceData(result, data, client.Flags[flagOmitDatasetOIDVersion])...)
 }
 
 func resourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
