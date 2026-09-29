@@ -10918,6 +10918,14 @@ type __getDatastreamTokenInput struct {
 // GetId returns __getDatastreamTokenInput.Id, and is useful for accessing the field via an interface.
 func (v *__getDatastreamTokenInput) GetId() string { return v.Id }
 
+// __getDefaultDashboardForTagInput is used internally by genqlient
+type __getDefaultDashboardForTagInput struct {
+	Tag string `json:"tag"`
+}
+
+// GetTag returns __getDefaultDashboardForTagInput.Tag, and is useful for accessing the field via an interface.
+func (v *__getDefaultDashboardForTagInput) GetTag() string { return v.Tag }
+
 // __getDefaultDashboardInput is used internally by genqlient
 type __getDefaultDashboardInput struct {
 	Dsid string `json:"dsid"`
@@ -11433,6 +11441,18 @@ func (v *__setChannelsForChannelActionInput) GetActionId() string { return v.Act
 
 // GetChannelIds returns __setChannelsForChannelActionInput.ChannelIds, and is useful for accessing the field via an interface.
 func (v *__setChannelsForChannelActionInput) GetChannelIds() []string { return v.ChannelIds }
+
+// __setDefaultDashboardForTagInput is used internally by genqlient
+type __setDefaultDashboardForTagInput struct {
+	Tag         string `json:"tag"`
+	DashboardId string `json:"dashboardId"`
+}
+
+// GetTag returns __setDefaultDashboardForTagInput.Tag, and is useful for accessing the field via an interface.
+func (v *__setDefaultDashboardForTagInput) GetTag() string { return v.Tag }
+
+// GetDashboardId returns __setDefaultDashboardForTagInput.DashboardId, and is useful for accessing the field via an interface.
+func (v *__setDefaultDashboardForTagInput) GetDashboardId() string { return v.DashboardId }
 
 // __setDefaultDashboardInput is used internally by genqlient
 type __setDefaultDashboardInput struct {
@@ -12699,6 +12719,16 @@ type getDatastreamTokenResponse struct {
 // GetDatastreamToken returns getDatastreamTokenResponse.DatastreamToken, and is useful for accessing the field via an interface.
 func (v *getDatastreamTokenResponse) GetDatastreamToken() DatastreamToken { return v.DatastreamToken }
 
+// getDefaultDashboardForTagResponse is returned by getDefaultDashboardForTag on success.
+type getDefaultDashboardForTagResponse struct {
+	DefaultDashboardForTag *string `json:"defaultDashboardForTag"`
+}
+
+// GetDefaultDashboardForTag returns getDefaultDashboardForTagResponse.DefaultDashboardForTag, and is useful for accessing the field via an interface.
+func (v *getDefaultDashboardForTagResponse) GetDefaultDashboardForTag() *string {
+	return v.DefaultDashboardForTag
+}
+
 // getDefaultDashboardResponse is returned by getDefaultDashboard on success.
 type getDefaultDashboardResponse struct {
 	// Default dashboard ID for a given dataset ID. May be null.
@@ -13442,6 +13472,14 @@ type setChannelsForChannelActionResponse struct {
 
 // GetResultStatus returns setChannelsForChannelActionResponse.ResultStatus, and is useful for accessing the field via an interface.
 func (v *setChannelsForChannelActionResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
+
+// setDefaultDashboardForTagResponse is returned by setDefaultDashboardForTag on success.
+type setDefaultDashboardForTagResponse struct {
+	ResultStatus ResultStatus `json:"resultStatus"`
+}
+
+// GetResultStatus returns setDefaultDashboardForTagResponse.ResultStatus, and is useful for accessing the field via an interface.
+func (v *setDefaultDashboardForTagResponse) GetResultStatus() ResultStatus { return v.ResultStatus }
 
 // setDefaultDashboardResponse is returned by setDefaultDashboard on success.
 type setDefaultDashboardResponse struct {
@@ -18009,6 +18047,39 @@ func getDefaultDashboard(
 	return &data, err
 }
 
+// The query or mutation executed by getDefaultDashboardForTag.
+const getDefaultDashboardForTag_Operation = `
+query getDefaultDashboardForTag ($tag: String!) {
+	defaultDashboardForTag(tag: $tag)
+}
+`
+
+func getDefaultDashboardForTag(
+	ctx context.Context,
+	client graphql.Client,
+	tag string,
+) (*getDefaultDashboardForTagResponse, error) {
+	req := &graphql.Request{
+		OpName: "getDefaultDashboardForTag",
+		Query:  getDefaultDashboardForTag_Operation,
+		Variables: &__getDefaultDashboardForTagInput{
+			Tag: tag,
+		},
+	}
+	var err error
+
+	var data getDefaultDashboardForTagResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by getDeferredForeignKey.
 const getDeferredForeignKey_Operation = `
 query getDeferredForeignKey ($id: ObjectId!) {
@@ -22371,6 +22442,48 @@ func setDefaultDashboard(
 	var err error
 
 	var data setDefaultDashboardResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by setDefaultDashboardForTag.
+const setDefaultDashboardForTag_Operation = `
+mutation setDefaultDashboardForTag ($tag: String!, $dashboardId: ObjectId!) {
+	resultStatus: setDefaultDashboardForTag(tag: $tag, dashboardId: $dashboardId) {
+		... ResultStatus
+	}
+}
+fragment ResultStatus on ResultStatus {
+	success
+	errorMessage
+	detailedInfo
+}
+`
+
+func setDefaultDashboardForTag(
+	ctx context.Context,
+	client graphql.Client,
+	tag string,
+	dashboardId string,
+) (*setDefaultDashboardForTagResponse, error) {
+	req := &graphql.Request{
+		OpName: "setDefaultDashboardForTag",
+		Query:  setDefaultDashboardForTag_Operation,
+		Variables: &__setDefaultDashboardForTagInput{
+			Tag:         tag,
+			DashboardId: dashboardId,
+		},
+	}
+	var err error
+
+	var data setDefaultDashboardForTagResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

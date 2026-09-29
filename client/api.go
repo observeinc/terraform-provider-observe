@@ -985,6 +985,18 @@ func (c *Client) ClearDefaultDashboard(ctx context.Context, dsid string) error {
 	return c.Meta.ClearDefaultDashboard(ctx, dsid)
 }
 
+func (c *Client) GetDefaultDashboardForTag(ctx context.Context, tag string) (*string, error) {
+	return c.Meta.GetDefaultDashboardForTag(ctx, tag)
+}
+
+func (c *Client) SetDefaultDashboardForTag(ctx context.Context, tag string, dashid string) error {
+	return c.Meta.SetDefaultDashboardForTag(ctx, tag, dashid)
+}
+
+func (c *Client) ClearDefaultDashboardForTag(ctx context.Context, tag string) error {
+	return c.Meta.ClearDefaultDashboardForTag(ctx, tag)
+}
+
 // CreateFolder creates a folder
 func (c *Client) CreateFolder(ctx context.Context, workspaceId string, input *meta.FolderInput) (*meta.Folder, error) {
 	if !c.Flags[flagObs2110] {

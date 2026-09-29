@@ -1,0 +1,10 @@
+description: |
+  Manages the default dashboard for a correlation tag. This dashboard is
+  displayed in the UI when pivoting on the tag.
+description_data_source: |
+  Fetches the default dashboard OID for the specified correlation tag.
+schema:
+  tag: >
+    The correlation tag name whose default dashboard is being managed.
+  dashboard: >
+    The OID of the default dashboard for the tag.
