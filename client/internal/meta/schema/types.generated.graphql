@@ -28,6 +28,8 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     externaloauthintegration
     filedrop
     folder
+    hmacsigningsecret
+    icebergcatalog
     inbound_share
     inbound_share_table
     incident
@@ -80,12 +82,15 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     DatastreamEdit
     DatastreamView
     IcebergcatalogView
+    IcebergcatalogWrite
     InvestigatorGlobal
     MonitorCreate
     MonitorEdit
     MonitorGlobalMute
     MonitorView
     MonitoractionCreate
+    OauthtokenCreate
+    OnlineevaluationManage
     ReferencetableCreate
     ReportManage
     ServiceaccountCreate
@@ -108,12 +113,15 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     DatasetAccelerator
     Editor
     IcebergCatalogViewer
+    IcebergCatalogWriter
     Ingester
     InvestigatorGlobal
     Lister
     Manager
     MonitorActionCreator
     MonitorGlobalMute
+    OauthTokenCreator
+    OnlineEvaluationManager
     ReferenceTableCreator
     ReportManager
     ServiceAccountCreator

@@ -307,18 +307,23 @@ var (
 	DatastreamCreator         GrantRole = createGrantRole("DatastreamCreator")
 	DatastreamEditor          GrantRole = createGrantRole("DatastreamEditor")
 	DatastreamViewer          GrantRole = createGrantRole("DatastreamViewer")
+	IcebergCatalogViewer      GrantRole = createGrantRole("IcebergCatalogViewer")
+	IcebergCatalogWriter      GrantRole = createGrantRole("IcebergCatalogWriter")
 	InvestigatorGlobal        GrantRole = createGrantRole("InvestigatorGlobal")
 	MonitorCreator            GrantRole = createGrantRole("MonitorCreator")
 	MonitorEditor             GrantRole = createGrantRole("MonitorEditor")
 	MonitorViewer             GrantRole = createGrantRole("MonitorViewer")
 	MonitorActionCreator      GrantRole = createGrantRole("MonitorActionCreator")
 	MonitorGlobalMuter        GrantRole = createGrantRole("MonitorGlobalMuter")
+	OauthTokenCreator         GrantRole = createGrantRole("OauthTokenCreator")
+	OnlineEvaluationManager   GrantRole = createGrantRole("OnlineEvaluationManager")
 	ReferenceTableCreator     GrantRole = createGrantRole("ReferenceTableCreator")
 	ReportManager             GrantRole = createGrantRole("ReportManager")
 	ServiceAccountCreator     GrantRole = createGrantRole("ServiceAccountCreator")
 	ShareInManager            GrantRole = createGrantRole("ShareInManager")
 	ShareInViewer             GrantRole = createGrantRole("ShareInViewer")
 	SkillVisibilityEditor     GrantRole = createGrantRole("SkillVisibilityEditor")
+	StorageIntegrationUser    GrantRole = createGrantRole("StorageIntegrationUser")
 	UserDeleter               GrantRole = createGrantRole("UserDeleter")
 	UserInviter               GrantRole = createGrantRole("UserInviter")
 	WorksheetCreator          GrantRole = createGrantRole("WorksheetCreator")
@@ -342,15 +347,20 @@ var roleMapping = map[GrantRole]gql.RbacRole{
 	BookmarkManager:           gql.RbacRoleBookmarkmanager,
 	DashboardVisibilityEditor: gql.RbacRoleDashboardvisibilityeditor,
 	DatasetAccelerator:        gql.RbacRoleDatasetaccelerator,
+	IcebergCatalogViewer:      gql.RbacRoleIcebergcatalogviewer,
+	IcebergCatalogWriter:      gql.RbacRoleIcebergcatalogwriter,
 	InvestigatorGlobal:        gql.RbacRoleInvestigatorglobal,
 	MonitorActionCreator:      gql.RbacRoleMonitoractioncreator,
 	MonitorGlobalMuter:        gql.RbacRoleMonitorglobalmute,
+	OauthTokenCreator:         gql.RbacRoleOauthtokencreator,
+	OnlineEvaluationManager:   gql.RbacRoleOnlineevaluationmanager,
 	ReferenceTableCreator:     gql.RbacRoleReferencetablecreator,
 	ReportManager:             gql.RbacRoleReportmanager,
 	ServiceAccountCreator:     gql.RbacRoleServiceaccountcreator,
 	ShareInManager:            gql.RbacRoleShareinmanager,
 	ShareInViewer:             gql.RbacRoleShareinviewer,
 	SkillVisibilityEditor:     gql.RbacRoleSkillvisibilityeditor,
+	StorageIntegrationUser:    gql.RbacRoleStorageintegrationuser,
 	UserDeleter:               gql.RbacRoleUserdelete,
 	UserInviter:               gql.RbacRoleUserinvite,
 	WorksheetVisibilityEditor: gql.RbacRoleWorksheetvisibilityeditor,
