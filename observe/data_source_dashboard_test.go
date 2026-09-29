@@ -44,7 +44,7 @@ func TestAccObserveSourceDashboard(t *testing.T) {
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_dashboard.first", "description", randomPrefix+" description"),
-					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_dashboard.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "description", randomPrefix+" description"),
 				),
@@ -152,7 +152,7 @@ func TestAccObserveSourceDashboard_ExportNullParameter(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_dashboard.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_dashboard.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
 				),
 			},

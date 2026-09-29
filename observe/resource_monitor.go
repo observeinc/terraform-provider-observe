@@ -817,14 +817,21 @@ func resourceMonitorRead(ctx context.Context, data *schema.ResourceData, meta in
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 
-	return monitorToResourceData(data, monitor)
+	return resourceMonitorToResourceData(data, monitor)
 }
 
-func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (diags diag.Diagnostics) {
+// resourceMonitorToResourceData also records the deprecated workspace attribute.
+// The data source intentionally leaves workspace null so it is omitted from
+// `terraform show` output, which the Observe export-to-Terraform flow renders
+// into resource HCL.
+func resourceMonitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	return append(diags, monitorToResourceData(data, monitor)...)
+}
 
+func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (diags diag.Diagnostics) {
 	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

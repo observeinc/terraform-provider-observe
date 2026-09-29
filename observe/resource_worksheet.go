@@ -96,11 +96,18 @@ func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, d
 	return input, diags
 }
 
-func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
+// resourceWorksheetToResourceData also records the deprecated workspace attribute.
+// The data source intentionally leaves workspace null so it is omitted from
+// `terraform show` output, which the Observe export-to-Terraform flow renders
+// into resource HCL.
+func resourceWorksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	return append(diags, worksheetToResourceData(d, data)...)
+}
 
+func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -190,7 +197,7 @@ func resourceWorksheetRead(ctx context.Context, data *schema.ResourceData, meta 
 		})
 	}
 
-	return worksheetToResourceData(result, data)
+	return resourceWorksheetToResourceData(result, data)
 }
 
 func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -215,7 +222,7 @@ func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, met
 		return diags
 	}
 
-	return worksheetToResourceData(result, data)
+	return resourceWorksheetToResourceData(result, data)
 }
 
 func resourceWorksheetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {

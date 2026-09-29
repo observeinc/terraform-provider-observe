@@ -48,6 +48,7 @@ func TestAccObserveDatasetDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_dataset.lookup", "name", randomPrefix+"-b"),
+			resource.TestCheckNoResourceAttr("data.observe_dataset.lookup", "workspace"),
 		),
 	})
 }
@@ -101,6 +102,7 @@ func TestAccObserveWorksheetDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_worksheet.lookup", "name", randomPrefix),
+			resource.TestCheckNoResourceAttr("data.observe_worksheet.lookup", "workspace"),
 		),
 	})
 }
@@ -131,6 +133,7 @@ func TestAccObserveMonitorDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
+			resource.TestCheckNoResourceAttr("data.observe_monitor.lookup", "workspace"),
 		),
 	})
 }
@@ -172,6 +175,7 @@ func TestAccObserveMonitorV2DataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
+			resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
 		),
 	})
 }
@@ -224,6 +228,7 @@ func TestAccObserveMonitorV2ActionDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor_v2_action.lookup", "name", randomPrefix),
+			resource.TestCheckNoResourceAttr("data.observe_monitor_v2_action.lookup", "workspace"),
 		),
 	})
 }
@@ -256,6 +261,7 @@ func TestAccObserveDashboardDataSourceNoWorkspace(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
+			resource.TestCheckNoResourceAttr("data.observe_dashboard.lookup", "workspace"),
 		),
 	})
 }
