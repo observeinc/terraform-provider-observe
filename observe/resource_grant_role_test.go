@@ -30,6 +30,8 @@ func TestGrantRoleMappingCoversRbacV2Roles(t *testing.T) {
 		gql.RbacRoleLister:   {},
 	}
 
+	// genqlient does not generate a slice containing every enum value. Keep
+	// this list synchronized with the RbacRole enum in types.generated.graphql.
 	all := []gql.RbacRole{
 		gql.RbacRoleApitokencreate,
 		gql.RbacRoleBookmarkmanager,
