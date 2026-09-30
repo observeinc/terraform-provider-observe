@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -232,32 +233,44 @@ func TestBindingExportGolden(t *testing.T) {
 	}
 }
 
-func TestBindingExportRejectsAmbiguousDatasets(t *testing.T) {
+func TestBindingExportRejectsDuplicateLabels(t *testing.T) {
 	tenant := exportTenant()
 	tenant.Datasets = append(tenant.Datasets, bindingtest.Object{ID: "41000124", Label: "Kubernetes/Container Logs"})
-	cases := map[string]struct {
-		tenant bindingtest.Tenant
-		stages string
-	}{
-		"raw id and oid":  {exportTenant(), `[{"input":[{"datasetId":"41000123"}],"params":{"x":"o:::dataset:41000123"}}]`},
-		"duplicate label": {tenant, `[{"input":[{"datasetId":"41000123"},{"datasetId":"41000124"}]}]`},
+	fake := bindingtest.New(t, tenant)
+	e := exporters["dashboard"]
+	data := e.seed(t)
+	if err := data.Set("stages", `[{"input":[{"datasetId":"41000123"},{"datasetId":"41000124"}]}]`); err != nil {
+		t.Fatal(err)
 	}
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			fake := bindingtest.New(t, tc.tenant)
-			e := exporters["dashboard"]
-			data := e.seed(t)
-			if err := data.Set("stages", tc.stages); err != nil {
-				t.Fatal(err)
-			}
-			before := e.published(t, data)
-			if err := e.generate(context.Background(), data, fake.Client()); err == nil {
-				t.Fatal("expected export to fail")
-			}
-			if after := e.published(t, data); !reflect.DeepEqual(before, after) {
-				t.Fatalf("failed export changed state\nbefore: %#v\nafter:  %#v", before, after)
-			}
-		})
+	before := e.published(t, data)
+	if err := e.generate(context.Background(), data, fake.Client()); err == nil {
+		t.Fatal("expected export to fail")
+	}
+	if after := e.published(t, data); !reflect.DeepEqual(before, after) {
+		t.Fatalf("failed export changed state\nbefore: %#v\nafter:  %#v", before, after)
+	}
+}
+
+func TestBindingExportIdAndOidBindsId(t *testing.T) {
+	fake := bindingtest.New(t, exportTenant())
+	e := exporters["dashboard"]
+	data := e.seed(t)
+	if err := data.Set("stages", `[{"input":[{"datasetId":"41000123"}],"params":{"x":"o:::dataset:41000123"}}]`); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.generate(context.Background(), data, fake.Client()); err != nil {
+		t.Fatal(err)
+	}
+	published := e.published(t, data)
+	raw, err := json.Marshal(published["layout"].(map[string]interface{})["bindings"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"dataset:Kubernetes/Container Logs":{"is_oid":false`) {
+		t.Errorf("want id-form binding for the conflicting dataset, got %s", raw)
+	}
+	if undefined, err := bindingtest.UndefinedLocals(published, raw); err != nil || len(undefined) != 0 {
+		t.Errorf("references without bindings: %v %v", undefined, err)
 	}
 }
 

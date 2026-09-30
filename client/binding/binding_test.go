@@ -190,33 +190,6 @@ func TestGenerateWithArrays(t *testing.T) {
 	}
 }
 
-func TestTryBindIdOidConflictFallsBackToId(t *testing.T) {
-	datasetOid := oid.OID{Type: oid.TypeDataset, Id: dataset1Id}
-	ref := Ref{Kind: KindDataset, Key: "dataset_1"}
-
-	// id bound first, then oid: the id form should win.
-	g := prepareGeneratorFixture()
-	g.TryBindId(KindDataset, dataset1Id)
-	g.TryBindOid(datasetOid)
-	if g.err != nil {
-		t.Fatalf("expected no error, got %v", g.err)
-	}
-	if g.bindings[ref].IsOid {
-		t.Fatalf("expected binding to fall back to id form, got %#v", g.bindings[ref])
-	}
-
-	// oid bound first, then id: the id form should still win.
-	g2 := prepareGeneratorFixture()
-	g2.TryBindOid(datasetOid)
-	g2.TryBindId(KindDataset, dataset1Id)
-	if g2.err != nil {
-		t.Fatalf("expected no error, got %v", g2.err)
-	}
-	if g2.bindings[ref].IsOid {
-		t.Fatalf("expected binding to fall back to id form, got %#v", g2.bindings[ref])
-	}
-}
-
 func TestInsertBindingsObjectJson(t *testing.T) {
 	g := prepareGeneratorFixture()
 	g.TryBindId(KindDataset, dataset1Id)

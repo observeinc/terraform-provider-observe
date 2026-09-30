@@ -147,7 +147,7 @@ func TestFakeDuplicateLabelFails(t *testing.T) {
 	export(t, fake, NewKindSet(KindDataset, KindWorkspace), map[string]interface{}{"datasetId": "41000901"})
 }
 
-func TestFakeRawIdAndOidRejected(t *testing.T) {
+func TestFakeRawIdAndOidBindsId(t *testing.T) {
 	fake := bindingtest.New(t, fakeTenant(bindingtest.Object{ID: "41000123", Label: "Logs"}))
 	for _, oidLast := range []bool{false, true} {
 		gen := newFakeGenerator(t, fake, NewKindSet(KindDataset, KindWorkspace))
@@ -163,8 +163,12 @@ func TestFakeRawIdAndOidRejected(t *testing.T) {
 			gen.TryBindOid(dsOid)
 			gen.TryBindId(KindDataset, "41000123")
 		}
-		if _, err := gen.GetBindings(); err == nil || !strings.Contains(err.Error(), "both by id and by oid") {
-			t.Errorf("oidLast=%v: got %v, want id/oid error", oidLast, err)
+		b, err := gen.GetBindings()
+		if err != nil {
+			t.Fatalf("oidLast=%v: %s", oidLast, err)
+		}
+		if target := b.Mappings[Ref{Kind: KindDataset, Key: "Logs"}]; target.TfName == "" || target.IsOid {
+			t.Errorf("oidLast=%v: want id-form binding, got %#v", oidLast, target)
 		}
 	}
 }
