@@ -45,9 +45,12 @@ func resourceDefaultDashboardForTagSet(ctx context.Context, data *schema.Resourc
 	client := meta.(*observe.Client)
 
 	tag := data.Get("tag").(string)
-	dashid, _ := oid.NewOID(data.Get("dashboard").(string))
+	dashid, err := oid.NewOID(data.Get("dashboard").(string))
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err := client.SetDefaultDashboardForTag(ctx, tag, dashid.Id)
+	err = client.SetDefaultDashboardForTag(ctx, tag, dashid.Id)
 	if err != nil {
 		return diag.Errorf("failed to set default dashboard for tag: %s", err.Error())
 	}

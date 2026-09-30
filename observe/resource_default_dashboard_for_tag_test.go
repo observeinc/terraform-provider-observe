@@ -25,7 +25,7 @@ var defaultDashboardForTagDashboard = `
 			EOF
 		}`
 
-// Verify we can set default dashboards for tags, read them back, update, and delete them.
+// Verify we can set default dashboards for tags, read them back, and delete them.
 func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 	tagName := randomPrefix + "-tag"
