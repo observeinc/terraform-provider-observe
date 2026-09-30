@@ -1,0 +1,39 @@
+{
+  "_bindings": {
+    "kinds": [
+      "dataset",
+      "workspace"
+    ],
+    "mappings": {
+      "dataset:Kubernetes/Container Logs": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_error_rate__dataset_kubernetes_container_logs",
+        "tf_name": "monitor_error_rate__dataset_kubernetes_container_logs"
+      },
+      "dataset:Tracing/Span": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_error_rate__dataset_tracing_span",
+        "tf_name": "monitor_error_rate__dataset_tracing_span"
+      },
+      "workspace:Default": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_error_rate__workspace_default",
+        "tf_name": "workspace_default"
+      }
+    },
+    "workspace": {
+      "is_oid": true,
+      "tf_local_binding_var": "binding__monitor_error_rate__workspace_default",
+      "tf_name": "workspace_default"
+    },
+    "workspace_name": "Default"
+  },
+  "inputs": {
+    "gone": "o:::dataset:41009999",
+    "logs": "${local.binding__monitor_error_rate__dataset_kubernetes_container_logs}",
+    "raw": "41000200",
+    "spans": "${local.binding__monitor_error_rate__dataset_tracing_span}",
+    "user": "o:::user:41000100"
+  },
+  "workspace": "${local.binding__monitor_error_rate__workspace_default}"
+}

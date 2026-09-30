@@ -1,0 +1,41 @@
+{
+  "_bindings": {
+    "kinds": [
+      "user",
+      "workspace"
+    ],
+    "mappings": {
+      "user:basic@example.com": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_action_page_oncall__user_basic_user",
+        "tf_name": "monitor_v2_action_page_oncall__user_basic_user"
+      },
+      "workspace:Default": {
+        "is_oid": true,
+        "tf_local_binding_var": "binding__monitor_v2_action_page_oncall__workspace_default",
+        "tf_name": "workspace_default"
+      }
+    },
+    "workspace": {
+      "is_oid": true,
+      "tf_local_binding_var": "binding__monitor_v2_action_page_oncall__workspace_default",
+      "tf_name": "workspace_default"
+    },
+    "workspace_name": "Default"
+  },
+  "email": [
+    {
+      "addresses": [
+        "oncall@example.com"
+      ],
+      "body": "",
+      "fragments": "",
+      "subject": "dataset 41000123",
+      "users": [
+        "${local.binding__monitor_v2_action_page_oncall__user_basic_user}",
+        "o:::user:41000199"
+      ]
+    }
+  ],
+  "workspace": "${local.binding__monitor_v2_action_page_oncall__workspace_default}"
+}
