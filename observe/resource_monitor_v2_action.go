@@ -216,9 +216,14 @@ func resourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceData,
 		return diag.Errorf("failed to read monitorv2 action: %s", err.Error())
 	}
 
-	// The data source intentionally leaves the deprecated workspace attribute
-	// null so it is omitted from `terraform show` output, which the Observe
-	// export-to-Terraform flow renders into resource HCL.
+	return resourceMonitorV2ActionToResourceData(action, data)
+}
+
+// resourceMonitorV2ActionToResourceData also records the deprecated workspace attribute.
+// The data source intentionally leaves workspace null so it is omitted from
+// `terraform show` output, which the Observe export-to-Terraform flow renders
+// into resource HCL.
+func resourceMonitorV2ActionToResourceData(action *gql.MonitorV2Action, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("workspace", oid.WorkspaceOid(action.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

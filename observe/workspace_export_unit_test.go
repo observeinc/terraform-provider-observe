@@ -86,8 +86,7 @@ func TestExportedDataSourcesOmitWorkspace(t *testing.T) {
 			resource:   resourceMonitorV2Action(),
 			id:         action.Id,
 			fillData:   func(d *schema.ResourceData) diag.Diagnostics { return monitorV2ActionToResourceData(action, d) },
-			// resourceMonitorV2ActionRead fetches the action itself, so only the
-			// data-source path is exercised here; the acceptance tests cover the resource.
+			fillRes:    func(d *schema.ResourceData) diag.Diagnostics { return resourceMonitorV2ActionToResourceData(action, d) },
 		},
 		{
 			name:       "worksheet",
@@ -118,9 +117,6 @@ func TestExportedDataSourcesOmitWorkspace(t *testing.T) {
 				t.Errorf("data source state workspace = %q, want absent (null)", v)
 			}
 
-			if tc.fillRes == nil {
-				return
-			}
 			res := schema.TestResourceDataRaw(t, tc.resource.Schema, map[string]interface{}{})
 			res.SetId(tc.id)
 			if diags := tc.fillRes(res); diags.HasError() {
