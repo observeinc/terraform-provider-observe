@@ -2,6 +2,7 @@ package observe
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -47,6 +48,41 @@ func TestAccObserveDatastreamCreateOtelLogs(t *testing.T) {
 				ResourceName:      "observe_datastream.example",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Setting type on an existing Any datastream must fail the plan rather than
+// replace the datastream, which would delete its dataset and data.
+func TestAccObserveDatastreamRejectsTypeChange(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	config := func(typeLine string) string {
+		return fmt.Sprintf(configPreamble+`
+				resource "observe_datastream" "example" {
+					workspace = data.observe_workspace.default.oid
+					name      = "%s"
+					%s
+				}
+				`, randomPrefix, typeLine)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config(""),
+				Check:  resource.TestCheckResourceAttr("observe_datastream.example", "type", ""),
+			},
+			{
+				Config:      config(`type = "OtelLogs"`),
+				ExpectError: regexp.MustCompile(`type cannot be changed on an existing datastream`),
+			},
+			{
+				// The rejected plan left the Any datastream in place.
+				Config:   config(""),
+				PlanOnly: true,
 			},
 		},
 	})

@@ -27,8 +27,11 @@ func TestDatastreamTypeSchema(t *testing.T) {
 	if !ok {
 		t.Fatal("type schema is missing")
 	}
-	if !typeSchema.Optional || !typeSchema.Computed || !typeSchema.ForceNew {
-		t.Errorf("type schema = %#v, want optional, computed, and ForceNew", typeSchema)
+	if !typeSchema.Optional || !typeSchema.Computed || typeSchema.ForceNew {
+		t.Errorf("type schema = %#v, want optional and computed, not ForceNew", typeSchema)
+	}
+	if resource.CustomizeDiff == nil {
+		t.Error("datastream resource has no CustomizeDiff to reject type changes")
 	}
 	for _, typeName := range []string{"Prometheus", "OtelLogs", "OtelMetrics", "K8sEntity", "OtelTrace"} {
 		if diags := typeSchema.ValidateDiagFunc(typeName, nil); diags.HasError() {
@@ -374,4 +377,23 @@ func TestAccObserveDatastreamCreate(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestDatastreamTypeChangeError(t *testing.T) {
+	for _, testCase := range []struct {
+		name, oldType, newType string
+		wantErr                bool
+	}{
+		{name: "unchanged typed", oldType: "OtelLogs", newType: "OtelLogs"},
+		{name: "unchanged any", oldType: "", newType: ""},
+		{name: "any to typed", oldType: "", newType: "OtelLogs", wantErr: true},
+		{name: "typed to typed", oldType: "OtelLogs", newType: "OtelMetrics", wantErr: true},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := datastreamTypeChangeError("41084453", testCase.oldType, testCase.newType)
+			if (err != nil) != testCase.wantErr {
+				t.Fatalf("datastreamTypeChangeError(%q, %q) = %v, want error %v", testCase.oldType, testCase.newType, err, testCase.wantErr)
+			}
+		})
+	}
 }

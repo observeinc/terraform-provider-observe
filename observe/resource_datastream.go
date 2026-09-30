@@ -31,6 +31,7 @@ func resourceDatastream() *schema.Resource {
 		ReadContext:   resourceDatastreamRead,
 		UpdateContext: resourceDatastreamUpdate,
 		DeleteContext: resourceDatastreamDelete,
+		CustomizeDiff: resourceDatastreamCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -64,9 +65,8 @@ func resourceDatastream() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ForceNew:         true,
 				ValidateDiagFunc: validateStringInSlice(datastreamTypes, false),
-				Description:      schemaDatastreamTypeDescription + " Omitting `type` during initial creation creates an `Any` type datastream. Removing `type` from an existing resource's configuration retains its current type; it does not convert it to `Any`. Explicitly changing `type` forces Terraform to create a new datastream.",
+				Description:      schemaDatastreamTypeDescription + " Omitting `type` during initial creation creates an `Any` type datastream. Removing `type` from an existing resource's configuration retains its current type; it does not convert it to `Any`. `type` cannot be changed after creation, including setting it on an existing `Any` datastream: the plan fails rather than replacing the datastream, because replacing it would delete its dataset and data. To switch type, create a new `observe_datastream`.",
 			},
 			"oid": {
 				Type:        schema.TypeString,
@@ -249,13 +249,41 @@ func resourceDatastreamRead(ctx context.Context, data *schema.ResourceData, meta
 	return datastreamToResourceData(result, data)
 }
 
+// resourceDatastreamCustomizeDiff refuses to change the type of an existing
+// datastream. The API cannot convert a datastream in place, and replacing it
+// would delete its dataset and everything ingested into it, so a plan that
+// changes type fails and the user creates a new datastream instead. An Any
+// datastream reads back with an empty type, so setting type on one counts as a
+// change too.
+func resourceDatastreamCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	// An unknown type is decided at apply time, where Update never changes it.
+	if d.Id() == "" || !d.HasChange("type") || !d.NewValueKnown("type") {
+		return nil
+	}
+	oldType, newType := d.GetChange("type")
+	return datastreamTypeChangeError(d.Id(), oldType.(string), newType.(string))
+}
+
+func datastreamTypeChangeError(id, oldType, newType string) error {
+	if oldType == newType {
+		return nil
+	}
+	current := oldType
+	if current == "" {
+		current = "Any"
+	}
+	return fmt.Errorf("datastream %s has type %s, and type cannot be changed on an existing datastream: "+
+		"replacing it would delete its dataset and all of its data. "+
+		"Create a new observe_datastream with type = %q instead, or revert type to keep this one", id, current, newType)
+}
+
 func resourceDatastreamUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	config, diags := newDatastreamConfig(data)
 	if diags.HasError() {
 		return diags
 	}
-	// Nil leaves datastream types unchanged because type is ForceNew.
+	// Nil leaves datastream types unchanged; CustomizeDiff rejects type changes.
 	config.DirectWrite = nil
 
 	result, err := client.UpdateDatastream(ctx, data.Id(), config)
