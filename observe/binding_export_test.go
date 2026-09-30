@@ -337,3 +337,32 @@ func TestBindingExportsDoNotShareLabels(t *testing.T) {
 		t.Errorf("got lookups %v, want the same ids twice", f)
 	}
 }
+
+func TestBindingExportDashboardV2UsesDefinition(t *testing.T) {
+	fake := bindingtest.New(t, exportTenant())
+	data := dataSourceDashboard().TestResourceData()
+	if err := data.Set("definition", `{"stages":[{"input":[{"datasetId":"41000123"}]}]}`); err != nil {
+		t.Fatal(err)
+	}
+	dashboard := &gql.Dashboard{Name: "Ops Overview", WorkspaceId: "41000001", SchemaVersion: 2}
+	if err := generateDashboardBindings(context.Background(), dashboard, data, fake.Client()); err != nil {
+		t.Fatal(err)
+	}
+	if layout := data.Get("layout").(string); layout != "" {
+		t.Errorf("layout: got %q, want empty", layout)
+	}
+	var definition map[string]interface{}
+	if err := json.Unmarshal([]byte(data.Get("definition").(string)), &definition); err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(definition["bindings"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"dataset:Kubernetes/Container Logs"`) {
+		t.Errorf("definition bindings missing dataset: %s", raw)
+	}
+	if undefined, err := bindingtest.UndefinedLocals(map[string]interface{}{"definition": definition}, raw); err != nil || len(undefined) != 0 {
+		t.Errorf("references without bindings: %v %v", undefined, err)
+	}
+}
