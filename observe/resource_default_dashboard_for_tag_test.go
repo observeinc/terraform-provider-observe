@@ -192,11 +192,13 @@ func TestAccObserveDefaultDashboardForTagForceNewTag(t *testing.T) {
 				}
 
 				data "observe_default_dashboard_for_tag" "old_tag" {
-					tag = "%[3]s"
+					tag        = "%[3]s"
+					depends_on = [observe_default_dashboard_for_tag.set_ddb]
 				}
 
 				data "observe_default_dashboard_for_tag" "new_tag" {
-					tag = "%[2]s"
+					tag        = "%[2]s"
+					depends_on = [observe_default_dashboard_for_tag.set_ddb]
 				}
 				`, randomPrefix, tagNew, tagOld),
 				Check: resource.ComposeTestCheckFunc(

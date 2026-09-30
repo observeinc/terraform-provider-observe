@@ -26,7 +26,7 @@ func dataSourceDefaultDashboardForTag() *schema.Resource {
 			"dashboard": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: descriptions.Get("default_dashboard_for_tag", "schema", "dashboard"),
+				Description: descriptions.Get("default_dashboard_for_tag", "schema", "dashboard_data_source"),
 			},
 		},
 	}

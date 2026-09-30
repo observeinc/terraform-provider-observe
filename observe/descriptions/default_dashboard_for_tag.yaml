@@ -16,3 +16,6 @@ schema:
     The correlation tag name whose default dashboard is being looked up.
   dashboard: >
     The OID of the default dashboard for the tag.
+  dashboard_data_source: >
+    The OID of the default dashboard for the tag. Empty when the tag has no
+    default dashboard bound.
