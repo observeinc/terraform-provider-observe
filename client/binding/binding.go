@@ -315,8 +315,12 @@ func (g *Generator) tryBind(kind Kind, id string, isOid bool) (maybeRef string, 
 	terraformLocal := g.fmtTfLocalVar(kind, e, insertPrefix)
 	ref := Ref{Kind: kind, Key: e.LookupKey}
 	if prev, ok := g.bindings[ref]; ok && kind == KindDataset && prev.IsOid != isOid {
-		// a binding holds one IsOid, so one local cannot serve both forms
-		g.fail(fmt.Errorf("dataset %q is referenced both by id and by oid, which export bindings do not support", e.LookupKey))
+		// a binding holds one IsOid, so one local cannot serve both forms; fall back
+		// to the id form regardless of which was bound first
+		if !prev.IsOid {
+			return g.fmtTfLocalVarRef(terraformLocal), true
+		}
+		isOid = false
 	}
 	g.bindings[ref] = Target{
 		TfName:            e.TfName,
