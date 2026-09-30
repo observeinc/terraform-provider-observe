@@ -420,24 +420,27 @@ func generateMonitorBindings(ctx context.Context, monitor *gql.Monitor, data *sc
 		return fmt.Errorf("Failed to initialize binding generator: %w", err)
 	}
 
-	// generate bindings for the workspace and inputs, replacing the original ids with local references
-	workspaceRef, _ := gen.TryBindOid(oid.WorkspaceOid(monitor.WorkspaceId))
-	if err := data.Set("workspace", workspaceRef); err != nil {
-		return err
+	workspaceOid := oid.WorkspaceOid(monitor.WorkspaceId)
+	values := map[string]interface{}{"inputs": data.Get("inputs")}
+	gen.CollectOid(workspaceOid)
+	for _, v := range values {
+		gen.Collect(v)
 	}
-	inputs := data.Get("inputs").(map[string]interface{})
-	gen.Generate(inputs)
-	if err := data.Set("inputs", inputs); err != nil {
+	if err := gen.Resolve(ctx); err != nil {
 		return err
 	}
 
-	// save the bindings to the _bindings field for later use in generating data sources + locals
+	// generate bindings for the workspace and inputs, replacing the original ids with local references
+	workspaceRef, _ := gen.TryBindOid(workspaceOid)
+	for _, v := range values {
+		gen.Generate(v)
+	}
+	// saved to _bindings for later use in generating data sources + locals
 	bindingsJson, err := gen.GetBindingsJson()
 	if err != nil {
 		return err
 	}
-	if err := data.Set("_bindings", string(bindingsJson)); err != nil {
-		return err
-	}
-	return nil
+	values["workspace"] = workspaceRef
+	values["_bindings"] = string(bindingsJson)
+	return setAll(data, values)
 }

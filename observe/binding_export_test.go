@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -19,7 +20,7 @@ import (
 var updateGoldens = flag.Bool("update-bindings", false, "rewrite binding export golden files")
 
 // datasetLookupOp is the request that resolves dataset labels during export.
-const datasetLookupOp = bindingtest.OpListDatasetsIdNameOnly
+const datasetLookupOp = bindingtest.OpRestDatasets
 
 func exportTenant() bindingtest.Tenant {
 	return bindingtest.Tenant{
@@ -205,8 +206,71 @@ func TestBindingExportGolden(t *testing.T) {
 			if err := e.generate(context.Background(), data, fake.Client()); err != nil {
 				t.Fatal(err)
 			}
-			checkGolden(t, name, e.published(t, data))
+			published := e.published(t, data)
+			checkGolden(t, name, published)
+
+			bindings := published["_bindings"]
+			if name == "dashboard" {
+				bindings = published["layout"].(map[string]interface{})["bindings"]
+			}
+			raw, err := json.Marshal(bindings)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if undefined, err := bindingtest.UndefinedLocals(published, raw); err != nil || len(undefined) != 0 {
+				t.Errorf("references without bindings: %v %v", undefined, err)
+			}
+
+			// all candidates of one object resolve in one request
+			want := 1
+			if name == "monitor_v2_action" {
+				want = 0
+			}
+			if got := fake.Count(bindingtest.OpRestDatasets); got != want {
+				t.Errorf("got %d dataset requests, want %d", got, want)
+			}
 		})
+	}
+}
+
+func TestBindingExportRejectsDuplicateLabels(t *testing.T) {
+	tenant := exportTenant()
+	tenant.Datasets = append(tenant.Datasets, bindingtest.Object{ID: "41000124", Label: "Kubernetes/Container Logs"})
+	fake := bindingtest.New(t, tenant)
+	e := exporters["dashboard"]
+	data := e.seed(t)
+	if err := data.Set("stages", `[{"input":[{"datasetId":"41000123"},{"datasetId":"41000124"}]}]`); err != nil {
+		t.Fatal(err)
+	}
+	before := e.published(t, data)
+	if err := e.generate(context.Background(), data, fake.Client()); err == nil {
+		t.Fatal("expected export to fail")
+	}
+	if after := e.published(t, data); !reflect.DeepEqual(before, after) {
+		t.Fatalf("failed export changed state\nbefore: %#v\nafter:  %#v", before, after)
+	}
+}
+
+func TestBindingExportIdAndOidBindsId(t *testing.T) {
+	fake := bindingtest.New(t, exportTenant())
+	e := exporters["dashboard"]
+	data := e.seed(t)
+	if err := data.Set("stages", `[{"input":[{"datasetId":"41000123"}],"params":{"x":"o:::dataset:41000123"}}]`); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.generate(context.Background(), data, fake.Client()); err != nil {
+		t.Fatal(err)
+	}
+	published := e.published(t, data)
+	raw, err := json.Marshal(published["layout"].(map[string]interface{})["bindings"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"dataset:Kubernetes/Container Logs":{"is_oid":false`) {
+		t.Errorf("want id-form binding for the conflicting dataset, got %s", raw)
+	}
+	if undefined, err := bindingtest.UndefinedLocals(published, raw); err != nil || len(undefined) != 0 {
+		t.Errorf("references without bindings: %v %v", undefined, err)
 	}
 }
 
@@ -253,5 +317,52 @@ func TestBindingExportFailures(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+// Each export on a client looks up its own datasets; nothing carries over.
+func TestBindingExportsDoNotShareLabels(t *testing.T) {
+	fake := bindingtest.New(t, exportTenant())
+	c := fake.Client()
+	e := exporters["monitor_v2"]
+	for i := 1; i <= 2; i++ {
+		if err := e.generate(context.Background(), e.seed(t), c); err != nil {
+			t.Fatal(err)
+		}
+		if got := fake.Count(bindingtest.OpRestDatasets); got != i {
+			t.Errorf("export %d: got %d total dataset requests, want %d", i, got, i)
+		}
+	}
+	if f := fake.DatasetFilterIDs(); len(f) != 2 || !reflect.DeepEqual(f[0], f[1]) {
+		t.Errorf("got lookups %v, want the same ids twice", f)
+	}
+}
+
+func TestBindingExportDashboardV2UsesDefinition(t *testing.T) {
+	fake := bindingtest.New(t, exportTenant())
+	data := dataSourceDashboard().TestResourceData()
+	if err := data.Set("definition", `{"stages":[{"input":[{"datasetId":"41000123"}]}]}`); err != nil {
+		t.Fatal(err)
+	}
+	dashboard := &gql.Dashboard{Name: "Ops Overview", WorkspaceId: "41000001", SchemaVersion: 2}
+	if err := generateDashboardBindings(context.Background(), dashboard, data, fake.Client()); err != nil {
+		t.Fatal(err)
+	}
+	if layout := data.Get("layout").(string); layout != "" {
+		t.Errorf("layout: got %q, want empty", layout)
+	}
+	var definition map[string]interface{}
+	if err := json.Unmarshal([]byte(data.Get("definition").(string)), &definition); err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(definition["bindings"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"dataset:Kubernetes/Container Logs"`) {
+		t.Errorf("definition bindings missing dataset: %s", raw)
+	}
+	if undefined, err := bindingtest.UndefinedLocals(map[string]interface{}{"definition": definition}, raw); err != nil || len(undefined) != 0 {
+		t.Errorf("references without bindings: %v %v", undefined, err)
 	}
 }

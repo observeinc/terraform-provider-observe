@@ -52,6 +52,7 @@ func prepareResourceCacheFixture() ResourceCache {
 	workspaceId := "41000001"
 	r := ResourceCache{
 		idToLabel:       make(map[Ref]ResourceCacheEntry),
+		absentDatasets:  map[string]struct{}{"1231231": {}, "41000201": {}}, // as if Resolve found no such datasets
 		workspaceOid:    &oid.OID{Type: oid.TypeWorkspace, Id: workspaceId},
 		forResourceKind: "type",
 		forResourceName: "name",
