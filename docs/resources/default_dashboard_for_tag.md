@@ -3,13 +3,16 @@
 page_title: "observe_default_dashboard_for_tag Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Manages the default dashboard for a correlation tag. This dashboard is displayed in the UI when pivoting on the tag.
+  Manages the default dashboard for a correlation tag. This dashboard is displayed in the UI when pivoting on the tag. The binding is keyed only by correlation tag name (customer-wide), not by workspace. There is one default dashboard per tag name.
 ---
 
 # observe_default_dashboard_for_tag
 
 Manages the default dashboard for a correlation tag. This dashboard is
 displayed in the UI when pivoting on the tag.
+
+The binding is keyed only by correlation tag name (customer-wide), not by
+workspace. There is one default dashboard per tag name.
 
 ## Example Usage
 

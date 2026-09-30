@@ -8,12 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// Verify we can set default dashboards for tags, read them back, update, and delete them.
-func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
-	randomPrefix := acctest.RandomWithPrefix("tf")
-	tagName := randomPrefix + "-tag"
-
-	dashboardResource := `
+var defaultDashboardForTagDashboard = `
 		resource "observe_dashboard" "default_dashboard_for_tag_testing" {
 			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s"
@@ -30,13 +25,18 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			EOF
 		}`
 
+// Verify we can set default dashboards for tags, read them back, update, and delete them.
+func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	tagName := randomPrefix + "-tag"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				// Create a default dashboard for tag
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
@@ -54,7 +54,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// Then read it back as a data source
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
@@ -73,7 +73,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// Then clear it
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
 				data "observe_default_dashboard_for_tag" "read_ddb" {
 					tag = "%[2]s"
 				}
@@ -81,13 +81,13 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// And make sure it's gone
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboardResource+`
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
 				data "observe_default_dashboard_for_tag" "read_ddb" {
 					tag = "%[2]s"
 				}
 				`, randomPrefix, tagName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr("data.observe_default_dashboard_for_tag.read_ddb", "dashboard"),
+					resource.TestCheckResourceAttr("data.observe_default_dashboard_for_tag.read_ddb", "dashboard", ""),
 				),
 			},
 		},
@@ -155,6 +155,55 @@ func TestAccObserveDefaultDashboardForTagUpdateDashboard(t *testing.T) {
 				`, randomPrefix, tagName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair("observe_default_dashboard_for_tag.set_ddb", "dashboard", "observe_dashboard.second", "oid"),
+				),
+			},
+		},
+	})
+}
+
+// Changing tag ForceNews the resource: the old tag binding is cleared and the
+// new tag is bound to the same dashboard.
+func TestAccObserveDefaultDashboardForTagForceNewTag(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	tagOld := randomPrefix + "-old"
+	tagNew := randomPrefix + "-new"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				resource "observe_default_dashboard_for_tag" "set_ddb" {
+					tag       = "%[2]s"
+					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
+				}
+				`, randomPrefix, tagOld),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_default_dashboard_for_tag.set_ddb", "tag", tagOld),
+					resource.TestCheckResourceAttrPair("observe_default_dashboard_for_tag.set_ddb", "dashboard", "observe_dashboard.default_dashboard_for_tag_testing", "oid"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				resource "observe_default_dashboard_for_tag" "set_ddb" {
+					tag       = "%[2]s"
+					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
+				}
+
+				data "observe_default_dashboard_for_tag" "old_tag" {
+					tag = "%[3]s"
+				}
+
+				data "observe_default_dashboard_for_tag" "new_tag" {
+					tag = "%[2]s"
+				}
+				`, randomPrefix, tagNew, tagOld),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_default_dashboard_for_tag.set_ddb", "tag", tagNew),
+					resource.TestCheckResourceAttrPair("observe_default_dashboard_for_tag.set_ddb", "dashboard", "observe_dashboard.default_dashboard_for_tag_testing", "oid"),
+					resource.TestCheckResourceAttrPair("data.observe_default_dashboard_for_tag.new_tag", "dashboard", "observe_dashboard.default_dashboard_for_tag_testing", "oid"),
+					resource.TestCheckResourceAttr("data.observe_default_dashboard_for_tag.old_tag", "dashboard", ""),
 				),
 			},
 		},

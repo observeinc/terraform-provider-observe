@@ -3,12 +3,15 @@
 page_title: "observe_default_dashboard_for_tag Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Fetches the default dashboard OID for the specified correlation tag.
+  Fetches the default dashboard OID for the specified correlation tag. The binding is keyed only by correlation tag name (customer-wide), not by workspace. There is one default dashboard per tag name.
 ---
 
 # observe_default_dashboard_for_tag (Data Source)
 
 Fetches the default dashboard OID for the specified correlation tag.
+
+The binding is keyed only by correlation tag name (customer-wide), not by
+workspace. There is one default dashboard per tag name.
 
 ## Example Usage
 
@@ -23,9 +26,9 @@ data "observe_default_dashboard_for_tag" "example" {
 
 ### Required
 
-- `tag` (String) The correlation tag name whose default dashboard is being managed.
+- `tag` (String) The correlation tag name whose default dashboard is being looked up.
 
 ### Read-Only
 
-- `dashboard` (String) The OID of the default dashboard for the tag.
+- `dashboard` (String) The OID of the default dashboard for the tag. Empty when the tag has no default dashboard bound.
 - `id` (String) The ID of this resource.

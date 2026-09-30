@@ -5,8 +5,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	observe "github.com/observeinc/terraform-provider-observe/client"
+	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
@@ -23,10 +25,11 @@ func resourceDefaultDashboardForTag() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"tag": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: descriptions.Get("default_dashboard_for_tag", "schema", "tag"),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				Description:      descriptions.Get("default_dashboard_for_tag", "schema", "tag"),
 			},
 			"dashboard": {
 				Type:             schema.TypeString,
@@ -60,6 +63,10 @@ func resourceDefaultDashboardForTagRead(ctx context.Context, data *schema.Resour
 	tag := data.Id()
 	dashid, err := client.GetDefaultDashboardForTag(ctx, tag)
 	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.Errorf("failed to read default dashboard for tag: %s", err.Error())
 	}
 	if dashid == nil {
@@ -75,11 +82,12 @@ func defaultDashboardForTagToResourceData(tag string, dashid *string, data *sche
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	dashboard := ""
 	if dashid != nil {
-		dashoid := oid.DashboardOid(*dashid)
-		if err := data.Set("dashboard", dashoid.String()); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+		dashboard = oid.DashboardOid(*dashid).String()
+	}
+	if err := data.Set("dashboard", dashboard); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
@@ -17,9 +18,10 @@ func dataSourceDefaultDashboardForTag() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"tag": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: descriptions.Get("default_dashboard_for_tag", "schema", "tag"),
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
+				Description:      descriptions.Get("default_dashboard_for_tag", "schema", "tag_data_source"),
 			},
 			"dashboard": {
 				Type:        schema.TypeString,
