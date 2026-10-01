@@ -1,0 +1,10 @@
+query getDefaultDashboardForTag($tag: String!) {
+    defaultDashboardForTag(tag: $tag)
+}
+
+mutation setDefaultDashboardForTag($tag: String!, $dashboardId: ObjectId!) {
+    # @genqlient(flatten:true)
+    resultStatus: setDefaultDashboardForTag(tag: $tag, dashboardId: $dashboardId) {
+        ...ResultStatus
+    }
+}
