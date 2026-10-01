@@ -69,6 +69,15 @@ func resourceResourceGrantsCustomizeDiff(ctx context.Context, d *schema.Resource
 	// marks the resource for replacement when the dataset version changes)
 	if d.HasChange("oid") {
 		oldVal, newVal := d.GetChange("oid")
+		// An unknown oid whose prior value carries no version can't be a dataset
+		// version bump, so the target is being replaced or repointed. Decide now:
+		// deciding at apply time changes the planned action and Terraform rejects it.
+		if !d.NewValueKnown("oid") {
+			if oldOid, err := oid.NewOID(oldVal.(string)); err == nil && oldOid.Version == nil {
+				return d.ForceNew("oid")
+			}
+			return nil
+		}
 		oldOid, oldErr := oid.NewOID(oldVal.(string))
 		newOid, newErr := oid.NewOID(newVal.(string))
 		if oldErr == nil && newErr == nil {
