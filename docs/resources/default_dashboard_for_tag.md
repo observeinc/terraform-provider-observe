@@ -5,25 +5,20 @@ subcategory: ""
 description: |-
   Manages the default dashboard for a correlation tag. This dashboard is
   displayed in the UI when pivoting on the tag.
-  The binding is keyed only by correlation tag name (customer-wide), not by
-  workspace. There is one default dashboard per tag name.
+  The binding is customer-wide and keyed by correlation tag name. There is
+  one default dashboard per tag name.
 ---
 # observe_default_dashboard_for_tag
 
 Manages the default dashboard for a correlation tag. This dashboard is
 displayed in the UI when pivoting on the tag.
 
-The binding is keyed only by correlation tag name (customer-wide), not by
-workspace. There is one default dashboard per tag name.
+The binding is customer-wide and keyed by correlation tag name. There is
+one default dashboard per tag name.
 ## Example Usage
 ```terraform
-data "observe_workspace" "default" {
-  name = "Default"
-}
-
 resource "observe_dashboard" "example" {
-  workspace = data.observe_workspace.default.oid
-  name      = "Example Dashboard"
+  name = "Example Dashboard"
 }
 
 resource "observe_default_dashboard_for_tag" "example" {

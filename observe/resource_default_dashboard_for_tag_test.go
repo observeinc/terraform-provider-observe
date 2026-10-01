@@ -10,7 +10,6 @@ import (
 
 var defaultDashboardForTagDashboard = `
 		resource "observe_dashboard" "default_dashboard_for_tag_testing" {
-			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s"
 			icon_url  = "test"
 			stages = <<-EOF
@@ -36,7 +35,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Create a default dashboard for tag
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
@@ -54,7 +53,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// Then read it back as a data source
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
@@ -73,7 +72,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// Then clear it
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				data "observe_default_dashboard_for_tag" "read_ddb" {
 					tag = "%[2]s"
 				}
@@ -81,7 +80,7 @@ func TestAccObserveDefaultDashboardForTagCreateReadDelete(t *testing.T) {
 			},
 			{
 				// And make sure it's gone
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				data "observe_default_dashboard_for_tag" "read_ddb" {
 					tag = "%[2]s"
 				}
@@ -100,7 +99,6 @@ func TestAccObserveDefaultDashboardForTagUpdateDashboard(t *testing.T) {
 
 	dashboards := `
 		resource "observe_dashboard" "first" {
-			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-first"
 			icon_url  = "test"
 			stages = <<-EOF
@@ -116,7 +114,6 @@ func TestAccObserveDefaultDashboardForTagUpdateDashboard(t *testing.T) {
 		}
 
 		resource "observe_dashboard" "second" {
-			workspace = data.observe_workspace.default.oid
 			name      = "%[1]s-second"
 			icon_url  = "test"
 			stages = <<-EOF
@@ -136,7 +133,7 @@ func TestAccObserveDefaultDashboardForTagUpdateDashboard(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboards+`
+				Config: fmt.Sprintf(dashboards+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.first.oid
@@ -147,7 +144,7 @@ func TestAccObserveDefaultDashboardForTagUpdateDashboard(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+"\n"+dashboards+`
+				Config: fmt.Sprintf(dashboards+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.second.oid
@@ -173,7 +170,7 @@ func TestAccObserveDefaultDashboardForTagForceNewTag(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
@@ -185,7 +182,7 @@ func TestAccObserveDefaultDashboardForTagForceNewTag(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(configPreamble+"\n"+defaultDashboardForTagDashboard+`
+				Config: fmt.Sprintf(defaultDashboardForTagDashboard+`
 				resource "observe_default_dashboard_for_tag" "set_ddb" {
 					tag       = "%[2]s"
 					dashboard = resource.observe_dashboard.default_dashboard_for_tag_testing.oid
