@@ -72,12 +72,13 @@ func TestAccObserveDatastreamRejectsTypeChange(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
+				// An Any datastream leaves type unset in state.
 				Config: config(""),
-				Check:  resource.TestCheckResourceAttr("observe_datastream.example", "type", ""),
+				Check:  resource.TestCheckNoResourceAttr("observe_datastream.example", "type"),
 			},
 			{
 				Config:      config(`type = "OtelLogs"`),
-				ExpectError: regexp.MustCompile(`type cannot be changed on an existing datastream`),
+				ExpectError: regexp.MustCompile(`type\s+cannot\s+be\s+changed\s+on\s+an\s+existing\s+datastream`),
 			},
 			{
 				// The rejected plan left the Any datastream in place.
