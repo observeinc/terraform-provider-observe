@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -32,6 +34,11 @@ func TestDatastreamTypeSchema(t *testing.T) {
 	}
 	if resource.CustomizeDiff == nil {
 		t.Error("datastream resource has no CustomizeDiff to reject type changes")
+	}
+	if forceDestroy, ok := resource.Schema["force_destroy"]; !ok {
+		t.Error("force_destroy schema is missing")
+	} else if forceDestroy.Type != schema.TypeBool || !forceDestroy.Optional || forceDestroy.ForceNew || forceDestroy.Default != nil {
+		t.Errorf("force_destroy schema = %#v, want optional bool without default or ForceNew", forceDestroy)
 	}
 	for _, typeName := range []string{"Prometheus", "OtelLogs", "OtelMetrics", "K8sEntity", "OtelTrace"} {
 		if diags := typeSchema.ValidateDiagFunc(typeName, nil); diags.HasError() {
@@ -393,6 +400,56 @@ func TestDatastreamTypeChangeError(t *testing.T) {
 			err := datastreamTypeChangeError("41084453", testCase.oldType, testCase.newType)
 			if (err != nil) != testCase.wantErr {
 				t.Fatalf("datastreamTypeChangeError(%q, %q) = %v, want error %v", testCase.oldType, testCase.newType, err, testCase.wantErr)
+			}
+		})
+	}
+}
+
+func TestDatastreamTypeChangeDiff(t *testing.T) {
+	const unknown = "74D93920-ED26-11E3-AC10-0800200C9A66" // hcl2shim.UnknownVariableValue
+	for _, testCase := range []struct {
+		name              string
+		stateType         string
+		config            map[string]interface{}
+		wantErr           string
+		wantDiff, wantNew bool
+	}{
+		{name: "any to typed", config: map[string]interface{}{"type": "OtelLogs"}, wantErr: "force_destroy = true"},
+		{name: "typed to typed", stateType: "OtelLogs", config: map[string]interface{}{"type": "OtelMetrics"}, wantErr: "type cannot be changed"},
+		{name: "any to typed with force_destroy", config: map[string]interface{}{"type": "OtelLogs", "force_destroy": true}, wantDiff: true, wantNew: true},
+		{name: "typed to typed with force_destroy", stateType: "OtelLogs", config: map[string]interface{}{"type": "OtelMetrics", "force_destroy": true}, wantDiff: true, wantNew: true},
+		{name: "unknown force_destroy", config: map[string]interface{}{"type": "OtelLogs", "force_destroy": unknown}, wantErr: "must be known"},
+		{name: "force_destroy only", stateType: "OtelLogs", config: map[string]interface{}{"type": "OtelLogs", "force_destroy": true}, wantDiff: true},
+		{name: "type removed", stateType: "OtelLogs", config: map[string]interface{}{}},
+		{name: "unknown type", config: map[string]interface{}{"type": unknown}, wantDiff: true},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			state := &terraform.InstanceState{ID: "41084453", Attributes: map[string]string{
+				"id": "41084453", "name": "audit", "workspace": "o:::workspace:41000001",
+				"dataset": "o:::dataset:41084454", "oid": "o:::datastream:41084453",
+			}}
+			if testCase.stateType != "" {
+				state.Attributes["type"] = testCase.stateType
+			}
+			config := map[string]interface{}{"name": "audit", "workspace": "o:::workspace:41000001"}
+			for k, v := range testCase.config {
+				config[k] = v
+			}
+			diff, err := resourceDatastream().Diff(context.Background(), state, terraform.NewResourceConfigRaw(config), nil)
+			if testCase.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), testCase.wantErr) {
+					t.Fatalf("err = %v, want error containing %q", err, testCase.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if gotDiff := diff != nil; gotDiff != testCase.wantDiff {
+				t.Fatalf("diff = %v, want diff %v", diff, testCase.wantDiff)
+			}
+			if diff != nil && diff.RequiresNew() != testCase.wantNew {
+				t.Errorf("RequiresNew = %v, want %v", diff.RequiresNew(), testCase.wantNew)
 			}
 		})
 	}
