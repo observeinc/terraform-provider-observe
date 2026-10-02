@@ -2,11 +2,15 @@ package observe
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
+
+// workspaceOIDRegexp matches the workspace OID a resource records in state.
+var workspaceOIDRegexp = regexp.MustCompile(`^o:::workspace:[0-9]+$`)
 
 func TestAccObserveDatastreamDataSourceNoWorkspace(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
@@ -49,6 +53,7 @@ func TestAccObserveDatasetDataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_dataset.lookup", "name", randomPrefix+"-b"),
 			resource.TestCheckNoResourceAttr("data.observe_dataset.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_dataset.b", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
@@ -103,6 +108,7 @@ func TestAccObserveWorksheetDataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_worksheet.lookup", "name", randomPrefix),
 			resource.TestCheckNoResourceAttr("data.observe_worksheet.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_worksheet.a", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
@@ -134,6 +140,7 @@ func TestAccObserveMonitorDataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor.lookup", "name", randomPrefix),
 			resource.TestCheckNoResourceAttr("data.observe_monitor.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_monitor.a", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
@@ -176,6 +183,7 @@ func TestAccObserveMonitorV2DataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 			resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_monitor_v2.a", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
@@ -229,6 +237,7 @@ func TestAccObserveMonitorV2ActionDataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_monitor_v2_action.lookup", "name", randomPrefix),
 			resource.TestCheckNoResourceAttr("data.observe_monitor_v2_action.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_monitor_v2_action.a", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
@@ -262,6 +271,7 @@ func TestAccObserveDashboardDataSourceNoWorkspace(t *testing.T) {
 		Steps: testAccNoWorkspaceSteps(config,
 			resource.TestCheckResourceAttr("data.observe_dashboard.lookup", "name", randomPrefix),
 			resource.TestCheckNoResourceAttr("data.observe_dashboard.lookup", "workspace"),
+			resource.TestMatchResourceAttr("observe_dashboard.a", "workspace", workspaceOIDRegexp),
 		),
 	})
 }
