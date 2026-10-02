@@ -30,8 +30,9 @@ resource "observe_datastream" "example" {
 ### Optional
 
 - `description` (String) Datastream description.
+- `force_destroy` (Boolean) Allow Terraform to replace this datastream when `type` changes. Replacing a datastream deletes its dataset and all data ingested into it. When unset or `false`, a plan that changes `type` fails instead. Does not affect `terraform destroy` or removing the resource from configuration.
 - `icon_url` (String) Icon image.
-- `type` (String) Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Omitting `type` during initial creation creates an `Any` type datastream. Removing `type` from an existing resource's configuration retains its current type; it does not convert it to `Any`. Explicitly changing `type` forces Terraform to create a new datastream.
+- `type` (String) Datastream type. Valid values are `Prometheus`, `OtelLogs`, `OtelMetrics`, `K8sEntity`, and `OtelTrace`. Omitting `type` during initial creation creates an `Any` type datastream. Removing `type` from an existing resource's configuration retains its current type; it does not convert it to `Any`. `type` cannot be changed in place, including setting it on an existing `Any` datastream. Changing it fails the plan unless `force_destroy` is `true`, in which case Terraform replaces the datastream, deleting its dataset and all of its data. To keep the data, create a new `observe_datastream` instead.
 - `workspace` (String, Deprecated) OID of workspace datastream is contained in.
 
 ### Read-Only
