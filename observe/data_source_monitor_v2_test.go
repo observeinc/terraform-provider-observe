@@ -110,7 +110,7 @@ func TestAccObserveGetIDMonitorV2CountData(t *testing.T) {
 					}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "count"),
@@ -192,7 +192,7 @@ func TestAccObserveGetIDMonitorV2Threshold(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "threshold"),
@@ -261,7 +261,7 @@ func TestAccObserveGetIDMonitorV2Promote(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "promote"),
@@ -432,7 +432,7 @@ func TestAccObserveGetIDMonitorV2Anomaly(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2.lookup", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2.lookup", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "lookback_time", "30m0s"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2.lookup", "rule_kind", "anomaly"),

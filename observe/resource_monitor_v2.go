@@ -941,7 +941,18 @@ func resourceMonitorV2Read(ctx context.Context, data *schema.ResourceData, meta 
 		return diag.Errorf("failed to read monitorv2: %s", err.Error())
 	}
 
-	return monitorV2ToResourceData(ctx, monitor, data, client, false)
+	return resourceMonitorV2ToResourceData(ctx, monitor, data, client)
+}
+
+// resourceMonitorV2ToResourceData also records the deprecated workspace attribute.
+// The data source intentionally leaves workspace null so it is omitted from
+// `terraform show` output, which the Observe export-to-Terraform flow renders
+// into resource HCL.
+func resourceMonitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client) (diags diag.Diagnostics) {
+	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	return append(diags, monitorV2ToResourceData(ctx, monitor, data, client, false)...)
 }
 
 func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -958,10 +969,6 @@ func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, met
 // pipeline's lines; see dedentPipeline. The monitor v2 resource passes false
 // to leave its own Read path unchanged.
 func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *schema.ResourceData, client *observe.Client, dedentPipelines bool) (diags diag.Diagnostics) {
-	if err := data.Set("workspace", oid.WorkspaceOid(monitor.WorkspaceId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	if err := data.Set("name", monitor.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

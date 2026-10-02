@@ -99,7 +99,7 @@ func TestAccObserveSourceDatasetStage(t *testing.T) {
 						}
 					`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_dataset.lookup_by_id", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_dataset.lookup_by_id", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "name", randomPrefix+"-b"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\n"),
 				),
@@ -201,7 +201,7 @@ func TestAccObserveSourceDatasetStageCorrelationTag(t *testing.T) {
 						}
 					`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_dataset.lookup_by_id", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_dataset.lookup_by_id", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "name", randomPrefix+"-b"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "stage.0.pipeline", "filter false\ncolmake key:\"test\"\n"),
 					resource.TestCheckResourceAttr("data.observe_dataset.lookup_by_id", "correlation_tag.0.name", randomPrefix+"-tag"),

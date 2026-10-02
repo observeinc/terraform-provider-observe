@@ -194,7 +194,7 @@ func dataSourceMonitorV2ActionRead(ctx context.Context, data *schema.ResourceDat
 	}
 
 	data.SetId(act.Id)
-	diags = resourceMonitorV2ActionRead(ctx, data, meta)
+	diags = monitorV2ActionToResourceData(act, data)
 	if diags.HasError() {
 		return diags
 	}

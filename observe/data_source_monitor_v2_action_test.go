@@ -46,7 +46,7 @@ func TestAccObserveMonitorV2ActionEmailDatasource(t *testing.T) {
 					}
 				`, randomPrefix, systemUser()),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2_action.act", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2_action.act", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "type", "email"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "description", "an interesting description"),
@@ -94,7 +94,7 @@ func TestAccObserveMonitorV2ActionWebhookDatasource(t *testing.T) {
 					}
 				`, randomPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.observe_monitor_v2_action.act", "workspace"),
+					resource.TestCheckNoResourceAttr("data.observe_monitor_v2_action.act", "workspace"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "name", randomPrefix),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "type", "webhook"),
 					resource.TestCheckResourceAttr("data.observe_monitor_v2_action.act", "description", "an interesting description"),
