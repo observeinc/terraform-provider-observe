@@ -49,10 +49,19 @@ extend type Mutation {
 
 
 interface IWorksheetLike @goModel(model: "observe/meta/metatypes.IWorksheetLike") {
-    layout: JsonObject!
+    """
+    The presentation document: placed cards and their arrangement.
+
+    @secret: an opaque client-supplied JSON bag; see Blob.value. Nothing
+    constrains its shape, and an image card stores its picture inline as a
+    data:image/png;base64 URL, so saveDashboard has been observed carrying whole
+    images through here into graphql_request.variables (OB-66447).
+    """
+    layout: JsonObject! @secret
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
+    opalVersion: OpalVersion
 }
 
 type DashboardRef implements FolderObject & WorkspaceObject @goModel(model: "observe/meta/metatypes.DashboardRef") {
@@ -98,12 +107,13 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     schemaVersion is 0, where layout, stages, and parameters carry the
     content instead.
     """
-    definition: JsonObject @goField(forceResolver: true)
+    definition: JsonObject @goField(forceResolver: true) @secret
 
-    layout: JsonObject!
+    layout: JsonObject! @secret
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
+    opalVersion: OpalVersion
 
     createdDate: Time!
     createdBy: UserId!
@@ -151,10 +161,14 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
 
     folderId: ObjectId
 
-    layout: JsonObject
+    """
+    See IWorksheetLike.layout (OB-66447).
+    """
+    layout: JsonObject @secret
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
+    opalVersion: OpalVersion
 
     links: [DashboardLinkInput!]
 
@@ -179,8 +193,9 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
 
 
     parameterValues: [ParameterBinding!]
+    opalVersion: OpalVersion
 
-    layout: JsonObject! @goField(forceResolver:true)
+    layout: JsonObject! @goField(forceResolver:true) @secret
     parameters: [ParameterSpec!]! @goField(forceResolver:true)
     stages: [StageQuery!]! @goField(forceResolver:true)
 
@@ -240,11 +255,15 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     description: String
     workspaceId: ObjectId
     managedById: ObjectId
-    layout: JsonObject
+    """
+    See IWorksheetLike.layout (OB-66447).
+    """
+    layout: JsonObject @secret
     iconUrl: String
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
+    opalVersion: OpalVersion
 
     """
     Unlisted worksheets are not returned by worksheetSearch except for the creating user.

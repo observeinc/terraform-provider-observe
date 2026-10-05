@@ -8,7 +8,7 @@ extend type Query {
     get "must match each thing" behavior, which may end up returning no datasets
     at all quite easily.
     """
-    datasetSearch(projects: [ObjectId!], labelMatches: [String!], columnMatches: [String!], keyMatchTypes: [String!], foreignKeyTargetMatches: [String!], correlationTagMatches: [String!], reachableFromDataset:ObjectId, implementsInterfaces: [String!], sourceMatches: [String!], searchMode: SearchMode, excludeMonitorV1Datasets: Boolean, excludeMonitorV2Datasets: Boolean): [DatasetMatch!]!
+    datasetSearch(projects: [ObjectId!], labelMatches: [String!], columnMatches: [String!], keyMatchTypes: [String!] @allowLogging, foreignKeyTargetMatches: [String!] @allowLogging, correlationTagMatches: [String!], reachableFromDataset:ObjectId, implementsInterfaces: [String!], sourceMatches: [String!], searchMode: SearchMode, excludeMonitorV1Datasets: Boolean, excludeMonitorV2Datasets: Boolean): [DatasetMatch!]! @deprecated(reason:"use the /v1/datasets REST API instead")
 }
 
 extend type Subscription {
@@ -20,8 +20,8 @@ type DatasetMatchData @goModel(model: "observe/meta/metatypes.DatasetMatchData")
     matchedProject: [ObjectId!]
     matchedLabel: [String!]
     matchedColumn: [String!]
-    matchedKey: [String!]
-    matchedForeignKey: [String!]
+    matchedKey: [String!] @allowLogging
+    matchedForeignKey: [String!] @allowLogging
     matchedCorrelationTag: [String!]
     matchedInterface: [String!]
 }

@@ -43,7 +43,7 @@ extend type Mutation {
         workspaceId: ObjectId,
         dataset: DatasetInput!,
         query: MultiStageQueryInput,
-        logDerivedMetricQuery: LogDerivedMetricDefinitionInput,
+        logDerivedMetricQuery: LogDerivedMetricDefinitionInput @allowLogging,
         dependencyHandling: DependencyHandlingInput,
     ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
@@ -209,7 +209,7 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
     stages: [StageQuery!]! @deprecated(reason: "Use query.stages instead")
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
-    layout: JsonObject @deprecated(reason: "Use query.layout instead")
+    layout: JsonObject @deprecated(reason: "Use query.layout instead") @secret
     query: MultiStageQuery
     builtinTransform: BuiltinTransformDefinition
 }
@@ -386,11 +386,11 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     validToField: String
     labelField: String
     iconUrl: String
-    primaryKey: [String!]
-    keys: [[String!]!]
-    foreignKeys: [ForeignKey!]
-    relatedKeys: [RelatedKey!]
-    groupingKey: GroupingKey
+    primaryKey: [String!] @allowLogging
+    keys: [[String!]!] @allowLogging
+    foreignKeys: [ForeignKey!] @allowLogging
+    relatedKeys: [RelatedKey!] @allowLogging
+    groupingKey: GroupingKey @allowLogging
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     tags: [TagMapping!] @goField(forceResolver: true)
 
@@ -430,7 +430,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     Null if the dataset has no recognized content type or if the content type does not
     use field mappings (e.g. Resource).
     """
-    customFieldMappings: JsonObject @goField(forceResolver:true)
+    customFieldMappings: JsonObject @goField(forceResolver:true) @secret
 
     metrics: [Metric!]! @goField(forceResolver:true)
     boards: [Board!]! @goField(forceResolver:true)
@@ -439,7 +439,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
-    dataTableViewState: JsonObject
+    dataTableViewState: JsonObject @secret
     storageIntegrationId: ObjectId
 
 
@@ -463,7 +463,14 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     """
     hibernatedAt: Time @goField(forceResolver:true)
 
-    logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true)
+    logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true) @allowLogging
+
+    """
+    Returns the configured data retention period (in days) for this dataset.
+    The effective retention period may be different than this value and it is
+    available in the AccelerationInfo object of this dataset.
+    """
+    dataRetentionDays: Int64 @goField(omittable: true)
 
     datasetDefinitionType: DatasetDefinitionType
 
@@ -527,6 +534,34 @@ enum TableChangeTrackingMechanism @goModel(model: "observe/compiler/comptypes.Ta
     cdc
     """
     CDC
+
+    """
+    UpdateTable's timestamps are the source of truth. Row Timestamps are also enabled
+    on the source table, and the transformer's source listener probes
+    MAX(METADATA$ROW_LAST_COMMIT_TIME) on each poll to checkpoint a row-timestamp
+    watermark on platform_table_status, which is used for validation and as a
+    transition step toward RowTimestamp. Not all tables support Row
+    Timestamps (e.g. iceberg, external, reference tables).
+    """
+    UpdateTableRowTimestamp
+
+    """
+    Row Timestamps are the sole change tracking mechanism. The update table may
+    still exist (if migrated from UpdatedTable) but is neither populated nor read from.
+    """
+    RowTimestamp
+}
+
+"""
+Snowflake table type for a source table. Absent means the default (standard) table type.
+Only `interactive` may be requested at registration (OB-60619 interactive-warehouse routing);
+hybrid/iceberg tables are created through other machinery.
+"""
+enum SnowflakeTableType @goModel(model: "observe/platform.SnowflakeTableType") {
+    """
+    Low-latency interactive table; only scannable by an interactive warehouse.
+    """
+    interactive
 }
 
 type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDefinition") {
@@ -558,6 +593,7 @@ input SourceTableDefinitionInput @goModel(model: "observe/meta/metatypes.SourceT
     isInsertOnly: Boolean
     sourceUpdateTableName: String
     tableChangeTrackingMechanism: TableChangeTrackingMechanism
+    snowflakeTableType: SnowflakeTableType
 }
 
 input SourceTableFieldDefinitionInput @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinitionInput") {
@@ -583,8 +619,8 @@ type RelationshipPathElement @goModel(model: "observe/meta/metapath.Relationship
     """
     One of forwardKey or backwardKey will be used
     """
-    forwardKey:  ForeignKey
-    reverseKey:  RelatedKey
+    forwardKey:  ForeignKey @allowLogging
+    reverseKey:  RelatedKey @allowLogging
 }
 
 type RelationshipPathResult @goModel(model: "observe/meta/metapath.RelationshipPathResult") {
@@ -602,9 +638,9 @@ input RelationshipCostAttributes @goModel(model: "observe/meta/metapath.Relation
     costForwardStep: Int64
     costReverseStep: Int64
     costSwitchDirection: Int64
-    costForwardKeysSquared: Int64
-    costReverseKeysSquared: Int64
-    costKeyDisparitySquared: Int64
+    costForwardKeysSquared: Int64 @allowLogging
+    costReverseKeysSquared: Int64 @allowLogging
+    costKeyDisparitySquared: Int64 @allowLogging
     extraDatasetCost: [RelationshipDatasetCost!]
 }
 
@@ -646,14 +682,14 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String
-    layout: JsonObject
+    layout: JsonObject @secret
     pathCost: Int64
     """
     Disables freshness decay for this dataset. When true, the dataset's freshness
     goal will not be automatically increased based on query activity.
     """
     freshnessDecayDisabled: Boolean
-    dataTableViewState: JsonObject
+    dataTableViewState: JsonObject @secret
     storageIntegrationId: ObjectId
 
     """
@@ -709,7 +745,7 @@ enum DatasetRole @goModel(model: "observe/meta/metatypes.DatasetRole") {
 }
 
 input DatasetTypedefInput @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
-    anykey: Boolean
+    anykey: Boolean @allowLogging
     fields: [DatasetFieldDefInput!]
     linkDesc: DatasetLinkSchemaInput
 }
@@ -734,7 +770,7 @@ input DatasetFieldDefInput @goModel(model: "observe/compiler/comptypes.ObjectFie
     type: DatasetFieldTypeInput!
     isEnum: Boolean
     isSearchable: Boolean
-    isHidden: Boolean
+    isHidden: Boolean @allowLogging
     isConst: Boolean
     isMetric: Boolean
 }
@@ -750,8 +786,8 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
     validFromField: String
     validToField: String
     labelField: String
-    primaryKey: [String!]
-    keys: [[String!]!]
+    primaryKey: [String!] @allowLogging
+    keys: [[String!]!] @allowLogging
 }
 
 input DatasetDefinitionInput @goModel(model: "observe/meta/metatypes.DatasetDefinitionInput") {
@@ -839,7 +875,7 @@ type Board @goModel(model: "observe/meta/metatypes.Board") {
     createdDate: Time!
     updatedDate: Time!
     isDefault: Boolean!
-    board: JsonObject!
+    board: JsonObject! @secret
     type: BoardType!
     source: String
 }
@@ -847,7 +883,7 @@ type Board @goModel(model: "observe/meta/metatypes.Board") {
 input BoardInput @goModel(model: "observe/meta/metatypes.BoardInput") {
     name: String
     isDefault: Boolean
-    board: JsonObject
+    board: JsonObject @secret
     source: String
 }
 
@@ -860,7 +896,7 @@ type ObjectBillingInfo @goModel(model: "observe/meta/metatypes.ObjectBillingInfo
     id: ObjectId!
     periodFrom: Time!
     periodTo: Time!
-    credits: Float!
+    credits: Float! @allowLogging
 }
 
 enum DatasetDefinitionType @goModel(model: "observe/meta/metatypes.DatasetDefinitionType") {
@@ -892,6 +928,7 @@ type LogDerivedMetricDefinition @goModel(model: "observe/meta/metatypes.LogDeriv
     aggregation: LogDerivedMetricAggregation!
     metricTags: [LogMetricTag!]!
     interval: Duration!
+    opalVersion: OpalVersion
 }
 
 type LogDerivedMetricAggregation @goModel(model: "observe/meta/metatypes.LogDerivedMetricAggregation") {
@@ -931,6 +968,7 @@ input LogDerivedMetricDefinitionInput @goModel(model: "observe/meta/metatypes.Lo
     aggregation: LogDerivedMetricAggregationInput!
     metricTags: [LogMetricTagInput!]!
     interval: Duration
+    opalVersion: OpalVersion
 }
 
 extend type Query {
@@ -948,4 +986,5 @@ type LogDerivedMetricsOpalPreview @goModel(model: "observe/meta/metatypes.LogDer
     The generated OPAL pipeline.
     """
     pipeline: String!
+    opalVersion: OpalVersion
 }

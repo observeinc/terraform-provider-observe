@@ -40,7 +40,7 @@ type Poller implements WorkspaceObject & AuditedObject @goModel(model: "observe/
     managedById: ObjectId
     customerId: CustomerId!
     datastreamId: ObjectId
-    datastreamTokenId: String
+    datastreamTokenId: String @allowLogging
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)
     updatedBy: UserId!
@@ -76,7 +76,7 @@ interface PollerConfig @goModel(model: "observe/meta/metatypes.PollerConfig") {
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 }
 
 type PollerPubSubConfig implements PollerConfig @goModel(model: "observe/meta/metatypes.PollerPubSubConfig") {
@@ -85,10 +85,10 @@ type PollerPubSubConfig implements PollerConfig @goModel(model: "observe/meta/me
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
     projectId: String!
-    jsonKey: JsonObject!
+    jsonKey: JsonObject! @secret
     subscriptionId: String!
 }
 
@@ -98,13 +98,13 @@ type PollerHTTPConfig implements PollerConfig @goModel(model: "observe/meta/meta
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
     method: String @deprecated(reason: "Use requests instead")
     body: String @deprecated(reason: "Use requests instead")
     endpoint: String @deprecated(reason: "Use requests instead")
     contentType: String @deprecated(reason: "Use requests instead")
-    headers: JsonObject @deprecated(reason: "Use requests instead")
+    headers: JsonObject @deprecated(reason: "Use requests instead") @secret
 
     """
     Default HTTP request configuration that will be used for all requests. Keys declared in requests will override these values.
@@ -122,7 +122,7 @@ type PollerCloudWatchMetricsConfig implements PollerConfig @goModel(model: "obse
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
     period: Int64!
     delay: Int64!
@@ -152,7 +152,7 @@ type PollerCloudWatchMetricsResourceFilterConfig @goModel(model: "observe/meta/m
 }
 
 type PollerCloudWatchMetricsTagFilterConfig @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsTagFilterInput") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]
 }
 
@@ -165,11 +165,11 @@ type PollerHTTPRequestConfig @goModel(model: "observe/meta/metatypes.PollerHTTPR
    url: String
    method: String
    username: String
-   password: String
-   authScheme: PollerHTTPRequestAuthScheme
+   password: String @secret
+   authScheme: PollerHTTPRequestAuthScheme @allowLogging
    body: String
-   headers: JsonObject
-   params: JsonObject
+   headers: JsonObject @secret
+   params: JsonObject @secret
 }
 
 enum PollerHTTPTimestampFormatScheme @goModel(model: "observe/meta/metatypes.PollerHTTPTimestampFormatScheme") {
@@ -214,10 +214,10 @@ type PollerGCPMonitoringConfig implements PollerConfig @goModel(model: "observe/
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
     projectId: String!
-    jsonKey: JsonObject!
+    jsonKey: JsonObject! @secret
     includeMetricTypePrefixes: [String!]
     excludeMetricTypePrefixes: [String!]
     rateLimit: Int64
@@ -230,10 +230,10 @@ type PollerMongoDBAtlasConfig implements PollerConfig @goModel(model: "observe/m
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
-    publicKey: String!
-    privateKey: String!
+    publicKey: String! @allowLogging
+    privateKey: String! @secret
     includeGroups: [String!]
     excludeGroups: [String!]
 }
@@ -244,10 +244,10 @@ type PollerConfluentCloudConfig implements PollerConfig @goModel(model: "observe
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
-    key: String!
-    secret: String!
+    key: String! @allowLogging
+    secret: String! @secret
 }
 
 input PollerChunkInput @goModel(model: "observe/meta/metatypes.PollerChunkInput") {
@@ -265,7 +265,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
     retries: Int64
     interval: Duration
     chunk: PollerChunkInput
-    tags: JsonObject
+    tags: JsonObject @secret
     apiReqLimit: RateLimitInput
     datastreamId: ObjectId
     pubsubConfig: PollerPubSubInput
@@ -286,7 +286,7 @@ input PollerInput @goModel(model: "observe/meta/metatypes.PollerInput") {
 
 input PollerPubSubInput @goModel(model: "observe/meta/metatypes.PollerPubSubInput") {
     projectId: String!
-    jsonKey: JsonObject!
+    jsonKey: JsonObject! @secret
     subscriptionId: String!
 }
 
@@ -295,7 +295,7 @@ input PollerHTTPInput @goModel(model: "observe/meta/metatypes.PollerHTTPInput") 
     body: String
     endpoint: String
     contentType: String
-    headers: JsonObject
+    headers: JsonObject @secret
 
     template: PollerHTTPRequestInput
     requests: [PollerHTTPRequestInput!]
@@ -315,11 +315,11 @@ input PollerHTTPRequestInput @goModel(model: "observe/meta/metatypes.PollerHTTPR
    url: String
    method: String
    username: String
-   password: String
-   authScheme: PollerHTTPRequestAuthScheme
+   password: String @secret
+   authScheme: PollerHTTPRequestAuthScheme @allowLogging
    body: String
-   headers: JsonObject
-   params: JsonObject
+   headers: JsonObject @secret
+   params: JsonObject @secret
 }
 
 input PollerHTTPRuleInput @goModel(model: "observe/meta/metatypes.PollerHTTPRuleInput") {
@@ -334,7 +334,7 @@ input PollerHTTPDecoderInput @goModel(model: "observe/meta/metatypes.PollerHTTPD
 
 input PollerGCPMonitoringInput @goModel(model: "observe/meta/metatypes.PollerGCPMonitoringInput") {
     projectId: String!
-    jsonKey: JsonObject!
+    jsonKey: JsonObject! @secret
     includeMetricTypePrefixes: [String!]
     excludeMetricTypePrefixes: [String!]
     rateLimit: Int64
@@ -342,15 +342,15 @@ input PollerGCPMonitoringInput @goModel(model: "observe/meta/metatypes.PollerGCP
 }
 
 input PollerMongoDBAtlasInput @goModel(model: "observe/meta/metatypes.PollerMongoDBAtlasInput") {
-    publicKey: String!
-    privateKey: String!
+    publicKey: String! @allowLogging
+    privateKey: String! @secret
     includeGroups: [String!]
     excludeGroups: [String!]
 }
 
 input PollerConfluentCloudInput @goModel(model: "observe/meta/metatypes.PollerConfluentCloudInput") {
-    key: String!
-    secret: String!
+    key: String! @allowLogging
+    secret: String! @secret
 }
 
 input PollerCloudWatchMetricsInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsInput") {
@@ -382,7 +382,7 @@ input PollerCloudWatchMetricsResourceFilterInput @goModel(model: "observe/meta/m
 }
 
 input PollerCloudWatchMetricsTagFilterInput @goModel(model: "observe/meta/metatypes.PollerCloudWatchMetricsTagFilterInput") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]
 }
 
@@ -392,7 +392,7 @@ type PollerAWSSnapshotConfig implements PollerConfig @goModel(model: "observe/me
     interval: Duration
     chunk: PollerChunkConfig
     apiReqLimit: RateLimitConfig
-    tags: JsonObject
+    tags: JsonObject @secret
 
     includeActions: [String!]!
     region: String!

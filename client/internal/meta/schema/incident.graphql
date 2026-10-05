@@ -20,7 +20,6 @@ type Incident implements WorkspaceObject & AuditedObject & FolderObject @goModel
     inactiveTime: Time
     closedTime: Time
     users: [UserInfo!]! @goField(forceResolver: true)
-    slackChannels: [IncidentSlackchannel!]! @goField(forceResolver: true)
     worksheets: [ObjectId!]! @goField(forceResolver: true)
     dashboards: [ObjectId!]! @goField(forceResolver: true)
     id: ObjectId!
@@ -54,20 +53,4 @@ input IncidentInput @goModel(model: "observe/meta/metatypes.IncidentInput") {
 type IncidentSearchResult @goModel(model: "observe/meta/metatypes.IncidentSearchResult") {
     results: [Incident!]!
 }
-
-type IncidentSlackchannel @goModel(model: "observe/meta/metatypes.IncidentSlackchannel") {
-    connectionID: String!
-    slackchannelID: String!
-    lastSummarized: Time
-    lastRetroed: Time
-    embedVector: String
-    summary: String
-    retrospective: String
-}
-
-input IncidentSlackchannelInput @goModel(model: "observe/meta/metatypes.IncidentSlackchannelInput") {
-    connectionID: String!
-    slackchannelID: String!
-}
-
 

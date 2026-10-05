@@ -1,5 +1,5 @@
 extend type Query {
-    checkQuery(query: StageInput!, parameterValues: [ParameterBindingInput!]): CompilationResult
+    checkQuery(query: StageInput!, parameterValues: [ParameterBindingInput!], opalVersion: OpalVersion): CompilationResult
     """
     The QueryParams are optional -- some defaults will be used if you don't put them in
     """

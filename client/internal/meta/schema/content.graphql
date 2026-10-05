@@ -119,7 +119,7 @@ the current customer.  All fields are optional, so only the fields that are
 specified will be updated.
 """
 input KubernetesContentInput @goModel(model: "observe/meta/metatypes.KubernetesContentInput") {
-  otelLogsDatasetId: ObjectId
+  otelLogsDatasetId: ObjectId @allowLogging
   prometheusDatasetId: ObjectId
   entityDatasetId: ObjectId
 }
@@ -128,11 +128,11 @@ input KubernetesContentInput @goModel(model: "observe/meta/metatypes.KubernetesC
 Models the complete information of a Kubernetes Content
 """
 type KubernetesContent @goModel(model: "observe/meta/metatypes.KubernetesContent") {
-  otelLogsDatasetId: ObjectId
+  otelLogsDatasetId: ObjectId @allowLogging
   prometheusDatasetId: ObjectId
   entityDatasetId: ObjectId
 
-  kubernetesLogsDatasetId: ObjectId
+  kubernetesLogsDatasetId: ObjectId @allowLogging
 }
 
 
@@ -142,7 +142,7 @@ the current customer.  All fields are optional, so only the fields that are
 specified will be updated.
 """
 input HostExplorerContentInput @goModel(model: "observe/meta/metatypes.HostExplorerContentInput") {
-  otelLogsDatasetId: ObjectId
+  otelLogsDatasetId: ObjectId @allowLogging
   prometheusDatasetId: ObjectId
 }
 
@@ -150,10 +150,10 @@ input HostExplorerContentInput @goModel(model: "observe/meta/metatypes.HostExplo
 Models the complete information of a Host Explorer Content
 """
 type HostExplorerContent @goModel(model: "observe/meta/metatypes.HostExplorerContent") {
-  otelLogsDatasetId: ObjectId
+  otelLogsDatasetId: ObjectId @allowLogging
   prometheusDatasetId: ObjectId
 
-  hostExplorerLogsDatasetId: ObjectId
+  hostExplorerLogsDatasetId: ObjectId @allowLogging
 }
 
 """
@@ -203,6 +203,20 @@ type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
   serviceEdgeMetricsDatasetId: ObjectId!
   errorTrackingMetricsDatasetId: ObjectId!
 
+  """
+  The ID of the "AI Observability/LLM Span" dataset view, a filtered view of
+  "Tracing/Span" limited to LLM spans. Null when
+  AiObservability.enableLLMExplorerV2 is off for the customer.
+  """
+  llmSpanDatasetId: ObjectId
+
+  """
+  The ID of the "Tracing/External Call Metrics" dataset, RED metrics per external
+  peer built from the leaf external-call spans of the canonical trace. Null when
+  APM.produceExternalCalls is off for the customer.
+  """
+  externalCallMetricsDatasetId: ObjectId
+
   traceDatasetId: ObjectId!
 
   """
@@ -215,7 +229,7 @@ type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
   this via the layered settings API or Terraform's
   observe_layered_setting_record resource.
   """
-  traceInspectorRelatedLogsDatasetId: ObjectId
+  traceInspectorRelatedLogsDatasetId: ObjectId @allowLogging
 
   options: [TracingContentOption!]
 }
@@ -304,6 +318,13 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   redMetricsGeneratedByAgent: Boolean
 
   """
+  Controls whether the content-generated Service Metrics dataset is retired.
+  This can only be enabled when redMetricsGeneratedByAgent is true, since retiring the Service Metrics
+  dataset while RED metrics are still generated in the content would leave the customer without any RED metrics.
+  """
+  retireServiceMetricsDataset: Boolean
+
+  """
   Controls the max time dilation of a run of the canonical trace transform. In other words, this defines the max size
   of the transform update window. This is an experimental, internal settings.
 
@@ -353,7 +374,7 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   Maximum value: 130000
   Default value: 100000
   """
-  pathologicalTraceNumSpans: Int64
+  pathologicalTraceNumSpans: Int64 @allowLogging
 
   """
   Controls the duration threshold for a trace to be considered pathological (truncated).
@@ -363,7 +384,7 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   Maximum value: 2h
   Default value: 30m
   """
-  pathologicalTraceDuration: Duration
+  pathologicalTraceDuration: Duration @allowLogging
 }
 
 """

@@ -18,13 +18,21 @@ enum DatasetContentType @goModel(model: "observe/compiler/comptypes.ContentType"
     OTelTrace
 }
 
+"""
+OPAL language version. Omitted or null means the earliest version.
+"""
+enum OpalVersion @goModel(model: "observe/compiler/comptypes.OpalVersion") {
+    v2021_01_01
+    v2026_09_30
+}
 
 input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQueryInput") {
     outputStage: String!
     stages: [StageQueryInput!]!
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
-    layout: JsonObject
+    layout: JsonObject @secret
+    opalVersion: OpalVersion
 }
 
 type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
@@ -32,15 +40,16 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]!
     parameterValues: [ParameterBinding!]
-    layout: JsonObject
+    layout: JsonObject @secret
+    opalVersion: OpalVersion
 }
 
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
     id: String! @goField(name:StageID)
     input: [InputDefinition!]!
-    params: JsonObject
+    params: JsonObject @secret
     pipeline: String!
-    layout: JsonObject
+    layout: JsonObject @secret
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
 }
@@ -52,7 +61,7 @@ input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput")
     id: String @goField(name:StageID)
     input: [InputDefinitionInput!]!
     pipeline: String!
-    layout: JsonObject
+    layout: JsonObject @secret
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
 }
@@ -137,9 +146,15 @@ enum TagSource @goModel(model: "observe/meta/metatypes.TagSourceKind") {
     Ingest
 }
 
+
+type DiscoveryRuleSource @goModel(model: "observe/meta/metatypes.DiscoveryRuleSource") {
+    alias: String!
+}
+
 type TagSourceInfo @goModel(model: "observe/meta/metatypes.TagSourceInfo") {
     kind: TagSourceKind!
     origin: [ObjectId!]!
+    discoveryRules: [DiscoveryRuleSource!]
 }
 
 type TagMapping @goModel(model: "observe/meta/metatypes.TagMapping") {
@@ -215,7 +230,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
 type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
     id: ObjectId!
     label: String!
-    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead")
+    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead") @secret
     def: ObjectTypedef
 }
 

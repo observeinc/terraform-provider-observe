@@ -30,15 +30,17 @@ extend type Query {
     The optional prompt lets you tune the extraction (could come from the user).
     This is the old interface, which is now deprecated, and replaced by the two-step process of getDataExtractionCandidates() and getDataExtractionFromCandidates()
     """
-    getDataExtraction(data: String!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse! @deprecated(reason: "please use getDataExtractionCandidates and getDataExtractionFromCandidates")
+    getDataExtraction(data: String! @secret, avoidColumnNames: [String!], prompt: String): DataExtractionResponse! @deprecated(reason: "please use getDataExtractionCandidates and getDataExtractionFromCandidates")
 
     """
     Given some data, generate possible extraction actions on it.
     The 'extractionCandidates' hold the name of the column, and the 'data' is a list of examples of the data.
     Score the result of the extraction using scoreCodeCompletion().
     The optional prompt lets you tune the extraction (could come from the user).
+
+    @secret: 'data' carries sampled dataset rows.
     """
-    getDataExtractionFromCandidates(data: [String!]!, extractionCandidates: [DataExtractionCandidateInput!]!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
+    getDataExtractionFromCandidates(data: [String!]! @secret, extractionCandidates: [DataExtractionCandidateInput!]!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
 
     """
     Given some data, generate possible extraction actions on it.
@@ -46,44 +48,13 @@ extend type Query {
     Score the result of the extraction using scoreCodeCompletion().
     The optional prompt lets you tune the extraction (could come from the user).
     """
-    getDataExtractionCandidates(data: [String!]!, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
+    getDataExtractionCandidates(data: [String!]! @secret, avoidColumnNames: [String!], prompt: String): DataExtractionResponse!
 
     """
     This is the o11y-as-command-line interface, to continue a session started with setInferHelpContext().
     You can also use this to start an un-bound session (that won't have context.)
     """
-    inferHelp(previousId:String, author:String, text:String!, mode:InferMode, options:InferOptionsInput): InferResponse!
-    """
-    Summarize a conversation. previousId is the ID of the previous session, if any. text is whatever extra instructions
-    the user attached. statements is the chat history. You can also provide options to control the summary.
-    kind is the kind of summary you want. slackChannelInput contains the connection ID and channel ID that this summary is associated with.
-    """
-    inferSummary(previousId: String, text: String, statements:[ChatStatementInput!]!, kind:SummaryKind, options:InferOptionsInput, slackChannelInput: IncidentSlackchannelInput): InferResponse!
-}
-
-enum SummaryKind @goModel(model:"observe/meta/metascalar.SummaryKind") {
-    """
-    Generates a basic paragraph-length summary of Slack conversations.
-    Originally designed for the Slack summarization bot. Plan on renaming
-    to something more representative of the kind of summary it produces in the future.
-    """
-    Summary
-    """
-    Generates a timeline of events from Slack conversations.
-    """
-    Timeline
-    """
-    Generates a summary of a new incident.
-    """
-    Incident
-    """
-    Generates a retrospective of events from Slack conversations.
-    """
-    Retrospective
-    """
-    Generates a summary of an incident notebook.
-    """
-    Notebook
+    inferHelp(previousId:String, author:String @allowLogging, text:String!, mode:InferMode, options:InferOptionsInput): InferResponse!
 }
 
 extend type Mutation {
@@ -110,7 +81,7 @@ extend type Mutation {
     as key; however, you can start a brand new unique session by passing some
     other value as key.
     """
-    getOrMakeO11ySession(userKey: String!, lookback: Duration): O11ySessionInfo!
+    getOrMakeO11ySession(userKey: String! @allowLogging, lookback: Duration): O11ySessionInfo!
 
     """
     When binding a particular context (or a new context) to a particular
@@ -119,7 +90,7 @@ extend type Mutation {
     Note that you can use this to re-start an existing conversation with
     a new context, too, to "switch context".
     """
-    setInferHelpContext(previousId: String, author: String, object: ORN!, mode: InferMode, params: InferHelpContextParams): InferResponse!
+    setInferHelpContext(previousId: String, author: String @allowLogging, object: ORN!, mode: InferMode, params: InferHelpContextParams): InferResponse!
 }
 
 type O11ySessionInfo @goModel(model:"observe/meta/metatypes.O11ySessionInfo") {
@@ -130,18 +101,14 @@ type O11ySessionInfo @goModel(model:"observe/meta/metatypes.O11ySessionInfo") {
 """
 InferMode determines what path the AI assistant prefers to resolve a user question.
 If no mode is specified, the "Auto" mode is used, which uses previous context
-and the question text to figure out the mode. If the question starts with "browse,"
-the mode will be assumed to be "Browse," if the question starts with "query," the
-mode will be assumed to be "Query," if the question starts with "list" or "show,"
-the rest of the question is examined to choose "Browse" or "Query," else the mode
-is assumed to be "Documentation."
+and the question text to figure out the mode. If the question starts with "how,"
+"who," or "help," the mode will be assumed to be "Documentation," otherwise the
+mode is determined by the model.
 """
 enum InferMode @goModel(model:"observe/meta/metatypes.InferMode") {
     Auto          # figure out what to do from context
-    Summarize     # summarize all the data that is in this thread (including provided in the request)
+    Summarize     # historical / unsupported: inferHelp(mode: Summarize) now returns an error; kept only so getHelpHistory can deserialize existing HelpRecord rows written with this mode
     Documentation # search Observe documentation, return matching help
-    Browse        # search dashboards/datasets in the customer instance
-    Query         # search actual payload data
     Suggestions   # suggestions for what to do based on past incidents
 }
 
@@ -165,7 +132,7 @@ type HelpResponseItem @goModel(model:"observe/meta/metatypes.HelpResponseItem") 
 }
 
 type HelpRecord @goModel(model:"observe/meta/metakind.HelpRecord") {
-    token: String!
+    token: String! @allowLogging
     when: Time!
     what: String!
     query: String
@@ -212,13 +179,13 @@ A candidate for data extraction.
 """
 input DataExtractionCandidateInput @goModel(model:"observe/meta/metatypes.DataExtractionCandidateInput") {
     statement: String! # the candidate name
-    explanation: String! # the sample from the first log, or some other explanation of what you want to extract
+    explanation: String! @secret # the sample from the first log, or some other explanation of what you want to extract
     id: String
 }
 
 type DataExtraction @goModel(model:"observe/meta/metatypes.DataExtraction") {
     statement: String!
-    explanation: String!
+    explanation: String! @secret
     id: String!
 }
 
@@ -242,12 +209,12 @@ input InferOptionsInput @goModel(model:"observe/meta/metatypes.InferOptions") {
 }
 
 interface InferStatement @goModel(model:"observe/meta/metatypes.InferStatement") {
-    author: String
+    author: String @allowLogging
     text: String! # display this if you don't know better from the specific type
 }
 
 type ChatStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ChatStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     timestamp: Time
     url: String # some clickable URL you might like
@@ -255,13 +222,13 @@ type ChatStatement implements InferStatement @goModel(model:"observe/meta/metaty
 }
 
 input ChatStatementInput @goModel(model:"observe/meta/metatypes.ChatStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     timestamp: Time
 }
 
 type TableStatement implements InferStatement @goModel(model:"observe/meta/metatypes.TableStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     query: MultiStageQuery!
     endTime: Time!
@@ -275,7 +242,7 @@ enum O11yChartKind @goModel(model:"observe/meta/metatypes.O11yChartKind") {
 }
 
 type GraphStatement implements InferStatement @goModel(model:"observe/meta/metatypes.GraphStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     query: MultiStageQuery!
     endTime: Time!
@@ -285,7 +252,7 @@ type GraphStatement implements InferStatement @goModel(model:"observe/meta/metat
 }
 
 type ObjectListStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ObjectListStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     objectType: String!
     objectIds: [ORN!]!
@@ -294,13 +261,13 @@ type ObjectListStatement implements InferStatement @goModel(model:"observe/meta/
 }
 
 type ContextStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ContextStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
     context: InferContext!
 }
 
 type ResetContextStatement implements InferStatement @goModel(model:"observe/meta/metatypes.ResetContextStatement") {
-    author: String
+    author: String @allowLogging
     text: String!
 }
 

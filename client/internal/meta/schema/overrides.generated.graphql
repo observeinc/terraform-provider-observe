@@ -8,6 +8,14 @@ input LayeredCustomerAIAgentInput @goModel(model:"observe/meta/metatypes.Layered
     memoriesEnabled: Boolean @goField(forceResolver: true)
 }
 
+type LayeredCustomerAICreditGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerAICreditGovernor") {
+    userCreditsPerDay: Float
+}
+
+input LayeredCustomerAICreditGovernorInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAICreditGovernorInput") {
+    userCreditsPerDay: Float @goField(forceResolver: true)
+}
+
 type LayeredCustomerAIGovernor @goModel(model:"observe/meta/metatypes.LayeredCustomerAIGovernor") {
     hardLimitQuestionsPerDay: Int64
     softLimitQuestionsPerDay: Int64
@@ -22,6 +30,14 @@ input LayeredCustomerAIGovernorInput @goModel(model:"observe/meta/metatypes.Laye
     userSoftLimitQuestionsPerDay: Int64 @goField(forceResolver: true)
 }
 
+type LayeredCustomerAPM @goModel(model:"observe/meta/metatypes.LayeredCustomerAPM") {
+    traceInspectorRelatedLogsDataset: String
+}
+
+input LayeredCustomerAPMInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAPMInput") {
+    traceInspectorRelatedLogsDataset: String @goField(forceResolver: true)
+}
+
 type LayeredCustomerApps @goModel(model:"observe/meta/metatypes.LayeredCustomerApps") {
     hideOldApps: Boolean
 }
@@ -33,11 +49,13 @@ input LayeredCustomerAppsInput @goModel(model:"observe/meta/metatypes.LayeredCus
 type LayeredCustomerAuth @goModel(model:"observe/meta/metatypes.LayeredCustomerAuth") {
     allowPasswordLogin: Boolean
     fullLogoutUI: Boolean
+    oauthTokenLifetime: Duration
 }
 
 input LayeredCustomerAuthInput @goModel(model:"observe/meta/metatypes.LayeredCustomerAuthInput") {
     allowPasswordLogin: Boolean @goField(forceResolver: true)
     fullLogoutUI: Boolean @goField(forceResolver: true)
+    oauthTokenLifetime: Duration @goField(forceResolver: true)
 }
 
 type LayeredCustomerContractLimit @goModel(model:"observe/meta/metatypes.LayeredCustomerContractLimit") {
@@ -180,7 +198,9 @@ input LayeredCustomerTransformGovernorInput @goModel(model:"observe/meta/metatyp
 
 type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
     aIAgent: LayeredCustomerAIAgent!
+    aICreditGovernor: LayeredCustomerAICreditGovernor!
     aIGovernor: LayeredCustomerAIGovernor!
+    apm: LayeredCustomerAPM!
     apps: LayeredCustomerApps!
     auth: LayeredCustomerAuth!
     contractLimit: LayeredCustomerContractLimit!
@@ -198,7 +218,9 @@ type LayeredCustomer @goModel(model:"observe/meta/metatypes.LayeredCustomer") {
 
 input LayeredCustomerInput @goModel(model:"observe/meta/metatypes.LayeredCustomerInput") {
     aIAgent: LayeredCustomerAIAgentInput
+    aICreditGovernor: LayeredCustomerAICreditGovernorInput
     aIGovernor: LayeredCustomerAIGovernorInput
+    apm: LayeredCustomerAPMInput
     apps: LayeredCustomerAppsInput
     auth: LayeredCustomerAuthInput
     contractLimit: LayeredCustomerContractLimitInput
@@ -593,6 +615,14 @@ extend type Mutation {
 }
 
 
+type LayeredRbacGroupAICreditGovernor @goModel(model:"observe/meta/metatypes.LayeredRbacGroupAICreditGovernor") {
+    userCreditsPerDay: Float
+}
+
+input LayeredRbacGroupAICreditGovernorInput @goModel(model:"observe/meta/metatypes.LayeredRbacGroupAICreditGovernorInput") {
+    userCreditsPerDay: Float @goField(forceResolver: true)
+}
+
 type LayeredRbacGroupAIGovernor @goModel(model:"observe/meta/metatypes.LayeredRbacGroupAIGovernor") {
     userHardLimitQuestionsPerDay: Int64
     userSoftLimitQuestionsPerDay: Int64
@@ -622,12 +652,14 @@ input LayeredRbacGroupScannerInput @goModel(model:"observe/meta/metatypes.Layere
 }
 
 type LayeredRbacGroup @goModel(model:"observe/meta/metatypes.LayeredRbacGroup") {
+    aICreditGovernor: LayeredRbacGroupAICreditGovernor!
     aIGovernor: LayeredRbacGroupAIGovernor!
     queryGovernor: LayeredRbacGroupQueryGovernor!
     scanner: LayeredRbacGroupScanner!
 }
 
 input LayeredRbacGroupInput @goModel(model:"observe/meta/metatypes.LayeredRbacGroupInput") {
+    aICreditGovernor: LayeredRbacGroupAICreditGovernorInput
     aIGovernor: LayeredRbacGroupAIGovernorInput
     queryGovernor: LayeredRbacGroupQueryGovernorInput
     scanner: LayeredRbacGroupScannerInput
@@ -648,6 +680,14 @@ type LayeredUserAIAgent @goModel(model:"observe/meta/metatypes.LayeredUserAIAgen
 
 input LayeredUserAIAgentInput @goModel(model:"observe/meta/metatypes.LayeredUserAIAgentInput") {
     memoriesEnabled: Boolean @goField(forceResolver: true)
+}
+
+type LayeredUserAICreditGovernor @goModel(model:"observe/meta/metatypes.LayeredUserAICreditGovernor") {
+    userCreditsPerDay: Float
+}
+
+input LayeredUserAICreditGovernorInput @goModel(model:"observe/meta/metatypes.LayeredUserAICreditGovernorInput") {
+    userCreditsPerDay: Float @goField(forceResolver: true)
 }
 
 type LayeredUserAIGovernor @goModel(model:"observe/meta/metatypes.LayeredUserAIGovernor") {
@@ -698,6 +738,7 @@ input LayeredUserScannerInput @goModel(model:"observe/meta/metatypes.LayeredUser
 
 type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
     aIAgent: LayeredUserAIAgent!
+    aICreditGovernor: LayeredUserAICreditGovernor!
     aIGovernor: LayeredUserAIGovernor!
     auth: LayeredUserAuth!
     linkify: LayeredUserLinkify!
@@ -707,6 +748,7 @@ type LayeredUser @goModel(model:"observe/meta/metatypes.LayeredUser") {
 
 input LayeredUserInput @goModel(model:"observe/meta/metatypes.LayeredUserInput") {
     aIAgent: LayeredUserAIAgentInput
+    aICreditGovernor: LayeredUserAICreditGovernorInput
     aIGovernor: LayeredUserAIGovernorInput
     auth: LayeredUserAuthInput
     linkify: LayeredUserLinkifyInput

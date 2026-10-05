@@ -1,0 +1,76 @@
+extend type Mutation {
+}
+extend type Query {
+
+}
+
+extend type Query {
+}
+
+extend type Mutation {
+}
+
+type IngestFilter implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.IngestFilter") {
+    """
+    Raw opal that defines the filter predicate.
+    """
+    pipeline: String!
+    """
+    Json blob for frontend to store layout information.
+    """
+    layout: JsonObject
+    """
+    Enabled indicates if the filter should be applied or not.
+    """
+    enabled: Boolean!
+    """
+    The source dataset ID that this filter is applied to.
+    """
+    sourceDatasetID: ObjectId!
+    opalVersion: OpalVersion
+    """
+    The drop rate is a double precision floating point value between 0 and 1 that specifies what percentage of matching
+    observations to drop.
+    """
+    dropRate: Float!
+    """
+    Error message. Will return errors about incorrect filter definitions.
+    """
+    errors: [TaskResultError!]
+    id: ObjectId!
+    workspaceId: ObjectId!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+    managedBy: WorkspaceObject @goField(forceResolver: true)
+
+    folderId: ObjectId!
+
+    createdBy: UserId!
+    createdDate: Time!
+    createdByInfo: UserInfo! @goField(forceResolver: true)
+    updatedBy: UserId!
+    updatedDate: Time!
+    updatedByInfo: UserInfo! @goField(forceResolver: true)
+}
+
+input IngestFilterInput @goModel(model: "observe/meta/metatypes.IngestFilterInput") {
+    pipeline: String!
+    layout: JsonObject
+    enabled: Boolean!
+    sourceDatasetID: ObjectId!
+    opalVersion: OpalVersion
+    dropRate: Float!
+    name: String!
+    iconUrl: String
+    description: String
+    managedById: ObjectId
+
+    folderId: ObjectId
+}
+
+type IngestFilterSearchResult @goModel(model: "observe/meta/metatypes.IngestFilterSearchResult") {
+    results: [IngestFilter!]!
+}
+

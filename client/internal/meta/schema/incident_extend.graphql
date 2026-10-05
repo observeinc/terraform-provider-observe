@@ -6,7 +6,6 @@ input IncidentQueryInput @goModel(model: "observe/meta/metatypes.IncidentQueryIn
 
 extend type Query {
     getIncidentsForUser(u: UserId!): [Incident!]!
-    getIncidentsForSlackchannel(s: IncidentSlackchannelInput!): [Incident!]!
     getIncidentsForWorksheet(w: ObjectId!): [Incident!]!
     getIncidentsForDashboard(d: ObjectId!): [Incident!]!
     getIncidentsForStatus(s: IncidentStatus!, startingAt: Time, endingAt: Time): [Incident!]!
@@ -16,8 +15,6 @@ extend type Query {
 extend type Mutation {
     addIncidentUsers(i: ObjectId!, us: [UserId!]!): Incident!
     removeIncidentUsers(i: ObjectId!, us: [UserId!]!): Incident!
-    addIncidentSlackchannels(i: ObjectId!, cs: [IncidentSlackchannelInput!]!): Incident!
-    removeIncidentSlackchannels(i: ObjectId!, cs: [IncidentSlackchannelInput!]!): Incident!
     addIncidentWorksheets(i: ObjectId!, ws: [ObjectId!]!): Incident!
     removeIncidentWorksheets(i: ObjectId!, ws: [ObjectId!]!): Incident!
     addIncidentDashboards(i: ObjectId!, ds: [ObjectId!]!): Incident!
