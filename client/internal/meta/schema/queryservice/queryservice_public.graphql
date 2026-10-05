@@ -47,3 +47,12 @@ type TaskResult implements LiveQueryResult @goModel(model: "observe/meta/metapar
     """
     errors: [TaskResultError!]
 }
+
+"""
+Governor scope whose limit triggered a rate-limit task result.
+"""
+enum RateLimitScope @goModel(model: "observe/meta/metatypes.RateLimitScope") {
+    Customer
+    User
+    Dashboard
+}

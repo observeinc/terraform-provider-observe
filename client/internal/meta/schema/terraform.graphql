@@ -12,6 +12,8 @@ enum TerraformObjectType @goModel(model: "observe/meta/metatypes.TerraformObject
     Dashboard
     MonitorV2
     MonitorV2Action
+    Worksheet
+    Group
 }
 
 type TerraformDefinition @goModel(model: "observe/meta/metatypes.TerraformDefinition") {

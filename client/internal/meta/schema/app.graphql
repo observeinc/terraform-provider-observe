@@ -98,7 +98,7 @@ type ModuleVersion @goModel(model: "observe/meta/metatypes.ModuleVersion") {
     source: String
     id: String!
     version: String!
-    changelog: String!
+    changelog: String! @allowLogging
     readme: String!
     inputs: [AppVariable!]
     resources: [AppResource!]
@@ -251,7 +251,7 @@ type AppDataSource implements WorkspaceObject & AuditedObject @goModel(model: "o
     instructions: String! @goField(forceResolver:true)
     preInstallInstructions: String! @goField(forceResolver:true)
     postInstallInstructions: String @goField(forceResolver:true)
-    outputs: JsonObject! @goField(forceResolver:true)
+    outputs: JsonObject! @goField(forceResolver:true) @secret
 }
 
 type AppDataConnection @goModel(model: "observe/meta/metatypes.AppDataConnection") {
@@ -299,7 +299,7 @@ type App implements WorkspaceObject & FolderObject &AuditedObject @goModel(model
     """
     resources: [WorkspaceObject!] @goField(forceResolver:true)
     versionsInfo: AppVersions @goField(forceResolver:true)
-    outputs: JsonObject
+    outputs: JsonObject @secret
 
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver:true)

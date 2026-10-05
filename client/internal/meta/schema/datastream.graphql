@@ -39,7 +39,7 @@ type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
     firstIngest: Time
     lastIngest: Time
     lastError: Time
-    numTokens: Int64!
+    numTokens: Int64! @allowLogging
     """
     Per minute observation counts for the past hour
     """
@@ -78,7 +78,7 @@ type DatastreamK8sEntity @goModel(model: "observe/meta/metatypes.DatastreamK8sEn
 
 type DatastreamDirectWrite @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteOutput") {
     prometheus:  DatastreamDirectWriteInfoPrometheus
-    otelLogs:    DatastreamDirectWriteInfo
+    otelLogs:    DatastreamDirectWriteInfo @allowLogging
     otelMetrics: DatastreamDirectWriteInfo
     k8sEntity:   DatastreamDirectWriteInfo
     otelTrace:   DatastreamDirectWriteInfoOtelTrace
@@ -117,12 +117,11 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     createdDate: Time!
     updatedDate: Time!
     state: DatastreamState!
-    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
+    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true) @allowLogging
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
     filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
     externalSourceId: ObjectId
-    directWrite: DatastreamDirectWrite @goField(forceResolver:true)
 
 
 }
@@ -133,7 +132,6 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     iconUrl: String
     disabled: Boolean
     externalSourceId: ObjectId
-    directWrite: DatastreamDirectWriteInput
 
 
 }
@@ -152,10 +150,15 @@ input DatastreamK8sEntityInput @goModel(model: "observe/meta/metatypes.Datastrea
 
 input DatastreamDirectWriteInput @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInput") {
     prometheus: Boolean
-    otelLogs: Boolean
+    otelLogs: Boolean @allowLogging
     otelMetrics: Boolean
     k8sEntity: Boolean
     otelTrace: Boolean
+}
+
+input DatastreamIcebergInput @goModel(model: "observe/meta/metatypes.DatastreamIcebergInput") {
+    storageIntegrationId: ObjectId
+    externalWrite: Boolean
 }
 
 interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {

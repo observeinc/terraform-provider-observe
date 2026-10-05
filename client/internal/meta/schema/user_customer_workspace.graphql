@@ -64,7 +64,7 @@ extend type Mutation {
     updateCurrentCustomerSso(sso: CustomerSsoInput!): CustomerSso!
     updateUser(id: UserId!, user: UserInput!): User!
     updateUsers(ids: [UserId!]!, user: UserInput!): [User!]!
-    updateUserPassword(password: UserPasswordInput!): ResultStatus!
+    updateUserPassword(password: UserPasswordInput! @allowLogging): ResultStatus!
     """
     Returns token that must come back to apiserver to complete the account setup
     """
@@ -108,7 +108,7 @@ extend type Mutation {
     """
     Tell yea or nay for a given login request.
     """
-    resolvePendingDelegatedLogin(serverToken: String!, accept: Boolean!): ResultStatus!
+    resolvePendingDelegatedLogin(serverToken: String! @secret, accept: Boolean!): ResultStatus!
 
     setWorkspaceObjectOwner(woid: ObjectId!, owner: UserId!): ResultStatus!
 
@@ -139,8 +139,15 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
     label: String!
     timezone: String!
     locale: String!
-    layout: JsonObject
+    layout: JsonObject @secret
     defaultDashboard: Dashboard @goField(forceResolver:true)
+    """
+    Id of the workspace's default dashboard, or null if none is set.
+    Unlike `defaultDashboard`, this field does not attempt to load the
+    dashboard, so it remains resolvable even when the referenced dashboard
+    has been deleted.
+    """
+    defaultDashboardId: ObjectId @goField(forceResolver:true)
 
     """
     False when there's not an ACL path to the workspace (project)
@@ -175,7 +182,7 @@ input WorkspaceInput @goModel(model: "observe/meta/metatypes.WorkspaceInput") {
     label: String
     timezone: String
     locale: String
-    layout: JsonObject
+    layout: JsonObject @secret
     defaultDashboardId: ObjectId
 }
 
@@ -228,9 +235,9 @@ type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     users: [User!]! @goField(forceResolver:true)
     workspaces(search: String): [Project!]! @goField(forceResolver:true)
     ingestInfo: IngestInfo! @goField(forceResolver:true)
-    cloudInfo: CloudInfo! @goField(forceResolver:true)
+    cloudInfo: CloudInfo @goField(forceResolver:true)
     trialInfo: CustomerTrialInfo @goField(forceResolver:true)
-    passwordPolicy: PasswordPolicy @goField(forceResolver:true)
+    passwordPolicy: PasswordPolicy @goField(forceResolver:true) @allowLogging
     unlistedObjectsEnabled: Boolean! @goField(forceResolver:true)
 }
 
@@ -259,14 +266,14 @@ input CustomerSsoInput @goModel(model: "observe/meta/metatypes.CustomerSsoInput"
     ssoLocalFlag: Boolean
     scimFlag: Boolean
     samlUrl: String
-    samlCert: String
+    samlCert: String @secret
 }
 
 type CustomerSso @goModel(model: "observe/meta/metatypes.CustomerSso") {
     ssoLocalFlag: Boolean!
     scimFlag: Boolean!
     samlUrl: String!
-    samlCert: String!
+    samlCert: String! @secret
     samlExpires: Time!
 }
 
@@ -313,8 +320,8 @@ enum UserType @goModel(model: "observe/meta/metatypes.UserType") {
 }
 
 input UserPasswordInput @goModel(model: "observe/meta/metatypes.UserPasswordInput") {
-    oldPassword: String!
-    newPassword: String!
+    oldPassword: String! @secret
+    newPassword: String! @secret
 }
 
 input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
@@ -531,13 +538,17 @@ Note that blobs have their own simple access control scheme,
 and do not belong to projects (which in turn grant ACLs.)
 This scheme is described by SimpleScope: user, customer, or
 world; readable or writable.
+
+@secret: 'value' is an opaque client-supplied JSON bag. Nothing constrains its
+shape, so it can hold credentials — header/value pairs have been observed on
+createOrUpdateBlob — and the telemetry layer cannot tell those from the rest.
 """
 type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
     customerId: CustomerId!
     userId: UserId!
     name: String!
     kind: String!
-    value: JsonObject!
+    value: JsonObject! @secret
     deleted: Boolean!
     readable: SimpleScope!
     writable: SimpleScope!
@@ -550,10 +561,12 @@ type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
 """
 if one of the fields is not specified, it will default
 to a sane value on create, or the previous value on update
+
+@secret: 'value' is an opaque client-supplied JSON bag; see Blob.value.
 """
 input BlobInput @goModel(model: "observe/meta/metatypes.JsonBlobInput") {
     kind: String
-    value: JsonObject
+    value: JsonObject @secret
     readable: SimpleScope
     writable: SimpleScope
 }
@@ -566,8 +579,8 @@ enum SimpleScope @goModel(model: "observe/meta/metatypes.SimpleScope") {
 
 type PendingDelegatedLogin @goModel(model: "observe/authorization.PendingDelegatedLogin") {
     emailAddress:    String!
-    clientToken:     String!
-    serverToken:     String!
+    clientToken:     String! @secret
+    serverToken:     String! @secret
     createdDate:     Time!
     userId:          UserId!
     integrationId:   String!
