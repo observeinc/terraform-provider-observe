@@ -15,7 +15,6 @@ func TestRbacGroupmemberDataToResourceDataMapsUserMember(t *testing.T) {
 	userId := types.UserIdScalar(123)
 	diags := rbacGroupmemberDataToResourceData(&gql.RbacGroupmember{
 		Id:           "1",
-		Description:  "example",
 		GroupId:      "41030001",
 		MemberUserId: &userId,
 	}, data)
@@ -25,9 +24,6 @@ func TestRbacGroupmemberDataToResourceDataMapsUserMember(t *testing.T) {
 	}
 	if got, want := data.Id(), "1"; got != want {
 		t.Errorf("id = %q, want %q", got, want)
-	}
-	if got := data.Get("description"); got != "example" {
-		t.Errorf("description = %q, want %q", got, "example")
 	}
 	if got, want := data.Get("group"), "o:::rbacgroup:41030001"; got != want {
 		t.Errorf("group = %q, want %q", got, want)

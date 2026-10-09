@@ -15,7 +15,6 @@ const (
 	schemaRbacGroupmemberIdDescription          = "RbacGroupmember ID."
 	schemaRbacGroupmemberOIDDescription         = "The Observe ID for rbacGroupmember."
 	schemaRbacGroupmemberGroupDescription       = "OID of the RbacGroup this membership belongs to."
-	schemaRbacGroupmemberDescriptionDescription = "RbacGroupmember description."
 	schemaRbacGroupmemberMemberDescription      = "The member of the group."
 	schemaRbacGroupmemberMemberUserDescription  = "OID of the user that is a member of the group."
 	schemaRbacGroupmemberMemberGroupDescription = "OID of the group that is a member of the group."
@@ -41,12 +40,6 @@ func dataSourceRbacGroupmember() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: schemaRbacGroupmemberGroupDescription,
-			},
-			"description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: schemaRbacGroupmemberDescriptionDescription,
-				Deprecated:  "Descriptions for group memberships are no longer supported.",
 			},
 			"member": {
 				Type:        schema.TypeList,
@@ -88,9 +81,6 @@ func dataSourceRbacGroupmemberRead(ctx context.Context, data *schema.ResourceDat
 
 func rbacGroupmemberDataToResourceData(r *gql.RbacGroupmember, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if err := data.Set("group", oid.RbacGroupOid(r.GroupId).String()); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := data.Set("description", r.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := data.Set("oid", r.Oid().String()); err != nil {

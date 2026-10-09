@@ -42,7 +42,6 @@ data "observe_rbac_group_member" "example" {
 
 ### Read-Only
 
-- `description` (String, Deprecated) RbacGroupmember description.
 - `group` (String) OID of the RbacGroup this membership belongs to.
 - `member` (List of Object) The member of the group. (see [below for nested schema](#nestedatt--member))
 - `oid` (String) The Observe ID for rbacGroupmember.
