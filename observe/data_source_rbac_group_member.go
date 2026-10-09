@@ -90,7 +90,8 @@ func rbacGroupmemberDataToResourceData(r *gql.RbacGroupmember, data *schema.Reso
 	member := make(map[string]interface{}, 0)
 	if r.MemberUserId != nil {
 		member["user"] = oid.UserOid(*r.MemberUserId).String()
-	} else if r.MemberGroupId != nil {
+	}
+	if r.MemberGroupId != nil {
 		member["group"] = oid.RbacGroupOid(*r.MemberGroupId).String()
 	}
 	if err := data.Set("member", []interface{}{member}); err != nil {
