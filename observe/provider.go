@@ -217,6 +217,7 @@ func Provider() *schema.Provider {
 			"observe_terraform":                 dataSourceTerraform(),
 			"observe_oid":                       dataSourceOID(),
 			"observe_rbac_group":                dataSourceRbacGroup(),
+			"observe_rbac_group_member":         dataSourceRbacGroupmember(),
 			"observe_user":                      dataSourceUser(),
 			"observe_ingest_info":               dataSourceIngestInfo(),
 			"observe_cloud_info":                dataSourceCloudInfo(),
