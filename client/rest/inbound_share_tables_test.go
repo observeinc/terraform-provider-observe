@@ -17,6 +17,9 @@ func TestTrackTable(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST method, got %s", r.Method)
 		}
+		if got := r.URL.Query().Get("expand"); got != "true" {
+			t.Errorf("Expected expand=true, got %q", got)
+		}
 
 		// Read and validate request body
 		body, _ := io.ReadAll(r.Body)
@@ -95,6 +98,9 @@ func TestGetInboundShareTable(t *testing.T) {
 		}
 		if r.Method != http.MethodGet {
 			t.Errorf("Expected GET method, got %s", r.Method)
+		}
+		if got := r.URL.Query().Get("expand"); got != "true" {
+			t.Errorf("Expected expand=true, got %q", got)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
