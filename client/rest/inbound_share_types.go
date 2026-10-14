@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -80,10 +81,29 @@ func (d *DatasetRef) UnmarshalJSON(data []byte) error {
 // Share Types
 
 type ShareStatus struct {
-	State           string  `json:"state"`  // Pending, Creating, Active, Inactive, Error, Deleting
-	Health          string  `json:"health"` // Healthy, Unhealthy, Unknown
-	HealthMessage   *string `json:"healthMessage"`
-	LastHealthCheck *string `json:"lastHealthCheck"`
+	State             string  `json:"state"`  // Pending, Creating, Active, Inactive, Error, Deleting
+	Health            string  `json:"health"` // Healthy, Unhealthy, Unknown
+	HealthMessage     *string `json:"healthMessage"`
+	LastHealthCheckAt *string `json:"lastHealthCheckAt"`
+}
+
+// UnmarshalJSON reads "lastHealthCheckAt" and, while servers that predate the
+// rename are still deployed, falls back to the old "lastHealthCheck" key.
+// The fallback can be deleted once every server sends "lastHealthCheckAt".
+func (s *ShareStatus) UnmarshalJSON(data []byte) error {
+	type plain ShareStatus
+	raw := struct {
+		plain
+		Legacy *string `json:"lastHealthCheck"`
+	}{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	*s = ShareStatus(raw.plain)
+	if s.LastHealthCheckAt == nil {
+		s.LastHealthCheckAt = raw.Legacy
+	}
+	return nil
 }
 
 type SnowflakeShareConfig struct {
@@ -187,6 +207,51 @@ type TrackTableRequest struct {
 type TrackTableResponse struct {
 	Table   InboundShareTable   `json:"table"`
 	Dataset InboundShareDataset `json:"dataset"`
+}
+
+// UnmarshalJSON accepts both track-table response shapes:
+//   - the envelope {"table": {...}, "dataset": {...}}, and
+//   - a bare table resource {"id": ..., "sourceDataset": {...}, ...}.
+//
+// For the bare form there is no dataset object, so Dataset.Id (and Label, when
+// sourceDataset.record carries one) are taken from Table.SourceDataset. Kind is
+// not available in that form; callers fill it from the dataset API.
+//
+// The bare form must carry a table ID and a sourceDataset ID. Anything else
+// (null, {}, an unrelated object) is an error rather than an empty table, since
+// the caller would otherwise record a resource with no ID or dataset.
+func (r *TrackTableResponse) UnmarshalJSON(data []byte) error {
+	var probe map[string]json.RawMessage
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return err
+	}
+	if _, ok := probe["table"]; ok {
+		type plain TrackTableResponse
+		var env plain
+		if err := json.Unmarshal(data, &env); err != nil {
+			return err
+		}
+		*r = TrackTableResponse(env)
+		return nil
+	}
+
+	var table InboundShareTable
+	if err := json.Unmarshal(data, &table); err != nil {
+		return err
+	}
+	if table.Id == "" {
+		return fmt.Errorf("track table response has neither a \"table\" envelope nor a table \"id\"")
+	}
+	ref := table.SourceDataset
+	if ref == nil || ref.Id == "" {
+		return fmt.Errorf("track table response for table %s is missing sourceDataset.id", table.Id)
+	}
+	*r = TrackTableResponse{Table: table}
+	r.Dataset.Id = ref.Id
+	if ref.Record != nil {
+		r.Dataset.Label = ref.Record.Label
+	}
+	return nil
 }
 
 type UpdateTableRequest struct {
