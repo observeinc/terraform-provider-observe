@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
@@ -84,6 +85,24 @@ type ShareStatus struct {
 	Health            string  `json:"health"` // Healthy, Unhealthy, Unknown
 	HealthMessage     *string `json:"healthMessage"`
 	LastHealthCheckAt *string `json:"lastHealthCheckAt"`
+}
+
+// UnmarshalJSON accepts the legacy lastHealthCheck key from servers that
+// predate the rename, preferring lastHealthCheckAt when both are present.
+func (s *ShareStatus) UnmarshalJSON(data []byte) error {
+	type plain ShareStatus
+	var raw struct {
+		plain
+		Legacy *string `json:"lastHealthCheck"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	*s = ShareStatus(raw.plain)
+	if s.LastHealthCheckAt == nil {
+		s.LastHealthCheckAt = raw.Legacy
+	}
+	return nil
 }
 
 type SnowflakeShareConfig struct {
@@ -215,12 +234,19 @@ func (r *TrackTableResponse) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &table); err != nil {
 		return err
 	}
+	// Tracking always creates a dataset, so a bare table without an id or a
+	// sourceDataset id is a malformed response, not an empty result. Failing
+	// here keeps Terraform from dropping a table the server already tracked.
+	if table.Id == "" {
+		return fmt.Errorf("track table response has no table id")
+	}
+	if table.SourceDataset == nil || table.SourceDataset.Id == "" {
+		return fmt.Errorf("track table response for table %s has no sourceDataset.id", table.Id)
+	}
 	*r = TrackTableResponse{Table: table}
-	if ref := table.SourceDataset; ref != nil {
-		r.Dataset.Id = ref.Id
-		if ref.Record != nil {
-			r.Dataset.Label = ref.Record.Label
-		}
+	r.Dataset.Id = table.SourceDataset.Id
+	if table.SourceDataset.Record != nil {
+		r.Dataset.Label = table.SourceDataset.Record.Label
 	}
 	return nil
 }

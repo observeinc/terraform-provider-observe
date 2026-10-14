@@ -400,3 +400,42 @@ func TestTrackTableResponseMarshaling_NestedShape(t *testing.T) {
 		t.Errorf("Expected Dataset.Id 41067890, got %s", response.Dataset.Id)
 	}
 }
+
+func TestTrackTableResponse_RejectsMalformedBareTable(t *testing.T) {
+	for name, body := range map[string]string{
+		"null":                   `null`,
+		"empty object":           `{}`,
+		"wrapped in data":        `{"data": {"id": "41056789"}}`,
+		"no sourceDataset":       `{"id": "41056789"}`,
+		"null sourceDataset":     `{"id": "41056789", "sourceDataset": null}`,
+		"empty sourceDataset id": `{"id": "41056789", "sourceDataset": {"id": ""}}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			var r TrackTableResponse
+			if err := json.Unmarshal([]byte(body), &r); err == nil {
+				t.Fatalf("expected an error for %s, got %+v", body, r)
+			}
+		})
+	}
+}
+
+func TestShareStatus_LastHealthCheckKeys(t *testing.T) {
+	for name, tc := range map[string]struct {
+		body string
+		want string
+	}{
+		"new key":         {`{"lastHealthCheckAt": "2026-03-26T10:00:00Z"}`, "2026-03-26T10:00:00Z"},
+		"legacy key":      {`{"lastHealthCheck": "2026-03-25T10:00:00Z"}`, "2026-03-25T10:00:00Z"},
+		"both prefer new": {`{"lastHealthCheck": "2026-03-25T10:00:00Z", "lastHealthCheckAt": "2026-03-26T10:00:00Z"}`, "2026-03-26T10:00:00Z"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var s ShareStatus
+			if err := json.Unmarshal([]byte(tc.body), &s); err != nil {
+				t.Fatal(err)
+			}
+			if s.LastHealthCheckAt == nil || *s.LastHealthCheckAt != tc.want {
+				t.Fatalf("LastHealthCheckAt = %v, want %s", s.LastHealthCheckAt, tc.want)
+			}
+		})
+	}
+}
