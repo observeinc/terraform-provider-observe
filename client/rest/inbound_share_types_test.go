@@ -18,7 +18,7 @@ func TestShareJSONMarshaling(t *testing.T) {
 			"state": "Active",
 			"health": "Healthy",
 			"healthMessage": null,
-			"lastHealthCheck": "2026-03-26T10:00:00Z"
+			"lastHealthCheckAt": "2026-03-26T10:00:00Z"
 		},
 		"createdBy": {
 			"id": "123",
