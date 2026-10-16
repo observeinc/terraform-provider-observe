@@ -406,6 +406,64 @@ func TestAccObserveDatasetRedundantAliasInputNoPerpetualDiff(t *testing.T) {
 	})
 }
 
+// OB-67131 / OB-44450: declaring output_stage = true on the LAST stage produced a
+// perpetual diff. newQuery sends the last stage as the output stage whether or not it is
+// declared, so on read flattenQuery cannot distinguish an explicit "output_stage = true"
+// there from an omitted one; its positional guard (i < len(gqlStages)-1) deliberately
+// reports false. Config then said true, refreshed state said false, and every plan showed
+// the change -- applying it wrote the same value back and the next refresh lost it again.
+// Declaring output_stage on the last stage is semantically a no-op (that stage is already
+// the output stage), so the fix suppresses the diff rather than trying to invert an
+// ambiguous mapping. State still holds false by design; what matters is that the plan is
+// empty, which is what the second step asserts.
+func TestAccObserveDatasetLastStageOutputStageNoPerpetualDiff(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "explicit_output" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-explicit-output"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				input    = "test"
+				pipeline = <<-EOF
+					filter true
+				EOF
+			}
+
+			// output_stage on the last stage -- redundant but valid, and common in
+			// machine-exported configs.
+			stage {
+				output_stage = true
+				pipeline     = <<-EOF
+					filter true
+				EOF
+			}
+		}
+	`, randomPrefix)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_dataset.explicit_output", "stage.#", "2"),
+					// The read path reports false for the last stage; the suppression, not the
+					// stored value, is what keeps the plan clean.
+					resource.TestCheckResourceAttr("observe_dataset.explicit_output", "stage.1.output_stage", "false"),
+				),
+			},
+			// Before the fix this step failed with a permanent
+			// ~ stage { output_stage: false -> true } diff.
+			testAccPlanOnlyNoDriftStep(config),
+		},
+	})
+}
+
 // Verify we can coldrop if no downstream affected
 func TestAccObserveDatasetSchemaChange(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
