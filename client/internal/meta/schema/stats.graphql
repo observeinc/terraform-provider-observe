@@ -21,6 +21,14 @@ extend type Query {
     also return governor specific state.
     """
     transformRateLimitingStats(workspaceId: ObjectId): TransformRateLimitingStats
+
+    """
+    Returns the current query governor throttle state for the requesting user. Intended to be called
+    when the query governor throttles a query to surface throttle details. Cid and uid are derived
+    from the caller's auth context; dashboardId is optional and, when provided, includes dashboard-scope
+    governor state in scopeInfo.
+    """
+    queryRateLimitingState(dashboardId: ObjectId): QueryRateLimitingCurrentState
 }
 
 type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.TransformRateLimitingStats") {
@@ -114,6 +122,12 @@ enum QueryRateLimitingState @goModel(model: "observe/meta/metatypes.QueryRateLim
 
     SoftLimit
     HardLimit
+
+    """
+    The query governor's current state could not be determined. The user
+    will not be throttled.
+    """
+    NotAvailable
 }
 
 enum ThrottledInfo @goModel(model: "observe/meta/metatypes.ThrottledInfo") {
@@ -178,6 +192,50 @@ type QueryRateLimitAndUsageDetails @goModel(model: "observe/meta/metatypes.Query
     The time horizon that limits apply over
     """
     timeHorizon: Duration!
+
+    """
+    Estimated time until this scope exits the throttled state, assuming ZERO ongoing consumption.
+
+    Targets the throttled limit plus minUsableFractionOfDailyLimit (10%) of one day's worth of credits.
+    This ensures users have enough credits to do reasonable work after recovery, while keeping the
+    recovery time estimate under 1 day.
+
+    Null if:
+    - Not currently throttled
+    - No throttle limit is configured for this scope
+    - No refill is configured (fillRate = 0)
+
+    For custom estimates accounting for expected usage, use refillRateCreditsPerHour
+    to calculate: timeNeeded = (targetCredits - currentCredits) / (fillRate - expectedUsageRate)
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Estimated time until this scope exits the hard limit state, assuming ZERO ongoing consumption.
+
+    Targets the hard limit (0 credits) plus minUsableFractionOfDailyLimit (10%) of one day's worth
+    of credits. This gives users a minimal but usable budget to resume querying (even if throttled),
+    while keeping the recovery time estimate under 1 day.
+
+    Null if:
+    - Not currently at hard limit
+    - No hard limit is configured for this scope
+    - No refill is configured (fillRate = 0)
+
+    If both timeUntilHardLimitExit and timeUntilUnthrottled are set, the unthrottled time
+    will be longer (since you must exit hard limit before you can exit throttling).
+    """
+    timeUntilHardLimitExit: Duration
+
+    """
+    Credits refilled per hour for this scope.
+
+    This allows the UI to perform custom calculations accounting for expected ongoing usage.
+    For example: customTime = tokensNeeded / (refillRate - expectedUsage)
+
+    Null if no refill is configured for this scope.
+    """
+    refillRateCreditsPerHour: Float
 }
 
 type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLimitingStats") {
@@ -269,6 +327,29 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     dailyThrottledCreditLimit: Float
 
     """
+    Maximum time-to-unthrottle across all scopes (customer, user, dashboard).
+
+    This is the longest time estimate needed for ANY throttled scope to reach an unthrottled state
+    (throttled limit + minUsableFractionOfDailyLimit of one day's credits). If multiple scopes are
+    throttled, you must wait for all of them to unthrottle.
+
+    Null if no scopes are currently throttled or no refill is configured.
+    See limitAndUsageDetailsPerScope[i].timeUntilUnthrottled for per-scope estimates.
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Maximum time to exit hard limit across all scopes.
+
+    This is the longest time estimate needed for ANY hard-limited scope to reach a queryable state
+    (hard limit + minUsableFractionOfDailyLimit of one day's credits, even if still throttled).
+
+    Null if no scopes are currently at hard limit or no refill is configured.
+    See limitAndUsageDetailsPerScope[i].timeUntilHardLimitExit for per-scope estimates.
+    """
+    timeUntilHardLimitExit: Duration
+
+    """
     The details of credit usage and limits for all scopes that have applicable limits.
 
     NOTE - this in general will return an entry for all scopes - but limits may be missing if not
@@ -354,4 +435,63 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     """
     limitAndUsageDetailsPerScope: [QueryRateLimitAndUsageDetails!]!
 
+}
+
+"""
+Per-scope governor state returned by queryRateLimitingState.
+"""
+type RateLimitScopeInfo @goModel(model: "observe/meta/metatypes.RateLimitScopeInfo") {
+    """
+    The scope to which this entry applies (Customer, User, or Dashboard).
+    """
+    scope: RateLimitScope!
+
+    """
+    Credits remaining in the token bucket for this scope. Null if no limit is configured.
+    """
+    creditsRemainingInBudget: Float
+
+    """
+    Maximum credits in the token bucket for this scope. Null if no limit is configured.
+    """
+    maxCreditsInBudget: Float
+
+    """
+    Estimated time until this scope exits the throttled state, assuming zero ongoing consumption.
+    Null if not currently throttled or no refill is configured.
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Estimated time until this scope exits the hard limit state, assuming zero ongoing consumption.
+    Null if not currently at hard limit or no refill is configured.
+    """
+    timeUntilHardLimitExit: Duration
+
+    """
+    Credits refilled per hour for this scope. Null if no refill is configured.
+    """
+    refillRateCreditsPerHour: Float
+}
+
+"""
+Lightweight snapshot of the query governor state for the requesting user.
+Returned by queryRateLimitingState; intended for use when a query has been throttled.
+"""
+type QueryRateLimitingCurrentState @goModel(model: "observe/meta/metatypes.QueryRateLimitingCurrentState") {
+    """
+    Overall rate-limiting state derived from the most-restrictive active scope.
+    """
+    state: QueryRateLimitingState!
+
+    """
+    Whether the user is currently being throttled. Null if the governor is not configured.
+    """
+    throttleMode: ThrottledInfo
+
+    """
+    Per-scope governor state. Contains an entry for each scope (Customer, User, and optionally
+    Dashboard) for which limits are configured.
+    """
+    scopeInfo: [RateLimitScopeInfo!]!
 }

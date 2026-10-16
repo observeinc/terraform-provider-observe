@@ -221,4 +221,3 @@ type AcceptedOption @goModel(model: "observe/meta/metaparser.AcceptedOption") {
     repType: String!
     meaning: String!
 }
-

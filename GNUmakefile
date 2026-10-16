@@ -68,18 +68,30 @@ copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm -rf client/internal/meta/schema
 	mkdir -p client/internal/meta/schema
-	rsync -a --include='*/' --include='*.graphql' --exclude='*' \
+	rsync -a --no-group --include='*/' --include='*.graphql' --exclude='*' \
 		"$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/" \
 		client/internal/meta/schema/
 
-	# Remove @eol fields and any preceding triple-quoted descriptions from all .graphql files.
-	# The (?<!directive ) excludes the @eol directive definition.
-	# The (?! +""") prevents the description match from greedily spanning into adjacent
-	# fields when the @eol field is not directly preceded by its own description block.
-	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n +"""\n(?:(?! +""").+\n)+? +""")?\n.+(?<!directive )\@eol.*//g'
+	# Strip @eol markers while retaining fields still used by provider operations.
+	# Input fields kept this way must also be marked omitempty in the operation
+	# files, or genqlient sends them as explicit null.
+	# One -e expression: a second -e is a backup suffix for BSD sed, so the
+	# bare-marker substitution never runs on macOS.
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!{s/ @eol([^)]*)//g;s/ @eol//g;}'
 
 	# Strip out @owner directives from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @owner([^)]*)//g'
+
+	# @secret and @allowLogging are server telemetry markers. Strip uses the same
+	# way as @owner, and leave description text that only mentions them.
+	# \# keeps the hash from starting a make comment.
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!{s/ @secret @/ @/g;s/ @secret \#/ #/g;s/ @secret\#/#/g;s/ @secret,/,/g;s/ @secret)/)/g;s/ @secret$$//g;s/ @allowLogging @/ @/g;s/ @allowLogging \#/ #/g;s/ @allowLogging\#/#/g;s/ @allowLogging,/,/g;s/ @allowLogging)/)/g;s/ @allowLogging$$//g;}'
+
+	# @oneOf is a GraphQL built-in. genqlient's parser only accepts directives
+	# that the schema defines, so declare it when the copied schema uses it.
+	if ! grep -q '^directive @oneOf' client/internal/meta/schema/base/base_public.graphql; then \
+		printf '\ndirective @oneOf on INPUT_OBJECT\n' >> client/internal/meta/schema/base/base_public.graphql; \
+	fi
 
 	# Remove internal comment lines starting with # from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^[[:space:]]*#/d'

@@ -51,6 +51,7 @@ extend type Query {
 
     bookmark(id: ObjectId!): Bookmark!
 
+    currentPermissions: PermissionList! @deprecated(reason: "this was part of rbac v0")
 
     """
     Ask whether a particular user has currently pending delegated login requests.
@@ -70,7 +71,20 @@ extend type Mutation {
     """
     inviteUser(user: UserInput!): String!
 
+    """
+    Creates a new user bound to an SSO identity (SAML2 or OAuth2). Admin
+    privilege required. user.ssoIdentities must contain exactly one entry.
+    """
+    createSSOUser(user: UserInput!): User!
+
+    """
+    When creating a workspace, all users for the customer will be granted
+    access to it through the ACL system. This is because we don't yet have
+    a UI to deal with selective access.
+    """
+    createWorkspace(definition: WorkspaceInput!): Project @deprecated(reason: "each customer has exactly one workspace")
     updateWorkspace(id: ObjectId!, definition: WorkspaceInput!): Project
+    deleteWorkspace(id: ObjectId!): ResultStatus! @deprecated(reason: "each customer has exactly one workspace")
 
     """
     Blobs are arbitrary JSON structs (limited to 128 kB in size) stored with
@@ -141,6 +155,13 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
     locale: String!
     layout: JsonObject
     defaultDashboard: Dashboard @goField(forceResolver:true)
+    """
+    Id of the workspace's default dashboard, or null if none is set.
+    Unlike `defaultDashboard`, this field does not attempt to load the
+    dashboard, so it remains resolvable even when the referenced dashboard
+    has been deleted.
+    """
+    defaultDashboardId: ObjectId @goField(forceResolver:true)
 
     """
     False when there's not an ACL path to the workspace (project)
@@ -228,7 +249,7 @@ type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     users: [User!]! @goField(forceResolver:true)
     workspaces(search: String): [Project!]! @goField(forceResolver:true)
     ingestInfo: IngestInfo! @goField(forceResolver:true)
-    cloudInfo: CloudInfo! @goField(forceResolver:true)
+    cloudInfo: CloudInfo @goField(forceResolver:true)
     trialInfo: CustomerTrialInfo @goField(forceResolver:true)
     passwordPolicy: PasswordPolicy @goField(forceResolver:true)
     unlistedObjectsEnabled: Boolean! @goField(forceResolver:true)
@@ -312,6 +333,16 @@ enum UserType @goModel(model: "observe/meta/metatypes.UserType") {
     UserTypeInternalAccount
 }
 
+"""
+The oauth2/saml2 identity provider backing an SSO identity. SAML2 is the bucket
+for all saml2 based SSO config.
+"""
+enum SSOIdentityProvider @goModel(model: "observe/meta/metatypes.SSOIdentityProvider") {
+    GOOGLE
+    SAML2
+    UNKNOWN
+}
+
 input UserPasswordInput @goModel(model: "observe/meta/metatypes.UserPasswordInput") {
     oldPassword: String!
     newPassword: String!
@@ -337,6 +368,25 @@ input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
     status: UserStatus
 
     rbacGroups: [ORN!]
+
+    """
+    admin privilege required to update sso identity of a user. Only a single
+    entry is currently supported; providing more than one is rejected.
+    """
+    ssoIdentities: [SSOIdentityInput!]
+}
+
+type SSOIdentity @goModel(model: "observe/meta/metatypes.SSOIdentity") {
+    """
+    The oauth2 identity provider. Fixed to SAML2 for saml2 users.
+    """
+    identityProvider: SSOIdentityProvider!
+    identity: String!
+}
+
+input SSOIdentityInput @goModel(model: "observe/meta/metatypes.SSOIdentityInput") {
+    identityProvider: SSOIdentityProvider!
+    identity: String!
 }
 
 type User @goModel(model: "observe/meta/metatypes.User") {
@@ -350,12 +400,15 @@ type User @goModel(model: "observe/meta/metatypes.User") {
     role: String!
     comment: String
     expirationTime: Time
+    updatedDate: Time!
+    ssoIdentities: [SSOIdentity!]
     customer: Customer @goField(forceResolver:true)
     workspaces(search: String): [Project!]! @goField(forceResolver:true)
     worksheets(search: String): [Worksheet!]! @goField(forceResolver:true)
     blobs(kind: String): [Blob!] @goField(forceResolver:true)
     bookmarkGroups(includeWorkspace: ObjectId): [BookmarkGroup!] @goField(forceResolver:true)
 
+    possiblePermissions: PermissionList! @goField(forceResolver: true) @deprecated(reason: "this was part of rbac v0")
 }
 
 """
@@ -531,6 +584,10 @@ Note that blobs have their own simple access control scheme,
 and do not belong to projects (which in turn grant ACLs.)
 This scheme is described by SimpleScope: user, customer, or
 world; readable or writable.
+
+@secret: 'value' is an opaque client-supplied JSON bag. Nothing constrains its
+shape, so it can hold credentials — header/value pairs have been observed on
+createOrUpdateBlob — and the telemetry layer cannot tell those from the rest.
 """
 type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
     customerId: CustomerId!
@@ -550,6 +607,8 @@ type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
 """
 if one of the fields is not specified, it will default
 to a sane value on create, or the previous value on update
+
+@secret: 'value' is an opaque client-supplied JSON bag; see Blob.value.
 """
 input BlobInput @goModel(model: "observe/meta/metatypes.JsonBlobInput") {
     kind: String
@@ -573,4 +632,3 @@ type PendingDelegatedLogin @goModel(model: "observe/authorization.PendingDelegat
     integrationId:   String!
     integrationName: String!
 }
-

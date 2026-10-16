@@ -98,6 +98,17 @@ input QueryParams @goModel(model: "observe/meta/metatypes.QueryParamsInput") {
     opalParameters: [ParameterBindingInput!] @deprecated(reason:"Use parameterValues instead")
 }
 
+"""
+A request-scoped OPAL filter pipeline applied to direct Default and Data
+inputs. Reference inputs are not filtered.
+
+Gated by FeatureFlag.enableQueryInputFilter (default off). When the flag is
+disabled the argument is accepted but ignored.
+"""
+input QueryInputFilterInput @goModel(model: "observe/meta/metatypes.QueryInputFilterInput") {
+    pipeline: String!
+}
+
 type ColumnStatTopKValue @goModel(model: "observe/meta/metatypes.ColumnStatTopKValue") {
     """
     The value
@@ -138,6 +149,10 @@ type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
     isTag: Boolean!
     """
     Top-K most frequent values. Null if disabled or unavailable.
+
+    These are literal cell values out of the customer's dataset, so the whole
+    subtree is @secret (OB-65908). column and distinctCount stay loggable: a name
+    and a cardinality, no values.
     """
     topK: [ColumnStatTopKValue!]
     """
@@ -146,6 +161,8 @@ type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
     distinctCount: Int64
     """
     Histogram of the values. Null if disabled or unavailable.
+
+    min and max are literal data values, so this is @secret (OB-65908).
     """
     histogram: ColumnStatHistogram
 }
@@ -210,6 +227,7 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     kind: DatasetKind!
     interfaces: [ImplementedInterface!]! @goField(forceResolver:true)
     metrics: [Metric!]! @goField(forceResolver:true)
+    accelerable: Boolean! @deprecated(reason: "Use accelerationType instead. accelerationType != NotSupported is equivalent.") @goField(forceResolver:true)
     accelerationType: AccelerationType!
     eligibleAsView: Boolean!
     indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
@@ -235,6 +253,10 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     """
     sortColumnOrdering: [ColumnOrder!]
 
+    """
+    Deprecated: Use resultMetadata.limit instead.
+    """
+    limit: Int64 @deprecated(reason: "use resultMetadata.limit instead")
 }
 
 type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
@@ -261,6 +283,8 @@ type FieldDesc @goModel(model: "observe/meta/metatypes.FieldDesc") {
     isHidden: Boolean
     isConst: Boolean
     isMetric: Boolean
+    shouldFlatten: Boolean
+    isPivot: Boolean @goField(name: "ShouldFlatten") @deprecated(reason: "Use shouldFlatten")
 }
 
 """
@@ -517,7 +541,10 @@ input StageMetadata @goModel(model: "observe/meta/metatypes.StageMetadata") {
     component: String
 
     """
-    Extra stuff
+    Extra stuff.
+
+    @secret: an opaque client-supplied JSON bag; see QueryMetadata.extra
+    (OB-66441).
     """
     extra: JsonObject
 }
@@ -532,11 +559,21 @@ of that query.
 """
 input ParameterBindingInput @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
     id: String!
+    """
+    The bound parameter value.
+
+    @secret: supplied by whoever ran the query, and nothing constrains what they
+    bind -- a parameter is as likely to hold a token a customer is filtering on as
+    a hostname. The id names the parameter and stays loggable (OB-66460).
+    """
     value: ValueInput!
 }
 
 type ParameterBinding @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
     id: String!
+    """
+    The bound parameter value; see ParameterBindingInput.value (OB-66460).
+    """
     value: Value!
 }
 
@@ -631,12 +668,22 @@ type ValueArray @goModel(model: "observe/compiler/comptypes.ValueArray") {
 
 input ValueLinkInput @goModel(model: "observe/compiler/comptypes.ValueLink") {
     datasetId: ObjectId!
+    """
+    Primary key VALUES of a dataset row — a container ID, a hostname, a user email.
+    Reviewed as not-a-credential under OB-63450 and marked @allowLogging then; under
+    the customer-data lens it is dataset content, so it is @secret (OB-65908).
+    Contrast the primaryKey / keys / foreignKeys fields elsewhere in the schema,
+    which hold column NAMES and stay @allowLogging.
+    """
     primaryKeyValue: [ValueKeyValueInput!]!
     storedLabel: String
 }
 
 type ValueLink @goModel(model: "observe/compiler/comptypes.ValueLink") {
     datasetId: ObjectId!
+    """
+    Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
+    """
     primaryKeyValue: [ValueKeyValue!]!
     storedLabel: String
 }
@@ -765,8 +812,10 @@ type InputDefinition @goModel(model: "observe/meta/metatypes.InputDefinition") {
     inputName: String!
     inputRole: InputRole!
     """
-    One of the input definition fields is used; the others are null
-    because GO doesn't have unions.
+    One of datasetId or stageId identifies what this input is bound to; GO
+    doesn't have unions, so both fields exist but only one is set. When the
+    binding is a dataset, datasetPath is also populated alongside datasetId
+    as a portable "<workspace>.<label>" reference.
     """
     datasetId: ObjectId
     datasetPath: String
@@ -1150,12 +1199,18 @@ input ColumnAndValueInput @goModel(model: "observe/meta/metatypes.ColumnAndValue
 
 input ResourceIdInput @goModel(model: "observe/meta/metatypes.ResourceIdInput") {
     datasetId: ObjectId!
+    """
+    Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
+    """
     primaryKeyValue: [ColumnAndValueInput!]!
     timeRange: TimeRangeInput
 }
 
 type ResourceId @goModel(model: "observe/meta/metatypes.ResourceId") {
     datasetId: ObjectId!
+    """
+    Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
+    """
     primaryKeyValue: [ColumnAndValue!]!
     timeRange: TimeRange
 }

@@ -8,7 +8,63 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String, omittable: Boolean) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
-directive @eol on
+"""
+Marks a field, input field, or argument as end-of-life: still served, but slated for
+removal. Calls to it are counted in the eol_count metric. Pair it with @deprecated,
+whose reason names the replacement.
+
+The dates are the announced retirement timeline, written as YYYY-MM-DD. On a root
+Query or Mutation field they are served as the RFC 9745 Deprecation and RFC 8594
+Sunset response headers; nested fields, input fields, and arguments emit no
+headers. Omit either until it is announced.
+"""
+directive @eol(
+    """
+    Date the deprecation was announced.
+    """
+    deprecated: String
+    """
+    Last date the field is served.
+    """
+    sunset: String
+) on
+    | INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+    | ARGUMENT_DEFINITION
+
+"""
+Marks a field, input field, or argument as carrying material that must never reach
+telemetry. Two kinds qualify:
+
+  - Credentials: passwords, minted token secrets, private keys, certificates
+    (OB-63450).
+  - Customer query-result data: values read out of a customer's datasets — result
+    rows, column top-K values, metric tag values, monitor captured values, primary
+    key values (OB-65908). Logging these copies customer data out of the
+    environment that produced it and into the o2 environment our telemetry ships
+    to, where it cannot be un-logged.
+
+Secret-annotated values are redacted from tracing spans, logs, and error strings by
+the GraphQL telemetry layer; marking a composite field redacts its whole subtree.
+Marker only — it has no effect on the value returned to the client.
+"""
+directive @secret on
+    | INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+    | ARGUMENT_DEFINITION
+
+"""
+Marks a field, input field, or argument whose name looks secret-like (matches the
+telemetry guard-test denylist) as reviewed and safe to log — its value is neither a
+credential nor customer query-result data, so it may be recorded in tracing spans,
+logs, and error strings. Required — the guard test fails for any suspiciously named
+field carrying neither @secret nor @allowLogging. Marker only. See OB-63450.
+
+The guard test only checks names, so it cannot prompt this decision for a
+result-carrying field with an innocuous name (paginatedResults, tagValues,
+capturedValues). Those are annotated by hand; see OB-65908.
+"""
+directive @allowLogging on
     | INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
     | ARGUMENT_DEFINITION
@@ -59,6 +115,11 @@ scalar StatsVector @goModel(model: "observe/meta/metastats.Vector")
 Time presented in RFC3339 format.
 """
 scalar Time @goModel(model: "observe/meta/metascalar.Time")
+"""
+Calendar date in ISO 8601 YYYY-MM-DD form. No timezone or time-of-day
+component. Use Time for timestamps.
+"""
+scalar Date @goModel(model: "observe/meta/metascalar.Date")
 scalar UserId @goModel(model: "observe/authorization/id.UserId")
 
 """
@@ -128,3 +189,5 @@ input RateLimitInput @goModel(model: "observe/meta/metatypes.RateLimitInput") {
 
     burst: Int64
 }
+
+directive @oneOf on INPUT_OBJECT

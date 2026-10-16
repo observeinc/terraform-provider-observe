@@ -27,6 +27,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				# @genqlient(flatten: true)
 				stages {
 					...StageQuery
@@ -123,12 +124,17 @@ fragment DatasetDryRunSaveResult on DatasetSaveResult {
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "DatasetInput.onDemandMaterializationLength", omitempty: true)
+# @genqlient(for: "DatasetInput.dataRetentionPeriod", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 mutation saveDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -141,6 +147,23 @@ mutation saveDataset(
 	}
 }
 
+# @genqlient(for: "DatasetInput.deleted", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
+# @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
+# @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
+# @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "DatasetInput.onDemandMaterializationLength", omitempty: true)
+# @genqlient(for: "DatasetInput.dataRetentionPeriod", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
+# @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 mutation saveDatasetDryRun(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -189,12 +212,17 @@ query listDatasets{
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "DatasetInput.onDemandMaterializationLength", omitempty: true)
+# @genqlient(for: "DatasetInput.dataRetentionPeriod", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "LogDerivedMetricDefinitionInput.opalVersion", omitempty: true)
 mutation saveLogDerivedMetricDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -211,12 +239,17 @@ mutation saveLogDerivedMetricDataset(
 # @genqlient(for: "DatasetInput.accelerationDisabled", omitempty: true)
 # @genqlient(for: "DatasetInput.accelerationDisabledSource", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
+# @genqlient(for: "DatasetInput.onDemandMaterializationLength", omitempty: true)
+# @genqlient(for: "DatasetInput.dataRetentionPeriod", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "LogDerivedMetricDefinitionInput.opalVersion", omitempty: true)
 mutation saveLogDerivedMetricDatasetDryRun(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,

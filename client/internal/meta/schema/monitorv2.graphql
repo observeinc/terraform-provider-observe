@@ -157,6 +157,12 @@ extend type Mutation {
     testMonitorV2Alert(
         templateDict: JsonObject!,
         actionInput: MonitorV2ActionInput!,
+        """
+        The saved action being tested, if any. Its redacted headers sent back as
+        "***REDACTED***" are sent with their stored values, as on update.
+        Requires edit access to the action.
+        """
+        actionId: ObjectId,
     ): ResultStatus!
 
     """
@@ -327,7 +333,7 @@ enum MonitorV2RollupStatus @goModel(model: "observe/meta/metatypes.MonitorV2Roll
 MonitorV2DisabledCause describes why a monitor is disabled.
 When a monitor is disabled, this field always indicates the reason.
 """
-enum MonitorV2DisabledCause @goModel(model: "observe/meta/metatypes.MonitorV2DisabledCause") {
+enum MonitorV2DisabledCause @goModel(model: "observe/meta/metatypes/monitortypes.MonitorV2DisabledCause") {
   """
   The monitor was disabled explicitly by a user.
   """
@@ -349,7 +355,7 @@ MonitorV2DisabledDetail provides structured information about why a monitor is d
 The cause field indicates the general reason, and exactly one of the cause-specific
 sub-objects (cost, alertRateLimit, user) is populated with contextual detail.
 """
-type MonitorV2DisabledDetail @goModel(model: "observe/meta/metatypes.MonitorV2DisabledDetail") {
+type MonitorV2DisabledDetail @goModel(model: "observe/meta/metatypes/monitortypes.MonitorV2DisabledDetail") {
     cause: MonitorV2DisabledCause!
     cost: MonitorV2DisabledByCost
     alertRateLimit: MonitorV2DisabledByAlertRateLimit
@@ -359,7 +365,7 @@ type MonitorV2DisabledDetail @goModel(model: "observe/meta/metatypes.MonitorV2Di
 """
 MonitorV2DisabledByCost contains detail when a monitor was disabled by the cost governor.
 """
-type MonitorV2DisabledByCost @goModel(model: "observe/meta/metatypes.MonitorV2DisabledByCost") {
+type MonitorV2DisabledByCost @goModel(model: "observe/meta/metatypes/monitortypes.MonitorV2DisabledByCost") {
     """
     The credit limit per day that the monitor exceeded.
     """
@@ -370,7 +376,7 @@ type MonitorV2DisabledByCost @goModel(model: "observe/meta/metatypes.MonitorV2Di
 MonitorV2DisabledByAlertRateLimit contains detail when a monitor was auto-disabled
 because it exceeded the maximum alert rate limit.
 """
-type MonitorV2DisabledByAlertRateLimit @goModel(model: "observe/meta/metatypes.MonitorV2DisabledByAlertRateLimit") {
+type MonitorV2DisabledByAlertRateLimit @goModel(model: "observe/meta/metatypes/monitortypes.MonitorV2DisabledByAlertRateLimit") {
     """
     The configured maximum alerts per hour for this monitor.
     """
@@ -388,7 +394,7 @@ type MonitorV2DisabledByAlertRateLimit @goModel(model: "observe/meta/metatypes.M
 """
 MonitorV2DisabledByUser contains detail when a monitor was explicitly disabled by a user.
 """
-type MonitorV2DisabledByUser @goModel(model: "observe/meta/metatypes.MonitorV2DisabledByUser") {
+type MonitorV2DisabledByUser @goModel(model: "observe/meta/metatypes/monitortypes.MonitorV2DisabledByUser") {
     """
     The user who disabled the monitor.
     """
@@ -406,9 +412,14 @@ MonitorV2RuleKind describes the strategy used to inspect the input query.
    scene.
  - Anomaly is when you want alert based on any irregularity noticed in the new
    set of data using the expected trend from modeling the data in the past.
+ - Composite is the one kind that inspects no query at all. It combines other
+   monitors with a boolean condition over whether each is currently alerting,
+   correlated per group, so its inputQuery is empty and its severity comes from
+   whichever constituents made the condition true.
 """
 enum MonitorV2RuleKind @goModel(model: "observe/meta/metatypes.MonitorV2RuleKind") {
   Anomaly
+  Composite
   Count
   Promote
   Threshold
@@ -426,8 +437,8 @@ monitor type since it acts on rows, not on values.
  - Max: This takes the maximum value over the lookback and makes that the value to compare
 """
 enum MonitorV2ValueAggregation @goModel(model: "observe/meta/metatypes.MonitorV2ValueAggregation") {
-  AllOf
-  AnyOf
+  AllOf @deprecated(reason: "Use Min when all rules are greater-than, Max when all are less-than.")
+  AnyOf @deprecated(reason: "Use Max when all rules are greater-than, Min when all are less-than.")
   AvgOf
   Max
   Min
@@ -533,17 +544,45 @@ type MonitorV2 implements WorkspaceObject & AuditedObject & FolderObject @goMode
     """
     aiTriagingMode: MonitorV2AiTriagingMode
     """
+    The user AI SRE dispatches alert-triage requests as. Every create or save
+    makes the editor the identity; enabling or disabling the monitor does not
+    change it, so it can differ from updatedBy.
+    """
+    aiSreIdentity: UserId!
+    """
+    The aiSreIdentity user, resolved for display.
+    """
+    aiSreIdentityInfo: UserInfo! @goField(forceResolver: true)
+    """
+    Connector metadata for aiSreIdentity. Editors can read it before enabling
+    triage; viewers can read it when aiTriagingMode is Triage. Returns null when
+    access is denied, AI SRE is disabled, the identity cannot run an
+    investigation, or the lookup fails.
+
+    Select this only in detail queries. Each monitor requires an ai-api call;
+    cross-user lookups also create and revoke a token, producing two audit-log
+    entries.
+    """
+    aiSreConnectors: [MonitorV2AiSreConnector!] @goField(forceResolver: true)
+    """
     Per-monitor override for the AI SRE investigation cap, counted over
     aiSreInvestigationWindowSeconds.
-    nil = use the account-level default (currently 10); 0 = unlimited; N = cap at N per window.
+    nil = use the account-level default (currently 10); otherwise must be greater than 0.
+    The configured rate cannot exceed the backend-configured maximum.
     """
     aiSreMaxInvestigationsPerMonitor: Int64
     """
     Per-monitor override for the rolling window (in seconds) over which
     aiSreMaxInvestigationsPerMonitor is counted.
-    nil = use the account-level default (currently 24h); must be greater than 0 if set.
+    nil = use the account-level default (currently 24h); must be a whole number of hours between 1h and 24h if set.
     """
     aiSreInvestigationWindowSeconds: Int64
+    """
+    Alert severity levels that automatically trigger an AI SRE investigation.
+    Null preserves the legacy behavior and triggers for every level. An empty
+    list disables automatic investigations for every level.
+    """
+    aiSreTriggerLevels: [MonitorV2AlarmLevel!]
     """
     Object tags for organizing and categorizing monitors.
     """
@@ -574,8 +613,19 @@ input MonitorV2Input @goModel(model: "observe/meta/metatypes.MonitorV2Input") {
     ruleKind: MonitorV2RuleKind!
     investigationInfo: MonitorV2InvestigationInfoInput
     aiTriagingMode: MonitorV2AiTriagingMode
+    """
+    Ignored. Every save makes the acting user the AI SRE identity; the field is
+    kept so existing clients can still send it.
+    """
+    aiSreIdentityToSelf: Boolean
     aiSreMaxInvestigationsPerMonitor: Int64
     aiSreInvestigationWindowSeconds: Int64
+    """
+    Alert severity levels that automatically trigger an AI SRE investigation.
+    Omit or set to null to trigger for every level. An empty list triggers for
+    no levels.
+    """
+    aiSreTriggerLevels: [MonitorV2AlarmLevel!]
     """
     Object tags for organizing and categorizing monitors.
     """
@@ -703,6 +753,28 @@ enum MonitorV2ServiceBindingMatchMode @goModel(model: "observe/meta/metatypes.Mo
   Wildcard
 }
 
+"""
+MonitorV2ServiceType is the kind of service a binding applies to.
+The binding is service type, name, environment, and namespace.
+Omit or null means Service. All means the binding applies to every service
+type: Service, Database, and MessageBroker.
+"""
+enum MonitorV2ServiceType @goModel(model: "observe/meta/metatypes.MonitorV2ServiceType") {
+  Service
+  Database
+  MessageBroker
+  All
+}
+
+"""
+MonitorV2AlarmServiceType is the kind of service an alert is attributed to.
+"""
+enum MonitorV2AlarmServiceType @goModel(model: "observe/meta/metatypes.MonitorV2AlarmServiceType") {
+  Service
+  Database
+  MessageBroker
+}
+
 
 type MonitorV2ServiceBindingValue @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingValue") {
     """
@@ -738,6 +810,10 @@ type MonitorV2ServiceBinding @goModel(model: "observe/meta/metatypes.MonitorV2Se
     environment: MonitorV2ServiceBindingValue!
     "Namespace dimension of the binding."
     serviceNamespace: MonitorV2ServiceBindingValue!
+    """
+    Kind of service this binding attributes alerts to. Omit or null means Service.
+    """
+    serviceType: MonitorV2ServiceType
 }
 
 input MonitorV2ServiceBindingInput @goModel(model: "observe/meta/metatypes.MonitorV2ServiceBindingInput") {
@@ -747,6 +823,10 @@ input MonitorV2ServiceBindingInput @goModel(model: "observe/meta/metatypes.Monit
     environment: MonitorV2ServiceBindingValueInput!
     "Namespace dimension of the binding."
     serviceNamespace: MonitorV2ServiceBindingValueInput!
+    """
+    Kind of service this binding attributes alerts to. Omit or null means Service.
+    """
+    serviceType: MonitorV2ServiceType
 }
 
 
@@ -754,12 +834,17 @@ type MonitorV2AlarmServiceBinding @goModel(model: "observe/meta/metatypes.Monito
     serviceName: String!
     environment: String!
     serviceNamespace: String!
+    serviceType: MonitorV2AlarmServiceType @goField(forceResolver: true)
 }
 
 input MonitorV2AlarmServiceBindingInput @goModel(model: "observe/meta/metatypes.MonitorV2AlarmServiceBindingInput") {
     serviceName: String!
     environment: String!
     serviceNamespace: String!
+    """
+    Kind of service the alert is attributed to. Omit when the type is unknown.
+    """
+    serviceType: MonitorV2AlarmServiceType
 }
 
 
@@ -798,7 +883,7 @@ type MonitorV2AlertSchema @goModel(model: "observe/meta/metatypes.MonitorV2Alert
     All the columns that are inside the captured values of the alert.
     """
     columns: [MonitorV2Column!]
-    """Per-tag canonical-column mappings derived at monitor save time; consumed by detection-time triplet binding."""
+    """Per-tag canonical-column mappings derived at monitor save time; consumed by detection-time service identity binding."""
     correlationTags: [CorrelationTagMapping!]
 }
 
@@ -878,13 +963,13 @@ type MonitorV2Definition @goModel(model: "observe/meta/metatypes.MonitorV2Defini
     """
     customVariables: JsonObject
     """
-    ServiceBindings declares the (serviceName, environment, serviceNamespace) triplets a monitor's
+    ServiceBindings declares the (serviceType, serviceName, environment, serviceNamespace) identities a monitor's
     alarms should be attributed to. The list shape is
     kept for forward-compatibility; today at most one binding entry is supported.
-    Optional: when omitted/empty the monitor has no service binding and alarms are
-    written with NULL service / environment / namespace columns.
+    Optional: when omitted or empty, the monitor has no service binding and its
+    alerts have no service.
 
-    Validation rules (enforced at save time, gated by the service-monitoring feature flag):
+    Validation rules (enforced at save time):
 
       1. At most one binding entry.
       2. For each wildcard component in the binding, the monitor must supply a
@@ -913,10 +998,49 @@ input MonitorV2DefinitionInput @goModel(model: "observe/meta/metatypes.MonitorV2
 
 type MonitorV2RuleTemplate @goModel(model: "observe/meta/metatypes.MonitorV2RuleTemplate") {
     anomaly: MonitorV2AnomalyRuleTemplate
+    composite: MonitorV2CompositeRuleTemplate
 }
 
 input MonitorV2RuleTemplateInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleTemplateInput") {
     anomaly: MonitorV2AnomalyRuleTemplateInput
+    composite: MonitorV2CompositeRuleTemplateInput
+}
+
+
+type MonitorV2CompositeRuleTemplate @goModel(model: "observe/meta/metatypes.MonitorV2CompositeRuleTemplate") {
+    constituents: [MonitorV2CompositeConstituent!]
+    """
+    Condition combines the constituents' aliases with &&, || and !, for example "A && !B".
+    There is one condition per composite rather than one per rule, because a composite's
+    severity is derived from its constituents rather than configured.
+    """
+    condition: String
+}
+
+input MonitorV2CompositeRuleTemplateInput @goModel(model: "observe/meta/metatypes.MonitorV2CompositeRuleTemplateInput") {
+    constituents: [MonitorV2CompositeConstituentInput!]
+    condition: String
+}
+
+
+type MonitorV2CompositeConstituent @goModel(model: "observe/meta/metatypes.MonitorV2CompositeConstituent") {
+    """
+    Alias is the short name the condition expression uses for this monitor, such as "A".
+    """
+    alias: String!
+    monitorId: ObjectId!
+    """
+    NotifyIndependently lets this monitor keep sending its own notifications while it is part
+    of this composite. It defaults to true, so joining a composite never silences a monitor on
+    its own. A monitor can belong to several composites, and it notifies if any grants this.
+    """
+    notifyIndependently: Boolean!
+}
+
+input MonitorV2CompositeConstituentInput @goModel(model: "observe/meta/metatypes.MonitorV2CompositeConstituentInput") {
+    alias: String!
+    monitorId: ObjectId!
+    notifyIndependently: Boolean!
 }
 
 
@@ -942,6 +1066,11 @@ type MonitorV2AnomalyRuleTemplate @goModel(model: "observe/meta/metatypes.Monito
     the bounds the data point has to be out.
     """
     compareFn: MonitorV2BoundComparisonFunction!
+    """
+    NumStandardDeviations defines how many standard deviations the data point has to be out of bounds to
+    be marked as a red point. The user gets to choose a standard deviation between 1 to 5.
+    """
+    numStandardDeviations: Int64 @deprecated(reason: "Use basicAlgorithmTyped.numStandardDeviations instead. The top-level field will be removed once no callers depend on it.")
     """
     BasicAlgorithm makes the monitor use the basic algorithm to evaluate data and fire alerts. For the
     computation window of data, it will calculate the average and standard deviations and then determine
@@ -976,6 +1105,7 @@ input MonitorV2AnomalyRuleTemplateInput @goModel(model: "observe/meta/metatypes.
     frequency: Duration
     valueColumnName: String!
     compareFn: MonitorV2BoundComparisonFunction!
+    numStandardDeviations: Int64 @deprecated(reason: "Use basicAlgorithmTyped.numStandardDeviations instead. The top-level field will be removed once no callers depend on it.")
     basicAlgorithm: JsonObject @deprecated(reason: "Use basicAlgorithmTyped: MonitorV2BasicAlgorithmInput instead. basicAlgorithm and basicAlgorithmTyped cannot both be set on the same monitor.")
     basicAlgorithmTyped: MonitorV2BasicAlgorithmInput
     seasonalAlgorithm: MonitorV2SeasonalAlgorithmInput
@@ -1034,12 +1164,95 @@ type MonitorV2SeasonalAlgorithm @goModel(model: "observe/meta/metatypes.MonitorV
     the configured period in days, capped at 90 days.
     """
     weeklyPeriods: Int64
+    """
+    HolidayCalendar carries the holiday-regressor configuration. Null = no holiday regressors
+    are added to the Prophet model. Today only the `custom` spec kind is supported.
+    """
+    holidayCalendar: HolidayCalendar
 }
 
 input MonitorV2SeasonalAlgorithmInput @goModel(model: "observe/meta/metatypes.MonitorV2SeasonalAlgorithmInput") {
     sensitivity: MonitorV2AnomalySeasonalSensitivity
     dailyPeriods: Int64
     weeklyPeriods: Int64
+    holidayCalendar: HolidayCalendarInput
+}
+
+"""
+HolidayEntryInput is one dated entry on a custom holiday calendar. Maps
+1:1 onto a row of Prophet's `holidays` DataFrame, so server-side
+materialization is a JSON dump with no shape conversion. Date is
+interpreted in the parent calendar's `timeZone`.
+"""
+input HolidayEntryInput @goModel(model: "observe/meta/metatypes.HolidayEntryInput") {
+    """
+    Calendar date of the closure. For fixed holidays observed on a
+    different day (e.g. July 4 falling on a Saturday), record the
+    OBSERVED date here -- the day with operational impact.
+    """
+    date: Date!
+    """
+    Human-readable name. Becomes a Prophet regressor feature; entries
+    with the same name across years tie into one regressor with N
+    observations.
+    """
+    name: String!
+    "Days before `date` to also flag (negative or zero, bounded [-30, 0])."
+    lowerWindow: Int = 0
+    "Days after `date` to also flag (zero or positive, bounded [0, 30])."
+    upperWindow: Int = 0
+    "Prophet regularization scale for this holiday. Null = inherit the model default."
+    priorScale: Float
+}
+
+"""
+HolidayCalendarCustomInput is a hand-curated list of dated holidays.
+Caller owns every date; the server performs no recurrence expansion.
+"""
+input HolidayCalendarCustomInput @goModel(model: "observe/meta/metatypes.HolidayCalendarCustomInput") {
+    "1..100 entries. Unique on (date, name) after normalization."
+    entries: [HolidayEntryInput!]!
+    """
+    IANA timezone name (e.g. America/New_York). Each entry's date is
+    interpreted as start-of-day in this timezone, then converted to UTC
+    when matching against actuals timestamps. Defaults to UTC.
+    """
+    timeZone: String = "UTC"
+}
+
+"""
+HolidayCalendarInput is a tagged union over the supported calendar
+spec kinds. Exactly one branch must be set; the @oneOf directive
+enforces this at parse time. Today only `custom` is wired up; future
+`preset`, `reference`, `composite` will add additively.
+"""
+input HolidayCalendarInput @oneOf @goModel(model: "observe/meta/metatypes.HolidayCalendarInput") {
+    custom: HolidayCalendarCustomInput
+}
+
+"""
+HolidayEntry is the persisted form of a HolidayEntryInput.
+"""
+type HolidayEntry @goModel(model: "observe/meta/metatypes.HolidayEntry") {
+    date: Date!
+    name: String!
+    lowerWindow: Int!
+    upperWindow: Int!
+    priorScale: Float
+}
+
+type HolidayCalendarCustom @goModel(model: "observe/meta/metatypes.HolidayCalendarCustom") {
+    entries: [HolidayEntry!]!
+    timeZone: String!
+}
+
+"""
+HolidayCalendar mirrors HolidayCalendarInput on the output side. The
+@oneOf constraint is input-only; the output is a plain wrapper whose
+non-null field indicates which spec kind was set.
+"""
+type HolidayCalendar @goModel(model: "observe/meta/metatypes.HolidayCalendar") {
+    custom: HolidayCalendarCustom
 }
 
 """
@@ -1154,6 +1367,9 @@ type MonitorV2CapturedValue @goModel(model: "observe/meta/metatypes.MonitorV2Cap
     column: MonitorV2Column!
     """
     Value is the value of the captured column in the dataset.
+
+    A dataset value, so @secret (OB-65908). types and column describe where it came
+    from and stay loggable.
     """
     value: String
 }
@@ -1267,11 +1483,26 @@ input MonitorV2RuleInput @goModel(model: "observe/meta/metatypes.MonitorV2RuleIn
 
 type MonitorV2AnomalyRule @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRule") {
     """
-    ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
-    window for the monitor to trigger the anomaly rule. It will always do a greater than or equal to
-    evaluation of this following comparison. It accepts a range between 0 to 100.
+    CompareValues is a list of comparisons against the percentage of points that are out of bound
+    within the evaluation window, on a scale of 0 to 100. It provides an implicit AND where all
+    comparisons must match. This gives the option to specify one value for a threshold behavior
+    (trigger if >= 80) but also allows for ranges of validity. If you want to trigger inside a
+    range, give two compares here (like >= 80 and < 100). If you want to trigger outside a valid
+    range, use two rules with a single compare to get the implied OR (one rule for < 50 and one
+    rule for >= 100). Only the numeric comparison functions are accepted; to alert on the data
+    itself being absent, use a no data rule rather than a null comparison.
+    CompareValues can be left empty when the NoDataOption is provided, as there's no values to
+    compare against when we want to alert on the data itself missing, or when the deprecated
+    ComparePercentage carries the threshold instead.
     """
-    comparePercentage: Int64
+    compareValues: [MonitorV2Comparison!]
+    """
+    ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
+    window for the monitor to trigger the anomaly rule. It does a greater than or equal to evaluation
+    against that percentage. It accepts a range between 0 to 100. When CompareValues is set, it takes
+    precedence and this field is ignored.
+    """
+    comparePercentage: Int64 @deprecated(reason: "use compareValues instead")
     """
     CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
     This gives the option to add extra dimension to the existing rule by specifying which column of
@@ -1282,7 +1513,8 @@ type MonitorV2AnomalyRule @goModel(model: "observe/meta/metatypes.MonitorV2Anoma
 }
 
 input MonitorV2AnomalyRuleInput @goModel(model: "observe/meta/metatypes.MonitorV2AnomalyRuleInput") {
-    comparePercentage: Int64
+    compareValues: [MonitorV2ComparisonInput!]
+    comparePercentage: Int64 @deprecated(reason: "use compareValues instead")
     compareGroups: [MonitorV2ColumnComparisonInput!]
 }
 
@@ -1650,9 +1882,6 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     Context represents the set of values for which this alarm triggered. It
     uniquely identifies an alarm for a given monitor and within a given
     time range.
-
-    The group-by values the alarm fired on are dataset values, so    (OB-65908). groupingHash is a hash of them and stays loggable, which is what
-    lets logically grouped alarms still be correlated in telemetry.
     """
     context: [MonitorV2ContextEntry!]!
     """
@@ -1671,7 +1900,7 @@ type MonitorV2Alarm @goModel(model: "observe/meta/metatypes.MonitorV2Alarm") {
     """
     isInvalid: Boolean!
     stats: MonitorV2AlarmActionStats @goField(forceResolver: true)
-    """The (serviceName, environment, serviceNamespace) triplet this alarm is attributed to. Null only when the monitor has no service binding declared; otherwise present, with any dimension that did not resolve to a value represented as an empty string."""
+    """The service this alert is attributed to. Null when the monitor has no service binding. Otherwise present. serviceName, environment, and serviceNamespace are empty strings when that value is missing. serviceType is absent when serviceName is empty."""
     resolvedServiceBinding: MonitorV2AlarmServiceBinding @goField(forceResolver: true)
 }
 
@@ -1691,7 +1920,7 @@ input MonitorV2AlarmInput @goModel(model: "observe/meta/metatypes.MonitorV2Alarm
     isActive: Boolean!
     level: MonitorV2AlarmLevel!
     """
-    The fully-resolved service-binding triplet for this alarm. Mirrors the
+    The fully-resolved service-binding identity for this alarm. Mirrors the
     output-only `MonitorV2Alarm.resolvedServiceBinding` so callers can pipe a
     preview alarm directly into template-dictionary generation and exercise
     the `alert.apmUrl` plumbing. Optional; absent when the monitor has no
@@ -1870,6 +2099,11 @@ input MonitorV2EmailActionInput @goModel(model: "observe/meta/metatypes.MonitorV
 type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2WebhookAction") {
     """
     A webhook URL template to a destination that can be rendered.
+
+    For destinations such as Slack incoming webhooks the URL is itself the
+    credential: holding it grants unauthenticated POST into the customer's
+    channel, with no expiry and no second factor, so it is @secret (OB-65908).
+    Only the customer can revoke it, by regenerating the hook.
     """
     url: String!
     """
@@ -1892,6 +2126,9 @@ type MonitorV2WebhookAction @goModel(model: "observe/meta/metatypes.MonitorV2Web
 }
 
 input MonitorV2WebhookActionInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookActionInput") {
+    """
+    A webhook URL template; see MonitorV2WebhookAction.url.
+    """
     url: String!
     method: MonitorV2HttpType!
     headers: [MonitorV2WebhookHeaderInput!]
@@ -1907,13 +2144,40 @@ type MonitorV2WebhookHeader @goModel(model: "observe/meta/metatypes.MonitorV2Web
     header: String!
     """
     A value template that can be rendered.
+
+    Carries the outbound request's credential when the header is Authorization or
+    an API-token header, so it is @secret. The name stays loggable.
+
+    Reads back as "***REDACTED***" when redact is true.
     """
-    value: String!
+    value: String! @goField(forceResolver: true)
+    """
+    Alpha: this field may change or be removed without notice.
+
+    Whether value reads back masked. Null means the header predates redact: an
+    action saved before the field existed, or by a client that does not send it.
+    Null is treated as false, so those actions keep their existing behavior.
+    """
+    redact: Boolean
 }
 
 input MonitorV2WebhookHeaderInput @goModel(model: "observe/meta/metatypes.MonitorV2WebhookHeaderInput") {
     header: String!
+    """
+    With redact true, "***REDACTED***" is reserved: on update it keeps the stored
+    value, and it is rejected for a new or renamed header, when unredacting, or
+    when the url changes. For a header that is not redacted it is an ordinary value.
+    """
     value: String!
+    """
+    Alpha: this field may change or be removed without notice.
+
+    Whether value reads back masked. Clients should always send it. Omitting it
+    is accepted only for backward compatibility with clients that predate the
+    field: an update then keeps the stored choice, and a create leaves the header
+    unredacted.
+    """
+    redact: Boolean
 }
 
 
@@ -2133,6 +2397,10 @@ input ActionRelationInput @goModel(model: "observe/meta/metatypes.ActionRelation
 }
 
 type TemplateDictionary @goModel(model: "observe/meta/metatypes.TemplateDictionary") {
+    """
+    @secret: built from the alarm's captured values, so it holds the same dataset
+    values MonitorV2CapturedValue.value does.
+    """
     dictionary: JsonObject!
 }
 
@@ -2143,17 +2411,23 @@ type RenderedTemplate @goModel(model: "observe/meta/metatypes.RenderedTemplate")
 
 type RenderedEmail @goModel(model: "observe/meta/metatypes.RenderedEmail") {
     """
-    Rendered email action.
+    Rendered email action. monitorV2RenderTemplate substitutes live alarm values into
+    the template, so the rendered subject and body carry dataset values and are
+    @secret (OB-65908).
+
+    The annotation sits on this wrapper rather than on MonitorV2EmailAction.body
+    because that type is shared with the stored template, which is configuration and
+    stays loggable.
     """
     action: MonitorV2EmailAction!
-    }
+}
 
 type RenderedWebhook @goModel(model: "observe/meta/metatypes.RenderedWebhook") {
     """
     Rendered, so it carries dataset values — see RenderedEmail.action (OB-65908).
     """
     action: MonitorV2WebhookAction!
-    }
+}
 
 type MonitorV2AlarmSearchResult @goModel(model: "observe/meta/metatypes.MonitorV2AlarmSearchResult") {
     results: [MonitorV2Alarm!]!
@@ -2310,6 +2584,17 @@ type MonitorV2GovernorUsage @goModel(model: "observe/meta/metatypes.MonitorV2Gov
     usageWindow: Duration!
 }
 
+"""Connector metadata for the monitor's aiSreIdentity. Contains no credentials."""
+type MonitorV2AiSreConnector @goModel(model: "observe/meta/metatypes.MonitorV2AiSreConnector") {
+    """Stable connector identifier, e.g. "notion"."""
+    connectorId: String!
+    name: String!
+    description: String!
+    connected: Boolean!
+    """Connected workspace, site, or account label."""
+    displayName: String
+}
+
 """
 MonitorV2AiSreUsage describes AI SRE auto-triage investigation counts for a monitor.
 """
@@ -2319,7 +2604,7 @@ type MonitorV2AiSreUsage @goModel(model: "observe/meta/metatypes.MonitorV2AiSreU
     """
     investigationsInWindow: Int64!
     """
-    Per-monitor investigation cap for the window. 0 means unlimited.
+    Per-monitor investigation cap for the window.
     """
     limit: Int64!
     """
@@ -2336,11 +2621,12 @@ type MonitorV2ContextEntry @goModel(model: "observe/meta/metatypes.MonitorV2Cont
     """
     Value of this context entry for which the alarm triggered.
 
+    A dataset value, so @secret (OB-65908). column stays loggable.
     """
     value: String!
-    }
+}
 
 input MonitorV2ContextEntryInput @goModel(model: "observe/meta/metatypes.MonitorV2ContextEntryInput") {
     column: MonitorV2ColumnInput!
     value: String!
-    }
+}
