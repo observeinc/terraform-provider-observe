@@ -194,7 +194,7 @@ func Provider() *schema.Provider {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateOpalVersion(),
-				Description:      "Default OPAL language version for resources that do not set opal_version. This default is applied on every update; changing it re-pins those resources and may rematerialize datasets.",
+				Description:      "Default OPAL language version for resources that do not set `opal_version`. This default is applied on every update; changing it re-pins those resources and may rematerialize datasets. Supported values are `v2021_01_01` and `v2026_09_30`.",
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_OPAL_VERSION", nil),
 			},
 			"skip_dataset_dry_runs": {
