@@ -15,6 +15,18 @@ enum RematerializationAction @goModel(model: "observe/meta/metatypes.Remateriali
   """
   AbortOnContentRematerialization
   """
+  AbortOnNonInternalRematerialization aborts the content upgrade if any dataset was to be rematerialized,
+  except internal datasets. Internal datasets are those that monitors or metric SMAs create and manage.
+  Content datasets count, so their rematerialization also aborts the upgrade, while monitor and metric
+  SMA datasets may rematerialize and the upgrade is still committed.
+  """
+  AbortOnNonInternalRematerialization
+  """
+  AbortOnNonMonitorRematerialization is the previous name of AbortOnNonInternalRematerialization.
+  It has the same behavior: monitor and metric SMA datasets may rematerialize.
+  """
+  AbortOnNonMonitorRematerialization @deprecated(reason: "Use AbortOnNonInternalRematerialization.")
+  """
   IgnoreRematerialization ignores any rematerialization that would occur in the datasets and commits the upgrade
   regardless of what may happen afterwards.
   """
@@ -126,7 +138,7 @@ the current customer.  All fields are optional, so only the fields that are
 specified will be updated.
 """
 input KubernetesContentInput @goModel(model: "observe/meta/metatypes.KubernetesContentInput") {
-  otelLogsDatasetId: ObjectId @allowLogging
+  otelLogsDatasetId: ObjectId
   prometheusDatasetId: ObjectId
   entityDatasetId: ObjectId
 }
@@ -135,11 +147,11 @@ input KubernetesContentInput @goModel(model: "observe/meta/metatypes.KubernetesC
 Models the complete information of a Kubernetes Content
 """
 type KubernetesContent @goModel(model: "observe/meta/metatypes.KubernetesContent") {
-  otelLogsDatasetId: ObjectId @allowLogging
+  otelLogsDatasetId: ObjectId
   prometheusDatasetId: ObjectId
   entityDatasetId: ObjectId
 
-  kubernetesLogsDatasetId: ObjectId @allowLogging
+  kubernetesLogsDatasetId: ObjectId
 }
 
 
@@ -149,7 +161,7 @@ the current customer.  All fields are optional, so only the fields that are
 specified will be updated.
 """
 input HostExplorerContentInput @goModel(model: "observe/meta/metatypes.HostExplorerContentInput") {
-  otelLogsDatasetId: ObjectId @allowLogging
+  otelLogsDatasetId: ObjectId
   prometheusDatasetId: ObjectId
 }
 
@@ -157,10 +169,10 @@ input HostExplorerContentInput @goModel(model: "observe/meta/metatypes.HostExplo
 Models the complete information of a Host Explorer Content
 """
 type HostExplorerContent @goModel(model: "observe/meta/metatypes.HostExplorerContent") {
-  otelLogsDatasetId: ObjectId @allowLogging
+  otelLogsDatasetId: ObjectId
   prometheusDatasetId: ObjectId
 
-  hostExplorerLogsDatasetId: ObjectId @allowLogging
+  hostExplorerLogsDatasetId: ObjectId
 }
 
 """
@@ -236,7 +248,7 @@ type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
   this via the layered settings API or Terraform's
   observe_layered_setting_record resource.
   """
-  traceInspectorRelatedLogsDatasetId: ObjectId @allowLogging
+  traceInspectorRelatedLogsDatasetId: ObjectId
 
   options: [TracingContentOption!]
 }
@@ -381,7 +393,7 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   Maximum value: 130000
   Default value: 100000
   """
-  pathologicalTraceNumSpans: Int64 @allowLogging
+  pathologicalTraceNumSpans: Int64
 
   """
   Controls the duration threshold for a trace to be considered pathological (truncated).
@@ -391,7 +403,7 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   Maximum value: 2h
   Default value: 30m
   """
-  pathologicalTraceDuration: Duration @allowLogging
+  pathologicalTraceDuration: Duration
 }
 
 """

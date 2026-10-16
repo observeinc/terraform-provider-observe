@@ -3056,6 +3056,70 @@ func (v *FolderInput) GetIconUrl() *string { return v.IconUrl }
 // GetPersonalToUserId returns FolderInput.PersonalToUserId, and is useful for accessing the field via an interface.
 func (v *FolderInput) GetPersonalToUserId() *types.UserIdScalar { return v.PersonalToUserId }
 
+// HolidayCalendarCustomInput is a hand-curated list of dated holidays.
+// Caller owns every date; the server performs no recurrence expansion.
+type HolidayCalendarCustomInput struct {
+	// 1..100 entries. Unique on (date, name) after normalization.
+	Entries []HolidayEntryInput `json:"entries"`
+	// IANA timezone name (e.g. America/New_York). Each entry's date is
+	// interpreted as start-of-day in this timezone, then converted to UTC
+	// when matching against actuals timestamps. Defaults to UTC.
+	TimeZone *string `json:"timeZone"`
+}
+
+// GetEntries returns HolidayCalendarCustomInput.Entries, and is useful for accessing the field via an interface.
+func (v *HolidayCalendarCustomInput) GetEntries() []HolidayEntryInput { return v.Entries }
+
+// GetTimeZone returns HolidayCalendarCustomInput.TimeZone, and is useful for accessing the field via an interface.
+func (v *HolidayCalendarCustomInput) GetTimeZone() *string { return v.TimeZone }
+
+// HolidayCalendarInput is a tagged union over the supported calendar
+// spec kinds. Exactly one branch must be set; the @oneOf directive
+// enforces this at parse time. Today only `custom` is wired up; future
+// `preset`, `reference`, `composite` will add additively.
+type HolidayCalendarInput struct {
+	Custom *HolidayCalendarCustomInput `json:"custom"`
+}
+
+// GetCustom returns HolidayCalendarInput.Custom, and is useful for accessing the field via an interface.
+func (v *HolidayCalendarInput) GetCustom() *HolidayCalendarCustomInput { return v.Custom }
+
+// HolidayEntryInput is one dated entry on a custom holiday calendar. Maps
+// 1:1 onto a row of Prophet's `holidays` DataFrame, so server-side
+// materialization is a JSON dump with no shape conversion. Date is
+// interpreted in the parent calendar's `timeZone`.
+type HolidayEntryInput struct {
+	// Calendar date of the closure. For fixed holidays observed on a
+	// different day (e.g. July 4 falling on a Saturday), record the
+	// OBSERVED date here -- the day with operational impact.
+	Date string `json:"date"`
+	// Human-readable name. Becomes a Prophet regressor feature; entries
+	// with the same name across years tie into one regressor with N
+	// observations.
+	Name string `json:"name"`
+	// Days before `date` to also flag (negative or zero, bounded [-30, 0]).
+	LowerWindow *int `json:"lowerWindow"`
+	// Days after `date` to also flag (zero or positive, bounded [0, 30]).
+	UpperWindow *int `json:"upperWindow"`
+	// Prophet regularization scale for this holiday. Null = inherit the model default.
+	PriorScale *float64 `json:"priorScale"`
+}
+
+// GetDate returns HolidayEntryInput.Date, and is useful for accessing the field via an interface.
+func (v *HolidayEntryInput) GetDate() string { return v.Date }
+
+// GetName returns HolidayEntryInput.Name, and is useful for accessing the field via an interface.
+func (v *HolidayEntryInput) GetName() string { return v.Name }
+
+// GetLowerWindow returns HolidayEntryInput.LowerWindow, and is useful for accessing the field via an interface.
+func (v *HolidayEntryInput) GetLowerWindow() *int { return v.LowerWindow }
+
+// GetUpperWindow returns HolidayEntryInput.UpperWindow, and is useful for accessing the field via an interface.
+func (v *HolidayEntryInput) GetUpperWindow() *int { return v.UpperWindow }
+
+// GetPriorScale returns HolidayEntryInput.PriorScale, and is useful for accessing the field via an interface.
+func (v *HolidayEntryInput) GetPriorScale() *float64 { return v.PriorScale }
+
 // HttpRequestConfig includes the GraphQL fields of PollerHTTPRequestConfig requested by the fragment HttpRequestConfig.
 type HttpRequestConfig struct {
 	Url        *string                      `json:"url"`
@@ -6191,13 +6255,13 @@ type MonitorV2Definition struct {
 	// note: These are distinctly different than the action fragments, which are treated as
 	// mustache partials.
 	CustomVariables *types.JsonObject `json:"customVariables"`
-	// ServiceBindings declares the (serviceName, environment, serviceNamespace) triplets a monitor's
+	// ServiceBindings declares the (serviceType, serviceName, environment, serviceNamespace) identities a monitor's
 	// alarms should be attributed to. The list shape is
 	// kept for forward-compatibility; today at most one binding entry is supported.
-	// Optional: when omitted/empty the monitor has no service binding and alarms are
-	// written with NULL service / environment / namespace columns.
+	// Optional: when omitted or empty, the monitor has no service binding and its
+	// alerts have no service.
 	//
-	// Validation rules (enforced at save time, gated by the service-monitoring feature flag):
+	// Validation rules (enforced at save time):
 	//
 	// 1. At most one binding entry.
 	// 2. For each wildcard component in the binding, the monitor must supply a
@@ -6390,8 +6454,8 @@ type MonitorV2Input struct {
 	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
 	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
 	AiTriagingMode    *MonitorV2AiTriagingMode         `json:"aiTriagingMode"`
-	// Reassigns this monitor's AI SRE identity to the acting user. Absent or
-	// false leaves it unchanged; it cannot be assigned to anyone else.
+	// Ignored. Every save makes the acting user the AI SRE identity; the field is
+	// kept so existing clients can still send it.
 	AiSreIdentityToSelf              *bool              `json:"aiSreIdentityToSelf"`
 	AiSreMaxInvestigationsPerMonitor *types.Int64Scalar `json:"aiSreMaxInvestigationsPerMonitor"`
 	AiSreInvestigationWindowSeconds  *types.Int64Scalar `json:"aiSreInvestigationWindowSeconds"`
@@ -6799,9 +6863,10 @@ type MonitorV2SearchResult struct {
 func (v *MonitorV2SearchResult) GetResults() []MonitorV2 { return v.Results }
 
 type MonitorV2SeasonalAlgorithmInput struct {
-	Sensitivity   *MonitorV2AnomalySeasonalSensitivity `json:"sensitivity"`
-	DailyPeriods  *types.Int64Scalar                   `json:"dailyPeriods"`
-	WeeklyPeriods *types.Int64Scalar                   `json:"weeklyPeriods"`
+	Sensitivity     *MonitorV2AnomalySeasonalSensitivity `json:"sensitivity"`
+	DailyPeriods    *types.Int64Scalar                   `json:"dailyPeriods"`
+	WeeklyPeriods   *types.Int64Scalar                   `json:"weeklyPeriods"`
+	HolidayCalendar *HolidayCalendarInput                `json:"holidayCalendar"`
 }
 
 // GetSensitivity returns MonitorV2SeasonalAlgorithmInput.Sensitivity, and is useful for accessing the field via an interface.
@@ -6815,6 +6880,11 @@ func (v *MonitorV2SeasonalAlgorithmInput) GetDailyPeriods() *types.Int64Scalar {
 // GetWeeklyPeriods returns MonitorV2SeasonalAlgorithmInput.WeeklyPeriods, and is useful for accessing the field via an interface.
 func (v *MonitorV2SeasonalAlgorithmInput) GetWeeklyPeriods() *types.Int64Scalar {
 	return v.WeeklyPeriods
+}
+
+// GetHolidayCalendar returns MonitorV2SeasonalAlgorithmInput.HolidayCalendar, and is useful for accessing the field via an interface.
+func (v *MonitorV2SeasonalAlgorithmInput) GetHolidayCalendar() *HolidayCalendarInput {
+	return v.HolidayCalendar
 }
 
 // MonitorV2ServiceBinding includes the GraphQL fields of MonitorV2ServiceBinding requested by the fragment MonitorV2ServiceBinding.
@@ -6845,6 +6915,8 @@ type MonitorV2ServiceBindingInput struct {
 	Environment MonitorV2ServiceBindingValueInput `json:"environment"`
 	// Namespace dimension of the binding.
 	ServiceNamespace MonitorV2ServiceBindingValueInput `json:"serviceNamespace"`
+	// Kind of service this binding attributes alerts to. Omit or null means Service.
+	ServiceType *MonitorV2ServiceType `json:"serviceType"`
 }
 
 // GetServiceName returns MonitorV2ServiceBindingInput.ServiceName, and is useful for accessing the field via an interface.
@@ -6861,6 +6933,9 @@ func (v *MonitorV2ServiceBindingInput) GetEnvironment() MonitorV2ServiceBindingV
 func (v *MonitorV2ServiceBindingInput) GetServiceNamespace() MonitorV2ServiceBindingValueInput {
 	return v.ServiceNamespace
 }
+
+// GetServiceType returns MonitorV2ServiceBindingInput.ServiceType, and is useful for accessing the field via an interface.
+func (v *MonitorV2ServiceBindingInput) GetServiceType() *MonitorV2ServiceType { return v.ServiceType }
 
 // MonitorV2ServiceBindingMatchMode selects how a service-binding dimension is
 // matched. Exact matches a single concrete value; Wildcard matches any value, with
@@ -6908,6 +6983,19 @@ func (v *MonitorV2ServiceBindingValueInput) GetValue() *string { return v.Value 
 func (v *MonitorV2ServiceBindingValueInput) GetMatchMode() *MonitorV2ServiceBindingMatchMode {
 	return v.MatchMode
 }
+
+// MonitorV2ServiceType is the kind of service a binding applies to.
+// The binding is service type, name, environment, and namespace.
+// Omit or null means Service. All means the binding applies to every service
+// type: Service, Database, and MessageBroker.
+type MonitorV2ServiceType string
+
+const (
+	MonitorV2ServiceTypeService       MonitorV2ServiceType = "Service"
+	MonitorV2ServiceTypeDatabase      MonitorV2ServiceType = "Database"
+	MonitorV2ServiceTypeMessagebroker MonitorV2ServiceType = "MessageBroker"
+	MonitorV2ServiceTypeAll           MonitorV2ServiceType = "All"
+)
 
 // MonitorV2ThresholdRule includes the GraphQL fields of MonitorV2ThresholdRule requested by the fragment MonitorV2ThresholdRule.
 type MonitorV2ThresholdRule struct {
@@ -7072,6 +7160,8 @@ type MonitorV2WebhookHeader struct {
 	//
 	// Carries the outbound request's credential when the header is Authorization or
 	// an API-token header, so it is @secret. The name stays loggable.
+	//
+	// Reads back as "***REDACTED***" when redact is true.
 	Value string `json:"value"`
 }
 
@@ -7083,7 +7173,17 @@ func (v *MonitorV2WebhookHeader) GetValue() string { return v.Value }
 
 type MonitorV2WebhookHeaderInput struct {
 	Header string `json:"header"`
-	Value  string `json:"value"`
+	// With redact true, "***REDACTED***" is reserved: on update it keeps the stored
+	// value, and it is rejected for a new or renamed header, when unredacting, or
+	// when the url changes. For a header that is not redacted it is an ordinary value.
+	Value string `json:"value"`
+	// Alpha: this field may change or be removed without notice.
+	//
+	// Whether value reads back masked. Clients should always send it. Omitting it
+	// is accepted only for backward compatibility with clients that predate the
+	// field: an update then keeps the stored choice, and a create leaves the header
+	// unredacted.
+	Redact *bool `json:"redact"`
 }
 
 // GetHeader returns MonitorV2WebhookHeaderInput.Header, and is useful for accessing the field via an interface.
@@ -7091,6 +7191,9 @@ func (v *MonitorV2WebhookHeaderInput) GetHeader() string { return v.Header }
 
 // GetValue returns MonitorV2WebhookHeaderInput.Value, and is useful for accessing the field via an interface.
 func (v *MonitorV2WebhookHeaderInput) GetValue() string { return v.Value }
+
+// GetRedact returns MonitorV2WebhookHeaderInput.Redact, and is useful for accessing the field via an interface.
+func (v *MonitorV2WebhookHeaderInput) GetRedact() *bool { return v.Redact }
 
 type MultiStageQueryInput struct {
 	OutputStage     string                  `json:"outputStage"`
@@ -9308,6 +9411,7 @@ const (
 	RbacRoleReferencetablecreator     RbacRole = "ReferenceTableCreator"
 	RbacRoleReportmanager             RbacRole = "ReportManager"
 	RbacRoleServiceaccountcreator     RbacRole = "ServiceAccountCreator"
+	RbacRoleServiceaccountviewer      RbacRole = "ServiceAccountViewer"
 	RbacRoleShareinmanager            RbacRole = "ShareInManager"
 	RbacRoleShareinviewer             RbacRole = "ShareInViewer"
 	RbacRoleSkillvisibilityeditor     RbacRole = "SkillVisibilityEditor"
@@ -10079,6 +10183,7 @@ const (
 	TerraformObjectTypeMonitorv2       TerraformObjectType = "MonitorV2"
 	TerraformObjectTypeMonitorv2action TerraformObjectType = "MonitorV2Action"
 	TerraformObjectTypeWorksheet       TerraformObjectType = "Worksheet"
+	TerraformObjectTypeGroup           TerraformObjectType = "Group"
 )
 
 type ThresholdAggFunction string

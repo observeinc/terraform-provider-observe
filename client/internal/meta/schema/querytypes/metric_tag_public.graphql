@@ -42,6 +42,6 @@ type MetricTagValues @goModel(model: "observe/meta/metatypes.MetricTagValues"){
     datasets, so these are query results and @secret (OB-65908). total is a count
     and stays loggable.
     """
-    tagValues: [String!]! @secret
+    tagValues: [String!]!
     total: Int64!
 }

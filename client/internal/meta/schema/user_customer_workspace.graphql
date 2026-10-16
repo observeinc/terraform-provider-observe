@@ -65,11 +65,17 @@ extend type Mutation {
     updateCurrentCustomerSso(sso: CustomerSsoInput!): CustomerSso!
     updateUser(id: UserId!, user: UserInput!): User!
     updateUsers(ids: [UserId!]!, user: UserInput!): [User!]!
-    updateUserPassword(password: UserPasswordInput! @allowLogging): ResultStatus!
+    updateUserPassword(password: UserPasswordInput!): ResultStatus!
     """
     Returns token that must come back to apiserver to complete the account setup
     """
     inviteUser(user: UserInput!): String!
+
+    """
+    Creates a new user bound to an SSO identity (SAML2 or OAuth2). Admin
+    privilege required. user.ssoIdentities must contain exactly one entry.
+    """
+    createSSOUser(user: UserInput!): User!
 
     """
     When creating a workspace, all users for the customer will be granted
@@ -116,7 +122,7 @@ extend type Mutation {
     """
     Tell yea or nay for a given login request.
     """
-    resolvePendingDelegatedLogin(serverToken: String! @secret, accept: Boolean!): ResultStatus!
+    resolvePendingDelegatedLogin(serverToken: String!, accept: Boolean!): ResultStatus!
 
     setWorkspaceObjectOwner(woid: ObjectId!, owner: UserId!): ResultStatus!
 
@@ -147,7 +153,7 @@ type Project @goModel(model: "observe/meta/metatypes.Workspace") {
     label: String!
     timezone: String!
     locale: String!
-    layout: JsonObject @secret
+    layout: JsonObject
     defaultDashboard: Dashboard @goField(forceResolver:true)
     """
     Id of the workspace's default dashboard, or null if none is set.
@@ -190,7 +196,7 @@ input WorkspaceInput @goModel(model: "observe/meta/metatypes.WorkspaceInput") {
     label: String
     timezone: String
     locale: String
-    layout: JsonObject @secret
+    layout: JsonObject
     defaultDashboardId: ObjectId
 }
 
@@ -245,7 +251,7 @@ type Customer @goModel(model: "observe/meta/metatypes.Customer") {
     ingestInfo: IngestInfo! @goField(forceResolver:true)
     cloudInfo: CloudInfo @goField(forceResolver:true)
     trialInfo: CustomerTrialInfo @goField(forceResolver:true)
-    passwordPolicy: PasswordPolicy @goField(forceResolver:true) @allowLogging
+    passwordPolicy: PasswordPolicy @goField(forceResolver:true)
     unlistedObjectsEnabled: Boolean! @goField(forceResolver:true)
 }
 
@@ -274,14 +280,14 @@ input CustomerSsoInput @goModel(model: "observe/meta/metatypes.CustomerSsoInput"
     ssoLocalFlag: Boolean
     scimFlag: Boolean
     samlUrl: String
-    samlCert: String @secret
+    samlCert: String
 }
 
 type CustomerSso @goModel(model: "observe/meta/metatypes.CustomerSso") {
     ssoLocalFlag: Boolean!
     scimFlag: Boolean!
     samlUrl: String!
-    samlCert: String! @secret
+    samlCert: String!
     samlExpires: Time!
 }
 
@@ -327,9 +333,19 @@ enum UserType @goModel(model: "observe/meta/metatypes.UserType") {
     UserTypeInternalAccount
 }
 
+"""
+The oauth2/saml2 identity provider backing an SSO identity. SAML2 is the bucket
+for all saml2 based SSO config.
+"""
+enum SSOIdentityProvider @goModel(model: "observe/meta/metatypes.SSOIdentityProvider") {
+    GOOGLE
+    SAML2
+    UNKNOWN
+}
+
 input UserPasswordInput @goModel(model: "observe/meta/metatypes.UserPasswordInput") {
-    oldPassword: String! @secret
-    newPassword: String! @secret
+    oldPassword: String!
+    newPassword: String!
 }
 
 input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
@@ -352,6 +368,25 @@ input UserInput @goModel(model: "observe/meta/metatypes.UserInput") {
     status: UserStatus
 
     rbacGroups: [ORN!]
+
+    """
+    admin privilege required to update sso identity of a user. Only a single
+    entry is currently supported; providing more than one is rejected.
+    """
+    ssoIdentities: [SSOIdentityInput!]
+}
+
+type SSOIdentity @goModel(model: "observe/meta/metatypes.SSOIdentity") {
+    """
+    The oauth2 identity provider. Fixed to SAML2 for saml2 users.
+    """
+    identityProvider: SSOIdentityProvider!
+    identity: String!
+}
+
+input SSOIdentityInput @goModel(model: "observe/meta/metatypes.SSOIdentityInput") {
+    identityProvider: SSOIdentityProvider!
+    identity: String!
 }
 
 type User @goModel(model: "observe/meta/metatypes.User") {
@@ -365,6 +400,8 @@ type User @goModel(model: "observe/meta/metatypes.User") {
     role: String!
     comment: String
     expirationTime: Time
+    updatedDate: Time!
+    ssoIdentities: [SSOIdentity!]
     customer: Customer @goField(forceResolver:true)
     workspaces(search: String): [Project!]! @goField(forceResolver:true)
     worksheets(search: String): [Worksheet!]! @goField(forceResolver:true)
@@ -557,7 +594,7 @@ type Blob @goModel(model: "observe/meta/metatypes.JsonBlob") {
     userId: UserId!
     name: String!
     kind: String!
-    value: JsonObject! @secret
+    value: JsonObject!
     deleted: Boolean!
     readable: SimpleScope!
     writable: SimpleScope!
@@ -575,7 +612,7 @@ to a sane value on create, or the previous value on update
 """
 input BlobInput @goModel(model: "observe/meta/metatypes.JsonBlobInput") {
     kind: String
-    value: JsonObject @secret
+    value: JsonObject
     readable: SimpleScope
     writable: SimpleScope
 }
@@ -588,11 +625,10 @@ enum SimpleScope @goModel(model: "observe/meta/metatypes.SimpleScope") {
 
 type PendingDelegatedLogin @goModel(model: "observe/authorization.PendingDelegatedLogin") {
     emailAddress:    String!
-    clientToken:     String! @secret
-    serverToken:     String! @secret
+    clientToken:     String!
+    serverToken:     String!
     createdDate:     Time!
     userId:          UserId!
     integrationId:   String!
     integrationName: String!
 }
-

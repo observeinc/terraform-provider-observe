@@ -39,6 +39,7 @@ enum ORNTypeEnum @goModel(model: "observe/authorization/id.ORNType") {
     investigationnotebook
     layeredsetting
     link
+    llmintegration
     monitor
     monitormuterule
     monitorv2
@@ -94,6 +95,7 @@ enum AccessAction @goModel(model: "observe/access/permission.Action") {
     ReferencetableCreate
     ReportManage
     ServiceaccountCreate
+    ServiceaccountView
     ShareinManage
     ShareinView
     SkillEditVisibility
@@ -125,6 +127,7 @@ enum RbacRole @goModel(model: "observe/access/permission.LegacyRole") {
     ReferenceTableCreator
     ReportManager
     ServiceAccountCreator
+    ServiceAccountViewer
     ShareInManager
     ShareInViewer
     SkillVisibilityEditor
