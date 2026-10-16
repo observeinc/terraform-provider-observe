@@ -156,8 +156,8 @@ func setShareData(d *schema.ResourceData, s *rest.Share) diag.Diagnostics {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	if s.Status.LastHealthCheck != nil {
-		if err := d.Set("last_health_check", *s.Status.LastHealthCheck); err != nil {
+	if s.Status.LastHealthCheckAt != nil {
+		if err := d.Set("last_health_check", *s.Status.LastHealthCheckAt); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

@@ -17,6 +17,9 @@ func TestTrackTable(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST method, got %s", r.Method)
 		}
+		if got := r.URL.Query().Get("expand"); got != "true" {
+			t.Errorf("Expected expand=true, got %q", got)
+		}
 
 		// Read and validate request body
 		body, _ := io.ReadAll(r.Body)
@@ -95,6 +98,9 @@ func TestGetInboundShareTable(t *testing.T) {
 		}
 		if r.Method != http.MethodGet {
 			t.Errorf("Expected GET method, got %s", r.Method)
+		}
+		if got := r.URL.Query().Get("expand"); got != "true" {
+			t.Errorf("Expected expand=true, got %q", got)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -317,5 +323,107 @@ func TestGetInboundShareTable_IdOnlyResponse(t *testing.T) {
 	// branch.
 	if !strings.Contains(err.Error(), "missing sourceDataset.record for table") {
 		t.Errorf("expected error to mention 'missing sourceDataset.record for table', got %v", err)
+	}
+}
+
+func TestTrackTable_ResponseShapes(t *testing.T) {
+	const tableFields = `"id": "41056789",
+		"share": {"id": "41012345", "shareName": "ACME_CUSTOMER_DATA"},
+		"fullTablePath": "PUBLIC/CUSTOMER_EVENTS",
+		"tableName": "CUSTOMER_EVENTS",
+		"schemaName": "PUBLIC",
+		"tableType": "TABLE",
+		"status": "Active",`
+
+	cases := []struct {
+		name       string
+		status     int
+		body       string
+		wantLabel  string
+		wantKind   string
+		wantDsetId string
+	}{
+		{
+			name:   "envelope",
+			status: http.StatusCreated,
+			body: `{"table": {` + tableFields + `
+				"sourceDataset": {"id": "41067890", "label": "Customer Events"}},
+				"dataset": {"id": "41067890", "label": "Customer Events", "kind": "Event"}}`,
+			wantLabel: "Customer Events", wantKind: "Event", wantDsetId: "41067890",
+		},
+		{
+			name:   "bare table with record",
+			status: http.StatusCreated,
+			body: `{` + tableFields + `
+				"sourceDataset": {"id": "41067890", "record": {"label": "Customer Events"}}}`,
+			wantLabel: "Customer Events", wantDsetId: "41067890",
+		},
+		{
+			name:   "bare table idempotent replay without record",
+			status: http.StatusOK,
+			body: `{` + tableFields + `
+				"sourceDataset": {"id": "41067890"}}`,
+			wantDsetId: "41067890",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tc.status)
+				w.Write([]byte(tc.body))
+			}))
+			defer server.Close()
+
+			client := New(server.URL, server.Client())
+			result, err := client.TrackTable(context.Background(), "41012345", &TrackTableRequest{
+				TableName: "CUSTOMER_EVENTS", SchemaName: "PUBLIC", DatasetLabel: "Customer Events", DatasetKind: "Event",
+			})
+			if err != nil {
+				t.Fatalf("TrackTable failed: %v", err)
+			}
+			if result.Table.Id != "41056789" {
+				t.Errorf("Table.Id = %q, want 41056789", result.Table.Id)
+			}
+			if result.Table.TableName != "CUSTOMER_EVENTS" {
+				t.Errorf("Table.TableName = %q", result.Table.TableName)
+			}
+			if result.Dataset.Id != tc.wantDsetId {
+				t.Errorf("Dataset.Id = %q, want %q", result.Dataset.Id, tc.wantDsetId)
+			}
+			if result.Dataset.Label != tc.wantLabel {
+				t.Errorf("Dataset.Label = %q, want %q", result.Dataset.Label, tc.wantLabel)
+			}
+			if result.Dataset.Kind != tc.wantKind {
+				t.Errorf("Dataset.Kind = %q, want %q", result.Dataset.Kind, tc.wantKind)
+			}
+		})
+	}
+}
+
+func TestTrackTable_InvalidBareResponse(t *testing.T) {
+	cases := map[string]string{
+		"null":                     `null`,
+		"empty object":             `{}`,
+		"unrelated object":         `{"data": {"id": "1"}}`,
+		"no sourceDataset":         `{"id": "41056789", "tableName": "T"}`,
+		"null sourceDataset":       `{"id": "41056789", "sourceDataset": null}`,
+		"sourceDataset without id": `{"id": "41056789", "sourceDataset": {"record": {"label": "x"}}}`,
+	}
+	for name, body := range cases {
+		t.Run(name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusCreated)
+				w.Write([]byte(body))
+			}))
+			defer server.Close()
+
+			client := New(server.URL, server.Client())
+			if _, err := client.TrackTable(context.Background(), "41012345", &TrackTableRequest{}); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
 	}
 }

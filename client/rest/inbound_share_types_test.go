@@ -18,7 +18,7 @@ func TestShareJSONMarshaling(t *testing.T) {
 			"state": "Active",
 			"health": "Healthy",
 			"healthMessage": null,
-			"lastHealthCheck": "2026-03-26T10:00:00Z"
+			"lastHealthCheckAt": "2026-03-26T10:00:00Z"
 		},
 		"createdBy": {
 			"id": "123",
@@ -398,5 +398,41 @@ func TestTrackTableResponseMarshaling_NestedShape(t *testing.T) {
 	}
 	if response.Dataset.Id != "41067890" {
 		t.Errorf("Expected Dataset.Id 41067890, got %s", response.Dataset.Id)
+	}
+}
+
+func TestShareStatus_LastHealthCheckKeys(t *testing.T) {
+	cases := []struct {
+		name string
+		json string
+		want string // "" means nil
+	}{
+		{"new key", `{"state":"Active","lastHealthCheckAt":"2026-03-26T10:00:00Z"}`, "2026-03-26T10:00:00Z"},
+		{"legacy key", `{"state":"Active","lastHealthCheck":"2026-03-25T10:00:00Z"}`, "2026-03-25T10:00:00Z"},
+		{"both prefers new", `{"lastHealthCheck":"old","lastHealthCheckAt":"new"}`, "new"},
+		{"null", `{"state":"Active","lastHealthCheckAt":null}`, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var s ShareStatus
+			if err := json.Unmarshal([]byte(tc.json), &s); err != nil {
+				t.Fatalf("unmarshal: %v", err)
+			}
+			switch {
+			case tc.want == "" && s.LastHealthCheckAt != nil:
+				t.Errorf("LastHealthCheckAt = %q, want nil", *s.LastHealthCheckAt)
+			case tc.want != "" && (s.LastHealthCheckAt == nil || *s.LastHealthCheckAt != tc.want):
+				t.Errorf("LastHealthCheckAt = %v, want %q", s.LastHealthCheckAt, tc.want)
+			}
+		})
+	}
+
+	// Shares nest the status; make sure the custom unmarshaller is reached.
+	var share Share
+	if err := json.Unmarshal([]byte(`{"id":"1","status":{"state":"Active","lastHealthCheck":"t"}}`), &share); err != nil {
+		t.Fatal(err)
+	}
+	if share.Status.LastHealthCheckAt == nil || *share.Status.LastHealthCheckAt != "t" {
+		t.Errorf("nested status LastHealthCheckAt = %v", share.Status.LastHealthCheckAt)
 	}
 }

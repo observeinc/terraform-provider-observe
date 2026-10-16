@@ -10,7 +10,8 @@ import (
 
 // TrackTable tracks a table from the share and creates an associated Observe dataset
 func (c *Client) TrackTable(ctx context.Context, shareId string, req *TrackTableRequest) (*TrackTableResponse, error) {
-	path := fmt.Sprintf("/v1/shares/inbound/%s/tables", url.PathEscape(shareId))
+	// expand=true makes the server populate sourceDataset.record.
+	path := fmt.Sprintf("/v1/shares/inbound/%s/tables?expand=true", url.PathEscape(shareId))
 
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -33,7 +34,8 @@ func (c *Client) TrackTable(ctx context.Context, shareId string, req *TrackTable
 
 // GetInboundShareTable retrieves details for a specific tracked table
 func (c *Client) GetInboundShareTable(ctx context.Context, shareId, tableId string) (*TrackTableResponse, error) {
-	path := fmt.Sprintf("/v1/shares/inbound/%s/tables/%s",
+	// expand=true makes the server populate sourceDataset.record.
+	path := fmt.Sprintf("/v1/shares/inbound/%s/tables/%s?expand=true",
 		url.PathEscape(shareId), url.PathEscape(tableId))
 
 	resp, err := c.Get(path)
