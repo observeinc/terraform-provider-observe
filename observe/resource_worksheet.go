@@ -33,7 +33,11 @@ func resourceWorksheet() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, nil)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -71,9 +75,10 @@ func resourceWorksheet() *schema.Resource {
 	}
 }
 
-func newWorksheetConfig(data *schema.ResourceData) (input *gql.WorksheetInput, diags diag.Diagnostics) {
+func newWorksheetConfig(data *schema.ResourceData, defaultOpalVersion *string) (input *gql.WorksheetInput, diags diag.Diagnostics) {
 	input = &gql.WorksheetInput{
-		Name: stringPtr(data.Get("name").(string)),
+		Name:        stringPtr(data.Get("name").(string)),
+		OpalVersion: resolveOpalVersion(defaultOpalVersion, data),
 	}
 
 	if v, ok := data.GetOk("icon_url"); ok {
@@ -108,6 +113,10 @@ func resourceWorksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData
 }
 
 func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := setOpalVersion(data, d.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Label); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -158,7 +167,7 @@ func worksheetToResourceData(d *gql.Worksheet, data *schema.ResourceData) (diags
 
 func resourceWorksheetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, configDiags := newWorksheetConfig(data)
+	config, configDiags := newWorksheetConfig(data, clientDefaultOpalVersion(client))
 	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags
@@ -202,7 +211,7 @@ func resourceWorksheetRead(ctx context.Context, data *schema.ResourceData, meta 
 
 func resourceWorksheetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	config, configDiags := newWorksheetConfig(data)
+	config, configDiags := newWorksheetConfig(data, clientDefaultOpalVersion(client))
 	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags

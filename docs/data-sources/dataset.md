@@ -38,6 +38,8 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `acceleration_disabled` (Boolean)
 - `acceleration_disabled_source` (String)
 - `acceleration_type` (String) Acceleration type of the dataset, as determined by its pipeline. One of "insert_only", "aggregation", "other", or "not_supported".

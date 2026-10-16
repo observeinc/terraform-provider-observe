@@ -55,6 +55,8 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `acceleration_disabled` (Boolean) Disables periodic materialization of the dataset
 - `acceleration_disabled_source` (String) Source of disabled materialization
 - `data_table_view_state` (String) JSON representation of state used for dataset formatting in the UI. Not intended to be configured by hand, please use export functionality.

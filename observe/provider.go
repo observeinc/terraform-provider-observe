@@ -190,6 +190,13 @@ func Provider() *schema.Provider {
 				Description:      "Default rematerialization mode for datasets (internal use).",
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_REMATERIALIZATION_MODE", nil),
 			},
+			"default_opal_version": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateEnums(allOpalVersions),
+				Description:      "Default OPAL language version for resources that do not set opal_version. This default is applied on every update; changing it re-pins those resources and may rematerialize datasets.",
+				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_OPAL_VERSION", nil),
+			},
 			"skip_dataset_dry_runs": {
 				Type:        schema.TypeBool,
 				DefaultFunc: schema.EnvDefaultFunc("OBSERVE_SKIP_DATASET_DRY_RUNS", false),
@@ -400,6 +407,11 @@ func getConfigureContextFunc(userAgent func() string) schema.ConfigureContextFun
 		if v, ok := data.GetOk("default_rematerialization_mode"); ok {
 			s := v.(string)
 			config.DefaultRematerializationMode = &s
+		}
+
+		if v, ok := data.GetOk("default_opal_version"); ok {
+			s := v.(string)
+			config.DefaultOpalVersion = &s
 		}
 
 		if v, ok := data.GetOk("skip_dataset_dry_runs"); ok {

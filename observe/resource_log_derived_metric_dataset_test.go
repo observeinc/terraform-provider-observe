@@ -280,7 +280,7 @@ func TestLogDerivedMetricDefinitionInput_MetricTagsNeverNil(t *testing.T) {
 		},
 	}
 
-	ldmInput, diags := newLogDerivedMetricDefinitionInput(reader)
+	ldmInput, diags := newLogDerivedMetricDefinitionInput(reader, nil)
 	if diags.HasError() {
 		t.Fatalf("unexpected diags: %v", diags)
 	}
@@ -325,7 +325,7 @@ func TestLogDerivedMetricDatasetConfig_QueryInputBuilt(t *testing.T) {
 		},
 	}
 
-	input, queryInput, ldmInput, diags := newLogDerivedMetricDatasetConfig(reader)
+	input, queryInput, ldmInput, diags := newLogDerivedMetricDatasetConfig(reader, nil)
 	if diags.HasError() {
 		t.Fatalf("unexpected diags: %v", diags)
 	}

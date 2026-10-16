@@ -49,6 +49,8 @@ One of `name` or `id` must be set.
 
 ### Read-Only
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `_bindings` (String) Internal field. Do not use.
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
 - `custom_variables` (String)

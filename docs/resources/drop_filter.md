@@ -60,6 +60,8 @@ resource "observe_drop_filter" "example2" {
 
 ### Optional
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `enabled` (Boolean) When true the drop filter will drop data, and when false the drop filter will not drop data.
 - `workspace` (String, Deprecated) OID of the workspace this object is contained in.
 This field is optional and deprecated. Since each customer has exactly

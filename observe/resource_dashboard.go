@@ -37,11 +37,14 @@ func resourceDashboard() *schema.Resource {
 		ReadContext:   resourceDashboardRead,
 		UpdateContext: resourceDashboardUpdate,
 		DeleteContext: resourceDashboardDelete,
-		CustomizeDiff: dashboardCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, dashboardCustomizeDiff)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionSchema(),
 			// Common to both content models.
 			"workspace": {
 				Type:             schema.TypeString,
@@ -196,12 +199,13 @@ func dashboardCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta in
 
 // newDashboardRestCreateInput builds the REST create body for a schema_version >= 2
 // dashboard. definition is embedded verbatim as a JSON object.
-func newDashboardRestCreateInput(data *schema.ResourceData) (*rest.DashboardCreateInput, diag.Diagnostics) {
+func newDashboardRestCreateInput(data *schema.ResourceData, defaultOpalVersion *string) (*rest.DashboardCreateInput, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	input := &rest.DashboardCreateInput{
 		SchemaVersion: data.Get("schema_version").(int),
 		Name:          data.Get("name").(string),
 		Definition:    json.RawMessage(data.Get("definition").(string)),
+		OpalVersion:   resolveOpalVersionString(defaultOpalVersion, data),
 		// Matches the legacy GraphQL behavior of establishing the full tag set on
 		// create. An empty map is omitted from the request (no tags), per the field's
 		// omitempty tag.
@@ -217,9 +221,11 @@ func newDashboardRestCreateInput(data *schema.ResourceData) (*rest.DashboardCrea
 
 // newDashboardRestPatchInput builds a merge-patch (RFC 7396) body containing only the
 // fields the practitioner changed. Omitted fields are left unchanged by the backend.
-func newDashboardRestPatchInput(data *schema.ResourceData) (*rest.DashboardPatchInput, diag.Diagnostics) {
+func newDashboardRestPatchInput(data *schema.ResourceData, defaultOpalVersion *string) (*rest.DashboardPatchInput, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	input := &rest.DashboardPatchInput{}
+	input := &rest.DashboardPatchInput{
+		OpalVersion: resolveOpalVersionString(defaultOpalVersion, data),
+	}
 
 	if data.HasChange("name") {
 		input.Name = stringPtr(data.Get("name").(string))
@@ -242,10 +248,11 @@ func newDashboardRestPatchInput(data *schema.ResourceData) (*rest.DashboardPatch
 	return input, diags
 }
 
-func newDashboardConfig(data *schema.ResourceData) (input *gql.DashboardInput, diags diag.Diagnostics) {
+func newDashboardConfig(data *schema.ResourceData, defaultOpalVersion *string) (input *gql.DashboardInput, diags diag.Diagnostics) {
 	name := data.Get("name").(string)
 	input = &gql.DashboardInput{
-		Name: &name,
+		Name:        &name,
+		OpalVersion: resolveOpalVersion(defaultOpalVersion, data),
 	}
 
 	{
@@ -305,6 +312,10 @@ func resourceDashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData
 }
 
 func dashboardToResourceData(d *gql.Dashboard, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if err := setOpalVersion(data, d.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := data.Set("name", d.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -420,7 +431,7 @@ func resourceDashboardCreate(ctx context.Context, data *schema.ResourceData, met
 	client := meta.(*observe.Client)
 
 	if dashboardUsesRestAPI(data.Get("schema_version").(int)) { // schema_version >= 2
-		input, configDiags := newDashboardRestCreateInput(data)
+		input, configDiags := newDashboardRestCreateInput(data, clientDefaultOpalVersion(client))
 		diags = append(diags, configDiags...)
 		if diags.HasError() {
 			return diags
@@ -435,7 +446,7 @@ func resourceDashboardCreate(ctx context.Context, data *schema.ResourceData, met
 		}
 		data.SetId(result.Id)
 	} else { // schema_version < 2
-		config, configDiags := newDashboardConfig(data)
+		config, configDiags := newDashboardConfig(data, clientDefaultOpalVersion(client))
 		diags = append(diags, configDiags...)
 		if diags.HasError() {
 			return diags
@@ -483,7 +494,7 @@ func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, met
 	client := meta.(*observe.Client)
 
 	if dashboardUsesRestAPI(data.Get("schema_version").(int)) { // schema_version >= 2
-		input, configDiags := newDashboardRestPatchInput(data)
+		input, configDiags := newDashboardRestPatchInput(data, clientDefaultOpalVersion(client))
 		diags = append(diags, configDiags...)
 		if diags.HasError() {
 			return diags
@@ -497,7 +508,7 @@ func resourceDashboardUpdate(ctx context.Context, data *schema.ResourceData, met
 		}
 		return append(diags, resourceDashboardRead(ctx, data, meta)...)
 	} else { // schema_version < 2
-		config, configDiags := newDashboardConfig(data)
+		config, configDiags := newDashboardConfig(data, clientDefaultOpalVersion(client))
 		diags = append(diags, configDiags...)
 		if diags.HasError() {
 			return diags

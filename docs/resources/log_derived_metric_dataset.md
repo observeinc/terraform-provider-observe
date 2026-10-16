@@ -204,6 +204,8 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
 
 ### Optional
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `description` (String) Dataset description.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `interval` (String) Aggregation interval as a Go duration string accepted by `time.ParseDuration`

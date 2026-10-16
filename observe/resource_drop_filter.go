@@ -38,9 +38,10 @@ func resourceDropFilter() *schema.Resource {
 					d.ForceNew("source_dataset")
 				}
 			}
-			return nil
+			return customizeOpalVersionDiff(ctx, d, meta, nil)
 		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -98,6 +99,9 @@ func ingestFilterToResourceData(filter *rest.IngestFilterResource, data *schema.
 	setResourceData("oid", filter.Oid().String())
 	setResourceData("name", filter.Label)
 	setResourceData("pipeline", filter.Pipeline)
+	if filter.OpalVersion != nil {
+		setResourceData("opal_version", *filter.OpalVersion)
+	}
 	setResourceData("drop_rate", filter.DropRate)
 	setResourceData("enabled", filter.Enabled)
 	setResourceData("source_dataset", oid.DatasetOid(filter.SourceDataset.Id).String())
@@ -110,17 +114,9 @@ func ingestFilterToResourceData(filter *rest.IngestFilterResource, data *schema.
 func resourceIngestFilterCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	sourceDatasetOid, err := oid.NewOID(data.Get("source_dataset").(string))
-	if err != nil {
-		return diag.Errorf("invalid source_dataset OID: %s", err.Error())
-	}
-
-	req := &rest.IngestFilterCreateRequest{
-		Label:         data.Get("name").(string),
-		Pipeline:      data.Get("pipeline").(string),
-		DropRate:      data.Get("drop_rate").(float64),
-		Enabled:       data.Get("enabled").(bool),
-		SourceDataset: rest.DatasetRef{Id: sourceDatasetOid.Id},
+	req, diags := newIngestFilterCreateRequest(data, clientDefaultOpalVersion(client))
+	if diags.HasError() {
+		return diags
 	}
 
 	filter, err := client.CreateIngestFilter(ctx, req)
@@ -131,6 +127,23 @@ func resourceIngestFilterCreate(ctx context.Context, data *schema.ResourceData, 
 	data.SetId(filter.Id)
 
 	return append(diags, resourceIngestFilterRead(ctx, data, meta)...)
+}
+
+func newIngestFilterCreateRequest(data *schema.ResourceData, defaultOpalVersion *string) (*rest.IngestFilterCreateRequest, diag.Diagnostics) {
+	sourceDatasetOid, err := oid.NewOID(data.Get("source_dataset").(string))
+	if err != nil {
+		return nil, diag.Errorf("invalid source_dataset OID: %s", err.Error())
+	}
+
+	req := &rest.IngestFilterCreateRequest{
+		Label:         data.Get("name").(string),
+		Pipeline:      data.Get("pipeline").(string),
+		OpalVersion:   resolveOpalVersionString(defaultOpalVersion, data),
+		DropRate:      data.Get("drop_rate").(float64),
+		Enabled:       data.Get("enabled").(bool),
+		SourceDataset: rest.DatasetRef{Id: sourceDatasetOid.Id},
+	}
+	return req, nil
 }
 
 func resourceIngestFilterRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -152,10 +165,11 @@ func resourceIngestFilterUpdate(ctx context.Context, data *schema.ResourceData, 
 	client := meta.(*observe.Client)
 
 	req := &rest.IngestFilterUpdateRequest{
-		Label:    data.Get("name").(string),
-		Pipeline: data.Get("pipeline").(string),
-		DropRate: data.Get("drop_rate").(float64),
-		Enabled:  data.Get("enabled").(bool),
+		Label:       data.Get("name").(string),
+		Pipeline:    data.Get("pipeline").(string),
+		OpalVersion: resolveOpalVersionString(clientDefaultOpalVersion(client), data),
+		DropRate:    data.Get("drop_rate").(float64),
+		Enabled:     data.Get("enabled").(bool),
 	}
 
 	if _, err := client.UpdateIngestFilter(ctx, data.Id(), req); err != nil {

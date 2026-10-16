@@ -47,8 +47,11 @@ func resourceMonitorV2() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: resourceMonitorV2CustomizeDiff,
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, resourceMonitorV2CustomizeDiff)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionSchema(),
 			// needed as input to MonitorV2Create, also part of MonitorV2 struct
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
@@ -870,7 +873,7 @@ func monitorV2ColumnComparisonResource() *schema.Resource {
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2Input(data)
+	input, diags := newMonitorV2Input(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -897,7 +900,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2Input(data)
+	input, diags := newMonitorV2Input(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -1001,6 +1004,9 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := setOpalVersion(data, monitor.Definition.InputQuery.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	_, queryDiags := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage, dedentPipelines)
 	diags = append(diags, queryDiags...)
 
@@ -1503,9 +1509,9 @@ func newMonitorV2ActionAndRelationInputs(data *schema.ResourceData) (actions []g
 	return
 }
 
-func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
+func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
 	// required
-	definitionInput, diags := newMonitorV2DefinitionInput(data)
+	definitionInput, diags := newMonitorV2DefinitionInput(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -1534,9 +1540,9 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	return input, diags
 }
 
-func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
+func newMonitorV2DefinitionInput(data *schema.ResourceData, defaultOpalVersion *string) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
 	// required
-	query, diags := newQuery(data)
+	query, diags := newQuery(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, diags
 	}
