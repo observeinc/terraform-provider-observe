@@ -193,7 +193,7 @@ func Provider() *schema.Provider {
 			"default_opal_version": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateEnums(allOpalVersions),
+				ValidateDiagFunc: validateOpalVersion(),
 				Description:      "Default OPAL language version for resources that do not set opal_version. This default is applied on every update; changing it re-pins those resources and may rematerialize datasets.",
 				DefaultFunc:      schema.EnvDefaultFunc("OBSERVE_DEFAULT_OPAL_VERSION", nil),
 			},

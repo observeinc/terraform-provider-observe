@@ -101,8 +101,10 @@ func TestOpalVersionSchema(t *testing.T) {
 			t.Fatalf("opalVersionSchema() rejected %q: %v", value, diagnostics)
 		}
 	}
-	if diagnostics := field.ValidateDiagFunc("latest", cty.Path{}); !diagnostics.HasError() {
-		t.Fatal("opalVersionSchema() accepted invalid value")
+	for _, value := range []string{"latest", "V2026_09_30"} {
+		if diagnostics := field.ValidateDiagFunc(value, cty.Path{}); !diagnostics.HasError() {
+			t.Fatalf("opalVersionSchema() accepted %q", value)
+		}
 	}
 }
 
@@ -113,6 +115,9 @@ func TestProviderHasDefaultOpalVersion(t *testing.T) {
 	}
 	if !field.Optional || field.Type != schema.TypeString {
 		t.Fatalf("default_opal_version = %#v, want optional string", field)
+	}
+	if diagnostics := field.ValidateDiagFunc("V2026_09_30", cty.Path{}); !diagnostics.HasError() {
+		t.Fatal("default_opal_version accepted V2026_09_30")
 	}
 }
 
