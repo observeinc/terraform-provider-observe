@@ -204,8 +204,6 @@ resource "observe_log_derived_metric_dataset" "unique_pods" {
 
 ### Optional
 
-- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
-
 - `description` (String) Dataset description.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `interval` (String) Aggregation interval as a Go duration string accepted by `time.ParseDuration`
@@ -215,6 +213,10 @@ identifying the source column. Tags become grouping dimensions on the resulting 
 - `metric_type` (String) Metric type for the derived metric. Accepted values are `cumulative_counter`,
 `counter`, `rate_per_sec`, `delta`, `gauge`, `tdigest`, `sample`,
 `histogram`, and `exponential_histogram`.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version. Changing this value on a dataset may cause rematerialization.
 - `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. Defaults to
 `filter true`, which leaves the input rows unchanged before aggregation.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").

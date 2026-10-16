@@ -38,8 +38,6 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
-- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
-
 - `acceleration_disabled` (Boolean)
 - `acceleration_disabled_source` (String)
 - `acceleration_type` (String) Acceleration type of the dataset, as determined by its pipeline. One of "insert_only", "aggregation", "other", or "not_supported".
@@ -57,6 +55,10 @@ should be used when referring to this object in terraform manifests.
 - `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
 This is a deprecated field. The configuration has been migrated to the `Dataset.maximumOnDemandMaterializationDays` layered setting.
 Changes to `on_demand_materialization_length` are no longer respected.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version. Changing this value on a dataset may cause rematerialization.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.
