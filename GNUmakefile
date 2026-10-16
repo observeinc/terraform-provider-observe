@@ -75,7 +75,9 @@ copy-gql-schema:
 	# Strip @eol markers while retaining fields still used by provider operations.
 	# Input fields kept this way must also be marked omitempty in the operation
 	# files, or genqlient sends them as explicit null.
-	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @eol([^)]*)//g' -e '/^directive/!s/ @eol//g'
+	# One -e expression: a second -e is a backup suffix for BSD sed, so the
+	# bare-marker substitution never runs on macOS.
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!{s/ @eol([^)]*)//g;s/ @eol//g;}'
 
 	# Strip out @owner directives from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @owner([^)]*)//g'
