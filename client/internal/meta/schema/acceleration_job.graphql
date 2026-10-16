@@ -151,7 +151,7 @@ type AccelerationRequestStatus @goModel(model: "observe/meta/metatypes.Accelerat
   """
   Optional credits used for this particular dataset in the parent acceleration job.
   """
-  credits: Float
+  credits: Float @allowLogging
 }
 
 enum AccelerationJobState @goModel(model: "observe/meta/metatypes.AccelerationJobState") {
@@ -214,7 +214,7 @@ type AccelerationJob @goModel(model: "observe/meta/metatypes.AccelerationJob") {
   """
   Optional value of the credits used for this acceleration job summed for all datasets
   """
-  credits: Float
+  credits: Float @allowLogging
 }
 
 type DatasetAccelerationStatus @goModel(model: "observe/meta/metatypes.DatasetAccelerationStatus") {

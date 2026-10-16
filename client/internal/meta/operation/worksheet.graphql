@@ -4,6 +4,7 @@ fragment Worksheet on Worksheet {
 	icon
 	managedById
 	workspaceId
+	opalVersion
 	# @genqlient(flatten: true)
 	stages {
 		...StageQuery
@@ -29,6 +30,7 @@ fragment WorksheetIdLabel on Worksheet {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "WorksheetInput.opalVersion", omitempty: true)
 mutation saveWorksheet(
 	$worksheetInput: WorksheetInput!
 ) {

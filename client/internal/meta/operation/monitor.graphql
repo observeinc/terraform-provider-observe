@@ -14,6 +14,7 @@ fragment Monitor on Monitor {
 	managedById
 	query {
 		outputStage
+		opalVersion
 		# @genqlient(flatten: true)
 		stages {
 			...StageQuery
@@ -90,6 +91,7 @@ fragment Monitor on Monitor {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 mutation createMonitor(
 	$workspaceId: ObjectId!,
 	$monitor: MonitorInput!
@@ -123,6 +125,7 @@ query getMonitor($id: ObjectId!) {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 mutation updateMonitor(
 	$id: ObjectId!,
 	$monitor: MonitorInput!

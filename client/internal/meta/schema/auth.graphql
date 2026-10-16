@@ -20,15 +20,19 @@ type Authtoken implements Token & AuditedObject @goModel(model: "observe/meta/me
     user: UserId
     userInfo: UserInfo @goField(forceResolver: true)
     datastreamId: ObjectId
+    """
+    The token's effective scopes. An empty/null list means the token is unscoped.
+    """
+    scopes: [ApiTokenScope!]
 }
 
 type AuthtokenCreateResult @goModel(model: "observe/meta/metatypes.AuthtokenCreateResult") {
-    authtoken: Authtoken!
+    authtoken: Authtoken! @allowLogging
     """
     This secret is the bearer token you will present in the Authorization: header. It cannot
     be recovered if you lose it, only a hash is stored in the database.
     """
-    secret: String!
+    secret: String! @secret
 }
 
 input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
@@ -37,6 +41,11 @@ input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
     disabled: Boolean!
     extensionSeconds: Int64!
     expiration: Time!
+    """
+    Optionally constrains the token's effective permissions. An empty/null list
+    leaves the token unscoped. Unknown scopes are rejected.
+    """
+    scopes: [ApiTokenScope!]
 }
 
 enum AuthtokenKind @goModel(model: "observe/authorization/authtypes.AuthtokenKind") {
@@ -67,7 +76,7 @@ extend type Mutation {
     checks as deleteAuthtoken. The check runs before create; the mutation fails without creating a new token
     if delete is not allowed.
     """
-    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId, replaceTokenId: String): AuthtokenCreateResult!
+    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId, replaceTokenId: String @allowLogging): AuthtokenCreateResult!
     updateAuthtoken(id: String!, input: AuthtokenInput!, newOwningUser: UserId): Authtoken!
     deleteAuthtoken(id: String!): ResultStatus!
     """

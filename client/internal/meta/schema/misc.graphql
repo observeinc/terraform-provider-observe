@@ -40,12 +40,12 @@ type AuthtokenInstance @goModel(model: "observe/meta/metatypes.AuthtokenInstance
     purged out of the database, and thus there *is* no name that we know of -- the
     token is just ... a bad token.
     """
-    tokenFragment: String!
+    tokenFragment: String! @allowLogging
     """
     TokenHash is the internal hash of the token. This is helpful for Observe when
     tracing this down, but doesn't help the user identify the token at all
     """
-    tokenHash: String!
+    tokenHash: String! @allowLogging
     """
     Earliest use time within the window of this token
     """
@@ -61,7 +61,7 @@ type AuthtokenInstance @goModel(model: "observe/meta/metatypes.AuthtokenInstance
 }
 
 type AuthtokenUsage @goModel(model: "observe/meta/metatypes.AuthtokenUsage") {
-    badTokens: [AuthtokenInstance!]
+    badTokens: [AuthtokenInstance!] @allowLogging
 }
 
 input DeferredForeignKeySelectorInput @goModel(model: "observe/meta/metatypes.DeferredForeignKeySelector") {

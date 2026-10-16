@@ -22,8 +22,8 @@ type ConnectionConfig @goModel(model:"observe/restapiservices/connection.Connect
     kind: String!
     xid: String!
     comment: String!
-    remoteKey: String!
-    observeKey: String!
+    remoteKey: String! @secret
+    observeKey: String! @secret
     configData: ConfigData!
 }
 

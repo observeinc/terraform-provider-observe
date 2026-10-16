@@ -27,6 +27,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				# @genqlient(flatten: true)
 				stages {
 					...StageQuery
@@ -129,6 +130,7 @@ fragment DatasetDryRunSaveResult on DatasetSaveResult {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 mutation saveDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -195,6 +197,7 @@ query listDatasets{
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "LogDerivedMetricDefinitionInput.opalVersion", omitempty: true)
 mutation saveLogDerivedMetricDataset(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,
@@ -217,6 +220,7 @@ mutation saveLogDerivedMetricDataset(
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "LogDerivedMetricDefinitionInput.opalVersion", omitempty: true)
 mutation saveLogDerivedMetricDatasetDryRun(
 	$workspaceId: ObjectId!,
 	$dataset: DatasetInput!,

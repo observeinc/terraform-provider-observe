@@ -21,6 +21,14 @@ extend type Query {
     also return governor specific state.
     """
     transformRateLimitingStats(workspaceId: ObjectId): TransformRateLimitingStats
+
+    """
+    Returns the current query governor throttle state for the requesting user. Intended to be called
+    when the query governor throttles a query to surface throttle details. Cid and uid are derived
+    from the caller's auth context; dashboardId is optional and, when provided, includes dashboard-scope
+    governor state in scopeInfo.
+    """
+    queryRateLimitingState(dashboardId: ObjectId): QueryRateLimitingCurrentState
 }
 
 type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.TransformRateLimitingStats") {
@@ -29,14 +37,14 @@ type TransformRateLimitingStats @goModel(model: "observe/meta/metatypes.Transfor
     has been active for less than 7 days, the time horizon for the computation is restricted to the
     actual timeframe in which the customer was active.
     """
-    dailyOngoingTransformCreditsUsedPast7Days: Float!
+    dailyOngoingTransformCreditsUsedPast7Days: Float! @allowLogging
 
     """
     Returns the daily ongoing transform credit usage for the past 30 days. Note that if the customer
     has been active for less than 30 days, the time horizon for the computation is restricted to the
     actual timeframe in which the customer was active.
     """
-    dailyOngoingTransformCreditsUsedPast30Days: Float!
+    dailyOngoingTransformCreditsUsedPast30Days: Float! @allowLogging
 }
 
 """
@@ -114,6 +122,12 @@ enum QueryRateLimitingState @goModel(model: "observe/meta/metatypes.QueryRateLim
 
     SoftLimit
     HardLimit
+
+    """
+    The query governor's current state could not be determined. The user
+    will not be throttled.
+    """
+    NotAvailable
 }
 
 enum ThrottledInfo @goModel(model: "observe/meta/metatypes.ThrottledInfo") {
@@ -139,45 +153,89 @@ type QueryRateLimitAndUsageDetails @goModel(model: "observe/meta/metatypes.Query
     Credits left in the credit budget for the specified scope that can be used right now, or null if
     no rate limit is configured
     """
-    creditsRemainingInBudget: Float
+    creditsRemainingInBudget: Float @allowLogging
 
     """
     Maximum total number of credits in the credit budget for this scope, or null if
     no rate limit is configured. Note: In general, the QCM will be a in a particular state if
     maxCreditsInBudget - creditsRemainingInBudget > respectiveLimit (for either user or customer).
     """
-    maxCreditsInBudget: Float
+    maxCreditsInBudget: Float @allowLogging
 
     """
     Credits used in the past 24 hours until now for the scope
     """
-    creditsUsedPast24Hours: Float!
+    creditsUsedPast24Hours: Float! @allowLogging
 
     """
     Credits used over the past 7 days for the scope
     """
-    creditsUsedPast7Days: Float!
+    creditsUsedPast7Days: Float! @allowLogging
 
     """
     Credits used over the past 30 days for the scope
     """
-    creditsUsedPast30Days: Float!
+    creditsUsedPast30Days: Float! @allowLogging
 
     """
     Total credits available for the time horizon for the scope. Null if no limit is set.
     """
-    creditLimit: Float
+    creditLimit: Float @allowLogging
 
     """
     Total credits available for the time horizon for the scope before throttling.
     Null if not limit is set.
     """
-    throttledCreditLimit: Float
+    throttledCreditLimit: Float @allowLogging
 
     """
     The time horizon that limits apply over
     """
     timeHorizon: Duration!
+
+    """
+    Estimated time until this scope exits the throttled state, assuming ZERO ongoing consumption.
+
+    Targets the throttled limit plus minUsableFractionOfDailyLimit (10%) of one day's worth of credits.
+    This ensures users have enough credits to do reasonable work after recovery, while keeping the
+    recovery time estimate under 1 day.
+
+    Null if:
+    - Not currently throttled
+    - No throttle limit is configured for this scope
+    - No refill is configured (fillRate = 0)
+
+    For custom estimates accounting for expected usage, use refillRateCreditsPerHour
+    to calculate: timeNeeded = (targetCredits - currentCredits) / (fillRate - expectedUsageRate)
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Estimated time until this scope exits the hard limit state, assuming ZERO ongoing consumption.
+
+    Targets the hard limit (0 credits) plus minUsableFractionOfDailyLimit (10%) of one day's worth
+    of credits. This gives users a minimal but usable budget to resume querying (even if throttled),
+    while keeping the recovery time estimate under 1 day.
+
+    Null if:
+    - Not currently at hard limit
+    - No hard limit is configured for this scope
+    - No refill is configured (fillRate = 0)
+
+    If both timeUntilHardLimitExit and timeUntilUnthrottled are set, the unthrottled time
+    will be longer (since you must exit hard limit before you can exit throttling).
+    """
+    timeUntilHardLimitExit: Duration
+
+    """
+    Credits refilled per hour for this scope.
+
+    This allows the UI to perform custom calculations accounting for expected ongoing usage.
+    For example: customTime = tokensNeeded / (refillRate - expectedUsage)
+
+    Null if no refill is configured for this scope.
+    """
+    refillRateCreditsPerHour: Float @allowLogging
 }
 
 type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLimitingStats") {
@@ -196,7 +254,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    creditsRemainingInBudget: Float
+    creditsRemainingInBudget: Float @allowLogging
 
     """
     Maximum total number of credits in the _customer_ credit budget, or null if
@@ -207,7 +265,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    maxCreditsInBudget: Float
+    maxCreditsInBudget: Float @allowLogging
 
     """
     Current throttling Info for the user, null if QCM is not configured.
@@ -225,7 +283,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].creditsUsedPast24Hours where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    creditsUsedPast24Hours: Float!
+    creditsUsedPast24Hours: Float! @allowLogging
 
     """
     Daily average credits used over the past 7 days for the _customer_.
@@ -234,7 +292,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].creditsUsedPast7Days where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    dailyAvgCreditUsagePast7Days: Float!
+    dailyAvgCreditUsagePast7Days: Float! @allowLogging
 
     """
     Daily average credits used over the past 30 days for the customer
@@ -243,7 +301,7 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].creditsUsedPast30Days where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    dailyAvgCreditUsagePast30Days: Float!
+    dailyAvgCreditUsagePast30Days: Float! @allowLogging
 
      """
     Total credits available for each day for the _customer_. Null if no limit is set.
@@ -252,12 +310,12 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].creditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    dailyCreditLimit: Float
+    dailyCreditLimit: Float @allowLogging
 
     """
     Total contract credits available for each day for the customer. Null if no limit is set.
     """
-    dailyContractCreditLimit: Float
+    dailyContractCreditLimit: Float @allowLogging
 
     """
     Total throttled credits available for each day. Null if not limit is set.
@@ -266,7 +324,30 @@ type QueryRateLimitingStats @goModel(model: "observe/meta/metatypes.QueryRateLim
     limitAndUsageDetailsPerScope[i].throttledCreditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    dailyThrottledCreditLimit: Float
+    dailyThrottledCreditLimit: Float @allowLogging
+
+    """
+    Maximum time-to-unthrottle across all scopes (customer, user, dashboard).
+
+    This is the longest time estimate needed for ANY throttled scope to reach an unthrottled state
+    (throttled limit + minUsableFractionOfDailyLimit of one day's credits). If multiple scopes are
+    throttled, you must wait for all of them to unthrottle.
+
+    Null if no scopes are currently throttled or no refill is configured.
+    See limitAndUsageDetailsPerScope[i].timeUntilUnthrottled for per-scope estimates.
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Maximum time to exit hard limit across all scopes.
+
+    This is the longest time estimate needed for ANY hard-limited scope to reach a queryable state
+    (hard limit + minUsableFractionOfDailyLimit of one day's credits, even if still throttled).
+
+    Null if no scopes are currently at hard limit or no refill is configured.
+    See limitAndUsageDetailsPerScope[i].timeUntilHardLimitExit for per-scope estimates.
+    """
+    timeUntilHardLimitExit: Duration
 
     """
     The details of credit usage and limits for all scopes that have applicable limits.
@@ -294,7 +375,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     limitAndUsageDetailsPerScope[i].creditsRemainingInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    creditsRemainingInBudget: Float
+    creditsRemainingInBudget: Float @allowLogging
 
     """
     Maximum total number of customer credits in the credit budget, or null if
@@ -305,7 +386,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     limitAndUsageDetailsPerScope[i].maxCreditsInBudget where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    maxCreditsInBudget: Float
+    maxCreditsInBudget: Float @allowLogging
 
     """
     Current throttling Info for the user, null if QCM is not configured.
@@ -321,7 +402,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     limitAndUsageDetailsPerScope[i].creditsUsedPast7Days where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    creditUsagePast7Days: Float!
+    creditUsagePast7Days: Float! @allowLogging
 
     """
     Total credits available for each week for the customer. Zero if no limit is set.
@@ -330,12 +411,12 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     limitAndUsageDetailsPerScope[i].creditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    weeklyCreditLimit: Float!
+    weeklyCreditLimit: Float! @allowLogging
 
     """
     Total contract credits available for each week for the customer. Zero if no limit is set.
     """
-    weeklyContractCreditLimit: Float!
+    weeklyContractCreditLimit: Float! @allowLogging
 
     """
     Total credits available for each week for the customer before throttling. Zero if not limit is set.
@@ -344,7 +425,7 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     limitAndUsageDetailsPerScope[i].throttledCreditLimit where
     limitAndUsageDetailsPerScope[i].scope == "Customer".
     """
-    weeklyThrottledCreditLimit: Float!
+    weeklyThrottledCreditLimit: Float! @allowLogging
 
     """
     The details of credit usage and limits for all scopes that have applicable limits.
@@ -354,4 +435,63 @@ type QueryWeeklyCreditUtilization @goModel(model: "observe/meta/metatypes.QueryW
     """
     limitAndUsageDetailsPerScope: [QueryRateLimitAndUsageDetails!]!
 
+}
+
+"""
+Per-scope governor state returned by queryRateLimitingState.
+"""
+type RateLimitScopeInfo @goModel(model: "observe/meta/metatypes.RateLimitScopeInfo") {
+    """
+    The scope to which this entry applies (Customer, User, or Dashboard).
+    """
+    scope: RateLimitScope!
+
+    """
+    Credits remaining in the token bucket for this scope. Null if no limit is configured.
+    """
+    creditsRemainingInBudget: Float @allowLogging
+
+    """
+    Maximum credits in the token bucket for this scope. Null if no limit is configured.
+    """
+    maxCreditsInBudget: Float @allowLogging
+
+    """
+    Estimated time until this scope exits the throttled state, assuming zero ongoing consumption.
+    Null if not currently throttled or no refill is configured.
+    """
+    timeUntilUnthrottled: Duration
+
+    """
+    Estimated time until this scope exits the hard limit state, assuming zero ongoing consumption.
+    Null if not currently at hard limit or no refill is configured.
+    """
+    timeUntilHardLimitExit: Duration
+
+    """
+    Credits refilled per hour for this scope. Null if no refill is configured.
+    """
+    refillRateCreditsPerHour: Float @allowLogging
+}
+
+"""
+Lightweight snapshot of the query governor state for the requesting user.
+Returned by queryRateLimitingState; intended for use when a query has been throttled.
+"""
+type QueryRateLimitingCurrentState @goModel(model: "observe/meta/metatypes.QueryRateLimitingCurrentState") {
+    """
+    Overall rate-limiting state derived from the most-restrictive active scope.
+    """
+    state: QueryRateLimitingState!
+
+    """
+    Whether the user is currently being throttled. Null if the governor is not configured.
+    """
+    throttleMode: ThrottledInfo
+
+    """
+    Per-scope governor state. Contains an entry for each scope (Customer, User, and optionally
+    Dashboard) for which limits are configured.
+    """
+    scopeInfo: [RateLimitScopeInfo!]!
 }

@@ -39,7 +39,7 @@ type DatastreamStats @goModel(model: "observe/meta/metatypes.DatastreamStats") {
     firstIngest: Time
     lastIngest: Time
     lastError: Time
-    numTokens: Int64!
+    numTokens: Int64! @allowLogging
     """
     Per minute observation counts for the past hour
     """
@@ -78,7 +78,7 @@ type DatastreamK8sEntity @goModel(model: "observe/meta/metatypes.DatastreamK8sEn
 
 type DatastreamDirectWrite @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteOutput") {
     prometheus:  DatastreamDirectWriteInfoPrometheus
-    otelLogs:    DatastreamDirectWriteInfo
+    otelLogs:    DatastreamDirectWriteInfo @allowLogging
     otelMetrics: DatastreamDirectWriteInfo
     k8sEntity:   DatastreamDirectWriteInfo
     otelTrace:   DatastreamDirectWriteInfoOtelTrace
@@ -116,15 +116,20 @@ type Datastream implements WorkspaceObject & AuditedObject & FolderObject @goMod
     updatedByInfo: UserInfo! @goField(forceResolver:true)
     createdDate: Time!
     updatedDate: Time!
+    disabled: Boolean! @deprecated(reason: "use state instead")
     state: DatastreamState!
-    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true)
+    tokens(appId: ObjectId, moduleId: String): [DatastreamToken!] @goField(forceResolver:true) @allowLogging
     pollers(appId: ObjectId, moduleId: String): [Poller!] @goField(forceResolver:true)
     filedrops: [Filedrop!] @goField(forceResolver:true)
     stats: DatastreamStats @goField(forceResolver:true)
     externalSourceId: ObjectId
+    storageIntegrationId: ObjectId @goField(forceResolver:true)
+
+    prometheus: DatastreamPrometheus @goField(forceResolver:true) @deprecated(reason: "use directWrite instead")
+    otelLogs: DatastreamOtelLogs @goField(forceResolver:true) @deprecated(reason: "use directWrite instead") @allowLogging
+    k8sEntity: DatastreamK8sEntity @goField(forceResolver:true) @deprecated(reason: "use directWrite instead")
+
     directWrite: DatastreamDirectWrite @goField(forceResolver:true)
-
-
 }
 
 input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") {
@@ -133,9 +138,14 @@ input DatastreamInput @goModel(model: "observe/meta/metatypes.DatastreamInput") 
     iconUrl: String
     disabled: Boolean
     externalSourceId: ObjectId
+    storageIntegrationId: ObjectId
+    iceberg: DatastreamIcebergInput
+
+    prometheusInput: DatastreamPrometheusInput @deprecated(reason: "use directWrite instead")
+    otelLogsInput: DatastreamOtelLogsInput @deprecated(reason: "use directWrite instead") @allowLogging
+    k8sEntityInput: DatastreamK8sEntityInput @deprecated(reason: "use directWrite instead")
+
     directWrite: DatastreamDirectWriteInput
-
-
 }
 
 input DatastreamPrometheusInput @goModel(model: "observe/meta/metatypes.DatastreamPrometheusInput") {
@@ -152,10 +162,15 @@ input DatastreamK8sEntityInput @goModel(model: "observe/meta/metatypes.Datastrea
 
 input DatastreamDirectWriteInput @goModel(model: "observe/meta/metatypes.DatastreamDirectWriteInput") {
     prometheus: Boolean
-    otelLogs: Boolean
+    otelLogs: Boolean @allowLogging
     otelMetrics: Boolean
     k8sEntity: Boolean
     otelTrace: Boolean
+}
+
+input DatastreamIcebergInput @goModel(model: "observe/meta/metatypes.DatastreamIcebergInput") {
+    storageIntegrationId: ObjectId
+    externalWrite: Boolean
 }
 
 interface DatastreamSourceAppMetadata @goModel(model: "observe/meta/metatypes.DatastreamSourceAppMetadata") {

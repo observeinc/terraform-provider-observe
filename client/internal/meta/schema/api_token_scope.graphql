@@ -1,0 +1,5 @@
+enum ApiTokenScope @goModel(model: "observe/access/permission.Scope") {
+    ApiRead
+    ApiWrite
+    Unscoped
+}

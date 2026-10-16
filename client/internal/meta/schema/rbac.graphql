@@ -68,13 +68,26 @@ extend type Query {
     """
     rbacTestRequests(u: UserId!, rs: [RbacRequestInput!]!): [RbacTestRequestResult!]!
 
+    """
+    Given a particular object, return all statements that would affect that object, independent of context.
+    """
+    rbacObjectMatches(o: RbacRequestObjectInput!): [RbacStatement!]! @deprecated(reason: "not supported in rbac v2, use rbacResourceStatements instead")
 
+    """
+    Given a particular user, return all statements that would affect that user, independent of context.
+    This is the same as User.rbacStatements.
+    """
+    rbacUserMatches(u: UserId!): [RbacStatement!]! @deprecated(reason: "not supported in rbac v2")
 
     """
     Get RBAC group by name, if it exists
     """
     rbacGroupByName(name: String!): RbacGroup!
 
+    """
+    Get the group users will be assigned to by default
+    """
+    rbacDefaultGroup: RbacGroup! @deprecated(reason: "The Everyone group is now the default group.")
 
     """
     Get the group users will be assigned to by default
@@ -95,6 +108,11 @@ extend type User {
     """
     rbacGroups: [RbacGroup!]! @goField(forceResolver: true)
 
+    """
+    All RBAC statements that apply to this user, through direct, group (direct or indirect,) or all.
+    This is the same as Query.rbacUserMatches().
+    """
+    rbacStatements: [RbacStatement!]! @goField(forceResolver: true) @deprecated(reason: "not supported in rbac v2")
 
     """
     Direct memberships of this user (not indirect groups!)
@@ -126,6 +144,12 @@ extend type Mutation {
     """
     setRbacGroupmembers(groupId: ORN!, memberUsers: [UserId!], memberGroups: [ORN!]): [RbacGroupmember!]!
 
+    """
+    Set the default group that users will be assigned to. Must currently be one
+    of the pre-defined "reader", "writer", or "admin" groups!
+    """
+    setRbacDefaultGroup(id: ORN!): ResultStatus! @deprecated(reason: "The Everyone group is now the default group.")
+    unsetRbacDefaultGroup: ResultStatus! @deprecated(reason: "The Everyone group is now the default group.")
 
     setRbacDefaultSharingGroups(shares: [RbacDefaultSharingGroupInput!]): ResultStatus!
 }
@@ -136,6 +160,8 @@ type RbacGroup implements AuditedObject @goModel(model: "observe/rbac/policy.Gro
     description: String! @goField(name:"Comment")
 
     memberUserIds: [UserId!]! @goField(forceResolver: true)
+    memberGroupIds: [ORN!]! @deprecated(reason: "groups no longer contain other groups")
+    memberOfGroupIds: [ORN!]! @deprecated(reason: "groups no longer contain other groups")
 
     createdBy: UserId!
     createdByInfo: UserInfo! @goField(forceResolver: true)

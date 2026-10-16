@@ -1,8 +1,8 @@
 extend type Query {
     monitorAction(id: ObjectId!): MonitorAction
     getChannelAction(id: ObjectId!): ChannelAction @deprecated(reason:"use monitorAction instead")
-    searchMonitorActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean): [MonitorAction!]!
-    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean): [ChannelAction!]! @deprecated(reason:"use searchMonitorActions instead")
+    searchMonitorActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean @allowLogging): [MonitorAction!]!
+    searchChannelActions(workspaceId: ObjectId, name: String, channelIds: [ObjectId!], ids:[ObjectId!], isPrivate: Boolean @allowLogging): [ChannelAction!]! @deprecated(reason:"use searchMonitorActions instead")
     getChannel(id: ObjectId!): Channel
     searchChannels(workspaceId: ObjectId, name: String, boundToMonitors: [ObjectId!]): [Channel!]!
 
@@ -28,7 +28,7 @@ extend type Query {
     acquisition of not just the preview query, but the start/end times and any other query params the UI
     needs to make a preview query.
     """
-    notificationQueryPreview(monitorId: ObjectId!, version: String!, start: Time!, groupings: JsonObject!): NotificationPreviewQuery
+    notificationQueryPreview(monitorId: ObjectId!, version: String!, start: Time!, groupings: JsonObject! @secret): NotificationPreviewQuery
     """
     Build the template payload data for an existing monitor by retrieving the latest notification.
     """
@@ -49,7 +49,7 @@ extend type Query {
     Receive an actionInput and sample data payload to render all the fields in the mustache template.
     SampleData is the json payload that contains all the fields to render the mustache template.
     """
-    renderMustache(actionInput: ActionInput!, sampleData: JsonObject!): MustacheRender!
+    renderMustache(actionInput: ActionInput!, sampleData: JsonObject! @secret): MustacheRender!
 }
 
 extend type Mutation {
@@ -133,7 +133,7 @@ type Monitor implements WorkspaceObject & AuditedObject @goModel(model: "observe
     or it may include actual transform work
     """
     query: MultiStageQuery!
-    definition: JsonObject
+    definition: JsonObject @secret
     rule: MonitorRule!
     notificationSpec: NotificationSpecification!
     channels: [Channel!] @deprecated(reason:"field will be removed in favor of actionIds")
@@ -248,7 +248,7 @@ input MonitorInput @goModel(model: "observe/meta/metatypes.MonitorInput") {
     """
     useDefaultFreshness: Boolean
     query: MultiStageQueryInput
-    definition: JsonObject
+    definition: JsonObject @secret
     rule: MonitorRuleInput
     notificationSpec: NotificationSpecificationInput
     channels: [ObjectId!]
@@ -349,7 +349,7 @@ input MonitorGroupByColumnPathInput @goModel(model: "observe/meta/metatypes.Moni
 
 interface MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRule") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -360,7 +360,7 @@ interface MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRule") {
 
 type MonitorRuleThreshold implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleThreshold") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -385,7 +385,7 @@ input MonitorRuleThresholdInput @goModel(model: "observe/meta/metatypes.MonitorR
 
 type MonitorRuleLog implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleLog") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -397,8 +397,8 @@ type MonitorRuleLog implements MonitorRule @goModel(model: "observe/meta/metatyp
     compareValues: [Number!]!
     lookbackTime: Duration!
     expressionSummary: String!
-    logStageId: String!
-    sourceLogDatasetId: ObjectId
+    logStageId: String! @allowLogging
+    sourceLogDatasetId: ObjectId @allowLogging
 }
 
 input MonitorRuleLogInput @goModel(model: "observe/meta/metatypes.MonitorRuleLogInput") {
@@ -406,13 +406,13 @@ input MonitorRuleLogInput @goModel(model: "observe/meta/metatypes.MonitorRuleLog
     compareValues: [Number!]
     lookbackTime: Duration
     expressionSummary: String
-    logStageId: String
-    sourceLogDatasetId: ObjectId
+    logStageId: String @allowLogging
+    sourceLogDatasetId: ObjectId @allowLogging
 }
 
 type MonitorRuleChange implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleChange") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -463,7 +463,7 @@ input MonitorRuleChangeInput @goModel(model: "observe/meta/metatypes.MonitorRule
 
 type MonitorRuleFacet implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleFacet") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -491,7 +491,7 @@ input MonitorRuleFacetInput @goModel(model: "observe/meta/metatypes.MonitorRuleF
 
 type MonitorRuleCount implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRuleCount") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     groupByGroups: [MonitorGroupInfo!]
 
@@ -512,7 +512,7 @@ input MonitorRuleCountInput @goModel(model: "observe/meta/metatypes.MonitorRuleC
 
 type MonitorRulePromote implements MonitorRule @goModel(model: "observe/meta/metatypes.MonitorRulePromote") {
     ruleKind: MonitorRuleKind!
-    layout: JsonObject!
+    layout: JsonObject! @secret
     sourceColumn: String!
     """
     GroupBy is ignored for Promote Monitors
@@ -523,20 +523,20 @@ type MonitorRulePromote implements MonitorRule @goModel(model: "observe/meta/met
     groupByColumns: [String!]! @deprecated(reason:"use groupByGroups instead")
     groupByDatasetIds: [ObjectId!] @deprecated(reason:"use groupByGroups instead")
 
-    primaryKey: [String!]!
+    primaryKey: [String!]! @allowLogging
     descriptionField: String
     kindField: String
 }
 
 input MonitorRulePromoteInput @goModel(model: "observe/meta/metatypes.MonitorRulePromoteInput") {
-    primaryKey: [String!]
+    primaryKey: [String!] @allowLogging
     descriptionField: String
     kindField: String
 }
 
 
 input MonitorRuleInput @goModel(model: "observe/meta/metatypes.MonitorRuleInput") {
-    layout: JsonObject
+    layout: JsonObject @secret
     sourceColumn: String
     """
     Takes precedence over GroupByColumns -- will replace contents of GroupByColumns
@@ -556,7 +556,7 @@ input MonitorRuleInput @goModel(model: "observe/meta/metatypes.MonitorRuleInput"
     countRule: MonitorRuleCountInput
     facetRule: MonitorRuleFacetInput
     thresholdRule: MonitorRuleThresholdInput
-    logRule: MonitorRuleLogInput
+    logRule: MonitorRuleLogInput @allowLogging
     promoteRule: MonitorRulePromoteInput
 }
 
@@ -710,7 +710,7 @@ interface MonitorAction @goModel(model: "observe/meta/metatypes.MonitorAction") 
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
@@ -730,7 +730,7 @@ interface ChannelAction @goModel(model: "observe/meta/metatypes.MonitorAction") 
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
@@ -752,10 +752,10 @@ type EmailAction implements MonitorAction & ChannelAction @goModel(model: "obser
     subjectTemplate: String!
     bodyTemplate: String!
     isHtml: Boolean!
-    fragments: JsonObject!
+    fragments: JsonObject! @secret
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
     monitors: [Monitor!]! @goField(forceResolver:true)
 
     targetUsers: [UserId!]!
@@ -797,7 +797,7 @@ input ActionInput @goModel(model: "observe/meta/metatypes.ActionInput") {
     rateLimit: Duration
     notifyOnClose: Boolean
     notifyOnReminder: Boolean
-    isPrivate: Boolean
+    isPrivate: Boolean @allowLogging
 
     email: EmailActionInput
     webhook: WebhookActionInput
@@ -812,7 +812,7 @@ input MonitorActionInput @goModel(model: "observe/meta/metatypes.MonitorActionIn
     rateLimit: Duration
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
 
     email: EmailActionInput
     webhook: WebhookActionInput
@@ -836,7 +836,7 @@ input ActionUpdateInput @goModel(model: "observe/meta/metatypes.ActionUpdateInpu
     rateLimit: Duration
     notifyOnClose: Boolean
     notifyOnReminder: Boolean
-    isPrivate: Boolean
+    isPrivate: Boolean @allowLogging
 
     email: EmailActionInput
     webhook: WebhookActionInput
@@ -855,13 +855,17 @@ input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput"
     fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
     is available in all other templates as {{fragments.title}}
     """
-    fragments: JsonObject
+    fragments: JsonObject @secret
 }
 
 type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
     id: ObjectId!
     name: String!
-    iconUrl: String!
+    """
+    The icon shown for this action in the UI. Not the webhook destination — that is
+    urlTemplate, which is @secret. @allowLogging so the webhook-URL guard passes.
+    """
+    iconUrl: String! @allowLogging
     description: String!
     workspaceId: ObjectId!
     createdBy: UserId!
@@ -874,14 +878,22 @@ type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "obs
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
     templateName: String!
-    urlTemplate: String!
+    """
+    The webhook destination URL template.
+
+    For destinations such as Slack incoming webhooks the URL is itself the
+    credential: holding it grants unauthenticated POST into the customer's
+    channel, with no expiry and no second factor, so it is @secret (OB-65908).
+    Only the customer can revoke it, by regenerating the hook.
+    """
+    urlTemplate: String! @secret
     method: String!
     headers: [WebhookHeader!]!
     bodyTemplate: String!
-    fragments: JsonObject!
+    fragments: JsonObject! @secret
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
@@ -890,7 +902,10 @@ input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionIn
     If the templateName is not set, it will be set as an empty string.
     """
     templateName: String
-    urlTemplate: String
+    """
+    The webhook destination URL template; see WebhookAction.urlTemplate.
+    """
+    urlTemplate: String @secret
     method: String
     headers: [WebhookHeaderInput!]
     bodyTemplate: String
@@ -900,17 +915,23 @@ input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionIn
     fragments.title = {{notification.kind}} fired off at {{notification.startTime}}
     is available in all other templates as {{fragments.title}}
     """
-    fragments: JsonObject
+    fragments: JsonObject @secret
 }
 
 type WebhookHeader @goModel(model: "observe/meta/metatypes.WebhookHeader") {
     header: String!
-    valueTemplate: String!
+    """
+    A value template that can be rendered.
+
+    Carries the outbound request's credential when the header is Authorization or
+    an API-token header, so it is @secret. The name stays loggable.
+    """
+    valueTemplate: String! @secret
 }
 
 input WebhookHeaderInput @goModel(model: "observe/meta/metatypes.WebhookHeader") {
     header: String!
-    valueTemplate: String!
+    valueTemplate: String! @secret
 }
 
 """
@@ -938,7 +959,7 @@ type UnknownAction implements MonitorAction & ChannelAction @goModel(model: "obs
     payload: String!
     notifyOnClose: Boolean!
     notifyOnReminder: Boolean!
-    isPrivate: Boolean!
+    isPrivate: Boolean! @allowLogging
     monitors: [Monitor!]! @goField(forceResolver:true)
 }
 
@@ -984,12 +1005,12 @@ type MustacheRender @goModel(model: "observe/meta/metatypes.MustacheRender") {
     An example would be:
     {"contentType": ["TestMonitor"], "uuid": ["f779e582-0daf-5a21-853d-489862b3e4b5"]}
     """
-    webhookHeaders: JsonObject
+    webhookHeaders: JsonObject @secret
     webhookBody: String
 }
 
 type MonitorSampleData @goModel(model: "observe/meta/metatypes.MonitorSampleData") {
-    payload: JsonObject!
+    payload: JsonObject! @secret
 }
 
 type NotificationPreviewQueryParams @goModel(model: "observe/meta/metatypes.NotificationPreviewQueryParams") {

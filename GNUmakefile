@@ -68,15 +68,12 @@ copy-gql-schema:
 	[ -d "$(OBSERVE_ROOT)" ]
 	rm -rf client/internal/meta/schema
 	mkdir -p client/internal/meta/schema
-	rsync -a --include='*/' --include='*.graphql' --exclude='*' \
+	rsync -a --no-group --include='*/' --include='*.graphql' --exclude='*' \
 		"$(OBSERVE_ROOT)/code/go/src/observe/meta/metagql/schema/" \
 		client/internal/meta/schema/
 
-	# Remove @eol fields and any preceding triple-quoted descriptions from all .graphql files.
-	# The (?<!directive ) excludes the @eol directive definition.
-	# The (?! +""") prevents the description match from greedily spanning into adjacent
-	# fields when the @eol field is not directly preceded by its own description block.
-	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 perl -0777 -i -pe 's/(\n +"""\n(?:(?! +""").+\n)+? +""")?\n.+(?<!directive )\@eol.*//g'
+	# Strip @eol markers while retaining fields still used by provider operations.
+	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @eol//g'
 
 	# Strip out @owner directives from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @owner([^)]*)//g'
