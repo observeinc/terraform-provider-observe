@@ -462,6 +462,9 @@ func TestResourceIngestRouteReadKeepsValidatedTypeWhenResponseOmitsType(t *testi
 
 	data := schema.TestResourceDataRaw(t, resourceIngestRoute().Schema, map[string]interface{}{})
 	data.SetId("otellogs/41030001")
+	if err := data.Set("opal_version", "v2026_09_30"); err != nil {
+		t.Fatalf("set opal_version: %v", err)
+	}
 	client := &observeclient.Client{Rest: rest.New(server.URL, server.Client())}
 	for readAttempt := 0; readAttempt < 2; readAttempt++ {
 		if diags := resourceIngestRouteRead(context.Background(), data, client); diags.HasError() {
@@ -473,6 +476,9 @@ func TestResourceIngestRouteReadKeepsValidatedTypeWhenResponseOmitsType(t *testi
 	}
 	if got, want := data.Get("type"), "otellogs"; got != want {
 		t.Errorf("type = %q, want %q", got, want)
+	}
+	if got, want := data.Get("opal_version"), "v2026_09_30"; got != want {
+		t.Errorf("opal_version = %q, want %q when the response omits it", got, want)
 	}
 	if requestCount != 2 {
 		t.Errorf("read requests = %d, want 2", requestCount)
