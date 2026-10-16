@@ -222,7 +222,7 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 // gate and TestValidationKeysExistInSchema cannot disagree: a typo or a renamed schema field
 // would otherwise silently disable validation forever, since GetChangedKeysPrefix on a key
 // that does not exist simply returns nothing.
-var datasetValidationKeys = []string{"inputs", "stage", "name"}
+var datasetValidationKeys = []string{"inputs", "stage", "name", "opal_version"}
 
 func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	// Skip dry-run validation if configured to do so

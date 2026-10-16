@@ -178,7 +178,7 @@ func resourceLogDerivedMetricDatasetCustomizeDiff(ctx context.Context, d *schema
 }
 
 // logDerivedMetricValidationKeys mirrors datasetValidationKeys for this resource; see there.
-var logDerivedMetricValidationKeys = []string{"input", "shaping_query", "metric_name"}
+var logDerivedMetricValidationKeys = []string{"input", "shaping_query", "metric_name", "opal_version"}
 
 func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	if client.SkipDatasetDryRuns {

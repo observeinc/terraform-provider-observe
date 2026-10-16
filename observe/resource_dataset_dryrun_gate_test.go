@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	observeclient "github.com/observeinc/terraform-provider-observe/client"
 )
 
 // datasetGateVerdict runs the real dataset schema's diff machinery over a (state, config)
@@ -377,5 +379,49 @@ func TestGateNeverSkipsAValidationRelevantUpdate(t *testing.T) {
 			}
 			t.Logf("skipValidation=%-5v updatesValidatedAttrs=%v", skip, updatedValidated)
 		})
+	}
+}
+
+func TestDatasetDryRunGateValidatesOpalVersionChange(t *testing.T) {
+	state := baseDatasetState("filter true")
+	state["opal_version"] = "v2021_01_01"
+	cfg := baseDatasetConfig("filter true")
+	cfg["opal_version"] = "v2026_09_30"
+
+	planEmpty, _, touches := datasetGateVerdict(t, state, cfg)
+	if planEmpty {
+		t.Fatal("opal_version change produced an empty plan")
+	}
+	if !touches {
+		t.Fatal("opal_version change did not schedule dry-run validation")
+	}
+}
+
+func TestProviderDefaultOpalVersionPlansDatasetUpdate(t *testing.T) {
+	latest := "v2026_09_30"
+	client := &observeclient.Client{Config: &observeclient.Config{
+		SkipDatasetDryRuns: true,
+		DefaultOpalVersion: &latest,
+	}}
+
+	stateAttrs := baseDatasetState("filter true")
+	stateAttrs["opal_version"] = "v2021_01_01"
+	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
+
+	diff, err := resourceDataset().Diff(context.Background(), state, terraform.NewResourceConfigRaw(baseDatasetConfig("filter true")), client)
+	if err != nil {
+		t.Fatalf("Diff error: %v", err)
+	}
+	if diff == nil || diff.Empty() {
+		t.Fatal("provider default produced an empty plan")
+	}
+
+	attr := diff.Attributes["opal_version"]
+	if attr == nil || attr.New != latest {
+		t.Fatalf("opal_version diff = %#v, want new %q", attr, latest)
+	}
+	oid := diff.Attributes["oid"]
+	if oid == nil || !oid.NewComputed {
+		t.Fatalf("oid diff = %#v, want NewComputed", oid)
 	}
 }

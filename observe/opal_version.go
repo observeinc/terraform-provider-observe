@@ -18,12 +18,26 @@ func opalVersionPtr(version gql.OpalVersion) *gql.OpalVersion {
 	return &version
 }
 
+func opalVersionStrings() []string {
+	values := make([]string, len(allOpalVersions))
+	for i, version := range allOpalVersions {
+		values[i] = string(version)
+	}
+	return values
+}
+
+func validateOpalVersion() schema.SchemaValidateDiagFunc {
+	// The API enum is lowercase. validateEnums is case-insensitive and would
+	// accept V2026_09_30, which then fails at apply or plans forever.
+	return validateStringInSlice(opalVersionStrings(), false)
+}
+
 func opalVersionSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Optional:         true,
 		Computed:         true,
-		ValidateDiagFunc: validateEnums(allOpalVersions),
+		ValidateDiagFunc: validateOpalVersion(),
 		Description:      descriptions.Get("common", "schema", "opal_version"),
 	}
 }
@@ -37,26 +51,27 @@ func opalVersionDataSourceSchema() *schema.Schema {
 }
 
 func customizeOpalVersionDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{}, next schema.CustomizeDiffFunc) error {
-	if next != nil {
-		if err := next(ctx, diff, meta); err != nil {
-			return err
+	// Set the provider default before next. Dataset and log-derived metric dry
+	// runs, and datasetRecomputeOID, read the diff inside next. Setting the
+	// value afterward leaves an opal_version-only plan unvalidated and the
+	// versioned oid unchanged.
+	if client, ok := meta.(*observeclient.Client); ok {
+		if defaultVersion := clientDefaultOpalVersion(client); defaultVersion != nil && *defaultVersion != "" {
+			if _, configured := configuredOpalVersion(diff); !configured {
+				_, planned := diff.GetChange("opal_version")
+				if planned != *defaultVersion {
+					if err := diff.SetNew("opal_version", *defaultVersion); err != nil {
+						return err
+					}
+				}
+			}
 		}
 	}
 
-	client, ok := meta.(*observeclient.Client)
-	if !ok {
-		return nil
+	if next != nil {
+		return next(ctx, diff, meta)
 	}
-	defaultVersion := clientDefaultOpalVersion(client)
-	if defaultVersion == nil || *defaultVersion == "" {
-		return nil
-	}
-
-	if _, configured := configuredOpalVersion(diff); configured {
-		return nil
-	}
-
-	return diff.SetNew("opal_version", *defaultVersion)
+	return nil
 }
 
 func configuredOpalVersion(data ResourceReader) (*gql.OpalVersion, bool) {
