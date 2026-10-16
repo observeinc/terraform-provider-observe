@@ -3,9 +3,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput!, password: String): DatastreamToken!
-    updateDatastreamToken(id: String!, token: DatastreamTokenInput!): DatastreamToken!
-    deleteDatastreamToken(id: String!): ResultStatus!
+    createDatastreamToken(datastreamId: ObjectId!, token: DatastreamTokenInput! @allowLogging, password: String @secret @deprecated): DatastreamToken! @deprecated(reason: "use the ingest-token API instead")
+    updateDatastreamToken(id: String!, token: DatastreamTokenInput! @allowLogging): DatastreamToken! @deprecated(reason: "use the ingest-token API instead")
+    deleteDatastreamToken(id: String!): ResultStatus! @deprecated(reason: "use the ingest-token API instead")
 }
 
 type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.DatastreamToken") {
@@ -26,7 +26,7 @@ type DatastreamToken implements Token @goModel(model: "observe/meta/metatypes.Da
     """
     Only populated for creates
     """
-    secret: String
+    secret: String @secret
     appMetadata: DatastreamTokenAppMetadata
 }
 
