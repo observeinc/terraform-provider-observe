@@ -133,7 +133,9 @@ func ingestRouteToResourceData(data *schema.ResourceData, routeType string, rout
 	set("route_id", route.Id)
 	set("type", routeType)
 	set("pipeline", route.Pipeline)
-	set("opal_version", route.OpalVersion)
+	if route.OpalVersion != nil {
+		set("opal_version", *route.OpalVersion)
+	}
 	set("destination_id", route.DestinationId)
 	set("secondary_destination_id", route.SecondaryDestinationId)
 	set("enabled", route.Enabled)
