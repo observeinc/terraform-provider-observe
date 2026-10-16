@@ -216,7 +216,7 @@ identifying the source column. Tags become grouping dimensions on the resulting 
 - `opal_version` (String) OPAL language version used to compile this object's query. Supported values
 are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
 default_opal_version is used; if neither is set, Observe uses the earliest
-version. Changing this value on a dataset may cause rematerialization.
+version. Changing this value may cause the dataset to rematerialize.
 - `shaping_query` (String) An OPAL pipeline applied to the input dataset before aggregation. Defaults to
 `filter true`, which leaves the input rows unchanged before aggregation.
 - `unit` (String) The unit of the derived metric (e.g. "bytes", "seconds").

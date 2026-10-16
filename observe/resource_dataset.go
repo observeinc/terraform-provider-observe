@@ -53,7 +53,7 @@ func resourceDataset() *schema.Resource {
 			return customizeOpalVersionDiff(ctx, d, meta, resourceDatasetCustomizeDiff)
 		},
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
+			"opal_version": opalVersionDatasetSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,

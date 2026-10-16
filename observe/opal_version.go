@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observeclient "github.com/observeinc/terraform-provider-observe/client"
@@ -32,13 +33,29 @@ func validateOpalVersion() schema.SchemaValidateDiagFunc {
 	return validateStringInSlice(opalVersionStrings(), false)
 }
 
+func opalVersionDescription(rematerializes bool) string {
+	description := strings.TrimSpace(descriptions.Get("common", "schema", "opal_version"))
+	if rematerializes {
+		description += " " + strings.TrimSpace(descriptions.Get("common", "schema", "opal_version_rematerialization"))
+	}
+	return description
+}
+
 func opalVersionSchema() *schema.Schema {
+	return opalVersionResourceSchema(false)
+}
+
+func opalVersionDatasetSchema() *schema.Schema {
+	return opalVersionResourceSchema(true)
+}
+
+func opalVersionResourceSchema(rematerializes bool) *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Optional:         true,
 		Computed:         true,
 		ValidateDiagFunc: validateOpalVersion(),
-		Description:      descriptions.Get("common", "schema", "opal_version"),
+		Description:      opalVersionDescription(rematerializes),
 	}
 }
 
@@ -46,7 +63,7 @@ func opalVersionDataSourceSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
-		Description: descriptions.Get("common", "schema", "opal_version"),
+		Description: opalVersionDescription(false),
 	}
 }
 

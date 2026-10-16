@@ -42,7 +42,7 @@ resource "observe_ingest_route" "logs_copy" {
 - `opal_version` (String) OPAL language version used to compile this object's query. Supported values
 are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
 default_opal_version is used; if neither is set, Observe uses the earliest
-version. Changing this value on a dataset may cause rematerialization.
+version.
 - `secondary_destination_id` (String) An optional secondary source dataset ID that also receives matching observations. Removing this value clears the API secondary destination.
 
 ### Read-Only

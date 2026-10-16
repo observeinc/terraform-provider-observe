@@ -67,7 +67,7 @@ stage pipelines.
 - `opal_version` (String) OPAL language version used to compile this object's query. Supported values
 are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
 default_opal_version is used; if neither is set, Observe uses the earliest
-version. Changing this value on a dataset may cause rematerialization.
+version.
 - `rule_kind` (String) Describes the type of each of the rules in the definition (they must all be the same type).
 - `rule_template` (Block List) Additional attributes for a monitor rule kind. Used for anomaly monitors to define the detection algorithm, out of bound condition, and more. (see [below for nested schema](#nestedblock--rule_template))
 - `rules` (Block List) All rules for this monitor must be of the same MonitorRuleKind as specified in ruleKind. Rules should be constructed logically such that a state transition null->Warning implies transition from null->Informational. (see [below for nested schema](#nestedblock--rules))
