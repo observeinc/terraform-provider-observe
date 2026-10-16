@@ -173,6 +173,7 @@ fragment MonitorV2Rule on MonitorV2Rule {
 fragment MonitorV2Definition on MonitorV2Definition{
     inputQuery {
         outputStage
+        opalVersion
         # @genqlient(flatten: true)
         stages {
             ...StageQuery
@@ -326,6 +327,7 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 fragment MonitorV2 on MonitorV2 {
     id
@@ -389,6 +391,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation createMonitorV2(
 	$workspaceId: ObjectId!,
@@ -433,6 +436,7 @@ mutation createMonitorV2(
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation updateMonitorV2(
 	$id: ObjectId!,
@@ -513,6 +517,7 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)

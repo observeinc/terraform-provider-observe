@@ -1,11 +1,20 @@
 type MetricSearchResult @goModel(model: "observe/meta/metatypes.MetricSearchResult") {
+    """
+    Metrics that matched the search, limited by `globalLimit` and `perDatasetLimit`.
+    """
     matches: [MetricMatch!]!
     """
-    Shows how many metrics were matched in this search term. Note that it's not necessary
-    for all of them to be returned in the `matches` field, as the returned matches is limited
-    by the globalLimit and perDatasetLimit specified in the metricSearch request.
+    Number of matching metrics counted for this search. This includes metrics
+    that `offset` skipped and the metrics in `matches`. It is not the total
+    number of matching metrics. Without `offset` it equals the length of
+    `matches`.
     """
     numSearched: Int64!
+    """
+    True if more matches may exist beyond `matches`. False if the search
+    found none.
+    """
+    hasMore: Boolean!
 }
 
 type MetricMatch @goModel(model: "observe/meta/metatypes.MetricMatch") {

@@ -107,22 +107,32 @@ input AWSMetricsPollerConfigInput @goModel(model: "observe/meta/metatypes.AWSMet
 
 type AWSCollectionStackConfig @goModel(model: "observe/meta/metatypes.AWSCollectionStackConfig") {
     configDeliveryBucketName: String
-    logGroupNamePatterns: [String!]
-    excludeLogGroupNamePatterns: [String!]
+    logGroupNamePatterns: [String!] @allowLogging
+    excludeLogGroupNamePatterns: [String!] @allowLogging
     sourceBucketNames: [String!]
     awsServiceMetricsList: [AWSServiceMetrics!]
     customMetricsList: [AWSServiceMetrics!]
     configResourceList: [String!]
+    """
+    If true, the metric stream stack looks up AWS resource tags and attaches them as metric tags.
+    """
+    enableMetricTag: Boolean
+    """
+    TTL (seconds) for the metric-stream resource-tag lookup cache.
+    """
+    metricTagResourceCacheTTLSeconds: Int64
 }
 
 input AWSCollectionStackConfigInput @goModel(model: "observe/meta/metatypes.AWSCollectionStackConfigInput") {
     configDeliveryBucketName: String
-    logGroupNamePatterns: [String!]
-    excludeLogGroupNamePatterns: [String!]
+    logGroupNamePatterns: [String!] @allowLogging
+    excludeLogGroupNamePatterns: [String!] @allowLogging
     sourceBucketNames: [String!]
     awsServiceMetricsList: [AWSServiceMetricsInput!]
     customMetricsList: [AWSServiceMetricsInput!]
     configResourceList: [String!]
+    enableMetricTag: Boolean
+    metricTagResourceCacheTTLSeconds: Int64
 }
 
 
@@ -153,12 +163,12 @@ input AWSPollerMetricsInput @goModel(model: "observe/meta/metatypes.AWSPollerMet
 
 
 type TagFilter @goModel(model: "observe/meta/metatypes.TagFilter") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 
 input TagFilterInput @goModel(model: "observe/meta/metatypes.TagFilterInput") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 
@@ -205,7 +215,7 @@ type DatasourceStatus @goModel(model: "observe/meta/metatypes.DatasourceStatus")
 type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.Datasource") {
     dataConnectionID: ObjectId!
     datastreamID: ObjectId!
-    datastreamTokenID: String
+    datastreamTokenID: String @allowLogging
     type: DatasourceType
     status: DatasourceStatus!
     clientStackAttributes: [DataVariable!]!
@@ -232,7 +242,7 @@ type Datasource implements WorkspaceObject & AuditedObject & FolderObject @goMod
 input DatasourceInput @goModel(model: "observe/meta/metatypes.DatasourceInput") {
     dataConnectionID: ObjectId!
     datastreamID: ObjectId!
-    datastreamTokenID: String
+    datastreamTokenID: String @allowLogging
     type: DatasourceType
     clientStackAttributes: [DataVariableInput!]!
     variables: [DataVariableInput!]!
@@ -278,7 +288,7 @@ type DataConnectionModuleVersion @goModel(model: "observe/meta/metatypes.DataCon
     id: String!
     appID: String!
     version: String!
-    changelog: String!
+    changelog: String! @allowLogging
     readme: String!
     source: String!
     variableInputs: [DataVariable!]!
@@ -294,7 +304,7 @@ type DataConnectionModuleVersion @goModel(model: "observe/meta/metatypes.DataCon
 type DataConnection implements WorkspaceObject & AuditedObject & FolderObject @goModel(model: "observe/meta/metatypes.DataConnection") {
     moduleID: String!
     version: String!
-    changelog: String!
+    changelog: String! @allowLogging
     readme: String!
     source: String!
     variables: [DataVariable!]!

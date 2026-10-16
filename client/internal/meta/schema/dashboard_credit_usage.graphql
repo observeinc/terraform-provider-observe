@@ -2,7 +2,7 @@ extend type Dashboard {
     """
     Contains information about the credit usage of the dashboard
     """
-    creditUsage: DashboardCreditUsage! @goField(forceResolver: true)
+    creditUsage: DashboardCreditUsage! @goField(forceResolver: true) @allowLogging
 }
 
 

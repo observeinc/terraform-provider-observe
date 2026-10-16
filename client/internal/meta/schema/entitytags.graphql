@@ -4,7 +4,7 @@ Object tags can be applied to dashboards, datasets, worksheets, etc.
 Each mapping contains a tag key and a list of values associated with that key.
 """
 type ObjectTagMapping @goModel(model: "observe/meta/metatypes.ObjectTagMapping") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 
@@ -12,7 +12,7 @@ type ObjectTagMapping @goModel(model: "observe/meta/metatypes.ObjectTagMapping")
 ObjectTagMappingInput is the input type for ObjectTagMapping.
 """
 input ObjectTagMappingInput @goModel(model: "observe/meta/metatypes.ObjectTagMapping") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 
@@ -23,7 +23,7 @@ Entity tags can be applied to dashboards, datasets, worksheets, etc.
 Each mapping contains a tag key and a list of values associated with that key.
 """
 type EntityTagMapping @goModel(model: "observe/meta/metatypes.EntityTagMapping") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 
@@ -32,7 +32,7 @@ DEPRECATED: Use ObjectTagMappingInput instead.
 EntityTagMappingInput is the input type for EntityTagMapping.
 """
 input EntityTagMappingInput @goModel(model: "observe/meta/metatypes.EntityTagMapping") {
-    key: String!
+    key: String! @allowLogging
     values: [String!]!
 }
 

@@ -17,12 +17,12 @@ type IngestToken implements WorkspaceObject & AuditedObject & FolderObject @goMo
     """
     ID of the authtoken associated with this ingest token
     """
-    authtokenID: String!
+    authtokenID: String! @allowLogging
     disabled: Boolean
     """
     Authtoken secret associated with this ingest token, only populated for creates
     """
-    secret: String
+    secret: String @secret
     """
     Token usage statistics
     """

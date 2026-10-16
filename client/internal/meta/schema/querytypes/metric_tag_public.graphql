@@ -36,6 +36,12 @@ type DatasetTagPath @goModel(model: "observe/meta/metatypes.DatasetTagPath") {
 }
 
 type MetricTagValues @goModel(model: "observe/meta/metatypes.MetricTagValues"){
-    tagValues: [String!]!
+    """
+    The distinct values this tag takes in the customer's data — hostnames, pod
+    names, cluster UIDs. searchMetricTagValues answers this by querying the
+    datasets, so these are query results and @secret (OB-65908). total is a count
+    and stays loggable.
+    """
+    tagValues: [String!]! @secret
     total: Int64!
 }

@@ -18,13 +18,21 @@ enum DatasetContentType @goModel(model: "observe/compiler/comptypes.ContentType"
     OTelTrace
 }
 
+"""
+OPAL language version. Omitted or null means the earliest version.
+"""
+enum OpalVersion @goModel(model: "observe/compiler/comptypes.OpalVersion") {
+    v2021_01_01
+    v2026_09_30
+}
 
 input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQueryInput") {
     outputStage: String!
     stages: [StageQueryInput!]!
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
-    layout: JsonObject
+    layout: JsonObject @secret
+    opalVersion: OpalVersion
 }
 
 type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
@@ -32,27 +40,31 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]!
     parameterValues: [ParameterBinding!]
-    layout: JsonObject
+    layout: JsonObject @secret
+    opalVersion: OpalVersion
 }
 
 type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
+    stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
     input: [InputDefinition!]!
-    params: JsonObject
+    params: JsonObject @secret
     pipeline: String!
-    layout: JsonObject
+    layout: JsonObject @secret
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
 }
 
 input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput") {
+    stageID: String @deprecated(reason: "use id instead")
+    stageId: String @deprecated(reason: "use id instead") @goField(name:StageID)
     """
     make id required when we've removed all deprecated use of stageId
     """
     id: String @goField(name:StageID)
     input: [InputDefinitionInput!]!
     pipeline: String!
-    layout: JsonObject
+    layout: JsonObject @secret
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
 }
@@ -65,6 +77,7 @@ type ForeignKey @goModel(model: "observe/meta/metatypes.ForeignKey") {
     srcFields: [String!]! @deprecated(reason: "use src instead")
     src: [LinkField!]!
     dstFields: [String!]!
+    id: String @deprecated(reason: "use label instead")
 }
 
 """
@@ -137,9 +150,15 @@ enum TagSource @goModel(model: "observe/meta/metatypes.TagSourceKind") {
     Ingest
 }
 
+
+type DiscoveryRuleSource @goModel(model: "observe/meta/metatypes.DiscoveryRuleSource") {
+    alias: String!
+}
+
 type TagSourceInfo @goModel(model: "observe/meta/metatypes.TagSourceInfo") {
     kind: TagSourceKind!
     origin: [ObjectId!]!
+    discoveryRules: [DiscoveryRuleSource!]
 }
 
 type TagMapping @goModel(model: "observe/meta/metatypes.TagMapping") {
@@ -196,6 +215,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
     Format: <dataset-alias>.<metric-name>. If an alias is not defined for the dataset, the name is instead used as the alias
     """
     nameWithPath: String!
+    label: String! @deprecated(reason: "We should always use name. Using label causes too much confusion.")
     type: MetricType! @goField(name:MetricType)
     unit: String!
     description: String!
@@ -215,7 +235,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
 type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
     id: ObjectId!
     label: String!
-    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead")
+    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead") @secret
     def: ObjectTypedef
 }
 
@@ -223,6 +243,7 @@ type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
 type ImplementedInterface @goModel(model: "observe/meta/metatypes.ImplementedInterface") {
     path: String!
     mapping: [InterfaceFieldMapping!]!
+    interface: InterfaceDefinition! @goField(forceResolver:true) @deprecated(reason:"already not used, see OB-32415")
 }
 
 type InterfaceFieldMapping @goModel(model: "observe/meta/metatypes.InterfaceFieldMapping") {

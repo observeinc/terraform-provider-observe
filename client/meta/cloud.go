@@ -9,5 +9,5 @@ func (client *Client) GetCloudInfo(ctx context.Context) (*CloudInfo, error) {
 	}
 
 	info := resp.GetCloud().GetCloudInfo()
-	return &info, nil
+	return info, nil
 }

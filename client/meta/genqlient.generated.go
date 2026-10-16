@@ -712,7 +712,11 @@ func (v *ChannelActionEmailAction) GetIsHtml() bool { return v.IsHtml }
 
 // ChannelActionHeadersWebhookHeader includes the requested fields of the GraphQL type WebhookHeader.
 type ChannelActionHeadersWebhookHeader struct {
-	Header        string `json:"header"`
+	Header string `json:"header"`
+	// A value template that can be rendered.
+	//
+	// Carries the outbound request's credential when the header is Authorization or
+	// an API-token header, so it is @secret. The name stays loggable.
 	ValueTemplate string `json:"valueTemplate"`
 }
 
@@ -764,19 +768,25 @@ func (v *ChannelActionUnknownAction) GetTypename() *string { return v.Typename }
 
 // ChannelAction includes the GraphQL fields of WebhookAction requested by the fragment ChannelAction.
 type ChannelActionWebhookAction struct {
-	Id            string                              `json:"id"`
-	Name          string                              `json:"name"`
-	IconUrl       string                              `json:"iconUrl"`
-	Description   string                              `json:"description"`
-	NotifyOnClose bool                                `json:"notifyOnClose"`
-	WorkspaceId   string                              `json:"workspaceId"`
-	Channels      []ChannelActionChannelsChannel      `json:"channels"`
-	RateLimit     types.DurationScalar                `json:"rateLimit"`
-	Typename      *string                             `json:"__typename"`
-	UrlTemplate   string                              `json:"urlTemplate"`
-	BodyTemplate  string                              `json:"bodyTemplate"`
-	Method        string                              `json:"method"`
-	Headers       []ChannelActionHeadersWebhookHeader `json:"headers"`
+	Id            string                         `json:"id"`
+	Name          string                         `json:"name"`
+	IconUrl       string                         `json:"iconUrl"`
+	Description   string                         `json:"description"`
+	NotifyOnClose bool                           `json:"notifyOnClose"`
+	WorkspaceId   string                         `json:"workspaceId"`
+	Channels      []ChannelActionChannelsChannel `json:"channels"`
+	RateLimit     types.DurationScalar           `json:"rateLimit"`
+	Typename      *string                        `json:"__typename"`
+	// The webhook destination URL template.
+	//
+	// For destinations such as Slack incoming webhooks the URL is itself the
+	// credential: holding it grants unauthenticated POST into the customer's
+	// channel, with no expiry and no second factor, so it is @secret (OB-65908).
+	// Only the customer can revoke it, by regenerating the hook.
+	UrlTemplate  string                              `json:"urlTemplate"`
+	BodyTemplate string                              `json:"bodyTemplate"`
+	Method       string                              `json:"method"`
+	Headers      []ChannelActionHeadersWebhookHeader `json:"headers"`
 }
 
 // GetId returns ChannelActionWebhookAction.Id, and is useful for accessing the field via an interface.
@@ -960,11 +970,12 @@ const (
 
 // Dashboard includes the GraphQL fields of Dashboard requested by the fragment Dashboard.
 type Dashboard struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	WorkspaceId string  `json:"workspaceId"`
-	ManagedById *string `json:"managedById"`
+	Id          string       `json:"id"`
+	Name        string       `json:"name"`
+	Description *string      `json:"description"`
+	WorkspaceId string       `json:"workspaceId"`
+	ManagedById *string      `json:"managedById"`
+	OpalVersion *OpalVersion `json:"opalVersion"`
 	// Object tags for organizing and categorizing dashboards.
 	ObjectTags []ObjectTagMapping `json:"objectTags"`
 	// Version of the dashboard content model.
@@ -1005,6 +1016,9 @@ func (v *Dashboard) GetWorkspaceId() string { return v.WorkspaceId }
 // GetManagedById returns Dashboard.ManagedById, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetManagedById() *string { return v.ManagedById }
 
+// GetOpalVersion returns Dashboard.OpalVersion, and is useful for accessing the field via an interface.
+func (v *Dashboard) GetOpalVersion() *OpalVersion { return v.OpalVersion }
+
 // GetObjectTags returns Dashboard.ObjectTags, and is useful for accessing the field via an interface.
 func (v *Dashboard) GetObjectTags() []ObjectTagMapping { return v.ObjectTags }
 
@@ -1033,17 +1047,19 @@ func (v *Dashboard) GetDefinition() *types.JsonObject { return v.Definition }
 
 type DashboardInput struct {
 	// if id is not specified, a new dashboard is created
-	Id              *string                 `json:"id"`
-	Name            *string                 `json:"name"`
-	Description     *string                 `json:"description"`
-	IconUrl         *string                 `json:"iconUrl"`
-	WorkspaceId     *string                 `json:"workspaceId"`
-	ManagedById     *string                 `json:"managedById"`
-	FolderId        *string                 `json:"folderId"`
+	Id          *string `json:"id"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	IconUrl     *string `json:"iconUrl"`
+	WorkspaceId *string `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	FolderId    *string `json:"folderId"`
+	// See IWorksheetLike.layout (OB-66447).
 	Layout          *types.JsonObject       `json:"layout"`
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
+	OpalVersion     *OpalVersion            `json:"opalVersion,omitempty"`
 	Links           []DashboardLinkInput    `json:"links"`
 	// Unlisted dashboards are not returned by dashboardSearch except for the creating user.
 	Visibility *ObjectVisibility `json:"visibility"`
@@ -1086,6 +1102,9 @@ func (v *DashboardInput) GetParameters() []ParameterSpecInput { return v.Paramet
 
 // GetParameterValues returns DashboardInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *DashboardInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
+
+// GetOpalVersion returns DashboardInput.OpalVersion, and is useful for accessing the field via an interface.
+func (v *DashboardInput) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // GetLinks returns DashboardInput.Links, and is useful for accessing the field via an interface.
 func (v *DashboardInput) GetLinks() []DashboardLinkInput { return v.Links }
@@ -1199,7 +1218,8 @@ func (v *DashboardLinkInput) GetLinkLabel() string { return v.LinkLabel }
 
 // DashboardParameterValuesParameterBinding includes the requested fields of the GraphQL type ParameterBinding.
 type DashboardParameterValuesParameterBinding struct {
-	Id    string      `json:"id"`
+	Id string `json:"id"`
+	// The bound parameter value; see ParameterBindingInput.value (OB-66460).
 	Value types.Value `json:"value"`
 }
 
@@ -1305,8 +1325,10 @@ type DashboardStagesStageQueryInputInputDefinition struct {
 	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
 	InputName string    `json:"inputName"`
 	InputRole InputRole `json:"inputRole"`
-	// One of the input definition fields is used; the others are null
-	// because GO doesn't have unions.
+	// One of datasetId or stageId identifies what this input is bound to; GO
+	// doesn't have unions, so both fields exist but only one is set. When the
+	// binding is a dataset, datasetPath is also populated alongside datasetId
+	// as a portable "<workspace>.<label>" reference.
 	DatasetId   *string `json:"datasetId"`
 	DatasetPath *string `json:"datasetPath"`
 	// Only set stageId to reference input that comes from an actual stage in the same query
@@ -1578,6 +1600,9 @@ type DatasetInput struct {
 	FreshnessDecayDisabled *bool             `json:"freshnessDecayDisabled"`
 	DataTableViewState     *types.JsonObject `json:"dataTableViewState"`
 	StorageIntegrationId   *string           `json:"storageIntegrationId"`
+	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
+	// will use the default value in transformer config.
+	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
 	ManagedById *string `json:"managedById"`
 	// Optional list of rules to set the list of users and groups that can access the dataset
@@ -1587,6 +1612,9 @@ type DatasetInput struct {
 	// DEPRECATED: Use objectTags instead.
 	// Entity tags for organizing and categorizing datasets.
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
+	// Defines the data retention period of the dataset. We will currently only persist this field but
+	// it wouldn't take effect. TODO: Also apply it to the data retention manager.
+	DataRetentionPeriod *types.DurationScalar `json:"dataRetentionPeriod"`
 	// Defines the data retention of the dataset, in days. This will be applied to this dataset only
 	// and it will not affect any upstream or downstream datasets. Notice that using a bigger value than the upstream,
 	// means that not the full range is available in case of rematerialization.
@@ -1655,6 +1683,11 @@ func (v *DatasetInput) GetDataTableViewState() *types.JsonObject { return v.Data
 // GetStorageIntegrationId returns DatasetInput.StorageIntegrationId, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
 
+// GetOnDemandMaterializationLength returns DatasetInput.OnDemandMaterializationLength, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetOnDemandMaterializationLength() *types.Int64Scalar {
+	return v.OnDemandMaterializationLength
+}
+
 // GetManagedById returns DatasetInput.ManagedById, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetManagedById() *string { return v.ManagedById }
 
@@ -1666,6 +1699,9 @@ func (v *DatasetInput) GetObjectTags() []ObjectTagMappingInput { return v.Object
 
 // GetEntityTags returns DatasetInput.EntityTags, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetEntityTags() []EntityTagMappingInput { return v.EntityTags }
+
+// GetDataRetentionPeriod returns DatasetInput.DataRetentionPeriod, and is useful for accessing the field via an interface.
+func (v *DatasetInput) GetDataRetentionPeriod() *types.DurationScalar { return v.DataRetentionPeriod }
 
 // GetDataRetentionDays returns DatasetInput.DataRetentionDays, and is useful for accessing the field via an interface.
 func (v *DatasetInput) GetDataRetentionDays() *types.Int64Scalar { return v.DataRetentionDays }
@@ -1921,12 +1957,18 @@ func (v *DatasetTransformCurrentTransformVersion) GetQuery() *DatasetTransformCu
 // DatasetTransformCurrentTransformVersionQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type DatasetTransformCurrentTransformVersionQueryMultiStageQuery struct {
 	OutputStage string       `json:"outputStage"`
+	OpalVersion *OpalVersion `json:"opalVersion"`
 	Stages      []StageQuery `json:"stages"`
 }
 
 // GetOutputStage returns DatasetTransformCurrentTransformVersionQueryMultiStageQuery.OutputStage, and is useful for accessing the field via an interface.
 func (v *DatasetTransformCurrentTransformVersionQueryMultiStageQuery) GetOutputStage() string {
 	return v.OutputStage
+}
+
+// GetOpalVersion returns DatasetTransformCurrentTransformVersionQueryMultiStageQuery.OpalVersion, and is useful for accessing the field via an interface.
+func (v *DatasetTransformCurrentTransformVersionQueryMultiStageQuery) GetOpalVersion() *OpalVersion {
+	return v.OpalVersion
 }
 
 // GetStages returns DatasetTransformCurrentTransformVersionQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
@@ -2151,13 +2193,29 @@ func (v *DatastreamDirectWritePrometheusDatastreamDirectWriteInfoPrometheus) Get
 	return v.DatasetId
 }
 
+type DatastreamIcebergInput struct {
+	StorageIntegrationId *string `json:"storageIntegrationId"`
+	ExternalWrite        *bool   `json:"externalWrite"`
+}
+
+// GetStorageIntegrationId returns DatastreamIcebergInput.StorageIntegrationId, and is useful for accessing the field via an interface.
+func (v *DatastreamIcebergInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
+
+// GetExternalWrite returns DatastreamIcebergInput.ExternalWrite, and is useful for accessing the field via an interface.
+func (v *DatastreamIcebergInput) GetExternalWrite() *bool { return v.ExternalWrite }
+
 type DatastreamInput struct {
-	Name             string                      `json:"name"`
-	Description      *string                     `json:"description"`
-	IconUrl          *string                     `json:"iconUrl"`
-	Disabled         *bool                       `json:"disabled"`
-	ExternalSourceId *string                     `json:"externalSourceId"`
-	DirectWrite      *DatastreamDirectWriteInput `json:"directWrite"`
+	Name                 string                      `json:"name"`
+	Description          *string                     `json:"description"`
+	IconUrl              *string                     `json:"iconUrl"`
+	Disabled             *bool                       `json:"disabled"`
+	ExternalSourceId     *string                     `json:"externalSourceId"`
+	StorageIntegrationId *string                     `json:"storageIntegrationId"`
+	Iceberg              *DatastreamIcebergInput     `json:"iceberg"`
+	PrometheusInput      *DatastreamPrometheusInput  `json:"prometheusInput"`
+	OtelLogsInput        *DatastreamOtelLogsInput    `json:"otelLogsInput"`
+	K8sEntityInput       *DatastreamK8sEntityInput   `json:"k8sEntityInput"`
+	DirectWrite          *DatastreamDirectWriteInput `json:"directWrite"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -2175,8 +2233,44 @@ func (v *DatastreamInput) GetDisabled() *bool { return v.Disabled }
 // GetExternalSourceId returns DatastreamInput.ExternalSourceId, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetExternalSourceId() *string { return v.ExternalSourceId }
 
+// GetStorageIntegrationId returns DatastreamInput.StorageIntegrationId, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetStorageIntegrationId() *string { return v.StorageIntegrationId }
+
+// GetIceberg returns DatastreamInput.Iceberg, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetIceberg() *DatastreamIcebergInput { return v.Iceberg }
+
+// GetPrometheusInput returns DatastreamInput.PrometheusInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetPrometheusInput() *DatastreamPrometheusInput { return v.PrometheusInput }
+
+// GetOtelLogsInput returns DatastreamInput.OtelLogsInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetOtelLogsInput() *DatastreamOtelLogsInput { return v.OtelLogsInput }
+
+// GetK8sEntityInput returns DatastreamInput.K8sEntityInput, and is useful for accessing the field via an interface.
+func (v *DatastreamInput) GetK8sEntityInput() *DatastreamK8sEntityInput { return v.K8sEntityInput }
+
 // GetDirectWrite returns DatastreamInput.DirectWrite, and is useful for accessing the field via an interface.
 func (v *DatastreamInput) GetDirectWrite() *DatastreamDirectWriteInput { return v.DirectWrite }
+
+type DatastreamK8sEntityInput struct {
+	Enabled bool `json:"enabled"`
+}
+
+// GetEnabled returns DatastreamK8sEntityInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamK8sEntityInput) GetEnabled() bool { return v.Enabled }
+
+type DatastreamOtelLogsInput struct {
+	Enabled bool `json:"enabled"`
+}
+
+// GetEnabled returns DatastreamOtelLogsInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamOtelLogsInput) GetEnabled() bool { return v.Enabled }
+
+type DatastreamPrometheusInput struct {
+	Enabled bool `json:"enabled"`
+}
+
+// GetEnabled returns DatastreamPrometheusInput.Enabled, and is useful for accessing the field via an interface.
+func (v *DatastreamPrometheusInput) GetEnabled() bool { return v.Enabled }
 
 // DatastreamToken includes the GraphQL fields of DatastreamToken requested by the fragment DatastreamToken.
 type DatastreamToken struct {
@@ -3462,6 +3556,7 @@ type LogDerivedMetricDefinition struct {
 	Aggregation  LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation `json:"aggregation"`
 	MetricTags   []LogDerivedMetricDefinitionMetricTagsLogMetricTag               `json:"metricTags"`
 	Interval     types.DurationScalar                                             `json:"interval"`
+	OpalVersion  *OpalVersion                                                     `json:"opalVersion"`
 }
 
 // GetMetricName returns LogDerivedMetricDefinition.MetricName, and is useful for accessing the field via an interface.
@@ -3488,6 +3583,9 @@ func (v *LogDerivedMetricDefinition) GetMetricTags() []LogDerivedMetricDefinitio
 
 // GetInterval returns LogDerivedMetricDefinition.Interval, and is useful for accessing the field via an interface.
 func (v *LogDerivedMetricDefinition) GetInterval() types.DurationScalar { return v.Interval }
+
+// GetOpalVersion returns LogDerivedMetricDefinition.OpalVersion, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinition) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation includes the requested fields of the GraphQL type LogDerivedMetricAggregation.
 type LogDerivedMetricDefinitionAggregationLogDerivedMetricAggregation struct {
@@ -3670,6 +3768,7 @@ type LogDerivedMetricDefinitionInput struct {
 	Aggregation  LogDerivedMetricAggregationInput `json:"aggregation"`
 	MetricTags   []LogMetricTagInput              `json:"metricTags"`
 	Interval     *types.DurationScalar            `json:"interval"`
+	OpalVersion  *OpalVersion                     `json:"opalVersion,omitempty"`
 }
 
 // GetMetricName returns LogDerivedMetricDefinitionInput.MetricName, and is useful for accessing the field via an interface.
@@ -3694,6 +3793,9 @@ func (v *LogDerivedMetricDefinitionInput) GetMetricTags() []LogMetricTagInput { 
 
 // GetInterval returns LogDerivedMetricDefinitionInput.Interval, and is useful for accessing the field via an interface.
 func (v *LogDerivedMetricDefinitionInput) GetInterval() *types.DurationScalar { return v.Interval }
+
+// GetOpalVersion returns LogDerivedMetricDefinitionInput.OpalVersion, and is useful for accessing the field via an interface.
+func (v *LogDerivedMetricDefinitionInput) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // LogDerivedMetricDefinitionMetricTagsLogMetricTag includes the requested fields of the GraphQL type LogMetricTag.
 type LogDerivedMetricDefinitionMetricTagsLogMetricTag struct {
@@ -4190,7 +4292,11 @@ func (v *MonitorActionEmailAction) GetIsHtml() bool { return v.IsHtml }
 
 // MonitorActionHeadersWebhookHeader includes the requested fields of the GraphQL type WebhookHeader.
 type MonitorActionHeadersWebhookHeader struct {
-	Header        string `json:"header"`
+	Header string `json:"header"`
+	// A value template that can be rendered.
+	//
+	// Carries the outbound request's credential when the header is Authorization or
+	// an API-token header, so it is @secret. The name stays loggable.
 	ValueTemplate string `json:"valueTemplate"`
 }
 
@@ -4307,14 +4413,20 @@ type MonitorActionWebhookAction struct {
 	// Rate limit measured in nanoseconds.
 	// For email actions the minimum is: 10 / 10min
 	// For webhook actions the minimum is: 10 / 1s
-	RateLimit     types.DurationScalar                `json:"rateLimit"`
-	NotifyOnClose bool                                `json:"notifyOnClose"`
-	IsPrivate     bool                                `json:"isPrivate"`
-	Typename      *string                             `json:"__typename"`
-	UrlTemplate   string                              `json:"urlTemplate"`
-	Method        string                              `json:"method"`
-	Headers       []MonitorActionHeadersWebhookHeader `json:"headers"`
-	BodyTemplate  string                              `json:"bodyTemplate"`
+	RateLimit     types.DurationScalar `json:"rateLimit"`
+	NotifyOnClose bool                 `json:"notifyOnClose"`
+	IsPrivate     bool                 `json:"isPrivate"`
+	Typename      *string              `json:"__typename"`
+	// The webhook destination URL template.
+	//
+	// For destinations such as Slack incoming webhooks the URL is itself the
+	// credential: holding it grants unauthenticated POST into the customer's
+	// channel, with no expiry and no second factor, so it is @secret (OB-65908).
+	// Only the customer can revoke it, by regenerating the hook.
+	UrlTemplate  string                              `json:"urlTemplate"`
+	Method       string                              `json:"method"`
+	Headers      []MonitorActionHeadersWebhookHeader `json:"headers"`
+	BodyTemplate string                              `json:"bodyTemplate"`
 }
 
 // GetId returns MonitorActionWebhookAction.Id, and is useful for accessing the field via an interface.
@@ -4526,11 +4638,15 @@ func (v *MonitorNotificationSpecNotificationSpecification) GetNotifyOnClose() *b
 // MonitorQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorQueryMultiStageQuery struct {
 	OutputStage string       `json:"outputStage"`
+	OpalVersion *OpalVersion `json:"opalVersion"`
 	Stages      []StageQuery `json:"stages"`
 }
 
 // GetOutputStage returns MonitorQueryMultiStageQuery.OutputStage, and is useful for accessing the field via an interface.
 func (v *MonitorQueryMultiStageQuery) GetOutputStage() string { return v.OutputStage }
+
+// GetOpalVersion returns MonitorQueryMultiStageQuery.OpalVersion, and is useful for accessing the field via an interface.
+func (v *MonitorQueryMultiStageQuery) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // GetStages returns MonitorQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
 func (v *MonitorQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
@@ -5481,8 +5597,9 @@ const (
 // MonitorV2AnomalyRule includes the GraphQL fields of MonitorV2AnomalyRule requested by the fragment MonitorV2AnomalyRule.
 type MonitorV2AnomalyRule struct {
 	// ComparePercentage is the percentage of points that needs to be out of bound within the evaluation
-	// window for the monitor to trigger the anomaly rule. It will always do a greater than or equal to
-	// evaluation of this following comparison. It accepts a range between 0 to 100.
+	// window for the monitor to trigger the anomaly rule. It does a greater than or equal to evaluation
+	// against that percentage. It accepts a range between 0 to 100. When CompareValues is set, it takes
+	// precedence and this field is ignored.
 	ComparePercentage *types.Int64Scalar `json:"comparePercentage"`
 	// CompareGroups is a list of comparisons made against the columns which the monitor is grouped by.
 	// This gives the option to add extra dimension to the existing rule by specifying which column of
@@ -5498,8 +5615,14 @@ func (v *MonitorV2AnomalyRule) GetComparePercentage() *types.Int64Scalar { retur
 func (v *MonitorV2AnomalyRule) GetCompareGroups() []MonitorV2ColumnComparison { return v.CompareGroups }
 
 type MonitorV2AnomalyRuleInput struct {
+	CompareValues     []MonitorV2ComparisonInput       `json:"compareValues"`
 	ComparePercentage *types.Int64Scalar               `json:"comparePercentage,omitempty"`
 	CompareGroups     []MonitorV2ColumnComparisonInput `json:"compareGroups,omitempty"`
+}
+
+// GetCompareValues returns MonitorV2AnomalyRuleInput.CompareValues, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleInput) GetCompareValues() []MonitorV2ComparisonInput {
+	return v.CompareValues
 }
 
 // GetComparePercentage returns MonitorV2AnomalyRuleInput.ComparePercentage, and is useful for accessing the field via an interface.
@@ -5583,13 +5706,14 @@ func (v *MonitorV2AnomalyRuleTemplateBasicAlgorithmTypedMonitorV2BasicAlgorithm)
 }
 
 type MonitorV2AnomalyRuleTemplateInput struct {
-	ComputationWindow   *types.DurationScalar            `json:"computationWindow,omitempty"`
-	Frequency           *types.DurationScalar            `json:"frequency"`
-	ValueColumnName     string                           `json:"valueColumnName"`
-	CompareFn           MonitorV2BoundComparisonFunction `json:"compareFn"`
-	BasicAlgorithm      *types.JsonObject                `json:"basicAlgorithm"`
-	BasicAlgorithmTyped *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
-	SeasonalAlgorithm   *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
+	ComputationWindow     *types.DurationScalar            `json:"computationWindow,omitempty"`
+	Frequency             *types.DurationScalar            `json:"frequency"`
+	ValueColumnName       string                           `json:"valueColumnName"`
+	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
+	NumStandardDeviations *types.Int64Scalar               `json:"numStandardDeviations"`
+	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
+	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
+	SeasonalAlgorithm     *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
 }
 
 // GetComputationWindow returns MonitorV2AnomalyRuleTemplateInput.ComputationWindow, and is useful for accessing the field via an interface.
@@ -5606,6 +5730,11 @@ func (v *MonitorV2AnomalyRuleTemplateInput) GetValueColumnName() string { return
 // GetCompareFn returns MonitorV2AnomalyRuleTemplateInput.CompareFn, and is useful for accessing the field via an interface.
 func (v *MonitorV2AnomalyRuleTemplateInput) GetCompareFn() MonitorV2BoundComparisonFunction {
 	return v.CompareFn
+}
+
+// GetNumStandardDeviations returns MonitorV2AnomalyRuleTemplateInput.NumStandardDeviations, and is useful for accessing the field via an interface.
+func (v *MonitorV2AnomalyRuleTemplateInput) GetNumStandardDeviations() *types.Int64Scalar {
+	return v.NumStandardDeviations
 }
 
 // GetBasicAlgorithm returns MonitorV2AnomalyRuleTemplateInput.BasicAlgorithm, and is useful for accessing the field via an interface.
@@ -5878,6 +6007,36 @@ func (v *MonitorV2ComparisonTermInput) GetComparison() MonitorV2ComparisonInput 
 // GetColumn returns MonitorV2ComparisonTermInput.Column, and is useful for accessing the field via an interface.
 func (v *MonitorV2ComparisonTermInput) GetColumn() MonitorV2ColumnInput { return v.Column }
 
+type MonitorV2CompositeConstituentInput struct {
+	Alias               string `json:"alias"`
+	MonitorId           string `json:"monitorId"`
+	NotifyIndependently bool   `json:"notifyIndependently"`
+}
+
+// GetAlias returns MonitorV2CompositeConstituentInput.Alias, and is useful for accessing the field via an interface.
+func (v *MonitorV2CompositeConstituentInput) GetAlias() string { return v.Alias }
+
+// GetMonitorId returns MonitorV2CompositeConstituentInput.MonitorId, and is useful for accessing the field via an interface.
+func (v *MonitorV2CompositeConstituentInput) GetMonitorId() string { return v.MonitorId }
+
+// GetNotifyIndependently returns MonitorV2CompositeConstituentInput.NotifyIndependently, and is useful for accessing the field via an interface.
+func (v *MonitorV2CompositeConstituentInput) GetNotifyIndependently() bool {
+	return v.NotifyIndependently
+}
+
+type MonitorV2CompositeRuleTemplateInput struct {
+	Constituents []MonitorV2CompositeConstituentInput `json:"constituents"`
+	Condition    *string                              `json:"condition"`
+}
+
+// GetConstituents returns MonitorV2CompositeRuleTemplateInput.Constituents, and is useful for accessing the field via an interface.
+func (v *MonitorV2CompositeRuleTemplateInput) GetConstituents() []MonitorV2CompositeConstituentInput {
+	return v.Constituents
+}
+
+// GetCondition returns MonitorV2CompositeRuleTemplateInput.Condition, and is useful for accessing the field via an interface.
+func (v *MonitorV2CompositeRuleTemplateInput) GetCondition() *string { return v.Condition }
+
 // MonitorV2CorrelationTag includes the GraphQL fields of MonitorV2CorrelationTag requested by the fragment MonitorV2CorrelationTag.
 type MonitorV2CorrelationTag struct {
 	// The correlation tag name, e.g. "service.name". The leading '#' is implied and
@@ -6146,11 +6305,17 @@ func (v *MonitorV2DefinitionInput) GetServiceBindings() []MonitorV2ServiceBindin
 // MonitorV2DefinitionInputQueryMultiStageQuery includes the requested fields of the GraphQL type MultiStageQuery.
 type MonitorV2DefinitionInputQueryMultiStageQuery struct {
 	OutputStage string       `json:"outputStage"`
+	OpalVersion *OpalVersion `json:"opalVersion"`
 	Stages      []StageQuery `json:"stages"`
 }
 
 // GetOutputStage returns MonitorV2DefinitionInputQueryMultiStageQuery.OutputStage, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetOutputStage() string { return v.OutputStage }
+
+// GetOpalVersion returns MonitorV2DefinitionInputQueryMultiStageQuery.OpalVersion, and is useful for accessing the field via an interface.
+func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetOpalVersion() *OpalVersion {
+	return v.OpalVersion
+}
 
 // GetStages returns MonitorV2DefinitionInputQueryMultiStageQuery.Stages, and is useful for accessing the field via an interface.
 func (v *MonitorV2DefinitionInputQueryMultiStageQuery) GetStages() []StageQuery { return v.Stages }
@@ -6218,15 +6383,22 @@ const (
 )
 
 type MonitorV2Input struct {
-	SharingRules                     []MonitorSharingRuleInput        `json:"sharingRules"`
-	Disabled                         *bool                            `json:"disabled,omitempty"`
-	Comment                          *string                          `json:"comment"`
-	Definition                       MonitorV2DefinitionInput         `json:"definition"`
-	RuleKind                         MonitorV2RuleKind                `json:"ruleKind"`
-	InvestigationInfo                *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
-	AiTriagingMode                   *MonitorV2AiTriagingMode         `json:"aiTriagingMode"`
-	AiSreMaxInvestigationsPerMonitor *types.Int64Scalar               `json:"aiSreMaxInvestigationsPerMonitor"`
-	AiSreInvestigationWindowSeconds  *types.Int64Scalar               `json:"aiSreInvestigationWindowSeconds"`
+	SharingRules      []MonitorSharingRuleInput        `json:"sharingRules"`
+	Disabled          *bool                            `json:"disabled,omitempty"`
+	Comment           *string                          `json:"comment"`
+	Definition        MonitorV2DefinitionInput         `json:"definition"`
+	RuleKind          MonitorV2RuleKind                `json:"ruleKind"`
+	InvestigationInfo *MonitorV2InvestigationInfoInput `json:"investigationInfo"`
+	AiTriagingMode    *MonitorV2AiTriagingMode         `json:"aiTriagingMode"`
+	// Reassigns this monitor's AI SRE identity to the acting user. Absent or
+	// false leaves it unchanged; it cannot be assigned to anyone else.
+	AiSreIdentityToSelf              *bool              `json:"aiSreIdentityToSelf"`
+	AiSreMaxInvestigationsPerMonitor *types.Int64Scalar `json:"aiSreMaxInvestigationsPerMonitor"`
+	AiSreInvestigationWindowSeconds  *types.Int64Scalar `json:"aiSreInvestigationWindowSeconds"`
+	// Alert severity levels that automatically trigger an AI SRE investigation.
+	// Omit or set to null to trigger for every level. An empty list triggers for
+	// no levels.
+	AiSreTriggerLevels []MonitorV2AlarmLevel `json:"aiSreTriggerLevels"`
 	// Object tags for organizing and categorizing monitors.
 	ObjectTags  []ObjectTagMappingInput `json:"objectTags"`
 	Name        string                  `json:"name"`
@@ -6259,6 +6431,9 @@ func (v *MonitorV2Input) GetInvestigationInfo() *MonitorV2InvestigationInfoInput
 // GetAiTriagingMode returns MonitorV2Input.AiTriagingMode, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetAiTriagingMode() *MonitorV2AiTriagingMode { return v.AiTriagingMode }
 
+// GetAiSreIdentityToSelf returns MonitorV2Input.AiSreIdentityToSelf, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetAiSreIdentityToSelf() *bool { return v.AiSreIdentityToSelf }
+
 // GetAiSreMaxInvestigationsPerMonitor returns MonitorV2Input.AiSreMaxInvestigationsPerMonitor, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetAiSreMaxInvestigationsPerMonitor() *types.Int64Scalar {
 	return v.AiSreMaxInvestigationsPerMonitor
@@ -6268,6 +6443,9 @@ func (v *MonitorV2Input) GetAiSreMaxInvestigationsPerMonitor() *types.Int64Scala
 func (v *MonitorV2Input) GetAiSreInvestigationWindowSeconds() *types.Int64Scalar {
 	return v.AiSreInvestigationWindowSeconds
 }
+
+// GetAiSreTriggerLevels returns MonitorV2Input.AiSreTriggerLevels, and is useful for accessing the field via an interface.
+func (v *MonitorV2Input) GetAiSreTriggerLevels() []MonitorV2AlarmLevel { return v.AiSreTriggerLevels }
 
 // GetObjectTags returns MonitorV2Input.ObjectTags, and is useful for accessing the field via an interface.
 func (v *MonitorV2Input) GetObjectTags() []ObjectTagMappingInput { return v.ObjectTags }
@@ -6536,10 +6714,15 @@ func (v *MonitorV2RuleInput) GetAnomaly() *MonitorV2AnomalyRuleInput { return v.
 // scene.
 // - Anomaly is when you want alert based on any irregularity noticed in the new
 // set of data using the expected trend from modeling the data in the past.
+// - Composite is the one kind that inspects no query at all. It combines other
+// monitors with a boolean condition over whether each is currently alerting,
+// correlated per group, so its inputQuery is empty and its severity comes from
+// whichever constituents made the condition true.
 type MonitorV2RuleKind string
 
 const (
 	MonitorV2RuleKindAnomaly   MonitorV2RuleKind = "Anomaly"
+	MonitorV2RuleKindComposite MonitorV2RuleKind = "Composite"
 	MonitorV2RuleKindCount     MonitorV2RuleKind = "Count"
 	MonitorV2RuleKindPromote   MonitorV2RuleKind = "Promote"
 	MonitorV2RuleKindThreshold MonitorV2RuleKind = "Threshold"
@@ -6554,12 +6737,18 @@ type MonitorV2RuleTemplate struct {
 func (v *MonitorV2RuleTemplate) GetAnomaly() *MonitorV2AnomalyRuleTemplate { return v.Anomaly }
 
 type MonitorV2RuleTemplateInput struct {
-	Anomaly *MonitorV2AnomalyRuleTemplateInput `json:"anomaly"`
+	Anomaly   *MonitorV2AnomalyRuleTemplateInput   `json:"anomaly"`
+	Composite *MonitorV2CompositeRuleTemplateInput `json:"composite"`
 }
 
 // GetAnomaly returns MonitorV2RuleTemplateInput.Anomaly, and is useful for accessing the field via an interface.
 func (v *MonitorV2RuleTemplateInput) GetAnomaly() *MonitorV2AnomalyRuleTemplateInput {
 	return v.Anomaly
+}
+
+// GetComposite returns MonitorV2RuleTemplateInput.Composite, and is useful for accessing the field via an interface.
+func (v *MonitorV2RuleTemplateInput) GetComposite() *MonitorV2CompositeRuleTemplateInput {
+	return v.Composite
 }
 
 // MonitorV2Scheduling includes the GraphQL fields of MonitorV2Scheduling requested by the fragment MonitorV2Scheduling.
@@ -6826,6 +7015,11 @@ type MonitorV2WebhookAction struct {
 	// main action template using the {{>partial}} syntax.
 	Fragments *types.JsonObject `json:"fragments"`
 	// A webhook URL template to a destination that can be rendered.
+	//
+	// For destinations such as Slack incoming webhooks the URL is itself the
+	// credential: holding it grants unauthenticated POST into the customer's
+	// channel, with no expiry and no second factor, so it is @secret (OB-65908).
+	// Only the customer can revoke it, by regenerating the hook.
 	Url string `json:"url"`
 	// HTTP POST or PUT request into the webhook URL.
 	Method MonitorV2HttpType `json:"method"`
@@ -6847,6 +7041,7 @@ func (v *MonitorV2WebhookAction) GetUrl() string { return v.Url }
 func (v *MonitorV2WebhookAction) GetMethod() MonitorV2HttpType { return v.Method }
 
 type MonitorV2WebhookActionInput struct {
+	// A webhook URL template; see MonitorV2WebhookAction.url.
 	Url       string                        `json:"url"`
 	Method    MonitorV2HttpType             `json:"method"`
 	Headers   []MonitorV2WebhookHeaderInput `json:"headers,omitempty"`
@@ -6874,6 +7069,9 @@ type MonitorV2WebhookHeader struct {
 	// A webhook header.
 	Header string `json:"header"`
 	// A value template that can be rendered.
+	//
+	// Carries the outbound request's credential when the header is Authorization or
+	// an API-token header, so it is @secret. The name stays loggable.
 	Value string `json:"value"`
 }
 
@@ -6900,6 +7098,7 @@ type MultiStageQueryInput struct {
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 	Layout          *types.JsonObject       `json:"layout"`
+	OpalVersion     *OpalVersion            `json:"opalVersion,omitempty"`
 }
 
 // GetOutputStage returns MultiStageQueryInput.OutputStage, and is useful for accessing the field via an interface.
@@ -6916,6 +7115,9 @@ func (v *MultiStageQueryInput) GetParameterValues() []ParameterBindingInput { re
 
 // GetLayout returns MultiStageQueryInput.Layout, and is useful for accessing the field via an interface.
 func (v *MultiStageQueryInput) GetLayout() *types.JsonObject { return v.Layout }
+
+// GetOpalVersion returns MultiStageQueryInput.OpalVersion, and is useful for accessing the field via an interface.
+func (v *MultiStageQueryInput) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // MutateRbacStatementsResponse includes the GraphQL fields of MutateRbacStatementsResponse requested by the fragment MutateRbacStatementsResponse.
 type MutateRbacStatementsResponse struct {
@@ -7260,6 +7462,14 @@ const (
 	ObjectVisibilityUnlisted ObjectVisibility = "Unlisted"
 )
 
+// OPAL language version. Omitted or null means the earliest version.
+type OpalVersion string
+
+const (
+	OpalVersionV20210101 OpalVersion = "v2021_01_01"
+	OpalVersionV20260930 OpalVersion = "v2026_09_30"
+)
+
 type PaginationInput struct {
 	// Number of rows to return in paginatedResults of initial TaskResult. May
 	// be set to 0, in which case paginatedResults will only contain a cursor
@@ -7296,7 +7506,12 @@ func (v *PaginationInput) GetCursorCacheMode() *CursorCacheMode { return v.Curso
 // parallel.  For APIs that take MultiStageQueryInput, parameterValues are part
 // of that query.
 type ParameterBindingInput struct {
-	Id    string      `json:"id"`
+	Id string `json:"id"`
+	// The bound parameter value.
+	//
+	// @secret: supplied by whoever ran the query, and nothing constrains what they
+	// bind -- a parameter is as likely to hold a token a customer is filtering on as
+	// a hostname. The id names the parameter and stays loggable (OB-66460).
 	Value types.Value `json:"value"`
 }
 
@@ -8429,6 +8644,7 @@ type PollerInput struct {
 	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
 	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
+	CloudwatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudwatchMetricsConfig"`
 	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig"`
 	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	DebugMode               *bool                         `json:"debugMode"`
@@ -8483,6 +8699,11 @@ func (v *PollerInput) GetConfluentCloudConfig() *PollerConfluentCloudInput {
 // GetCloudWatchMetricsConfig returns PollerInput.CloudWatchMetricsConfig, and is useful for accessing the field via an interface.
 func (v *PollerInput) GetCloudWatchMetricsConfig() *PollerCloudWatchMetricsInput {
 	return v.CloudWatchMetricsConfig
+}
+
+// GetCloudwatchMetricsConfig returns PollerInput.CloudwatchMetricsConfig, and is useful for accessing the field via an interface.
+func (v *PollerInput) GetCloudwatchMetricsConfig() *PollerCloudWatchMetricsInput {
+	return v.CloudwatchMetricsConfig
 }
 
 // GetAwsSnapshotConfig returns PollerInput.AwsSnapshotConfig, and is useful for accessing the field via an interface.
@@ -9224,7 +9445,8 @@ const (
 )
 
 type ResourceIdInput struct {
-	DatasetId       string                `json:"datasetId"`
+	DatasetId string `json:"datasetId"`
+	// Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
 	PrimaryKeyValue []ColumnAndValueInput `json:"primaryKeyValue"`
 	TimeRange       *TimeRangeInput       `json:"timeRange"`
 }
@@ -9558,7 +9780,10 @@ type StageMetadata struct {
 	Description *string `json:"description"`
 	// What component feature is this stage driving? i.e. filter bar, visualization etc.
 	Component *string `json:"component"`
-	// Extra stuff
+	// Extra stuff.
+	//
+	// @secret: an opaque client-supplied JSON bag; see QueryMetadata.extra
+	// (OB-66441).
 	Extra *types.JsonObject `json:"extra"`
 }
 
@@ -9708,6 +9933,8 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
+	StageID *string `json:"stageID"`
+	StageId *string `json:"stageId"`
 	// make id required when we've removed all deprecated use of stageId
 	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`
@@ -9716,6 +9943,12 @@ type StageQueryInput struct {
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
 }
+
+// GetStageID returns StageQueryInput.StageID, and is useful for accessing the field via an interface.
+func (v *StageQueryInput) GetStageID() *string { return v.StageID }
+
+// GetStageId returns StageQueryInput.StageId, and is useful for accessing the field via an interface.
+func (v *StageQueryInput) GetStageId() *string { return v.StageId }
 
 // GetId returns StageQueryInput.Id, and is useful for accessing the field via an interface.
 func (v *StageQueryInput) GetId() *string { return v.Id }
@@ -9740,8 +9973,10 @@ type StageQueryInputInputDefinition struct {
 	// Assign the short and unique user mnemonic for this input, used in @tableref expressions
 	InputName string    `json:"inputName"`
 	InputRole InputRole `json:"inputRole"`
-	// One of the input definition fields is used; the others are null
-	// because GO doesn't have unions.
+	// One of datasetId or stageId identifies what this input is bound to; GO
+	// doesn't have unions, so both fields exist but only one is set. When the
+	// binding is a dataset, datasetPath is also populated alongside datasetId
+	// as a portable "<workspace>.<label>" reference.
 	DatasetId   *string `json:"datasetId"`
 	DatasetPath *string `json:"datasetPath"`
 	// Only set stageId to reference input that comes from an actual stage in the same query
@@ -9843,6 +10078,7 @@ const (
 	TerraformObjectTypeDashboard       TerraformObjectType = "Dashboard"
 	TerraformObjectTypeMonitorv2       TerraformObjectType = "MonitorV2"
 	TerraformObjectTypeMonitorv2action TerraformObjectType = "MonitorV2Action"
+	TerraformObjectTypeWorksheet       TerraformObjectType = "Worksheet"
 )
 
 type ThresholdAggFunction string
@@ -10016,7 +10252,8 @@ func (v *VolumeStatsInput) GetNeedTotalCount() *bool { return v.NeedTotalCount }
 
 type WebhookActionInput struct {
 	// If the templateName is not set, it will be set as an empty string.
-	TemplateName *string              `json:"templateName"`
+	TemplateName *string `json:"templateName"`
+	// The webhook destination URL template; see WebhookAction.urlTemplate.
 	UrlTemplate  *string              `json:"urlTemplate"`
 	Method       *string              `json:"method"`
 	Headers      []WebhookHeaderInput `json:"headers"`
@@ -10064,6 +10301,7 @@ type Worksheet struct {
 	Icon        *string      `json:"icon"`
 	ManagedById *string      `json:"managedById"`
 	WorkspaceId string       `json:"workspaceId"`
+	OpalVersion *OpalVersion `json:"opalVersion"`
 	Stages      []StageQuery `json:"stages"`
 	// Object tags for organizing and categorizing worksheets.
 	ObjectTags []ObjectTagMapping `json:"objectTags"`
@@ -10083,6 +10321,9 @@ func (v *Worksheet) GetManagedById() *string { return v.ManagedById }
 
 // GetWorkspaceId returns Worksheet.WorkspaceId, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetWorkspaceId() string { return v.WorkspaceId }
+
+// GetOpalVersion returns Worksheet.OpalVersion, and is useful for accessing the field via an interface.
+func (v *Worksheet) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // GetStages returns Worksheet.Stages, and is useful for accessing the field via an interface.
 func (v *Worksheet) GetStages() []StageQuery { return v.Stages }
@@ -10104,16 +10345,18 @@ func (v *WorksheetIdLabel) GetLabel() string { return v.Label }
 
 type WorksheetInput struct {
 	// if id is not specified, a new worksheet is created
-	Id              *string                 `json:"id"`
-	Name            *string                 `json:"name"`
-	Description     *string                 `json:"description"`
-	WorkspaceId     *string                 `json:"workspaceId"`
-	ManagedById     *string                 `json:"managedById"`
+	Id          *string `json:"id"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	WorkspaceId *string `json:"workspaceId"`
+	ManagedById *string `json:"managedById"`
+	// See IWorksheetLike.layout (OB-66447).
 	Layout          *types.JsonObject       `json:"layout"`
 	IconUrl         *string                 `json:"iconUrl"`
 	Stages          []StageQueryInput       `json:"stages"`
 	Parameters      []ParameterSpecInput    `json:"parameters"`
 	ParameterValues []ParameterBindingInput `json:"parameterValues"`
+	OpalVersion     *OpalVersion            `json:"opalVersion,omitempty"`
 	// Unlisted worksheets are not returned by worksheetSearch except for the creating user.
 	Visibility *ObjectVisibility `json:"visibility"`
 	// Object tags for organizing and categorizing worksheets.
@@ -10154,6 +10397,9 @@ func (v *WorksheetInput) GetParameters() []ParameterSpecInput { return v.Paramet
 
 // GetParameterValues returns WorksheetInput.ParameterValues, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetParameterValues() []ParameterBindingInput { return v.ParameterValues }
+
+// GetOpalVersion returns WorksheetInput.OpalVersion, and is useful for accessing the field via an interface.
+func (v *WorksheetInput) GetOpalVersion() *OpalVersion { return v.OpalVersion }
 
 // GetVisibility returns WorksheetInput.Visibility, and is useful for accessing the field via an interface.
 func (v *WorksheetInput) GetVisibility() *ObjectVisibility { return v.Visibility }
@@ -12573,11 +12819,11 @@ func (v *getChannelResponse) GetChannel() *Channel { return v.Channel }
 
 // getCloudInfoCloudCustomer includes the requested fields of the GraphQL type Customer.
 type getCloudInfoCloudCustomer struct {
-	CloudInfo CloudInfo `json:"cloudInfo"`
+	CloudInfo *CloudInfo `json:"cloudInfo"`
 }
 
 // GetCloudInfo returns getCloudInfoCloudCustomer.CloudInfo, and is useful for accessing the field via an interface.
-func (v *getCloudInfoCloudCustomer) GetCloudInfo() CloudInfo { return v.CloudInfo }
+func (v *getCloudInfoCloudCustomer) GetCloudInfo() *CloudInfo { return v.CloudInfo }
 
 // getCloudInfoResponse is returned by getCloudInfo on success.
 type getCloudInfoResponse struct {
@@ -14734,6 +14980,7 @@ fragment Monitor on Monitor {
 	managedById
 	query {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -14976,6 +15223,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -17493,6 +17741,7 @@ fragment Dashboard on Dashboard {
 	description
 	workspaceId
 	managedById
+	opalVersion
 	objectTags {
 		key
 		values
@@ -17680,6 +17929,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				stages {
 					... StageQuery
 				}
@@ -18444,6 +18694,7 @@ fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
 		}
 	}
 	interval
+	opalVersion
 }
 fragment StageQuery on StageQuery {
 	id
@@ -18509,6 +18760,7 @@ fragment Monitor on Monitor {
 	managedById
 	query {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -18748,6 +19000,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -19711,6 +19964,7 @@ fragment Worksheet on Worksheet {
 	icon
 	managedById
 	workspaceId
+	opalVersion
 	stages {
 		... StageQuery
 	}
@@ -19837,6 +20091,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				stages {
 					... StageQuery
 				}
@@ -20135,6 +20390,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				stages {
 					... StageQuery
 				}
@@ -20401,6 +20657,7 @@ fragment Monitor on Monitor {
 	managedById
 	query {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -20541,6 +20798,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -21048,6 +21306,7 @@ fragment Dashboard on Dashboard {
 	description
 	workspaceId
 	managedById
+	opalVersion
 	objectTags {
 		key
 		values
@@ -21196,6 +21455,7 @@ fragment Dataset on Dataset {
 		current {
 			query {
 				outputStage
+				opalVersion
 				stages {
 					... StageQuery
 				}
@@ -21415,6 +21675,7 @@ fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
 		}
 	}
 	interval
+	opalVersion
 }
 fragment StageQuery on StageQuery {
 	id
@@ -21551,6 +21812,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -21870,6 +22132,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -22173,6 +22436,7 @@ fragment Worksheet on Worksheet {
 	icon
 	managedById
 	workspaceId
+	opalVersion
 	stages {
 		... StageQuery
 	}
@@ -23357,6 +23621,7 @@ fragment Monitor on Monitor {
 	managedById
 	query {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
@@ -23603,6 +23868,7 @@ fragment MonitorV2 on MonitorV2 {
 fragment MonitorV2Definition on MonitorV2Definition {
 	inputQuery {
 		outputStage
+		opalVersion
 		stages {
 			... StageQuery
 		}
