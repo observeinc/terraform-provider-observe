@@ -58,7 +58,7 @@ type Filedrop implements WorkspaceObject & AuditedObject & FolderObject @goModel
     """
     ID of the datastream token managed by the filedrop
     """
-    datastreamTokenID: String! @allowLogging
+    datastreamTokenID: String!
     config: FiledropConfig!
     endpoint: FiledropEndpoint!
     stats: DatastreamTokenStats @goField(forceResolver: true)

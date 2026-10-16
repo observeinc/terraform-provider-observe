@@ -10,8 +10,8 @@ extend type Query {
 
     """
     Finds all global metric, correlation, and ingest tags or specific tag kinds.
-     - match: Looks for tags that matches the name exactly.
-     - prefix: Looks for tags with the matching prefix.
+     - match: Looks for tags whose name contains the given string (case insensitive). If both match and prefix are provided, match takes precedence and prefix is ignored.
+     - prefix: Looks for tags whose name starts with the given prefix (case insensitive).
      - limit: Enforces a hard limit on the tags returned.
      - metrics: Narrows the search to the given metric. Leaving it empty will look for all metrics.
      - datasetIds: Narrows the search to the given dataset. Leaving it empty will look for all datasets.

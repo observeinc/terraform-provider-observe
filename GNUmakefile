@@ -82,6 +82,16 @@ copy-gql-schema:
 	# Strip out @owner directives from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^directive/!s/ @owner([^)]*)//g'
 
+	# @secret and @allowLogging are server telemetry markers. Drop the directive
+	# definitions and their uses. Leave description text that only mentions them.
+	python3 scripts/strip-gql-logging-directives.py client/internal/meta/schema
+
+	# @oneOf is a GraphQL built-in. genqlient's parser only accepts directives
+	# that the schema defines, so declare it when the copied schema uses it.
+	if ! grep -q '^directive @oneOf' client/internal/meta/schema/base/base_public.graphql; then \
+		printf '\ndirective @oneOf on INPUT_OBJECT\n' >> client/internal/meta/schema/base/base_public.graphql; \
+	fi
+
 	# Remove internal comment lines starting with # from all .graphql files
 	find client/internal/meta/schema -name '*.graphql' -print0 | xargs -0 sed -i'' -e '/^[[:space:]]*#/d'
 

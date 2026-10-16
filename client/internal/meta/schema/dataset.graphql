@@ -44,7 +44,7 @@ extend type Mutation {
         workspaceId: ObjectId,
         dataset: DatasetInput!,
         query: MultiStageQueryInput,
-        logDerivedMetricQuery: LogDerivedMetricDefinitionInput @allowLogging,
+        logDerivedMetricQuery: LogDerivedMetricDefinitionInput,
         dependencyHandling: DependencyHandlingInput,
     ): DatasetSaveResult
     deleteDataset(dsid: ObjectId!, dependencyHandling: DependencyHandlingInput): ResultStatus
@@ -211,7 +211,7 @@ type TransformVersion @goModel(model: "observe/meta/metatypes.TransformVersion")
     stages: [StageQuery!]! @deprecated(reason: "Use query.stages instead")
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
-    layout: JsonObject @deprecated(reason: "Use query.layout instead") @secret
+    layout: JsonObject @deprecated(reason: "Use query.layout instead")
     query: MultiStageQuery
     builtinTransform: BuiltinTransformDefinition
 }
@@ -389,11 +389,11 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     validToField: String
     labelField: String
     iconUrl: String
-    primaryKey: [String!] @allowLogging
-    keys: [[String!]!] @allowLogging
-    foreignKeys: [ForeignKey!] @allowLogging
-    relatedKeys: [RelatedKey!] @allowLogging
-    groupingKey: GroupingKey @allowLogging
+    primaryKey: [String!]
+    keys: [[String!]!]
+    foreignKeys: [ForeignKey!]
+    relatedKeys: [RelatedKey!]
+    groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!] @goField(forceResolver:false)
     tags: [TagMapping!] @goField(forceResolver: true)
 
@@ -434,7 +434,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     Null if the dataset has no recognized content type or if the content type does not
     use field mappings (e.g. Resource).
     """
-    customFieldMappings: JsonObject @goField(forceResolver:true) @secret
+    customFieldMappings: JsonObject @goField(forceResolver:true)
 
     metrics: [Metric!]! @goField(forceResolver:true)
     boards: [Board!]! @goField(forceResolver:true)
@@ -444,7 +444,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedById: ObjectId
     folderId: ObjectId!
     indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
-    dataTableViewState: JsonObject @secret
+    dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
     """
@@ -474,7 +474,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     """
     hibernatedAt: Time @goField(forceResolver:true)
 
-    logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true) @allowLogging
+    logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true)
     """
     Defines the data retention period of the dataset. We will currently only persist this field but
     it wouldn't take effect. TODO: Also apply it to the data retention manager.
@@ -635,8 +635,8 @@ type RelationshipPathElement @goModel(model: "observe/meta/metapath.Relationship
     """
     One of forwardKey or backwardKey will be used
     """
-    forwardKey:  ForeignKey @allowLogging
-    reverseKey:  RelatedKey @allowLogging
+    forwardKey:  ForeignKey
+    reverseKey:  RelatedKey
 }
 
 type RelationshipPathResult @goModel(model: "observe/meta/metapath.RelationshipPathResult") {
@@ -654,9 +654,9 @@ input RelationshipCostAttributes @goModel(model: "observe/meta/metapath.Relation
     costForwardStep: Int64
     costReverseStep: Int64
     costSwitchDirection: Int64
-    costForwardKeysSquared: Int64 @allowLogging
-    costReverseKeysSquared: Int64 @allowLogging
-    costKeyDisparitySquared: Int64 @allowLogging
+    costForwardKeysSquared: Int64
+    costReverseKeysSquared: Int64
+    costKeyDisparitySquared: Int64
     extraDatasetCost: [RelationshipDatasetCost!]
 }
 
@@ -698,14 +698,14 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     latencyDesired: Int64
     freshnessDesired: Int64
     iconUrl: String
-    layout: JsonObject @secret
+    layout: JsonObject
     pathCost: Int64
     """
     Disables freshness decay for this dataset. When true, the dataset's freshness
     goal will not be automatically increased based on query activity.
     """
     freshnessDecayDisabled: Boolean
-    dataTableViewState: JsonObject @secret
+    dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
     """
     Max on-demand materialization length for the dataset (in nanoseconds). If not set
@@ -771,7 +771,7 @@ enum DatasetRole @goModel(model: "observe/meta/metatypes.DatasetRole") {
 }
 
 input DatasetTypedefInput @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
-    anykey: Boolean @allowLogging
+    anykey: Boolean
     fields: [DatasetFieldDefInput!]
     linkDesc: DatasetLinkSchemaInput
 }
@@ -796,7 +796,7 @@ input DatasetFieldDefInput @goModel(model: "observe/compiler/comptypes.ObjectFie
     type: DatasetFieldTypeInput!
     isEnum: Boolean
     isSearchable: Boolean
-    isHidden: Boolean @allowLogging
+    isHidden: Boolean
     isConst: Boolean
     isMetric: Boolean
 }
@@ -812,8 +812,8 @@ input DatasetDefinitionMetadataInput @goModel(model: "observe/meta/metatypes.Dat
     validFromField: String
     validToField: String
     labelField: String
-    primaryKey: [String!] @allowLogging
-    keys: [[String!]!] @allowLogging
+    primaryKey: [String!]
+    keys: [[String!]!]
 }
 
 input DatasetDefinitionInput @goModel(model: "observe/meta/metatypes.DatasetDefinitionInput") {
@@ -901,7 +901,7 @@ type Board @goModel(model: "observe/meta/metatypes.Board") {
     createdDate: Time!
     updatedDate: Time!
     isDefault: Boolean!
-    board: JsonObject! @secret
+    board: JsonObject!
     type: BoardType!
     source: String
 }
@@ -909,7 +909,7 @@ type Board @goModel(model: "observe/meta/metatypes.Board") {
 input BoardInput @goModel(model: "observe/meta/metatypes.BoardInput") {
     name: String
     isDefault: Boolean
-    board: JsonObject @secret
+    board: JsonObject
     source: String
 }
 
@@ -922,7 +922,7 @@ type ObjectBillingInfo @goModel(model: "observe/meta/metatypes.ObjectBillingInfo
     id: ObjectId!
     periodFrom: Time!
     periodTo: Time!
-    credits: Float! @allowLogging
+    credits: Float!
 }
 
 enum DatasetDefinitionType @goModel(model: "observe/meta/metatypes.DatasetDefinitionType") {

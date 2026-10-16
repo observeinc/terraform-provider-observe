@@ -154,7 +154,7 @@ type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
     subtree is @secret (OB-65908). column and distinctCount stay loggable: a name
     and a cardinality, no values.
     """
-    topK: [ColumnStatTopKValue!] @secret
+    topK: [ColumnStatTopKValue!]
     """
     Approximate number of distinct values. Null if disabled or unavailable.
     """
@@ -164,7 +164,7 @@ type ColumnStats @goModel(model: "observe/meta/metatypes.ColumnStats") {
 
     min and max are literal data values, so this is @secret (OB-65908).
     """
-    histogram: ColumnStatHistogram @secret
+    histogram: ColumnStatHistogram
 }
 
 type CostMetric @goModel(model: "observe/meta/metaparser.CostMetric") {
@@ -205,21 +205,21 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
     """
     validFromField: String
     validToField: String
-    primaryKey: [String!] @allowLogging
+    primaryKey: [String!]
     """
     This tracks how the primary keys of input datsets map to the current
     output, reusing the convenient ForeignKey type to do so
     """
     sourceResources: [ForeignKey!]
-    keys: [[String!]!] @allowLogging
-    foreignKeys: [ForeignKey!] @allowLogging
-    relatedKeys: [RelatedKey!] @allowLogging
-    groupingKey: GroupingKey @allowLogging
+    keys: [[String!]!]
+    foreignKeys: [ForeignKey!]
+    relatedKeys: [RelatedKey!]
+    groupingKey: GroupingKey
     correlationTagMappings: [CorrelationTagMapping!]
     """
     This is the same schema as Typedef.definition
     """
-    typedefDefinition: JsonObject @deprecated(reason: "use the strong typed \"typedef\" field instead") @secret
+    typedefDefinition: JsonObject @deprecated(reason: "use the strong typed \"typedef\" field instead")
     typedef: ObjectTypedef @deprecated(reason: "use fieldList instead")
     fieldList: [FieldDesc!]
     labelField: String
@@ -260,7 +260,7 @@ type TaskResultSchema @goModel(model: "observe/meta/metatypes.TaskResultSchema")
 }
 
 type ObjectTypedef @goModel(model: "observe/compiler/comptypes.ObjectTypedef") {
-    anykey: Boolean @allowLogging
+    anykey: Boolean
     fields: [ObjectFieldDef!]
     linkDesc: LinkSchema
 }
@@ -280,10 +280,11 @@ type FieldDesc @goModel(model: "observe/meta/metatypes.FieldDesc") {
     isNullable: Boolean
     isEnum: Boolean
     isSearchable: Boolean
-    isHidden: Boolean @allowLogging
+    isHidden: Boolean
     isConst: Boolean
     isMetric: Boolean
-    isPivot: Boolean
+    shouldFlatten: Boolean
+    isPivot: Boolean @goField(name: "ShouldFlatten") @deprecated(reason: "Use shouldFlatten")
 }
 
 """
@@ -377,7 +378,7 @@ type ObjectFieldDef @goModel(model: "observe/compiler/comptypes.ObjectFieldDef")
     type: ObjectFieldType!
     isEnum: Boolean
     isSearchable: Boolean
-    isHidden: Boolean @allowLogging
+    isHidden: Boolean
     isConst: Boolean
     isMetric: Boolean
 }
@@ -478,7 +479,7 @@ input StageInput @goModel(model: "observe/meta/metaparser.StageInput") {
     """
     UI presentation data to use when storing transforms
     """
-    layout: JsonObject @secret
+    layout: JsonObject
     """
     If set, enables paginatedResults in initial TaskResult of ResultKindData.
     """
@@ -545,7 +546,7 @@ input StageMetadata @goModel(model: "observe/meta/metatypes.StageMetadata") {
     @secret: an opaque client-supplied JSON bag; see QueryMetadata.extra
     (OB-66441).
     """
-    extra: JsonObject @secret
+    extra: JsonObject
 }
 
 """
@@ -565,7 +566,7 @@ input ParameterBindingInput @goModel(model: "observe/compiler/comptypes.Paramete
     bind -- a parameter is as likely to hold a token a customer is filtering on as
     a hostname. The id names the parameter and stays loggable (OB-66460).
     """
-    value: ValueInput! @secret
+    value: ValueInput!
 }
 
 type ParameterBinding @goModel(model: "observe/compiler/comptypes.ParameterBinding") {
@@ -573,7 +574,7 @@ type ParameterBinding @goModel(model: "observe/compiler/comptypes.ParameterBindi
     """
     The bound parameter value; see ParameterBindingInput.value (OB-66460).
     """
-    value: Value! @secret
+    value: Value!
 }
 
 """
@@ -674,7 +675,7 @@ input ValueLinkInput @goModel(model: "observe/compiler/comptypes.ValueLink") {
     Contrast the primaryKey / keys / foreignKeys fields elsewhere in the schema,
     which hold column NAMES and stay @allowLogging.
     """
-    primaryKeyValue: [ValueKeyValueInput!]! @secret
+    primaryKeyValue: [ValueKeyValueInput!]!
     storedLabel: String
 }
 
@@ -683,7 +684,7 @@ type ValueLink @goModel(model: "observe/compiler/comptypes.ValueLink") {
     """
     Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
     """
-    primaryKeyValue: [ValueKeyValue!]! @secret
+    primaryKeyValue: [ValueKeyValue!]!
     storedLabel: String
 }
 
@@ -717,14 +718,14 @@ type ValueDatasetref @goModel(model: "observe/compiler/comptypes.ValueDatasetref
 input ValueTypeSpecInput @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
     type: ValueType!
     arrayItemType: ValueTypeSpecInput
-    keyForDatasetId: ObjectId @allowLogging
+    keyForDatasetId: ObjectId
     tagName: String
 }
 
 type ValueTypeSpec @goModel(model: "observe/compiler/comptypes.ValueTypeSpec") {
     type: ValueType!
     arrayItemType: ValueTypeSpec
-    keyForDatasetId: ObjectId @allowLogging
+    keyForDatasetId: ObjectId
     tagName: String
 }
 
@@ -1201,7 +1202,7 @@ input ResourceIdInput @goModel(model: "observe/meta/metatypes.ResourceIdInput") 
     """
     Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
     """
-    primaryKeyValue: [ColumnAndValueInput!]! @secret
+    primaryKeyValue: [ColumnAndValueInput!]!
     timeRange: TimeRangeInput
 }
 
@@ -1210,6 +1211,6 @@ type ResourceId @goModel(model: "observe/meta/metatypes.ResourceId") {
     """
     Dataset row values — see ValueLinkInput.primaryKeyValue (OB-65908).
     """
-    primaryKeyValue: [ColumnAndValue!]! @secret
+    primaryKeyValue: [ColumnAndValue!]!
     timeRange: TimeRange
 }

@@ -31,7 +31,7 @@ input MultiStageQueryInput @goModel(model: "observe/meta/metatypes.MultiStageQue
     stages: [StageQueryInput!]!
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
-    layout: JsonObject @secret
+    layout: JsonObject
     opalVersion: OpalVersion
 }
 
@@ -40,7 +40,7 @@ type MultiStageQuery @goModel(model: "observe/meta/metatypes.MultiStageQuery") {
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]!
     parameterValues: [ParameterBinding!]
-    layout: JsonObject @secret
+    layout: JsonObject
     opalVersion: OpalVersion
 }
 
@@ -48,9 +48,9 @@ type StageQuery @goModel(model: "observe/meta/metatypes.StageQuery") {
     stageID: String @deprecated(reason: "use id instead")
     id: String! @goField(name:StageID)
     input: [InputDefinition!]!
-    params: JsonObject @secret
+    params: JsonObject
     pipeline: String!
-    layout: JsonObject @secret
+    layout: JsonObject
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
 }
@@ -64,7 +64,7 @@ input StageQueryInput  @goModel(model: "observe/meta/metatypes.StageQueryInput")
     id: String @goField(name:StageID)
     input: [InputDefinitionInput!]!
     pipeline: String!
-    layout: JsonObject @secret
+    layout: JsonObject
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
 }
@@ -235,7 +235,7 @@ type Metric @goModel(model: "observe/meta/metatypes.Metric") {
 type Typedef @goModel(model: "observe/meta/metatypes.Typedef") {
     id: ObjectId!
     label: String!
-    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead") @secret
+    definition: JsonObject @deprecated(reason: "use the strong typed \"def\" field instead")
     def: ObjectTypedef
 }
 

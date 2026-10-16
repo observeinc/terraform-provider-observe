@@ -27,12 +27,12 @@ type Authtoken implements Token & AuditedObject @goModel(model: "observe/meta/me
 }
 
 type AuthtokenCreateResult @goModel(model: "observe/meta/metatypes.AuthtokenCreateResult") {
-    authtoken: Authtoken! @allowLogging
+    authtoken: Authtoken!
     """
     This secret is the bearer token you will present in the Authorization: header. It cannot
     be recovered if you lose it, only a hash is stored in the database.
     """
-    secret: String! @secret
+    secret: String!
 }
 
 input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
@@ -76,7 +76,7 @@ extend type Mutation {
     checks as deleteAuthtoken. The check runs before create; the mutation fails without creating a new token
     if delete is not allowed.
     """
-    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId, replaceTokenId: String @allowLogging): AuthtokenCreateResult!
+    createAuthtoken(input: AuthtokenInput!, kind: AuthtokenKind, owningUser: UserId, replaceTokenId: String): AuthtokenCreateResult!
     updateAuthtoken(id: String!, input: AuthtokenInput!, newOwningUser: UserId): Authtoken!
     deleteAuthtoken(id: String!): ResultStatus!
     """

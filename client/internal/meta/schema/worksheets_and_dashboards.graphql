@@ -57,7 +57,7 @@ interface IWorksheetLike @goModel(model: "observe/meta/metatypes.IWorksheetLike"
     data:image/png;base64 URL, so saveDashboard has been observed carrying whole
     images through here into graphql_request.variables (OB-66447).
     """
-    layout: JsonObject! @secret
+    layout: JsonObject!
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
@@ -107,9 +107,9 @@ type Dashboard implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     schemaVersion is 0, where layout, stages, and parameters carry the
     content instead.
     """
-    definition: JsonObject @goField(forceResolver: true) @secret
+    definition: JsonObject @goField(forceResolver: true)
 
-    layout: JsonObject! @secret
+    layout: JsonObject!
     stages: [StageQuery!]!
     parameters: [ParameterSpec!]
     parameterValues: [ParameterBinding!]
@@ -164,7 +164,7 @@ input DashboardInput @goModel(model: "observe/meta/metatypes.DashboardInput") {
     """
     See IWorksheetLike.layout (OB-66447).
     """
-    layout: JsonObject @secret
+    layout: JsonObject
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]
     parameterValues: [ParameterBindingInput!]
@@ -195,7 +195,7 @@ type Worksheet implements IWorksheetLike & WorkspaceObject & AuditedObject & Fol
     parameterValues: [ParameterBinding!]
     opalVersion: OpalVersion
 
-    layout: JsonObject! @goField(forceResolver:true) @secret
+    layout: JsonObject! @goField(forceResolver:true)
     parameters: [ParameterSpec!]! @goField(forceResolver:true)
     stages: [StageQuery!]! @goField(forceResolver:true)
 
@@ -258,7 +258,7 @@ input WorksheetInput @goModel(model: "observe/meta/metatypes.WorksheetInput") {
     """
     See IWorksheetLike.layout (OB-66447).
     """
-    layout: JsonObject @secret
+    layout: JsonObject
     iconUrl: String
     stages: [StageQueryInput!]
     parameters: [ParameterSpecInput!]

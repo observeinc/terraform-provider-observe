@@ -68,7 +68,7 @@ extend type Query {
     Compression, including RLE, is also not accounted for.
     There's no cap if this parameter is not provided or its value is 0.
     """
-    cursor(cursorId: String!, offset: Int64!, numRows: Int64!, rollupFilter: RollupFilterInput, maxBytes: Int64): PaginatedResults @secret
+    cursor(cursorId: String!, offset: Int64!, numRows: Int64!, rollupFilter: RollupFilterInput, maxBytes: Int64): PaginatedResults
 
     """
     Given some datasets and pipeline expressions, run the query and extract the
@@ -142,7 +142,7 @@ type ExportCursorResult @goModel(model: "observe/meta/metatypes.ExportCursorResu
     Anyone holding this URL can GET the whole result set until it expires, so it
     discloses exactly as much as the rows themselves and is @secret (OB-65908).
     """
-    exportUrl: String! @secret
+    exportUrl: String!
 
     """
     The export URL will expire at some time in the future. This is that time.
@@ -184,14 +184,14 @@ extend type TaskResult {
     """
     You used to paginate the data yourself out of S3 -- not needed anymore
     """
-    resultCursor: SnowflakeCursor @deprecated(reason: "use paginatedResults instead") @secret
+    resultCursor: SnowflakeCursor @deprecated(reason: "use paginatedResults instead")
     """
     Read the results you asked for, through the apiserver.
 
     Carries the customer's own dataset rows, so it is @secret: telemetry ships to
     o2, and a logged row has left the environment that produced it (OB-65908).
     """
-    paginatedResults: PaginatedResults @secret
+    paginatedResults: PaginatedResults
     """
     If resultCursor is set, does it contain data or stats? Or if
     resultKindProgress, then resultProgress is set instead
@@ -220,7 +220,7 @@ extend type TaskResult {
     """
     parsedPipeline: ParsedPipeline
 
-    comments: JsonObject @secret
+    comments: JsonObject
 
     estimatedCost: [CostMetric!]
 
@@ -478,8 +478,8 @@ type TaskResultWarningRateLimit implements TaskResultWarning @goModel(model: "ob
     """
     Credits left in the credit budget and credits fraction that can be used right now
     """
-    creditsRemainingInBudget: Float! @allowLogging
-    creditsFractionRemainingInBudget: Float! @allowLogging
+    creditsRemainingInBudget: Float!
+    creditsFractionRemainingInBudget: Float!
     """
     Info of whether the customer was throttled by the QCM
     """
@@ -679,7 +679,7 @@ type TaskResultErrorRateLimit implements TaskResultError @goModel(model: "observ
     Credits left in the credit budget that can be used right now, or null if no
     rate limit is configured
     """
-    creditsRemainingInBudget: Float! @allowLogging
+    creditsRemainingInBudget: Float!
 
     """
     Query resulted in an error because it was hard limit blocked or not. Currently if true, we don't
@@ -897,5 +897,5 @@ input QueryMetadata @goModel(model: "observe/meta/metatypes.QueryMetadata") {
     window.location.search here as urlSearch, which carries whatever the page
     URL held (OB-66441).
     """
-    extra: JsonObject @secret
+    extra: JsonObject
 }
