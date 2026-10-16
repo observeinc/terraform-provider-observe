@@ -25,7 +25,7 @@ Manages an worksheet. Worksheets are used for ad-hoc analysis of datasets.
 - `opal_version` (String) OPAL language version used to compile this object's query. Supported values
 are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
 default_opal_version is used; if neither is set, Observe uses the earliest
-version. Changing this value on a dataset may cause rematerialization.
+version.
 - `workspace` (String, Deprecated) OID of workspace worksheet is contained in.
 
 ### Read-Only

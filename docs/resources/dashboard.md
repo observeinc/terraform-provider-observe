@@ -121,7 +121,7 @@ resource "observe_dashboard" "example_rest" {
 - `opal_version` (String) OPAL language version used to compile this object's query. Supported values
 are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
 default_opal_version is used; if neither is set, Observe uses the earliest
-version. Changing this value on a dataset may cause rematerialization.
+version.
 - `parameter_values` (String) Dashboard parameter values in JSON format.
 - `parameters` (String) Dashboard parameters in JSON format.
 - `schema_version` (Number) Dashboard content model version. Set to `2` or higher to manage the dashboard through its `definition` document; when unset (or less than `2`), the dashboard is managed through `stages`, `layout`, and `parameters`. **Alpha:** managing a dashboard through `definition` (`schema_version` >= `2`) is an alpha feature that is not generally available and is subject to backwards-incompatible changes in future releases. It must be enabled for your account; otherwise API requests are rejected. Not recommended for production dashboards.

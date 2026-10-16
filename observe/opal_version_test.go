@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -91,6 +92,13 @@ func TestResolveOpalVersion(t *testing.T) {
 }
 
 func TestOpalVersionSchema(t *testing.T) {
+	if strings.Contains(opalVersionSchema().Description, "rematerialize") {
+		t.Fatal("opalVersionSchema() mentions rematerialization")
+	}
+	if !strings.Contains(opalVersionDatasetSchema().Description, "rematerialize") {
+		t.Fatal("opalVersionDatasetSchema() does not mention rematerialization")
+	}
+
 	field := opalVersionSchema()
 	if !field.Optional || !field.Computed || field.Type != schema.TypeString {
 		t.Fatalf("opalVersionSchema() = %#v, want optional+computed string", field)
