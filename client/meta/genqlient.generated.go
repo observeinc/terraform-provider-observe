@@ -1602,7 +1602,7 @@ type DatasetInput struct {
 	StorageIntegrationId   *string           `json:"storageIntegrationId"`
 	// Max on-demand materialization length for the dataset (in nanoseconds). If not set
 	// will use the default value in transformer config.
-	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength"`
+	OnDemandMaterializationLength *types.Int64Scalar `json:"onDemandMaterializationLength,omitempty"`
 	// Optional id of the object this dataset is managed by: app, datastream, monitor etc.
 	ManagedById *string `json:"managedById"`
 	// Optional list of rules to set the list of users and groups that can access the dataset
@@ -1614,7 +1614,7 @@ type DatasetInput struct {
 	EntityTags []EntityTagMappingInput `json:"entityTags"`
 	// Defines the data retention period of the dataset. We will currently only persist this field but
 	// it wouldn't take effect. TODO: Also apply it to the data retention manager.
-	DataRetentionPeriod *types.DurationScalar `json:"dataRetentionPeriod"`
+	DataRetentionPeriod *types.DurationScalar `json:"dataRetentionPeriod,omitempty"`
 	// Defines the data retention of the dataset, in days. This will be applied to this dataset only
 	// and it will not affect any upstream or downstream datasets. Notice that using a bigger value than the upstream,
 	// means that not the full range is available in case of rematerialization.
@@ -2210,12 +2210,12 @@ type DatastreamInput struct {
 	IconUrl              *string                     `json:"iconUrl"`
 	Disabled             *bool                       `json:"disabled"`
 	ExternalSourceId     *string                     `json:"externalSourceId"`
-	StorageIntegrationId *string                     `json:"storageIntegrationId"`
-	Iceberg              *DatastreamIcebergInput     `json:"iceberg"`
-	PrometheusInput      *DatastreamPrometheusInput  `json:"prometheusInput"`
-	OtelLogsInput        *DatastreamOtelLogsInput    `json:"otelLogsInput"`
-	K8sEntityInput       *DatastreamK8sEntityInput   `json:"k8sEntityInput"`
-	DirectWrite          *DatastreamDirectWriteInput `json:"directWrite"`
+	StorageIntegrationId *string                     `json:"storageIntegrationId,omitempty"`
+	Iceberg              *DatastreamIcebergInput     `json:"iceberg,omitempty"`
+	PrometheusInput      *DatastreamPrometheusInput  `json:"prometheusInput,omitempty"`
+	OtelLogsInput        *DatastreamOtelLogsInput    `json:"otelLogsInput,omitempty"`
+	K8sEntityInput       *DatastreamK8sEntityInput   `json:"k8sEntityInput,omitempty"`
+	DirectWrite          *DatastreamDirectWriteInput `json:"directWrite,omitempty"`
 }
 
 // GetName returns DatastreamInput.Name, and is useful for accessing the field via an interface.
@@ -5710,7 +5710,7 @@ type MonitorV2AnomalyRuleTemplateInput struct {
 	Frequency             *types.DurationScalar            `json:"frequency"`
 	ValueColumnName       string                           `json:"valueColumnName"`
 	CompareFn             MonitorV2BoundComparisonFunction `json:"compareFn"`
-	NumStandardDeviations *types.Int64Scalar               `json:"numStandardDeviations"`
+	NumStandardDeviations *types.Int64Scalar               `json:"numStandardDeviations,omitempty"`
 	BasicAlgorithm        *types.JsonObject                `json:"basicAlgorithm"`
 	BasicAlgorithmTyped   *MonitorV2BasicAlgorithmInput    `json:"basicAlgorithmTyped,omitempty"`
 	SeasonalAlgorithm     *MonitorV2SeasonalAlgorithmInput `json:"seasonalAlgorithm,omitempty"`
@@ -8644,7 +8644,7 @@ type PollerInput struct {
 	MongoDBAtlasConfig      *PollerMongoDBAtlasInput      `json:"mongoDBAtlasConfig"`
 	ConfluentCloudConfig    *PollerConfluentCloudInput    `json:"confluentCloudConfig"`
 	CloudWatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudWatchMetricsConfig"`
-	CloudwatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudwatchMetricsConfig"`
+	CloudwatchMetricsConfig *PollerCloudWatchMetricsInput `json:"cloudwatchMetricsConfig,omitempty"`
 	AwsSnapshotConfig       *PollerAWSSnapshotInput       `json:"awsSnapshotConfig"`
 	SkipExternalValidation  *bool                         `json:"skipExternalValidation"`
 	DebugMode               *bool                         `json:"debugMode"`
@@ -9933,8 +9933,8 @@ func (v *StageQuery) GetLayout() *types.JsonObject { return v.Layout }
 func (v *StageQuery) GetInput() []StageQueryInputInputDefinition { return v.Input }
 
 type StageQueryInput struct {
-	StageID *string `json:"stageID"`
-	StageId *string `json:"stageId"`
+	StageID *string `json:"stageID,omitempty"`
+	StageId *string `json:"stageId,omitempty"`
 	// make id required when we've removed all deprecated use of stageId
 	Id              *string                 `json:"id,omitempty"`
 	Input           []InputDefinitionInput  `json:"input"`

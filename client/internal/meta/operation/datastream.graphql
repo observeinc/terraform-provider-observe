@@ -24,7 +24,16 @@ fragment Datastream on Datastream {
 	}
 }
 
-mutation createDatastream($workspaceId: ObjectId!, $datastream: DatastreamInput!) {
+# @genqlient(for: "DatastreamInput.storageIntegrationId", omitempty: true)
+# @genqlient(for: "DatastreamInput.iceberg", omitempty: true)
+# @genqlient(for: "DatastreamInput.prometheusInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.otelLogsInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.k8sEntityInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.directWrite", omitempty: true)
+mutation createDatastream(
+	$workspaceId: ObjectId!,
+	$datastream: DatastreamInput!,
+) {
 	# @genqlient(flatten: true)
 	datastream: createDatastream(workspaceId:$workspaceId, datastream: $datastream) {
 		...Datastream
@@ -38,7 +47,16 @@ query getDatastream($id: ObjectId!) {
 	}
 }
 
-mutation updateDatastream($id: ObjectId!, $datastream: DatastreamInput!) {
+# @genqlient(for: "DatastreamInput.storageIntegrationId", omitempty: true)
+# @genqlient(for: "DatastreamInput.iceberg", omitempty: true)
+# @genqlient(for: "DatastreamInput.prometheusInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.otelLogsInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.k8sEntityInput", omitempty: true)
+# @genqlient(for: "DatastreamInput.directWrite", omitempty: true)
+mutation updateDatastream(
+	$id: ObjectId!,
+	$datastream: DatastreamInput!,
+) {
 	# @genqlient(flatten: true)
 	datastream: updateDatastream(id:$id, datastream: $datastream) {
 		...Datastream
