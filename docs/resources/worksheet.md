@@ -19,11 +19,13 @@ Manages an worksheet. Worksheets are used for ad-hoc analysis of datasets.
 
 ### Optional
 
-- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
-
 - `entity_tags` (Map of String, Deprecated) Use object_tags instead.
 - `icon_url` (String) Icon image.
 - `object_tags` (Map of String) Object tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version. Changing this value on a dataset may cause rematerialization.
 - `workspace` (String, Deprecated) OID of workspace worksheet is contained in.
 
 ### Read-Only

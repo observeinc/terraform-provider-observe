@@ -45,8 +45,6 @@ one workspace, the server automatically assigns the correct workspace.
 
 ### Read-Only
 
-- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
-
 - `_bindings` (String) Internal field. Do not use.
 - `comment` (String) A long-form comment describing the content of the monitor.
 - `definition` (String) Monitor definition in JSON format.
@@ -59,6 +57,10 @@ stage pipelines.
 - `notification_spec` (Block List) (see [below for nested schema](#nestedblock--notification_spec))
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version. Changing this value on a dataset may cause rematerialization.
 - `stage` (Block List) A stage processes an input according to the provided pipeline. If no
 input is provided, a stage will implicitly follow on from the result of
 its predecessor. (see [below for nested schema](#nestedblock--stage))
