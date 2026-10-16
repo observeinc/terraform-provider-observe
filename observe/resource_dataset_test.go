@@ -730,6 +730,72 @@ func TestAccObserveDatasetDefaultRematerializationMode(t *testing.T) {
 	})
 }
 
+func TestAccObserveDatasetOpalVersion(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+	config := func(providerDefault, resourceVersion, pipeline string) string {
+		return fmt.Sprintf(`
+			terraform {}
+			provider "observe" {
+				%s
+			}
+		`, providerDefault) + configPreamble + datastreamConfigPreamble + fmt.Sprintf(`
+			resource "observe_dataset" "first" {
+				workspace = data.observe_workspace.default.oid
+				name      = "%s-opal"
+				%s
+
+				inputs = {
+					"test" = observe_datastream.test.dataset
+				}
+
+				stage {
+					pipeline = %q
+				}
+			}
+		`, randomPrefix, resourceVersion, pipeline)
+	}
+
+	// Serial: overriding provider config mutates the shared testAccProvider.
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config("", "", "filter true"),
+				Check: resource.TestCheckResourceAttr(
+					"observe_dataset.first", "opal_version", "v2021_01_01",
+				),
+			},
+			{
+				Config: config(`default_opal_version = "v2026_09_30"`, "", "filter true"),
+				Check: resource.TestCheckResourceAttr(
+					"observe_dataset.first", "opal_version", "v2026_09_30",
+				),
+			},
+			{
+				Config: config(
+					`default_opal_version = "v2026_09_30"`,
+					`opal_version = "v2021_01_01"`,
+					"filter true",
+				),
+				Check: resource.TestCheckResourceAttr(
+					"observe_dataset.first", "opal_version", "v2021_01_01",
+				),
+			},
+			{
+				Config: config("", `opal_version = "v2026_09_30"`, "filter true"),
+				Check: resource.TestCheckResourceAttr(
+					"observe_dataset.first", "opal_version", "v2026_09_30",
+				),
+			},
+			{
+				Config:   config("", `opal_version = "v2026_09_30"`, "filter true"),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 // Test that a change fails if rematerialization would occur under edit-forward
 func TestAccObserveDatasetEditForwardDryRun(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")

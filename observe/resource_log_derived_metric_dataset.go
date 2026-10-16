@@ -28,8 +28,11 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: resourceLogDerivedMetricDatasetCustomizeDiff,
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, resourceLogDerivedMetricDatasetCustomizeDiff)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionDatasetSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -175,7 +178,7 @@ func resourceLogDerivedMetricDatasetCustomizeDiff(ctx context.Context, d *schema
 }
 
 // logDerivedMetricValidationKeys mirrors datasetValidationKeys for this resource; see there.
-var logDerivedMetricValidationKeys = []string{"input", "shaping_query", "metric_name"}
+var logDerivedMetricValidationKeys = []string{"input", "shaping_query", "metric_name", "opal_version"}
 
 func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	if client.SkipDatasetDryRuns {
@@ -196,7 +199,7 @@ func validateLogDerivedMetricDatasetChanges(ctx context.Context, d *schema.Resou
 	if err != nil {
 		return fmt.Errorf("failed to resolve workspace: %w", err)
 	}
-	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(d)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(d, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return fmt.Errorf("invalid log-derived metric dataset config: %s", concatenateDiagnosticsToStr(diags))
 	}
@@ -244,7 +247,7 @@ func newLDMShapingStageQueryInput(data ResourceReader) (gql.StageQueryInput, dia
 	}, nil
 }
 
-func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMetricDefinitionInput, diag.Diagnostics) {
+func newLogDerivedMetricDefinitionInput(data ResourceReader, defaultOpalVersion *string) (*gql.LogDerivedMetricDefinitionInput, diag.Diagnostics) {
 	shaping, diags := newLDMShapingStageQueryInput(data)
 	if diags.HasError() {
 		return nil, diags
@@ -293,6 +296,7 @@ func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMet
 		ShapingQuery: shaping,
 		Aggregation:  aggIn,
 		MetricTags:   tags,
+		OpalVersion:  resolveOpalVersion(defaultOpalVersion, data),
 	}
 
 	if v, ok := data.GetOk("metric_type"); ok {
@@ -312,8 +316,8 @@ func newLogDerivedMetricDefinitionInput(data ResourceReader) (*gql.LogDerivedMet
 	return out, nil
 }
 
-func newLogDerivedMetricDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQueryInput, *gql.LogDerivedMetricDefinitionInput, diag.Diagnostics) {
-	logDef, diags := newLogDerivedMetricDefinitionInput(data)
+func newLogDerivedMetricDatasetConfig(data ResourceReader, defaultOpalVersion *string) (*gql.DatasetInput, *gql.MultiStageQueryInput, *gql.LogDerivedMetricDefinitionInput, diag.Diagnostics) {
+	logDef, diags := newLogDerivedMetricDefinitionInput(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, nil, nil, diags
 	}
@@ -362,6 +366,9 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 	}
 
 	ld := d.LogDerivedMetricTable
+	if err := setOpalVersion(data, ld.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	if err := data.Set("workspace", oid.WorkspaceOid(d.WorkspaceId).String()); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -451,7 +458,7 @@ func logDerivedMetricDatasetToResourceData(d *gql.LogDerivedMetricDataset, data 
 
 func resourceLogDerivedMetricDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
-	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -484,7 +491,7 @@ func resourceLogDerivedMetricDatasetRead(ctx context.Context, data *schema.Resou
 
 func resourceLogDerivedMetricDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
-	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data)
+	input, _, logInput, diags := newLogDerivedMetricDatasetConfig(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}

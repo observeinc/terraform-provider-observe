@@ -49,8 +49,11 @@ func resourceDataset() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: resourceDatasetCustomizeDiff,
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, resourceDatasetCustomizeDiff)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionDatasetSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -219,7 +222,7 @@ func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 // gate and TestValidationKeysExistInSchema cannot disagree: a typo or a renamed schema field
 // would otherwise silently disable validation forever, since GetChangedKeysPrefix on a key
 // that does not exist simply returns nothing.
-var datasetValidationKeys = []string{"inputs", "stage", "name"}
+var datasetValidationKeys = []string{"inputs", "stage", "name", "opal_version"}
 
 func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client *observe.Client) error {
 	// Skip dry-run validation if configured to do so
@@ -251,7 +254,7 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 	if err != nil {
 		return err
 	}
-	input, queryInput, diags := newDatasetConfig(d)
+	input, queryInput, diags := newDatasetConfig(d, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return fmt.Errorf("invalid dataset config: %s", concatenateDiagnosticsToStr(diags))
 	}
@@ -280,8 +283,8 @@ func validateDatasetChanges(ctx context.Context, d *schema.ResourceDiff, client 
 	return nil
 }
 
-func newDatasetConfig(data ResourceReader) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
-	query, diags := newQuery(data)
+func newDatasetConfig(data ResourceReader, defaultOpalVersion *string) (*gql.DatasetInput, *gql.MultiStageQueryInput, diag.Diagnostics) {
+	query, diags := newQuery(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, nil, diags
 	}
@@ -430,6 +433,9 @@ func datasetToResourceData(d *gql.Dataset, data *schema.ResourceData, omitVersio
 	}
 
 	if d.Transform != nil && d.Transform.Current != nil && d.Transform.Current.Query != nil {
+		if err := setOpalVersion(data, d.Transform.Current.Query.OpalVersion); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 		_, queryDiags := flattenAndSetQuery(data, d.Transform.Current.Query.Stages, d.Transform.Current.Query.OutputStage, false)
 		diags = append(diags, queryDiags...)
 	}
@@ -540,7 +546,7 @@ func flattenAndSetQuery(data *schema.ResourceData, gqlstages []gql.StageQuery, o
 
 func resourceDatasetCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	input, queryInput, diags := newDatasetConfig(data)
+	input, queryInput, diags := newDatasetConfig(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -595,7 +601,7 @@ func resourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta in
 
 func resourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
-	input, queryInput, configDiags := newDatasetConfig(data)
+	input, queryInput, configDiags := newDatasetConfig(data, clientDefaultOpalVersion(client))
 	diags = append(diags, configDiags...)
 	if diags.HasError() {
 		return diags

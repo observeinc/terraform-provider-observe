@@ -55,6 +55,10 @@ should be used when referring to this object in terraform manifests.
 - `on_demand_materialization_length` (String) The maximum on-demand materialization length for the dataset.
 This is a deprecated field. The configuration has been migrated to the `Dataset.maximumOnDemandMaterializationDays` layered setting.
 Changes to `on_demand_materialization_length` are no longer respected.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version.
 - `path_cost` (Number) Path cost incurred by this dataset when computing graph link. Increasing
 this value will reduce the preference for using this dataset when computing
 paths between two datasets.

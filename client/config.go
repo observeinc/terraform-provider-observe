@@ -72,6 +72,9 @@ type Config struct {
 	// Allow setting default materialization mode for dataset resources
 	DefaultRematerializationMode *string `json:"default_rematerialization_mode"`
 
+	// Default OPAL language version for resources that do not set one explicitly.
+	DefaultOpalVersion *string `json:"default_opal_version"`
+
 	// Skip making dry run API requests for dataset changes during the plan stage (for validation)
 	SkipDatasetDryRuns bool `json:"skip_dataset_dry_runs"`
 }

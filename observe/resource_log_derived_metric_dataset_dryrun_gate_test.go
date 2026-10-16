@@ -188,3 +188,29 @@ func TestLogDerivedMetricDryRunGate(t *testing.T) {
 		})
 	}
 }
+
+func TestLogDerivedMetricDryRunGateValidatesOpalVersionChange(t *testing.T) {
+	stateAttrs := baseLogDerivedMetricState("filter true")
+	stateAttrs["opal_version"] = "v2021_01_01"
+	cfg := baseLogDerivedMetricConfig("filter true")
+	cfg["opal_version"] = "v2026_09_30"
+
+	r := resourceLogDerivedMetricDataset()
+	var validates bool
+	r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		validates = needsDryRunValidation(d, logDerivedMetricValidationKeys)
+		return nil
+	}
+
+	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
+	diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(cfg), nil)
+	if err != nil {
+		t.Fatalf("Diff error: %v", err)
+	}
+	if diff == nil || diff.Empty() {
+		t.Fatal("opal_version change produced an empty plan")
+	}
+	if !validates {
+		t.Fatal("opal_version change did not schedule dry-run validation")
+	}
+}

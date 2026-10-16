@@ -356,7 +356,10 @@ func setDatasetOID(data *schema.ResourceData, id *oid.OID, omitVersion bool) err
 
 // determine whether we expect a new dataset version
 func datasetRecomputeOID(d *schema.ResourceDiff) bool {
-	if len(d.GetChangedKeysPrefix("")) > 0 {
+	// UpdatedKeys covers SetNew calls made earlier in this CustomizeDiff.
+	// GetChangedKeysPrefix only sees the diff from config and state, so a
+	// provider-default opal_version is invisible there until the SDK merges it.
+	if len(d.GetChangedKeysPrefix("")) > 0 || len(d.UpdatedKeys()) > 0 {
 		return true
 	}
 
@@ -578,6 +581,16 @@ func diffTouchesAny(d *schema.ResourceDiff, keys ...string) bool {
 	for _, k := range keys {
 		if len(d.GetChangedKeysPrefix(k)) > 0 {
 			return true
+		}
+	}
+	// SetNew during this CustomizeDiff is not in diff.Attributes yet. The SDK
+	// merges UpdatedKeys into the plan after CustomizeDiff returns, so a
+	// provider-default opal_version must count here or the dry run is skipped.
+	for _, updated := range d.UpdatedKeys() {
+		for _, k := range keys {
+			if updated == k || strings.HasPrefix(updated, k+".") {
+				return true
+			}
 		}
 	}
 	return false

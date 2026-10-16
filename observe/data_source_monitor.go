@@ -18,6 +18,7 @@ func dataSourceMonitor() *schema.Resource {
 		Description: descriptions.Get("monitor", "description"),
 		ReadContext: dataSourceMonitorRead,
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionDataSourceSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,

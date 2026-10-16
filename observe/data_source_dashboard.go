@@ -17,6 +17,7 @@ func dataSourceDashboard() *schema.Resource {
 		Description: "Fetches data for an existing Observe dashboard.",
 		ReadContext: dataSourceDashboardRead,
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionDataSourceSchema(),
 			"id": {
 				Type:             schema.TypeString,
 				Required:         true,
