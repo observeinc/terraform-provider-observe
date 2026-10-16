@@ -34,7 +34,11 @@ func resourceMonitor() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			return customizeOpalVersionDiff(ctx, d, meta, nil)
+		},
 		Schema: map[string]*schema.Schema{
+			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -706,8 +710,8 @@ func newNotificationSpecConfig(data *schema.ResourceData) (notificationSpec *gql
 	return notificationSpec, nil
 }
 
-func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags diag.Diagnostics) {
-	query, diags := newQuery(data)
+func newMonitorConfig(data *schema.ResourceData, defaultOpalVersion *string) (input *gql.MonitorInput, diags diag.Diagnostics) {
+	query, diags := newQuery(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -771,7 +775,7 @@ func newMonitorConfig(data *schema.ResourceData) (input *gql.MonitorInput, diags
 func resourceMonitorCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorConfig(data)
+	config, diags := newMonitorConfig(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -792,7 +796,7 @@ func resourceMonitorCreate(ctx context.Context, data *schema.ResourceData, meta 
 func resourceMonitorUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	config, diags := newMonitorConfig(data)
+	config, diags := newMonitorConfig(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -868,6 +872,9 @@ func monitorToResourceData(data *schema.ResourceData, monitor *gql.Monitor) (dia
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := setOpalVersion(data, monitor.Query.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	stageIds, queryDiags := flattenAndSetQuery(data, monitor.Query.Stages, monitor.Query.OutputStage, false)
 	diags = append(diags, queryDiags...)
 

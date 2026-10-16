@@ -316,7 +316,7 @@ func appendReferencedInputs(stageInput *gql.StageQueryInput, defaultInput *gql.I
 	}
 }
 
-func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics) {
+func newQuery(data ResourceReader, defaultOpalVersion *string) (*gql.MultiStageQueryInput, diag.Diagnostics) {
 	stages := make([]Stage, 0)
 	for i := range data.Get("stage").([]interface{}) {
 		var stage Stage
@@ -427,6 +427,7 @@ func newQuery(data ResourceReader) (*gql.MultiStageQueryInput, diag.Diagnostics)
 		return nil, append(diags, diag.FromErr(errStagesMissing)...)
 	}
 
+	query.OpalVersion = resolveOpalVersion(defaultOpalVersion, data)
 	return &query, diags
 }
 
@@ -441,7 +442,7 @@ func newQueryConfig(data *schema.ResourceData) (query []*gql.StageInput, params 
 		end, _ = time.Parse(time.RFC3339, v.(string))
 	}
 
-	multiStageQueryInput, diags := newQuery(data)
+	multiStageQueryInput, diags := newQuery(data, nil)
 	if diags.HasError() {
 		return nil, nil, diags
 	}

@@ -17,6 +17,7 @@ type IngestFilterResource struct {
 	Label         string     `json:"label"`
 	SourceDataset DatasetRef `json:"sourceDataset"`
 	Pipeline      string     `json:"pipeline"`
+	OpalVersion   *string    `json:"opalVersion,omitempty"`
 	DropRate      float64    `json:"dropRate"`
 	Enabled       bool       `json:"enabled"`
 }
@@ -31,6 +32,7 @@ type IngestFilterCreateRequest struct {
 	Label         string     `json:"label"`
 	SourceDataset DatasetRef `json:"sourceDataset"`
 	Pipeline      string     `json:"pipeline"`
+	OpalVersion   *string    `json:"opalVersion,omitempty"`
 	DropRate      float64    `json:"dropRate"`
 	Enabled       bool       `json:"enabled"`
 }
@@ -40,10 +42,11 @@ type IngestFilterCreateRequest struct {
 // included. Enabled and DropRate must NOT be omitempty (see the note on
 // IngestFilterCreateRequest).
 type IngestFilterUpdateRequest struct {
-	Label    string  `json:"label"`
-	Pipeline string  `json:"pipeline"`
-	DropRate float64 `json:"dropRate"`
-	Enabled  bool    `json:"enabled"`
+	Label       string  `json:"label"`
+	Pipeline    string  `json:"pipeline"`
+	OpalVersion *string `json:"opalVersion,omitempty"`
+	DropRate    float64 `json:"dropRate"`
+	Enabled     bool    `json:"enabled"`
 }
 
 func (f *IngestFilterResource) Oid() oid.OID {

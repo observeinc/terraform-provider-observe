@@ -131,6 +131,8 @@ provider "observe" {
 
 ### Optional
 
+- `default_opal_version` (String) Default OPAL language version for resources that do not set `opal_version`. This default is applied on every update; changing it re-pins those resources and may rematerialize datasets. Supported values are `v2021_01_01` and `v2026_09_30`.
+
 - `api_token` (String, Sensitive) An Observe API Token. Used for authenticating requests to API in the absence of `user_email` and `user_password`.
 - `default_rematerialization_mode` (String) Default rematerialization mode for datasets (internal use).
 - `domain` (String) Observe API domain. Defaults to `observeinc.com`.

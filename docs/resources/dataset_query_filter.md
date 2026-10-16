@@ -41,6 +41,8 @@ This is an exclusion filter, so all observations matching the filter will be fil
 
 ### Optional
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `description` (String) Long-form description of the filter.
 - `disabled` (Boolean) Whether the filter is disabled by the user.
 

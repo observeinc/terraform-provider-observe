@@ -136,6 +136,8 @@ its predecessor. (see [below for nested schema](#nestedblock--stage))
 
 ### Optional
 
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values are `v2021_01_01` and `v2026_09_30`. If omitted, the provider-level `default_opal_version` is used; if neither is set, Observe uses the earliest version. Changing this value on a dataset may cause rematerialization.
+
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
 - `custom_variables` (String)
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
