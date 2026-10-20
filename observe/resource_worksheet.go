@@ -33,11 +33,8 @@ func resourceWorksheet() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, nil)
-		},
+		CustomizeDiff: customizeOpalVersionDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -64,8 +61,9 @@ func resourceWorksheet() *schema.Resource {
 				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaWorksheetJSONDescription,
 			},
-			"object_tags": objectTagsSchemaFieldOptional(),
-			"entity_tags": entityTagsSchemaFieldOptional(),
+			"opal_version": opalVersionSchema(),
+			"object_tags":  objectTagsSchemaFieldOptional(),
+			"entity_tags":  entityTagsSchemaFieldOptional(),
 			"oid": {
 				Type:        schema.TypeString,
 				Computed:    true,

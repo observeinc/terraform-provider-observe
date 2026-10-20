@@ -67,11 +67,11 @@ func opalVersionDataSourceSchema() *schema.Schema {
 	}
 }
 
-func customizeOpalVersionDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{}, next schema.CustomizeDiffFunc) error {
-	// Set the provider default before next. Dataset and log-derived metric dry
-	// runs, and datasetRecomputeOID, read the diff inside next. Setting the
-	// value afterward leaves an opal_version-only plan unvalidated and the
-	// versioned oid unchanged.
+// customizeOpalVersionDiff applies the provider default when the resource does
+// not set opal_version. SetNew records the change in UpdatedKeys before the SDK
+// merges it into diff.Attributes. Composite CustomizeDiff functions must call
+// this before datasetRecomputeOID or dry-run gating so they see the change.
+func customizeOpalVersionDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	if client, ok := meta.(*observeclient.Client); ok {
 		if defaultVersion := clientDefaultOpalVersion(client); defaultVersion != nil && *defaultVersion != "" {
 			if _, configured := configuredOpalVersion(diff); !configured {
@@ -83,10 +83,6 @@ func customizeOpalVersionDiff(ctx context.Context, diff *schema.ResourceDiff, me
 				}
 			}
 		}
-	}
-
-	if next != nil {
-		return next(ctx, diff, meta)
 	}
 	return nil
 }

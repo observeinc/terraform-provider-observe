@@ -17,7 +17,6 @@ func dataSourceWorksheet() *schema.Resource {
 		Description: "Fetches metadata for an existing Observe worksheet.",
 		ReadContext: dataSourceWorksheetRead,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionDataSourceSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -54,7 +53,8 @@ func dataSourceWorksheet() *schema.Resource {
 				Computed:    true,
 				Description: schemaWorksheetJSONDescription,
 			},
-			"object_tags": objectTagsSchemaFieldComputed(),
+			"opal_version": opalVersionDataSourceSchema(),
+			"object_tags":  objectTagsSchemaFieldComputed(),
 			"_bindings": {
 				Type:        schema.TypeString,
 				Computed:    true,

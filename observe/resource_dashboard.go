@@ -40,11 +40,8 @@ func resourceDashboard() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, dashboardCustomizeDiff)
-		},
+		CustomizeDiff: dashboardCustomizeDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			// Common to both content models.
 			"workspace": {
 				Type:             schema.TypeString,
@@ -97,6 +94,7 @@ func resourceDashboard() *schema.Resource {
 				DiffSuppressFunc: diffSuppressStageQueryInput,
 				Description:      schemaDashboardJSONDescription,
 			},
+			"opal_version": opalVersionSchema(),
 			"layout": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -174,6 +172,9 @@ func dashboardConfigHasAttr(d *schema.ResourceDiff, attr string) bool {
 // content fields (stages/layout/parameters) are cleared by the backend and must not be
 // set. A legacy dashboard (schema_version < 2) uses stages and must not set definition.
 func dashboardCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+		return err
+	}
 	schemaVersion := d.Get("schema_version").(int)
 	hasDefinition := dashboardConfigHasAttr(d, "definition")
 

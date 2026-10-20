@@ -47,11 +47,8 @@ func resourceMonitorV2() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, resourceMonitorV2CustomizeDiff)
-		},
+		CustomizeDiff: resourceMonitorV2CustomizeDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			// needed as input to MonitorV2Create, also part of MonitorV2 struct
 			"workspace": { // ObjectId!
 				Type:             schema.TypeString,
@@ -128,6 +125,7 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionSchema(), // for building inputQuery (MultiStageQueryInput!)
 			"inputs": { // for building inputQuery (MultiStageQueryInput!)
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -1241,7 +1239,10 @@ func monitorV2FlattenPromoteRule(gqlPromote gql.MonitorV2PromoteRule) []interfac
 	return []interface{}{promoteRule}
 }
 
-func resourceMonitorV2CustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func resourceMonitorV2CustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+		return err
+	}
 	// When basic_algorithm is set, at least one source of num_standard_deviations
 	// must be provided. The inner field is preferred; the top-level field is deprecated.
 	if _, ok := d.GetOk("rule_template.0.anomaly.0.basic_algorithm"); ok {

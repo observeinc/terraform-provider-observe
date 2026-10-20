@@ -30,7 +30,7 @@ func datasetGateVerdict(t *testing.T, stateAttrs map[string]string, cfg map[stri
 	}
 
 	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
-	diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(cfg), nil)
+	diff, err := r.Diff(t.Context(), state, terraform.NewResourceConfigRaw(cfg), nil)
 	if err != nil {
 		t.Fatalf("Diff error: %v", err)
 	}
@@ -345,7 +345,7 @@ func TestGateNeverSkipsAValidationRelevantUpdate(t *testing.T) {
 			}
 
 			state := &terraform.InstanceState{ID: tc.state["id"], Attributes: tc.state}
-			diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(tc.cfg), nil)
+			diff, err := r.Diff(t.Context(), state, terraform.NewResourceConfigRaw(tc.cfg), nil)
 			if err != nil {
 				t.Fatalf("Diff error: %v", err)
 			}
@@ -408,12 +408,26 @@ func TestProviderDefaultOpalVersionPlansDatasetUpdate(t *testing.T) {
 	stateAttrs["opal_version"] = "v2021_01_01"
 	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
 
-	diff, err := resourceDataset().Diff(context.Background(), state, terraform.NewResourceConfigRaw(baseDatasetConfig("filter true")), client)
+	resource := resourceDataset()
+	customizeDiff := resource.CustomizeDiff
+	var validates bool
+	resource.CustomizeDiff = func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+		if err := customizeDiff(ctx, diff, meta); err != nil {
+			return err
+		}
+		validates = validates || needsDryRunValidation(diff, datasetValidationKeys)
+		return nil
+	}
+
+	diff, err := resource.Diff(t.Context(), state, terraform.NewResourceConfigRaw(baseDatasetConfig("filter true")), client)
 	if err != nil {
 		t.Fatalf("Diff error: %v", err)
 	}
 	if diff == nil || diff.Empty() {
 		t.Fatal("provider default produced an empty plan")
+	}
+	if !validates {
+		t.Fatal("provider default did not schedule dry-run validation")
 	}
 
 	attr := diff.Attributes["opal_version"]
@@ -423,5 +437,26 @@ func TestProviderDefaultOpalVersionPlansDatasetUpdate(t *testing.T) {
 	oid := diff.Attributes["oid"]
 	if oid == nil || !oid.NewComputed {
 		t.Fatalf("oid diff = %#v, want NewComputed", oid)
+	}
+}
+
+func TestStoredOpalVersionWithoutProviderDefaultDoesNotPlan(t *testing.T) {
+	client := &observeclient.Client{Config: &observeclient.Config{
+		SkipDatasetDryRuns: true,
+	}}
+
+	stateAttrs := baseDatasetState("filter true")
+	stateAttrs["opal_version"] = "v2021_01_01"
+	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
+
+	diff, err := resourceDataset().Diff(t.Context(), state, terraform.NewResourceConfigRaw(baseDatasetConfig("filter true")), client)
+	if err != nil {
+		t.Fatalf("Diff error: %v", err)
+	}
+	if diff != nil && !diff.Empty() {
+		for key, attr := range diff.Attributes {
+			t.Logf("  %s: %q -> %q", key, attr.Old, attr.New)
+		}
+		t.Fatal("stored opal_version with no provider default produced a plan")
 	}
 }

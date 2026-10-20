@@ -28,11 +28,8 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, resourceLogDerivedMetricDatasetCustomizeDiff)
-		},
+		CustomizeDiff: resourceLogDerivedMetricDatasetCustomizeDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionDatasetSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -97,6 +94,7 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 				DiffSuppressFunc: diffSuppressPipeline,
 				Description:      descriptions.Get("log_derived_metric_dataset", "schema", "shaping_query"),
 			},
+			"opal_version": opalVersionDatasetSchema(),
 			"aggregation": {
 				Type:        schema.TypeList,
 				Required:    true,
@@ -165,6 +163,9 @@ func resourceLogDerivedMetricDataset() *schema.Resource {
 }
 
 func resourceLogDerivedMetricDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+		return err
+	}
 	client := meta.(*observe.Client)
 	omitVersion := client.Flags[flagOmitDatasetOIDVersion]
 

@@ -34,11 +34,8 @@ func resourceMonitor() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, nil)
-		},
+		CustomizeDiff: customizeOpalVersionDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -144,6 +141,7 @@ func resourceMonitor() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionSchema(),
 			"rule": {
 				Type:     schema.TypeList,
 				MinItems: 1,

@@ -49,11 +49,8 @@ func resourceDataset() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, resourceDatasetCustomizeDiff)
-		},
+		CustomizeDiff: resourceDatasetCustomizeDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionDatasetSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -179,6 +176,7 @@ func resourceDataset() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionDatasetSchema(),
 			"rematerialization_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -200,6 +198,9 @@ type ResourceReader interface {
 }
 
 func resourceDatasetCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+		return err
+	}
 	client := meta.(*observe.Client)
 	omitVersion := client.Flags[flagOmitDatasetOIDVersion]
 

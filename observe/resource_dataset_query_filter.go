@@ -23,6 +23,9 @@ func resourceDatasetQueryFilter() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+				return err
+			}
 			// If the dataset ID has changed, we need to recreate the resource. See comments on ForceNew below.
 			if d.HasChange("dataset") {
 				// Ignore version changes
@@ -33,11 +36,10 @@ func resourceDatasetQueryFilter() *schema.Resource {
 					d.ForceNew("dataset")
 				}
 			}
-			return customizeOpalVersionDiff(ctx, d, meta, nil)
+			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			"dataset": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -67,6 +69,7 @@ func resourceDatasetQueryFilter() *schema.Resource {
 				Required:    true,
 				Description: descriptions.Get("dataset_query_filter", "schema", "filter"),
 			},
+			"opal_version": opalVersionSchema(),
 			"disabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,

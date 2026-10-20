@@ -24,6 +24,9 @@ func resourceDropFilter() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+				return err
+			}
 			// The source dataset of a drop filter is immutable server-side, so a
 			// change requires recreating the resource. The dataset OID embeds a
 			// version that is diff-suppressed, so compare ids directly here
@@ -38,10 +41,9 @@ func resourceDropFilter() *schema.Resource {
 					d.ForceNew("source_dataset")
 				}
 			}
-			return customizeOpalVersionDiff(ctx, d, meta, nil)
+			return nil
 		},
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionSchema(),
 			"workspace": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -61,6 +63,7 @@ func resourceDropFilter() *schema.Resource {
 				Required:    true,
 				Description: descriptions.Get("drop_filter", "schema", "pipeline"),
 			},
+			"opal_version": opalVersionSchema(),
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,

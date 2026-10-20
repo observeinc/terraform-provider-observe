@@ -18,7 +18,6 @@ func dataSourceMonitorV2() *schema.Resource {
 		Description: descriptions.Get("monitorv2", "description"),
 		ReadContext: dataSourceMonitorV2Read,
 		Schema: map[string]*schema.Schema{
-			"opal_version": opalVersionDataSourceSchema(),
 			// used to lookup the monitor
 			// monitor can be looked up either by providing an ID
 			// or by providing search params that can uniquely ID the monitor.
@@ -101,6 +100,7 @@ func dataSourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionDataSourceSchema(),
 			"inputs": { // for building inputQuery (MultiStageQueryInput!)
 				Type:        schema.TypeMap,
 				Computed:    true,

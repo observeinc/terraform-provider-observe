@@ -24,14 +24,12 @@ func resourceIngestRoute() *schema.Resource {
 		UpdateContext: resourceIngestRouteUpdate,
 		DeleteContext: resourceIngestRouteDelete,
 		Importer:      &schema.ResourceImporter{StateContext: resourceIngestRouteImport},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			return customizeOpalVersionDiff(ctx, d, meta, nil)
-		},
+		CustomizeDiff: customizeOpalVersionDiff,
 		Schema: map[string]*schema.Schema{
-			"opal_version":             opalVersionSchema(),
 			"route_id":                 {Type: schema.TypeString, Computed: true, Description: descriptions.Get("ingest_route", "schema", "route_id")},
 			"type":                     {Type: schema.TypeString, Required: true, ForceNew: true, ValidateDiagFunc: validateStringInSlice(ingestRouteTypes, false), Description: describeEnums(ingestRouteTypes, descriptions.Get("ingest_route", "schema", "type"))},
 			"pipeline":                 {Type: schema.TypeString, Required: true, ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotWhiteSpace), Description: descriptions.Get("ingest_route", "schema", "pipeline")},
+			"opal_version":             opalVersionSchema(),
 			"destination_id":           {Type: schema.TypeString, Required: true, ValidateDiagFunc: validateID(), Description: descriptions.Get("ingest_route", "schema", "destination_id")},
 			"secondary_destination_id": {Type: schema.TypeString, Optional: true, ValidateDiagFunc: validateID(), Description: descriptions.Get("ingest_route", "schema", "secondary_destination_id")},
 			"enabled":                  {Type: schema.TypeBool, Optional: true, Default: true, Description: descriptions.Get("ingest_route", "schema", "enabled")},
