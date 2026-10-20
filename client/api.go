@@ -1746,6 +1746,41 @@ func (c *Client) LookupShare(ctx context.Context, shareName, providerAccount str
 	return c.Rest.LookupShare(ctx, shareName, providerAccount)
 }
 
+func (c *Client) RegisterShare(ctx context.Context, req *rest.RegisterShareRequest) (result *rest.Share, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.RegisterShare(ctx, req)
+	})
+	return
+}
+
+func (c *Client) UpdateShare(ctx context.Context, shareId string, req *rest.UpdateShareRequest) (result *rest.Share, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateShare(ctx, shareId, req)
+	})
+	return
+}
+
+func (c *Client) DeleteShare(ctx context.Context, shareId string, force bool) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteShare(ctx, shareId, force)
+	})
+	return
+}
+
+func (c *Client) GetShareSetupInfo(ctx context.Context) (*rest.SetupInfo, error) {
+	return c.Rest.GetSetupInfo(ctx)
+}
+
+// CreateShareRegistrationToken omits the request and response bodies from
+// debug logs, since the response carries the secret.
+func (c *Client) CreateShareRegistrationToken(ctx context.Context, req *rest.CreateRegistrationTokenRequest) (result *rest.RegistrationToken, err error) {
+	ctx = setSensitive(ctx, true)
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateRegistrationToken(ctx, req)
+	})
+	return
+}
+
 // Table operations
 func (c *Client) TrackTable(ctx context.Context, shareId string, req *rest.TrackTableRequest) (result *rest.TrackTableResponse, err error) {
 	c.maybeRunConcurrently(func() {

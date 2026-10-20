@@ -114,7 +114,9 @@ type SnowflakeShareConfig struct {
 type Share struct {
 	Id              string                `json:"id"`
 	ShareName       string                `json:"shareName"`
+	Label           string                `json:"label,omitempty"`
 	ProviderType    string                `json:"providerType"` // "Snowflake"
+	ProviderAccount string                `json:"providerAccount,omitempty"`
 	SnowflakeConfig *SnowflakeShareConfig `json:"snowflakeConfig,omitempty"`
 	Status          ShareStatus           `json:"status"`
 	CreatedBy       User                  `json:"createdBy"`
@@ -127,6 +129,65 @@ type Share struct {
 type ShareListResponse struct {
 	Shares []Share `json:"shares"`
 	Meta   Meta    `json:"meta"`
+}
+
+// Registration Types
+
+const (
+	// ErrorTypeOwnershipProofFailed is returned by RegisterShare (403) when the
+	// share comment does not hold a valid registration token for the provider
+	// account, or the share is not offered to Observe.
+	ErrorTypeOwnershipProofFailed = "ownership_proof_failed"
+	// ErrorTypeShareHasTrackedTables is returned by DeleteShare (409) when the
+	// share still has tracked tables and force is not set.
+	ErrorTypeShareHasTrackedTables = "share_has_tracked_tables"
+	// ErrorTypeFeatureNotEnabled is returned (403) when inbound shares are not
+	// enabled for the tenant.
+	ErrorTypeFeatureNotEnabled = "feature_not_enabled"
+)
+
+type RegisterShareRequest struct {
+	ProviderAccount string `json:"providerAccount"`
+	ShareName       string `json:"shareName"`
+}
+
+type UpdateShareRequest struct {
+	Label string `json:"label"`
+}
+
+type CreateRegistrationTokenRequest struct {
+	ProviderAccount string `json:"providerAccount"`
+}
+
+// SetupSqlStep is one labelled SQL statement the customer runs in their
+// Snowflake provider account. It may contain <angle-bracket> placeholders.
+type SetupSqlStep struct {
+	Description string `json:"description"`
+	Sql         string `json:"sql"`
+}
+
+// RegistrationToken is a single-use ownership-proof secret. It is returned
+// exactly once and must never be logged.
+type RegistrationToken struct {
+	Token     string         `json:"token"`
+	ExpiresAt string         `json:"expiresAt"`
+	SetupSql  []SetupSqlStep `json:"setupSql,omitempty"`
+}
+
+// SetupGuidance is the provider-side setup the customer runs before
+// registering a share.
+type SetupGuidance struct {
+	Summary        string         `json:"summary"`
+	SetupSql       []SetupSqlStep `json:"setupSql"`
+	ProviderChecks []SetupSqlStep `json:"providerChecks"`
+	Checklist      []string       `json:"checklist"`
+}
+
+type SetupInfo struct {
+	ConsumerAccount string        `json:"consumerAccount"`
+	Region          string        `json:"region"`
+	Cloud           *string       `json:"cloud"`
+	Guidance        SetupGuidance `json:"guidance"`
 }
 
 // Table Types
