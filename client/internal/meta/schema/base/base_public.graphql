@@ -13,6 +13,43 @@ directive @eol on
     | FIELD_DEFINITION
     | ARGUMENT_DEFINITION
 
+"""
+Marks a field, input field, or argument as carrying material that must never reach
+telemetry. Two kinds qualify:
+
+  - Credentials: passwords, minted token secrets, private keys, certificates
+    (OB-63450).
+  - Customer query-result data: values read out of a customer's datasets — result
+    rows, column top-K values, metric tag values, monitor captured values, primary
+    key values (OB-65908). Logging these copies customer data out of the
+    environment that produced it and into the o2 environment our telemetry ships
+    to, where it cannot be un-logged.
+
+Secret-annotated values are redacted from tracing spans, logs, and error strings by
+the GraphQL telemetry layer; marking a composite field redacts its whole subtree.
+Marker only — it has no effect on the value returned to the client.
+"""
+directive @secret on
+    | INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+    | ARGUMENT_DEFINITION
+
+"""
+Marks a field, input field, or argument whose name looks secret-like (matches the
+telemetry guard-test denylist) as reviewed and safe to log — its value is neither a
+credential nor customer query-result data, so it may be recorded in tracing spans,
+logs, and error strings. Required — the guard test fails for any suspiciously named
+field carrying neither @secret nor @allowLogging. Marker only. See OB-63450.
+
+The guard test only checks names, so it cannot prompt this decision for a
+result-carrying field with an innocuous name (paginatedResults, tagValues,
+capturedValues). Those are annotated by hand; see OB-65908.
+"""
+directive @allowLogging on
+    | INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+    | ARGUMENT_DEFINITION
+
 enum Team @goModel(model: "observe/meta/apiowner.Team") {
     Logs
     Streaming
