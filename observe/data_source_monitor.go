@@ -117,6 +117,7 @@ func dataSourceMonitor() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionDataSourceSchema(),
 			"rule": {
 				Type:     schema.TypeList,
 				Computed: true,

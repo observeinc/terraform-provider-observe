@@ -41,4 +41,8 @@ data "observe_worksheet" "lookup" {
 - `name` (String) Worksheet name. Must be unique within workspace.
 - `object_tags` (Map of String) Object tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
 - `oid` (String) The Observe ID for worksheet.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version.
 - `queries` (String) Worksheet definition in JSON format.

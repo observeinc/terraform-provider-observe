@@ -100,6 +100,7 @@ func dataSourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionDataSourceSchema(),
 			"inputs": { // for building inputQuery (MultiStageQueryInput!)
 				Type:        schema.TypeMap,
 				Computed:    true,

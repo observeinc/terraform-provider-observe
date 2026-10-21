@@ -125,6 +125,7 @@ func resourceMonitorV2() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionSchema(), // for building inputQuery (MultiStageQueryInput!)
 			"inputs": { // for building inputQuery (MultiStageQueryInput!)
 				Type:             schema.TypeMap,
 				Required:         true,
@@ -870,7 +871,7 @@ func monitorV2ColumnComparisonResource() *schema.Resource {
 func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2Input(data)
+	input, diags := newMonitorV2Input(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -897,7 +898,7 @@ func resourceMonitorV2Create(ctx context.Context, data *schema.ResourceData, met
 func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 
-	input, diags := newMonitorV2Input(data)
+	input, diags := newMonitorV2Input(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
@@ -1001,6 +1002,9 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	if err := setOpalVersion(data, monitor.Definition.InputQuery.OpalVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	_, queryDiags := flattenAndSetQuery(data, monitor.Definition.InputQuery.Stages, monitor.Definition.InputQuery.OutputStage, dedentPipelines)
 	diags = append(diags, queryDiags...)
 
@@ -1235,7 +1239,10 @@ func monitorV2FlattenPromoteRule(gqlPromote gql.MonitorV2PromoteRule) []interfac
 	return []interface{}{promoteRule}
 }
 
-func resourceMonitorV2CustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func resourceMonitorV2CustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+		return err
+	}
 	// When basic_algorithm is set, at least one source of num_standard_deviations
 	// must be provided. The inner field is preferred; the top-level field is deprecated.
 	if _, ok := d.GetOk("rule_template.0.anomaly.0.basic_algorithm"); ok {
@@ -1503,9 +1510,9 @@ func newMonitorV2ActionAndRelationInputs(data *schema.ResourceData) (actions []g
 	return
 }
 
-func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
+func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (input *gql.MonitorV2Input, diags diag.Diagnostics) {
 	// required
-	definitionInput, diags := newMonitorV2DefinitionInput(data)
+	definitionInput, diags := newMonitorV2DefinitionInput(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -1534,9 +1541,9 @@ func newMonitorV2Input(data *schema.ResourceData) (input *gql.MonitorV2Input, di
 	return input, diags
 }
 
-func newMonitorV2DefinitionInput(data *schema.ResourceData) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
+func newMonitorV2DefinitionInput(data *schema.ResourceData, defaultOpalVersion *string) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
 	// required
-	query, diags := newQuery(data)
+	query, diags := newQuery(data, defaultOpalVersion)
 	if diags.HasError() {
 		return nil, diags
 	}

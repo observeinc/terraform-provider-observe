@@ -136,6 +136,7 @@ func dataSourceDataset() *schema.Resource {
 					},
 				},
 			},
+			"opal_version": opalVersionDataSourceSchema(),
 			"correlation_tag": {
 				Type:        schema.TypeList,
 				Computed:    true,

@@ -39,6 +39,10 @@ resource "observe_ingest_route" "logs_copy" {
 ### Optional
 
 - `enabled` (Boolean) Whether the route evaluates incoming observations. Defaults to true. The provider enables the route after creating it because the create API always creates disabled routes.
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version.
 - `secondary_destination_id` (String) An optional secondary source dataset ID that also receives matching observations. Removing this value clears the API secondary destination.
 
 ### Read-Only

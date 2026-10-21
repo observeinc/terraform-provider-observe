@@ -19,6 +19,7 @@ type Dashboard struct {
 	Description   string              `json:"description"`
 	Visibility    string              `json:"visibility"`
 	ObjectTags    map[string][]string `json:"objectTags"`
+	OpalVersion   *string             `json:"opalVersion,omitempty"`
 }
 
 // DashboardCreateInput is the POST /v1/dashboards body (Dashboard-CreateRequest).
@@ -30,6 +31,7 @@ type DashboardCreateInput struct {
 	Description   *string             `json:"description,omitempty"`
 	Visibility    *string             `json:"visibility,omitempty"`
 	ObjectTags    map[string][]string `json:"objectTags,omitempty"`
+	OpalVersion   *string             `json:"opalVersion,omitempty"`
 }
 
 // DashboardPatchInput is the PATCH /v1/dashboards/{id} body (Dashboard-UpdateRequest).
@@ -42,6 +44,7 @@ type DashboardPatchInput struct {
 	Description   *string              `json:"description,omitempty"`
 	Visibility    *string              `json:"visibility,omitempty"`
 	ObjectTags    *map[string][]string `json:"objectTags,omitempty"`
+	OpalVersion   *string              `json:"opalVersion,omitempty"`
 }
 
 func (client *Client) decodeDashboardFromBody(resp *http.Response) (*Dashboard, error) {
