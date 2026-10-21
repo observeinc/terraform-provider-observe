@@ -25,6 +25,7 @@ fragment LogDerivedMetricDefinition on LogDerivedMetricDefinition {
 		}
 	}
 	interval
+	opalVersion
 }
 
 fragment LogDerivedMetricDataset on Dataset {

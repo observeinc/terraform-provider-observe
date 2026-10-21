@@ -5,7 +5,7 @@ extend type Subscription {
     This operation has an internal timeout (5 minutes by default, or layered setting override Query.timeout)
     It also ends when the websocket connection is closed or snowflake times out the underlying queries.
     """
-    datasetProgressive(query: [StageInput!]!, params: QueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [TaskResult]!
+    datasetProgressive(query: [StageInput!]!, params: QueryParams!, inputFilter: QueryInputFilterInput, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata, opalVersion: OpalVersion): [TaskResult]!
 
     """
     Similar endpoint as datasetProgressive, but runs this query in Live streaming mode. All stages are currently grouped by
@@ -37,7 +37,7 @@ extend type Subscription {
     * The query window is moved, not extended.
     * Until we have real incremental execution we always send "complete" (non-incremental) results to the client.
     """
-    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata): [LiveQueryResult]!
+    datasetLiveQuery(query: [StageInput!]!, params: LiveQueryParams!, inputFilter: QueryInputFilterInput, parameterValues:[ParameterBindingInput!], metadata: QueryMetadata, opalVersion: OpalVersion): [LiveQueryResult]!
 }
 
 extend type Query {
@@ -57,7 +57,7 @@ extend type Query {
     Results are limited to a maximum of 100,000 rows. Use the rowCount parameter
     or presentation.limit to specify a smaller limit.
     """
-    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat, metadata: QueryMetadata): ExportCursorResult!
+    exportQuery(query: MultiStageQueryInput!, params: QueryParams!, inputFilter: QueryInputFilterInput, presentation: StagePresentationInput, rowCount: Int64, filename: String, exportFormat: ExportFileFormat, metadata: QueryMetadata): ExportCursorResult!
 
     """
     Pull more results from a cursor. rollupFilter provides more granular
@@ -78,7 +78,7 @@ extend type Query {
 
     Times out after 2 minutes.
     """
-    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, parameterValues: [ParameterBindingInput!], metadata: QueryMetadata): [TaskResult!]!
+    datasetQueryOutput(query: [StageInput!]!, params: QueryParams!, inputFilter: QueryInputFilterInput, parameterValues: [ParameterBindingInput!], metadata: QueryMetadata, opalVersion: OpalVersion): [TaskResult!]!
 }
 
 """
@@ -138,6 +138,9 @@ type ExportCursorResult @goModel(model: "observe/meta/metatypes.ExportCursorResu
     """
     If the data from the cursor can be had by calling GET on a URL, this is
     the URL.
+
+    Anyone holding this URL can GET the whole result set until it expires, so it
+    discloses exactly as much as the rows themselves and is @secret (OB-65908).
     """
     exportUrl: String!
 
@@ -183,7 +186,10 @@ extend type TaskResult {
     """
     resultCursor: SnowflakeCursor @deprecated(reason: "use paginatedResults instead")
     """
-    Read the results you asked for, through the apiserver
+    Read the results you asked for, through the apiserver.
+
+    Carries the customer's own dataset rows, so it is @secret: telemetry ships to
+    o2, and a logged row has left the environment that produced it (OB-65908).
     """
     paginatedResults: PaginatedResults
     """
@@ -454,15 +460,6 @@ interface TaskResultWarning @goModel(model: "observe/meta/metatypes.TaskResultWa
     Warning message, can be decorated with warning type ID, source location and other bits
     """
     message: String!
-}
-
-"""
-Governor scope whose limit triggered a rate-limit task result.
-"""
-enum RateLimitScope @goModel(model: "observe/meta/metatypes.RateLimitScope") {
-    Customer
-    User
-    Dashboard
 }
 
 """
@@ -892,7 +889,13 @@ input QueryMetadata @goModel(model: "observe/meta/metatypes.QueryMetadata") {
     useResultCache: Boolean
 
     """
-    Extra stuff
+    Extra stuff.
+
+    @secret: an opaque client-supplied JSON bag; see Blob.value. Nothing
+    constrains its shape, so the telemetry layer cannot tell a credential in it
+    from the rest. Observed ObserveQueryIncremental traffic puts
+    window.location.search here as urlSearch, which carries whatever the page
+    URL held (OB-66441).
     """
     extra: JsonObject
 }

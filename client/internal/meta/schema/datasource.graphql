@@ -113,6 +113,14 @@ type AWSCollectionStackConfig @goModel(model: "observe/meta/metatypes.AWSCollect
     awsServiceMetricsList: [AWSServiceMetrics!]
     customMetricsList: [AWSServiceMetrics!]
     configResourceList: [String!]
+    """
+    If true, the metric stream stack looks up AWS resource tags and attaches them as metric tags.
+    """
+    enableMetricTag: Boolean
+    """
+    TTL (seconds) for the metric-stream resource-tag lookup cache.
+    """
+    metricTagResourceCacheTTLSeconds: Int64
 }
 
 input AWSCollectionStackConfigInput @goModel(model: "observe/meta/metatypes.AWSCollectionStackConfigInput") {
@@ -123,6 +131,8 @@ input AWSCollectionStackConfigInput @goModel(model: "observe/meta/metatypes.AWSC
     awsServiceMetricsList: [AWSServiceMetricsInput!]
     customMetricsList: [AWSServiceMetricsInput!]
     configResourceList: [String!]
+    enableMetricTag: Boolean
+    metricTagResourceCacheTTLSeconds: Int64
 }
 
 

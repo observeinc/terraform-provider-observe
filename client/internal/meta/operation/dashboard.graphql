@@ -39,6 +39,7 @@ fragment Dashboard on Dashboard {
     description
     workspaceId
     managedById
+    opalVersion
     # @genqlient(typename: "ObjectTagMapping")
     objectTags {
         key
@@ -107,12 +108,15 @@ query getDashboard($id: ObjectId!) {
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "DashboardInput.opalVersion", omitempty: true)
 mutation saveDashboard(
     $dashboardInput: DashboardInput!
 ) {

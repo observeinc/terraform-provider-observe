@@ -8,9 +8,9 @@ func strPtr(s string) *string { return &s }
 
 func TestDetectOrphanStages(t *testing.T) {
 	tests := []struct {
-		name    string
-		stages  []Stage
-		want    []int // nil means no orphans
+		name   string
+		stages []Stage
+		want   []int // nil means no orphans
 	}{
 		{
 			name:   "empty",

@@ -108,6 +108,7 @@ fragment Poller on Poller {
 	}
 }
 
+# @genqlient(for: "PollerInput.cloudwatchMetricsConfig", omitempty: true)
 mutation createPoller(
     $workspaceId: ObjectId!,
     $poller: PollerInput!,
@@ -125,6 +126,7 @@ query getPoller($id: ObjectId!) {
 	}
 }
 
+# @genqlient(for: "PollerInput.cloudwatchMetricsConfig", omitempty: true)
 mutation updatePoller(
     $id: ObjectId!,
     $poller: PollerInput!,

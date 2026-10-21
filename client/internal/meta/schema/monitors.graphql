@@ -861,6 +861,10 @@ input EmailActionInput @goModel(model: "observe/meta/metatypes.EmailActionInput"
 type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "observe/meta/metatypes.WebhookAction") {
     id: ObjectId!
     name: String!
+    """
+    The icon shown for this action in the UI. Not the webhook destination — that is
+    urlTemplate, which is @secret. @allowLogging so the webhook-URL guard passes.
+    """
     iconUrl: String!
     description: String!
     workspaceId: ObjectId!
@@ -874,6 +878,14 @@ type WebhookAction implements MonitorAction & ChannelAction @goModel(model: "obs
     channels: [Channel!] @goField(forceResolver:true) @deprecated(reason:"field will be removed in favor of actionIds")
 
     templateName: String!
+    """
+    The webhook destination URL template.
+
+    For destinations such as Slack incoming webhooks the URL is itself the
+    credential: holding it grants unauthenticated POST into the customer's
+    channel, with no expiry and no second factor, so it is @secret (OB-65908).
+    Only the customer can revoke it, by regenerating the hook.
+    """
     urlTemplate: String!
     method: String!
     headers: [WebhookHeader!]!
@@ -890,6 +902,9 @@ input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionIn
     If the templateName is not set, it will be set as an empty string.
     """
     templateName: String
+    """
+    The webhook destination URL template; see WebhookAction.urlTemplate.
+    """
     urlTemplate: String
     method: String
     headers: [WebhookHeaderInput!]
@@ -905,6 +920,12 @@ input WebhookActionInput @goModel(model: "observe/meta/metatypes.WebhookActionIn
 
 type WebhookHeader @goModel(model: "observe/meta/metatypes.WebhookHeader") {
     header: String!
+    """
+    A value template that can be rendered.
+
+    Carries the outbound request's credential when the header is Authorization or
+    an API-token header, so it is @secret. The name stays loggable.
+    """
     valueTemplate: String!
 }
 

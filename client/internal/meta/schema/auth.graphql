@@ -20,6 +20,10 @@ type Authtoken implements Token & AuditedObject @goModel(model: "observe/meta/me
     user: UserId
     userInfo: UserInfo @goField(forceResolver: true)
     datastreamId: ObjectId
+    """
+    The token's effective scopes. An empty/null list means the token is unscoped.
+    """
+    scopes: [ApiTokenScope!]
 }
 
 type AuthtokenCreateResult @goModel(model: "observe/meta/metatypes.AuthtokenCreateResult") {
@@ -37,6 +41,11 @@ input AuthtokenInput @goModel(model: "observe/meta/metatypes.AuthtokenInput") {
     disabled: Boolean!
     extensionSeconds: Int64!
     expiration: Time!
+    """
+    Optionally constrains the token's effective permissions. An empty/null list
+    leaves the token unscoped. Unknown scopes are rejected.
+    """
+    scopes: [ApiTokenScope!]
 }
 
 enum AuthtokenKind @goModel(model: "observe/authorization/authtypes.AuthtokenKind") {

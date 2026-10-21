@@ -158,6 +158,8 @@ bindings:
   # types that we send to GQL
   CustomerId:
     type: string
+  Date:
+    type: string
   ObjectId:
     type: string
   ORN:

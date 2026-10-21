@@ -173,6 +173,7 @@ fragment MonitorV2Rule on MonitorV2Rule {
 fragment MonitorV2Definition on MonitorV2Definition{
     inputQuery {
         outputStage
+        opalVersion
         # @genqlient(flatten: true)
         stages {
             ...StageQuery
@@ -310,6 +311,7 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.numStandardDeviations", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
@@ -320,12 +322,15 @@ fragment MonitorV2ComparisonTerm on MonitorV2ComparisonTerm {
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 fragment MonitorV2 on MonitorV2 {
     id
@@ -373,6 +378,7 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.numStandardDeviations", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
@@ -383,12 +389,15 @@ fragment MonitorV2 on MonitorV2 {
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation createMonitorV2(
 	$workspaceId: ObjectId!,
@@ -417,6 +426,7 @@ mutation createMonitorV2(
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.numStandardDeviations", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
@@ -427,12 +437,15 @@ mutation createMonitorV2(
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genclient(for: "MonitorV2ComparisonExpressionInput.conditions", omitempty: true)
 mutation updateMonitorV2(
 	$id: ObjectId!,
@@ -497,6 +510,7 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "MonitorV2AnomalyRuleInput.comparePercentage", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleInput.compareGroups", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.computationWindow", omitempty: true)
+# @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.numStandardDeviations", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.basicAlgorithmTyped", omitempty: true)
 # @genqlient(for: "MonitorV2AnomalyRuleTemplateInput.seasonalAlgorithm", omitempty: true)
 # @genqlient(for: "MonitorV2ColumnInput.linkColumn", omitempty: true)
@@ -507,12 +521,15 @@ mutation saveMonitorV2Relations(
 # @genqlient(for: "InputDefinitionInput.stageID", omitempty: true)
 # @genqlient(for: "InputDefinitionInput.stageId", omitempty: true)
 # @genqlient(for: "StageQueryInput.id", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageID", omitempty: true)
+# @genqlient(for: "StageQueryInput.stageId", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.bool", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.float64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.int64", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.string", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.timestamp", omitempty: true)
 # @genqlient(for: "PrimitiveValueInput.duration", omitempty: true)
+# @genqlient(for: "MultiStageQueryInput.opalVersion", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.email", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.webhook", omitempty: true)
 # @genqlient(for: "MonitorV2ActionInput.iconUrl", omitempty: true)
