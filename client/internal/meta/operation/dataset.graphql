@@ -110,7 +110,29 @@ fragment DatasetSaveResult on DatasetSaveResult {
 	}
 }
 
+# DatasetDryRunSaveResult is the default preflight selection. It carries the validation
+# outcome and nothing else.
+#
+# Deliberately does not select dematerializedDatasets: the backend answers that field by
+# running a synchronous transformer graph walk (~11.5s per call), which is why it sits behind
+# a response field mask server-side. Selecting it here made every terraform plan pay for a
+# list almost no caller reads. Callers that do read it use
+# DatasetDryRunRematerializationSaveResult below.
 fragment DatasetDryRunSaveResult on DatasetSaveResult {
+	# @genqlient(flatten: true)
+	errorDatasets {
+		...DatasetError
+	}
+}
+
+# DatasetDryRunRematerializationSaveResult adds the list of datasets a save would
+# dematerialize. Only rematerialization_mode = must_skip_rematerialization reads it, to turn a
+# non-empty list into a hard error. See the comment on DatasetDryRunSaveResult for the cost.
+fragment DatasetDryRunRematerializationSaveResult on DatasetSaveResult {
+	# @genqlient(flatten: true)
+	errorDatasets {
+		...DatasetError
+	}
 	# @genqlient(flatten: true)
 	dematerializedDatasets {
 		...DatasetMaterialization
@@ -150,6 +172,18 @@ mutation saveDatasetDryRun(
 	# @genqlient(flatten: true)
 	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
 		...DatasetDryRunSaveResult
+	}
+}
+
+mutation saveDatasetDryRunWithRematerialization(
+	$workspaceId: ObjectId!,
+	$dataset: DatasetInput!,
+	$query: MultiStageQueryInput!,
+	$dep: DependencyHandlingInput
+) {
+	# @genqlient(flatten: true)
+	datasetSaveResult: saveDataset(workspaceId:$workspaceId, dataset:$dataset, query:$query, dependencyHandling:$dep) {
+		...DatasetDryRunRematerializationSaveResult
 	}
 }
 
