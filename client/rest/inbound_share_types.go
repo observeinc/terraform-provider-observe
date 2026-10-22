@@ -126,6 +126,25 @@ type Share struct {
 	TableCount      int                   `json:"tableCount"`
 }
 
+// SnowflakeShareName is the share's name in the provider account. It reads
+// snowflakeConfig, which every share response carries, and falls back to the
+// top-level field.
+func (s *Share) SnowflakeShareName() string {
+	if s.SnowflakeConfig != nil && s.SnowflakeConfig.ShareName != "" {
+		return s.SnowflakeConfig.ShareName
+	}
+	return s.ShareName
+}
+
+// SnowflakeProviderAccount is the org-qualified account that provides the
+// share, read the same way as SnowflakeShareName.
+func (s *Share) SnowflakeProviderAccount() string {
+	if s.SnowflakeConfig != nil && s.SnowflakeConfig.ProviderAccount != "" {
+		return s.SnowflakeConfig.ProviderAccount
+	}
+	return s.ProviderAccount
+}
+
 type ShareListResponse struct {
 	Shares []Share `json:"shares"`
 	Meta   Meta    `json:"meta"`

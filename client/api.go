@@ -1746,9 +1746,9 @@ func (c *Client) LookupShare(ctx context.Context, shareName, providerAccount str
 	return c.Rest.LookupShare(ctx, shareName, providerAccount)
 }
 
-func (c *Client) RegisterShare(ctx context.Context, req *rest.RegisterShareRequest) (result *rest.Share, err error) {
+func (c *Client) RegisterShare(ctx context.Context, req *rest.RegisterShareRequest) (result *rest.Share, created bool, err error) {
 	c.maybeRunConcurrently(func() {
-		result, err = c.Rest.RegisterShare(ctx, req)
+		result, created, err = c.Rest.RegisterShare(ctx, req)
 	})
 	return
 }

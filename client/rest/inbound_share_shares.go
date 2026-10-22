@@ -85,25 +85,26 @@ func (c *Client) GetShare(ctx context.Context, shareId string) (*Share, error) {
 // RegisterShare registers a Snowflake share offered to Observe. The server
 // verifies that the share comment holds a registration token for the provider
 // account, unless the account was already verified by an earlier registration.
-// Registering an already-registered share returns it unchanged.
-func (c *Client) RegisterShare(ctx context.Context, req *RegisterShareRequest) (*Share, error) {
+// Registering an already-registered share returns it unchanged with 200
+// instead of 201; created reports which one the server sent.
+func (c *Client) RegisterShare(ctx context.Context, req *RegisterShareRequest) (share *Share, created bool, err error) {
 	body, err := json.Marshal(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, false, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	resp, err := c.requestWithContext(ctx, http.MethodPost, "/v1/shares/inbound", "application/json", bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	defer resp.Body.Close()
 
-	var share Share
-	if err := json.NewDecoder(resp.Body).Decode(&share); err != nil {
-		return nil, fmt.Errorf("failed to decode share response: %w", err)
+	share = &Share{}
+	if err := json.NewDecoder(resp.Body).Decode(share); err != nil {
+		return nil, false, fmt.Errorf("failed to decode share response: %w", err)
 	}
 
-	return &share, nil
+	return share, resp.StatusCode == http.StatusCreated, nil
 }
 
 // UpdateShare updates the mutable fields of a share

@@ -115,9 +115,34 @@ func TestRegisterShareOwnershipProofFailed(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := New(server.URL, server.Client()).RegisterShare(context.Background(), &RegisterShareRequest{ProviderAccount: "ACME.PROD", ShareName: "SALES"})
+	_, _, err := New(server.URL, server.Client()).RegisterShare(context.Background(), &RegisterShareRequest{ProviderAccount: "ACME.PROD", ShareName: "SALES"})
 	if !HasStatusCode(err, http.StatusForbidden) || !HasErrorType(err, ErrorTypeOwnershipProofFailed) {
 		t.Fatalf("Expected 403 ownership_proof_failed, got %v", err)
+	}
+}
+
+func TestRegisterShareReportsCreated(t *testing.T) {
+	for _, tt := range []struct {
+		status  int
+		created bool
+	}{
+		{http.StatusCreated, true},
+		{http.StatusOK, false},
+	} {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(tt.status)
+			w.Write([]byte(`{"id": "41012345", "shareName": "SALES", "providerType": "Snowflake"}`))
+		}))
+
+		share, created, err := New(server.URL, server.Client()).RegisterShare(context.Background(), &RegisterShareRequest{ProviderAccount: "ACME.PROD", ShareName: "SALES"})
+		server.Close()
+		if err != nil {
+			t.Fatalf("status %d: RegisterShare failed: %v", tt.status, err)
+		}
+		if share.Id != "41012345" || created != tt.created {
+			t.Errorf("status %d: got id %s created %v, want created %v", tt.status, share.Id, created, tt.created)
+		}
 	}
 }
 

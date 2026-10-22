@@ -38,7 +38,6 @@ func resourceInboundShare() *schema.Resource {
 			"label": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: descriptions.Get("inbound_share", "schema", "label"),
 			},
 			"oid": {
@@ -100,8 +99,15 @@ func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) (diags
 		lastHealthCheck = *s.Status.LastHealthCheckAt
 	}
 
+	// An unset label is kept unset while the server reports the default
+	// label, so that removing label from the config is a change to apply.
+	label := s.Label
+	if data.Get("label").(string) == "" && isDefaultInboundShareLabel(s, data.Get("share_name").(string)) {
+		label = ""
+	}
+
 	values := map[string]interface{}{
-		"label":             s.Label,
+		"label":             label,
 		"oid":               s.Oid().String(),
 		"provider_type":     s.ProviderType,
 		"status":            s.Status.State,
@@ -115,10 +121,10 @@ func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) (diags
 	// The server may normalise the case of unquoted names, so the configured
 	// values are kept unless there are none (on import).
 	if _, ok := data.GetOk("share_name"); !ok {
-		values["share_name"] = s.ShareName
+		values["share_name"] = s.SnowflakeShareName()
 	}
 	if _, ok := data.GetOk("provider_account"); !ok {
-		values["provider_account"] = s.ProviderAccount
+		values["provider_account"] = s.SnowflakeProviderAccount()
 	}
 	for key, value := range values {
 		if err := data.Set(key, value); err != nil {
@@ -128,15 +134,35 @@ func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) (diags
 	return diags
 }
 
+// isDefaultInboundShareLabel reports whether the share's label is the one the
+// server assigns when none is given, which is the share name.
+func isDefaultInboundShareLabel(s *rest.Share, configuredShareName string) bool {
+	return s.Label == "" || s.Label == configuredShareName || s.Label == s.ShareName || s.Label == s.SnowflakeShareName()
+}
+
+// inboundShareLabel is the label to send: the configured one, or the share
+// name when label is unset.
+func inboundShareLabel(data *schema.ResourceData) string {
+	if label := data.Get("label").(string); label != "" {
+		return label
+	}
+	return data.Get("share_name").(string)
+}
+
 func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
 
-	share, err := client.RegisterShare(ctx, &rest.RegisterShareRequest{
-		ProviderAccount: data.Get("provider_account").(string),
-		ShareName:       data.Get("share_name").(string),
+	shareName := data.Get("share_name").(string)
+	providerAccount := data.Get("provider_account").(string)
+	share, created, err := client.RegisterShare(ctx, &rest.RegisterShareRequest{
+		ProviderAccount: providerAccount,
+		ShareName:       shareName,
 	})
 	if err != nil {
 		return inboundShareErrorDiags("failed to register inbound share", err)
+	}
+	if !created {
+		return inboundShareAlreadyRegisteredDiags(share, shareName, providerAccount)
 	}
 	data.SetId(share.Id)
 
@@ -169,7 +195,7 @@ func resourceInboundShareUpdate(ctx context.Context, data *schema.ResourceData, 
 	client := meta.(*observe.Client)
 
 	share, err := client.UpdateShare(ctx, data.Id(), &rest.UpdateShareRequest{
-		Label: data.Get("label").(string),
+		Label: inboundShareLabel(data),
 	})
 	if err != nil {
 		return inboundShareErrorDiags("failed to update inbound share", err)
