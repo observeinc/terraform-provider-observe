@@ -73,6 +73,7 @@ resource "observe_dashboard" "example_rest" {
               type     = "query"
               geometry = { x = 0, y = 0, w = 12, h = 6 }
               query = {
+                id = "query-0"
                 content = {
                   pipeline = [
                     "filter label(^Trace) ~ 'foo'",
