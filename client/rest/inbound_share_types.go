@@ -81,7 +81,7 @@ func (d *DatasetRef) UnmarshalJSON(data []byte) error {
 // Share Types
 
 type ShareStatus struct {
-	State             string  `json:"state"`  // Pending, Creating, Active, Inactive, Error, Deleting
+	State             string  `json:"state"`  // Creating, Active, Deleting, Unknown
 	Health            string  `json:"health"` // Healthy, Unhealthy, Unknown
 	HealthMessage     *string `json:"healthMessage"`
 	LastHealthCheckAt *string `json:"lastHealthCheckAt"`
@@ -232,13 +232,14 @@ type InboundShareTable struct {
 	FullTablePath  string                  `json:"fullTablePath"` // "schema/table"
 	TableName      string                  `json:"tableName"`
 	SchemaName     string                  `json:"schemaName"`
-	TableType      string                  `json:"tableType"`     // "TABLE", "VIEW", etc.
-	Status         string                  `json:"status"`        // Pending, Active, Inactive, Error
+	TableType      string                  `json:"tableType"`     // Table, View, Unknown
+	Status         string                  `json:"status"`        // Active, Unknown
+	CdcStatus      string                  `json:"cdcStatus"`     // Enabled, Disabled, Error, Unknown
 	SourceDataset  *DatasetRef             `json:"sourceDataset"` // Reference to the Observe dataset
 	TableSchema    *TableSchema            `json:"tableSchema"`   // Snowflake table schema (columns, types)
 	Description    string                  `json:"description,omitempty"`
 	DatasetLabel   string                  `json:"datasetLabel,omitempty"` // Name/label of the Observe dataset
-	DatasetKind    string                  `json:"datasetKind,omitempty"`  // Table, Event, Resource, Interval
+	DatasetKind    string                  `json:"datasetKind,omitempty"`  // Table, Event, Interval
 	ValidFromField string                  `json:"validFromField,omitempty"`
 	ValidToField   string                  `json:"validToField,omitempty"`
 	FieldMapping   map[string]FieldMapping `json:"fieldMapping,omitempty"` // Schema mapping (field name -> type conversion)
@@ -277,7 +278,7 @@ type TrackTableRequest struct {
 	TableName      string                  `json:"tableName"`
 	SchemaName     string                  `json:"schemaName"`
 	DatasetLabel   string                  `json:"datasetLabel"`
-	DatasetKind    string                  `json:"datasetKind"` // Table, Event, Resource, Interval
+	DatasetKind    string                  `json:"datasetKind"` // Table, Event, Interval
 	ValidFromField *string                 `json:"validFromField,omitempty"`
 	ValidToField   *string                 `json:"validToField,omitempty"`
 	Description    *string                 `json:"description,omitempty"`

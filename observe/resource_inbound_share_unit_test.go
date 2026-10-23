@@ -137,3 +137,15 @@ func TestInboundShareToResourceDataKeepsCustomLabel(t *testing.T) {
 		t.Errorf("label = %q, want the server's custom label so the plan resets it", got)
 	}
 }
+
+func TestResourceInboundShareTableDatasetKind(t *testing.T) {
+	validate := resourceInboundShareTable().Schema["dataset_kind"].ValidateDiagFunc
+	for _, kind := range []string{"Table", "Event", "Interval"} {
+		if diags := validate(kind, nil); diags.HasError() {
+			t.Errorf("%s: unexpected error %v", kind, diags)
+		}
+	}
+	if diags := validate("Resource", nil); !diags.HasError() {
+		t.Error("Resource: expected an error, the API does not accept it")
+	}
+}
