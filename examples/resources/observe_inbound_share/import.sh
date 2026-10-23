@@ -1,0 +1,1 @@
+terraform import observe_inbound_share.customer_data 41012345

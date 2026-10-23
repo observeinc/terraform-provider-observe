@@ -8,7 +8,9 @@ import (
 
 type ErrorWithStatusCode struct {
 	StatusCode int
-	Err        error
+	// Type is the machine-readable error type from the response body, if any.
+	Type string
+	Err  error
 }
 
 func (e ErrorWithStatusCode) Error() string {
@@ -18,4 +20,10 @@ func (e ErrorWithStatusCode) Error() string {
 func HasStatusCode(err error, code int) bool {
 	var errWithStatusCode ErrorWithStatusCode
 	return errors.As(err, &errWithStatusCode) && errWithStatusCode.StatusCode == code
+}
+
+// HasErrorType reports whether err carries the given response error type.
+func HasErrorType(err error, errorType string) bool {
+	var errWithStatusCode ErrorWithStatusCode
+	return errors.As(err, &errWithStatusCode) && errWithStatusCode.Type == errorType
 }

@@ -64,6 +64,8 @@ func TestAccObserveInboundShareTable_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "dataset_oid"),
 					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "status"),
 					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "full_table_path"),
+					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "table_type"),
+					resource.TestCheckResourceAttrSet("observe_inbound_share_table.test", "cdc_status"),
 
 					// Verify input values match configuration
 					resource.TestCheckResourceAttr("observe_inbound_share_table.test", "table_name", testInboundTableData),
@@ -412,7 +414,7 @@ func TestAccObserveInboundShareTable_UpdateAllFields(t *testing.T) {
 //
 // Parameters:
 //   - datasetLabel: Label for the Observe dataset (e.g., "my-test-dataset")
-//   - datasetKind: Dataset kind - "Table", "Event", "Interval", or "Resource"
+//   - datasetKind: Dataset kind - "Table", "Event", or "Interval"
 //   - description: Optional description for the dataset (can be empty string)
 //   - tableName: Name of the table in the share (e.g., "TEMP_TEST_DATA")
 //

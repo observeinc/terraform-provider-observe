@@ -1,0 +1,18 @@
+description: |
+  Issues a single-use token that proves you own a Snowflake provider account, for registering an `observe_inbound_share`.
+
+  -> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
+
+  Set the share comment to `token` (for example with the `comment` argument of `snowflake_share`) before the `observe_inbound_share` is created. The token is stored in Terraform state; treat the state as secret.
+
+  The token expires, and issuing a new one retires any earlier token for the same provider account. To get a new token, replace this resource with `terraform apply -replace`. Destroying this resource only removes it from state.
+
+schema:
+  provider_account: |
+    Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>`. Changing this issues a new token.
+  token: |
+    The registration token. Set it as the share comment, exactly as returned.
+  setup_sql: |
+    SQL that sets the share comment to the token, for when the share is not managed by Terraform. Replace `<your_share_name>` with the share's name and run it in the provider account.
+  expires_at: |
+    When the token expires. Register the share before then.

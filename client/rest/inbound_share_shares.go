@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -79,6 +80,71 @@ func (c *Client) GetShare(ctx context.Context, shareId string) (*Share, error) {
 	}
 
 	return &share, nil
+}
+
+// RegisterShare registers a Snowflake share offered to Observe. The server
+// verifies that the share comment holds a registration token for the provider
+// account, unless the account was already verified by an earlier registration.
+// Registering an already-registered share returns it unchanged with 200
+// instead of 201; created reports which one the server sent.
+func (c *Client) RegisterShare(ctx context.Context, req *RegisterShareRequest) (share *Share, created bool, err error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	resp, err := c.requestWithContext(ctx, http.MethodPost, "/v1/shares/inbound", "application/json", bytes.NewReader(body))
+	if err != nil {
+		return nil, false, err
+	}
+	defer resp.Body.Close()
+
+	share = &Share{}
+	if err := json.NewDecoder(resp.Body).Decode(share); err != nil {
+		return nil, false, fmt.Errorf("failed to decode share response: %w", err)
+	}
+
+	return share, resp.StatusCode == http.StatusCreated, nil
+}
+
+// UpdateShare updates the mutable fields of a share
+func (c *Client) UpdateShare(ctx context.Context, shareId string, req *UpdateShareRequest) (*Share, error) {
+	path := fmt.Sprintf("/v1/shares/inbound/%s", url.PathEscape(shareId))
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	resp, err := c.requestWithContext(ctx, http.MethodPatch, path, "application/json", bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var share Share
+	if err := json.NewDecoder(resp.Body).Decode(&share); err != nil {
+		return nil, fmt.Errorf("failed to decode share response: %w", err)
+	}
+
+	return &share, nil
+}
+
+// DeleteShare drops a share. Without force, a share that still has tracked
+// tables is rejected with 409 share_has_tracked_tables.
+func (c *Client) DeleteShare(ctx context.Context, shareId string, force bool) error {
+	path := fmt.Sprintf("/v1/shares/inbound/%s", url.PathEscape(shareId))
+	if force {
+		path += "?force=true"
+	}
+
+	resp, err := c.requestWithContext(ctx, http.MethodDelete, path, "", nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
 
 // LookupShare finds a share by exact shareName and providerAccount match
