@@ -220,7 +220,9 @@ func TestResourceInboundShareCreateSendsLabel(t *testing.T) {
 				switch r.Method {
 				case http.MethodPost:
 					if err := json.NewDecoder(r.Body).Decode(&registered); err != nil {
-						t.Fatalf("decode register body: %v", err)
+						t.Errorf("decode register body: %v", err)
+						w.WriteHeader(http.StatusBadRequest)
+						return
 					}
 					if tt.serverSaves {
 						share["label"] = registered.Label
