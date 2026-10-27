@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observeclient "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
@@ -147,5 +148,80 @@ func TestResourceInboundShareTableDatasetKind(t *testing.T) {
 	}
 	if diags := validate("Resource", nil); !diags.HasError() {
 		t.Error("Resource: expected an error, the API does not accept it")
+	}
+}
+
+func TestResourceInboundShareImportAcceptsOID(t *testing.T) {
+	for _, id := range []string{"41012345", "o:::inboundshare:41012345"} {
+		data := resourceInboundShare().TestResourceData()
+		data.SetId(id)
+		result, err := resourceInboundShareImport(context.Background(), data, nil)
+		if err != nil {
+			t.Fatalf("import %q failed: %v", id, err)
+		}
+		if got := result[0].Id(); got != "41012345" {
+			t.Errorf("import %q: expected ID 41012345, got %s", id, got)
+		}
+	}
+}
+
+func TestResourceInboundShareCreateKeepsShareWhenLabelFails(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodPatch {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"message": "boom"}`))
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(inboundShareGetResponse))
+	}))
+	defer server.Close()
+	client := newInboundShareTestClient(server)
+
+	data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+		"share_name":       "customer_share_prod",
+		"provider_account": "acme_corp.us-east-1",
+		"label":            "Customer data",
+	})
+	diags := resourceInboundShareCreate(context.Background(), data, client)
+	if diags.HasError() || len(diags) != 1 || diags[0].Severity != diag.Warning {
+		t.Fatalf("expected a single warning, got %v", diags)
+	}
+	if data.Id() != "41012345" {
+		t.Errorf("state ID = %q, want 41012345", data.Id())
+	}
+	if got := data.Get("label"); got == "Customer data" {
+		t.Errorf("label = %q, want the server's label so the next apply retries it", got)
+	}
+	if got := data.Get("share_name"); got != "CUSTOMER_SHARE_PROD" {
+		t.Errorf("share_name = %q, want the server's name", got)
+	}
+}
+
+func TestInboundShareNameDiffSuppress(t *testing.T) {
+	suppressName := resourceInboundShare().Schema["share_name"].DiffSuppressFunc
+	for _, tt := range []struct {
+		old, new string
+		suppress bool
+	}{
+		{"CUSTOMER_DATA", "customer_data", true},
+		{"CUSTOMER_DATA", " Customer_Data ", true},
+		{"customer_data", `"customer_data"`, true},
+		{"CUSTOMER_DATA", `"customer_data"`, false},
+		{"CUSTOMER_DATA", "OTHER", false},
+		{"", "customer_data", false},
+	} {
+		if got := suppressName("share_name", tt.old, tt.new, nil); got != tt.suppress {
+			t.Errorf("share_name %q -> %q: suppress = %v, want %v", tt.old, tt.new, got, tt.suppress)
+		}
+	}
+
+	suppressAccount := resourceInboundShare().Schema["provider_account"].DiffSuppressFunc
+	if !suppressAccount("provider_account", "ACME_CORP.PROD", "acme_corp.prod", nil) {
+		t.Error("provider_account: expected a case-only change to be suppressed")
+	}
+	if suppressAccount("provider_account", "ACME_CORP.PROD", "ACME_CORP.DEV", nil) {
+		t.Error("provider_account: expected a different account to be a change")
 	}
 }

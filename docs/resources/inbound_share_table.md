@@ -12,8 +12,10 @@ Tracks a table from an inbound Snowflake share and creates an associated Observe
 ```terraform
 # Basic table tracking
 data "observe_inbound_share" "customer_data" {
-  share_name       = "CUSTOMER_SHARE_PROD"
-  provider_account = "ACME_CORP.US-EAST-1"
+  snowflake_config {
+    share_name       = "CUSTOMER_SHARE_PROD"
+    provider_account = "ACME_CORP.US-EAST-1"
+  }
 }
 
 resource "observe_inbound_share_table" "customer_events" {

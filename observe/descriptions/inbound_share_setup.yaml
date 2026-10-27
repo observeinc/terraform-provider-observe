@@ -10,14 +10,8 @@ schema:
     Snowflake region of the consumer account. The share must be in the same region.
   cloud: |
     Cloud provider of the consumer account. Empty when it cannot be derived from the region.
-  summary: |
-    Summary of the provider-side setup.
   setup_sql: |
     SQL to run in the provider account to share data with Observe. Statements may contain `<placeholders>` to fill in.
-  provider_checks: |
-    SQL to run in the provider account to check the share is set up and granted to Observe.
-  checklist: |
-    Non-SQL conditions to check when registration fails.
   sql_step:
     description: |
       What the statement does.

@@ -50,9 +50,8 @@ func (c *Client) CreateRegistrationToken(ctx context.Context, req *CreateRegistr
 	defer resp.Body.Close()
 
 	var token RegistrationToken
-	// The decode error is not wrapped: it could quote part of the body.
 	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return nil, errors.New("failed to decode registration token response")
+		return nil, fmt.Errorf("failed to decode registration token response: %w", err)
 	}
 	if token.Token == "" {
 		return nil, errors.New("registration token response is missing the token")

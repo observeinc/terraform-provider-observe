@@ -34,23 +34,11 @@ output "setup_sql" {
 
 ### Read-Only
 
-- `checklist` (List of String) Non-SQL conditions to check when registration fails.
 - `cloud` (String) Cloud provider of the consumer account. Empty when it cannot be derived from the region.
 - `consumer_account` (String) Observe's consumer Snowflake account, as `<ORG>.<ACCOUNT>`. Add it to the share's accounts.
 - `id` (String) The ID of this resource.
-- `provider_checks` (List of Object) SQL to run in the provider account to check the share is set up and granted to Observe. (see [below for nested schema](#nestedatt--provider_checks))
 - `region` (String) Snowflake region of the consumer account. The share must be in the same region.
 - `setup_sql` (List of Object) SQL to run in the provider account to share data with Observe. Statements may contain `<placeholders>` to fill in. (see [below for nested schema](#nestedatt--setup_sql))
-- `summary` (String) Summary of the provider-side setup.
-
-<a id="nestedatt--provider_checks"></a>
-### Nested Schema for `provider_checks`
-
-Read-Only:
-
-- `description` (String)
-- `sql` (String)
-
 
 <a id="nestedatt--setup_sql"></a>
 ### Nested Schema for `setup_sql`

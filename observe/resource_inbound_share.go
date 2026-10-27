@@ -22,83 +22,35 @@ func resourceInboundShare() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInboundShareImport,
 		},
-		Schema: map[string]*schema.Schema{
-			"share_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: descriptions.Get("inbound_share", "schema", "share_name"),
-			},
-			"provider_account": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: descriptions.Get("inbound_share", "schema", "provider_account"),
-			},
-			"label": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: descriptions.Get("inbound_share", "schema", "label"),
-			},
-			"oid": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("common", "schema", "oid"),
-			},
-			"provider_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "provider_type"),
-			},
-			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "status"),
-			},
-			"health": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "health"),
-			},
-			"health_message": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "health_message"),
-			},
-			"last_health_check": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "last_health_check"),
-			},
-			"table_count": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "table_count"),
-			},
-			"created_at": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "created_at"),
-			},
-			"updated_at": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share", "schema", "updated_at"),
-			},
-		},
+		Schema: inboundShareResourceSchema(),
 	}
 }
 
-func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) (diags diag.Diagnostics) {
-	healthMessage := ""
-	if s.Status.HealthMessage != nil {
-		healthMessage = *s.Status.HealthMessage
+func inboundShareResourceSchema() map[string]*schema.Schema {
+	s := inboundShareStatusSchema()
+	s["share_name"] = &schema.Schema{
+		Type:             schema.TypeString,
+		Required:         true,
+		ForceNew:         true,
+		DiffSuppressFunc: suppressCanonicalDiff(canonicalInboundShareName),
+		Description:      descriptions.Get("inbound_share", "schema", "share_name"),
 	}
-	lastHealthCheck := ""
-	if s.Status.LastHealthCheckAt != nil {
-		lastHealthCheck = *s.Status.LastHealthCheckAt
+	s["provider_account"] = &schema.Schema{
+		Type:             schema.TypeString,
+		Required:         true,
+		ForceNew:         true,
+		DiffSuppressFunc: suppressCanonicalDiff(canonicalInboundShareProviderAccount),
+		Description:      descriptions.Get("inbound_share", "schema", "provider_account"),
 	}
+	s["label"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: descriptions.Get("inbound_share", "schema", "label"),
+	}
+	return s
+}
 
+func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) diag.Diagnostics {
 	// An unset label is kept unset while the server reports the default
 	// label, so that removing label from the config is a change to apply.
 	label := s.Label
@@ -106,32 +58,11 @@ func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) (diags
 		label = ""
 	}
 
-	values := map[string]interface{}{
-		"label":             label,
-		"oid":               s.Oid().String(),
-		"provider_type":     s.ProviderType,
-		"status":            s.Status.State,
-		"health":            s.Status.Health,
-		"health_message":    healthMessage,
-		"last_health_check": lastHealthCheck,
-		"table_count":       s.TableCount,
-		"created_at":        s.CreatedAt,
-		"updated_at":        s.UpdatedAt,
-	}
-	// The server may normalise the case of unquoted names, so the configured
-	// values are kept unless there are none (on import).
-	if _, ok := data.GetOk("share_name"); !ok {
-		values["share_name"] = s.SnowflakeShareName()
-	}
-	if _, ok := data.GetOk("provider_account"); !ok {
-		values["provider_account"] = s.SnowflakeProviderAccount()
-	}
-	for key, value := range values {
-		if err := data.Set(key, value); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	return diags
+	values := inboundShareStatusValues(s)
+	values["label"] = label
+	values["share_name"] = s.SnowflakeShareName()
+	values["provider_account"] = s.SnowflakeProviderAccount()
+	return setResourceDataValues(data, values)
 }
 
 // isDefaultInboundShareLabel reports whether the share's label is the one the
@@ -166,14 +97,20 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 	}
 	data.SetId(share.Id)
 
-	if label, ok := data.GetOk("label"); ok && label.(string) != share.Label {
-		share, err = client.UpdateShare(ctx, share.Id, &rest.UpdateShareRequest{Label: label.(string)})
-		if err != nil {
-			return inboundShareErrorDiags("failed to set inbound share label", err)
-		}
+	label, hasLabel := data.GetOk("label")
+	if !hasLabel || label.(string) == share.Label {
+		return inboundShareToResourceData(share, data)
 	}
-
-	return inboundShareToResourceData(share, data)
+	updated, err := client.UpdateShare(ctx, share.Id, &rest.UpdateShareRequest{Label: label.(string)})
+	if err != nil {
+		// The share is registered, so it is kept rather than tainted: the
+		// state holds the server's label and the next apply retries it.
+		diags := inboundShareToResourceData(share, data)
+		d := inboundShareErrorDiags("inbound share registered, but setting its label failed", err)[0]
+		d.Severity = diag.Warning
+		return append(diags, d)
+	}
+	return inboundShareToResourceData(updated, data)
 }
 
 func resourceInboundShareRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {

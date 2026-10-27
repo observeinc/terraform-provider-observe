@@ -5,14 +5,16 @@ description: |
 
   Set the share comment to `token` (for example with the `comment` argument of `snowflake_share`) before the `observe_inbound_share` is created. The token is stored in Terraform state; treat the state as secret.
 
-  The token expires, and issuing a new one retires any earlier token for the same provider account. To get a new token, replace this resource with `terraform apply -replace`. Destroying this resource only removes it from state.
+  Use one token resource per provider account: issuing a new token retires any earlier token for the same provider account.
+
+  The token is only needed for the first share registered from a provider account. Once any share from the account is registered, later shares skip the ownership check, and this resource can be removed. Destroying it only removes it from state.
+
+  The token expires after 24 hours. If the first registration fails after that, issue a new token with `terraform apply -replace` on this resource.
 
 schema:
   provider_account: |
     Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>`. Changing this issues a new token.
   token: |
     The registration token. Set it as the share comment, exactly as returned.
-  setup_sql: |
-    SQL that sets the share comment to the token, for when the share is not managed by Terraform. Replace `<your_share_name>` with the share's name and run it in the provider account.
   expires_at: |
     When the token expires. Register the share before then.

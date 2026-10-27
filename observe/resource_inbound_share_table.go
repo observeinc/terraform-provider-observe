@@ -328,7 +328,7 @@ func resourceInboundShareTableCreate(ctx context.Context, data *schema.ResourceD
 
 	result, err := client.TrackTable(ctx, shareOid.Id, req)
 	if err != nil {
-		return diag.Errorf("failed to track table: %v", err)
+		return inboundShareErrorDiags("failed to track table", err)
 	}
 
 	// Set the resource ID to the table ID
@@ -364,7 +364,7 @@ func resourceInboundShareTableRead(ctx context.Context, data *schema.ResourceDat
 			data.SetId("")
 			return nil
 		}
-		return diag.Errorf("failed to retrieve tracked table: %v", err)
+		return inboundShareErrorDiags("failed to retrieve tracked table", err)
 	}
 
 	// Populate computed fields from Dataset API if they're not returned by the sharein API
@@ -443,7 +443,7 @@ func resourceInboundShareTableUpdate(ctx context.Context, data *schema.ResourceD
 
 	_, err = client.UpdateInboundShareTable(ctx, shareOid.Id, data.Id(), req)
 	if err != nil {
-		return diag.Errorf("failed to update tracked table: %v", err)
+		return inboundShareErrorDiags("failed to update tracked table", err)
 	}
 
 	// Re-read to get updated state
@@ -464,7 +464,7 @@ func resourceInboundShareTableDelete(ctx context.Context, data *schema.ResourceD
 			// Table already deleted, not an error
 			return nil
 		}
-		return diag.Errorf("failed to delete tracked table: %v", err)
+		return inboundShareErrorDiags("failed to delete tracked table", err)
 	}
 
 	return nil

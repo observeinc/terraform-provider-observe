@@ -47,28 +47,11 @@ func dataSourceInboundShareSetup() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("inbound_share_setup", "schema", "cloud"),
 			},
-			"summary": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: descriptions.Get("inbound_share_setup", "schema", "summary"),
-			},
 			"setup_sql": {
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem:        inboundShareSetupSqlStepSchema(),
 				Description: descriptions.Get("inbound_share_setup", "schema", "setup_sql"),
-			},
-			"provider_checks": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Elem:        inboundShareSetupSqlStepSchema(),
-				Description: descriptions.Get("inbound_share_setup", "schema", "provider_checks"),
-			},
-			"checklist": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: descriptions.Get("inbound_share_setup", "schema", "checklist"),
 			},
 		},
 	}
@@ -97,7 +80,7 @@ func flattenSetupSqlSteps(steps []rest.SetupSqlStep) []interface{} {
 	return result
 }
 
-func inboundShareSetupToResourceData(info *rest.SetupInfo, data *schema.ResourceData) (diags diag.Diagnostics) {
+func inboundShareSetupToResourceData(info *rest.SetupInfo, data *schema.ResourceData) diag.Diagnostics {
 	cloud := ""
 	if info.Cloud != nil {
 		cloud = *info.Cloud
@@ -108,15 +91,7 @@ func inboundShareSetupToResourceData(info *rest.SetupInfo, data *schema.Resource
 		"consumer_account": info.ConsumerAccount,
 		"region":           info.Region,
 		"cloud":            cloud,
-		"summary":          guidance.Summary,
 		"setup_sql":        flattenSetupSqlSteps(guidance.SetupSql),
-		"provider_checks":  flattenSetupSqlSteps(guidance.ProviderChecks),
-		"checklist":        guidance.Checklist,
 	}
-	for key, value := range values {
-		if err := data.Set(key, value); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	return diags
+	return setResourceDataValues(data, values)
 }

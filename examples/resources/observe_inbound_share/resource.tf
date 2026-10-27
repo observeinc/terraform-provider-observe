@@ -1,10 +1,22 @@
-resource "observe_inbound_share" "customer_data" {
-  share_name       = "CUSTOMER_SHARE_PROD"
-  provider_account = "ACME_CORP.PROD"
-  label            = "Customer data"
+data "observe_inbound_share_setup" "setup" {}
 
-  # The share comment must hold the registration token before registering
-  depends_on = [snowflake_share.customer_data]
+# Only needed for the first share registered from a provider account
+resource "observe_inbound_share_registration_token" "acme" {
+  provider_account = "ACME_CORP.PROD"
+}
+
+# Grant the share to Observe, and prove ownership by setting its comment to
+# the token
+resource "snowflake_share" "customer_data" {
+  name     = "CUSTOMER_SHARE_PROD"
+  comment  = observe_inbound_share_registration_token.acme.token
+  accounts = [data.observe_inbound_share_setup.setup.consumer_account]
+}
+
+resource "observe_inbound_share" "customer_data" {
+  share_name       = snowflake_share.customer_data.name
+  provider_account = observe_inbound_share_registration_token.acme.provider_account
+  label            = "Customer data"
 }
 
 resource "observe_inbound_share_table" "events" {

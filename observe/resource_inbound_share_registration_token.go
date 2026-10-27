@@ -31,13 +31,6 @@ func resourceInboundShareRegistrationToken() *schema.Resource {
 				Sensitive:   true,
 				Description: descriptions.Get("inbound_share_registration_token", "schema", "token"),
 			},
-			"setup_sql": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Sensitive:   true,
-				Elem:        inboundShareSetupSqlStepSchema(),
-				Description: descriptions.Get("inbound_share_registration_token", "schema", "setup_sql"),
-			},
 			"expires_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -47,7 +40,7 @@ func resourceInboundShareRegistrationToken() *schema.Resource {
 	}
 }
 
-func resourceInboundShareRegistrationTokenCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+func resourceInboundShareRegistrationTokenCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*observe.Client)
 	providerAccount := data.Get("provider_account").(string)
 
@@ -59,17 +52,10 @@ func resourceInboundShareRegistrationTokenCreate(ctx context.Context, data *sche
 	}
 
 	data.SetId(providerAccount)
-	values := map[string]interface{}{
+	return setResourceDataValues(data, map[string]interface{}{
 		"token":      token.Token,
-		"setup_sql":  flattenSetupSqlSteps(token.SetupSql),
 		"expires_at": token.ExpiresAt,
-	}
-	for key, value := range values {
-		if err := data.Set(key, value); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	return diags
+	})
 }
 
 func resourceInboundShareRegistrationTokenRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -77,6 +63,5 @@ func resourceInboundShareRegistrationTokenRead(ctx context.Context, data *schema
 }
 
 func resourceInboundShareRegistrationTokenDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	data.SetId("")
 	return nil
 }

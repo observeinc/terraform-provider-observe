@@ -6,7 +6,7 @@ description: |-
   Registers an inbound Snowflake share with Observe, so that its tables can be tracked with observe_inbound_share_table.
   -> Preview: Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
   Before registration, the share must be granted to Observe's consumer account (see observe_inbound_share_setup). The first share registered from a provider account must also prove ownership: set the share comment to a token from observe_inbound_share_registration_token. Later shares from an already-verified provider account skip that check.
-  Creating this resource fails if the share is already registered in Observe; import it instead.
+  Creating this resource mounts the share in Observe, so it is Active once created. It fails if the share is already registered in Observe; import it instead.
   Destroying this resource drops the share from Observe. It fails while the share still has tracked tables.
 ---
 # observe_inbound_share
@@ -17,18 +17,30 @@ Registers an inbound Snowflake share with Observe, so that its tables can be tra
 
 Before registration, the share must be granted to Observe's consumer account (see `observe_inbound_share_setup`). The first share registered from a provider account must also prove ownership: set the share comment to a token from `observe_inbound_share_registration_token`. Later shares from an already-verified provider account skip that check.
 
-Creating this resource fails if the share is already registered in Observe; import it instead.
+Creating this resource mounts the share in Observe, so it is `Active` once created. It fails if the share is already registered in Observe; import it instead.
 
 Destroying this resource drops the share from Observe. It fails while the share still has tracked tables.
 ## Example Usage
 ```terraform
-resource "observe_inbound_share" "customer_data" {
-  share_name       = "CUSTOMER_SHARE_PROD"
-  provider_account = "ACME_CORP.PROD"
-  label            = "Customer data"
+data "observe_inbound_share_setup" "setup" {}
 
-  # The share comment must hold the registration token before registering
-  depends_on = [snowflake_share.customer_data]
+# Only needed for the first share registered from a provider account
+resource "observe_inbound_share_registration_token" "acme" {
+  provider_account = "ACME_CORP.PROD"
+}
+
+# Grant the share to Observe, and prove ownership by setting its comment to
+# the token
+resource "snowflake_share" "customer_data" {
+  name     = "CUSTOMER_SHARE_PROD"
+  comment  = observe_inbound_share_registration_token.acme.token
+  accounts = [data.observe_inbound_share_setup.setup.consumer_account]
+}
+
+resource "observe_inbound_share" "customer_data" {
+  share_name       = snowflake_share.customer_data.name
+  provider_account = observe_inbound_share_registration_token.acme.provider_account
+  label            = "Customer data"
 }
 
 resource "observe_inbound_share_table" "events" {
@@ -62,7 +74,7 @@ resource "observe_inbound_share_table" "events" {
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
 - `provider_type` (String) Type of share provider. Always `Snowflake`.
-- `status` (String) Lifecycle state of the share (`Creating`, `Active`, `Deleting`, `Unknown`). A newly registered share reports `Creating` until Observe mounts it.
+- `status` (String) Lifecycle state of the share (`Creating`, `Active`, `Deleting`, `Unknown`).
 - `table_count` (Number) Number of tracked tables in the share.
 - `updated_at` (String) Last update timestamp.
 ## Import
