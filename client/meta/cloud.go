@@ -1,6 +1,9 @@
 package meta
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 func (client *Client) GetCloudInfo(ctx context.Context) (*CloudInfo, error) {
 	resp, err := getCloudInfo(ctx, client.Gql)
@@ -8,6 +11,9 @@ func (client *Client) GetCloudInfo(ctx context.Context) (*CloudInfo, error) {
 		return nil, err
 	}
 
-	info := resp.GetCloud().GetCloudInfo()
-	return &info, nil
+	cloud := resp.GetCloud()
+	if cloud == nil || cloud.GetCloudInfo() == nil {
+		return nil, fmt.Errorf("cloud info not available")
+	}
+	return cloud.GetCloudInfo(), nil
 }

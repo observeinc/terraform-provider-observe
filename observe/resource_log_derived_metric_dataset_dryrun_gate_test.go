@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	observeclient "github.com/observeinc/terraform-provider-observe/client"
 )
 
 // baseLogDerivedMetricState is a populated state for one log-derived metric dataset, so a
@@ -150,7 +152,7 @@ func TestLogDerivedMetricDryRunGate(t *testing.T) {
 			}
 
 			state := &terraform.InstanceState{ID: tc.state["id"], Attributes: tc.state}
-			diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(tc.cfg), nil)
+			diff, err := r.Diff(t.Context(), state, terraform.NewResourceConfigRaw(tc.cfg), nil)
 			if err != nil {
 				t.Fatalf("Diff error: %v", err)
 			}
@@ -186,5 +188,74 @@ func TestLogDerivedMetricDryRunGate(t *testing.T) {
 			}
 			t.Logf("validates=%-5v updatesValidatedAttrs=%v", validates, updatedValidated)
 		})
+	}
+}
+
+func TestLogDerivedMetricDryRunGateValidatesOpalVersionChange(t *testing.T) {
+	stateAttrs := baseLogDerivedMetricState("filter true")
+	stateAttrs["opal_version"] = "v2021_01_01"
+	cfg := baseLogDerivedMetricConfig("filter true")
+	cfg["opal_version"] = "v2026_09_30"
+
+	r := resourceLogDerivedMetricDataset()
+	var validates bool
+	r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		validates = needsDryRunValidation(d, logDerivedMetricValidationKeys)
+		return nil
+	}
+
+	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
+	diff, err := r.Diff(t.Context(), state, terraform.NewResourceConfigRaw(cfg), nil)
+	if err != nil {
+		t.Fatalf("Diff error: %v", err)
+	}
+	if diff == nil || diff.Empty() {
+		t.Fatal("opal_version change produced an empty plan")
+	}
+	if !validates {
+		t.Fatal("opal_version change did not schedule dry-run validation")
+	}
+}
+
+func TestProviderDefaultOpalVersionPlansLogDerivedMetricUpdate(t *testing.T) {
+	latest := "v2026_09_30"
+	client := &observeclient.Client{Config: &observeclient.Config{
+		SkipDatasetDryRuns: true,
+		DefaultOpalVersion: &latest,
+	}}
+
+	stateAttrs := baseLogDerivedMetricState("filter true")
+	stateAttrs["opal_version"] = "v2021_01_01"
+	state := &terraform.InstanceState{ID: stateAttrs["id"], Attributes: stateAttrs}
+
+	resource := resourceLogDerivedMetricDataset()
+	customizeDiff := resource.CustomizeDiff
+	var validates bool
+	resource.CustomizeDiff = func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+		if err := customizeDiff(ctx, diff, meta); err != nil {
+			return err
+		}
+		validates = validates || needsDryRunValidation(diff, logDerivedMetricValidationKeys)
+		return nil
+	}
+
+	diff, err := resource.Diff(t.Context(), state, terraform.NewResourceConfigRaw(baseLogDerivedMetricConfig("filter true")), client)
+	if err != nil {
+		t.Fatalf("Diff error: %v", err)
+	}
+	if diff == nil || diff.Empty() {
+		t.Fatal("provider default produced an empty plan")
+	}
+	if !validates {
+		t.Fatal("provider default did not schedule dry-run validation")
+	}
+
+	attr := diff.Attributes["opal_version"]
+	if attr == nil || attr.New != latest {
+		t.Fatalf("opal_version diff = %#v, want new %q", attr, latest)
+	}
+	oid := diff.Attributes["oid"]
+	if oid == nil || !oid.NewComputed {
+		t.Fatalf("oid diff = %#v, want NewComputed", oid)
 	}
 }

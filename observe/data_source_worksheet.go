@@ -53,7 +53,8 @@ func dataSourceWorksheet() *schema.Resource {
 				Computed:    true,
 				Description: schemaWorksheetJSONDescription,
 			},
-			"object_tags": objectTagsSchemaFieldComputed(),
+			"opal_version": opalVersionDataSourceSchema(),
+			"object_tags":  objectTagsSchemaFieldComputed(),
 			"_bindings": {
 				Type:        schema.TypeString,
 				Computed:    true,

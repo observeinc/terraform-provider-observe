@@ -24,10 +24,12 @@ func resourceIngestRoute() *schema.Resource {
 		UpdateContext: resourceIngestRouteUpdate,
 		DeleteContext: resourceIngestRouteDelete,
 		Importer:      &schema.ResourceImporter{StateContext: resourceIngestRouteImport},
+		CustomizeDiff: customizeOpalVersionDiff,
 		Schema: map[string]*schema.Schema{
 			"route_id":                 {Type: schema.TypeString, Computed: true, Description: descriptions.Get("ingest_route", "schema", "route_id")},
 			"type":                     {Type: schema.TypeString, Required: true, ForceNew: true, ValidateDiagFunc: validateStringInSlice(ingestRouteTypes, false), Description: describeEnums(ingestRouteTypes, descriptions.Get("ingest_route", "schema", "type"))},
 			"pipeline":                 {Type: schema.TypeString, Required: true, ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotWhiteSpace), Description: descriptions.Get("ingest_route", "schema", "pipeline")},
+			"opal_version":             opalVersionSchema(),
 			"destination_id":           {Type: schema.TypeString, Required: true, ValidateDiagFunc: validateID(), Description: descriptions.Get("ingest_route", "schema", "destination_id")},
 			"secondary_destination_id": {Type: schema.TypeString, Optional: true, ValidateDiagFunc: validateID(), Description: descriptions.Get("ingest_route", "schema", "secondary_destination_id")},
 			"enabled":                  {Type: schema.TypeBool, Optional: true, Default: true, Description: descriptions.Get("ingest_route", "schema", "enabled")},
@@ -36,16 +38,17 @@ func resourceIngestRoute() *schema.Resource {
 }
 
 func resourceIngestRouteCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	req := ingestRouteRequestFromResourceData(data)
+	client := meta.(*observeclient.Client)
+	req := ingestRouteRequestFromResourceData(data, clientDefaultOpalVersion(client))
 	routeType := data.Get("type").(string)
-	route, err := meta.(*observeclient.Client).Rest.CreateIngestRoute(ctx, routeType, req)
+	route, err := client.Rest.CreateIngestRoute(ctx, routeType, req)
 	if err != nil {
 		return diag.Errorf("failed to create ingest route: %s", err)
 	}
 	data.SetId(ingestRouteStateID(routeType, route.Id))
 	if data.Get("enabled").(bool) {
 		enabled := true
-		if _, err := meta.(*observeclient.Client).Rest.UpdateIngestRoute(ctx, routeType, route.Id, &rest.IngestRouteUpdateRequest{Enabled: &enabled}); err != nil {
+		if _, err := client.Rest.UpdateIngestRoute(ctx, routeType, route.Id, &rest.IngestRouteUpdateRequest{Enabled: &enabled}); err != nil {
 			return diag.Errorf("failed to enable created ingest route [type=%s, id=%s]: %s", routeType, route.Id, err)
 		}
 	}
@@ -77,11 +80,18 @@ func resourceIngestRouteUpdate(ctx context.Context, data *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	req := &rest.IngestRouteUpdateRequest{Pipeline: stringPtr(data.Get("pipeline").(string)), DestinationId: stringPtr(data.Get("destination_id").(string)), Enabled: boolPtr(data.Get("enabled").(bool)), SecondaryDestinationIdSpecified: true}
+	client := meta.(*observeclient.Client)
+	req := &rest.IngestRouteUpdateRequest{
+		Pipeline:                        stringPtr(data.Get("pipeline").(string)),
+		OpalVersion:                     resolveOpalVersionString(clientDefaultOpalVersion(client), data),
+		DestinationId:                   stringPtr(data.Get("destination_id").(string)),
+		Enabled:                         boolPtr(data.Get("enabled").(bool)),
+		SecondaryDestinationIdSpecified: true,
+	}
 	if secondaryDestinationID, ok := data.GetOk("secondary_destination_id"); ok {
 		req.SecondaryDestinationId = stringPtr(secondaryDestinationID.(string))
 	}
-	if _, err := meta.(*observeclient.Client).Rest.UpdateIngestRoute(ctx, routeType, routeID, req); err != nil {
+	if _, err := client.Rest.UpdateIngestRoute(ctx, routeType, routeID, req); err != nil {
 		return diag.Errorf("failed to update ingest route [type=%s, id=%s]: %s", routeType, routeID, err)
 	}
 	return resourceIngestRouteRead(ctx, data, meta)
@@ -99,8 +109,12 @@ func resourceIngestRouteDelete(ctx context.Context, data *schema.ResourceData, m
 	return nil
 }
 
-func ingestRouteRequestFromResourceData(data *schema.ResourceData) *rest.IngestRouteCreateRequest {
-	req := &rest.IngestRouteCreateRequest{Pipeline: data.Get("pipeline").(string), DestinationId: data.Get("destination_id").(string)}
+func ingestRouteRequestFromResourceData(data *schema.ResourceData, defaultOpalVersion *string) *rest.IngestRouteCreateRequest {
+	req := &rest.IngestRouteCreateRequest{
+		Pipeline:      data.Get("pipeline").(string),
+		OpalVersion:   resolveOpalVersionString(defaultOpalVersion, data),
+		DestinationId: data.Get("destination_id").(string),
+	}
 	if secondaryDestinationID, ok := data.GetOk("secondary_destination_id"); ok {
 		req.SecondaryDestinationId = stringPtr(secondaryDestinationID.(string))
 	}
@@ -117,6 +131,9 @@ func ingestRouteToResourceData(data *schema.ResourceData, routeType string, rout
 	set("route_id", route.Id)
 	set("type", routeType)
 	set("pipeline", route.Pipeline)
+	if route.OpalVersion != nil {
+		set("opal_version", *route.OpalVersion)
+	}
 	set("destination_id", route.DestinationId)
 	set("secondary_destination_id", route.SecondaryDestinationId)
 	set("enabled", route.Enabled)

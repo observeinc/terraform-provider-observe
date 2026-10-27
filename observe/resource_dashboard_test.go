@@ -3742,6 +3742,7 @@ func TestAccObserveDashboardLegacyToV2(t *testing.T) {
 										type     = "query"
 										geometry = { x = 0, y = 0, w = 12, h = 6 }
 										query = {
+											id = "overview"
 											content = {
 												pipeline = [%[3]q]
 												inputs = [

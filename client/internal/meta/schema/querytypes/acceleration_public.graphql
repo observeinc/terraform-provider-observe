@@ -142,6 +142,7 @@ enum AccelerationState @goModel(model: "observe/meta/metatypes.AccelerationState
 }
 
 type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo") {
+    state: AccelerationState! @deprecated(reason: "Use Dataset.accelerationState and activeMonitorInfo.accelerationState instead")
 
     """
     Live staleness of the dataset. 5min means we may not return data received
@@ -214,6 +215,7 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     alwaysAccelerated: Boolean
 
+    acceleratedRangeStart: Time @deprecated(reason: "Use acceleratedRanges")
 
     """
     The list of "accelerated" ranges (materialized ranges). Querying data outside
@@ -221,6 +223,7 @@ type AccelerationInfo @goModel(model: "observe/meta/metatypes.AccelerationInfo")
     """
     acceleratedRanges: [TimeRange!]!
 
+    targetAcceleratedRangeStart: Time @deprecated(reason: "Use targetAcceleratedRanges")
 
     """
     The target accelerated ranges. If this value is different from the actual

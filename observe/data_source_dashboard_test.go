@@ -483,6 +483,7 @@ func TestAccObserveSourceDashboard_ExportWithBindingsSchemaV2(t *testing.T) {
 												type     = "query"
 												geometry = { x = 0, y = 0, w = 12, h = 3 }
 												query    = {
+													id = "overview"
 													content = {
 														pipeline = ["filter true"]
 														inputs = [

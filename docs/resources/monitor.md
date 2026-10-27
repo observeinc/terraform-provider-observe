@@ -33,6 +33,10 @@ frequency with which queries are run, which incurs higher transform costs.
 - `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
 - `is_template` (Boolean) This resource is template for creating new monitors
 - `notification_spec` (Block List, Max: 1) (see [below for nested schema](#nestedblock--notification_spec))
+- `opal_version` (String) OPAL language version used to compile this object's query. Supported values
+are "v2021_01_01" and "v2026_09_30". If omitted, the provider-level
+default_opal_version is used; if neither is set, Observe uses the earliest
+version.
 - `workspace` (String, Deprecated) OID of the workspace this object is contained in.
 This field is optional and deprecated. Since each customer has exactly
 one workspace, the server automatically assigns the correct workspace.

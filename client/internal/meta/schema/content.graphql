@@ -15,6 +15,18 @@ enum RematerializationAction @goModel(model: "observe/meta/metatypes.Remateriali
   """
   AbortOnContentRematerialization
   """
+  AbortOnNonInternalRematerialization aborts the content upgrade if any dataset was to be rematerialized,
+  except internal datasets. Internal datasets are those that monitors or metric SMAs create and manage.
+  Content datasets count, so their rematerialization also aborts the upgrade, while monitor and metric
+  SMA datasets may rematerialize and the upgrade is still committed.
+  """
+  AbortOnNonInternalRematerialization
+  """
+  AbortOnNonMonitorRematerialization is the previous name of AbortOnNonInternalRematerialization.
+  It has the same behavior: monitor and metric SMA datasets may rematerialize.
+  """
+  AbortOnNonMonitorRematerialization @deprecated(reason: "Use AbortOnNonInternalRematerialization.")
+  """
   IgnoreRematerialization ignores any rematerialization that would occur in the datasets and commits the upgrade
   regardless of what may happen afterwards.
   """
@@ -62,6 +74,12 @@ extend type Mutation {
   """
   installTracingContent(input: TracingContentInput): TracingContent!
 
+  """
+  Configures an existing Tracing Content installation.  Each field is optional
+  for the PATCH semantics. Most of the customizations may result in
+  rematerialization of the target dataset(s) and all of the downstreams.
+  """
+  configureTracingContent(input: TracingContentConfigurationInput!, rematerializationAction: RematerializationAction): TracingContent! @deprecated(reason: "We will not support configuration any longer.")
 
   """
   Installs the LLM Content for the current customer if not present.  Returns
@@ -97,6 +115,7 @@ extend type Query {
   Returns nil if no Host Explorer Content is installed.
   """
   hostExplorerContent: HostExplorerContent
+  getHostExplorerContent: HostExplorerContent @deprecated(reason: "Use hostExplorerContent instead")
 
   """
   Retrieves the Service Explorer Content information for the current customer.
@@ -203,6 +222,20 @@ type TracingContent @goModel(model: "observe/meta/metatypes.TracingContent") {
   serviceEdgeMetricsDatasetId: ObjectId!
   errorTrackingMetricsDatasetId: ObjectId!
 
+  """
+  The ID of the "AI Observability/LLM Span" dataset view, a filtered view of
+  "Tracing/Span" limited to LLM spans. Null when
+  AiObservability.enableLLMExplorerV2 is off for the customer.
+  """
+  llmSpanDatasetId: ObjectId
+
+  """
+  The ID of the "Tracing/External Call Metrics" dataset, RED metrics per external
+  peer built from the leaf external-call spans of the canonical trace. Null when
+  APM.produceExternalCalls is off for the customer.
+  """
+  externalCallMetricsDatasetId: ObjectId
+
   traceDatasetId: ObjectId!
 
   """
@@ -302,6 +335,13 @@ input TracingContentConfigurationInput @goModel(model: "observe/meta/metatypes.T
   When these metrics are generated in the content, they can be found in the dataset identified by serviceMetricsDatasetId.
   """
   redMetricsGeneratedByAgent: Boolean
+
+  """
+  Controls whether the content-generated Service Metrics dataset is retired.
+  This can only be enabled when redMetricsGeneratedByAgent is true, since retiring the Service Metrics
+  dataset while RED metrics are still generated in the content would leave the customer without any RED metrics.
+  """
+  retireServiceMetricsDataset: Boolean
 
   """
   Controls the max time dilation of a run of the canonical trace transform. In other words, this defines the max size

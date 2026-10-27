@@ -14,6 +14,7 @@ type IngestRouteResource struct {
 	Id                     string                 `json:"id"`
 	Type                   string                 `json:"type"`
 	Pipeline               string                 `json:"pipeline"`
+	OpalVersion            *string                `json:"opalVersion,omitempty"`
 	Layout                 map[string]interface{} `json:"layout"`
 	DestinationId          string                 `json:"destinationId"`
 	SecondaryDestinationId *string                `json:"secondaryDestinationId"`
@@ -29,6 +30,7 @@ type IngestRouteObjectRef struct {
 // IngestRouteCreateRequest creates a non-default route.
 type IngestRouteCreateRequest struct {
 	Pipeline               string  `json:"pipeline"`
+	OpalVersion            *string `json:"opalVersion,omitempty"`
 	DestinationId          string  `json:"destinationId"`
 	SecondaryDestinationId *string `json:"secondaryDestinationId,omitempty"`
 }
@@ -37,6 +39,7 @@ type IngestRouteCreateRequest struct {
 // destination is serialized as JSON null and clears the secondary destination.
 type IngestRouteUpdateRequest struct {
 	Pipeline                        *string `json:"pipeline,omitempty"`
+	OpalVersion                     *string `json:"opalVersion,omitempty"`
 	DestinationId                   *string `json:"destinationId,omitempty"`
 	SecondaryDestinationId          *string `json:"-"`
 	SecondaryDestinationIdSpecified bool    `json:"-"`
@@ -54,6 +57,9 @@ func (request IngestRouteUpdateRequest) MarshalJSON() ([]byte, error) {
 	body := map[string]interface{}{}
 	if request.Pipeline != nil {
 		body["pipeline"] = *request.Pipeline
+	}
+	if request.OpalVersion != nil {
+		body["opalVersion"] = *request.OpalVersion
 	}
 	if request.DestinationId != nil {
 		body["destinationId"] = *request.DestinationId

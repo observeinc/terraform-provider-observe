@@ -4,6 +4,7 @@ extend type Query {
     pathsBetweenDatasets(from: ObjectId!, to: ObjectId!, limit: Int64): [RelationshipPath!]!
     pathsBetweenDatasets2(from: [ObjectId!]!, to: ObjectId!, limit: Int64, costModel: RelationshipCostAttributes): RelationshipPathResult!
 
+    datasetDoctor(dsid: ObjectId!, upLevels: Int): DatasetDoctorReport @deprecated(reason: "no longer supported")
 
     """
     You can get boards by some combination of "type" and "name"
@@ -126,6 +127,7 @@ type Transform @goModel(model: "observe/meta/metatypes.Transform") {
     """
     id: ObjectId!
 
+    queryLanguage: String! @deprecated(reason: "Use kind instead")
     deleted: Boolean!
     current: TransformVersion
     currentVersion: Time!
@@ -371,6 +373,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     version: Time!
     workspaceId: ObjectId!
     kind: DatasetKind!
+    label: String! @deprecated(reason: "use name instead") @goField(forceResolver: true)
     name: String!
     path: String!
     description: String
@@ -405,6 +408,7 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     """
     entityTags: [EntityTagMapping!]! @deprecated(reason: "Use objectTags") @goField(forceResolver:true)
 
+    latestPublished: Time @deprecated(reason: "use version instead") @goField(name:version)
     versions: [Time!] @goField(forceResolver:true)
     lastSaved: Time!
     isSourceDataset: Boolean
@@ -439,13 +443,20 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     managedBy: WorkspaceObject @goField(forceResolver:true)
     managedById: ObjectId
     folderId: ObjectId!
+    indexMetadata: IndexMetadata @deprecated(reason: "use fieldList.indexDefs instead")
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
 
+    """
+    Optional custom configured override value of the on demand materialization
+    range for the dataset.
+    """
+    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     defaultDashboardId: ObjectId @goField(forceResolver: true)
     defaultInstanceDashboardId: ObjectId @goField(forceResolver: true)
 
+    accelerable: Boolean! @deprecated(reason: "Use accelerationType instead. accelerationType != NotSupported is equivalent.") @goField(forceResolver:true)
     accelerationType: AccelerationType!
     accelerationInfo: AccelerationInfo! @goField(forceResolver:true)
     accelerationState: AccelerationState! @goField(forceResolver:true)
@@ -464,6 +475,18 @@ type Dataset implements WorkspaceObject & FolderObject & AuditedObject & Acceler
     hibernatedAt: Time @goField(forceResolver:true)
 
     logDerivedMetricTable: LogDerivedMetricDefinition @goField(forceResolver:true)
+    """
+    Defines the data retention period of the dataset. We will currently only persist this field but
+    it wouldn't take effect. TODO: Also apply it to the data retention manager.
+    """
+    dataRetentionPeriod: Duration @deprecated(reason:"will be removed")
+
+    """
+    Returns the configured data retention period (in days) for this dataset.
+    The effective retention period may be different than this value and it is
+    available in the AccelerationInfo object of this dataset.
+    """
+    dataRetentionDays: Int64 @goField(omittable: true)
 
     datasetDefinitionType: DatasetDefinitionType
 
@@ -527,6 +550,34 @@ enum TableChangeTrackingMechanism @goModel(model: "observe/compiler/comptypes.Ta
     cdc
     """
     CDC
+
+    """
+    UpdateTable's timestamps are the source of truth. Row Timestamps are also enabled
+    on the source table, and the transformer's source listener probes
+    MAX(METADATA$ROW_LAST_COMMIT_TIME) on each poll to checkpoint a row-timestamp
+    watermark on platform_table_status, which is used for validation and as a
+    transition step toward RowTimestamp. Not all tables support Row
+    Timestamps (e.g. iceberg, external, reference tables).
+    """
+    UpdateTableRowTimestamp
+
+    """
+    Row Timestamps are the sole change tracking mechanism. The update table may
+    still exist (if migrated from UpdatedTable) but is neither populated nor read from.
+    """
+    RowTimestamp
+}
+
+"""
+Snowflake table type for a source table. Absent means the default (standard) table type.
+Only `interactive` may be requested at registration (OB-60619 interactive-warehouse routing);
+hybrid/iceberg tables are created through other machinery.
+"""
+enum SnowflakeTableType @goModel(model: "observe/platform.SnowflakeTableType") {
+    """
+    Low-latency interactive table; only scannable by an interactive warehouse.
+    """
+    interactive
 }
 
 type SourceTableDefinition @goModel(model: "observe/meta/metatypes.SourceTableDefinition") {
@@ -558,6 +609,7 @@ input SourceTableDefinitionInput @goModel(model: "observe/meta/metatypes.SourceT
     isInsertOnly: Boolean
     sourceUpdateTableName: String
     tableChangeTrackingMechanism: TableChangeTrackingMechanism
+    snowflakeTableType: SnowflakeTableType
 }
 
 input SourceTableFieldDefinitionInput @goModel(model: "observe/meta/metatypes.SourceTableFieldDefinitionInput") {
@@ -655,6 +707,11 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     freshnessDecayDisabled: Boolean
     dataTableViewState: JsonObject
     storageIntegrationId: ObjectId
+    """
+    Max on-demand materialization length for the dataset (in nanoseconds). If not set
+    will use the default value in transformer config.
+    """
+    onDemandMaterializationLength: Int64 @deprecated(reason: "use layered setting instead")
 
     """
     Optional id of the object this dataset is managed by: app, datastream, monitor etc.
@@ -677,6 +734,11 @@ input DatasetInput @goModel(model: "observe/meta/metatypes.DatasetInput") {
     """
     entityTags: [EntityTagMappingInput!] @deprecated(reason: "Use objectTags")
 
+    """
+    Defines the data retention period of the dataset. We will currently only persist this field but
+    it wouldn't take effect. TODO: Also apply it to the data retention manager.
+    """
+    dataRetentionPeriod: Duration @deprecated(reason:"will be removed")
 
     """
     Defines the data retention of the dataset, in days. This will be applied to this dataset only
@@ -892,6 +954,7 @@ type LogDerivedMetricDefinition @goModel(model: "observe/meta/metatypes.LogDeriv
     aggregation: LogDerivedMetricAggregation!
     metricTags: [LogMetricTag!]!
     interval: Duration!
+    opalVersion: OpalVersion
 }
 
 type LogDerivedMetricAggregation @goModel(model: "observe/meta/metatypes.LogDerivedMetricAggregation") {
@@ -931,6 +994,7 @@ input LogDerivedMetricDefinitionInput @goModel(model: "observe/meta/metatypes.Lo
     aggregation: LogDerivedMetricAggregationInput!
     metricTags: [LogMetricTagInput!]!
     interval: Duration
+    opalVersion: OpalVersion
 }
 
 extend type Query {
@@ -948,4 +1012,5 @@ type LogDerivedMetricsOpalPreview @goModel(model: "observe/meta/metatypes.LogDer
     The generated OPAL pipeline.
     """
     pipeline: String!
+    opalVersion: OpalVersion
 }

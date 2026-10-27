@@ -23,6 +23,9 @@ func resourceDatasetQueryFilter() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			if err := customizeOpalVersionDiff(ctx, d, meta); err != nil {
+				return err
+			}
 			// If the dataset ID has changed, we need to recreate the resource. See comments on ForceNew below.
 			if d.HasChange("dataset") {
 				// Ignore version changes
@@ -66,6 +69,7 @@ func resourceDatasetQueryFilter() *schema.Resource {
 				Required:    true,
 				Description: descriptions.Get("dataset_query_filter", "schema", "filter"),
 			},
+			"opal_version": opalVersionSchema(),
 			"disabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -100,16 +104,20 @@ func datasetQueryFilterToResourceData(filter *rest.DatasetQueryFilterResource, d
 	setResourceData("label", filter.Label)
 	setResourceData("description", filter.Description)
 	setResourceData("filter", filter.Filter)
+	if filter.OpalVersion != nil {
+		setResourceData("opal_version", *filter.OpalVersion)
+	}
 	setResourceData("disabled", filter.Disabled)
 	setResourceData("errors", filter.Errors)
 	return diags
 }
 
-func datasetQueryFilterDefinitionFromResourceData(data *schema.ResourceData) (req *rest.DatasetQueryFilterDefinition, diags diag.Diagnostics) {
+func datasetQueryFilterDefinitionFromResourceData(data *schema.ResourceData, defaultOpalVersion *string) (req *rest.DatasetQueryFilterDefinition, diags diag.Diagnostics) {
 	req = &rest.DatasetQueryFilterDefinition{}
 
 	req.Label = data.Get("label").(string)
 	req.Filter = data.Get("filter").(string)
+	req.OpalVersion = resolveOpalVersionString(defaultOpalVersion, data)
 	req.Disabled = data.Get("disabled").(bool)
 
 	if description, ok := data.GetOk("description"); ok {
@@ -120,12 +128,12 @@ func datasetQueryFilterDefinitionFromResourceData(data *schema.ResourceData) (re
 }
 
 func resourceDatasetQueryFilterCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	req, diags := datasetQueryFilterDefinitionFromResourceData(data)
+	client := meta.(*observe.Client)
+	req, diags := datasetQueryFilterDefinitionFromResourceData(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
 
-	client := meta.(*observe.Client)
 	datasetOid, err := oid.NewOID(data.Get("dataset").(string))
 	if err != nil {
 		return diag.Errorf("invalid dataset OID: %s", err.Error())
@@ -164,12 +172,12 @@ func resourceDatasetQueryFilterRead(ctx context.Context, data *schema.ResourceDa
 }
 
 func resourceDatasetQueryFilterUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
-	req, diags := datasetQueryFilterDefinitionFromResourceData(data)
+	client := meta.(*observe.Client)
+	req, diags := datasetQueryFilterDefinitionFromResourceData(data, clientDefaultOpalVersion(client))
 	if diags.HasError() {
 		return diags
 	}
 
-	client := meta.(*observe.Client)
 	datasetOid, err := oid.NewOID(data.Get("dataset").(string))
 	if err != nil {
 		return diag.Errorf("invalid dataset OID: %s", err.Error())

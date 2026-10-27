@@ -64,6 +64,7 @@ func dataSourceDashboard() *schema.Resource {
 				Computed:    true,
 				Description: schemaDashboardJSONDescription,
 			},
+			"opal_version": opalVersionDataSourceSchema(),
 			"layout": {
 				Type:        schema.TypeString,
 				Computed:    true,

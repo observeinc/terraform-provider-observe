@@ -16,15 +16,17 @@ type DatasetQueryFilterResource struct {
 	Label       string   `json:"label"`
 	Description string   `json:"description,omitempty"`
 	Filter      string   `json:"filter"`
+	OpalVersion *string  `json:"opalVersion,omitempty"`
 	Disabled    bool     `json:"disabled"`
 	Errors      []string `json:"errors,omitempty"`
 }
 
 type DatasetQueryFilterDefinition struct {
-	Label       string `json:"label"`
-	Description string `json:"description,omitempty"`
-	Filter      string `json:"filter"`
-	Disabled    bool   `json:"disabled"`
+	Label       string  `json:"label"`
+	Description string  `json:"description,omitempty"`
+	Filter      string  `json:"filter"`
+	OpalVersion *string `json:"opalVersion,omitempty"`
+	Disabled    bool    `json:"disabled"`
 }
 
 func (dqf *DatasetQueryFilterResource) Oid() oid.OID {
