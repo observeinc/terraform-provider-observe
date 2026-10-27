@@ -58,6 +58,7 @@ func (c *Client) do(ctx context.Context, method string, path string, body map[st
 }
 
 type errorResponse struct {
+	Type    string `json:"type"`
 	Message string `json:"message"`
 }
 
@@ -71,11 +72,13 @@ func responseWrapper(resp *http.Response, err error) (*http.Response, error) {
 		defer resp.Body.Close()
 		body, readErr := io.ReadAll(io.LimitReader(resp.Body, maxErrorResponseBodyBytes))
 		message := ""
+		errorType := ""
 		if readErr == nil {
 			var errResponse errorResponse
 			jsonBody := json.Unmarshal(body, &errResponse) == nil
 			if jsonBody {
 				message = strings.TrimSpace(errResponse.Message)
+				errorType = strings.TrimSpace(errResponse.Type)
 			}
 			if !jsonBody {
 				message = strings.TrimSpace(string(body))
@@ -87,7 +90,7 @@ func responseWrapper(resp *http.Response, err error) (*http.Response, error) {
 		if message == "" {
 			message = "http error"
 		}
-		return nil, ErrorWithStatusCode{StatusCode: resp.StatusCode, Err: errors.New(message)}
+		return nil, ErrorWithStatusCode{StatusCode: resp.StatusCode, Type: errorType, Err: errors.New(message)}
 	}
 	return resp, nil
 }

@@ -12,8 +12,10 @@ Tracks a table from an inbound Snowflake share and creates an associated Observe
 ```terraform
 # Basic table tracking
 data "observe_inbound_share" "customer_data" {
-  share_name       = "CUSTOMER_SHARE_PROD"
-  provider_account = "ACME_CORP.US-EAST-1"
+  snowflake_config {
+    share_name       = "CUSTOMER_SHARE_PROD"
+    provider_account = "ACME_CORP.US-EAST-1"
+  }
 }
 
 resource "observe_inbound_share_table" "customer_events" {
@@ -75,7 +77,7 @@ resource "observe_inbound_share_table" "metrics" {
 
 ### Required
 
-- `dataset_kind` (String) The kind of dataset to create. Accepted values: `Table`, `Event`, `Resource`, `Interval`.
+- `dataset_kind` (String) The kind of dataset to create. Accepted values: `Table`, `Event`, `Interval`.
 - `dataset_label` (String) The label for the created Observe dataset.
 - `schema_name` (String) The schema name containing the table.
 - `share_id` (String) The OID of the share containing the table.
@@ -90,6 +92,7 @@ resource "observe_inbound_share_table" "metrics" {
 
 ### Read-Only
 
+- `cdc_status` (String) Whether change tracking is on for the table in Snowflake: `Enabled`, `Disabled`, `Error`, or `Unknown`.
 - `dataset_id` (String) The ID of the created dataset.
 - `dataset_oid` (String) The OID of the created dataset.
 - `full_table_path` (String) The full path to the table (schema/table).
@@ -98,6 +101,7 @@ resource "observe_inbound_share_table" "metrics" {
 should be used when referring to this object in terraform manifests.
 - `status` (String) The operational status of the tracked table.
 - `table_id` (String) The ID of the tracked table.
+- `table_type` (String) The Snowflake object kind: `Table`, `View`, or `Unknown`.
 
 <a id="nestedblock--field_mapping"></a>
 ### Nested Schema for `field_mapping`

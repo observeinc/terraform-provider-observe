@@ -15,8 +15,10 @@ Retrieves information about an inbound Snowflake data share.
 ```terraform
 # Look up share by name and provider account (both required for uniqueness)
 data "observe_inbound_share" "customer_data" {
-  share_name       = "CUSTOMER_SHARE_PROD"
-  provider_account = "ACME_CORP.US-EAST-1"
+  snowflake_config {
+    share_name       = "CUSTOMER_SHARE_PROD"
+    provider_account = "ACME_CORP.US-EAST-1"
+  }
 }
 
 # Look up share by ID
@@ -45,13 +47,15 @@ resource "observe_inbound_share_table" "events" {
 ### Read-Only
 
 - `created_at` (String) Creation timestamp.
-- `health` (String) The health status of the share (Healthy, Unhealthy, Unknown).
+- `health` (String) Health status of the share (`Healthy`, `Unhealthy`, `Unknown`).
 - `health_message` (String) Human-readable health status message.
-- `last_health_check` (String) Timestamp of last health check.
-- `oid` (String) The full OID of the share.
-- `provider_type` (String) The type of share provider (e.g., 'Snowflake').
-- `status` (String) The operational state of the share (Pending, Creating, Active, Inactive, Error, Deleting).
-- `table_count` (Number) Number of tracked tables in this share.
+- `label` (String) User-facing label for the share in Observe.
+- `last_health_check` (String) Timestamp of the last health check.
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
+- `provider_type` (String) Type of share provider. Always `Snowflake`.
+- `status` (String) Lifecycle state of the share (`Creating`, `Active`, `Deleting`, `Unknown`).
+- `table_count` (Number) Number of tracked tables in the share.
 - `updated_at` (String) Last update timestamp.
 
 <a id="nestedblock--snowflake_config"></a>

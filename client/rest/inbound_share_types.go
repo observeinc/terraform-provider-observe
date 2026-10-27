@@ -81,7 +81,7 @@ func (d *DatasetRef) UnmarshalJSON(data []byte) error {
 // Share Types
 
 type ShareStatus struct {
-	State             string  `json:"state"`  // Pending, Creating, Active, Inactive, Error, Deleting
+	State             string  `json:"state"`  // Creating, Active, Deleting, Unknown
 	Health            string  `json:"health"` // Healthy, Unhealthy, Unknown
 	HealthMessage     *string `json:"healthMessage"`
 	LastHealthCheckAt *string `json:"lastHealthCheckAt"`
@@ -114,7 +114,9 @@ type SnowflakeShareConfig struct {
 type Share struct {
 	Id              string                `json:"id"`
 	ShareName       string                `json:"shareName"`
+	Label           string                `json:"label,omitempty"`
 	ProviderType    string                `json:"providerType"` // "Snowflake"
+	ProviderAccount string                `json:"providerAccount,omitempty"`
 	SnowflakeConfig *SnowflakeShareConfig `json:"snowflakeConfig,omitempty"`
 	Status          ShareStatus           `json:"status"`
 	CreatedBy       User                  `json:"createdBy"`
@@ -124,9 +126,87 @@ type Share struct {
 	TableCount      int                   `json:"tableCount"`
 }
 
+// SnowflakeShareName is the share's name in the provider account. It reads
+// snowflakeConfig, which every share response carries, and falls back to the
+// top-level field.
+func (s *Share) SnowflakeShareName() string {
+	if s.SnowflakeConfig != nil && s.SnowflakeConfig.ShareName != "" {
+		return s.SnowflakeConfig.ShareName
+	}
+	return s.ShareName
+}
+
+// SnowflakeProviderAccount is the org-qualified account that provides the
+// share, read the same way as SnowflakeShareName.
+func (s *Share) SnowflakeProviderAccount() string {
+	if s.SnowflakeConfig != nil && s.SnowflakeConfig.ProviderAccount != "" {
+		return s.SnowflakeConfig.ProviderAccount
+	}
+	return s.ProviderAccount
+}
+
 type ShareListResponse struct {
 	Shares []Share `json:"shares"`
 	Meta   Meta    `json:"meta"`
+}
+
+// Registration Types
+
+const (
+	// ErrorTypeOwnershipProofFailed is returned by RegisterShare (403) when the
+	// share comment does not hold a valid registration token for the provider
+	// account, or the share is not offered to Observe.
+	ErrorTypeOwnershipProofFailed = "ownership_proof_failed"
+	// ErrorTypeShareHasTrackedTables is returned by DeleteShare (409) when the
+	// share still has tracked tables and force is not set.
+	ErrorTypeShareHasTrackedTables = "share_has_tracked_tables"
+	// ErrorTypeFeatureNotEnabled is returned (403) when inbound shares are not
+	// enabled for the tenant.
+	ErrorTypeFeatureNotEnabled = "feature_not_enabled"
+)
+
+type RegisterShareRequest struct {
+	ProviderAccount string `json:"providerAccount"`
+	ShareName       string `json:"shareName"`
+}
+
+type UpdateShareRequest struct {
+	Label string `json:"label"`
+}
+
+type CreateRegistrationTokenRequest struct {
+	ProviderAccount string `json:"providerAccount"`
+}
+
+// SetupSqlStep is one labelled SQL statement the customer runs in their
+// Snowflake provider account. It may contain <angle-bracket> placeholders.
+type SetupSqlStep struct {
+	Description string `json:"description"`
+	Sql         string `json:"sql"`
+}
+
+// RegistrationToken is a single-use ownership-proof secret. It is returned
+// exactly once and must never be logged.
+type RegistrationToken struct {
+	Token     string         `json:"token"`
+	ExpiresAt string         `json:"expiresAt"`
+	SetupSql  []SetupSqlStep `json:"setupSql,omitempty"`
+}
+
+// SetupGuidance is the provider-side setup the customer runs before
+// registering a share.
+type SetupGuidance struct {
+	Summary        string         `json:"summary"`
+	SetupSql       []SetupSqlStep `json:"setupSql"`
+	ProviderChecks []SetupSqlStep `json:"providerChecks"`
+	Checklist      []string       `json:"checklist"`
+}
+
+type SetupInfo struct {
+	ConsumerAccount string        `json:"consumerAccount"`
+	Region          string        `json:"region"`
+	Cloud           *string       `json:"cloud"`
+	Guidance        SetupGuidance `json:"guidance"`
 }
 
 // Table Types
@@ -152,13 +232,14 @@ type InboundShareTable struct {
 	FullTablePath  string                  `json:"fullTablePath"` // "schema/table"
 	TableName      string                  `json:"tableName"`
 	SchemaName     string                  `json:"schemaName"`
-	TableType      string                  `json:"tableType"`     // "TABLE", "VIEW", etc.
-	Status         string                  `json:"status"`        // Pending, Active, Inactive, Error
+	TableType      string                  `json:"tableType"`     // Table, View, Unknown
+	Status         string                  `json:"status"`        // Active, Unknown
+	CdcStatus      string                  `json:"cdcStatus"`     // Enabled, Disabled, Error, Unknown
 	SourceDataset  *DatasetRef             `json:"sourceDataset"` // Reference to the Observe dataset
 	TableSchema    *TableSchema            `json:"tableSchema"`   // Snowflake table schema (columns, types)
 	Description    string                  `json:"description,omitempty"`
 	DatasetLabel   string                  `json:"datasetLabel,omitempty"` // Name/label of the Observe dataset
-	DatasetKind    string                  `json:"datasetKind,omitempty"`  // Table, Event, Resource, Interval
+	DatasetKind    string                  `json:"datasetKind,omitempty"`  // Table, Event, Interval
 	ValidFromField string                  `json:"validFromField,omitempty"`
 	ValidToField   string                  `json:"validToField,omitempty"`
 	FieldMapping   map[string]FieldMapping `json:"fieldMapping,omitempty"` // Schema mapping (field name -> type conversion)
@@ -197,7 +278,7 @@ type TrackTableRequest struct {
 	TableName      string                  `json:"tableName"`
 	SchemaName     string                  `json:"schemaName"`
 	DatasetLabel   string                  `json:"datasetLabel"`
-	DatasetKind    string                  `json:"datasetKind"` // Table, Event, Resource, Interval
+	DatasetKind    string                  `json:"datasetKind"` // Table, Event, Interval
 	ValidFromField *string                 `json:"validFromField,omitempty"`
 	ValidToField   *string                 `json:"validToField,omitempty"`
 	Description    *string                 `json:"description,omitempty"`
