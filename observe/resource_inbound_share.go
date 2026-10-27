@@ -77,7 +77,7 @@ func inboundShareLabel(data *schema.ResourceData) string {
 	if label := data.Get("label").(string); label != "" {
 		return label
 	}
-	return data.Get("share_name").(string)
+	return canonicalInboundShareName(data.Get("share_name").(string))
 }
 
 func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {

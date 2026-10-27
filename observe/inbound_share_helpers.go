@@ -26,9 +26,6 @@ func canonicalInboundShareProviderAccount(account string) string {
 	return strings.ToUpper(strings.TrimSpace(account))
 }
 
-// suppressCanonicalDiff ignores a change between two spellings of the same
-// name. The state holds the API's canonical form, so a configured value whose
-// canonical form equals it is no change.
 // inboundShareStateName is the spelling of a server-reported share name kept
 // in state. It must canonicalize back to the same name, so a case-sensitive
 // name is quoted and is never mistaken for an unquoted one.
@@ -39,6 +36,9 @@ func inboundShareStateName(name string) string {
 	return `"` + name + `"`
 }
 
+// suppressCanonicalDiff ignores a change between two spellings of the same
+// name: state holds a spelling that canonicalizes to the server's name, so
+// only a change of canonical form is a change.
 func suppressCanonicalDiff(canonical func(string) string) schema.SchemaDiffSuppressFunc {
 	return func(_, old, new string, _ *schema.ResourceData) bool {
 		if old == "" || new == "" {

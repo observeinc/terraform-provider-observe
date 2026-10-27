@@ -249,3 +249,31 @@ func TestInboundShareToResourceDataQuotesCaseSensitiveName(t *testing.T) {
 		}
 	}
 }
+
+func TestResourceInboundShareUnsetLabelStripsQuotes(t *testing.T) {
+	var patched map[string]interface{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&patched); err != nil {
+			t.Errorf("decode request body: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id": "41012345", "shareName": "customer_data", "label": "customer_data", "providerType": "Snowflake"}`))
+	}))
+	defer server.Close()
+	client := newInboundShareTestClient(server)
+
+	data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+		"share_name":       `"customer_data"`,
+		"provider_account": "ACME_CORP.US-EAST-1",
+	})
+	data.SetId("41012345")
+	if diags := resourceInboundShareUpdate(context.Background(), data, client); diags.HasError() {
+		t.Fatalf("update: %v", diags)
+	}
+	if patched["label"] != "customer_data" {
+		t.Errorf("PATCH body = %v, want label customer_data", patched)
+	}
+	if got := data.Get("label"); got != "" {
+		t.Errorf("label = %q, want it left unset while the server reports the default", got)
+	}
+}
