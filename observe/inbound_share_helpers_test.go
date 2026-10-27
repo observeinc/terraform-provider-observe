@@ -17,6 +17,9 @@ func TestInboundShareErrorDiags(t *testing.T) {
 		{rest.ErrorTypeFeatureNotEnabled, "not enabled for this tenant"},
 		{rest.ErrorTypeOwnershipProofFailed, "observe_inbound_share_registration_token"},
 		{rest.ErrorTypeShareHasTrackedTables, "observe_inbound_share_table"},
+		{rest.ErrorTypeShareMountFailed, "Apply again to retry"},
+		{rest.ErrorTypeShareNotQueryable, "observe_inbound_share_setup"},
+		{rest.ErrorTypeShareAlreadyMounted, "Contact Observe support"},
 		{"", ""},
 	}
 	for _, tt := range tests {

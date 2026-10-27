@@ -85,10 +85,15 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 
 	shareName := data.Get("share_name").(string)
 	providerAccount := data.Get("provider_account").(string)
-	share, created, err := client.RegisterShare(ctx, &rest.RegisterShareRequest{
+	label, hasLabel := data.GetOk("label")
+	req := &rest.RegisterShareRequest{
 		ProviderAccount: providerAccount,
 		ShareName:       shareName,
-	})
+	}
+	if hasLabel {
+		req.Label = label.(string)
+	}
+	share, created, err := client.RegisterShare(ctx, req)
 	if err != nil {
 		return inboundShareErrorDiags("failed to register inbound share", err)
 	}
@@ -97,7 +102,8 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 	}
 	data.SetId(share.Id)
 
-	label, hasLabel := data.GetOk("label")
+	// A server that does not take a label on register ignores it, so the
+	// label is set separately when the share came back without it.
 	if !hasLabel || label.(string) == share.Label {
 		return inboundShareToResourceData(share, data)
 	}

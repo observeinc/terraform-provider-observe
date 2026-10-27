@@ -199,6 +199,62 @@ func TestResourceInboundShareCreateKeepsShareWhenLabelFails(t *testing.T) {
 	}
 }
 
+// Register sends the label. A server that saves it needs no PATCH; one that
+// ignores it gets the label in a PATCH.
+func TestResourceInboundShareCreateSendsLabel(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		serverSaves bool
+		wantPatch   bool
+	}{
+		{"server saves the label", true, false},
+		{"server ignores the label", false, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var registered rest.RegisterShareRequest
+			patched := false
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				var share map[string]interface{}
+				_ = json.Unmarshal([]byte(inboundShareGetResponse), &share)
+				switch r.Method {
+				case http.MethodPost:
+					if err := json.NewDecoder(r.Body).Decode(&registered); err != nil {
+						t.Fatalf("decode register body: %v", err)
+					}
+					if tt.serverSaves {
+						share["label"] = registered.Label
+					}
+					w.WriteHeader(http.StatusCreated)
+				case http.MethodPatch:
+					patched = true
+					share["label"] = "Customer data"
+				}
+				_ = json.NewEncoder(w).Encode(share)
+			}))
+			defer server.Close()
+
+			data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+				"share_name":       "customer_share_prod",
+				"provider_account": "acme_corp.us-east-1",
+				"label":            "Customer data",
+			})
+			if diags := resourceInboundShareCreate(context.Background(), data, newInboundShareTestClient(server)); diags.HasError() {
+				t.Fatalf("create: %v", diags)
+			}
+			if registered.Label != "Customer data" {
+				t.Errorf("register label = %q, want Customer data", registered.Label)
+			}
+			if patched != tt.wantPatch {
+				t.Errorf("patched = %v, want %v", patched, tt.wantPatch)
+			}
+			if got := data.Get("label"); got != "Customer data" {
+				t.Errorf("label = %q, want Customer data", got)
+			}
+		})
+	}
+}
+
 func TestInboundShareNameDiffSuppress(t *testing.T) {
 	suppressName := resourceInboundShare().Schema["share_name"].DiffSuppressFunc
 	for _, tt := range []struct {
