@@ -29,12 +29,22 @@ func canonicalInboundShareProviderAccount(account string) string {
 // suppressCanonicalDiff ignores a change between two spellings of the same
 // name. The state holds the API's canonical form, so a configured value whose
 // canonical form equals it is no change.
+// inboundShareStateName is the spelling of a server-reported share name kept
+// in state. It must canonicalize back to the same name, so a case-sensitive
+// name is quoted and is never mistaken for an unquoted one.
+func inboundShareStateName(name string) string {
+	if name == "" || strings.ToUpper(name) == name {
+		return name
+	}
+	return `"` + name + `"`
+}
+
 func suppressCanonicalDiff(canonical func(string) string) schema.SchemaDiffSuppressFunc {
 	return func(_, old, new string, _ *schema.ResourceData) bool {
 		if old == "" || new == "" {
 			return false
 		}
-		return old == canonical(new) || canonical(old) == canonical(new)
+		return canonical(old) == canonical(new)
 	}
 }
 

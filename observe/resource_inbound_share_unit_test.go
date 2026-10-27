@@ -207,8 +207,13 @@ func TestInboundShareNameDiffSuppress(t *testing.T) {
 	}{
 		{"CUSTOMER_DATA", "customer_data", true},
 		{"CUSTOMER_DATA", " Customer_Data ", true},
-		{"customer_data", `"customer_data"`, true},
+		{`"customer_data"`, "CUSTOMER_DATA", false},
 		{"CUSTOMER_DATA", `"customer_data"`, false},
+		{"CUSTOMER_DATA", `"CUSTOMER_DATA"`, true},
+		{`"customer_data"`, `"customer_data"`, true},
+		{`"customer_data"`, "Customer_Data", false},
+		{`"customer_data"`, "customer_data", false},
+		{`"Mixed"`, "MIXED", false},
 		{"CUSTOMER_DATA", "OTHER", false},
 		{"", "customer_data", false},
 	} {
@@ -223,5 +228,24 @@ func TestInboundShareNameDiffSuppress(t *testing.T) {
 	}
 	if suppressAccount("provider_account", "ACME_CORP.PROD", "ACME_CORP.DEV", nil) {
 		t.Error("provider_account: expected a different account to be a change")
+	}
+}
+
+func TestInboundShareToResourceDataQuotesCaseSensitiveName(t *testing.T) {
+	for name, want := range map[string]string{
+		"CUSTOMER_DATA": "CUSTOMER_DATA",
+		"customer_data": `"customer_data"`,
+	} {
+		data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+			"share_name":       "anything",
+			"provider_account": "ACME_CORP.PROD",
+		})
+		share := &rest.Share{Id: "41012345", ShareName: name, ProviderAccount: "ACME_CORP.PROD"}
+		if diags := inboundShareToResourceData(share, data); diags.HasError() {
+			t.Fatalf("set: %v", diags)
+		}
+		if got := data.Get("share_name"); got != want {
+			t.Errorf("server name %q: share_name = %q, want %q", name, got, want)
+		}
 	}
 }

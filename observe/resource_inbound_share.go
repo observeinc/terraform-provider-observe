@@ -60,7 +60,7 @@ func inboundShareToResourceData(s *rest.Share, data *schema.ResourceData) diag.D
 
 	values := inboundShareStatusValues(s)
 	values["label"] = label
-	values["share_name"] = s.SnowflakeShareName()
+	values["share_name"] = inboundShareStateName(s.SnowflakeShareName())
 	values["provider_account"] = s.SnowflakeProviderAccount()
 	return setResourceDataValues(data, values)
 }

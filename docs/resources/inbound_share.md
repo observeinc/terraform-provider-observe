@@ -58,7 +58,7 @@ resource "observe_inbound_share_table" "events" {
 ### Required
 
 - `provider_account` (String) Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>` (for example `ACME_CORP.PROD`). Not an account locator or URL. Changing this forces a new resource.
-- `share_name` (String) Name of the Snowflake share in the provider account. Unquoted names are case-insensitive; wrap the name in double quotes for a case-sensitive name. Changing this forces a new resource.
+- `share_name` (String) Name of the Snowflake share in the provider account. Unquoted names are case-insensitive; wrap the name in double quotes for a case-sensitive name. State holds the name as Snowflake resolves it, quoted when it is not all upper case. Changing this forces a new resource.
 
 ### Optional
 
