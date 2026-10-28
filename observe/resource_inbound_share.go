@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -101,7 +102,16 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 		return inboundShareAlreadyRegisteredDiags(share, shareName, providerAccount)
 	}
 	data.SetId(share.Id)
-	return inboundShareToResourceData(share, data)
+	diags := inboundShareToResourceData(share, data)
+	if hasLabel && share.Label != label.(string) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "inbound share registered without its label",
+			Detail: fmt.Sprintf("Observe saved the share with label %q instead of %q. "+
+				"The next apply sets the label.", share.Label, label.(string)),
+		})
+	}
+	return diags
 }
 
 func resourceInboundShareRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {

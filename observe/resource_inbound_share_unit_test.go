@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observeclient "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
@@ -165,40 +166,65 @@ func TestResourceInboundShareImportAcceptsOID(t *testing.T) {
 }
 
 func TestResourceInboundShareCreateSendsLabel(t *testing.T) {
-	var registered rest.RegisterShareRequest
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		if err := json.NewDecoder(r.Body).Decode(&registered); err != nil {
-			t.Errorf("decode register body: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		var share map[string]interface{}
-		_ = json.Unmarshal([]byte(inboundShareGetResponse), &share)
-		share["label"] = registered.Label
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		_ = json.NewEncoder(w).Encode(share)
-	}))
-	defer server.Close()
+	for _, tt := range []struct {
+		name        string
+		serverSaves bool
+	}{
+		{"server saves the label", true},
+		{"server ignores the label", false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var registered rest.RegisterShareRequest
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodPost {
+					t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+					w.WriteHeader(http.StatusMethodNotAllowed)
+					return
+				}
+				if err := json.NewDecoder(r.Body).Decode(&registered); err != nil {
+					t.Errorf("decode register body: %v", err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				var share map[string]interface{}
+				_ = json.Unmarshal([]byte(inboundShareGetResponse), &share)
+				if tt.serverSaves {
+					share["label"] = registered.Label
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusCreated)
+				_ = json.NewEncoder(w).Encode(share)
+			}))
+			defer server.Close()
 
-	data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
-		"share_name":       "customer_share_prod",
-		"provider_account": "acme_corp.us-east-1",
-		"label":            "Customer data",
-	})
-	if diags := resourceInboundShareCreate(context.Background(), data, newInboundShareTestClient(server)); diags.HasError() {
-		t.Fatalf("create: %v", diags)
-	}
-	if registered.Label != "Customer data" {
-		t.Errorf("register label = %q, want Customer data", registered.Label)
-	}
-	if got := data.Get("label"); got != "Customer data" {
-		t.Errorf("label = %q, want Customer data", got)
+			data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+				"share_name":       "customer_share_prod",
+				"provider_account": "acme_corp.us-east-1",
+				"label":            "Customer data",
+			})
+			diags := resourceInboundShareCreate(context.Background(), data, newInboundShareTestClient(server))
+			if diags.HasError() {
+				t.Fatalf("create: %v", diags)
+			}
+			if registered.Label != "Customer data" {
+				t.Errorf("register label = %q, want Customer data", registered.Label)
+			}
+			if tt.serverSaves {
+				if len(diags) != 0 {
+					t.Errorf("diags = %v, want none", diags)
+				}
+				if got := data.Get("label"); got != "Customer data" {
+					t.Errorf("label = %q, want Customer data", got)
+				}
+				return
+			}
+			if len(diags) != 1 || diags[0].Severity != diag.Warning {
+				t.Fatalf("diags = %v, want one warning", diags)
+			}
+			if got := data.Get("label"); got == "Customer data" {
+				t.Errorf("label = %q, want the server's label so the next apply sets it", got)
+			}
+		})
 	}
 }
 
