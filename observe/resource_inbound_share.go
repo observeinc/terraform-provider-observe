@@ -101,22 +101,7 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 		return inboundShareAlreadyRegisteredDiags(share, shareName, providerAccount)
 	}
 	data.SetId(share.Id)
-
-	// A server that does not take a label on register ignores it, so the
-	// label is set separately when the share came back without it.
-	if !hasLabel || label.(string) == share.Label {
-		return inboundShareToResourceData(share, data)
-	}
-	updated, err := client.UpdateShare(ctx, share.Id, &rest.UpdateShareRequest{Label: label.(string)})
-	if err != nil {
-		// The share is registered, so it is kept rather than tainted: the
-		// state holds the server's label and the next apply retries it.
-		diags := inboundShareToResourceData(share, data)
-		d := inboundShareErrorDiags("inbound share registered, but setting its label failed", err)[0]
-		d.Severity = diag.Warning
-		return append(diags, d)
-	}
-	return inboundShareToResourceData(updated, data)
+	return inboundShareToResourceData(share, data)
 }
 
 func resourceInboundShareRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
