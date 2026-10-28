@@ -134,6 +134,12 @@ func inboundShareErrorDiags(summary string, err error) diag.Diagnostics {
 		d.Detail += "\n\nCheck that the share is granted to Observe's consumer account (see the observe_inbound_share_setup data source) and that its comment is set to an unexpired token from observe_inbound_share_registration_token."
 	case rest.HasErrorType(err, rest.ErrorTypeShareHasTrackedTables):
 		d.Detail += "\n\nDestroy the observe_inbound_share_table resources for this share first."
+	case rest.HasErrorType(err, rest.ErrorTypeShareMountFailed):
+		d.Detail += "\n\nObserve could not mount the share and did not keep the registration. Apply again to retry."
+	case rest.HasErrorType(err, rest.ErrorTypeShareNotQueryable):
+		d.Detail += "\n\nThe share is not granted to Observe's consumer account (see the observe_inbound_share_setup data source). Grant it, then apply again."
+	case rest.HasErrorType(err, rest.ErrorTypeShareAlreadyMounted):
+		d.Detail += "\n\nObserve's Snowflake account already has this share mounted for another registration, so applying again will not help. Contact Observe support."
 	}
 	return diag.Diagnostics{d}
 }

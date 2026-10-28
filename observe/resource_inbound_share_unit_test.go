@@ -165,37 +165,66 @@ func TestResourceInboundShareImportAcceptsOID(t *testing.T) {
 	}
 }
 
-func TestResourceInboundShareCreateKeepsShareWhenLabelFails(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if r.Method == http.MethodPatch {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(`{"message": "boom"}`))
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte(inboundShareGetResponse))
-	}))
-	defer server.Close()
-	client := newInboundShareTestClient(server)
+func TestResourceInboundShareCreateSendsLabel(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		serverSaves bool
+	}{
+		{"server saves the label", true},
+		{"server ignores the label", false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var registered rest.RegisterShareRequest
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodPost {
+					t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+					w.WriteHeader(http.StatusMethodNotAllowed)
+					return
+				}
+				if err := json.NewDecoder(r.Body).Decode(&registered); err != nil {
+					t.Errorf("decode register body: %v", err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				var share map[string]interface{}
+				_ = json.Unmarshal([]byte(inboundShareGetResponse), &share)
+				if tt.serverSaves {
+					share["label"] = registered.Label
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusCreated)
+				_ = json.NewEncoder(w).Encode(share)
+			}))
+			defer server.Close()
 
-	data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
-		"share_name":       "customer_share_prod",
-		"provider_account": "acme_corp.us-east-1",
-		"label":            "Customer data",
-	})
-	diags := resourceInboundShareCreate(context.Background(), data, client)
-	if diags.HasError() || len(diags) != 1 || diags[0].Severity != diag.Warning {
-		t.Fatalf("expected a single warning, got %v", diags)
-	}
-	if data.Id() != "41012345" {
-		t.Errorf("state ID = %q, want 41012345", data.Id())
-	}
-	if got := data.Get("label"); got == "Customer data" {
-		t.Errorf("label = %q, want the server's label so the next apply retries it", got)
-	}
-	if got := data.Get("share_name"); got != "CUSTOMER_SHARE_PROD" {
-		t.Errorf("share_name = %q, want the server's name", got)
+			data := schema.TestResourceDataRaw(t, resourceInboundShare().Schema, map[string]interface{}{
+				"share_name":       "customer_share_prod",
+				"provider_account": "acme_corp.us-east-1",
+				"label":            "Customer data",
+			})
+			diags := resourceInboundShareCreate(context.Background(), data, newInboundShareTestClient(server))
+			if diags.HasError() {
+				t.Fatalf("create: %v", diags)
+			}
+			if registered.Label != "Customer data" {
+				t.Errorf("register label = %q, want Customer data", registered.Label)
+			}
+			if tt.serverSaves {
+				if len(diags) != 0 {
+					t.Errorf("diags = %v, want none", diags)
+				}
+				if got := data.Get("label"); got != "Customer data" {
+					t.Errorf("label = %q, want Customer data", got)
+				}
+				return
+			}
+			if len(diags) != 1 || diags[0].Severity != diag.Warning {
+				t.Fatalf("diags = %v, want one warning", diags)
+			}
+			if got := data.Get("label"); got == "Customer data" {
+				t.Errorf("label = %q, want the server's label so the next apply sets it", got)
+			}
+		})
 	}
 }
 
