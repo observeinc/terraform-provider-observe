@@ -111,6 +111,11 @@ resource "observe_inbound_share" "test" {
 	share_name       = "%s"
 	provider_account = "%s"
 	label            = "%s"
+
+	# If a step fails, the post-test destroy must not unregister the shared share.
+	lifecycle {
+		prevent_destroy = true
+	}
 }
 `, testInboundShareName, testInboundShareProvider, label)
 }
