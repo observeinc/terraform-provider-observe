@@ -1799,3 +1799,31 @@ func (c *Client) DeleteSkill(ctx context.Context, id string) (err error) {
 	})
 	return
 }
+
+/**
+ * Composite monitors
+ */
+func (c *Client) CreateCompositeMonitor(ctx context.Context, input *rest.CompositeMonitorCreateRequest) (result *rest.CompositeMonitorResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.CreateCompositeMonitor(ctx, input)
+	})
+	return
+}
+
+func (c *Client) GetCompositeMonitor(ctx context.Context, id string) (*rest.CompositeMonitorResource, error) {
+	return c.Rest.GetCompositeMonitor(ctx, id)
+}
+
+func (c *Client) UpdateCompositeMonitor(ctx context.Context, id string, input *rest.CompositeMonitorUpdateRequest) (result *rest.CompositeMonitorResource, err error) {
+	c.maybeRunConcurrently(func() {
+		result, err = c.Rest.UpdateCompositeMonitor(ctx, id, input)
+	})
+	return
+}
+
+func (c *Client) DeleteCompositeMonitor(ctx context.Context, id string) (err error) {
+	c.maybeRunConcurrently(func() {
+		err = c.Rest.DeleteCompositeMonitor(ctx, id)
+	})
+	return
+}

@@ -1,0 +1,53 @@
+description: |
+  A composite monitor alerts on a boolean condition over whether other monitors are
+  currently alerting, correlated per group. It has no query of its own: its groupings
+  and evaluation interval are derived from its constituents, and the severity of each
+  alert comes from the constituents that made the condition true.
+
+  ~> **NOTE:** Composite monitors are managed through an alpha API that must be enabled
+  for your Observe customer. The groupings shared by the constituents cannot change after
+  the composite is created, and a monitor cannot be deleted while a composite uses it, so
+  reference constituents by `observe_monitor_v2.<name>.oid` to let Terraform order changes.
+
+schema:
+  name: |
+    Monitor name. Must be unique per workspace.
+  description: |
+    A brief description of the monitor.
+  disabled: |
+    Enable/Disable the monitor. A disabled composite is not evaluated and suppresses nothing.
+  condition: |
+    Boolean expression over the constituent aliases, e.g. `A && (B || !C)`. Supports `&&`,
+    `||`, `!` and parentheses. Every alias must name a constituent, and every constituent
+    must appear in the expression.
+  constituents:
+    description: |
+      The monitors this composite is built from, between 2 and 10. A constituent cannot
+      itself be a composite or a promote monitor, and either all constituents are grouped
+      and share at least one grouping dimension, or none is grouped.
+    alias: |
+      The name this constituent goes by in `condition`. Must start with a letter and contain
+      only letters and digits.
+    monitor: |
+      OID of the `observe_monitor_v2` this constituent points at.
+    notify_independently: |
+      Whether this constituent keeps sending its own notifications while the composite is
+      alerting. Set to `false` to let the composite be the only thing that notifies for it.
+      Defaults to `true`.
+  actions:
+    description: |
+      The notification actions bound to this composite, in order. Each is either a shared
+      action referenced by `oid` or an inline `action` owned by this composite alone. Inline
+      actions do not support `description`.
+    inline_action_id: |
+      ID of the inline action backing this rule, if any. Used to update the action in place.
+  custom_variables: |
+    Named mustache templates rendered when an action fires. Action templates read each one
+    as the mustache variable `monitor.variables.<key>`.
+  groupings: |
+    The grouping dimensions the condition is correlated on: the grouping columns every
+    constituent has in common, derived by the server. Empty when the constituents are
+    ungrouped.
+  evaluation_interval: |
+    How often the composite is evaluated, derived from its fastest constituent. Empty until
+    the constituents have been installed.
