@@ -337,3 +337,68 @@ func TestAccObserveCompositeMonitor(t *testing.T) {
 		},
 	})
 }
+
+func TestCompositeMonitorPriorInlineActionIds(t *testing.T) {
+	webhook := func(url string) []interface{} {
+		return []interface{}{map[string]interface{}{
+			"type":    "webhook",
+			"webhook": []interface{}{map[string]interface{}{"url": url, "method": "post", "body": "{}"}},
+		}}
+	}
+	inline := func(url, id string) interface{} {
+		return map[string]interface{}{"action": webhook(url), "inline_action_id": id}
+	}
+	shared := map[string]interface{}{"oid": "o:::monitorv2action:9", "action": []interface{}{}, "inline_action_id": ""}
+
+	for name, tc := range map[string]struct {
+		old, new []interface{}
+		want     []string
+	}{
+		"unchanged": {
+			old:  []interface{}{inline("a", "1"), inline("b", "2")},
+			new:  []interface{}{inline("a", ""), inline("b", "")},
+			want: []string{"1", "2"},
+		},
+		"two inline actions reordered": {
+			old:  []interface{}{inline("a", "1"), inline("b", "2")},
+			new:  []interface{}{inline("b", ""), inline("a", "")},
+			want: []string{"2", "1"},
+		},
+		"inline and shared swapped": {
+			old:  []interface{}{inline("a", "1"), shared},
+			new:  []interface{}{shared, inline("a", "")},
+			want: []string{"", "1"},
+		},
+		"content edited in place": {
+			old:  []interface{}{inline("a", "1")},
+			new:  []interface{}{inline("a2", "")},
+			want: []string{"1"},
+		},
+		"first of two removed": {
+			old:  []interface{}{inline("a", "1"), inline("b", "2")},
+			new:  []interface{}{inline("b", "")},
+			want: []string{"2"},
+		},
+		"edited action whose position is claimed by a moved one": {
+			old:  []interface{}{inline("a", "1"), inline("b", "2")},
+			new:  []interface{}{inline("b", ""), inline("c", "")},
+			want: []string{"2", ""},
+		},
+		"new action appended": {
+			old:  []interface{}{inline("a", "1")},
+			new:  []interface{}{inline("a", ""), inline("b", "")},
+			want: []string{"1", ""},
+		},
+		"shared replaced by inline": {
+			old:  []interface{}{shared},
+			new:  []interface{}{inline("a", "")},
+			want: []string{""},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := compositeMonitorPriorInlineActionIds(tc.old, tc.new); !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
