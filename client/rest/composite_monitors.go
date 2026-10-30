@@ -11,8 +11,8 @@ import (
 	"github.com/observeinc/terraform-provider-observe/client/oid"
 )
 
-// Composite monitors are MonitorV2s with ruleKind Composite. GraphQL refuses to
-// create or update them, so they are managed through the internal (alpha)
+// Composite monitors are MonitorV2s with ruleKind Composite. There is no GraphQL
+// API to create or update them, so they are managed through the internal (alpha)
 // /v1/composite-monitors REST API, which is gated per customer by the
 // MonitorV2.compositeRestApi setting.
 

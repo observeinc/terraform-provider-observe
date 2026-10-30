@@ -7,10 +7,15 @@ description: |-
   currently alerting, correlated per group. It has no query of its own: its groupings
   and evaluation interval are derived from its constituents, and the severity of each
   alert comes from the constituents that made the condition true.
-  ~> NOTE: Composite monitors are managed through an alpha API that must be enabled
-  for your Observe customer. The groupings shared by the constituents cannot change after
-  the composite is created, and a monitor cannot be deleted while a composite uses it, so
-  reference constituents by observe_monitor_v2.<name>.oid to let Terraform order changes.
+  ~> NOTE: Composite monitors are in private preview and must be enabled for your
+  Observe customer by Observe. The provider does not check this ahead of time: if the
+  feature is not enabled, terraform plan succeeds for a new composite monitor, and
+  terraform apply then fails with a 403 Forbidden error from the Observe API. Reading,
+  updating or deleting an existing composite monitor fails the same way. Contact Observe
+  to have composite monitors enabled.
+  ~> NOTE: The groupings shared by the constituents cannot change after the composite
+  is created, and a monitor cannot be deleted while a composite uses it, so reference
+  constituents by observe_monitor_v2.<name>.oid to let Terraform order changes.
 ---
 # observe_composite_monitor
 
@@ -19,10 +24,16 @@ currently alerting, correlated per group. It has no query of its own: its groupi
 and evaluation interval are derived from its constituents, and the severity of each
 alert comes from the constituents that made the condition true.
 
-~> **NOTE:** Composite monitors are managed through an alpha API that must be enabled
-for your Observe customer. The groupings shared by the constituents cannot change after
-the composite is created, and a monitor cannot be deleted while a composite uses it, so
-reference constituents by `observe_monitor_v2.<name>.oid` to let Terraform order changes.
+~> **NOTE:** Composite monitors are in private preview and must be enabled for your
+Observe customer by Observe. The provider does not check this ahead of time: if the
+feature is not enabled, `terraform plan` succeeds for a new composite monitor, and
+`terraform apply` then fails with a `403 Forbidden` error from the Observe API. Reading,
+updating or deleting an existing composite monitor fails the same way. Contact Observe
+to have composite monitors enabled.
+
+~> **NOTE:** The groupings shared by the constituents cannot change after the composite
+is created, and a monitor cannot be deleted while a composite uses it, so reference
+constituents by `observe_monitor_v2.<name>.oid` to let Terraform order changes.
 ## Example Usage
 ```terraform
 resource "observe_composite_monitor" "example" {
@@ -82,7 +93,8 @@ and share at least one grouping dimension, or none is grouped. (see [below for n
 
 - `actions` (Block List) The notification actions bound to this composite, in order. Each is either a shared
 action referenced by `oid` or an inline `action` owned by this composite alone. Inline
-actions do not support `description`. (see [below for nested schema](#nestedblock--actions))
+actions do not support `description`. As with `observe_monitor_v2`, any change to
+`actions` recreates the inline actions, so they get new ids. (see [below for nested schema](#nestedblock--actions))
 - `custom_variables` (Map of String) Named mustache templates rendered when an action fires. Action templates read each one
 as the mustache variable `monitor.variables.<key>`.
 - `description` (String) A brief description of the monitor.
@@ -126,10 +138,6 @@ Optional:
 - `oid` (String) The OID of this shared action. This should be used for existing shared actions.
 - `send_end_notifications` (Boolean) If true, notifications will be sent if the monitor stops triggering.
 - `send_reminders_interval` (String) Determines how frequently you will be reminded of an ongoing alert.
-
-Read-Only:
-
-- `inline_action_id` (String) ID of the inline action backing this rule, if any. Used to update the action in place.
 
 <a id="nestedblock--actions--action"></a>
 ### Nested Schema for `actions.action`

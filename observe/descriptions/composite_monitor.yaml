@@ -4,10 +4,16 @@ description: |
   and evaluation interval are derived from its constituents, and the severity of each
   alert comes from the constituents that made the condition true.
 
-  ~> **NOTE:** Composite monitors are managed through an alpha API that must be enabled
-  for your Observe customer. The groupings shared by the constituents cannot change after
-  the composite is created, and a monitor cannot be deleted while a composite uses it, so
-  reference constituents by `observe_monitor_v2.<name>.oid` to let Terraform order changes.
+  ~> **NOTE:** Composite monitors are in private preview and must be enabled for your
+  Observe customer by Observe. The provider does not check this ahead of time: if the
+  feature is not enabled, `terraform plan` succeeds for a new composite monitor, and
+  `terraform apply` then fails with a `403 Forbidden` error from the Observe API. Reading,
+  updating or deleting an existing composite monitor fails the same way. Contact Observe
+  to have composite monitors enabled.
+
+  ~> **NOTE:** The groupings shared by the constituents cannot change after the composite
+  is created, and a monitor cannot be deleted while a composite uses it, so reference
+  constituents by `observe_monitor_v2.<name>.oid` to let Terraform order changes.
 
 schema:
   name: |
@@ -38,9 +44,8 @@ schema:
     description: |
       The notification actions bound to this composite, in order. Each is either a shared
       action referenced by `oid` or an inline `action` owned by this composite alone. Inline
-      actions do not support `description`.
-    inline_action_id: |
-      ID of the inline action backing this rule, if any. Used to update the action in place.
+      actions do not support `description`. As with `observe_monitor_v2`, any change to
+      `actions` recreates the inline actions, so they get new ids.
   custom_variables: |
     Named mustache templates rendered when an action fires. Action templates read each one
     as the mustache variable `monitor.variables.<key>`.
