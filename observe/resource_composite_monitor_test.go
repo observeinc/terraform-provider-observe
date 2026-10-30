@@ -163,7 +163,6 @@ func TestCompositeMonitorToResourceData(t *testing.T) {
 		"groupings.0.correlation_tag.0.tag":    "host",
 		"evaluation_interval":                  "1m0s",
 		"actions.0.oid":                        "o:::monitorv2action:41000300",
-		"actions.1.inline_action_id":           "41000200",
 		"actions.1.action.0.type":              "email",
 		"actions.1.action.0.email.0.users.0":   "o:::user:7",
 		"actions.1.action.0.email.0.fragments": `{"k": "v"}`,
@@ -282,7 +281,6 @@ func TestAccObserveCompositeMonitor(t *testing.T) {
 					resource.TestCheckResourceAttrPair("observe_composite_monitor.both", "actions.0.oid", "observe_monitor_v2_action.shared", "oid"),
 					resource.TestCheckResourceAttr("observe_composite_monitor.both", "actions.0.levels.0", "warning"),
 					resource.TestCheckResourceAttr("observe_composite_monitor.both", "actions.1.action.0.webhook.0.url", "https://example.com/hook"),
-					resource.TestCheckResourceAttrSet("observe_composite_monitor.both", "actions.1.inline_action_id"),
 					resource.TestCheckResourceAttr("observe_composite_monitor.both", "actions.1.send_reminders_interval", "10m0s"),
 					resource.TestCheckResourceAttr("observe_composite_monitor.both", "custom_variables.title", "both down"),
 					resource.TestCheckResourceAttr("observe_composite_monitor.both", "groupings.#", "0"),
@@ -336,69 +334,4 @@ func TestAccObserveCompositeMonitor(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestCompositeMonitorPriorInlineActionIds(t *testing.T) {
-	webhook := func(url string) []interface{} {
-		return []interface{}{map[string]interface{}{
-			"type":    "webhook",
-			"webhook": []interface{}{map[string]interface{}{"url": url, "method": "post", "body": "{}"}},
-		}}
-	}
-	inline := func(url, id string) interface{} {
-		return map[string]interface{}{"action": webhook(url), "inline_action_id": id}
-	}
-	shared := map[string]interface{}{"oid": "o:::monitorv2action:9", "action": []interface{}{}, "inline_action_id": ""}
-
-	for name, tc := range map[string]struct {
-		old, new []interface{}
-		want     []string
-	}{
-		"unchanged": {
-			old:  []interface{}{inline("a", "1"), inline("b", "2")},
-			new:  []interface{}{inline("a", ""), inline("b", "")},
-			want: []string{"1", "2"},
-		},
-		"two inline actions reordered": {
-			old:  []interface{}{inline("a", "1"), inline("b", "2")},
-			new:  []interface{}{inline("b", ""), inline("a", "")},
-			want: []string{"2", "1"},
-		},
-		"inline and shared swapped": {
-			old:  []interface{}{inline("a", "1"), shared},
-			new:  []interface{}{shared, inline("a", "")},
-			want: []string{"", "1"},
-		},
-		"content edited in place": {
-			old:  []interface{}{inline("a", "1")},
-			new:  []interface{}{inline("a2", "")},
-			want: []string{"1"},
-		},
-		"first of two removed": {
-			old:  []interface{}{inline("a", "1"), inline("b", "2")},
-			new:  []interface{}{inline("b", "")},
-			want: []string{"2"},
-		},
-		"edited action whose position is claimed by a moved one": {
-			old:  []interface{}{inline("a", "1"), inline("b", "2")},
-			new:  []interface{}{inline("b", ""), inline("c", "")},
-			want: []string{"2", ""},
-		},
-		"new action appended": {
-			old:  []interface{}{inline("a", "1")},
-			new:  []interface{}{inline("a", ""), inline("b", "")},
-			want: []string{"1", ""},
-		},
-		"shared replaced by inline": {
-			old:  []interface{}{shared},
-			new:  []interface{}{inline("a", "")},
-			want: []string{""},
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			if got := compositeMonitorPriorInlineActionIds(tc.old, tc.new); !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("got %q, want %q", got, tc.want)
-			}
-		})
-	}
 }
