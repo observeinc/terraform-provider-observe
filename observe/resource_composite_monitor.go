@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -283,9 +284,10 @@ func newCompositeMonitorConstituentInputs(data *schema.ResourceData) []rest.Comp
 }
 
 // newCompositeMonitorActionRuleInputs parses `actions` with the observe_monitor_v2
-// parser and converts each rule to its REST form. On update, an inline action
-// whose rule was inline at the same position before is sent with that action's
-// id, so the server changes it in place rather than replacing it.
+// parser and converts each rule to its REST form. On update, inline actions are
+// sent with the id of the existing inline action they correspond to (see
+// compositeMonitorPriorInlineActionIds), so the server changes it in place
+// rather than replacing it.
 func newCompositeMonitorActionRuleInputs(data *schema.ResourceData, isUpdate bool) ([]rest.MonitorActionRuleInput, diag.Diagnostics) {
 	gqlRules, diags := newMonitorV2ActionAndRelationInputs(data)
 	if diags.HasError() {
@@ -294,14 +296,8 @@ func newCompositeMonitorActionRuleInputs(data *schema.ResourceData, isUpdate boo
 
 	var priorInlineIds []string
 	if isUpdate {
-		oldActions, _ := data.GetChange("actions")
-		for _, a := range oldActions.([]interface{}) {
-			id := ""
-			if m, ok := a.(map[string]interface{}); ok {
-				id, _ = m["inline_action_id"].(string)
-			}
-			priorInlineIds = append(priorInlineIds, id)
-		}
+		oldActions, newActions := data.GetChange("actions")
+		priorInlineIds = compositeMonitorPriorInlineActionIds(oldActions.([]interface{}), newActions.([]interface{}))
 	}
 
 	var rules []rest.MonitorActionRuleInput
@@ -316,6 +312,49 @@ func newCompositeMonitorActionRuleInputs(data *schema.ResourceData, isUpdate boo
 		rules = append(rules, *rule)
 	}
 	return rules, nil
+}
+
+// compositeMonitorPriorInlineActionIds returns, for each new rule, the id of the
+// existing inline action it should update in place, or "" for a new action. An
+// inline action whose content is unchanged keeps its id wherever it moves in the
+// list, so reordering or removing rules never rewrites an action with another's
+// payload (which would carry pending reminders over to a different destination).
+// A changed inline action then takes the id at its own position, if no
+// unchanged action claimed it.
+func compositeMonitorPriorInlineActionIds(oldActions, newActions []interface{}) []string {
+	inlineAction := func(rule interface{}) (action []interface{}, id string, ok bool) {
+		m, _ := rule.(map[string]interface{})
+		action, _ = m["action"].([]interface{})
+		id, _ = m["inline_action_id"].(string)
+		return action, id, len(action) != 0
+	}
+
+	ids := make([]string, len(newActions))
+	claimed := make(map[string]bool)
+	for i, n := range newActions {
+		newAction, _, ok := inlineAction(n)
+		if !ok {
+			continue
+		}
+		for _, o := range oldActions {
+			oldAction, id, ok := inlineAction(o)
+			if ok && id != "" && !claimed[id] && reflect.DeepEqual(oldAction, newAction) {
+				ids[i] = id
+				claimed[id] = true
+				break
+			}
+		}
+	}
+	for i, n := range newActions {
+		if _, _, ok := inlineAction(n); !ok || ids[i] != "" || i >= len(oldActions) {
+			continue
+		}
+		if _, id, ok := inlineAction(oldActions[i]); ok && id != "" && !claimed[id] {
+			ids[i] = id
+			claimed[id] = true
+		}
+	}
+	return ids
 }
 
 func compositeMonitorActionRuleFromGQL(in gql.MonitorV2ActionAndRelationInput) (*rest.MonitorActionRuleInput, error) {
