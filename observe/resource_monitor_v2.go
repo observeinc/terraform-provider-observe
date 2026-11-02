@@ -1569,11 +1569,7 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 	return input, diags
 }
 
-// keepMonitorV2AiSreLimits copies the monitor's stored AI SRE limits into input.
-// The provider does not manage them, and a save that leaves them null resets
-// them to every alert level and the account default cap. A nil and an empty
-// aiSreTriggerLevels mean different things (every level versus none), so the
-// slice is copied as is.
+// keepMonitorV2AiSreLimits keeps the monitor's AI SRE limits as they are.
 func keepMonitorV2AiSreLimits(input *gql.MonitorV2Input, current *gql.MonitorV2) {
 	input.AiSreTriggerLevels = current.AiSreTriggerLevels
 	input.AiSreMaxInvestigationsPerMonitor = current.AiSreMaxInvestigationsPerMonitor

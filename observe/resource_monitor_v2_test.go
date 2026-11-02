@@ -2376,9 +2376,7 @@ func TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate(t *testing.T) {
 	}
 }
 
-// TestKeepMonitorV2AiSreLimits checks the save request carries the monitor's
-// stored AI SRE limits, and that unset trigger levels (every level) and an
-// empty list (no levels) stay distinct in the JSON sent to the API.
+// TestKeepMonitorV2AiSreLimits checks the monitor's AI SRE limits are kept as they are.
 func TestKeepMonitorV2AiSreLimits(t *testing.T) {
 	int64Ptr := func(n int64) *types.Int64Scalar { v := types.Int64Scalar(n); return &v }
 
