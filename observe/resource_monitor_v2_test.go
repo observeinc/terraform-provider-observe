@@ -2438,8 +2438,12 @@ func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
 				),
 			},
 			{
-				Config: config(`ai_triaging_mode = "none"`),
-				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+				// Keeps the description: dropping it from config does not clear it.
+				Config: config(`
+					description = "updated"
+					ai_triaging_mode = "none"
+				`),
+				Check: resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
 			},
 		},
 	})
