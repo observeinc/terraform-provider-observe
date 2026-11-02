@@ -88,6 +88,14 @@ func resourceMonitorV2() *schema.Resource {
 				Default:     false,
 				Description: descriptions.Get("monitorv2", "schema", "disabled"),
 			},
+			"ai_triaging_mode": { // MonitorV2AiTriagingMode
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2AiTriagingModes),
+				DiffSuppressFunc: diffSuppressEnums,
+				Description:      describeEnums(gql.AllMonitorV2AiTriagingModes, descriptions.Get("monitorv2", "schema", "ai_triaging_mode")),
+			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type:        schema.TypeList,
@@ -986,6 +994,14 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	aiTriagingMode := gql.MonitorV2AiTriagingModeNone
+	if monitor.AiTriagingMode != nil {
+		aiTriagingMode = *monitor.AiTriagingMode
+	}
+	if err := data.Set("ai_triaging_mode", toSnake(string(aiTriagingMode))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	// monitor_v2 has no deprecated entity_tags field, so tagDiags is always empty
 	// today; kept in the usual shape in case that changes.
 	if tagDiags, err := setObjectTagsFromAPI(data, monitor.ObjectTags); err != nil {
@@ -1534,6 +1550,10 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 		input.Description = stringPtr(v.(string))
 	}
 	input.Disabled = boolPtr(data.Get("disabled").(bool))
+	if v, ok := data.GetOk("ai_triaging_mode"); ok {
+		mode := gql.MonitorV2AiTriagingMode(toCamel(v.(string)))
+		input.AiTriagingMode = &mode
+	}
 
 	// Always set ObjectTags, even if empty, to allow clearing tags
 	input.ObjectTags = objectTagsInputFromReader(data)

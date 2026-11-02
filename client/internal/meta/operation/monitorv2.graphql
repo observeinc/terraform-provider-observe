@@ -341,6 +341,7 @@ fragment MonitorV2 on MonitorV2 {
     iconUrl
     description
     disabled
+    aiTriagingMode
     managedById
     rollupStatus
     ruleKind

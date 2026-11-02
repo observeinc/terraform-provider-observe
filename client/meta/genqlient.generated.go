@@ -5328,9 +5328,11 @@ type MonitorV2 struct {
 	// one way or the other by itself.
 	// note: This was previously not supported as an input flag, but it was added as an input
 	// flag to support TF and REST.
-	Disabled     *bool                 `json:"disabled"`
-	ManagedById  *string               `json:"managedById"`
-	RollupStatus MonitorV2RollupStatus `json:"rollupStatus"`
+	Disabled *bool `json:"disabled"`
+	// Controls whether an AI SRE investigation is automatically triggered when this monitor fires an alert.
+	AiTriagingMode *MonitorV2AiTriagingMode `json:"aiTriagingMode"`
+	ManagedById    *string                  `json:"managedById"`
+	RollupStatus   MonitorV2RollupStatus    `json:"rollupStatus"`
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
 	Definition MonitorV2Definition `json:"definition"`
@@ -5365,6 +5367,9 @@ func (v *MonitorV2) GetDescription() *string { return v.Description }
 
 // GetDisabled returns MonitorV2.Disabled, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetDisabled() *bool { return v.Disabled }
+
+// GetAiTriagingMode returns MonitorV2.AiTriagingMode, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetAiTriagingMode() *MonitorV2AiTriagingMode { return v.AiTriagingMode }
 
 // GetManagedById returns MonitorV2.ManagedById, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
@@ -15311,6 +15316,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind
@@ -19088,6 +19094,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind
@@ -20886,6 +20893,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind
@@ -21900,6 +21908,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind
@@ -22220,6 +22229,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind
@@ -23956,6 +23966,7 @@ fragment MonitorV2 on MonitorV2 {
 	iconUrl
 	description
 	disabled
+	aiTriagingMode
 	managedById
 	rollupStatus
 	ruleKind

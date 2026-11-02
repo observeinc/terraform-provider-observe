@@ -51,6 +51,8 @@ One of `name` or `id` must be set.
 
 - `_bindings` (String) Internal field. Do not use.
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
+- `ai_triaging_mode` (String) Whether an AI SRE investigation is automatically started when the monitor fires an alert. If unset, the monitor keeps its current value, including one set in the Observe UI; new monitors default to `none`. Saving a monitor set to `triage` makes the provider's user the identity AI SRE investigates as, so that user must be allowed to start AI investigations, and AI SRE must be enabled for the customer.
+ Accepted values: `none`, `triage`
 - `custom_variables` (String)
 - `data_stabilization_delay` (String) expresses the minimum time that should elapse before data is considered "good enough" to evaluate. Choosing a delay really depends on the expectations of latency of data and whether data is expected to arrive later than other data and thus would change previously evaluated results.
 - `description` (String) A brief description of the monitor.

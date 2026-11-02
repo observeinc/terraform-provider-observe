@@ -1,6 +1,7 @@
 package observe
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
 
@@ -2260,6 +2262,184 @@ func TestAccObserveMonitorV2ObjectTags(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.environment"),
 					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.region"),
 				),
+			},
+		},
+	})
+}
+
+// TestMonitorV2AiTriagingModeSchema guards that ai_triaging_mode stays Computed
+// with no Default. The backend resets a missing aiTriagingMode to None on every
+// save, so an unset attribute must carry the monitor's current value back,
+// rather than turn AI SRE off for monitors that enabled it in the UI.
+func TestMonitorV2AiTriagingModeSchema(t *testing.T) {
+	field, ok := resourceMonitorV2().Schema["ai_triaging_mode"]
+	if !ok {
+		t.Fatal("ai_triaging_mode field missing from the resource schema")
+	}
+	if !field.Optional || !field.Computed {
+		t.Error("ai_triaging_mode should be Optional and Computed")
+	}
+	if field.Default != nil {
+		t.Errorf("ai_triaging_mode must NOT have a Default (got %v): it would override values set in the UI", field.Default)
+	}
+	if field.ValidateDiagFunc == nil {
+		t.Error("ai_triaging_mode should have a ValidateDiagFunc")
+	}
+	if field.DiffSuppressFunc == nil {
+		t.Error("ai_triaging_mode should have a DiffSuppressFunc")
+	}
+
+	// The data source shares monitorV2ToResourceData, which sets this attribute.
+	if dsField, ok := dataSourceMonitorV2().Schema["ai_triaging_mode"]; !ok || !dsField.Computed {
+		t.Error("ai_triaging_mode should be a Computed attribute of the data source")
+	}
+}
+
+func TestNewMonitorV2Input_AiTriagingMode(t *testing.T) {
+	modePtr := func(m gql.MonitorV2AiTriagingMode) *gql.MonitorV2AiTriagingMode { return &m }
+
+	cases := []struct {
+		name string
+		mode interface{} // nil => omit from config
+		want *gql.MonitorV2AiTriagingMode
+	}{
+		{"unset", nil, nil},
+		{"none", "none", modePtr(gql.MonitorV2AiTriagingModeNone)},
+		{"triage", "triage", modePtr(gql.MonitorV2AiTriagingModeTriage)},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := map[string]interface{}{
+				"name":      "test",
+				"rule_kind": "count",
+				"inputs":    map[string]interface{}{"test": "o:::dataset:41000001"},
+				"stage":     []interface{}{map[string]interface{}{"pipeline": "filter true"}},
+			}
+			if tc.mode != nil {
+				raw["ai_triaging_mode"] = tc.mode
+			}
+			data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+			input, diags := newMonitorV2Input(data, nil)
+			if diags.HasError() {
+				t.Fatalf("unexpected diags: %v", diags)
+			}
+			switch {
+			case tc.want == nil:
+				if input.AiTriagingMode != nil {
+					t.Fatalf("expected AiTriagingMode to be nil when unset, got %q", *input.AiTriagingMode)
+				}
+			case input.AiTriagingMode == nil:
+				t.Fatalf("expected AiTriagingMode %q, got nil", *tc.want)
+			case *input.AiTriagingMode != *tc.want:
+				t.Fatalf("expected AiTriagingMode %q, got %q", *tc.want, *input.AiTriagingMode)
+			}
+		})
+	}
+}
+
+// TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate plans an update whose config
+// omits ai_triaging_mode against a monitor whose state is triage, and checks
+// the save sends triage back instead of leaving it for the backend to reset.
+func TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate(t *testing.T) {
+	sm := schema.InternalMap(resourceMonitorV2().Schema)
+	state := &terraform.InstanceState{
+		ID:         "41000002",
+		Attributes: map[string]string{"ai_triaging_mode": "triage", "description": "before"},
+	}
+	config := terraform.NewResourceConfigRaw(map[string]interface{}{
+		"name":        "test",
+		"rule_kind":   "count",
+		"description": "after",
+		"inputs":      map[string]interface{}{"test": "o:::dataset:41000001"},
+		"stage":       []interface{}{map[string]interface{}{"pipeline": "filter true"}},
+	})
+
+	diff, err := sm.Diff(context.Background(), state, config, nil, nil, true)
+	if err != nil {
+		t.Fatalf("diff: %v", err)
+	}
+	data, err := sm.Data(state, diff)
+	if err != nil {
+		t.Fatalf("data: %v", err)
+	}
+
+	input, diags := newMonitorV2Input(data, nil)
+	if diags.HasError() {
+		t.Fatalf("unexpected diags: %v", diags)
+	}
+	if input.AiTriagingMode == nil || *input.AiTriagingMode != gql.MonitorV2AiTriagingModeTriage {
+		t.Fatalf("expected AiTriagingMode %q to be kept, got %v", gql.MonitorV2AiTriagingModeTriage, input.AiTriagingMode)
+	}
+}
+
+// TestAccObserveMonitorV2AiTriagingMode covers the default, enabling triage,
+// keeping it when the attribute is dropped from config, and turning it off.
+//
+// NOTE: the steps that apply `triage` require AI SRE to be enabled for the test
+// customer, and the test user to be allowed to start AI investigations.
+func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := func(extra string) string {
+		return fmt.Sprintf(monitorV2ConfigPreamble+`
+			resource "observe_monitor_v2" "first" {
+				workspace = data.observe_workspace.default.oid
+				rule_kind = "count"
+				name = "%[1]s"
+				lookback_time = "30m"
+				inputs = {
+					"test" = observe_datastream.test.dataset
+				}
+				stage {
+					pipeline = <<-EOF
+						filter true
+					EOF
+				}
+				rules {
+					level = "informational"
+					count {
+						compare_values {
+							compare_fn = "greater"
+							value_int64 = [0]
+						}
+					}
+				}
+				scheduling {
+					transform {
+						freshness_goal = "15m"
+					}
+				}
+				%[2]s
+			}
+		`, randomPrefix, extra)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config(""),
+				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+			},
+			{
+				Config: config(`ai_triaging_mode = "triage"`),
+				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+			},
+			{
+				// Dropping the attribute while changing something else forces a save
+				// that must keep triage instead of resetting it.
+				Config: config(`description = "updated"`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "description", "updated"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+				),
+			},
+			{
+				Config: config(`ai_triaging_mode = "none"`),
+				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
 			},
 		},
 	})

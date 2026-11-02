@@ -68,6 +68,11 @@ func dataSourceMonitorV2() *schema.Resource {
 				Computed:    true,
 				Description: descriptions.Get("monitorv2", "schema", "disabled"),
 			},
+			"ai_triaging_mode": { // MonitorV2AiTriagingMode
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: describeEnums(gql.AllMonitorV2AiTriagingModes, descriptions.Get("monitorv2", "schema", "ai_triaging_mode")),
+			},
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
 				Type: schema.TypeList,
 				// we need to declare optional, otherwise we won't get block
