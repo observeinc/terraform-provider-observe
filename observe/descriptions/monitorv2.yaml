@@ -24,9 +24,8 @@ schema:
     If unset, the monitor keeps its current value, including one set in the Observe UI;
     new monitors default to `none`. Saving a monitor set to `triage` makes the provider's
     user the identity AI SRE investigates as, so that user must be allowed to start AI
-    investigations, and AI SRE must be enabled for the customer. Terraform does not manage
-    the monitor's other AI SRE settings, such as which alert levels start an investigation
-    and how many investigations it may run; saves keep them as they are.
+    investigations, and AI SRE must be enabled for the customer. The monitor's other AI SRE
+    limits are kept as they are.
   no_data_rules:
     description: |
       No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind.
