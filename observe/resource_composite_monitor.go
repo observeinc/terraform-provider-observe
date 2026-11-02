@@ -194,10 +194,14 @@ func newCompositeMonitorCreateRequest(data *schema.ResourceData) (*rest.Composit
 	if diags.HasError() {
 		return nil, diags
 	}
+	constituents, diags := newCompositeMonitorConstituentInputs(data)
+	if diags.HasError() {
+		return nil, diags
+	}
 	req := &rest.CompositeMonitorCreateRequest{
 		Label:        data.Get("name").(string),
 		Disabled:     boolPtr(data.Get("disabled").(bool)),
-		Constituents: newCompositeMonitorConstituentInputs(data),
+		Constituents: constituents,
 		Condition:    data.Get("condition").(string),
 		Actions:      actions,
 	}
@@ -233,7 +237,11 @@ func newCompositeMonitorUpdateRequest(data *schema.ResourceData) (*rest.Composit
 		req.Condition = stringPtr(data.Get("condition").(string))
 	}
 	if data.HasChange("constituents") {
-		req.Constituents = newCompositeMonitorConstituentInputs(data)
+		constituents, diags := newCompositeMonitorConstituentInputs(data)
+		if diags.HasError() {
+			return nil, diags
+		}
+		req.Constituents = constituents
 	}
 	if data.HasChange("actions") {
 		actions, diags := newCompositeMonitorActionRuleInputs(data)
@@ -258,18 +266,23 @@ func newCompositeMonitorUpdateRequest(data *schema.ResourceData) (*rest.Composit
 	return req, nil
 }
 
-func newCompositeMonitorConstituentInputs(data *schema.ResourceData) []rest.CompositeMonitorConstituentInput {
+// newCompositeMonitorConstituentInputs errors on a monitor that is not an OID.
+// validateOID catches that at plan time, except for a value only known at apply.
+func newCompositeMonitorConstituentInputs(data *schema.ResourceData) ([]rest.CompositeMonitorConstituentInput, diag.Diagnostics) {
 	var constituents []rest.CompositeMonitorConstituentInput
 	for i := range data.Get("constituents").([]interface{}) {
 		path := fmt.Sprintf("constituents.%d.", i)
-		monitorOID, _ := oid.NewOID(data.Get(path + "monitor").(string))
+		monitorOID, err := oid.NewOID(data.Get(path + "monitor").(string))
+		if err != nil {
+			return nil, diag.Errorf("%s. Path = %smonitor", err, path)
+		}
 		constituents = append(constituents, rest.CompositeMonitorConstituentInput{
 			Alias:               data.Get(path + "alias").(string),
 			Monitor:             rest.IdRef{Id: monitorOID.Id},
 			NotifyIndependently: boolPtr(data.Get(path + "notify_independently").(bool)),
 		})
 	}
-	return constituents
+	return constituents, nil
 }
 
 // newCompositeMonitorActionRuleInputs parses `actions` with the observe_monitor_v2
@@ -334,7 +347,7 @@ func compositeMonitorInlineActionFromGQL(in *gql.MonitorV2ActionInput) (*rest.Mo
 			email.Subject = stringPtr(e.Subject)
 		}
 		for _, uid := range e.Users {
-			email.Users = append(email.Users, rest.IdRef{Id: uid.String()})
+			email.Users = append(email.Users, rest.IdRef{Id: strconv.FormatInt(int64(uid), 10)})
 		}
 		if e.Fragments != nil {
 			email.Fragments = json.RawMessage(e.Fragments.String())

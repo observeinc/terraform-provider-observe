@@ -45,6 +45,16 @@ func TestCompositeMonitorCreateRequest(t *testing.T) {
 					}},
 				}},
 			},
+			map[string]interface{}{
+				"action": []interface{}{map[string]interface{}{
+					"type": "email",
+					"email": []interface{}{map[string]interface{}{
+						"subject":   "alert",
+						"addresses": []interface{}{"a@example.com"},
+						"users":     []interface{}{"o:::user:7"},
+					}},
+				}},
+			},
 		},
 		"custom_variables": map[string]interface{}{"title": "down"},
 	})
@@ -63,10 +73,25 @@ func TestCompositeMonitorCreateRequest(t *testing.T) {
 		`"actions":[{"action":{"id":"41000300"},"levels":["Critical","Error"]},` +
 		`{"inlineAction":{"type":"Webhook","webhook":{"url":"https://example.com/hook","method":"Post","body":"{}"}},` +
 		`"conditions":{"operator":"And","compareTerms":[{"tag":"host","comparison":{"compareFn":"Equal","compareValue":"web-1","valueType":"String"}}]},` +
-		`"sendEndNotifications":true,"sendRemindersIntervalSeconds":600}],` +
+		`"sendEndNotifications":true,"sendRemindersIntervalSeconds":600},` +
+		`{"inlineAction":{"type":"Email","email":{"users":[{"id":"7"}],"addresses":["a@example.com"],"subject":"alert","body":""}}}],` +
 		`"customVariables":{"title":"down"}}`
 	if string(got) != want {
 		t.Errorf("create request:\n got %s\nwant %s", got, want)
+	}
+}
+
+func TestCompositeMonitorInvalidConstituentMonitor(t *testing.T) {
+	data := schema.TestResourceDataRaw(t, resourceCompositeMonitor().Schema, map[string]interface{}{
+		"name":      "x",
+		"condition": "A && B",
+		"constituents": []interface{}{
+			map[string]interface{}{"alias": "A", "monitor": "o:::monitorv2:1"},
+			map[string]interface{}{"alias": "B", "monitor": "not-an-oid"},
+		},
+	})
+	if _, diags := newCompositeMonitorCreateRequest(data); !diags.HasError() {
+		t.Fatal("expected an error for a constituent monitor that is not an OID")
 	}
 }
 
@@ -197,6 +222,11 @@ func compositeMonitorConstituentsConfig(prefix string) string {
 					colmake kind:"test", description:"test"
 				EOF
 				output_stage = true
+			}
+			stage {
+				pipeline = <<-EOF
+					filter kind ~ "test"
+				EOF
 			}
 			rules {
 				level = "warning"

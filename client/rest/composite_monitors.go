@@ -97,8 +97,9 @@ type MonitorActionWebhookInput struct {
 	Fragments json.RawMessage              `json:"fragments,omitempty"`
 }
 
-// MonitorActionInlineInput is an action owned by this monitor alone. Id is set
-// only on update, to change an existing inline action in place.
+// MonitorActionInlineInput is an action owned by this monitor alone. The API
+// accepts an Id to change an existing inline action in place, but the provider
+// never sets it: like observe_monitor_v2, inline actions are recreated on save.
 type MonitorActionInlineInput struct {
 	Id      *string                    `json:"id,omitempty"`
 	Type    string                     `json:"type"`
