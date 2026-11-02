@@ -923,6 +923,14 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 	}
 	mid := data.Id()
 
+	current, err := client.GetMonitorV2(ctx, mid)
+	if err != nil && !gql.HasErrorCode(err, "NOT_FOUND") {
+		return diag.Errorf("failed to read monitor: %s", err.Error())
+	}
+	if current != nil {
+		keepMonitorV2AiSreLimits(input, current)
+	}
+
 	_, err = client.SaveMonitorV2WithActions(ctx, wid, &mid, input, actions)
 	if err != nil {
 		if gql.HasErrorCode(err, "NOT_FOUND") {
@@ -1559,6 +1567,17 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 	input.ObjectTags = objectTagsInputFromReader(data)
 
 	return input, diags
+}
+
+// keepMonitorV2AiSreLimits copies the monitor's stored AI SRE limits into input.
+// The provider does not manage them, and a save that leaves them null resets
+// them to every alert level and the account default cap. A nil and an empty
+// aiSreTriggerLevels mean different things (every level versus none), so the
+// slice is copied as is.
+func keepMonitorV2AiSreLimits(input *gql.MonitorV2Input, current *gql.MonitorV2) {
+	input.AiSreTriggerLevels = current.AiSreTriggerLevels
+	input.AiSreMaxInvestigationsPerMonitor = current.AiSreMaxInvestigationsPerMonitor
+	input.AiSreInvestigationWindowSeconds = current.AiSreInvestigationWindowSeconds
 }
 
 func newMonitorV2DefinitionInput(data *schema.ResourceData, defaultOpalVersion *string) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {

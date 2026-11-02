@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
@@ -2371,6 +2373,68 @@ func TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate(t *testing.T) {
 	}
 	if input.AiTriagingMode == nil || *input.AiTriagingMode != gql.MonitorV2AiTriagingModeTriage {
 		t.Fatalf("expected AiTriagingMode %q to be kept, got %v", gql.MonitorV2AiTriagingModeTriage, input.AiTriagingMode)
+	}
+}
+
+// TestKeepMonitorV2AiSreLimits checks the save request carries the monitor's
+// stored AI SRE limits, and that unset trigger levels (every level) and an
+// empty list (no levels) stay distinct in the JSON sent to the API.
+func TestKeepMonitorV2AiSreLimits(t *testing.T) {
+	int64Ptr := func(n int64) *types.Int64Scalar { v := types.Int64Scalar(n); return &v }
+
+	cases := []struct {
+		name    string
+		current gql.MonitorV2
+		want    map[string]string
+	}{
+		{
+			name:    "unset",
+			current: gql.MonitorV2{},
+			want: map[string]string{
+				"aiSreTriggerLevels":               "null",
+				"aiSreMaxInvestigationsPerMonitor": "null",
+				"aiSreInvestigationWindowSeconds":  "null",
+			},
+		},
+		{
+			name:    "no trigger levels",
+			current: gql.MonitorV2{AiSreTriggerLevels: []gql.MonitorV2AlarmLevel{}},
+			want:    map[string]string{"aiSreTriggerLevels": "[]"},
+		},
+		{
+			name: "set",
+			current: gql.MonitorV2{
+				AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelCritical},
+				AiSreMaxInvestigationsPerMonitor: int64Ptr(2),
+				AiSreInvestigationWindowSeconds:  int64Ptr(3600),
+			},
+			want: map[string]string{
+				"aiSreTriggerLevels":               `["Critical"]`,
+				"aiSreMaxInvestigationsPerMonitor": `"2"`,
+				"aiSreInvestigationWindowSeconds":  `"3600"`,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			input := &gql.MonitorV2Input{}
+			keepMonitorV2AiSreLimits(input, &tc.current)
+
+			b, err := json.Marshal(input)
+			if err != nil {
+				t.Fatalf("marshal: %v", err)
+			}
+			var got map[string]json.RawMessage
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatalf("unmarshal: %v", err)
+			}
+			for field, want := range tc.want {
+				if string(got[field]) != want {
+					t.Errorf("%s: expected %s, got %s", field, want, got[field])
+				}
+			}
+		})
 	}
 }
 

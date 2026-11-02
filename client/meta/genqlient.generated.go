@@ -5331,8 +5331,21 @@ type MonitorV2 struct {
 	Disabled *bool `json:"disabled"`
 	// Controls whether an AI SRE investigation is automatically triggered when this monitor fires an alert.
 	AiTriagingMode *MonitorV2AiTriagingMode `json:"aiTriagingMode"`
-	ManagedById    *string                  `json:"managedById"`
-	RollupStatus   MonitorV2RollupStatus    `json:"rollupStatus"`
+	// Alert severity levels that automatically trigger an AI SRE investigation.
+	// Null preserves the legacy behavior and triggers for every level. An empty
+	// list disables automatic investigations for every level.
+	AiSreTriggerLevels []MonitorV2AlarmLevel `json:"aiSreTriggerLevels"`
+	// Per-monitor override for the AI SRE investigation cap, counted over
+	// aiSreInvestigationWindowSeconds.
+	// nil = use the account-level default (currently 10); otherwise must be greater than 0.
+	// The configured rate cannot exceed the backend-configured maximum.
+	AiSreMaxInvestigationsPerMonitor *types.Int64Scalar `json:"aiSreMaxInvestigationsPerMonitor"`
+	// Per-monitor override for the rolling window (in seconds) over which
+	// aiSreMaxInvestigationsPerMonitor is counted.
+	// nil = use the account-level default (currently 24h); must be a whole number of hours between 1h and 24h if set.
+	AiSreInvestigationWindowSeconds *types.Int64Scalar    `json:"aiSreInvestigationWindowSeconds"`
+	ManagedById                     *string               `json:"managedById"`
+	RollupStatus                    MonitorV2RollupStatus `json:"rollupStatus"`
 	// Describes the type of each of the rules in the definition (they must all be the same type).
 	RuleKind   MonitorV2RuleKind   `json:"ruleKind"`
 	Definition MonitorV2Definition `json:"definition"`
@@ -5370,6 +5383,19 @@ func (v *MonitorV2) GetDisabled() *bool { return v.Disabled }
 
 // GetAiTriagingMode returns MonitorV2.AiTriagingMode, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetAiTriagingMode() *MonitorV2AiTriagingMode { return v.AiTriagingMode }
+
+// GetAiSreTriggerLevels returns MonitorV2.AiSreTriggerLevels, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetAiSreTriggerLevels() []MonitorV2AlarmLevel { return v.AiSreTriggerLevels }
+
+// GetAiSreMaxInvestigationsPerMonitor returns MonitorV2.AiSreMaxInvestigationsPerMonitor, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetAiSreMaxInvestigationsPerMonitor() *types.Int64Scalar {
+	return v.AiSreMaxInvestigationsPerMonitor
+}
+
+// GetAiSreInvestigationWindowSeconds returns MonitorV2.AiSreInvestigationWindowSeconds, and is useful for accessing the field via an interface.
+func (v *MonitorV2) GetAiSreInvestigationWindowSeconds() *types.Int64Scalar {
+	return v.AiSreInvestigationWindowSeconds
+}
 
 // GetManagedById returns MonitorV2.ManagedById, and is useful for accessing the field via an interface.
 func (v *MonitorV2) GetManagedById() *string { return v.ManagedById }
@@ -15317,6 +15343,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
@@ -19095,6 +19124,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
@@ -20894,6 +20926,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
@@ -21909,6 +21944,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
@@ -22230,6 +22268,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
@@ -23967,6 +24008,9 @@ fragment MonitorV2 on MonitorV2 {
 	description
 	disabled
 	aiTriagingMode
+	aiSreTriggerLevels
+	aiSreMaxInvestigationsPerMonitor
+	aiSreInvestigationWindowSeconds
 	managedById
 	rollupStatus
 	ruleKind
