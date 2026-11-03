@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -85,10 +86,15 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 
 	shareName := data.Get("share_name").(string)
 	providerAccount := data.Get("provider_account").(string)
-	share, created, err := client.RegisterShare(ctx, &rest.RegisterShareRequest{
+	label, hasLabel := data.GetOk("label")
+	req := &rest.RegisterShareRequest{
 		ProviderAccount: providerAccount,
 		ShareName:       shareName,
-	})
+	}
+	if hasLabel {
+		req.Label = label.(string)
+	}
+	share, created, err := client.RegisterShare(ctx, req)
 	if err != nil {
 		return inboundShareErrorDiags("failed to register inbound share", err)
 	}
@@ -96,21 +102,16 @@ func resourceInboundShareCreate(ctx context.Context, data *schema.ResourceData, 
 		return inboundShareAlreadyRegisteredDiags(share, shareName, providerAccount)
 	}
 	data.SetId(share.Id)
-
-	label, hasLabel := data.GetOk("label")
-	if !hasLabel || label.(string) == share.Label {
-		return inboundShareToResourceData(share, data)
+	diags := inboundShareToResourceData(share, data)
+	if hasLabel && share.Label != label.(string) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "inbound share registered without its label",
+			Detail: fmt.Sprintf("Observe saved the share with label %q instead of %q. "+
+				"The next apply sets the label.", share.Label, label.(string)),
+		})
 	}
-	updated, err := client.UpdateShare(ctx, share.Id, &rest.UpdateShareRequest{Label: label.(string)})
-	if err != nil {
-		// The share is registered, so it is kept rather than tainted: the
-		// state holds the server's label and the next apply retries it.
-		diags := inboundShareToResourceData(share, data)
-		d := inboundShareErrorDiags("inbound share registered, but setting its label failed", err)[0]
-		d.Severity = diag.Warning
-		return append(diags, d)
-	}
-	return inboundShareToResourceData(updated, data)
+	return diags
 }
 
 func resourceInboundShareRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {

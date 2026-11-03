@@ -163,11 +163,20 @@ const (
 	// ErrorTypeFeatureNotEnabled is returned (403) when inbound shares are not
 	// enabled for the tenant.
 	ErrorTypeFeatureNotEnabled = "feature_not_enabled"
+	// ErrorTypeShareMountFailed, ErrorTypeShareNotQueryable and
+	// ErrorTypeShareAlreadyMounted are returned by RegisterShare (409) when
+	// Observe could not mount the share. The registration is not kept.
+	ErrorTypeShareMountFailed    = "share_mount_failed"
+	ErrorTypeShareNotQueryable   = "share_not_queryable"
+	ErrorTypeShareAlreadyMounted = "share_already_mounted"
 )
 
 type RegisterShareRequest struct {
 	ProviderAccount string `json:"providerAccount"`
 	ShareName       string `json:"shareName"`
+	// Label is saved with a new share. A share that is already registered
+	// keeps its label.
+	Label string `json:"label,omitempty"`
 }
 
 type UpdateShareRequest struct {

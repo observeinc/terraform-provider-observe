@@ -6,7 +6,7 @@ description: |-
   Registers an inbound Snowflake share with Observe, so that its tables can be tracked with observe_inbound_share_table.
   -> Preview: Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
   Before registration, the share must be granted to Observe's consumer account (see observe_inbound_share_setup). The first share registered from a provider account must also prove ownership: set the share comment to a token from observe_inbound_share_registration_token. Later shares from an already-verified provider account skip that check.
-  Creating this resource mounts the share in Observe, so it is Active once created. It fails if the share is already registered in Observe; import it instead.
+  Creating this resource mounts the share in Observe, so it is Active once created. If Observe cannot mount it, the apply fails without registering the share, so applying again retries. It also fails if the share is already registered in Observe; import it instead.
   Destroying this resource drops the share from Observe. It fails while the share still has tracked tables.
 ---
 # observe_inbound_share
@@ -17,7 +17,7 @@ Registers an inbound Snowflake share with Observe, so that its tables can be tra
 
 Before registration, the share must be granted to Observe's consumer account (see `observe_inbound_share_setup`). The first share registered from a provider account must also prove ownership: set the share comment to a token from `observe_inbound_share_registration_token`. Later shares from an already-verified provider account skip that check.
 
-Creating this resource mounts the share in Observe, so it is `Active` once created. It fails if the share is already registered in Observe; import it instead.
+Creating this resource mounts the share in Observe, so it is `Active` once created. If Observe cannot mount it, the apply fails without registering the share, so applying again retries. It also fails if the share is already registered in Observe; import it instead.
 
 Destroying this resource drops the share from Observe. It fails while the share still has tracked tables.
 ## Example Usage
