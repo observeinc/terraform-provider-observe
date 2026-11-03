@@ -538,120 +538,9 @@ func resourceMonitorV2() *schema.Resource {
 			// end of fields of MonitorV2DefinitionInput
 			// the following field describes how monitorv2 is connected to shared actions.
 			"actions": { // [MonitorV2ActionRuleInput]
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"oid": { // ObjectId
-							Type:             schema.TypeString,
-							Optional:         true,
-							ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
-							Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
-							// exactly one of `oid` or `action` is allowed, but can't specify that here
-							// due to Terraform limitations since `actions` is a list (without MaxItems=1)
-						},
-						"action": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "actions", "action"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									// fields of MonitorV2ActionInput
-									"type": { // MonitorV2ActionType!
-										Type:             schema.TypeString,
-										ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
-										Required:         true,
-									},
-									"email": { // MonitorV2EmailDestinationInput
-										Type:     schema.TypeList,
-										MaxItems: 1,
-										Optional: true,
-										// note: ExactlyOneOf doesn't work because it cannot be referenced through
-										// `actions` which is not a MaxItems=1 configuration.
-										//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
-										Elem: monitorV2EmailActionInput(),
-									},
-									"webhook": { // MonitorV2WebhookDestinationInput
-										Type:     schema.TypeList,
-										MaxItems: 1,
-										Optional: true,
-										//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
-										Elem: monitorV2WebhookActionInput(),
-									},
-									"description": { // String
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"levels": { // [MonitorV2AlarmLevel!]
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type:             schema.TypeString,
-								ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
-							},
-							Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
-						},
-						"conditions": { // MonitorV2ComparisonExpression
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									// note: subExpressions will be interesting to support. The UI currently does
-									// not support it, so we don't here either.
-									// When we add support for sub_expressions, it compare_terms will be ExactlyOneOf with that.
-									"compare_terms": { // [MonitorV2ComparisonTerm!]
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"comparison": { // [MonitorV2Comparison!]!
-													Type:        schema.TypeList,
-													Required:    true,
-													MinItems:    1,
-													Elem:        monitorV2ComparisonResource(),
-													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
-												},
-												"column": { // [MonitorV2Column!]!
-													Type:        schema.TypeList,
-													Required:    true,
-													MinItems:    1,
-													Elem:        monitorV2ColumnResource(),
-													Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
-												},
-											},
-										},
-									},
-									"operator": { // MonitorV2BooleanOperator!
-										Type:             schema.TypeString,
-										Optional:         true,
-										Default:          toSnake(string(gql.MonitorV2BooleanOperatorAnd)),
-										ValidateDiagFunc: validateEnums(gql.AllMonitorV2BooleanOperators),
-										Description:      descriptions.Get("monitorv2", "schema", "actions", "conditions", "operator"),
-									},
-								},
-							},
-						},
-						"send_end_notifications": { // Boolean
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: descriptions.Get("monitorv2", "schema", "actions", "send_end_notifications"),
-						},
-						"send_reminders_interval": { // Duration
-							Type:             schema.TypeString,
-							Optional:         true,
-							ValidateDiagFunc: validateTimeDuration,
-							DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
-							Description:      descriptions.Get("monitorv2", "schema", "actions", "send_reminders_interval"),
-						},
-					},
-				},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        monitorV2ActionRuleResource(),
 				Description: descriptions.Get("monitorv2", "schema", "actions", "description"),
 			},
 			"object_tags": objectTagsSchemaFieldOptionalNoConflict(),
@@ -659,6 +548,123 @@ func resourceMonitorV2() *schema.Resource {
 			"oid": { // ObjectId!
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+		},
+	}
+}
+
+// monitorV2ActionRuleResource is the schema of one entry of `actions`, shared with
+// observe_composite_monitor.
+func monitorV2ActionRuleResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"oid": { // ObjectId
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateOID(oid.TypeMonitorV2Action),
+				Description:      descriptions.Get("monitorv2", "schema", "actions", "oid"),
+				// exactly one of `oid` or `action` is allowed, but can't specify that here
+				// due to Terraform limitations since `actions` is a list (without MaxItems=1)
+			},
+			"action": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "actions", "action"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						// fields of MonitorV2ActionInput
+						"type": { // MonitorV2ActionType!
+							Type:             schema.TypeString,
+							ValidateDiagFunc: validateEnums(gql.AllMonitorV2ActionTypes),
+							Required:         true,
+						},
+						"email": { // MonitorV2EmailDestinationInput
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							// note: ExactlyOneOf doesn't work because it cannot be referenced through
+							// `actions` which is not a MaxItems=1 configuration.
+							//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
+							Elem: monitorV2EmailActionInput(),
+						},
+						"webhook": { // MonitorV2WebhookDestinationInput
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							//ExactlyOneOf: []string{"actions.0.action.0.email", "actions.0.action.0.webhook"},
+							Elem: monitorV2WebhookActionInput(),
+						},
+						"description": { // String
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"levels": { // [MonitorV2AlarmLevel!]
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateEnums(gql.AllMonitorV2AlarmLevels),
+				},
+				Description: descriptions.Get("monitorv2", "schema", "actions", "levels"),
+			},
+			"conditions": { // MonitorV2ComparisonExpression
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "description"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						// note: subExpressions will be interesting to support. The UI currently does
+						// not support it, so we don't here either.
+						// When we add support for sub_expressions, it compare_terms will be ExactlyOneOf with that.
+						"compare_terms": { // [MonitorV2ComparisonTerm!]
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"comparison": { // [MonitorV2Comparison!]!
+										Type:        schema.TypeList,
+										Required:    true,
+										MinItems:    1,
+										Elem:        monitorV2ComparisonResource(),
+										Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "comparison"),
+									},
+									"column": { // [MonitorV2Column!]!
+										Type:        schema.TypeList,
+										Required:    true,
+										MinItems:    1,
+										Elem:        monitorV2ColumnResource(),
+										Description: descriptions.Get("monitorv2", "schema", "actions", "conditions", "compare_terms", "column"),
+									},
+								},
+							},
+						},
+						"operator": { // MonitorV2BooleanOperator!
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          toSnake(string(gql.MonitorV2BooleanOperatorAnd)),
+							ValidateDiagFunc: validateEnums(gql.AllMonitorV2BooleanOperators),
+							Description:      descriptions.Get("monitorv2", "schema", "actions", "conditions", "operator"),
+						},
+					},
+				},
+			},
+			"send_end_notifications": { // Boolean
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: descriptions.Get("monitorv2", "schema", "actions", "send_end_notifications"),
+			},
+			"send_reminders_interval": { // Duration
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateTimeDuration,
+				DiffSuppressFunc: diffSuppressTimeDurationZeroDistinctFromEmpty,
+				Description:      descriptions.Get("monitorv2", "schema", "actions", "send_reminders_interval"),
 			},
 		},
 	}
