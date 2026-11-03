@@ -3,72 +3,78 @@
 page_title: "observe_inbound_share_table Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Tracks a table from an inbound Snowflake share and creates an associated Observe dataset.
+  Tracks a table or view from an observe_inbound_share and creates an Observe dataset from it.
+  -> Preview: Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
+  The table must be granted to the share in the provider account, and the share must be registered with observe_inbound_share first.
+  ~> Warning: Destroying this resource deletes its dataset in Observe. Changing share_id, schema_name, table_name or dataset_kind replaces the resource, which deletes the dataset and creates a new one with a new ID. To guard a dataset that other content depends on, set prevent_destroy = true in a lifecycle block; this also blocks replacement.
+  field_mapping is sent to Observe but not read back, so changes made outside Terraform are not detected.
 ---
 # observe_inbound_share_table
 
-Tracks a table from an inbound Snowflake share and creates an associated Observe dataset.
+Tracks a table or view from an `observe_inbound_share` and creates an Observe dataset from it.
+
+-> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
+
+The table must be granted to the share in the provider account, and the share must be registered with `observe_inbound_share` first.
+
+~> **Warning:** Destroying this resource deletes its dataset in Observe. Changing `share_id`, `schema_name`, `table_name` or `dataset_kind` replaces the resource, which deletes the dataset and creates a new one with a new ID. To guard a dataset that other content depends on, set `prevent_destroy = true` in a `lifecycle` block; this also blocks replacement.
+
+`field_mapping` is sent to Observe but not read back, so changes made outside Terraform are not detected.
 ## Example Usage
 ```terraform
-# Basic table tracking
-data "observe_inbound_share" "customer_data" {
-  snowflake_config {
-    share_name       = "CUSTOMER_SHARE_PROD"
-    provider_account = "ACME_CORP.US-EAST-1"
-  }
+resource "observe_inbound_share" "customer_data" {
+  share_name       = "CUSTOMER_SHARE_PROD"
+  provider_account = "ACME_CORP.PROD"
 }
 
-resource "observe_inbound_share_table" "customer_events" {
-  share_id      = data.observe_inbound_share.customer_data.oid
-  table_name    = "CUSTOMER_EVENTS"
+# Reference table, without time fields
+resource "observe_inbound_share_table" "customers" {
+  share_id      = observe_inbound_share.customer_data.oid
   schema_name   = "PUBLIC"
-  dataset_label = "Customer Events"
+  table_name    = "CUSTOMERS"
+  dataset_label = "Customers"
   dataset_kind  = "Table"
-  description   = "Customer event data from Snowflake share"
+  description   = "Customer records from the Snowflake share"
 }
 
-# Event dataset with timestamp
+# Event dataset. Destroying the resource deletes the dataset, so guard it.
 resource "observe_inbound_share_table" "events" {
-  share_id         = data.observe_inbound_share.customer_data.oid
-  table_name       = "EVENTS"
+  share_id         = observe_inbound_share.customer_data.oid
   schema_name      = "PUBLIC"
+  table_name       = "EVENTS"
   dataset_label    = "Events"
   dataset_kind     = "Event"
-  valid_from_field = "event_timestamp"
-  description      = "Event stream with timestamps"
+  valid_from_field = "EVENT_TIMESTAMP"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Interval dataset
 resource "observe_inbound_share_table" "sessions" {
-  share_id         = data.observe_inbound_share.customer_data.oid
-  table_name       = "USER_SESSIONS"
+  share_id         = observe_inbound_share.customer_data.oid
   schema_name      = "PUBLIC"
+  table_name       = "USER_SESSIONS"
   dataset_label    = "User Sessions"
   dataset_kind     = "Interval"
-  valid_from_field = "session_start"
-  valid_to_field   = "session_end"
+  valid_from_field = "SESSION_START"
+  valid_to_field   = "SESSION_END"
 }
 
-# With field mappings
+# Event dataset whose time column holds epoch milliseconds
 resource "observe_inbound_share_table" "metrics" {
-  share_id      = data.observe_inbound_share.customer_data.oid
-  table_name    = "METRICS"
-  schema_name   = "PUBLIC"
-  dataset_label = "Metrics"
-  dataset_kind  = "Event"
-
-  valid_from_field = "timestamp_ms"
+  share_id         = observe_inbound_share.customer_data.oid
+  schema_name      = "PUBLIC"
+  table_name       = "METRICS"
+  dataset_label    = "Metrics"
+  dataset_kind     = "Event"
+  valid_from_field = "TIMESTAMP_MS"
 
   field_mapping {
-    field      = "timestamp_ms"
+    field      = "TIMESTAMP_MS"
     type       = "timestamp"
     conversion = "MillisecondsToTimestamp"
-  }
-
-  field_mapping {
-    field      = "duration_ms"
-    type       = "duration"
-    conversion = "MillisecondsToDuration"
   }
 }
 ```
@@ -77,38 +83,43 @@ resource "observe_inbound_share_table" "metrics" {
 
 ### Required
 
-- `dataset_kind` (String) The kind of dataset to create. Accepted values: `Table`, `Event`, `Interval`.
-- `dataset_label` (String) The label for the created Observe dataset.
-- `schema_name` (String) The schema name containing the table.
-- `share_id` (String) The OID of the share containing the table.
-- `table_name` (String) The name of the table in the share.
+- `dataset_kind` (String) Kind of dataset to create: `Table` (no time fields), `Event` (`valid_from_field` only) or `Interval` (`valid_from_field` and `valid_to_field`). Changing this forces a new resource.
+- `dataset_label` (String) Label of the Observe dataset created from the table.
+- `schema_name` (String) Name of the schema in the share that contains the table. Changing this forces a new resource.
+- `share_id` (String) OID of the share that contains the table, usually `observe_inbound_share.<name>.oid`. Changing this forces a new resource.
+- `table_name` (String) Name of the table or view in the share. Changing this forces a new resource.
 
 ### Optional
 
-- `description` (String) Description of the tracked table.
-- `field_mapping` (Block Set) Field mapping configuration for type conversions (e.g., timestamp conversions). (see [below for nested schema](#nestedblock--field_mapping))
-- `valid_from_field` (String) The field to use as the valid_from timestamp (for Event/Interval datasets).
-- `valid_to_field` (String) The field to use as the valid_to timestamp (for Interval datasets).
+- `description` (String) Description of the dataset.
+- `field_mapping` (Block Set) Conversions for columns, for example to read a column of epoch milliseconds as a timestamp. (see [below for nested schema](#nestedblock--field_mapping))
+- `valid_from_field` (String) Column holding the event time, for `Event` and `Interval` datasets. It must be a timestamp column, or be converted to one with `field_mapping`.
+- `valid_to_field` (String) Column holding the end time, for `Interval` datasets. It must be a timestamp column, or be converted to one with `field_mapping`.
 
 ### Read-Only
 
 - `cdc_status` (String) Whether change tracking is on for the table in Snowflake: `Enabled`, `Disabled`, `Error`, or `Unknown`.
-- `dataset_id` (String) The ID of the created dataset.
-- `dataset_oid` (String) The OID of the created dataset.
-- `full_table_path` (String) The full path to the table (schema/table).
+- `dataset_id` (String) ID of the dataset created from the table.
+- `dataset_oid` (String) OID of the dataset created from the table.
+- `full_table_path` (String) Path of the table in the share, as `<schema>/<table>`.
 - `id` (String) The ID of this resource.
 - `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
 should be used when referring to this object in terraform manifests.
-- `status` (String) The operational status of the tracked table.
-- `table_id` (String) The ID of the tracked table.
-- `table_type` (String) The Snowflake object kind: `Table`, `View`, or `Unknown`.
+- `status` (String) Operational status of the tracked table.
+- `table_id` (String) ID of the tracked table. Same as `id`.
+- `table_type` (String) Snowflake object kind: `Table`, `View`, or `Unknown`.
 
 <a id="nestedblock--field_mapping"></a>
 ### Nested Schema for `field_mapping`
 
 Required:
 
-- `conversion` (String) The conversion method (Direct, MillisecondsToTimestamp, etc.).
-- `field` (String) The name of the field to map.
-- `type` (String) The target data type (timestamp, duration, int64, string, etc.).
-
+- `conversion` (String) Conversion to apply: `Direct`, `SecondsToTimestamp`, `MillisecondsToTimestamp`, `MicrosecondsToTimestamp`, `NanosecondsToTimestamp`, or `Drop` to leave the column out of the dataset.
+- `field` (String) Name of the column to convert.
+- `type` (String) Observe type of the column after conversion, for example `timestamp`.
+## Import
+Import is supported using the following syntax:
+```shell
+# The import ID is "<share_oid>/<table_id>"
+terraform import observe_inbound_share_table.events "o:::inboundshare:41012345/41056789"
+```

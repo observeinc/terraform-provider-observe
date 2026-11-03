@@ -7,3 +7,10 @@ resource "snowflake_share" "customer_data" {
   name    = "CUSTOMER_SHARE_PROD"
   comment = observe_inbound_share_registration_token.acme.token
 }
+
+# After the share is registered, delete the token resource above and the
+# comment argument, in the same change:
+#
+# resource "snowflake_share" "customer_data" {
+#   name = "CUSTOMER_SHARE_PROD"
+# }

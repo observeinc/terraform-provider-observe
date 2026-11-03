@@ -1,0 +1,50 @@
+description: |
+  Tracks a table or view from an `observe_inbound_share` and creates an Observe dataset from it.
+
+  -> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
+
+  The table must be granted to the share in the provider account, and the share must be registered with `observe_inbound_share` first.
+
+  ~> **Warning:** Destroying this resource deletes its dataset in Observe. Changing `share_id`, `schema_name`, `table_name` or `dataset_kind` replaces the resource, which deletes the dataset and creates a new one with a new ID. To guard a dataset that other content depends on, set `prevent_destroy = true` in a `lifecycle` block; this also blocks replacement.
+
+  `field_mapping` is sent to Observe but not read back, so changes made outside Terraform are not detected.
+
+schema:
+  share_id: |
+    OID of the share that contains the table, usually `observe_inbound_share.<name>.oid`. Changing this forces a new resource.
+  table_name: |
+    Name of the table or view in the share. Changing this forces a new resource.
+  schema_name: |
+    Name of the schema in the share that contains the table. Changing this forces a new resource.
+  dataset_label: |
+    Label of the Observe dataset created from the table.
+  dataset_kind: |
+    Kind of dataset to create: `Table` (no time fields), `Event` (`valid_from_field` only) or `Interval` (`valid_from_field` and `valid_to_field`). Changing this forces a new resource.
+  valid_from_field: |
+    Column holding the event time, for `Event` and `Interval` datasets. It must be a timestamp column, or be converted to one with `field_mapping`.
+  valid_to_field: |
+    Column holding the end time, for `Interval` datasets. It must be a timestamp column, or be converted to one with `field_mapping`.
+  description: |
+    Description of the dataset.
+  field_mapping: |
+    Conversions for columns, for example to read a column of epoch milliseconds as a timestamp.
+  field_mapping_field: |
+    Name of the column to convert.
+  field_mapping_type: |
+    Observe type of the column after conversion, for example `timestamp`.
+  field_mapping_conversion: |
+    Conversion to apply: `Direct`, `SecondsToTimestamp`, `MillisecondsToTimestamp`, `MicrosecondsToTimestamp`, `NanosecondsToTimestamp`, or `Drop` to leave the column out of the dataset.
+  table_id: |
+    ID of the tracked table. Same as `id`.
+  dataset_id: |
+    ID of the dataset created from the table.
+  dataset_oid: |
+    OID of the dataset created from the table.
+  status: |
+    Operational status of the tracked table.
+  full_table_path: |
+    Path of the table in the share, as `<schema>/<table>`.
+  table_type: |
+    Snowflake object kind: `Table`, `View`, or `Unknown`.
+  cdc_status: |
+    Whether change tracking is on for the table in Snowflake: `Enabled`, `Disabled`, `Error`, or `Unknown`.

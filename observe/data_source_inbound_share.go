@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
+	"github.com/observeinc/terraform-provider-observe/observe/descriptions"
 )
 
 func dataSourceInboundShare() *schema.Resource {
@@ -15,13 +16,13 @@ func dataSourceInboundShare() *schema.Resource {
 	s["label"] = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
-		Description: "User-facing label for the share in Observe.",
+		Description: descriptions.Get("inbound_share", "schema", "data_source_label"),
 	}
 	for k, v := range dataSourceInboundShareLookupSchema() {
 		s[k] = v
 	}
 	return &schema.Resource{
-		Description: "Retrieves information about an inbound Snowflake data share.",
+		Description: descriptions.Get("inbound_share", "data_source_description"),
 		ReadContext: dataSourceInboundShareRead,
 		Schema:      s,
 	}
@@ -34,7 +35,7 @@ func dataSourceInboundShareLookupSchema() map[string]*schema.Schema {
 			Type:          schema.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"snowflake_config"},
-			Description:   "The ID of the share to look up. Cannot be used with snowflake_config.",
+			Description:   descriptions.Get("inbound_share", "schema", "id"),
 		},
 		"snowflake_config": {
 			Type:          schema.TypeList,
@@ -42,20 +43,20 @@ func dataSourceInboundShareLookupSchema() map[string]*schema.Schema {
 			Computed:      true,
 			MaxItems:      1,
 			ConflictsWith: []string{"id"},
-			Description:   "Snowflake share configuration. Can be used as input for looking up the share, or as computed output containing the share's Snowflake configuration.",
+			Description:   descriptions.Get("inbound_share", "schema", "snowflake_config"),
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"share_name": {
 						Type:        schema.TypeString,
 						Optional:    true,
 						Computed:    true,
-						Description: "The Snowflake share name.",
+						Description: descriptions.Get("inbound_share", "schema", "snowflake_config_share_name"),
 					},
 					"provider_account": {
 						Type:        schema.TypeString,
 						Optional:    true,
 						Computed:    true,
-						Description: "The Snowflake provider account (e.g., 'ACME_CORP.US-EAST-1').",
+						Description: descriptions.Get("inbound_share", "schema", "snowflake_config_provider_account"),
 					},
 				},
 			},

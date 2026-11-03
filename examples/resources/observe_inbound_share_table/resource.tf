@@ -1,61 +1,55 @@
-# Basic table tracking
-data "observe_inbound_share" "customer_data" {
-  snowflake_config {
-    share_name       = "CUSTOMER_SHARE_PROD"
-    provider_account = "ACME_CORP.US-EAST-1"
-  }
+resource "observe_inbound_share" "customer_data" {
+  share_name       = "CUSTOMER_SHARE_PROD"
+  provider_account = "ACME_CORP.PROD"
 }
 
-resource "observe_inbound_share_table" "customer_events" {
-  share_id      = data.observe_inbound_share.customer_data.oid
-  table_name    = "CUSTOMER_EVENTS"
+# Reference table, without time fields
+resource "observe_inbound_share_table" "customers" {
+  share_id      = observe_inbound_share.customer_data.oid
   schema_name   = "PUBLIC"
-  dataset_label = "Customer Events"
+  table_name    = "CUSTOMERS"
+  dataset_label = "Customers"
   dataset_kind  = "Table"
-  description   = "Customer event data from Snowflake share"
+  description   = "Customer records from the Snowflake share"
 }
 
-# Event dataset with timestamp
+# Event dataset. Destroying the resource deletes the dataset, so guard it.
 resource "observe_inbound_share_table" "events" {
-  share_id         = data.observe_inbound_share.customer_data.oid
-  table_name       = "EVENTS"
+  share_id         = observe_inbound_share.customer_data.oid
   schema_name      = "PUBLIC"
+  table_name       = "EVENTS"
   dataset_label    = "Events"
   dataset_kind     = "Event"
-  valid_from_field = "event_timestamp"
-  description      = "Event stream with timestamps"
+  valid_from_field = "EVENT_TIMESTAMP"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Interval dataset
 resource "observe_inbound_share_table" "sessions" {
-  share_id         = data.observe_inbound_share.customer_data.oid
-  table_name       = "USER_SESSIONS"
+  share_id         = observe_inbound_share.customer_data.oid
   schema_name      = "PUBLIC"
+  table_name       = "USER_SESSIONS"
   dataset_label    = "User Sessions"
   dataset_kind     = "Interval"
-  valid_from_field = "session_start"
-  valid_to_field   = "session_end"
+  valid_from_field = "SESSION_START"
+  valid_to_field   = "SESSION_END"
 }
 
-# With field mappings
+# Event dataset whose time column holds epoch milliseconds
 resource "observe_inbound_share_table" "metrics" {
-  share_id      = data.observe_inbound_share.customer_data.oid
-  table_name    = "METRICS"
-  schema_name   = "PUBLIC"
-  dataset_label = "Metrics"
-  dataset_kind  = "Event"
-
-  valid_from_field = "timestamp_ms"
+  share_id         = observe_inbound_share.customer_data.oid
+  schema_name      = "PUBLIC"
+  table_name       = "METRICS"
+  dataset_label    = "Metrics"
+  dataset_kind     = "Event"
+  valid_from_field = "TIMESTAMP_MS"
 
   field_mapping {
-    field      = "timestamp_ms"
+    field      = "TIMESTAMP_MS"
     type       = "timestamp"
     conversion = "MillisecondsToTimestamp"
-  }
-
-  field_mapping {
-    field      = "duration_ms"
-    type       = "duration"
-    conversion = "MillisecondsToDuration"
   }
 }

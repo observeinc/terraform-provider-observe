@@ -9,7 +9,9 @@ description: |
 
   The token is only needed for the first share registered from a provider account. Once any share from the account is registered, later shares skip the ownership check, and this resource can be removed. Destroying it only removes it from state.
 
-  The token expires after 24 hours. If the first registration fails after that, issue a new token with `terraform apply -replace` on this resource.
+  Observe does not clear the share comment after registration. Remove the token from it yourself: drop the `comment` argument from `snowflake_share`, or run `ALTER SHARE <share> UNSET COMMENT`. Remove this resource and the comment in the same change, since the comment refers to it.
+
+  The token expires 24 hours after it is issued. If the first registration fails after that, issue a new token with `terraform apply -replace` on this resource.
 
 schema:
   provider_account: |

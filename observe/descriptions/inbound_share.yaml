@@ -3,19 +3,36 @@ description: |
 
   -> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
 
-  Before registration, the share must be granted to Observe's consumer account (see `observe_inbound_share_setup`). The first share registered from a provider account must also prove ownership: set the share comment to a token from `observe_inbound_share_registration_token`. Later shares from an already-verified provider account skip that check.
+  Before registration, the share must be granted to Observe's consumer account (see `observe_inbound_share_setup`) and have a database granted to it. The first share registered from a provider account must also prove ownership: set the share comment to a token from `observe_inbound_share_registration_token`. Later shares from an already-verified provider account skip that check.
+
+  Observe does not change the share comment. After the first share is registered, remove the token from the comment and remove the `observe_inbound_share_registration_token` resource.
 
   Creating this resource mounts the share in Observe, so it is `Active` once created. If Observe cannot mount it, the apply fails without registering the share, so applying again retries. It also fails if the share is already registered in Observe; import it instead.
 
   Destroying this resource drops the share from Observe. It fails while the share still has tracked tables.
 
+data_source_description: |
+  Looks up an inbound Snowflake share registered in Observe, by `id` or by `snowflake_config`.
+
+  -> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
+
 schema:
+  id: |
+    ID of the share to look up. Conflicts with `snowflake_config`.
+  snowflake_config: |
+    Snowflake share to look up. Set both `share_name` and `provider_account`. Conflicts with `id`. When the share is looked up by `id`, this holds the share's Snowflake name and provider account.
+  snowflake_config_share_name: |
+    Name of the Snowflake share.
+  snowflake_config_provider_account: |
+    Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>` (for example `ACME_CORP.PROD`).
   share_name: |
     Name of the Snowflake share in the provider account. Unquoted names are case-insensitive; wrap the name in double quotes for a case-sensitive name. State holds the name as Snowflake resolves it, quoted when it is not all upper case. Changing this forces a new resource.
   provider_account: |
     Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>` (for example `ACME_CORP.PROD`). Not an account locator or URL. Changing this forces a new resource.
   label: |
     User-facing label for the share in Observe. Defaults to the share name; removing it resets the label to the share name.
+  data_source_label: |
+    User-facing label for the share in Observe.
   provider_type: |
     Type of share provider. Always `Snowflake`.
   status: |

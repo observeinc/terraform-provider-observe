@@ -17,7 +17,7 @@ import (
 
 func resourceInboundShareTable() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Tracks a table from an inbound Snowflake share and creates an associated Observe dataset.",
+		Description:   descriptions.Get("inbound_share_table", "description"),
 		CreateContext: resourceInboundShareTableCreate,
 		ReadContext:   resourceInboundShareTableRead,
 		UpdateContext: resourceInboundShareTableUpdate,
@@ -31,68 +31,68 @@ func resourceInboundShareTable() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeInboundShare),
-				Description:      "The OID of the share containing the table.",
+				Description:      descriptions.Get("inbound_share_table", "schema", "share_id"),
 			},
 			"table_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The name of the table in the share.",
+				Description: descriptions.Get("inbound_share_table", "schema", "table_name"),
 			},
 			"schema_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The schema name containing the table.",
+				Description: descriptions.Get("inbound_share_table", "schema", "schema_name"),
 			},
 			"dataset_label": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: validateDatasetName(),
-				Description:      "The label for the created Observe dataset.",
+				Description:      descriptions.Get("inbound_share_table", "schema", "dataset_label"),
 			},
 			"dataset_kind": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validateStringInSlice([]string{"Table", "Event", "Interval"}, false),
-				Description:      "The kind of dataset to create. Accepted values: `Table`, `Event`, `Interval`.",
+				Description:      descriptions.Get("inbound_share_table", "schema", "dataset_kind"),
 			},
 			"valid_from_field": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The field to use as the valid_from timestamp (for Event/Interval datasets).",
+				Description: descriptions.Get("inbound_share_table", "schema", "valid_from_field"),
 			},
 			"valid_to_field": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The field to use as the valid_to timestamp (for Interval datasets).",
+				Description: descriptions.Get("inbound_share_table", "schema", "valid_to_field"),
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Description of the tracked table.",
+				Description: descriptions.Get("inbound_share_table", "schema", "description"),
 			},
 			"field_mapping": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Field mapping configuration for type conversions (e.g., timestamp conversions).",
+				Description: descriptions.Get("inbound_share_table", "schema", "field_mapping"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"field": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The name of the field to map.",
+							Description: descriptions.Get("inbound_share_table", "schema", "field_mapping_field"),
 						},
 						"type": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The target data type (timestamp, duration, int64, string, etc.).",
+							Description: descriptions.Get("inbound_share_table", "schema", "field_mapping_type"),
 						},
 						"conversion": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The conversion method (Direct, MillisecondsToTimestamp, etc.).",
+							Description: descriptions.Get("inbound_share_table", "schema", "field_mapping_conversion"),
 						},
 					},
 				},
@@ -106,37 +106,37 @@ func resourceInboundShareTable() *schema.Resource {
 			"table_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The ID of the tracked table.",
+				Description: descriptions.Get("inbound_share_table", "schema", "table_id"),
 			},
 			"dataset_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The ID of the created dataset.",
+				Description: descriptions.Get("inbound_share_table", "schema", "dataset_id"),
 			},
 			"dataset_oid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The OID of the created dataset.",
+				Description: descriptions.Get("inbound_share_table", "schema", "dataset_oid"),
 			},
 			"status": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The operational status of the tracked table.",
+				Description: descriptions.Get("inbound_share_table", "schema", "status"),
 			},
 			"full_table_path": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The full path to the table (schema/table).",
+				Description: descriptions.Get("inbound_share_table", "schema", "full_table_path"),
 			},
 			"table_type": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The Snowflake object kind: `Table`, `View`, or `Unknown`.",
+				Description: descriptions.Get("inbound_share_table", "schema", "table_type"),
 			},
 			"cdc_status": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Whether change tracking is on for the table in Snowflake: `Enabled`, `Disabled`, `Error`, or `Unknown`.",
+				Description: descriptions.Get("inbound_share_table", "schema", "cdc_status"),
 			},
 		},
 	}

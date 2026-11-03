@@ -3,36 +3,40 @@
 page_title: "observe_inbound_share Data Source - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Retrieves information about an inbound Snowflake data share.
+  Looks up an inbound Snowflake share registered in Observe, by id or by snowflake_config.
+  -> Preview: Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
 ---
 
 # observe_inbound_share (Data Source)
 
-Retrieves information about an inbound Snowflake data share.
+Looks up an inbound Snowflake share registered in Observe, by `id` or by `snowflake_config`.
+
+-> **Preview:** Inbound shares are in private preview and must be enabled for your tenant. The schema may change.
 
 ## Example Usage
 
 ```terraform
-# Look up share by name and provider account (both required for uniqueness)
+# Look up a share by its Snowflake name and provider account
 data "observe_inbound_share" "customer_data" {
   snowflake_config {
     share_name       = "CUSTOMER_SHARE_PROD"
-    provider_account = "ACME_CORP.US-EAST-1"
+    provider_account = "ACME_CORP.PROD"
   }
 }
 
-# Look up share by ID
+# Look up a share by ID
 data "observe_inbound_share" "by_id" {
   id = "41012345"
 }
 
-# Use in table tracking
+# Track a table from a share registered outside this configuration
 resource "observe_inbound_share_table" "events" {
-  share_id      = data.observe_inbound_share.customer_data.oid
-  table_name    = "CUSTOMER_EVENTS"
-  schema_name   = "PUBLIC"
-  dataset_label = "Customer Events"
-  dataset_kind  = "Event"
+  share_id         = data.observe_inbound_share.customer_data.oid
+  schema_name      = "PUBLIC"
+  table_name       = "CUSTOMER_EVENTS"
+  dataset_label    = "Customer Events"
+  dataset_kind     = "Event"
+  valid_from_field = "EVENT_TIMESTAMP"
 }
 ```
 
@@ -41,8 +45,8 @@ resource "observe_inbound_share_table" "events" {
 
 ### Optional
 
-- `id` (String) The ID of the share to look up. Cannot be used with snowflake_config.
-- `snowflake_config` (Block List, Max: 1) Snowflake share configuration. Can be used as input for looking up the share, or as computed output containing the share's Snowflake configuration. (see [below for nested schema](#nestedblock--snowflake_config))
+- `id` (String) ID of the share to look up. Conflicts with `snowflake_config`.
+- `snowflake_config` (Block List, Max: 1) Snowflake share to look up. Set both `share_name` and `provider_account`. Conflicts with `id`. When the share is looked up by `id`, this holds the share's Snowflake name and provider account. (see [below for nested schema](#nestedblock--snowflake_config))
 
 ### Read-Only
 
@@ -63,5 +67,5 @@ should be used when referring to this object in terraform manifests.
 
 Optional:
 
-- `provider_account` (String) The Snowflake provider account (e.g., 'ACME_CORP.US-EAST-1').
-- `share_name` (String) The Snowflake share name.
+- `provider_account` (String) Org-qualified Snowflake account that provides the share, as `<ORG>.<ACCOUNT>` (for example `ACME_CORP.PROD`).
+- `share_name` (String) Name of the Snowflake share.
