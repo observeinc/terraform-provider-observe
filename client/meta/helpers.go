@@ -161,6 +161,14 @@ var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
 	MonitorV2AlarmLevelNodata,
 }
 
+var AllMonitorV2AiSreTriggerLevels = []MonitorV2AlarmLevel{
+	MonitorV2AlarmLevelCritical,
+	MonitorV2AlarmLevelError,
+	MonitorV2AlarmLevelWarning,
+	MonitorV2AlarmLevelInformational,
+	MonitorV2AlarmLevelNodata,
+}
+
 var AllMonitorV2AlarmModes = []MonitorV2AlarmMode{
 	MonitorV2AlarmModePerrun,
 	MonitorV2AlarmModeOngoing,

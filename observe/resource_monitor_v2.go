@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -35,6 +36,21 @@ func validateMonitorV2ValueAggregation(i interface{}, path cty.Path) (diags diag
 	default:
 		return nil
 	}
+}
+
+func validateMonitorV2AiSreInvestigationWindow(i interface{}, path cty.Path) diag.Diagnostics {
+	if diags := validateTimeDuration(i, path); diags.HasError() {
+		return diags
+	}
+	if d, _ := time.ParseDuration(i.(string)); d < time.Hour || d > 24*time.Hour || d%time.Hour != 0 {
+		return diag.Diagnostics{{
+			Severity:      diag.Error,
+			Summary:       "Invalid field",
+			Detail:        fmt.Sprintf("expected a whole number of hours from 1h to 24h, got %s", i),
+			AttributePath: path,
+		}}
+	}
+	return nil
 }
 
 func resourceMonitorV2() *schema.Resource {
@@ -95,6 +111,34 @@ func resourceMonitorV2() *schema.Resource {
 				ValidateDiagFunc: validateEnums(gql.AllMonitorV2AiTriagingModes),
 				DiffSuppressFunc: diffSuppressEnums,
 				Description:      describeEnums(gql.AllMonitorV2AiTriagingModes, descriptions.Get("monitorv2", "schema", "ai_triaging_mode")),
+			},
+			"ai_sre_trigger_levels": { // [MonitorV2AlarmLevel!]
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateStringInSlice(snakeCased(gql.AllMonitorV2AiSreTriggerLevels), false),
+				},
+				Description: describeEnums(gql.AllMonitorV2AiSreTriggerLevels, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
+			},
+			"ai_sre_max_investigations_per_monitor": { // Int64
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(1)),
+				RequiredWith:     []string{"ai_sre_investigation_window"},
+				Description:      descriptions.Get("monitorv2", "schema", "ai_sre_max_investigations_per_monitor"),
+			},
+			"ai_sre_investigation_window": { // Int64 (seconds)
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateDiagFunc: validateMonitorV2AiSreInvestigationWindow,
+				DiffSuppressFunc: diffSuppressDuration,
+				RequiredWith:     []string{"ai_sre_max_investigations_per_monitor"},
+				Description:      descriptions.Get("monitorv2", "schema", "ai_sre_investigation_window"),
 			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
@@ -928,7 +972,7 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 	if current != nil {
-		keepMonitorV2AiSre(input, current, aiTriagingModeInConfig(data.GetRawConfig()))
+		keepMonitorV2AiSre(input, current, data.GetRawConfig())
 	}
 
 	_, err = client.SaveMonitorV2WithActions(ctx, wid, &mid, input, actions)
@@ -1007,6 +1051,31 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		aiTriagingMode = *monitor.AiTriagingMode
 	}
 	if err := data.Set("ai_triaging_mode", toSnake(string(aiTriagingMode))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
+	for _, level := range monitor.AiSreTriggerLevels {
+		triggerLevels = append(triggerLevels, toSnake(string(level)))
+	}
+	if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// 0 and "" mean the monitor uses the account default.
+	maxInvestigations := 0
+	if monitor.AiSreMaxInvestigationsPerMonitor != nil {
+		maxInvestigations = int(*monitor.AiSreMaxInvestigationsPerMonitor)
+	}
+	if err := data.Set("ai_sre_max_investigations_per_monitor", maxInvestigations); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	investigationWindow := ""
+	if monitor.AiSreInvestigationWindowSeconds != nil {
+		investigationWindow = (time.Duration(*monitor.AiSreInvestigationWindowSeconds) * time.Second).String()
+	}
+	if err := data.Set("ai_sre_investigation_window", investigationWindow); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -1562,6 +1631,18 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 		mode := gql.MonitorV2AiTriagingMode(toCamel(v.(string)))
 		input.AiTriagingMode = &mode
 	}
+	if v, ok := data.GetOk("ai_sre_trigger_levels"); ok {
+		for _, level := range v.(*schema.Set).List() {
+			input.AiSreTriggerLevels = append(input.AiSreTriggerLevels, gql.MonitorV2AlarmLevel(toCamel(level.(string))))
+		}
+	}
+	if v, ok := data.GetOk("ai_sre_max_investigations_per_monitor"); ok {
+		input.AiSreMaxInvestigationsPerMonitor = types.Int64Scalar(v.(int)).Ptr()
+	}
+	if v, ok := data.GetOk("ai_sre_investigation_window"); ok {
+		window, _ := time.ParseDuration(v.(string))
+		input.AiSreInvestigationWindowSeconds = types.Int64Scalar(window / time.Second).Ptr()
+	}
 
 	// Always set ObjectTags, even if empty, to allow clearing tags
 	input.ObjectTags = objectTagsInputFromReader(data)
@@ -1569,24 +1650,30 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 	return input, diags
 }
 
-// keepMonitorV2AiSre keeps the monitor's AI SRE limits as they are, and its
-// mode too when the config doesn't set it.
-func keepMonitorV2AiSre(input *gql.MonitorV2Input, current *gql.MonitorV2, modeInConfig bool) {
-	if !modeInConfig {
+// keepMonitorV2AiSre keeps the monitor's current AI SRE settings for any the
+// config doesn't set.
+func keepMonitorV2AiSre(input *gql.MonitorV2Input, current *gql.MonitorV2, cfg cty.Value) {
+	if !attrInConfig(cfg, "ai_triaging_mode") {
 		input.AiTriagingMode = current.AiTriagingMode
 	}
-	input.AiSreTriggerLevels = current.AiSreTriggerLevels
-	input.AiSreMaxInvestigationsPerMonitor = current.AiSreMaxInvestigationsPerMonitor
-	input.AiSreInvestigationWindowSeconds = current.AiSreInvestigationWindowSeconds
+	if !attrInConfig(cfg, "ai_sre_trigger_levels") {
+		input.AiSreTriggerLevels = current.AiSreTriggerLevels
+	}
+	if !attrInConfig(cfg, "ai_sre_max_investigations_per_monitor") {
+		input.AiSreMaxInvestigationsPerMonitor = current.AiSreMaxInvestigationsPerMonitor
+	}
+	if !attrInConfig(cfg, "ai_sre_investigation_window") {
+		input.AiSreInvestigationWindowSeconds = current.AiSreInvestigationWindowSeconds
+	}
 }
 
-// aiTriagingModeInConfig reports whether the config sets ai_triaging_mode.
+// attrInConfig reports whether the config sets attr.
 // Without a config, it assumes it does.
-func aiTriagingModeInConfig(cfg cty.Value) bool {
-	if cfg.IsNull() || !cfg.Type().IsObjectType() || !cfg.Type().HasAttribute("ai_triaging_mode") {
+func attrInConfig(cfg cty.Value, attr string) bool {
+	if cfg.IsNull() || !cfg.Type().IsObjectType() || !cfg.Type().HasAttribute(attr) {
 		return true
 	}
-	return !cfg.GetAttr("ai_triaging_mode").IsNull()
+	return !cfg.GetAttr(attr).IsNull()
 }
 
 func newMonitorV2DefinitionInput(data *schema.ResourceData, defaultOpalVersion *string) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {

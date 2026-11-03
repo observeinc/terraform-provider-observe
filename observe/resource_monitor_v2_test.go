@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -2297,6 +2298,84 @@ func TestMonitorV2AiTriagingModeSchema(t *testing.T) {
 	}
 }
 
+// TestMonitorV2AiSreLimitsSchema checks the AI SRE limit attributes keep the
+// monitor's current values when left out of config, like ai_triaging_mode.
+func TestMonitorV2AiSreLimitsSchema(t *testing.T) {
+	for _, attr := range []string{
+		"ai_sre_trigger_levels",
+		"ai_sre_max_investigations_per_monitor",
+		"ai_sre_investigation_window",
+	} {
+		field, ok := resourceMonitorV2().Schema[attr]
+		if !ok {
+			t.Errorf("%s field missing from the resource schema", attr)
+			continue
+		}
+		if !field.Optional || !field.Computed || field.Default != nil {
+			t.Errorf("%s should be Optional and Computed with no Default", attr)
+		}
+		if dsField, ok := dataSourceMonitorV2().Schema[attr]; !ok || !dsField.Computed {
+			t.Errorf("%s should be a Computed attribute of the data source", attr)
+		}
+	}
+}
+
+func TestMonitorV2AiSreLimitsValidation(t *testing.T) {
+	cases := []struct {
+		name    string
+		extra   map[string]interface{}
+		wantErr string
+	}{
+		{"cap and window", map[string]interface{}{
+			"ai_sre_max_investigations_per_monitor": 2,
+			"ai_sre_investigation_window":           "6h",
+		}, ""},
+		{"cap only", map[string]interface{}{"ai_sre_max_investigations_per_monitor": 2}, "ai_sre_investigation_window"},
+		{"window only", map[string]interface{}{"ai_sre_investigation_window": "6h"}, "ai_sre_max_investigations_per_monitor"},
+		{"zero cap", map[string]interface{}{
+			"ai_sre_max_investigations_per_monitor": 0,
+			"ai_sre_investigation_window":           "6h",
+		}, "ai_sre_max_investigations_per_monitor"},
+		{"no trigger levels", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{}}, "ai_sre_trigger_levels"},
+		{"bad trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"none"}}, "ai_sre_trigger_levels"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := monitorV2TestRaw()
+			for k, v := range tc.extra {
+				raw[k] = v
+			}
+			var errs []string
+			for _, d := range resourceMonitorV2().Validate(terraform.NewResourceConfigRaw(raw)) {
+				msg := fmt.Sprintf("%s: %s %s", d.AttributePath, d.Summary, d.Detail)
+				if strings.Contains(msg, "ai_sre") {
+					errs = append(errs, msg)
+				}
+			}
+			switch {
+			case tc.wantErr == "" && len(errs) > 0:
+				t.Fatalf("expected no AI SRE errors, got %v", errs)
+			case tc.wantErr != "" && !strings.Contains(strings.Join(errs, "\n"), tc.wantErr):
+				t.Fatalf("expected an error about %s, got %v", tc.wantErr, errs)
+			}
+		})
+	}
+}
+
+func TestValidateMonitorV2AiSreInvestigationWindow(t *testing.T) {
+	for _, window := range []string{"1h", "6h", "24h", "360m"} {
+		if diags := validateMonitorV2AiSreInvestigationWindow(window, nil); diags.HasError() {
+			t.Errorf("%s: expected valid, got %v", window, diags)
+		}
+	}
+	for _, window := range []string{"0s", "30m", "90m", "25h", "six hours"} {
+		if diags := validateMonitorV2AiSreInvestigationWindow(window, nil); !diags.HasError() {
+			t.Errorf("%s: expected an error", window)
+		}
+	}
+}
+
 func TestNewMonitorV2Input_AiTriagingMode(t *testing.T) {
 	modePtr := func(m gql.MonitorV2AiTriagingMode) *gql.MonitorV2AiTriagingMode { return &m }
 
@@ -2312,12 +2391,7 @@ func TestNewMonitorV2Input_AiTriagingMode(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			raw := map[string]interface{}{
-				"name":      "test",
-				"rule_kind": "count",
-				"inputs":    map[string]interface{}{"test": "o:::dataset:41000001"},
-				"stage":     []interface{}{map[string]interface{}{"pipeline": "filter true"}},
-			}
+			raw := monitorV2TestRaw()
 			if tc.mode != nil {
 				raw["ai_triaging_mode"] = tc.mode
 			}
@@ -2339,6 +2413,56 @@ func TestNewMonitorV2Input_AiTriagingMode(t *testing.T) {
 			}
 		})
 	}
+}
+
+// monitorV2TestRaw returns a minimal monitor config for building inputs.
+func monitorV2TestRaw() map[string]interface{} {
+	return map[string]interface{}{
+		"name":      "test",
+		"rule_kind": "count",
+		"inputs":    map[string]interface{}{"test": "o:::dataset:41000001"},
+		"stage":     []interface{}{map[string]interface{}{"pipeline": "filter true"}},
+	}
+}
+
+func TestNewMonitorV2Input_AiSreLimits(t *testing.T) {
+	t.Run("unset", func(t *testing.T) {
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, monitorV2TestRaw())
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		if input.AiSreTriggerLevels != nil || input.AiSreMaxInvestigationsPerMonitor != nil || input.AiSreInvestigationWindowSeconds != nil {
+			t.Fatalf("expected AI SRE limits to be nil when unset, got %v %v %v",
+				input.AiSreTriggerLevels, input.AiSreMaxInvestigationsPerMonitor, input.AiSreInvestigationWindowSeconds)
+		}
+	})
+
+	t.Run("set", func(t *testing.T) {
+		raw := monitorV2TestRaw()
+		raw["ai_sre_trigger_levels"] = []interface{}{"critical", "no_data"}
+		raw["ai_sre_max_investigations_per_monitor"] = 2
+		raw["ai_sre_investigation_window"] = "6h"
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		levels := map[gql.MonitorV2AlarmLevel]bool{}
+		for _, level := range input.AiSreTriggerLevels {
+			levels[level] = true
+		}
+		if len(input.AiSreTriggerLevels) != 2 || !levels[gql.MonitorV2AlarmLevelCritical] || !levels[gql.MonitorV2AlarmLevelNodata] {
+			t.Errorf("expected trigger levels Critical and NoData, got %v", input.AiSreTriggerLevels)
+		}
+		if p := input.AiSreMaxInvestigationsPerMonitor; p == nil || *p != 2 {
+			t.Errorf("expected max investigations 2, got %v", p)
+		}
+		if p := input.AiSreInvestigationWindowSeconds; p == nil || *p != 21600 {
+			t.Errorf("expected window 21600 seconds, got %v", p)
+		}
+	})
 }
 
 // TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate plans an update whose config
@@ -2376,48 +2500,96 @@ func TestNewMonitorV2Input_AiTriagingModeKeptOnUpdate(t *testing.T) {
 	}
 }
 
-// TestKeepMonitorV2AiSreLimits checks the monitor's AI SRE limits are kept as they are.
-func TestKeepMonitorV2AiSreLimits(t *testing.T) {
+// monitorV2AiSreConfig returns a raw config where only the given AI SRE attributes are set.
+func monitorV2AiSreConfig(set ...string) cty.Value {
+	values := map[string]cty.Value{
+		"ai_triaging_mode":                      cty.StringVal("triage"),
+		"ai_sre_trigger_levels":                 cty.SetVal([]cty.Value{cty.StringVal("critical")}),
+		"ai_sre_max_investigations_per_monitor": cty.NumberIntVal(2),
+		"ai_sre_investigation_window":           cty.StringVal("6h"),
+	}
+	attrs := make(map[string]cty.Value, len(values))
+	for attr, v := range values {
+		attrs[attr] = cty.NullVal(v.Type())
+	}
+	for _, attr := range set {
+		attrs[attr] = values[attr]
+	}
+	return cty.ObjectVal(attrs)
+}
+
+// TestKeepMonitorV2AiSre checks an update sends the monitor's current AI SRE
+// settings for those the config leaves out, and the config's for the rest.
+func TestKeepMonitorV2AiSre(t *testing.T) {
 	int64Ptr := func(n int64) *types.Int64Scalar { v := types.Int64Scalar(n); return &v }
+	none := gql.MonitorV2AiTriagingModeNone
+	triage := gql.MonitorV2AiTriagingModeTriage
+
+	fromConfig := gql.MonitorV2Input{
+		AiTriagingMode:                   &triage,
+		AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelCritical},
+		AiSreMaxInvestigationsPerMonitor: int64Ptr(2),
+		AiSreInvestigationWindowSeconds:  int64Ptr(21600),
+	}
+	current := gql.MonitorV2{
+		AiTriagingMode:                   &none,
+		AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelWarning},
+		AiSreMaxInvestigationsPerMonitor: int64Ptr(5),
+		AiSreInvestigationWindowSeconds:  int64Ptr(3600),
+	}
 
 	cases := []struct {
 		name    string
+		cfg     cty.Value
 		current gql.MonitorV2
 		want    map[string]string
 	}{
 		{
-			name:    "unset",
+			name:    "not in config, monitor unset",
+			cfg:     monitorV2AiSreConfig(),
 			current: gql.MonitorV2{},
 			want: map[string]string{
+				"aiTriagingMode":                   "null",
 				"aiSreTriggerLevels":               "null",
 				"aiSreMaxInvestigationsPerMonitor": "null",
 				"aiSreInvestigationWindowSeconds":  "null",
 			},
 		},
 		{
-			name:    "no trigger levels",
+			name:    "not in config, no trigger levels",
+			cfg:     monitorV2AiSreConfig(),
 			current: gql.MonitorV2{AiSreTriggerLevels: []gql.MonitorV2AlarmLevel{}},
 			want:    map[string]string{"aiSreTriggerLevels": "[]"},
 		},
 		{
-			name: "set",
-			current: gql.MonitorV2{
-				AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelCritical},
-				AiSreMaxInvestigationsPerMonitor: int64Ptr(2),
-				AiSreInvestigationWindowSeconds:  int64Ptr(3600),
-			},
+			name:    "not in config, monitor set",
+			cfg:     monitorV2AiSreConfig(),
+			current: current,
 			want: map[string]string{
+				"aiTriagingMode":                   `"None"`,
+				"aiSreTriggerLevels":               `["Warning"]`,
+				"aiSreMaxInvestigationsPerMonitor": `"5"`,
+				"aiSreInvestigationWindowSeconds":  `"3600"`,
+			},
+		},
+		{
+			name: "in config",
+			cfg: monitorV2AiSreConfig("ai_triaging_mode", "ai_sre_trigger_levels",
+				"ai_sre_max_investigations_per_monitor", "ai_sre_investigation_window"),
+			current: current,
+			want: map[string]string{
+				"aiTriagingMode":                   `"Triage"`,
 				"aiSreTriggerLevels":               `["Critical"]`,
 				"aiSreMaxInvestigationsPerMonitor": `"2"`,
-				"aiSreInvestigationWindowSeconds":  `"3600"`,
+				"aiSreInvestigationWindowSeconds":  `"21600"`,
 			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			input := &gql.MonitorV2Input{}
-			keepMonitorV2AiSre(input, &tc.current, true)
+			input := fromConfig
+			keepMonitorV2AiSre(&input, &tc.current, tc.cfg)
 
 			b, err := json.Marshal(input)
 			if err != nil {
@@ -2436,56 +2608,28 @@ func TestKeepMonitorV2AiSreLimits(t *testing.T) {
 	}
 }
 
-// TestKeepMonitorV2AiSreMode checks the monitor's current mode is kept only when
-// the config doesn't set one.
-func TestKeepMonitorV2AiSreMode(t *testing.T) {
-	none := gql.MonitorV2AiTriagingModeNone
-	triage := gql.MonitorV2AiTriagingModeTriage
-
-	cases := []struct {
-		name         string
-		modeInConfig bool
-		want         gql.MonitorV2AiTriagingMode
-	}{
-		{"set in config", true, triage},
-		{"not in config", false, none},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			input := &gql.MonitorV2Input{AiTriagingMode: &triage}
-			keepMonitorV2AiSre(input, &gql.MonitorV2{AiTriagingMode: &none}, tc.modeInConfig)
-			if input.AiTriagingMode == nil || *input.AiTriagingMode != tc.want {
-				t.Fatalf("expected AiTriagingMode %q, got %v", tc.want, input.AiTriagingMode)
-			}
-		})
-	}
-}
-
-func TestAiTriagingModeInConfig(t *testing.T) {
-	objType := cty.Object(map[string]cty.Type{"ai_triaging_mode": cty.String})
-
+func TestAttrInConfig(t *testing.T) {
 	cases := []struct {
 		name string
 		cfg  cty.Value
 		want bool
 	}{
-		{"no config", cty.NullVal(objType), true},
-		{"unset", cty.ObjectVal(map[string]cty.Value{"ai_triaging_mode": cty.NullVal(cty.String)}), false},
-		{"set", cty.ObjectVal(map[string]cty.Value{"ai_triaging_mode": cty.StringVal("none")}), true},
+		{"no config", cty.NullVal(monitorV2AiSreConfig().Type()), true},
+		{"unset", monitorV2AiSreConfig(), false},
+		{"set", monitorV2AiSreConfig("ai_triaging_mode"), true},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := aiTriagingModeInConfig(tc.cfg); got != tc.want {
+			if got := attrInConfig(tc.cfg, "ai_triaging_mode"); got != tc.want {
 				t.Fatalf("expected %v, got %v", tc.want, got)
 			}
 		})
 	}
 }
 
-// TestAccObserveMonitorV2AiTriagingMode covers the default, enabling triage,
-// keeping it when the attribute is dropped from config, and turning it off.
+// TestAccObserveMonitorV2AiTriagingMode covers the defaults, enabling triage with
+// limits, keeping them when dropped from config, and turning triage off.
 //
 // NOTE: the steps that apply `triage` require AI SRE to be enabled for the test
 // customer, and the test user to be allowed to start AI investigations.
@@ -2532,19 +2676,37 @@ func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(""),
-				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#", "0"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "0"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", ""),
+				),
 			},
 			{
-				Config: config(`ai_triaging_mode = "triage"`),
-				Check:  resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+				Config: config(`
+					ai_triaging_mode = "triage"
+					ai_sre_trigger_levels = ["critical"]
+					ai_sre_max_investigations_per_monitor = 2
+					ai_sre_investigation_window = "6h"
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "critical"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", "6h0m0s"),
+				),
 			},
 			{
-				// Dropping the attribute while changing something else forces a save
-				// that must keep triage instead of resetting it.
+				// Dropping the attributes while changing something else forces a save
+				// that must keep them instead of resetting them.
 				Config: config(`description = "updated"`),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "description", "updated"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "critical"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", "6h0m0s"),
 				),
 			},
 			{
@@ -2553,7 +2715,10 @@ func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
 					description = "updated"
 					ai_triaging_mode = "none"
 				`),
-				Check: resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "2"),
+				),
 			},
 		},
 	})
