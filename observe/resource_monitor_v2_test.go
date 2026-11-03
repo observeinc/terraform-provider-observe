@@ -2608,6 +2608,63 @@ func TestKeepMonitorV2AiSre(t *testing.T) {
 	}
 }
 
+func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
+	int64Ptr := func(n int64) *types.Int64Scalar { v := types.Int64Scalar(n); return &v }
+	limits := []string{"ai_sre_trigger_levels.#", "ai_sre_max_investigations_per_monitor", "ai_sre_investigation_window"}
+	set := gql.MonitorV2{
+		AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelCritical},
+		AiSreMaxInvestigationsPerMonitor: int64Ptr(2),
+		AiSreInvestigationWindowSeconds:  int64Ptr(21600),
+	}
+
+	read := func(t *testing.T, r *schema.Resource, state *terraform.InstanceState, monitor gql.MonitorV2) map[string]string {
+		t.Helper()
+		data := r.Data(state)
+		data.SetId("41000001")
+		if diags := monitorV2AiSreLimitsToResourceData(&monitor, data); diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		return data.State().Attributes
+	}
+	check := func(t *testing.T, got, want map[string]string, absent ...string) {
+		t.Helper()
+		for k, v := range want {
+			if got[k] != v {
+				t.Errorf("%s: expected %q, got %q", k, v, got[k])
+			}
+		}
+		for _, k := range absent {
+			if v, ok := got[k]; ok {
+				t.Errorf("%s: expected null, got %q", k, v)
+			}
+		}
+	}
+
+	t.Run("defaults stay null", func(t *testing.T) {
+		check(t, read(t, resourceMonitorV2(), nil, gql.MonitorV2{}), nil, limits...)
+		check(t, read(t, dataSourceMonitorV2(), nil, gql.MonitorV2{}), nil, limits...)
+	})
+	t.Run("no trigger levels", func(t *testing.T) {
+		got := read(t, dataSourceMonitorV2(), nil, gql.MonitorV2{AiSreTriggerLevels: []gql.MonitorV2AlarmLevel{}})
+		check(t, got, map[string]string{"ai_sre_trigger_levels.#": "0"}, limits[1:]...)
+	})
+	t.Run("set", func(t *testing.T) {
+		check(t, read(t, resourceMonitorV2(), nil, set), map[string]string{
+			"ai_sre_trigger_levels.#":               "1",
+			"ai_sre_max_investigations_per_monitor": "2",
+			"ai_sre_investigation_window":           "6h0m0s",
+		})
+	})
+	t.Run("reset to defaults clears state", func(t *testing.T) {
+		state := &terraform.InstanceState{ID: "41000001", Attributes: read(t, resourceMonitorV2(), nil, set)}
+		check(t, read(t, resourceMonitorV2(), state, gql.MonitorV2{}), map[string]string{
+			"ai_sre_trigger_levels.#":               "0",
+			"ai_sre_max_investigations_per_monitor": "0",
+			"ai_sre_investigation_window":           "",
+		})
+	})
+}
+
 func TestAttrInConfig(t *testing.T) {
 	cases := []struct {
 		name string
@@ -2678,9 +2735,9 @@ func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
 				Config: config(""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#", "0"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "0"),
-					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", ""),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#"),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor"),
+					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window"),
 				),
 			},
 			{

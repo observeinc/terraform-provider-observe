@@ -1016,6 +1016,42 @@ func resourceMonitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2
 	return append(diags, monitorV2ToResourceData(ctx, monitor, data, client, false)...)
 }
 
+// monitorV2AiSreLimitsToResourceData leaves each AI SRE limit null while the
+// monitor uses the default, so exported HCL omits it, and only writes 0, "" or
+// an empty set to clear a value already in state.
+func monitorV2AiSreLimitsToResourceData(monitor *gql.MonitorV2, data *schema.ResourceData) (diags diag.Diagnostics) {
+	if _, ok := data.GetOk("ai_sre_trigger_levels"); ok || monitor.AiSreTriggerLevels != nil {
+		triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
+		for _, level := range monitor.AiSreTriggerLevels {
+			triggerLevels = append(triggerLevels, toSnake(string(level)))
+		}
+		if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if _, ok := data.GetOk("ai_sre_max_investigations_per_monitor"); ok || monitor.AiSreMaxInvestigationsPerMonitor != nil {
+		maxInvestigations := 0
+		if monitor.AiSreMaxInvestigationsPerMonitor != nil {
+			maxInvestigations = int(*monitor.AiSreMaxInvestigationsPerMonitor)
+		}
+		if err := data.Set("ai_sre_max_investigations_per_monitor", maxInvestigations); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if _, ok := data.GetOk("ai_sre_investigation_window"); ok || monitor.AiSreInvestigationWindowSeconds != nil {
+		investigationWindow := ""
+		if monitor.AiSreInvestigationWindowSeconds != nil {
+			investigationWindow = (time.Duration(*monitor.AiSreInvestigationWindowSeconds) * time.Second).String()
+		}
+		if err := data.Set("ai_sre_investigation_window", investigationWindow); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	return diags
+}
+
 func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteMonitorV2(ctx, data.Id()); err != nil {
@@ -1054,30 +1090,7 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
-	for _, level := range monitor.AiSreTriggerLevels {
-		triggerLevels = append(triggerLevels, toSnake(string(level)))
-	}
-	if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// 0 and "" mean the monitor uses the account default.
-	maxInvestigations := 0
-	if monitor.AiSreMaxInvestigationsPerMonitor != nil {
-		maxInvestigations = int(*monitor.AiSreMaxInvestigationsPerMonitor)
-	}
-	if err := data.Set("ai_sre_max_investigations_per_monitor", maxInvestigations); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	investigationWindow := ""
-	if monitor.AiSreInvestigationWindowSeconds != nil {
-		investigationWindow = (time.Duration(*monitor.AiSreInvestigationWindowSeconds) * time.Second).String()
-	}
-	if err := data.Set("ai_sre_investigation_window", investigationWindow); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	diags = append(diags, monitorV2AiSreLimitsToResourceData(monitor, data)...)
 
 	// monitor_v2 has no deprecated entity_tags field, so tagDiags is always empty
 	// today; kept in the usual shape in case that changes.
