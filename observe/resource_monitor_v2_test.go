@@ -2417,7 +2417,7 @@ func TestKeepMonitorV2AiSreLimits(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			input := &gql.MonitorV2Input{}
-			keepMonitorV2AiSreLimits(input, &tc.current)
+			keepMonitorV2AiSre(input, &tc.current, true)
 
 			b, err := json.Marshal(input)
 			if err != nil {
@@ -2431,6 +2431,54 @@ func TestKeepMonitorV2AiSreLimits(t *testing.T) {
 				if string(got[field]) != want {
 					t.Errorf("%s: expected %s, got %s", field, want, got[field])
 				}
+			}
+		})
+	}
+}
+
+// TestKeepMonitorV2AiSreMode checks the monitor's current mode is kept only when
+// the config doesn't set one.
+func TestKeepMonitorV2AiSreMode(t *testing.T) {
+	none := gql.MonitorV2AiTriagingModeNone
+	triage := gql.MonitorV2AiTriagingModeTriage
+
+	cases := []struct {
+		name         string
+		modeInConfig bool
+		want         gql.MonitorV2AiTriagingMode
+	}{
+		{"set in config", true, triage},
+		{"not in config", false, none},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			input := &gql.MonitorV2Input{AiTriagingMode: &triage}
+			keepMonitorV2AiSre(input, &gql.MonitorV2{AiTriagingMode: &none}, tc.modeInConfig)
+			if input.AiTriagingMode == nil || *input.AiTriagingMode != tc.want {
+				t.Fatalf("expected AiTriagingMode %q, got %v", tc.want, input.AiTriagingMode)
+			}
+		})
+	}
+}
+
+func TestAiTriagingModeInConfig(t *testing.T) {
+	objType := cty.Object(map[string]cty.Type{"ai_triaging_mode": cty.String})
+
+	cases := []struct {
+		name string
+		cfg  cty.Value
+		want bool
+	}{
+		{"no config", cty.NullVal(objType), true},
+		{"unset", cty.ObjectVal(map[string]cty.Value{"ai_triaging_mode": cty.NullVal(cty.String)}), false},
+		{"set", cty.ObjectVal(map[string]cty.Value{"ai_triaging_mode": cty.StringVal("none")}), true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := aiTriagingModeInConfig(tc.cfg); got != tc.want {
+				t.Fatalf("expected %v, got %v", tc.want, got)
 			}
 		})
 	}

@@ -928,7 +928,7 @@ func resourceMonitorV2Update(ctx context.Context, data *schema.ResourceData, met
 		return diag.Errorf("failed to read monitor: %s", err.Error())
 	}
 	if current != nil {
-		keepMonitorV2AiSreLimits(input, current)
+		keepMonitorV2AiSre(input, current, aiTriagingModeInConfig(data.GetRawConfig()))
 	}
 
 	_, err = client.SaveMonitorV2WithActions(ctx, wid, &mid, input, actions)
@@ -1569,11 +1569,24 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 	return input, diags
 }
 
-// keepMonitorV2AiSreLimits keeps the monitor's AI SRE limits as they are.
-func keepMonitorV2AiSreLimits(input *gql.MonitorV2Input, current *gql.MonitorV2) {
+// keepMonitorV2AiSre keeps the monitor's AI SRE limits as they are, and its
+// mode too when the config doesn't set it.
+func keepMonitorV2AiSre(input *gql.MonitorV2Input, current *gql.MonitorV2, modeInConfig bool) {
+	if !modeInConfig {
+		input.AiTriagingMode = current.AiTriagingMode
+	}
 	input.AiSreTriggerLevels = current.AiSreTriggerLevels
 	input.AiSreMaxInvestigationsPerMonitor = current.AiSreMaxInvestigationsPerMonitor
 	input.AiSreInvestigationWindowSeconds = current.AiSreInvestigationWindowSeconds
+}
+
+// aiTriagingModeInConfig reports whether the config sets ai_triaging_mode.
+// Without a config, it assumes it does.
+func aiTriagingModeInConfig(cfg cty.Value) bool {
+	if cfg.IsNull() || !cfg.Type().IsObjectType() || !cfg.Type().HasAttribute("ai_triaging_mode") {
+		return true
+	}
+	return !cfg.GetAttr("ai_triaging_mode").IsNull()
 }
 
 func newMonitorV2DefinitionInput(data *schema.ResourceData, defaultOpalVersion *string) (defnInput *gql.MonitorV2DefinitionInput, diags diag.Diagnostics) {
