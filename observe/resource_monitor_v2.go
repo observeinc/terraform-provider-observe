@@ -1017,12 +1017,17 @@ func resourceMonitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2
 }
 
 // monitorV2AiSreLimitsToResourceData leaves each AI SRE limit null while the
-// monitor uses the default, so exported HCL omits it, and only writes 0, "" or
-// an empty set to clear a value already in state.
+// monitor uses the default, so exported HCL omits it. State can't go back to
+// null, so a value already there is overwritten with 0, "" or every trigger
+// level, which is what null trigger levels mean.
 func monitorV2AiSreLimitsToResourceData(monitor *gql.MonitorV2, data *schema.ResourceData) (diags diag.Diagnostics) {
 	if _, ok := data.GetOk("ai_sre_trigger_levels"); ok || monitor.AiSreTriggerLevels != nil {
-		triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
-		for _, level := range monitor.AiSreTriggerLevels {
+		levels := monitor.AiSreTriggerLevels
+		if levels == nil {
+			levels = gql.AllMonitorV2AiSreTriggerLevels
+		}
+		triggerLevels := make([]string, 0, len(levels))
+		for _, level := range levels {
 			triggerLevels = append(triggerLevels, toSnake(string(level)))
 		}
 		if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {

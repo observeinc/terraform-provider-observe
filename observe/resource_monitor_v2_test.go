@@ -2657,10 +2657,16 @@ func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
 	})
 	t.Run("reset to defaults clears state", func(t *testing.T) {
 		state := &terraform.InstanceState{ID: "41000001", Attributes: read(t, resourceMonitorV2(), nil, set)}
-		check(t, read(t, resourceMonitorV2(), state, gql.MonitorV2{}), map[string]string{
-			"ai_sre_trigger_levels.#":               "0",
+		got := read(t, resourceMonitorV2(), state, gql.MonitorV2{})
+		check(t, got, map[string]string{
+			"ai_sre_trigger_levels.#":               fmt.Sprint(len(gql.AllMonitorV2AiSreTriggerLevels)),
 			"ai_sre_max_investigations_per_monitor": "0",
 			"ai_sre_investigation_window":           "",
+		})
+		// Stays every level on the next read.
+		state = &terraform.InstanceState{ID: "41000001", Attributes: got}
+		check(t, read(t, resourceMonitorV2(), state, gql.MonitorV2{}), map[string]string{
+			"ai_sre_trigger_levels.#": fmt.Sprint(len(gql.AllMonitorV2AiSreTriggerLevels)),
 		})
 	})
 }
