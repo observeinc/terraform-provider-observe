@@ -352,17 +352,6 @@ type UpdateTableRequest struct {
 	SchemaMapping  map[string]FieldMapping `json:"schemaMapping,omitempty"`
 }
 
-type UntrackedTable struct {
-	TableName  string `json:"tableName"`
-	SchemaName string `json:"schemaName"`
-	TableType  string `json:"tableType"` // TABLE, VIEW, etc.
-}
-
-type UntrackedTableListResponse struct {
-	Tables []UntrackedTable `json:"tables"`
-	Meta   Meta             `json:"meta"`
-}
-
 // OID helpers
 
 func (s *Share) Oid() oid.OID {
