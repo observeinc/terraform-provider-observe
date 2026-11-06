@@ -1,9 +1,12 @@
 package observe
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -11,7 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
+	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 )
 
 var monitorV2ConfigPreamble = configPreamble + datastreamConfigPreamble
@@ -2260,6 +2265,445 @@ func TestAccObserveMonitorV2ObjectTags(t *testing.T) {
 					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.environment"),
 					resource.TestCheckNoResourceAttr("observe_monitor_v2.first", "object_tags.region"),
 				),
+			},
+		},
+	})
+}
+
+func TestMonitorV2AiTriagingModeSchema(t *testing.T) {
+	field, ok := resourceMonitorV2().Schema["ai_triaging_mode"]
+	if !ok {
+		t.Fatal("ai_triaging_mode field missing from the resource schema")
+	}
+	if !field.Optional || field.Computed || field.Default != "none" {
+		t.Errorf("ai_triaging_mode should be Optional, not Computed, and default to none (got %v)", field.Default)
+	}
+	if field.ValidateDiagFunc == nil {
+		t.Error("ai_triaging_mode should have a ValidateDiagFunc")
+	}
+	if field.DiffSuppressFunc == nil {
+		t.Error("ai_triaging_mode should have a DiffSuppressFunc")
+	}
+
+	// The data source shares monitorV2ToResourceData, which sets this attribute.
+	if dsField, ok := dataSourceMonitorV2().Schema["ai_triaging_mode"]; !ok || !dsField.Computed {
+		t.Error("ai_triaging_mode should be a Computed attribute of the data source")
+	}
+}
+
+func TestMonitorV2AiSreLimitsSchema(t *testing.T) {
+	for _, attr := range []string{
+		"ai_sre_trigger_levels",
+		"ai_sre_max_investigations_per_monitor",
+		"ai_sre_investigation_window",
+	} {
+		field, ok := resourceMonitorV2().Schema[attr]
+		if !ok {
+			t.Errorf("%s field missing from the resource schema", attr)
+			continue
+		}
+		if !field.Optional || field.Computed {
+			t.Errorf("%s should be Optional and not Computed", attr)
+		}
+		if dsField, ok := dataSourceMonitorV2().Schema[attr]; !ok || !dsField.Computed {
+			t.Errorf("%s should be a Computed attribute of the data source", attr)
+		}
+	}
+}
+
+func TestMonitorV2AiSreLimitsValidation(t *testing.T) {
+	cases := []struct {
+		name    string
+		extra   map[string]interface{}
+		wantErr string
+	}{
+		{"cap and window", map[string]interface{}{
+			"ai_sre_max_investigations_per_monitor": 2,
+			"ai_sre_investigation_window":           "6h",
+		}, ""},
+		{"account default", map[string]interface{}{
+			"ai_sre_max_investigations_per_monitor": 0,
+			"ai_sre_investigation_window":           "",
+		}, ""},
+		{"negative cap", map[string]interface{}{"ai_sre_max_investigations_per_monitor": -1}, "ai_sre_max_investigations_per_monitor"},
+		{"no trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level"}}, ""},
+		{"empty trigger levels", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{}}, "ai_sre_trigger_levels"},
+		{"bad trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"all"}}, "ai_sre_trigger_levels"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := monitorV2TestRaw()
+			for k, v := range tc.extra {
+				raw[k] = v
+			}
+			var errs []string
+			for _, d := range resourceMonitorV2().Validate(terraform.NewResourceConfigRaw(raw)) {
+				msg := fmt.Sprintf("%s: %s %s", d.AttributePath, d.Summary, d.Detail)
+				if strings.Contains(msg, "ai_sre") {
+					errs = append(errs, msg)
+				}
+			}
+			switch {
+			case tc.wantErr == "" && len(errs) > 0:
+				t.Fatalf("expected no AI SRE errors, got %v", errs)
+			case tc.wantErr != "" && !strings.Contains(strings.Join(errs, "\n"), tc.wantErr):
+				t.Fatalf("expected an error about %s, got %v", tc.wantErr, errs)
+			}
+		})
+	}
+}
+
+func TestValidateMonitorV2AiSreInvestigationWindow(t *testing.T) {
+	for _, window := range []string{"", "1h", "6h", "24h", "360m"} {
+		if diags := validateMonitorV2AiSreInvestigationWindow(window, nil); diags.HasError() {
+			t.Errorf("%s: expected valid, got %v", window, diags)
+		}
+	}
+	for _, window := range []string{"0s", "30m", "90m", "25h", "six hours"} {
+		if diags := validateMonitorV2AiSreInvestigationWindow(window, nil); !diags.HasError() {
+			t.Errorf("%s: expected an error", window)
+		}
+	}
+}
+
+func TestNewMonitorV2Input_AiTriagingMode(t *testing.T) {
+	modePtr := func(m gql.MonitorV2AiTriagingMode) *gql.MonitorV2AiTriagingMode { return &m }
+
+	cases := []struct {
+		name string
+		mode interface{} // nil => omit from config
+		want *gql.MonitorV2AiTriagingMode
+	}{
+		{"unset", nil, modePtr(gql.MonitorV2AiTriagingModeNone)},
+		{"none", "none", modePtr(gql.MonitorV2AiTriagingModeNone)},
+		{"triage", "triage", modePtr(gql.MonitorV2AiTriagingModeTriage)},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := monitorV2TestRaw()
+			if tc.mode != nil {
+				raw["ai_triaging_mode"] = tc.mode
+			}
+			data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+			input, diags := newMonitorV2Input(data, nil)
+			if diags.HasError() {
+				t.Fatalf("unexpected diags: %v", diags)
+			}
+			if input.AiTriagingMode == nil || *input.AiTriagingMode != *tc.want {
+				t.Fatalf("expected AiTriagingMode %q, got %v", *tc.want, input.AiTriagingMode)
+			}
+		})
+	}
+}
+
+// monitorV2TestRaw returns a minimal monitor config for building inputs.
+func monitorV2TestRaw() map[string]interface{} {
+	return map[string]interface{}{
+		"name":      "test",
+		"rule_kind": "count",
+		"inputs":    map[string]interface{}{"test": "o:::dataset:41000001"},
+		"stage":     []interface{}{map[string]interface{}{"pipeline": "filter true"}},
+	}
+}
+
+func TestNewMonitorV2Input_AiSreLimits(t *testing.T) {
+	t.Run("unset", func(t *testing.T) {
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, monitorV2TestRaw())
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		if input.AiSreTriggerLevels != nil || input.AiSreMaxInvestigationsPerMonitor != nil || input.AiSreInvestigationWindowSeconds != nil {
+			t.Fatalf("expected AI SRE limits to be nil when unset, got %v %v %v",
+				input.AiSreTriggerLevels, input.AiSreMaxInvestigationsPerMonitor, input.AiSreInvestigationWindowSeconds)
+		}
+	})
+
+	t.Run("set", func(t *testing.T) {
+		raw := monitorV2TestRaw()
+		raw["ai_sre_trigger_levels"] = []interface{}{"critical", "no_data"}
+		raw["ai_sre_max_investigations_per_monitor"] = 2
+		raw["ai_sre_investigation_window"] = "6h"
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		levels := map[gql.MonitorV2AlarmLevel]bool{}
+		for _, level := range input.AiSreTriggerLevels {
+			levels[level] = true
+		}
+		if len(input.AiSreTriggerLevels) != 2 || !levels[gql.MonitorV2AlarmLevelCritical] || !levels[gql.MonitorV2AlarmLevelNodata] {
+			t.Errorf("expected trigger levels Critical and NoData, got %v", input.AiSreTriggerLevels)
+		}
+		if p := input.AiSreMaxInvestigationsPerMonitor; p == nil || *p != 2 {
+			t.Errorf("expected max investigations 2, got %v", p)
+		}
+		if p := input.AiSreInvestigationWindowSeconds; p == nil || *p != 21600 {
+			t.Errorf("expected window 21600 seconds, got %v", p)
+		}
+	})
+
+	t.Run("no trigger level", func(t *testing.T) {
+		raw := monitorV2TestRaw()
+		raw["ai_sre_trigger_levels"] = []interface{}{"no_level"}
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		b, err := json.Marshal(input)
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		if !strings.Contains(string(b), `"aiSreTriggerLevels":[]`) {
+			t.Errorf("expected an empty trigger level list, got %s", b)
+		}
+	})
+}
+
+// monitorV2AiSreTestState is the state of a monitor with triage and every AI SRE limit set.
+func monitorV2AiSreTestState(t *testing.T) *terraform.InstanceState {
+	t.Helper()
+	data := resourceMonitorV2().Data(nil)
+	data.SetId("41000002")
+	for k, v := range map[string]interface{}{
+		"ai_triaging_mode":                      "triage",
+		"ai_sre_trigger_levels":                 []string{"critical"},
+		"ai_sre_max_investigations_per_monitor": 2,
+		"ai_sre_investigation_window":           "6h0m0s",
+	} {
+		if err := data.Set(k, v); err != nil {
+			t.Fatalf("set %s: %v", k, err)
+		}
+	}
+	return data.State()
+}
+
+// TestNewMonitorV2Input_AiSreResetOnUpdate plans an update whose config leaves
+// out the AI SRE settings against a monitor that has them set, and checks the
+// save sends the defaults.
+func TestNewMonitorV2Input_AiSreResetOnUpdate(t *testing.T) {
+	sm := schema.InternalMap(resourceMonitorV2().Schema)
+	state := monitorV2AiSreTestState(t)
+
+	diff, err := sm.Diff(context.Background(), state, terraform.NewResourceConfigRaw(monitorV2TestRaw()), nil, nil, true)
+	if err != nil {
+		t.Fatalf("diff: %v", err)
+	}
+	data, err := sm.Data(state, diff)
+	if err != nil {
+		t.Fatalf("data: %v", err)
+	}
+
+	input, diags := newMonitorV2Input(data, nil)
+	if diags.HasError() {
+		t.Fatalf("unexpected diags: %v", diags)
+	}
+	if input.AiTriagingMode == nil || *input.AiTriagingMode != gql.MonitorV2AiTriagingModeNone {
+		t.Errorf("expected AiTriagingMode %q, got %v", gql.MonitorV2AiTriagingModeNone, input.AiTriagingMode)
+	}
+	if input.AiSreTriggerLevels != nil || input.AiSreMaxInvestigationsPerMonitor != nil || input.AiSreInvestigationWindowSeconds != nil {
+		t.Errorf("expected AI SRE limits to be nil, got %v %v %v",
+			input.AiSreTriggerLevels, input.AiSreMaxInvestigationsPerMonitor, input.AiSreInvestigationWindowSeconds)
+	}
+}
+
+func TestMonitorV2AiSreCustomizeDiff(t *testing.T) {
+	cases := []struct {
+		name    string
+		extra   map[string]interface{}
+		wantErr bool
+	}{
+		{"both default", nil, false},
+		{"both set", map[string]interface{}{
+			"ai_sre_max_investigations_per_monitor": 2,
+			"ai_sre_investigation_window":           "6h",
+		}, false},
+		{"cap only", map[string]interface{}{"ai_sre_max_investigations_per_monitor": 2}, true},
+		{"window only", map[string]interface{}{"ai_sre_investigation_window": "6h"}, true},
+		{"no trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level"}}, false},
+		{"no_level with a level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level", "critical"}}, true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := monitorV2TestRaw()
+			for k, v := range tc.extra {
+				raw[k] = v
+			}
+			sm := schema.InternalMap(resourceMonitorV2().Schema)
+			_, err := sm.Diff(context.Background(), nil, terraform.NewResourceConfigRaw(raw), resourceMonitorV2CustomizeDiff, nil, true)
+			if gotErr := err != nil; gotErr != tc.wantErr {
+				t.Fatalf("expected error %v, got %v", tc.wantErr, err)
+			}
+		})
+	}
+}
+
+func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
+	int64Ptr := func(n int64) *types.Int64Scalar { v := types.Int64Scalar(n); return &v }
+
+	cases := []struct {
+		name    string
+		state   *terraform.InstanceState
+		monitor gql.MonitorV2
+		want    map[string]string
+		levels  []string
+	}{
+		{
+			name:    "defaults",
+			monitor: gql.MonitorV2{},
+			want: map[string]string{
+				"ai_sre_trigger_levels.#":               "0",
+				"ai_sre_max_investigations_per_monitor": "0",
+				"ai_sre_investigation_window":           "",
+			},
+		},
+		{
+			name: "set",
+			monitor: gql.MonitorV2{
+				AiSreTriggerLevels:               []gql.MonitorV2AlarmLevel{gql.MonitorV2AlarmLevelCritical},
+				AiSreMaxInvestigationsPerMonitor: int64Ptr(2),
+				AiSreInvestigationWindowSeconds:  int64Ptr(21600),
+			},
+			want: map[string]string{
+				"ai_sre_trigger_levels.#":               "1",
+				"ai_sre_max_investigations_per_monitor": "2",
+				"ai_sre_investigation_window":           "6h0m0s",
+			},
+			levels: []string{"critical"},
+		},
+		{
+			name:    "no trigger level",
+			monitor: gql.MonitorV2{AiSreTriggerLevels: []gql.MonitorV2AlarmLevel{}},
+			want:    map[string]string{"ai_sre_trigger_levels.#": "1"},
+			levels:  []string{"no_level"},
+		},
+		{
+			name:    "reset to defaults",
+			state:   monitorV2AiSreTestState(t),
+			monitor: gql.MonitorV2{},
+			want: map[string]string{
+				"ai_sre_trigger_levels.#":               "0",
+				"ai_sre_max_investigations_per_monitor": "0",
+				"ai_sre_investigation_window":           "",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			data := resourceMonitorV2().Data(tc.state)
+			data.SetId("41000002")
+			if diags := monitorV2AiSreLimitsToResourceData(&tc.monitor, data); diags.HasError() {
+				t.Fatalf("unexpected diags: %v", diags)
+			}
+			got := data.State().Attributes
+			for k, v := range tc.want {
+				if got[k] != v {
+					t.Errorf("%s: expected %q, got %q", k, v, got[k])
+				}
+			}
+			for _, level := range tc.levels {
+				if !data.Get("ai_sre_trigger_levels").(*schema.Set).Contains(level) {
+					t.Errorf("expected trigger level %q", level)
+				}
+			}
+		})
+	}
+}
+
+// TestAccObserveMonitorV2AiTriagingMode covers the defaults, enabling triage with
+// limits, then with no trigger level, and resetting them by dropping them from config.
+//
+// NOTE: the steps that apply `triage` require AI SRE to be enabled for the test
+// customer, and the test user to be allowed to start AI investigations.
+func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := func(extra string) string {
+		return fmt.Sprintf(monitorV2ConfigPreamble+`
+			resource "observe_monitor_v2" "first" {
+				workspace = data.observe_workspace.default.oid
+				rule_kind = "count"
+				name = "%[1]s"
+				lookback_time = "30m"
+				inputs = {
+					"test" = observe_datastream.test.dataset
+				}
+				stage {
+					pipeline = <<-EOF
+						filter true
+					EOF
+				}
+				rules {
+					level = "informational"
+					count {
+						compare_values {
+							compare_fn = "greater"
+							value_int64 = [0]
+						}
+					}
+				}
+				scheduling {
+					transform {
+						freshness_goal = "15m"
+					}
+				}
+				%[2]s
+			}
+		`, randomPrefix, extra)
+	}
+
+	defaults := resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "none"),
+		resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#", "0"),
+		resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "0"),
+		resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", ""),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config(""),
+				Check:  defaults,
+			},
+			{
+				Config: config(`
+					ai_triaging_mode = "triage"
+					ai_sre_trigger_levels = ["critical"]
+					ai_sre_max_investigations_per_monitor = 2
+					ai_sre_investigation_window = "6h"
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_triaging_mode", "triage"),
+					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "critical"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "2"),
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", "6h0m0s"),
+				),
+			},
+			{
+				Config: config(`
+					ai_triaging_mode = "triage"
+					ai_sre_trigger_levels = ["no_level"]
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#", "1"),
+					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "no_level"),
+				),
+			},
+			{
+				// Dropping the attributes resets them to the defaults.
+				Config: config(""),
+				Check:  defaults,
 			},
 		},
 	})

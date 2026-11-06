@@ -134,6 +134,11 @@ var AllMonitorV2RuleKinds = []MonitorV2RuleKind{
 	MonitorV2RuleKindThreshold,
 }
 
+var AllMonitorV2AiTriagingModes = []MonitorV2AiTriagingMode{
+	MonitorV2AiTriagingModeNone,
+	MonitorV2AiTriagingModeTriage,
+}
+
 var AllMonitorV2BoundComparisonFunctions = []MonitorV2BoundComparisonFunction{
 	MonitorV2BoundComparisonFunctionAbove,
 	MonitorV2BoundComparisonFunctionAboveorbelow,
@@ -153,6 +158,14 @@ var AllMonitorV2AlarmLevels = []MonitorV2AlarmLevel{
 	MonitorV2AlarmLevelInformational,
 	MonitorV2AlarmLevelNone,
 	MonitorV2AlarmLevelWarning,
+	MonitorV2AlarmLevelNodata,
+}
+
+var AllMonitorV2AiSreTriggerLevels = []MonitorV2AlarmLevel{
+	MonitorV2AlarmLevelCritical,
+	MonitorV2AlarmLevelError,
+	MonitorV2AlarmLevelWarning,
+	MonitorV2AlarmLevelInformational,
 	MonitorV2AlarmLevelNodata,
 }
 
