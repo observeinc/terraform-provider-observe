@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -2325,8 +2326,9 @@ func TestMonitorV2AiSreLimitsValidation(t *testing.T) {
 			"ai_sre_investigation_window":           "",
 		}, ""},
 		{"negative cap", map[string]interface{}{"ai_sre_max_investigations_per_monitor": -1}, "ai_sre_max_investigations_per_monitor"},
-		{"no trigger levels", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{}}, "ai_sre_trigger_levels"},
-		{"bad trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"none"}}, "ai_sre_trigger_levels"},
+		{"no trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level"}}, ""},
+		{"empty trigger levels", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{}}, "ai_sre_trigger_levels"},
+		{"bad trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"all"}}, "ai_sre_trigger_levels"},
 	}
 
 	for _, tc := range cases {
@@ -2445,6 +2447,24 @@ func TestNewMonitorV2Input_AiSreLimits(t *testing.T) {
 			t.Errorf("expected window 21600 seconds, got %v", p)
 		}
 	})
+
+	t.Run("no trigger level", func(t *testing.T) {
+		raw := monitorV2TestRaw()
+		raw["ai_sre_trigger_levels"] = []interface{}{"no_level"}
+		data := schema.TestResourceDataRaw(t, resourceMonitorV2().Schema, raw)
+
+		input, diags := newMonitorV2Input(data, nil)
+		if diags.HasError() {
+			t.Fatalf("unexpected diags: %v", diags)
+		}
+		b, err := json.Marshal(input)
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		if !strings.Contains(string(b), `"aiSreTriggerLevels":[]`) {
+			t.Errorf("expected an empty trigger level list, got %s", b)
+		}
+	})
 }
 
 // monitorV2AiSreTestState is the state of a monitor with triage and every AI SRE limit set.
@@ -2494,7 +2514,7 @@ func TestNewMonitorV2Input_AiSreResetOnUpdate(t *testing.T) {
 	}
 }
 
-func TestMonitorV2AiSreLimitsPairing(t *testing.T) {
+func TestMonitorV2AiSreCustomizeDiff(t *testing.T) {
 	cases := []struct {
 		name    string
 		extra   map[string]interface{}
@@ -2507,6 +2527,8 @@ func TestMonitorV2AiSreLimitsPairing(t *testing.T) {
 		}, false},
 		{"cap only", map[string]interface{}{"ai_sre_max_investigations_per_monitor": 2}, true},
 		{"window only", map[string]interface{}{"ai_sre_investigation_window": "6h"}, true},
+		{"no trigger level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level"}}, false},
+		{"no_level with a level", map[string]interface{}{"ai_sre_trigger_levels": []interface{}{"no_level", "critical"}}, true},
 	}
 
 	for _, tc := range cases {
@@ -2532,6 +2554,7 @@ func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
 		state   *terraform.InstanceState
 		monitor gql.MonitorV2
 		want    map[string]string
+		levels  []string
 	}{
 		{
 			name:    "defaults",
@@ -2554,6 +2577,13 @@ func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
 				"ai_sre_max_investigations_per_monitor": "2",
 				"ai_sre_investigation_window":           "6h0m0s",
 			},
+			levels: []string{"critical"},
+		},
+		{
+			name:    "no trigger level",
+			monitor: gql.MonitorV2{AiSreTriggerLevels: []gql.MonitorV2AlarmLevel{}},
+			want:    map[string]string{"ai_sre_trigger_levels.#": "1"},
+			levels:  []string{"no_level"},
 		},
 		{
 			name:    "reset to defaults",
@@ -2580,12 +2610,17 @@ func TestMonitorV2AiSreLimitsToResourceData(t *testing.T) {
 					t.Errorf("%s: expected %q, got %q", k, v, got[k])
 				}
 			}
+			for _, level := range tc.levels {
+				if !data.Get("ai_sre_trigger_levels").(*schema.Set).Contains(level) {
+					t.Errorf("expected trigger level %q", level)
+				}
+			}
 		})
 	}
 }
 
 // TestAccObserveMonitorV2AiTriagingMode covers the defaults, enabling triage with
-// limits, and resetting them by dropping them from config.
+// limits, then with no trigger level, and resetting them by dropping them from config.
 //
 // NOTE: the steps that apply `triage` require AI SRE to be enabled for the test
 // customer, and the test user to be allowed to start AI investigations.
@@ -2653,6 +2688,16 @@ func TestAccObserveMonitorV2AiTriagingMode(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "critical"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_max_investigations_per_monitor", "2"),
 					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_investigation_window", "6h0m0s"),
+				),
+			},
+			{
+				Config: config(`
+					ai_triaging_mode = "triage"
+					ai_sre_trigger_levels = ["no_level"]
+				`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.#", "1"),
+					resource.TestCheckTypeSetElemAttr("observe_monitor_v2.first", "ai_sre_trigger_levels.*", "no_level"),
 				),
 			},
 			{

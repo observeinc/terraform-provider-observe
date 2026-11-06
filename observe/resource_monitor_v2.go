@@ -38,6 +38,12 @@ func validateMonitorV2ValueAggregation(i interface{}, path cty.Path) (diags diag
 	}
 }
 
+// monitorV2AiSreNoTriggerLevel is sent to the API as an empty trigger level list,
+// so no level starts an investigation.
+const monitorV2AiSreNoTriggerLevel = "no_level"
+
+var monitorV2AiSreTriggerLevelValues = append(snakeCased(gql.AllMonitorV2AiSreTriggerLevels), monitorV2AiSreNoTriggerLevel)
+
 func validateMonitorV2AiSreInvestigationWindow(i interface{}, path cty.Path) diag.Diagnostics {
 	if i.(string) == "" {
 		return nil
@@ -121,9 +127,9 @@ func resourceMonitorV2() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					ValidateDiagFunc: validateStringInSlice(snakeCased(gql.AllMonitorV2AiSreTriggerLevels), false),
+					ValidateDiagFunc: validateStringInSlice(monitorV2AiSreTriggerLevelValues, false),
 				},
-				Description: describeEnums(gql.AllMonitorV2AiSreTriggerLevels, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
+				Description: describeEnums(monitorV2AiSreTriggerLevelValues, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
 			},
 			"ai_sre_max_investigations_per_monitor": { // Int64
 				Type:             schema.TypeInt,
@@ -1007,12 +1013,16 @@ func resourceMonitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2
 	return append(diags, monitorV2ToResourceData(ctx, monitor, data, client, false)...)
 }
 
-// monitorV2AiSreLimitsToResourceData writes the account defaults as no trigger
-// levels, 0 and "", matching a config that leaves the limits out.
+// monitorV2AiSreLimitsToResourceData writes unset limits as no trigger levels,
+// 0 and "", the same as a config that leaves them out. It writes an empty
+// trigger level list as "no_level".
 func monitorV2AiSreLimitsToResourceData(monitor *gql.MonitorV2, data *schema.ResourceData) (diags diag.Diagnostics) {
 	triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
 	for _, level := range monitor.AiSreTriggerLevels {
 		triggerLevels = append(triggerLevels, toSnake(string(level)))
+	}
+	if monitor.AiSreTriggerLevels != nil && len(monitor.AiSreTriggerLevels) == 0 {
+		triggerLevels = []string{monitorV2AiSreNoTriggerLevel}
 	}
 	if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -1354,6 +1364,12 @@ func resourceMonitorV2CustomizeDiff(ctx context.Context, d *schema.ResourceDiff,
 			return fmt.Errorf("ai_sre_max_investigations_per_monitor and ai_sre_investigation_window must be set together")
 		}
 	}
+	if d.NewValueKnown("ai_sre_trigger_levels") {
+		levels := d.Get("ai_sre_trigger_levels").(*schema.Set)
+		if levels.Contains(monitorV2AiSreNoTriggerLevel) && levels.Len() > 1 {
+			return fmt.Errorf("ai_sre_trigger_levels can't list %q with other levels", monitorV2AiSreNoTriggerLevel)
+		}
+	}
 	return nil
 }
 
@@ -1636,8 +1652,11 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 		input.AiTriagingMode = &mode
 	}
 	if v, ok := data.GetOk("ai_sre_trigger_levels"); ok {
+		input.AiSreTriggerLevels = []gql.MonitorV2AlarmLevel{}
 		for _, level := range v.(*schema.Set).List() {
-			input.AiSreTriggerLevels = append(input.AiSreTriggerLevels, gql.MonitorV2AlarmLevel(toCamel(level.(string))))
+			if level.(string) != monitorV2AiSreNoTriggerLevel {
+				input.AiSreTriggerLevels = append(input.AiSreTriggerLevels, gql.MonitorV2AlarmLevel(toCamel(level.(string))))
+			}
 		}
 	}
 	if v, ok := data.GetOk("ai_sre_max_investigations_per_monitor"); ok {

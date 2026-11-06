@@ -53,8 +53,8 @@ One of `name` or `id` must be set.
 - `actions` (Block List) The list of shared actions to which this monitor is connected. (see [below for nested schema](#nestedblock--actions))
 - `ai_sre_investigation_window` (String) Rolling window for `ai_sre_max_investigations_per_monitor`, a whole number of hours from `1h` to `24h`. If unset, the account default is used. Must be set together with `ai_sre_max_investigations_per_monitor`.
 - `ai_sre_max_investigations_per_monitor` (Number) Maximum number of AI SRE investigations the monitor starts per `ai_sre_investigation_window`. Defaults to `0`, which uses the account default. Must be set together with `ai_sre_investigation_window`.
-- `ai_sre_trigger_levels` (Set of String) Alert severities that start an AI SRE investigation. If unset, every severity does.
- Accepted values: `critical`, `error`, `warning`, `informational`, `no_data`
+- `ai_sre_trigger_levels` (Set of String) Alert severities that start an AI SRE investigation. Unset means every severity does. `["no_level"]` means no severity does.
+ Accepted values: `critical`, `error`, `warning`, `informational`, `no_data`, `no_level`
 - `ai_triaging_mode` (String) Whether an AI SRE investigation is automatically started when the monitor fires an alert. Defaults to `none`. Saving a monitor set to `triage` makes the provider's user the identity AI SRE investigates as, so that user must be allowed to start AI investigations, and AI SRE must be enabled for the customer.
  Accepted values: `none`, `triage`
 - `custom_variables` (String)

@@ -77,7 +77,7 @@ func dataSourceMonitorV2() *schema.Resource {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: describeEnums(gql.AllMonitorV2AiSreTriggerLevels, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
+				Description: describeEnums(monitorV2AiSreTriggerLevelValues, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
 			},
 			"ai_sre_max_investigations_per_monitor": { // Int64
 				Type:        schema.TypeInt,
