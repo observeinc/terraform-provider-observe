@@ -341,6 +341,10 @@ fragment MonitorV2 on MonitorV2 {
     iconUrl
     description
     disabled
+    aiTriagingMode
+    aiSreTriggerLevels
+    aiSreMaxInvestigationsPerMonitor
+    aiSreInvestigationWindowSeconds
     managedById
     rollupStatus
     ruleKind

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	observe "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -35,6 +36,30 @@ func validateMonitorV2ValueAggregation(i interface{}, path cty.Path) (diags diag
 	default:
 		return nil
 	}
+}
+
+// monitorV2AiSreNoTriggerLevel is sent to the API as an empty trigger level list,
+// so no level starts an investigation.
+const monitorV2AiSreNoTriggerLevel = "no_level"
+
+var monitorV2AiSreTriggerLevelValues = append(snakeCased(gql.AllMonitorV2AiSreTriggerLevels), monitorV2AiSreNoTriggerLevel)
+
+func validateMonitorV2AiSreInvestigationWindow(i interface{}, path cty.Path) diag.Diagnostics {
+	if i.(string) == "" {
+		return nil
+	}
+	if diags := validateTimeDuration(i, path); diags.HasError() {
+		return diags
+	}
+	if d, _ := time.ParseDuration(i.(string)); d < time.Hour || d > 24*time.Hour || d%time.Hour != 0 {
+		return diag.Diagnostics{{
+			Severity:      diag.Error,
+			Summary:       "Invalid field",
+			Detail:        fmt.Sprintf("expected a whole number of hours from 1h to 24h, got %s", i),
+			AttributePath: path,
+		}}
+	}
+	return nil
 }
 
 func resourceMonitorV2() *schema.Resource {
@@ -87,6 +112,38 @@ func resourceMonitorV2() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 				Description: descriptions.Get("monitorv2", "schema", "disabled"),
+			},
+			"ai_triaging_mode": { // MonitorV2AiTriagingMode
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "none",
+				ValidateDiagFunc: validateEnums(gql.AllMonitorV2AiTriagingModes),
+				DiffSuppressFunc: diffSuppressEnums,
+				Description:      describeEnums(gql.AllMonitorV2AiTriagingModes, descriptions.Get("monitorv2", "schema", "ai_triaging_mode")),
+			},
+			"ai_sre_trigger_levels": { // [MonitorV2AlarmLevel!]
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateStringInSlice(monitorV2AiSreTriggerLevelValues, false),
+				},
+				Description: describeEnums(monitorV2AiSreTriggerLevelValues, descriptions.Get("monitorv2", "schema", "ai_sre_trigger_levels")),
+			},
+			"ai_sre_max_investigations_per_monitor": { // Int64
+				Type:             schema.TypeInt,
+				Optional:         true,
+				Default:          0,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(0)),
+				Description:      descriptions.Get("monitorv2", "schema", "ai_sre_max_investigations_per_monitor"),
+			},
+			"ai_sre_investigation_window": { // Int64 (seconds)
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateMonitorV2AiSreInvestigationWindow,
+				DiffSuppressFunc: diffSuppressDuration,
+				Description:      descriptions.Get("monitorv2", "schema", "ai_sre_investigation_window"),
 			},
 			// until specified otherwise, the following are for building MonitorV2DefinitionInput
 			"stage": { // for building inputQuery (MultiStageQueryInput!))
@@ -962,6 +1019,39 @@ func resourceMonitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2
 	return append(diags, monitorV2ToResourceData(ctx, monitor, data, client, false)...)
 }
 
+// monitorV2AiSreLimitsToResourceData writes unset limits as no trigger levels,
+// 0 and "", the same as a config that leaves them out. It writes an empty
+// trigger level list as "no_level".
+func monitorV2AiSreLimitsToResourceData(monitor *gql.MonitorV2, data *schema.ResourceData) (diags diag.Diagnostics) {
+	triggerLevels := make([]string, 0, len(monitor.AiSreTriggerLevels))
+	for _, level := range monitor.AiSreTriggerLevels {
+		triggerLevels = append(triggerLevels, toSnake(string(level)))
+	}
+	if monitor.AiSreTriggerLevels != nil && len(monitor.AiSreTriggerLevels) == 0 {
+		triggerLevels = []string{monitorV2AiSreNoTriggerLevel}
+	}
+	if err := data.Set("ai_sre_trigger_levels", triggerLevels); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	maxInvestigations := 0
+	if monitor.AiSreMaxInvestigationsPerMonitor != nil {
+		maxInvestigations = int(*monitor.AiSreMaxInvestigationsPerMonitor)
+	}
+	if err := data.Set("ai_sre_max_investigations_per_monitor", maxInvestigations); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	investigationWindow := ""
+	if monitor.AiSreInvestigationWindowSeconds != nil {
+		investigationWindow = (time.Duration(*monitor.AiSreInvestigationWindowSeconds) * time.Second).String()
+	}
+	if err := data.Set("ai_sre_investigation_window", investigationWindow); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	return diags
+}
+
 func resourceMonitorV2Delete(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	if err := client.DeleteMonitorV2(ctx, data.Id()); err != nil {
@@ -991,6 +1081,16 @@ func monitorV2ToResourceData(ctx context.Context, monitor *gql.MonitorV2, data *
 	if err := data.Set("disabled", monitor.Disabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
+	aiTriagingMode := gql.MonitorV2AiTriagingModeNone
+	if monitor.AiTriagingMode != nil {
+		aiTriagingMode = *monitor.AiTriagingMode
+	}
+	if err := data.Set("ai_triaging_mode", toSnake(string(aiTriagingMode))); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	diags = append(diags, monitorV2AiSreLimitsToResourceData(monitor, data)...)
 
 	// monitor_v2 has no deprecated entity_tags field, so tagDiags is always empty
 	// today; kept in the usual shape in case that changes.
@@ -1261,6 +1361,19 @@ func resourceMonitorV2CustomizeDiff(ctx context.Context, d *schema.ResourceDiff,
 					"prefer basic_algorithm.num_standard_deviations as the top-level " +
 					"field is deprecated and will be removed in a future version",
 			)
+		}
+	}
+	if d.NewValueKnown("ai_sre_max_investigations_per_monitor") && d.NewValueKnown("ai_sre_investigation_window") {
+		capSet := d.Get("ai_sre_max_investigations_per_monitor").(int) != 0
+		windowSet := d.Get("ai_sre_investigation_window").(string) != ""
+		if capSet != windowSet {
+			return fmt.Errorf("ai_sre_max_investigations_per_monitor and ai_sre_investigation_window must be set together")
+		}
+	}
+	if d.NewValueKnown("ai_sre_trigger_levels") {
+		levels := d.Get("ai_sre_trigger_levels").(*schema.Set)
+		if levels.Contains(monitorV2AiSreNoTriggerLevel) && levels.Len() > 1 {
+			return fmt.Errorf("ai_sre_trigger_levels can't list %q with other levels", monitorV2AiSreNoTriggerLevel)
 		}
 	}
 	return nil
@@ -1540,6 +1653,25 @@ func newMonitorV2Input(data *schema.ResourceData, defaultOpalVersion *string) (i
 		input.Description = stringPtr(v.(string))
 	}
 	input.Disabled = boolPtr(data.Get("disabled").(bool))
+	if v, ok := data.GetOk("ai_triaging_mode"); ok {
+		mode := gql.MonitorV2AiTriagingMode(toCamel(v.(string)))
+		input.AiTriagingMode = &mode
+	}
+	if v, ok := data.GetOk("ai_sre_trigger_levels"); ok {
+		input.AiSreTriggerLevels = []gql.MonitorV2AlarmLevel{}
+		for _, level := range v.(*schema.Set).List() {
+			if level.(string) != monitorV2AiSreNoTriggerLevel {
+				input.AiSreTriggerLevels = append(input.AiSreTriggerLevels, gql.MonitorV2AlarmLevel(toCamel(level.(string))))
+			}
+		}
+	}
+	if v, ok := data.GetOk("ai_sre_max_investigations_per_monitor"); ok {
+		input.AiSreMaxInvestigationsPerMonitor = types.Int64Scalar(v.(int)).Ptr()
+	}
+	if v, ok := data.GetOk("ai_sre_investigation_window"); ok {
+		window, _ := time.ParseDuration(v.(string))
+		input.AiSreInvestigationWindowSeconds = types.Int64Scalar(window / time.Second).Ptr()
+	}
 
 	// Always set ObjectTags, even if empty, to allow clearing tags
 	input.ObjectTags = objectTagsInputFromReader(data)

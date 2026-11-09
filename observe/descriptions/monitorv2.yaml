@@ -19,6 +19,22 @@ schema:
     A brief description of the monitor.
   disabled: |
     Enable/Disable the monitor (and any underlying transforms).
+  ai_triaging_mode: >
+    Whether an AI SRE investigation is automatically started when the monitor fires an alert.
+    Defaults to `none`. Saving a monitor set to `triage` makes the provider's user the identity
+    AI SRE investigates as, so that user must be allowed to start AI investigations, and AI SRE
+    must be enabled for the customer.
+  ai_sre_trigger_levels: >
+    Alert severities that start an AI SRE investigation. Unset means every severity does.
+    `["no_level"]` means no severity does.
+  ai_sre_max_investigations_per_monitor: >
+    Maximum number of AI SRE investigations the monitor starts per `ai_sre_investigation_window`.
+    Defaults to `0`, which uses the account default. Must be set together with
+    `ai_sre_investigation_window`.
+  ai_sre_investigation_window: >
+    Rolling window for `ai_sre_max_investigations_per_monitor`, a whole number of hours from
+    `1h` to `24h`. If unset, the account default is used. Must be set together with
+    `ai_sre_max_investigations_per_monitor`.
   no_data_rules:
     description: |
       No data rules allows a user to be alerted on missing data for the specified lookback window. When provided, the severity is fixed to the NoData severity. As of today, the max number of no data rules that can be created is 1 for the threshold monitor kind.
