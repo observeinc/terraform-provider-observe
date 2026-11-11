@@ -39,17 +39,18 @@ resource "observe_reference_table" "example" {
 
 ### Required
 
-- `checksum` (String) MD5 checksum of the source file.
-Can be computed using `filemd5("<source_file>")`.
 - `label` (String) The name of the reference table name. Must be unique within workspace.
-- `source_file` (String) The path to a CSV file containing the reference table data.
 
 ### Optional
 
+- `checksum` (String) MD5 checksum of the source file.
+Can be computed using `filemd5("<source_file>")`. Required with `source_file`, and must not be set with `initial_source_file`.
 - `description` (String) Description for the reference table.
+- `initial_source_file` (String) The path to a CSV file whose rows seed the reference table when it is created. After that, Terraform does not manage the rows: rows edited in Observe, in the UI or through the API, are kept, and changes to this file are ignored. `label`, `description` and `primary_key` can still be updated. Changing `schema` or `label_field` replaces the table, because the API applies either only with an upload: the new table is seeded from `initial_source_file`, and rows edited in Observe are lost. Switching to `source_file` uploads that file on the next apply if its checksum differs from the table's. Exactly one of `source_file` and `initial_source_file` must be set.
 - `label_field` (String) The field that should be used for the OPAL label.
 - `primary_key` (List of String) The primary key of the reference table.
 - `schema` (Block List) The schema of the reference table. Must match the columns in the source file. (see [below for nested schema](#nestedblock--schema))
+- `source_file` (String) The path to a CSV file containing the reference table data. Terraform manages the rows: when `checksum` changes, the file is uploaded and replaces every row, including rows edited in Observe. Exactly one of `source_file` and `initial_source_file` must be set.
 
 ### Read-Only
 
