@@ -198,8 +198,17 @@ func referenceTableToResourceData(refTable *rest.ReferenceTable, dataset *gql.Da
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO: add "primary_key" and "label_field" once API supports them in response.
-	// Until then, we're unable to detect changes to those fields made outside of Terraform.
+	if err := data.Set("primary_key", refTable.PrimaryKey); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	labelField := ""
+	if refTable.LabelField != nil {
+		labelField = *refTable.LabelField
+	}
+	if err := data.Set("label_field", labelField); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
