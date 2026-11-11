@@ -46,6 +46,7 @@ Can be computed using `filemd5("<source_file>")`.
 
 ### Optional
 
+- `allow_row_edits` (Boolean) Keep rows edited in Observe, in the UI or through the API. Editing rows clears the reference table's checksum, so by default the next apply uploads `source_file` again and replaces the edited rows. When `true`, the provider keeps the checksum of the last uploaded file and uploads `source_file` only when `checksum`, `schema`, `primary_key`, or `label_field` changes. Every upload replaces all rows, including edited ones. Set this before rows are edited: if the table already has edits when you enable it or import the table, the next apply uploads `source_file` once. Setting it back to `false` uploads `source_file` in that same apply if rows were edited, although the plan shows only the `allow_row_edits` change. Defaults to `false`.
 - `description` (String) Description for the reference table.
 - `label_field` (String) The field that should be used for the OPAL label.
 - `primary_key` (List of String) The primary key of the reference table.

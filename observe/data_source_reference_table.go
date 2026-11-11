@@ -109,5 +109,5 @@ func dataSourceReferenceTableRead(ctx context.Context, data *schema.ResourceData
 	}
 
 	data.SetId(m.Id)
-	return resourceReferenceTableRead(ctx, data, meta)
+	return readReferenceTable(ctx, data, meta)
 }

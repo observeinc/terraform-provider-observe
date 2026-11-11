@@ -84,6 +84,12 @@ func resourceReferenceTable() *schema.Resource {
 				Optional:    true,
 				Description: descriptions.Get("reference_table", "schema", "label_field"),
 			},
+			"allow_row_edits": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: descriptions.Get("reference_table", "schema", "allow_row_edits"),
+			},
 			"dataset": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -235,6 +241,30 @@ func resourceReferenceTableCreate(ctx context.Context, data *schema.ResourceData
 }
 
 func resourceReferenceTableRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
+	allowRowEdits, _ := data.Get("allow_row_edits").(bool)
+	stateChecksum, _ := data.Get("checksum").(string)
+	diags = readReferenceTable(ctx, data, meta)
+	if diags.HasError() || data.Id() == "" {
+		return diags
+	}
+	// Editing rows in Observe clears the table's checksum. Storing that empty
+	// checksum would show the edits as a diff and upload source_file again.
+	if allowRowEdits && data.Get("checksum") == "" {
+		if err := data.Set("checksum", stateChecksum); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	// Imported state and state written by provider versions without this
+	// attribute have no allow_row_edits; store its default so they match config.
+	if err := data.Set("allow_row_edits", allowRowEdits); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	return diags
+}
+
+// readReferenceTable stores the table's current API values in data, clearing
+// the ID if the table no longer exists. The data source shares it.
+func readReferenceTable(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	result, err := client.GetReferenceTable(ctx, data.Id())
 	if err != nil {
@@ -251,30 +281,58 @@ func resourceReferenceTableRead(ctx context.Context, data *schema.ResourceData, 
 	return referenceTableToResourceData(result, dataset, data)
 }
 
+// rowEditsDisallowed reports whether this apply turns allow_row_edits off.
+func rowEditsDisallowed(data *schema.ResourceData) bool {
+	allowRowEdits, _ := data.Get("allow_row_edits").(bool)
+	return data.HasChange("allow_row_edits") && !allowRowEdits
+}
+
 func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
 	client := meta.(*observe.Client)
 	var err error
 
-	// If only the source_file field changed, i.e. the file was moved or renamed, we can ignore it.
-	// If the actual file contents have changed, the checksum would also be different.
-	if !data.HasChangeExcept("source_file") {
-		return nil
-	}
+	// The SDK stores the planned values when Update returns an error. Keep the
+	// prior state instead, so a failed upload is retried rather than recorded
+	// as applied (with allow_row_edits, refresh would not reveal it).
+	defer func() {
+		if diags.HasError() {
+			data.Partial(true)
+		}
+	}()
 
 	// If the file (i.e. the checksum) or schema have been modified, need to use the PUT method to
 	// fully replace the reference table. Otherwise, we can use PATCH to only update the metadata.
 	// TODO: remove primary_key and label_field below, API will support PATCHing them soon
 	fieldsRequiringPut := []string{"checksum", "schema", "primary_key", "label_field"}
-	if data.HasChanges(fieldsRequiringPut...) {
-		config, diags := newReferenceTableConfig(data)
-		if diags.HasError() {
-			return diags
+	uploadRequired := data.HasChanges(fieldsRequiringPut...)
+
+	// Refresh ran with allow_row_edits still on, so it kept the checksum of
+	// the last upload. Upload now if rows were edited, as the default promises.
+	if !uploadRequired && rowEditsDisallowed(data) {
+		remote, err := client.GetReferenceTable(ctx, data.Id())
+		if err != nil {
+			return diag.Errorf("failed to retrieve reference table: %s", err.Error())
+		}
+		uploadRequired = remote.Checksum == ""
+	}
+
+	// If only the source_file field changed, i.e. the file was moved or renamed, we can ignore it.
+	// If the actual file contents have changed, the checksum would also be different.
+	// allow_row_edits only exists in the provider, so changing it needs no API call.
+	if !uploadRequired && !data.HasChangesExcept("source_file", "allow_row_edits") {
+		return nil
+	}
+
+	if uploadRequired {
+		config, configDiags := newReferenceTableConfig(data)
+		if configDiags.HasError() {
+			return configDiags
 		}
 		_, err = client.UpdateReferenceTable(ctx, data.Id(), config)
 	} else {
-		metadataConfig, diags := newReferenceTableMetadataConfig(data, true)
-		if diags.HasError() {
-			return diags
+		metadataConfig, metadataDiags := newReferenceTableMetadataConfig(data, true)
+		if metadataDiags.HasError() {
+			return metadataDiags
 		}
 		_, err = client.UpdateReferenceTableMetadata(ctx, data.Id(), metadataConfig)
 	}
