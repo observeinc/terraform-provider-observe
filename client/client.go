@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"mime"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -69,12 +70,17 @@ func (c *Client) loginOnFirstRun(ctx context.Context) (loginErr error) {
 }
 
 func (c *Client) logRequest(ctx context.Context, req *http.Request) {
-	sensitive := isSensitive(ctx)
-	if sensitive {
+	includeBody := true
+	if isSensitive(ctx) {
 		log.Printf("[DEBUG] sensitive payload, omitting request body")
+		includeBody = false
+	} else if isMultipartUpload(req) {
+		// dumping the body would read the whole uploaded file into memory
+		log.Printf("[DEBUG] multipart upload, omitting %d byte request body", req.ContentLength)
+		includeBody = false
 	}
 
-	s, err := httputil.DumpRequest(req, !sensitive)
+	s, err := httputil.DumpRequest(req, includeBody)
 	if err != nil {
 		log.Printf("[WARN] failed to dump request: %s\n", err)
 	}
@@ -86,6 +92,30 @@ func (c *Client) logResponse(ctx context.Context, resp *http.Response) {
 		s, _ := httputil.DumpResponse(resp, !isSensitive(ctx))
 		log.Printf("[DEBUG] %s\n", s)
 	}
+}
+
+func isMultipartUpload(req *http.Request) bool {
+	mediaType, _, err := mime.ParseMediaType(req.Header.Get("Content-Type"))
+	return err == nil && mediaType == "multipart/form-data"
+}
+
+func canReplayRequestBody(req *http.Request) bool {
+	return req.Body == nil || req.Body == http.NoBody || req.GetBody != nil
+}
+
+// withFreshRequestBody returns a copy of req whose body is read from the
+// start again, since the previous attempt consumed and closed it.
+func withFreshRequestBody(req *http.Request) (*http.Request, error) {
+	if req.Body == nil || req.Body == http.NoBody {
+		return req, nil
+	}
+	body, err := req.GetBody()
+	if err != nil {
+		return nil, err
+	}
+	retryReq := req.Clone(req.Context())
+	retryReq.Body = body
+	return retryReq, nil
 }
 
 func shouldRetryRequest(resp *http.Response, err error) bool {
@@ -155,6 +185,10 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 		resp, err = wrapped.RoundTrip(c.setTrace(req))
 		waitBeforeRetry := c.RetryWait
 		for retry := 0; shouldRetryRequest(resp, err) && retry < c.RetryCount && ctx.Err() == nil; retry++ {
+			if !canReplayRequestBody(req) {
+				log.Printf("[WARN] retryable request error, not retrying because the request body cannot be resent\n")
+				break
+			}
 			log.Printf("[WARN] retryable request error, retrying in %s (%d/%d)\n", waitBeforeRetry, retry+1, c.RetryCount)
 			if resp != nil {
 				resp.Body.Close()
@@ -170,7 +204,11 @@ func (c *Client) withMiddleware(wrapped http.RoundTripper) http.RoundTripper {
 			if waitBeforeRetry > meta.MaxRetryBackoff {
 				waitBeforeRetry = meta.MaxRetryBackoff
 			}
-			resp, err = wrapped.RoundTrip(req)
+			retryReq, bodyErr := withFreshRequestBody(req)
+			if bodyErr != nil {
+				return nil, fmt.Errorf("failed to reset request body for retry: %w", bodyErr)
+			}
+			resp, err = wrapped.RoundTrip(retryReq)
 		}
 		return
 	})

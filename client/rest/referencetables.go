@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -54,52 +56,159 @@ func (r *ReferenceTable) Oid() oid.OID {
 	}
 }
 
-func (r *ReferenceTableInput) RequestBody() (body *bytes.Buffer, contentType string, err error) {
-	body = &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	fileName := filepath.Base(r.SourceFilePath)
-	uploadPart, err := writer.CreateFormFile("upload", fileName)
-	if err != nil {
-		return nil, "", err
-	}
-	file, err := os.Open(r.SourceFilePath)
-	if err != nil {
-		return nil, "", err
-	}
-	defer file.Close()
-	_, err = io.Copy(uploadPart, file)
-	if err != nil {
-		return nil, "", err
-	}
+var errSourceFileChangedSize = errors.New("source file changed size during upload")
 
-	schemaPart, err := writer.CreateFormFile("schema", "schema.json")
+// MultipartFileUpload is a multipart/form-data request body whose file part is
+// streamed from disk, so large files are never held in memory. The multipart
+// framing around the file is rendered up front, which makes the exact
+// Content-Length known before sending.
+type MultipartFileUpload struct {
+	contentType       string
+	sourceFilePath    string
+	sourceFileSize    int64
+	framingBeforeFile []byte
+	framingAfterFile  []byte
+}
+
+func (u *MultipartFileUpload) ContentType() string {
+	return u.contentType
+}
+
+func (u *MultipartFileUpload) ContentLength() int64 {
+	return int64(len(u.framingBeforeFile)) + u.sourceFileSize + int64(len(u.framingAfterFile))
+}
+
+// Open returns a reader over the complete body. Each call re-opens the source
+// file, so it can be used as http.Request.GetBody to resend the body.
+func (u *MultipartFileUpload) Open() (io.ReadCloser, error) {
+	file, err := os.Open(u.sourceFilePath)
 	if err != nil {
-		return nil, "", err
+		return nil, err
+	}
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return nil, err
+	}
+	if info.Size() != u.sourceFileSize {
+		file.Close()
+		return nil, fmt.Errorf("%w: %s was %d bytes, now %d", errSourceFileChangedSize, u.sourceFilePath, u.sourceFileSize, info.Size())
+	}
+	fileContent := &sizeCheckedFileReader{file: file, path: u.sourceFilePath, remainingBytes: u.sourceFileSize}
+	return &multipartFileUploadReader{
+		Reader: io.MultiReader(bytes.NewReader(u.framingBeforeFile), fileContent, bytes.NewReader(u.framingAfterFile)),
+		file:   file,
+	}, nil
+}
+
+type multipartFileUploadReader struct {
+	io.Reader
+	file *os.File
+}
+
+func (r *multipartFileUploadReader) Close() error {
+	return r.file.Close()
+}
+
+// sizeCheckedFileReader yields exactly remainingBytes from file and fails if the
+// file is shorter or longer, because the Content-Length has already been fixed.
+type sizeCheckedFileReader struct {
+	file           *os.File
+	path           string
+	remainingBytes int64
+}
+
+func (r *sizeCheckedFileReader) Read(p []byte) (int, error) {
+	if r.remainingBytes == 0 {
+		var probe [1]byte
+		n, err := r.file.Read(probe[:])
+		switch {
+		case n > 0:
+			return 0, fmt.Errorf("%w: %s grew", errSourceFileChangedSize, r.path)
+		case err == nil || errors.Is(err, io.EOF):
+			return 0, io.EOF
+		default:
+			return 0, err
+		}
+	}
+	if int64(len(p)) > r.remainingBytes {
+		p = p[:r.remainingBytes]
+	}
+	n, err := r.file.Read(p)
+	r.remainingBytes -= int64(n)
+	if errors.Is(err, io.EOF) {
+		if r.remainingBytes > 0 {
+			return n, fmt.Errorf("%w: %s shrank", errSourceFileChangedSize, r.path)
+		}
+		err = nil
+	}
+	return n, err
+}
+
+// redirectableWriter lets a single multipart.Writer render the framing before
+// and after the file part into separate buffers.
+type redirectableWriter struct {
+	target io.Writer
+}
+
+func (w *redirectableWriter) Write(p []byte) (int, error) {
+	return w.target.Write(p)
+}
+
+func (r *ReferenceTableInput) RequestBody() (*MultipartFileUpload, error) {
+	info, err := os.Stat(r.SourceFilePath)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("source file %s is not a regular file", r.SourceFilePath)
 	}
 	schema, err := json.Marshal(r.Schema)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	_, err = schemaPart.Write(schema)
-
 	metadata, err := json.Marshal(r.Metadata)
-	if err != nil {
-		return nil, "", err
-	}
-	writer.WriteField("metadata", string(metadata))
-
-	contentType = writer.FormDataContentType()
-	writer.Close()
-	return body, contentType, nil
-}
-
-func (client *Client) CreateReferenceTable(ctx context.Context, input *ReferenceTableInput) (*ReferenceTable, error) {
-	body, contentType, err := input.RequestBody()
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Post("/v1/referencetables", contentType, body)
+	var framingBeforeFile, framingAfterFile bytes.Buffer
+	framingDestination := &redirectableWriter{target: &framingBeforeFile}
+	writer := multipart.NewWriter(framingDestination)
+	if _, err := writer.CreateFormFile("upload", filepath.Base(r.SourceFilePath)); err != nil {
+		return nil, err
+	}
+	framingDestination.target = &framingAfterFile
+	schemaPart, err := writer.CreateFormFile("schema", "schema.json")
+	if err != nil {
+		return nil, err
+	}
+	if _, err := schemaPart.Write(schema); err != nil {
+		return nil, err
+	}
+	if err := writer.WriteField("metadata", string(metadata)); err != nil {
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+
+	return &MultipartFileUpload{
+		contentType:       writer.FormDataContentType(),
+		sourceFilePath:    r.SourceFilePath,
+		sourceFileSize:    info.Size(),
+		framingBeforeFile: framingBeforeFile.Bytes(),
+		framingAfterFile:  framingAfterFile.Bytes(),
+	}, nil
+}
+
+func (client *Client) CreateReferenceTable(ctx context.Context, input *ReferenceTableInput) (*ReferenceTable, error) {
+	upload, err := input.RequestBody()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.requestWithUpload(ctx, http.MethodPost, "/v1/referencetables", upload)
 	if err != nil {
 		return nil, err
 	}
@@ -128,11 +237,11 @@ func (client *Client) GetReferenceTable(ctx context.Context, id string) (*Refere
 }
 
 func (client *Client) UpdateReferenceTable(ctx context.Context, id string, input *ReferenceTableInput) (*ReferenceTable, error) {
-	body, contentType, err := input.RequestBody()
+	upload, err := input.RequestBody()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Put("/v1/referencetables/"+url.PathEscape(id), contentType, body)
+	resp, err := client.requestWithUpload(ctx, http.MethodPut, "/v1/referencetables/"+url.PathEscape(id), upload)
 	if err != nil {
 		return nil, err
 	}

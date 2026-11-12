@@ -121,6 +121,29 @@ func (c *Client) requestWithContext(
 	return responseWrapper(c.httpClient.Do(req))
 }
 
+// requestWithUpload sends upload with an exact Content-Length rather than
+// chunked encoding, and lets retries re-open the file through GetBody.
+func (c *Client) requestWithUpload(
+	ctx context.Context,
+	method, path string,
+	upload *MultipartFileUpload,
+) (*http.Response, error) {
+	body, err := upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, body)
+	if err != nil {
+		body.Close()
+		return nil, err
+	}
+	req.ContentLength = upload.ContentLength()
+	req.GetBody = upload.Open
+	req.Header.Set("Content-Type", upload.ContentType())
+
+	return responseWrapper(c.httpClient.Do(req))
+}
+
 func (c *Client) Post(path, contentType string, body io.Reader) (*http.Response, error) {
 	return c.request(http.MethodPost, path, contentType, body)
 }
