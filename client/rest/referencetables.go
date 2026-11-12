@@ -40,6 +40,10 @@ type ReferenceTable struct {
 	Description string `json:"description"`
 	Checksum    string `json:"checksum"`
 	DatasetId   string `json:"datasetId"`
+	// PrimaryKey is null when the table has no primary key.
+	PrimaryKey []string `json:"primaryKey"`
+	// LabelField is omitted when the table has no label field.
+	LabelField *string `json:"labelField,omitempty"`
 }
 
 type ReferenceTableListResponse struct {
