@@ -134,11 +134,8 @@ func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta int
 	current, err := client.GetForeignKey(ctx, data.Id())
 	switch {
 	case current == nil && gql.HasErrorCode(err, gql.ErrNotFound):
-		diags = resourceLinkCreate(ctx, data, meta)
-		if diags.HasError() {
-			return diags
-		}
-		return nil
+		// Deleted outside Terraform since the refresh.
+		return resourceLinkCreate(ctx, data, meta)
 	case current == nil:
 		return diag.Errorf("failed to read foreign key: %v", err)
 	case linkMatchesConfig(current, config, client.Config.ManagingObjectID):
@@ -156,13 +153,6 @@ func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta int
 
 	_, err = client.UpdateForeignKey(ctx, data.Id(), config)
 	if err != nil {
-		if gql.HasErrorCode(err, gql.ErrNotFound) {
-			diags = resourceLinkCreate(ctx, data, meta)
-			if diags.HasError() {
-				return diags
-			}
-			return nil
-		}
 		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
 

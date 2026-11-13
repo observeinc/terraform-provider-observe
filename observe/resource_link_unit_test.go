@@ -207,6 +207,44 @@ func TestResourceLinkUpdateRecreatesMissingLink(t *testing.T) {
 	}
 }
 
+func TestResourceLinkUpdateNotFoundOnUpdateFails(t *testing.T) {
+	// The link existed when read, then was deleted before the update.
+	var ops []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			OperationName string `json:"operationName"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		ops = append(ops, req.OperationName)
+		w.Header().Set("Content-Type", "application/json")
+		if req.OperationName == "getDeferredForeignKey" {
+			_, _ = w.Write([]byte(`{"data":{"deferredForeignKey":` + linkTestDFK + `}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"data":null,"errors":[{"message":"not found","extensions":{"code":"NOT_FOUND"}}]}`))
+	}))
+	t.Cleanup(server.Close)
+	m, err := gql.New(server.URL, server.Client())
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &observeclient.Client{Config: &observeclient.Config{}, Meta: m}
+
+	data := linkUpdateData(t, []interface{}{"key", "other"}, "")
+	// With the workspace known, a create would reach createDeferredForeignKey.
+	if err := data.Set("workspace", "o:::workspace:41000001"); err != nil {
+		t.Fatal(err)
+	}
+
+	diags := resourceLinkUpdate(context.Background(), data, client)
+	if !diags.HasError() {
+		t.Fatal("expected an error when the link disappears between the read and the update")
+	}
+	if slices.Contains(ops, "createDeferredForeignKey") {
+		t.Errorf("created the link; ops = %v", ops)
+	}
+}
+
 func TestLinkMatchesConfigManagedBy(t *testing.T) {
 	managedBy := "41000777"
 	other := "41000888"
