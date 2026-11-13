@@ -8,6 +8,7 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	label
 	resolution { sourceId targetId }
 	status { errorText }
+	managedById
 }
 
 mutation createDeferredForeignKey($workspaceId: ObjectId!, $keyInput: DeferredForeignKeyInput!) {
