@@ -2,6 +2,7 @@ package observe
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -121,19 +122,63 @@ func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta int
 		return diags
 	}
 
-	_, err := client.UpdateForeignKey(ctx, data.Id(), config)
-	if err != nil {
-		if gql.HasErrorCode(err, gql.ErrNotFound) {
-			diags = resourceLinkCreate(ctx, data, meta)
-			if diags.HasError() {
-				return diags
-			}
-			return nil
+	// Do a deep diff against server states before any update. This prevents a
+	// noop update to Link on the server when resource actually unchanged.
+	//
+	// This is because the Link.source and Link.target contains version ID of a
+	// dataset, every dataset version drift could result in a Link diff. While,
+	// a bug in the backend could force a Link update to also rematerialize the
+	// source datasets. The diff is against the remote server state instead of
+	// local TF state, so to detect the error status of the link, e.g. caused by
+	// the same-apply dataset changes.
+	current, err := client.GetForeignKey(ctx, data.Id())
+	switch {
+	case current == nil && gql.HasErrorCode(err, gql.ErrNotFound):
+		// Deleted outside Terraform since the refresh.
+		return resourceLinkCreate(ctx, data, meta)
+	case current == nil:
+		return diag.Errorf("failed to read foreign key: %v", err)
+	case linkMatchesConfig(current, config, client.Config.ManagingObjectID):
+		// The dataset save has already re-resolved this link. If there is error
+		// in remote, fail the update.
+		if errorText := current.Status.ErrorText; errorText != "" {
+			// Keep the previous state. Otherwise the SDK saves the planned oids
+			// despite the error, the next plan shows no diff, and the broken
+			// link only warns from then on.
+			data.Partial(true)
+			return diag.Errorf("failed to update foreign key: %s", errorText)
 		}
+		return append(diags, resourceLinkRead(ctx, data, meta)...)
+	}
+
+	_, err = client.UpdateForeignKey(ctx, data.Id(), config)
+	if err != nil {
 		return diag.Errorf("failed to update foreign key: %s", err.Error())
 	}
 
 	return append(diags, resourceLinkRead(ctx, data, meta)...)
+}
+
+// linkMatchesConfig reports whether UpdateForeignKey(input) would leave link as it
+// is. managedById is the value the client adds to every write.
+func linkMatchesConfig(link *gql.DeferredForeignKey, input *gql.DeferredForeignKeyInput, managedById *string) bool {
+	return link.SourceDataset != nil && link.TargetDataset != nil &&
+		equalPtr(link.SourceDataset.DatasetId, input.SourceDataset.DatasetId) &&
+		equalPtr(link.TargetDataset.DatasetId, input.TargetDataset.DatasetId) &&
+		slices.Equal(link.SrcFields, input.SrcFields) &&
+		slices.Equal(link.DstFields, input.DstFields) &&
+		// label is computed when not configured: Terraform keeps whatever the server has.
+		(input.Label == nil || equalPtr(link.Label, input.Label)) &&
+		// The backend overwrites every field on update, so a mismatch here, even a
+		// nil one, is a change the update would make.
+		equalPtr(link.ManagedById, managedById)
+}
+
+func equalPtr[T comparable](a, b *T) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }
 
 func resourceLinkRead(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
