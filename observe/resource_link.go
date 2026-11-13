@@ -145,6 +145,10 @@ func resourceLinkUpdate(ctx context.Context, data *schema.ResourceData, meta int
 		// The dataset save has already re-resolved this link. If there is error
 		// in remote, fail the update.
 		if errorText := current.Status.ErrorText; errorText != "" {
+			// Keep the previous state. Otherwise the SDK saves the planned oids
+			// despite the error, the next plan shows no diff, and the broken
+			// link only warns from then on.
+			data.Partial(true)
 			return diag.Errorf("failed to update foreign key: %s", errorText)
 		}
 		return append(diags, resourceLinkRead(ctx, data, meta)...)

@@ -9,7 +9,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	observeclient "github.com/observeinc/terraform-provider-observe/client"
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 )
@@ -140,6 +142,52 @@ func TestResourceLinkUpdateUnchangedButBrokenFails(t *testing.T) {
 	}
 	if slices.Contains(*ops, "updateDeferredForeignKey") {
 		t.Errorf("sent updateDeferredForeignKey; ops = %v", *ops)
+	}
+}
+
+// linkApply runs a version-only update of the link through the SDK, as terraform
+// apply does, and returns the state the SDK hands back to Terraform to save.
+func linkApply(t *testing.T, client *observeclient.Client, oldSource, newSource string) (*terraform.InstanceState, diag.Diagnostics) {
+	state := &terraform.InstanceState{
+		ID: "41000301",
+		Attributes: map[string]string{
+			"id":       "41000301",
+			"source":   oldSource,
+			"target":   "o:::dataset:41000102",
+			"fields.#": "1",
+			"fields.0": "key",
+			"label":    "test-link",
+		},
+	}
+	diff := &terraform.InstanceDiff{Attributes: map[string]*terraform.ResourceAttrDiff{
+		"source": {Old: oldSource, New: newSource},
+	}}
+	return resourceLink().Apply(context.Background(), state, diff, client)
+}
+
+func TestResourceLinkUpdateBrokenKeepsPreviousState(t *testing.T) {
+	const oldSource = "o:::dataset:41000101/2026-01-01T00:00:00Z"
+	const newSource = "o:::dataset:41000101/2026-01-02T03:04:05Z"
+
+	broken := strings.Replace(linkTestDFK, `"errorText": ""`, `"errorText": "field \"key\" not present in source dataset"`, 1)
+	client, _ := linkTestServer(t, broken)
+	got, diags := linkApply(t, client, oldSource, newSource)
+	if !diags.HasError() {
+		t.Fatal("expected an error for a link the dataset save broke")
+	}
+	// The old oid keeps the update in the next plan, so the next apply fails
+	// again until the link is fixed.
+	if src := got.Attributes["source"]; src != oldSource {
+		t.Errorf("saved source = %q, want the previous %q", src, oldSource)
+	}
+
+	client, _ = linkTestServer(t, linkTestDFK)
+	got, diags = linkApply(t, client, oldSource, newSource)
+	if diags.HasError() {
+		t.Fatalf("apply: %v", diags)
+	}
+	if src := got.Attributes["source"]; src != newSource {
+		t.Errorf("saved source = %q, want the planned %q", src, newSource)
 	}
 }
 
