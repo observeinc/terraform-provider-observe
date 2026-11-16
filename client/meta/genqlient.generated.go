@@ -2408,6 +2408,7 @@ type DeferredForeignKey struct {
 	Label         *string                                                  `json:"label"`
 	Resolution    *DeferredForeignKeyResolutionResolvedForeignKey          `json:"resolution"`
 	Status        DeferredForeignKeyStatus                                 `json:"status"`
+	ManagedById   *string                                                  `json:"managedById"`
 }
 
 // GetId returns DeferredForeignKey.Id, and is useful for accessing the field via an interface.
@@ -2442,6 +2443,9 @@ func (v *DeferredForeignKey) GetResolution() *DeferredForeignKeyResolutionResolv
 
 // GetStatus returns DeferredForeignKey.Status, and is useful for accessing the field via an interface.
 func (v *DeferredForeignKey) GetStatus() DeferredForeignKeyStatus { return v.Status }
+
+// GetManagedById returns DeferredForeignKey.ManagedById, and is useful for accessing the field via an interface.
+func (v *DeferredForeignKey) GetManagedById() *string { return v.ManagedById }
 
 type DeferredForeignKeyInput struct {
 	SourceDataset *DeferredDatasetReferenceInput `json:"sourceDataset"`
@@ -14829,6 +14833,7 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	status {
 		errorText
 	}
+	managedById
 }
 `
 
@@ -18496,6 +18501,7 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	status {
 		errorText
 	}
+	managedById
 }
 `
 
@@ -23492,6 +23498,7 @@ fragment DeferredForeignKey on DeferredForeignKey {
 	status {
 		errorText
 	}
+	managedById
 }
 `
 
