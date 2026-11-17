@@ -1,0 +1,31 @@
+description: |
+  A source dataset is an ingest destination: the dataset that observations are written to before any transforms. This resource manages source datasets through the `/v1/source-datasets` REST API, including Observe-managed Iceberg storage and external write.
+
+  The source dataset API is in beta and must be enabled for your account (backend flag `source_dataset_rest_api`). Iceberg storage additionally requires Iceberg datasets to be enabled, and `external_write` requires external write to be enabled for the account.
+
+  `Prometheus` and `OtelSpan` source datasets also create companion datasets (a metadata dataset for `Prometheus`; span event and span link datasets for `OtelSpan`). Those are managed with the source dataset and deleted with it.
+
+  Changing `schema_type`, `storage`, `storage_integration` or `external_write` replaces the source dataset, which deletes its data.
+
+  ~> **Breaking change:** this resource replaces the removed legacy `observe_source_dataset`, which registered raw Snowflake tables. State written by the legacy resource cannot be upgraded: run `terraform state rm` on it and remove it from configuration. The dataset it pointed to is unaffected.
+schema:
+  label: |
+    The dataset label, in `package/name` form. Only the name after the last `/` can be changed in place; changing the package fails the plan, because it would require replacing the dataset and deleting its data. Unique per workspace.
+  description: |
+    Description of the source dataset.
+  icon_url: |
+    Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+  data_retention_days: |
+    Data retention for this dataset, in days. `0` is accepted. Setting or changing this attribute requires workspace admin. When unset, the provider reports the retention the API returns, which may be inherited from the shared ingest backing. Removing the attribute from configuration leaves the current value unchanged; to return to workspace retention, clear it in the UI or the API.
+  effective_data_retention_days: |
+    The data retention, in days, that applies to this dataset after inheritance.
+  schema_type: |
+    The signal type of the dataset. Defaults to `Any`, which infers the type from the data. Changing it replaces the dataset.
+  storage: |
+    Where the dataset's table is stored: `Native` (Observe-managed storage, the default) or `Iceberg` (an Observe-managed Iceberg table in `storage_integration`). Changing it replaces the dataset.
+  storage_integration: |
+    OID of the storage integration that holds the Iceberg table. Required when `storage` is `Iceberg`, and only allowed then. Changing it replaces the dataset.
+  external_write: |
+    When true, Observe provisions the Iceberg table and owns its schema but runs no ingest pipeline; you write rows through Observe's Iceberg catalog. Requires `storage = "Iceberg"`. Defaults to false. Changing it replaces the dataset.
+  force_destroy: |
+    When true, destroying this resource deletes the source dataset even if other datasets depend on it. The dependent datasets are kept and rebuilt, but dashboards, worksheets, monitors and export jobs that read from the source dataset stop working. Deletion is still refused while an ingest token or a filedrop/poller is attached. Defaults to false.
