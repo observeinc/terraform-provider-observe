@@ -407,9 +407,8 @@ func sourceDatasetToResourceData(data *schema.ResourceData, ds *rest.SourceDatas
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-	// TODO: verify on eng whether GET returns the label exactly as sent for
-	// typed schema types (the API keeps a type suffix such as " Metrics" on
-	// rename). If not, add a DiffSuppressFunc on label for that suffix only.
+	// GET returns the label exactly as created, typed schema types included
+	// (checked on testbox), so no suffix diff suppression is needed.
 	set("label", ds.Label)
 	description, icon := "", ""
 	if ds.Description != nil {
