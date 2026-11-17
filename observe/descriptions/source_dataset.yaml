@@ -14,7 +14,7 @@ schema:
   description: |
     Description of the source dataset.
   icon_url: |
-    Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set.
+    Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set. When unset, the provider reports the icon the API assigns. Removing the attribute from configuration leaves the current icon unchanged; set it explicitly to change it.
   data_retention_days: |
     Data retention for this dataset, in days. `0` is accepted. Setting or changing this attribute requires workspace admin. When unset, the provider reports the retention the API returns, which may be inherited from the shared ingest backing. Removing the attribute from configuration leaves the current value unchanged; to return to workspace retention, clear it in the UI or the API.
   effective_data_retention_days: |

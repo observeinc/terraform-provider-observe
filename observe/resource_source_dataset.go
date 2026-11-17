@@ -189,6 +189,11 @@ func sourceDatasetLabelPackage(label string) string {
 
 func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	replacing := sourceDatasetBackingReplaced(d)
+	if replacing {
+		if err := checkSourceDatasetReplaceKeepsBacking(d); err != nil {
+			return err
+		}
+	}
 	storage, storageKnown := effectiveSourceDatasetValue(d, "storage", cty.StringVal(sourceDatasetStorageNative), replacing)
 	integration, integrationKnown := effectiveSourceDatasetValue(d, "storage_integration", cty.StringVal(""), replacing)
 	externalWrite, externalWriteKnown := effectiveSourceDatasetValue(d, "external_write", cty.False, replacing)
@@ -247,6 +252,61 @@ func sourceDatasetBackingReplaced(d *schema.ResourceDiff) bool {
 		}
 	}
 	return false
+}
+
+// sourceDatasetIcebergBackingKeys must be set in configuration when an Iceberg
+// or external-write dataset is replaced.
+var sourceDatasetIcebergBackingKeys = []string{"storage", "storage_integration", "external_write"}
+
+// checkSourceDatasetReplaceKeepsBacking refuses a replace of an Iceberg or
+// external-write dataset when a backing attribute is unset in configuration.
+// On replace, unset attributes take their create defaults, so the new dataset
+// would silently be Native without the storage integration or external write.
+func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
+	cfg, state := d.GetRawConfig(), d.GetRawState()
+	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
+		return nil
+	}
+	stateAttr := func(key string) cty.Value {
+		if !state.Type().HasAttribute(key) {
+			return cty.NilVal
+		}
+		v := state.GetAttr(key)
+		if !v.IsKnown() || v.IsNull() {
+			return cty.NilVal
+		}
+		return v
+	}
+	s, ew := stateAttr("storage"), stateAttr("external_write")
+	iceberg := s != cty.NilVal && s.AsString() == sourceDatasetStorageIceberg
+	externalWrite := ew != cty.NilVal && ew.True()
+	if !iceberg && !externalWrite {
+		return nil
+	}
+	// An explicit non-Iceberg storage is a deliberate move off Iceberg; the
+	// integration and external write are then meant to be dropped.
+	if cfg.Type().HasAttribute("storage") {
+		if c := cfg.GetAttr("storage"); c.IsKnown() && !c.IsNull() && c.AsString() != sourceDatasetStorageIceberg {
+			return nil
+		}
+	}
+	var missing []string
+	for _, key := range sourceDatasetIcebergBackingKeys {
+		if !cfg.Type().HasAttribute(key) || cfg.GetAttr(key).IsNull() {
+			missing = append(missing, key)
+		}
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+	storage := sourceDatasetStorageIceberg
+	if s != cty.NilVal {
+		storage = s.AsString()
+	}
+	return fmt.Errorf("this change replaces the source dataset, which is currently backed by storage = %q (external_write = %t). "+
+		"Attributes left unset in configuration take their defaults on replacement, so the new dataset would be Native without the storage integration or external write. "+
+		"Set %s explicitly in configuration to keep or change the backing",
+		storage, externalWrite, strings.Join(missing, ", "))
 }
 
 // effectiveSourceDatasetValue returns the value an attribute will have after

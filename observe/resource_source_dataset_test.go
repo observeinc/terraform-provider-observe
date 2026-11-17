@@ -132,6 +132,10 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		"label": "tf-pkg/Ice", "storage": "Iceberg", "schema_type": "Any", "external_write": false,
 		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
 	}
+	existingExternalWrite := map[string]interface{}{
+		"label": "tf-pkg/Ew", "storage": "Iceberg", "schema_type": "Any", "external_write": true,
+		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
+	}
 	cases := []struct {
 		name    string
 		prior   map[string]interface{}
@@ -151,6 +155,11 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		{"iceberg to native replace", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Native"}, ""},
 		{"iceberg in place keeps integration from state", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2"}, ""},
 		{"iceberg in place with storage set", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, ""},
+		// A replace must not silently drop Iceberg backing left unset in config.
+		{"iceberg replace without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs"}, "Set storage, storage_integration, external_write explicitly"},
+		{"iceberg replace with backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": false}, ""},
+		{"external write replace without external_write in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, "Set external_write explicitly"},
+		{"native replace", existing, map[string]interface{}{"label": "tf-pkg/Logs", "schema_type": "OtelLogs"}, ""},
 		{"native to iceberg replace needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
 	}
 	for _, tc := range cases {
