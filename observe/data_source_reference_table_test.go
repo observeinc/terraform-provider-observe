@@ -47,7 +47,11 @@ func TestAccObserveDataSourceReferenceTable(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.observe_reference_table.by_label", "dataset"),
 					resource.TestCheckResourceAttr("data.observe_reference_table.by_id", "checksum", "93dc3e9f2c6e30cd956eb062c18112eb"),
 					resource.TestCheckResourceAttr("data.observe_reference_table.by_label", "checksum", "93dc3e9f2c6e30cd956eb062c18112eb"),
-					// TODO: add checks for primary_key and label_field once they're supported
+					resource.TestCheckResourceAttr("data.observe_reference_table.by_id", "primary_key.#", "1"),
+					resource.TestCheckResourceAttr("data.observe_reference_table.by_id", "primary_key.0", "state_code"),
+					resource.TestCheckResourceAttr("data.observe_reference_table.by_label", "primary_key.0", "state_code"),
+					resource.TestCheckResourceAttr("data.observe_reference_table.by_id", "label_field", "state"),
+					resource.TestCheckResourceAttr("data.observe_reference_table.by_label", "label_field", "state"),
 				),
 			},
 		},

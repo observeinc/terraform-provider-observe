@@ -24,6 +24,7 @@ func resourceReferenceTable() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: rejectUploadOnlyChangesForInitialSourceFile,
 		Schema: map[string]*schema.Schema{
 			"label": {
 				Type:             schema.TypeString,
@@ -34,17 +35,29 @@ func resourceReferenceTable() *schema.Resource {
 			"source_file": {
 				Type:             schema.TypeString,
 				Description:      descriptions.Get("reference_table", "schema", "source_file"),
-				Required:         true,
+				Optional:         true,
+				ExactlyOneOf:     []string{"source_file", "initial_source_file"},
+				RequiredWith:     []string{"checksum"},
+				ValidateDiagFunc: validateFilePath(stringPtr(".csv")),
+			},
+			"initial_source_file": {
+				Type:             schema.TypeString,
+				Description:      descriptions.Get("reference_table", "schema", "initial_source_file"),
+				Optional:         true,
+				ExactlyOneOf:     []string{"source_file", "initial_source_file"},
 				ValidateDiagFunc: validateFilePath(stringPtr(".csv")),
 			},
 			// checksum is used to avoid storing the entire file in the state and needing to fetch the
 			// entire file every time to compare against for detecting changes.
 			// See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object
 			"checksum": { // MD5 hash of source file contents
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"initial_source_file"},
 				Description: descriptions.Get("reference_table", "schema", "checksum") +
-					"Can be computed using `filemd5(\"<source_file>\")`.",
+					"Can be computed using `filemd5(\"<source_file>\")`. " +
+					"Required with `source_file`, and must not be set with `initial_source_file`.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -110,12 +123,47 @@ func newReferenceTableConfig(data *schema.ResourceData) (input *rest.ReferenceTa
 	}
 
 	input = &rest.ReferenceTableInput{
-		SourceFilePath: data.Get("source_file").(string),
+		SourceFilePath: uploadedSourceFilePath(data),
 		Schema:         schemaInput,
 		Metadata:       *metadataInput,
 	}
 
 	return input, diags
+}
+
+// uploadedSourceFilePath returns the file to upload: source_file, or
+// initial_source_file, which is uploaded only when the table is created.
+func uploadedSourceFilePath(data *schema.ResourceData) string {
+	if path := data.Get("source_file").(string); path != "" {
+		return path
+	}
+	return data.Get("initial_source_file").(string)
+}
+
+// rowsManagedOutsideTerraform reports whether the table was seeded from
+// initial_source_file, so Terraform never uploads its rows after create.
+func rowsManagedOutsideTerraform(data interface{ Get(string) interface{} }) bool {
+	return data.Get("initial_source_file").(string) != ""
+}
+
+// rejectUploadOnlyChangesForInitialSourceFile fails the plan when a table
+// seeded from initial_source_file changes schema or label_field. The API
+// applies both only with a file upload, which would replace the rows edited in
+// Observe, and replacing the table would lose them as well as its dataset id.
+func rejectUploadOnlyChangesForInitialSourceFile(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	if diff.Id() == "" || !rowsManagedOutsideTerraform(diff) {
+		return nil
+	}
+	for _, field := range []string{"schema", "label_field"} {
+		if diff.HasChange(field) {
+			return fmt.Errorf("%s cannot be changed on a reference table created from initial_source_file, "+
+				"because applying it requires uploading a file, which replaces the rows edited in Observe. "+
+				"To change it, switch to source_file (with checksum) in the same apply: the file is uploaded "+
+				"and replaces every row, and the table keeps its dataset id. Switch back to initial_source_file "+
+				"afterwards to allow row edits in Observe again", field)
+		}
+	}
+	return nil
 }
 
 func newReferenceTableMetadataConfig(data *schema.ResourceData, patch bool) (input *rest.ReferenceTableMetadataInput, diags diag.Diagnostics) {
@@ -198,8 +246,17 @@ func referenceTableToResourceData(refTable *rest.ReferenceTable, dataset *gql.Da
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO: add "primary_key" and "label_field" once API supports them in response.
-	// Until then, we're unable to detect changes to those fields made outside of Terraform.
+	if err := data.Set("primary_key", refTable.PrimaryKey); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	labelField := ""
+	if refTable.LabelField != nil {
+		labelField = *refTable.LabelField
+	}
+	if err := data.Set("label_field", labelField); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
@@ -246,26 +303,36 @@ func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData
 	client := meta.(*observe.Client)
 	var err error
 
+	// If the file (i.e. the checksum) or schema have been modified, need to use the PUT method to
+	// fully replace the reference table. Otherwise, we can use PATCH to only update the metadata.
+	// TODO: the API PATCHes primary_key, so remove it below; remove label_field
+	// once the API PATCHes it too
+	fieldsRequiringPut := []string{"checksum", "schema", "primary_key", "label_field"}
+	uploadRequired := data.HasChanges(fieldsRequiringPut...)
+	// Terraform never uploads rows seeded from initial_source_file: primary_key
+	// goes through PATCH, and the plan rejects schema and label_field changes.
+	if rowsManagedOutsideTerraform(data) {
+		uploadRequired = false
+	}
+
 	// If only the source_file field changed, i.e. the file was moved or renamed, we can ignore it.
 	// If the actual file contents have changed, the checksum would also be different.
-	if !data.HasChangeExcept("source_file") {
+	// initial_source_file is read only on create, and switching between the two
+	// fields uploads only through a checksum change.
+	if !uploadRequired && !data.HasChangesExcept("source_file", "initial_source_file") {
 		return nil
 	}
 
-	// If the file (i.e. the checksum) or schema have been modified, need to use the PUT method to
-	// fully replace the reference table. Otherwise, we can use PATCH to only update the metadata.
-	// TODO: remove primary_key and label_field below, API will support PATCHing them soon
-	fieldsRequiringPut := []string{"checksum", "schema", "primary_key", "label_field"}
-	if data.HasChanges(fieldsRequiringPut...) {
-		config, diags := newReferenceTableConfig(data)
-		if diags.HasError() {
-			return diags
+	if uploadRequired {
+		config, configDiags := newReferenceTableConfig(data)
+		if configDiags.HasError() {
+			return configDiags
 		}
 		_, err = client.UpdateReferenceTable(ctx, data.Id(), config)
 	} else {
-		metadataConfig, diags := newReferenceTableMetadataConfig(data, true)
-		if diags.HasError() {
-			return diags
+		metadataConfig, metadataDiags := newReferenceTableMetadataConfig(data, true)
+		if metadataDiags.HasError() {
+			return metadataDiags
 		}
 		_, err = client.UpdateReferenceTableMetadata(ctx, data.Id(), metadataConfig)
 	}

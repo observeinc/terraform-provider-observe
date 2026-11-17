@@ -105,6 +105,14 @@ func TestAccObserveReferenceTable(t *testing.T) {
 					resource.TestCheckResourceAttr("observe_reference_table.example", "description", ""),
 				),
 			},
+			// Import reads primary_key and label_field back, so an imported table
+			// matches its config and the next apply does not replace its contents.
+			{
+				ResourceName:            "observe_reference_table.example",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_file"},
+			},
 		},
 	})
 }
