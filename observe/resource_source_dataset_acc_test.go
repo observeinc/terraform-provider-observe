@@ -13,6 +13,10 @@ import (
 // testAccPreCheckSourceDatasetIceberg skips unless a storage integration is
 // available, since CI tenants may not have one.
 func testAccPreCheckSourceDatasetIceberg(t *testing.T) string {
+	// Called eagerly (before resource.Test), so skip like resource.Test would.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("acceptance tests skipped unless env %q is set", resource.EnvTfAcc)
+	}
 	testAccPreCheck(t)
 	si := os.Getenv("OBSERVE_TEST_STORAGE_INTEGRATION_OID")
 	if si == "" {
@@ -70,7 +74,8 @@ resource "observe_source_dataset" "native" {
 
 func TestAccObserveSourceDatasetIceberg(t *testing.T) {
 	prefix := acctest.RandomWithPrefix("tf")
-	var si string
+	// Resolved before Steps: step configs are built before PreCheck runs.
+	si := testAccPreCheckSourceDatasetIceberg(t)
 	var firstID string
 	config := func(storage string) string {
 		integration := ""
@@ -85,7 +90,7 @@ resource "observe_source_dataset" "iceberg" {
 }`, prefix, storage, integration)
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { si = testAccPreCheckSourceDatasetIceberg(t) },
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -122,14 +127,13 @@ resource "observe_source_dataset" "iceberg" {
 
 func TestAccObserveSourceDatasetExternalWrite(t *testing.T) {
 	prefix := acctest.RandomWithPrefix("tf")
-	var si string
+	// Resolved before Steps: step configs are built before PreCheck runs.
+	si := testAccPreCheckSourceDatasetIceberg(t)
+	if os.Getenv("OBSERVE_TEST_ICEBERG_EXTERNAL_WRITE") != "true" {
+		t.Skip("OBSERVE_TEST_ICEBERG_EXTERNAL_WRITE != true")
+	}
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			si = testAccPreCheckSourceDatasetIceberg(t)
-			if os.Getenv("OBSERVE_TEST_ICEBERG_EXTERNAL_WRITE") != "true" {
-				t.Skip("OBSERVE_TEST_ICEBERG_EXTERNAL_WRITE != true")
-			}
-		},
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

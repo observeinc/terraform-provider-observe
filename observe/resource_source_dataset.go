@@ -72,6 +72,7 @@ func resourceSourceDataset() *schema.Resource {
 			"icon_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true, // the API assigns a default icon when none is sent
 				Description: sourceDatasetDescription("icon_url"),
 			},
 			"object_tags": objectTagsSchemaFieldOptionalNoConflict(),
@@ -106,6 +107,7 @@ func resourceSourceDataset() *schema.Resource {
 			"storage_integration": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true, // omitting it must not plan a data-deleting replace
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeStorageIntegration),
 				DiffSuppressFunc: diffSuppressOIDVersion,
@@ -186,9 +188,10 @@ func sourceDatasetLabelPackage(label string) string {
 }
 
 func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	storage, storageKnown := effectiveSourceDatasetValue(d, "storage", cty.StringVal(sourceDatasetStorageNative))
-	integration, integrationKnown := effectiveSourceDatasetValue(d, "storage_integration", cty.StringVal(""))
-	externalWrite, externalWriteKnown := effectiveSourceDatasetValue(d, "external_write", cty.False)
+	replacing := sourceDatasetBackingReplaced(d)
+	storage, storageKnown := effectiveSourceDatasetValue(d, "storage", cty.StringVal(sourceDatasetStorageNative), replacing)
+	integration, integrationKnown := effectiveSourceDatasetValue(d, "storage_integration", cty.StringVal(""), replacing)
+	externalWrite, externalWriteKnown := effectiveSourceDatasetValue(d, "external_write", cty.False, replacing)
 	if storageKnown && integrationKnown {
 		isIceberg := storage.AsString() == sourceDatasetStorageIceberg
 		if isIceberg && integration.AsString() == "" {
@@ -212,12 +215,47 @@ func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta
 	return nil
 }
 
+// sourceDatasetBackingForceNewKeys are the ForceNew attributes describing the
+// backing; changing any of them replaces the source dataset.
+var sourceDatasetBackingForceNewKeys = []string{"schema_type", "storage", "storage_integration", "external_write"}
+
+// sourceDatasetBackingReplaced reports whether an existing resource will be
+// replaced because a backing attribute set in configuration differs from state.
+func sourceDatasetBackingReplaced(d *schema.ResourceDiff) bool {
+	if d.Id() == "" {
+		return false
+	}
+	cfg, state := d.GetRawConfig(), d.GetRawState()
+	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
+		return false
+	}
+	for _, key := range sourceDatasetBackingForceNewKeys {
+		if !cfg.Type().HasAttribute(key) || !state.Type().HasAttribute(key) {
+			continue
+		}
+		c, s := cfg.GetAttr(key), state.GetAttr(key)
+		if !c.IsKnown() || c.IsNull() || !s.IsKnown() || s.IsNull() {
+			continue
+		}
+		if key == "storage_integration" {
+			if diffSuppressOIDVersion(key, s.AsString(), c.AsString(), nil) {
+				continue
+			}
+		}
+		if !c.RawEquals(s) {
+			return true
+		}
+	}
+	return false
+}
+
 // effectiveSourceDatasetValue returns the value an attribute will have after
-// apply: the configured value if set, else the value in state, else the create
-// default. Optional+Computed attributes that are unset in configuration are
-// unknown in the plan of a new resource, so the plan value alone is not enough.
+// apply: the configured value if set, else the value in state (unless the
+// resource is being replaced), else the create default. Optional+Computed
+// attributes that are unset in configuration are unknown in the plan of a new
+// resource, so the plan value alone is not enough.
 // The bool result is false when the configured value is not yet known.
-func effectiveSourceDatasetValue(d *schema.ResourceDiff, key string, createDefault cty.Value) (cty.Value, bool) {
+func effectiveSourceDatasetValue(d *schema.ResourceDiff, key string, createDefault cty.Value, replacing bool) (cty.Value, bool) {
 	cfg := d.GetRawConfig()
 	if !cfg.IsNull() && cfg.IsKnown() && cfg.Type().IsObjectType() && cfg.Type().HasAttribute(key) {
 		v := cfg.GetAttr(key)
@@ -228,7 +266,7 @@ func effectiveSourceDatasetValue(d *schema.ResourceDiff, key string, createDefau
 			return v, true
 		}
 	}
-	if d.Id() != "" {
+	if d.Id() != "" && !replacing {
 		state := d.GetRawState()
 		if !state.IsNull() && state.Type().IsObjectType() && state.Type().HasAttribute(key) {
 			if v := state.GetAttr(key); v.IsKnown() && !v.IsNull() {

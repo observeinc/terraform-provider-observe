@@ -128,6 +128,10 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "Any", "external_write": false,
 		"force_destroy": false,
 	}
+	existingIceberg := map[string]interface{}{
+		"label": "tf-pkg/Ice", "storage": "Iceberg", "schema_type": "Any", "external_write": false,
+		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
+	}
 	cases := []struct {
 		name    string
 		prior   map[string]interface{}
@@ -142,6 +146,12 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		{"iceberg external write", nil, map[string]interface{}{"label": "tf-pkg/a", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": true}, ""},
 		{"package change", existing, map[string]interface{}{"label": "tf-other/Logs"}, "package of a source dataset label cannot change"},
 		{"name change", existing, map[string]interface{}{"label": "tf-pkg/Renamed"}, ""},
+		// Replacing an Iceberg dataset with a Native one must not inherit the old
+		// storage_integration from state.
+		{"iceberg to native replace", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Native"}, ""},
+		{"iceberg in place keeps integration from state", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2"}, ""},
+		{"iceberg in place with storage set", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, ""},
+		{"native to iceberg replace needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
