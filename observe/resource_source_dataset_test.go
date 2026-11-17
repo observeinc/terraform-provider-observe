@@ -153,12 +153,22 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		// Replacing an Iceberg dataset with a Native one must not inherit the old
 		// storage_integration from state.
 		{"iceberg to native replace", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Native"}, ""},
-		{"iceberg in place keeps integration from state", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2"}, ""},
-		{"iceberg in place with storage set", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, ""},
-		// A replace must not silently drop Iceberg backing left unset in config.
-		{"iceberg replace without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs"}, "Set storage, storage_integration, external_write explicitly"},
+		// An existing Iceberg dataset must declare its backing in config on every
+		// plan, whether or not a config change forces a replace: -replace and
+		// replace_triggered_by replace without a config diff.
+		{"iceberg in place without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2"}, "would have Native storage"},
+		{"iceberg in place with storage only", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, "storage_integration is unset in configuration"},
+		{"iceberg in place with storage only names lost integration", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, "would have no storage integration and"},
+		{"iceberg in place with backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, ""},
+		{"iceberg replace without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs"}, "Set storage, storage_integration explicitly"},
 		{"iceberg replace with backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": false}, ""},
+		// external_write = false in state is the default, so omitting it loses nothing.
+		{"iceberg replace external_write false in state omitted in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, ""},
 		{"external write replace without external_write in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, "Set external_write explicitly"},
+		{"external write missing says external write, not Native", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, "would have external write off and"},
+		{"external write without any backing in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew"}, "would have Native storage and external write off"},
+		{"external write in place with backing in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew2", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": true}, ""},
+		{"external write to native replace", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "storage": "Native"}, ""},
 		{"native replace", existing, map[string]interface{}{"label": "tf-pkg/Logs", "schema_type": "OtelLogs"}, ""},
 		{"native to iceberg replace needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
 	}

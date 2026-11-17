@@ -188,12 +188,13 @@ func sourceDatasetLabelPackage(label string) string {
 }
 
 func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	replacing := sourceDatasetBackingReplaced(d)
-	if replacing {
-		if err := checkSourceDatasetReplaceKeepsBacking(d); err != nil {
-			return err
-		}
+	// The backing check runs on every plan of an existing resource, not only
+	// when a config change forces a replace: -replace and replace_triggered_by
+	// replace without any config diff, so they must be covered too.
+	if err := checkSourceDatasetReplaceKeepsBacking(d); err != nil {
+		return err
 	}
+	replacing := sourceDatasetBackingReplaced(d)
 	storage, storageKnown := effectiveSourceDatasetValue(d, "storage", cty.StringVal(sourceDatasetStorageNative), replacing)
 	integration, integrationKnown := effectiveSourceDatasetValue(d, "storage_integration", cty.StringVal(""), replacing)
 	externalWrite, externalWriteKnown := effectiveSourceDatasetValue(d, "external_write", cty.False, replacing)
@@ -254,14 +255,14 @@ func sourceDatasetBackingReplaced(d *schema.ResourceDiff) bool {
 	return false
 }
 
-// sourceDatasetIcebergBackingKeys must be set in configuration when an Iceberg
-// or external-write dataset is replaced.
-var sourceDatasetIcebergBackingKeys = []string{"storage", "storage_integration", "external_write"}
-
-// checkSourceDatasetReplaceKeepsBacking refuses a replace of an Iceberg or
-// external-write dataset when a backing attribute is unset in configuration.
-// On replace, unset attributes take their create defaults, so the new dataset
-// would silently be Native without the storage integration or external write.
+// checkSourceDatasetReplaceKeepsBacking requires an existing Iceberg or
+// external-write dataset to declare its backing in configuration. If the
+// dataset is ever replaced, unset attributes take their create defaults, so
+// the new dataset would silently be Native or lose external write. The check
+// does not depend on whether this plan replaces: a forced replace (-replace,
+// replace_triggered_by) has no config diff to detect. Taint skips
+// CustomizeDiff entirely, so it is covered only by the configuration this
+// check has already required on earlier plans.
 func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
 	cfg, state := d.GetRawConfig(), d.GetRawState()
 	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
@@ -290,11 +291,19 @@ func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
 			return nil
 		}
 	}
+	isNull := func(key string) bool {
+		return !cfg.Type().HasAttribute(key) || cfg.GetAttr(key).IsNull()
+	}
 	var missing []string
-	for _, key := range sourceDatasetIcebergBackingKeys {
-		if !cfg.Type().HasAttribute(key) || cfg.GetAttr(key).IsNull() {
-			missing = append(missing, key)
+	if iceberg {
+		for _, key := range []string{"storage", "storage_integration"} {
+			if isNull(key) {
+				missing = append(missing, key)
+			}
 		}
+	}
+	if externalWrite && isNull("external_write") {
+		missing = append(missing, "external_write")
 	}
 	if len(missing) == 0 {
 		return nil
@@ -303,10 +312,28 @@ func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
 	if s != cty.NilVal {
 		storage = s.AsString()
 	}
-	return fmt.Errorf("this change replaces the source dataset, which is currently backed by storage = %q (external_write = %t). "+
-		"Attributes left unset in configuration take their defaults on replacement, so the new dataset would be Native without the storage integration or external write. "+
-		"Set %s explicitly in configuration to keep or change the backing",
-		storage, externalWrite, strings.Join(missing, ", "))
+	var lost []string
+	switch {
+	case iceberg && isNull("storage"):
+		lost = append(lost, "Native storage")
+	case iceberg && isNull("storage_integration"):
+		lost = append(lost, "no storage integration")
+	}
+	if externalWrite && isNull("external_write") {
+		lost = append(lost, "external write off")
+	}
+	return fmt.Errorf("this source dataset is backed by storage = %q (external_write = %t), and %s unset in configuration. "+
+		"If the dataset is replaced (a ForceNew change, -replace, replace_triggered_by or taint), unset attributes take their defaults, "+
+		"so the new dataset would have %s and its data would be deleted. "+
+		"Set %s explicitly in configuration",
+		storage, externalWrite, joinIsAre(missing), strings.Join(lost, " and "), strings.Join(missing, ", "))
+}
+
+func joinIsAre(keys []string) string {
+	if len(keys) == 1 {
+		return keys[0] + " is"
+	}
+	return strings.Join(keys, ", ") + " are"
 }
 
 // effectiveSourceDatasetValue returns the value an attribute will have after
