@@ -2,6 +2,7 @@ package observe
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -48,7 +49,7 @@ func TestReferenceTableToResourceDataReadsPrimaryKeyAndLabelField(t *testing.T) 
 			if diags := referenceTableToResourceData(refTable, dataset, data); diags.HasError() {
 				t.Fatalf("map reference table: %v", diags)
 			}
-			if got, want := data.Get("primary_key").([]interface{}), []interface{}{"host", "region"}; !equalInterfaceSlices(got, want) {
+			if got, want := data.Get("primary_key").([]interface{}), []interface{}{"host", "region"}; !reflect.DeepEqual(got, want) {
 				t.Errorf("primary_key = %v, want %v", got, want)
 			}
 			if got, want := data.Get("label_field"), "owner"; got != want {
@@ -80,16 +81,4 @@ func TestReferenceTableToResourceDataWithoutPrimaryKeyOrLabelField(t *testing.T)
 	if got := data.Get("label_field"); got != "" {
 		t.Errorf("label_field = %q, want empty", got)
 	}
-}
-
-func equalInterfaceSlices(a, b []interface{}) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

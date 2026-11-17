@@ -3,7 +3,9 @@ description: |
 
 schema:
   source_file: |
-    The path to a CSV file containing the reference table data.
+    The path to a CSV file containing the reference table data. Terraform manages the rows: when `checksum` changes, the file is uploaded and replaces every row, including rows edited in Observe. Exactly one of `source_file` and `initial_source_file` must be set.
+  initial_source_file: |
+    The path to a CSV file whose rows seed the reference table when it is created. After that, Terraform does not manage the rows: rows edited in Observe, in the UI or through the API, are kept, and changes to this file are ignored. `label`, `description` and `primary_key` can still be updated. Changing `schema` or `label_field` fails the plan, because the API applies either only with an upload, which would replace the rows edited in Observe. To change them, switch to `source_file` in the same apply: the file replaces every row and the table keeps its dataset, and you can switch back to `initial_source_file` afterwards. Switching to `source_file` uploads that file on the next apply if its checksum differs from the table's. Exactly one of `source_file` and `initial_source_file` must be set.
   checksum: |
     MD5 checksum of the source file.
   label: |

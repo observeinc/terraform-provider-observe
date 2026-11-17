@@ -81,6 +81,83 @@ func TestAccObserveLinkCreate(t *testing.T) {
 	})
 }
 
+// Testing a change of dataset breaks the link, and thus the apply phase of Link fails.
+func TestAccObserveLinkDatasetEdit(t *testing.T) {
+	randomPrefix := acctest.RandomWithPrefix("tf")
+
+	config := func(pipeline string) string {
+		return fmt.Sprintf(configPreamble+datastreamConfigPreamble+`
+		resource "observe_dataset" "a" {
+			workspace              = data.observe_workspace.default.oid
+			name                   = "%[1]s-A"
+			rematerialization_mode = "skip_rematerialization"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				pipeline = <<-EOF
+					%[2]s
+				EOF
+			}
+		}
+
+		# Not derived from A, so removing the key from A breaks only the link.
+		resource "observe_dataset" "b" {
+			workspace = data.observe_workspace.default.oid
+			name      = "%[1]s-B"
+
+			inputs = { "test" = observe_datastream.test.dataset }
+
+			stage {
+				pipeline = <<-EOF
+					colmake key:"test"
+					makeresource primarykey(key)
+				EOF
+			}
+		}
+
+		resource "observe_link" "example" {
+			source = observe_dataset.a.oid
+			target = observe_dataset.b.oid
+			fields = ["key"]
+			label  = "%[1]s-link"
+		}
+
+		data "observe_link" "check" {
+			source     = observe_dataset.a.oid
+			target     = observe_dataset.b.oid
+			fields     = ["key"]
+			depends_on = [observe_link.example]
+		}
+		`, randomPrefix, pipeline)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config(`filter false
+					colmake key:"test"`),
+			},
+			{
+				// A filter edit on A. data.observe_link.check fails the step if the
+				// link is no longer on A after the edit.
+				Config: config(`filter false
+					filter true
+					colmake key:"test"`),
+			},
+			{
+				// Removing the key col in A should have broken the link on the
+				// server. Thus the apply of observe_link resource would fail.
+				Config: config(`filter false
+					colmake other:"test"`),
+				ExpectError: regexp.MustCompile("not present"),
+			},
+		},
+	})
+}
+
 func TestAccObserveLinkErrors(t *testing.T) {
 	randomPrefix := acctest.RandomWithPrefix("tf")
 
