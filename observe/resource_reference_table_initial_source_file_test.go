@@ -338,41 +338,20 @@ func checkReferenceTableDeletes(api *fakeReferenceTableAPI, wantDeletes int) res
 	}
 }
 
-func TestReferenceTableInitialSourceFileReplacedOnSchemaOrLabelFieldChange(t *testing.T) {
+func TestReferenceTableInitialSourceFileRejectsUploadOnlyChanges(t *testing.T) {
 	api := &fakeReferenceTableAPI{}
 	source := writeReferenceTableCSV(t, "hosts.csv", originalHostsCSV)
-	initialConfig := func(labelField, extra string) string {
+	initialConfig := func(labelField string) string {
 		return fmt.Sprintf(`
 resource "observe_reference_table" "hosts" {
   label               = "hosts"
   initial_source_file = %q
   primary_key         = ["host"]
   label_field         = %q
-  %s
 }
-`, source, labelField, extra)
+`, source, labelField)
 	}
-	testReferenceTableWithFakeAPI(t, api, []resource.TestStep{
-		{
-			Config: initialConfig("owner", ""),
-			Check: resource.ComposeTestCheckFunc(
-				checkReferenceTableAPICalls(api, 1, 0),
-				checkReferenceTableDeletes(api, 0),
-			),
-		},
-		{
-			PreConfig: api.editRows,
-			Config:    initialConfig("host", ""),
-			Check: resource.ComposeTestCheckFunc(
-				checkReferenceTableAPICalls(api, 2, 0),
-				checkReferenceTableDeletes(api, 1),
-				resource.TestCheckResourceAttr("observe_reference_table.hosts", "label_field", "host"),
-				resource.TestCheckResourceAttr("observe_reference_table.hosts", "checksum", md5Hex(originalHostsCSV)),
-			),
-		},
-		{
-			PreConfig: api.editRows,
-			Config: initialConfig("host", `
+	ownerAsInt := `
   schema {
     name = "host"
     type = "string"
@@ -380,36 +359,47 @@ resource "observe_reference_table" "hosts" {
   schema {
     name = "owner"
     type = "int64"
-  }`),
+  }`
+	noReplacement := resource.ComposeTestCheckFunc(
+		checkReferenceTableDeletes(api, 0),
+		resource.TestCheckResourceAttr("observe_reference_table.hosts", "id", fakeReferenceTableID),
+		resource.TestCheckResourceAttr("observe_reference_table.hosts", "dataset", "o:::dataset:41000002"),
+	)
+	testReferenceTableWithFakeAPI(t, api, []resource.TestStep{
+		{
+			Config: initialConfig("owner"),
+			Check:  checkReferenceTableAPICalls(api, 1, 0),
+		},
+		{
+			PreConfig:   api.editRows,
+			Config:      initialConfig("host"),
+			ExpectError: regexp.MustCompile(`label_field cannot be changed on a reference table created from\s+initial_source_file`),
+		},
+		{
+			Config:      referenceTableConfig("initial_source_file", source, ownerAsInt),
+			ExpectError: regexp.MustCompile(`schema cannot be changed on a reference table created from\s+initial_source_file`),
+		},
+		{
+			Config: initialConfig("owner"),
 			Check: resource.ComposeTestCheckFunc(
-				checkReferenceTableAPICalls(api, 3, 0),
-				checkReferenceTableDeletes(api, 2),
+				checkReferenceTableAPICalls(api, 1, 0),
+				noReplacement,
+			),
+		},
+		{
+			Config: referenceTableConfig("source_file", source, ownerAsInt),
+			Check: resource.ComposeTestCheckFunc(
+				checkReferenceTableAPICalls(api, 2, 0),
+				noReplacement,
 				resource.TestCheckResourceAttr("observe_reference_table.hosts", "schema.1.type", "int64"),
 				resource.TestCheckResourceAttr("observe_reference_table.hosts", "checksum", md5Hex(originalHostsCSV)),
 			),
 		},
 		{
-			Config: initialConfig("host", `
-  schema {
-    name = "host"
-    type = "string"
-  }`),
+			Config: referenceTableConfig("initial_source_file", source, ownerAsInt),
 			Check: resource.ComposeTestCheckFunc(
-				checkReferenceTableAPICalls(api, 4, 0),
-				checkReferenceTableDeletes(api, 3),
-				resource.TestCheckResourceAttr("observe_reference_table.hosts", "schema.#", "1"),
-			),
-		},
-		{
-			Config: initialConfig("host", `
-  description = "owners by host"
-  schema {
-    name = "host"
-    type = "string"
-  }`),
-			Check: resource.ComposeTestCheckFunc(
-				checkReferenceTableAPICalls(api, 4, 1),
-				checkReferenceTableDeletes(api, 3),
+				checkReferenceTableAPICalls(api, 2, 0),
+				noReplacement,
 			),
 		},
 	})

@@ -24,7 +24,7 @@ func resourceReferenceTable() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: replaceInitialSourceFileTableOnUploadOnlyChanges,
+		CustomizeDiff: rejectUploadOnlyChangesForInitialSourceFile,
 		Schema: map[string]*schema.Schema{
 			"label": {
 				Type:             schema.TypeString,
@@ -146,25 +146,21 @@ func rowsManagedOutsideTerraform(data interface{ Get(string) interface{} }) bool
 	return data.Get("initial_source_file").(string) != ""
 }
 
-// replaceInitialSourceFileTableOnUploadOnlyChanges forces replacement when a
-// table seeded from initial_source_file changes schema or label_field. The API
-// applies both only with a file upload, and Terraform does not upload rows of
-// such a table after create, so the new table is seeded from initial_source_file.
-func replaceInitialSourceFileTableOnUploadOnlyChanges(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// rejectUploadOnlyChangesForInitialSourceFile fails the plan when a table
+// seeded from initial_source_file changes schema or label_field. The API
+// applies both only with a file upload, which would replace the rows edited in
+// Observe, and replacing the table would lose them as well as its dataset id.
+func rejectUploadOnlyChangesForInitialSourceFile(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	if diff.Id() == "" || !rowsManagedOutsideTerraform(diff) {
 		return nil
 	}
-	// ForceNew on a list attribute forces replacement only when its length
-	// changes, so each changed column attribute is flagged too.
-	keys := []string{"label_field", "schema"}
-	for i := 0; i < diff.Get("schema.#").(int); i++ {
-		keys = append(keys, fmt.Sprintf("schema.%d.name", i), fmt.Sprintf("schema.%d.type", i))
-	}
-	for _, key := range keys {
-		if diff.HasChange(key) {
-			if err := diff.ForceNew(key); err != nil {
-				return err
-			}
+	for _, field := range []string{"schema", "label_field"} {
+		if diff.HasChange(field) {
+			return fmt.Errorf("%s cannot be changed on a reference table created from initial_source_file, "+
+				"because applying it requires uploading a file, which replaces the rows edited in Observe. "+
+				"To change it, switch to source_file (with checksum) in the same apply: the file is uploaded "+
+				"and replaces every row, and the table keeps its dataset id. Switch back to initial_source_file "+
+				"afterwards to allow row edits in Observe again", field)
 		}
 	}
 	return nil
@@ -314,7 +310,7 @@ func resourceReferenceTableUpdate(ctx context.Context, data *schema.ResourceData
 	fieldsRequiringPut := []string{"checksum", "schema", "primary_key", "label_field"}
 	uploadRequired := data.HasChanges(fieldsRequiringPut...)
 	// Terraform never uploads rows seeded from initial_source_file: primary_key
-	// goes through PATCH, and schema and label_field changes force replacement.
+	// goes through PATCH, and the plan rejects schema and label_field changes.
 	if rowsManagedOutsideTerraform(data) {
 		uploadRequired = false
 	}
