@@ -136,6 +136,14 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		"label": "tf-pkg/Ew", "storage": "Iceberg", "schema_type": "Any", "external_write": true,
 		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
 	}
+	existingTyped := map[string]interface{}{
+		"label": "tf-pkg/Prom", "storage": "Native", "schema_type": "Prometheus", "external_write": false,
+		"force_destroy": false,
+	}
+	existingTypedIceberg := map[string]interface{}{
+		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": false,
+		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
+	}
 	cases := []struct {
 		name    string
 		prior   map[string]interface{}
@@ -170,6 +178,15 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		{"external write in place with backing in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew2", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": true}, ""},
 		{"external write to native replace", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "storage": "Native"}, ""},
 		{"native replace", existing, map[string]interface{}{"label": "tf-pkg/Logs", "schema_type": "OtelLogs"}, ""},
+		// A typed dataset left without schema_type in config would be recreated
+		// as Any, without its companion datasets, on any replace.
+		{"typed in place without schema_type in config", existingTyped, map[string]interface{}{"label": "tf-pkg/Prom2"}, "would have schema_type = \"Any\" instead of \"Prometheus\""},
+		{"typed in place with schema_type in config", existingTyped, map[string]interface{}{"label": "tf-pkg/Prom2", "schema_type": "Prometheus"}, ""},
+		{"typed iceberg integration change without schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg", "storage_integration": "o:::storageintegration:41008888"}, "Set schema_type explicitly"},
+		// Moving off Iceberg drops the integration on purpose, but not the type.
+		{"typed iceberg to native without schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Native"}, "Set schema_type explicitly"},
+		{"typed iceberg to native with schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "OtelLogs"}, ""},
+		{"typed iceberg without any backing names every missing key", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs"}, "Set storage, storage_integration, schema_type explicitly"},
 		{"native to iceberg replace needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
 	}
 	for _, tc := range cases {
@@ -194,7 +211,7 @@ func TestSourceDatasetImportTypedNoReplace(t *testing.T) {
 		"storage_integration": testStorageIntegrationOID, "force_destroy": false, "data_retention_days": 30,
 	}
 	diff, err := planSourceDataset(t, prior, map[string]interface{}{
-		"label": "tf-pkg/Logs", "storage": "Iceberg",
+		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs",
 		// a versioned OID must not plan a data-deleting replacement
 		"storage_integration": testStorageIntegrationOID + "/3",
 	})

@@ -255,14 +255,15 @@ func sourceDatasetBackingReplaced(d *schema.ResourceDiff) bool {
 	return false
 }
 
-// checkSourceDatasetReplaceKeepsBacking requires an existing Iceberg or
-// external-write dataset to declare its backing in configuration. If the
-// dataset is ever replaced, unset attributes take their create defaults, so
-// the new dataset would silently be Native or lose external write. The check
-// does not depend on whether this plan replaces: a forced replace (-replace,
-// replace_triggered_by) has no config diff to detect. Taint skips
-// CustomizeDiff entirely, so it is covered only by the configuration this
-// check has already required on earlier plans.
+// checkSourceDatasetReplaceKeepsBacking requires an existing dataset whose
+// backing differs from the create defaults (Iceberg, external write, or a
+// typed schema_type) to declare that backing in configuration. If the dataset
+// is ever replaced, unset attributes take their create defaults, so the new
+// dataset would silently be Native, lose external write, or become Any
+// without its companion datasets. The check does not depend on whether this
+// plan replaces: a forced replace (-replace, replace_triggered_by) has no
+// config diff to detect. Taint skips CustomizeDiff entirely, so it is covered
+// only by the configuration this check has already required on earlier plans.
 func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
 	cfg, state := d.GetRawConfig(), d.GetRawState()
 	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
@@ -278,55 +279,65 @@ func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
 		}
 		return v
 	}
-	s, ew := stateAttr("storage"), stateAttr("external_write")
-	iceberg := s != cty.NilVal && s.AsString() == sourceDatasetStorageIceberg
-	externalWrite := ew != cty.NilVal && ew.True()
-	if !iceberg && !externalWrite {
-		return nil
-	}
-	// An explicit non-Iceberg storage is a deliberate move off Iceberg; the
-	// integration and external write are then meant to be dropped.
-	if cfg.Type().HasAttribute("storage") {
-		if c := cfg.GetAttr("storage"); c.IsKnown() && !c.IsNull() && c.AsString() != sourceDatasetStorageIceberg {
-			return nil
-		}
-	}
 	isNull := func(key string) bool {
 		return !cfg.Type().HasAttribute(key) || cfg.GetAttr(key).IsNull()
 	}
-	var missing []string
-	if iceberg {
-		for _, key := range []string{"storage", "storage_integration"} {
-			if isNull(key) {
-				missing = append(missing, key)
-			}
+	s, ew, st := stateAttr("storage"), stateAttr("external_write"), stateAttr("schema_type")
+	iceberg := s != cty.NilVal && s.AsString() == sourceDatasetStorageIceberg
+	externalWrite := ew != cty.NilVal && ew.True()
+	schemaType := sourceDatasetSchemaTypeAny
+	if st != cty.NilVal && st.AsString() != "" {
+		schemaType = st.AsString()
+	}
+	// An explicit non-Iceberg storage is a deliberate move off Iceberg; the
+	// integration and external write are then meant to be dropped. It says
+	// nothing about schema_type, which is still checked.
+	leavingIceberg := false
+	if !isNull("storage") {
+		if c := cfg.GetAttr("storage"); c.IsKnown() && c.AsString() != sourceDatasetStorageIceberg {
+			leavingIceberg = true
 		}
 	}
-	if externalWrite && isNull("external_write") {
-		missing = append(missing, "external_write")
+	keepIceberg := iceberg && !leavingIceberg
+	integrationLost := "no storage integration"
+	if isNull("storage") {
+		integrationLost = ""
+	}
+	requirements := []struct {
+		applies bool
+		key     string
+		// lost describes what the replacement would have instead; empty when
+		// another missing key already implies it.
+		lost string
+	}{
+		{keepIceberg, "storage", "Native storage"},
+		{keepIceberg, "storage_integration", integrationLost},
+		{externalWrite && !leavingIceberg, "external_write", "external write off"},
+		{schemaType != sourceDatasetSchemaTypeAny, "schema_type",
+			fmt.Sprintf("schema_type = %q instead of %q", sourceDatasetSchemaTypeAny, schemaType)},
+	}
+	var missing, lost []string
+	for _, r := range requirements {
+		if !r.applies || !isNull(r.key) {
+			continue
+		}
+		missing = append(missing, r.key)
+		if r.lost != "" {
+			lost = append(lost, r.lost)
+		}
 	}
 	if len(missing) == 0 {
 		return nil
 	}
-	storage := sourceDatasetStorageIceberg
+	storage := sourceDatasetStorageNative
 	if s != cty.NilVal {
 		storage = s.AsString()
 	}
-	var lost []string
-	switch {
-	case iceberg && isNull("storage"):
-		lost = append(lost, "Native storage")
-	case iceberg && isNull("storage_integration"):
-		lost = append(lost, "no storage integration")
-	}
-	if externalWrite && isNull("external_write") {
-		lost = append(lost, "external write off")
-	}
-	return fmt.Errorf("this source dataset is backed by storage = %q (external_write = %t), and %s unset in configuration. "+
+	return fmt.Errorf("this source dataset has storage = %q, schema_type = %q and external_write = %t, and %s unset in configuration. "+
 		"If the dataset is replaced (a ForceNew change, -replace, replace_triggered_by or taint), unset attributes take their defaults, "+
 		"so the new dataset would have %s and its data would be deleted. "+
 		"Set %s explicitly in configuration",
-		storage, externalWrite, joinIsAre(missing), strings.Join(lost, " and "), strings.Join(missing, ", "))
+		storage, schemaType, externalWrite, joinIsAre(missing), strings.Join(lost, " and "), strings.Join(missing, ", "))
 }
 
 func joinIsAre(keys []string) string {
