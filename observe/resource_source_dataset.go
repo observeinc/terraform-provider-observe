@@ -20,6 +20,9 @@ const (
 	sourceDatasetStorageNative  = "Native"
 	sourceDatasetStorageIceberg = "Iceberg"
 	sourceDatasetSchemaTypeAny  = "Any"
+	// SDKv2 cannot store null for an int, so -1 stands for "no retention set
+	// on this dataset" in state and configuration.
+	sourceDatasetRetentionInherit = -1
 )
 
 var (
@@ -54,7 +57,7 @@ func resourceSourceDataset() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{{
 			Version: 0,
-			Type:    (&schema.Resource{Schema: legacySourceDatasetSchemaV0()}).CoreConfigSchema().ImpliedType(),
+			Type:    cty.EmptyObject,
 			Upgrade: upgradeLegacySourceDatasetState,
 		}},
 		Schema: map[string]*schema.Schema{
@@ -80,7 +83,7 @@ func resourceSourceDataset() *schema.Resource {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Computed:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(0)),
+				ValidateDiagFunc: validation.ToDiagFunc(validation.IntAtLeast(sourceDatasetRetentionInherit)),
 				Description:      sourceDatasetDescription("data_retention_days"),
 			},
 			"effective_data_retention_days": {
@@ -91,7 +94,7 @@ func resourceSourceDataset() *schema.Resource {
 			"schema_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Default:          sourceDatasetSchemaTypeAny,
 				ForceNew:         true,
 				ValidateDiagFunc: validateStringInSlice(sourceDatasetSchemaTypes, false),
 				Description:      listEnums(sourceDatasetSchemaTypes, sourceDatasetDescription("schema_type")),
@@ -99,7 +102,7 @@ func resourceSourceDataset() *schema.Resource {
 			"storage": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Default:          sourceDatasetStorageNative,
 				ForceNew:         true,
 				ValidateDiagFunc: validateStringInSlice(sourceDatasetStorages, false),
 				Description:      listEnums(sourceDatasetStorages, sourceDatasetDescription("storage")),
@@ -107,7 +110,6 @@ func resourceSourceDataset() *schema.Resource {
 			"storage_integration": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true, // omitting it must not plan a data-deleting replace
 				ForceNew:         true,
 				ValidateDiagFunc: validateOID(oid.TypeStorageIntegration),
 				DiffSuppressFunc: diffSuppressOIDVersion,
@@ -116,7 +118,7 @@ func resourceSourceDataset() *schema.Resource {
 			"external_write": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Computed:    true,
+				Default:     false,
 				ForceNew:    true,
 				Description: sourceDatasetDescription("external_write"),
 			},
@@ -125,6 +127,12 @@ func resourceSourceDataset() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 				Description: sourceDatasetDescription("force_destroy"),
+			},
+			"deletion_protection": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: sourceDatasetDescription("deletion_protection"),
 			},
 			"oid": {
 				Type:        schema.TypeString,
@@ -135,49 +143,10 @@ func resourceSourceDataset() *schema.Resource {
 	}
 }
 
-// legacySourceDatasetSchemaV0 is the schema of the removed observe_source_dataset
-// resource, kept only to decode version 0 state for the upgrader.
-func legacySourceDatasetSchemaV0() map[string]*schema.Schema {
-	field := &schema.Resource{Schema: map[string]*schema.Schema{
-		"name":          {Type: schema.TypeString, Required: true},
-		"type":          {Type: schema.TypeString, Required: true},
-		"sql_type":      {Type: schema.TypeString, Required: true},
-		"is_enum":       {Type: schema.TypeBool, Optional: true, Default: false},
-		"is_searchable": {Type: schema.TypeBool, Optional: true, Default: false},
-		"is_hidden":     {Type: schema.TypeBool, Optional: true, Default: false},
-		"is_const":      {Type: schema.TypeBool, Optional: true, Default: false},
-		"is_metric":     {Type: schema.TypeBool, Optional: true, Default: false},
-	}}
-	return map[string]*schema.Schema{
-		"workspace":                {Type: schema.TypeString, Optional: true, Computed: true},
-		"name":                     {Type: schema.TypeString, Required: true},
-		"schema":                   {Type: schema.TypeString, Required: true},
-		"table_name":               {Type: schema.TypeString, Required: true},
-		"source_update_table_name": {Type: schema.TypeString, Required: true},
-		"valid_from_field":         {Type: schema.TypeString, Required: true},
-		"batch_seq_field":          {Type: schema.TypeString, Optional: true},
-		"is_insert_only":           {Type: schema.TypeBool, Optional: true, Default: false},
-		"field":                    {Type: schema.TypeSet, Required: true, Elem: field},
-		"description":              {Type: schema.TypeString, Optional: true},
-		"icon_url":                 {Type: schema.TypeString, Optional: true},
-		"oid":                      {Type: schema.TypeString, Computed: true},
-		"freshness":                {Type: schema.TypeString, Optional: true},
-	}
-}
-
 // The legacy resource pointed at a raw-table dataset that is not an ingest
 // source dataset, so adopting it into the new resource would be wrong.
 func upgradeLegacySourceDatasetState(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	return nil, fmt.Errorf(legacySourceDatasetStateError)
-}
-
-// effectiveSourceDatasetStorage returns the planned storage, falling back to
-// the create default when it is unset and not yet known.
-func effectiveSourceDatasetStorage(v string) string {
-	if v == "" {
-		return sourceDatasetStorageNative
-	}
-	return v
 }
 
 func sourceDatasetLabelPackage(label string) string {
@@ -188,26 +157,17 @@ func sourceDatasetLabelPackage(label string) string {
 }
 
 func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	// The backing check runs on every plan of an existing resource, not only
-	// when a config change forces a replace: -replace and replace_triggered_by
-	// replace without any config diff, so they must be covered too.
-	if err := checkSourceDatasetReplaceKeepsBacking(d); err != nil {
-		return err
-	}
-	replacing := sourceDatasetBackingReplaced(d)
-	storage, storageKnown := effectiveSourceDatasetValue(d, "storage", cty.StringVal(sourceDatasetStorageNative), replacing)
-	integration, integrationKnown := effectiveSourceDatasetValue(d, "storage_integration", cty.StringVal(""), replacing)
-	externalWrite, externalWriteKnown := effectiveSourceDatasetValue(d, "external_write", cty.False, replacing)
-	if storageKnown && integrationKnown {
-		isIceberg := storage.AsString() == sourceDatasetStorageIceberg
-		if isIceberg && integration.AsString() == "" {
+	isIceberg := d.Get("storage").(string) == sourceDatasetStorageIceberg
+	if d.NewValueKnown("storage") && d.NewValueKnown("storage_integration") {
+		integration := d.Get("storage_integration").(string)
+		if isIceberg && integration == "" {
 			return fmt.Errorf("storage = %q requires storage_integration", sourceDatasetStorageIceberg)
 		}
-		if !isIceberg && integration.AsString() != "" {
+		if !isIceberg && integration != "" {
 			return fmt.Errorf("storage_integration requires storage = %q", sourceDatasetStorageIceberg)
 		}
 	}
-	if storageKnown && externalWriteKnown && storage.AsString() != sourceDatasetStorageIceberg && externalWrite.True() {
+	if d.NewValueKnown("storage") && d.NewValueKnown("external_write") && !isIceberg && d.Get("external_write").(bool) {
 		return fmt.Errorf("external_write = true requires storage = %q", sourceDatasetStorageIceberg)
 	}
 	if d.Id() != "" && d.HasChange("label") && d.NewValueKnown("label") {
@@ -221,163 +181,9 @@ func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta
 	return nil
 }
 
-// sourceDatasetBackingForceNewKeys are the ForceNew attributes describing the
-// backing; changing any of them replaces the source dataset.
-var sourceDatasetBackingForceNewKeys = []string{"schema_type", "storage", "storage_integration", "external_write"}
-
-// sourceDatasetBackingReplaced reports whether an existing resource will be
-// replaced because a backing attribute set in configuration differs from state.
-func sourceDatasetBackingReplaced(d *schema.ResourceDiff) bool {
-	if d.Id() == "" {
-		return false
-	}
-	cfg, state := d.GetRawConfig(), d.GetRawState()
-	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
-		return false
-	}
-	for _, key := range sourceDatasetBackingForceNewKeys {
-		if !cfg.Type().HasAttribute(key) || !state.Type().HasAttribute(key) {
-			continue
-		}
-		c, s := cfg.GetAttr(key), state.GetAttr(key)
-		if !c.IsKnown() || c.IsNull() || !s.IsKnown() || s.IsNull() {
-			continue
-		}
-		if key == "storage_integration" {
-			if diffSuppressOIDVersion(key, s.AsString(), c.AsString(), nil) {
-				continue
-			}
-		}
-		if !c.RawEquals(s) {
-			return true
-		}
-	}
-	return false
-}
-
-// checkSourceDatasetReplaceKeepsBacking requires an existing dataset whose
-// backing differs from the create defaults (Iceberg, external write, or a
-// typed schema_type) to declare that backing in configuration. If the dataset
-// is ever replaced, unset attributes take their create defaults, so the new
-// dataset would silently be Native, lose external write, or become Any
-// without its companion datasets. The check does not depend on whether this
-// plan replaces: a forced replace (-replace, replace_triggered_by) has no
-// config diff to detect. Taint skips CustomizeDiff entirely, so it is covered
-// only by the configuration this check has already required on earlier plans.
-func checkSourceDatasetReplaceKeepsBacking(d *schema.ResourceDiff) error {
-	cfg, state := d.GetRawConfig(), d.GetRawState()
-	if cfg.IsNull() || !cfg.IsKnown() || state.IsNull() {
-		return nil
-	}
-	stateAttr := func(key string) cty.Value {
-		if !state.Type().HasAttribute(key) {
-			return cty.NilVal
-		}
-		v := state.GetAttr(key)
-		if !v.IsKnown() || v.IsNull() {
-			return cty.NilVal
-		}
-		return v
-	}
-	isNull := func(key string) bool {
-		return !cfg.Type().HasAttribute(key) || cfg.GetAttr(key).IsNull()
-	}
-	s, ew, st := stateAttr("storage"), stateAttr("external_write"), stateAttr("schema_type")
-	iceberg := s != cty.NilVal && s.AsString() == sourceDatasetStorageIceberg
-	externalWrite := ew != cty.NilVal && ew.True()
-	schemaType := sourceDatasetSchemaTypeAny
-	if st != cty.NilVal && st.AsString() != "" {
-		schemaType = st.AsString()
-	}
-	// An explicit non-Iceberg storage is a deliberate move off Iceberg; the
-	// integration and external write are then meant to be dropped. It says
-	// nothing about schema_type, which is still checked.
-	leavingIceberg := false
-	if !isNull("storage") {
-		if c := cfg.GetAttr("storage"); c.IsKnown() && c.AsString() != sourceDatasetStorageIceberg {
-			leavingIceberg = true
-		}
-	}
-	keepIceberg := iceberg && !leavingIceberg
-	integrationLost := "no storage integration"
-	if isNull("storage") {
-		integrationLost = ""
-	}
-	requirements := []struct {
-		applies bool
-		key     string
-		// lost describes what the replacement would have instead; empty when
-		// another missing key already implies it.
-		lost string
-	}{
-		{keepIceberg, "storage", "Native storage"},
-		{keepIceberg, "storage_integration", integrationLost},
-		{externalWrite && !leavingIceberg, "external_write", "external write off"},
-		{schemaType != sourceDatasetSchemaTypeAny, "schema_type",
-			fmt.Sprintf("schema_type = %q instead of %q", sourceDatasetSchemaTypeAny, schemaType)},
-	}
-	var missing, lost []string
-	for _, r := range requirements {
-		if !r.applies || !isNull(r.key) {
-			continue
-		}
-		missing = append(missing, r.key)
-		if r.lost != "" {
-			lost = append(lost, r.lost)
-		}
-	}
-	if len(missing) == 0 {
-		return nil
-	}
-	storage := sourceDatasetStorageNative
-	if s != cty.NilVal {
-		storage = s.AsString()
-	}
-	return fmt.Errorf("this source dataset has storage = %q, schema_type = %q and external_write = %t, and %s unset in configuration. "+
-		"If the dataset is replaced (a ForceNew change, -replace, replace_triggered_by or taint), unset attributes take their defaults, "+
-		"so the new dataset would have %s and its data would be deleted. "+
-		"Set %s explicitly in configuration",
-		storage, schemaType, externalWrite, joinIsAre(missing), strings.Join(lost, " and "), strings.Join(missing, ", "))
-}
-
-func joinIsAre(keys []string) string {
-	if len(keys) == 1 {
-		return keys[0] + " is"
-	}
-	return strings.Join(keys, ", ") + " are"
-}
-
-// effectiveSourceDatasetValue returns the value an attribute will have after
-// apply: the configured value if set, else the value in state (unless the
-// resource is being replaced), else the create default. Optional+Computed
-// attributes that are unset in configuration are unknown in the plan of a new
-// resource, so the plan value alone is not enough.
-// The bool result is false when the configured value is not yet known.
-func effectiveSourceDatasetValue(d *schema.ResourceDiff, key string, createDefault cty.Value, replacing bool) (cty.Value, bool) {
-	cfg := d.GetRawConfig()
-	if !cfg.IsNull() && cfg.IsKnown() && cfg.Type().IsObjectType() && cfg.Type().HasAttribute(key) {
-		v := cfg.GetAttr(key)
-		if !v.IsKnown() {
-			return cty.NilVal, false
-		}
-		if !v.IsNull() {
-			return v, true
-		}
-	}
-	if d.Id() != "" && !replacing {
-		state := d.GetRawState()
-		if !state.IsNull() && state.Type().IsObjectType() && state.Type().HasAttribute(key) {
-			if v := state.GetAttr(key); v.IsKnown() && !v.IsNull() {
-				return v, true
-			}
-		}
-	}
-	return createDefault, true
-}
-
 // rawConfigSet reports whether key is set in configuration, so that an
 // explicit zero value is distinguishable from an unset attribute.
-func rawConfigSet(data sourceDatasetReader, key string) bool {
+func rawConfigSet(data *schema.ResourceData, key string) bool {
 	cfg := data.GetRawConfig()
 	if cfg.IsNull() || !cfg.Type().IsObjectType() || !cfg.Type().HasAttribute(key) {
 		_, ok := data.GetOkExists(key) //nolint:staticcheck // fallback when raw config is unavailable
@@ -387,11 +193,8 @@ func rawConfigSet(data sourceDatasetReader, key string) bool {
 }
 
 func sourceDatasetCreateRequest(data *schema.ResourceData) (*rest.SourceDatasetCreateRequest, error) {
-	storage := effectiveSourceDatasetStorage(data.Get("storage").(string))
+	storage := data.Get("storage").(string)
 	schemaType := data.Get("schema_type").(string)
-	if schemaType == "" {
-		schemaType = sourceDatasetSchemaTypeAny
-	}
 	req := &rest.SourceDatasetCreateRequest{
 		Label: data.Get("label").(string),
 		DataSource: rest.SourceDatasetDataSourceInput{
@@ -408,9 +211,9 @@ func sourceDatasetCreateRequest(data *schema.ResourceData) (*rest.SourceDatasetC
 	if tags := objectTagsMapFromReader(data); len(tags) > 0 {
 		req.ObjectTags = tags
 	}
-	if rawConfigSet(data, "data_retention_days") {
-		days := int64(data.Get("data_retention_days").(int))
-		req.DataRetentionDays = &days
+	if days := data.Get("data_retention_days").(int); rawConfigSet(data, "data_retention_days") && days != sourceDatasetRetentionInherit {
+		days64 := int64(days)
+		req.DataRetentionDays = &days64
 	}
 	if storage == sourceDatasetStorageIceberg {
 		siOID, err := oid.NewOID(data.Get("storage_integration").(string))
@@ -425,17 +228,7 @@ func sourceDatasetCreateRequest(data *schema.ResourceData) (*rest.SourceDatasetC
 	return req, nil
 }
 
-// sourceDatasetReader is the subset of *schema.ResourceData used to build
-// requests, so the update request can be unit tested with a fake.
-type sourceDatasetReader interface {
-	Get(string) interface{}
-	GetOk(string) (interface{}, bool)
-	GetOkExists(string) (interface{}, bool)
-	HasChange(string) bool
-	GetRawConfig() cty.Value
-}
-
-func sourceDatasetUpdateRequest(data sourceDatasetReader) *rest.SourceDatasetUpdateRequest {
+func sourceDatasetUpdateRequest(data *schema.ResourceData) *rest.SourceDatasetUpdateRequest {
 	req := &rest.SourceDatasetUpdateRequest{}
 	if data.HasChange("label") {
 		req.Label = stringPtr(data.Get("label").(string))
@@ -458,11 +251,13 @@ func sourceDatasetUpdateRequest(data sourceDatasetReader) *rest.SourceDatasetUpd
 	}
 	// Removing data_retention_days from configuration never sends null:
 	// retention can live on the shared ingest backing, and null would clear
-	// it for every dataset on that backing.
+	// it for every dataset on that backing. Only an explicit -1 sends null.
 	if data.HasChange("data_retention_days") && rawConfigSet(data, "data_retention_days") {
-		days := int64(data.Get("data_retention_days").(int))
-		req.DataRetentionDays = &days
 		req.DataRetentionDaysSpecified = true
+		if days := data.Get("data_retention_days").(int); days != sourceDatasetRetentionInherit {
+			days64 := int64(days)
+			req.DataRetentionDays = &days64
+		}
 	}
 	return req
 }
@@ -524,11 +319,18 @@ func sourceDatasetToResourceData(data *schema.ResourceData, ds *rest.SourceDatas
 	set("object_tags", tags)
 	if ds.DataRetentionDays != nil {
 		set("data_retention_days", int(*ds.DataRetentionDays))
+	} else {
+		set("data_retention_days", sourceDatasetRetentionInherit)
 	}
 	set("effective_data_retention_days", int(ds.EffectiveDataRetentionDays))
-	storage, schemaType, integration, externalWrite := "", "", "", false
+	storage, schemaType, integration, externalWrite := sourceDatasetStorageNative, sourceDatasetSchemaTypeAny, "", false
 	if ingest := ds.DataSource.Ingest; ingest != nil {
-		storage, schemaType = ingest.Storage, ingest.SchemaType
+		if ingest.Storage != "" {
+			storage = ingest.Storage
+		}
+		if ingest.SchemaType != "" {
+			schemaType = ingest.SchemaType
+		}
 		if ingest.Iceberg != nil {
 			externalWrite = ingest.Iceberg.ExternalWrite
 			if ingest.Iceberg.StorageIntegration != nil && ingest.Iceberg.StorageIntegration.Id != "" {
@@ -546,13 +348,31 @@ func sourceDatasetToResourceData(data *schema.ResourceData, ds *rest.SourceDatas
 
 func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	req := sourceDatasetUpdateRequest(data)
+	if *req == (rest.SourceDatasetUpdateRequest{}) {
+		// Only provider-side attributes such as deletion_protection changed.
+		return nil
+	}
 	if _, err := meta.(*observeclient.Client).Rest.UpdateSourceDataset(ctx, data.Id(), req); err != nil {
 		return sourceDatasetAPIError("update", data.Id(), err)
 	}
 	return resourceSourceDatasetRead(ctx, data, meta)
 }
 
+// checkSourceDatasetDeletionAllowed runs on every delete Terraform performs:
+// destroy, removal from configuration, and replacement (including -replace
+// and taint). force_destroy overrides deletion_protection.
+func checkSourceDatasetDeletionAllowed(data ResourceReader, id string) error {
+	if data.Get("deletion_protection").(bool) && !data.Get("force_destroy").(bool) {
+		return fmt.Errorf("cannot delete source dataset %s: deletion_protection is true. Deleting a source dataset deletes its data. "+
+			"To delete or replace it, first apply deletion_protection = false, then run the destroy or replace again", id)
+	}
+	return nil
+}
+
 func resourceSourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if err := checkSourceDatasetDeletionAllowed(data, data.Id()); err != nil {
+		return diag.FromErr(err)
+	}
 	err := meta.(*observeclient.Client).Rest.DeleteSourceDataset(ctx, data.Id(), data.Get("force_destroy").(bool))
 	if err == nil || rest.HasStatusCode(err, http.StatusNotFound) {
 		data.SetId("")
@@ -588,6 +408,9 @@ func resourceSourceDatasetImport(ctx context.Context, data *schema.ResourceData,
 		return nil, err
 	}
 	if err := data.Set("force_destroy", false); err != nil {
+		return nil, err
+	}
+	if err := data.Set("deletion_protection", true); err != nil {
 		return nil, err
 	}
 	data.SetId(id)

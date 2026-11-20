@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
 const testStorageIntegrationOID = "o:::storageintegration:41009999"
@@ -101,12 +103,12 @@ func TestSourceDatasetResourceSchema(t *testing.T) {
 		t.Fatalf("unexpected schema version %d / upgraders %#v", r.SchemaVersion, r.StateUpgraders)
 	}
 	for _, k := range []string{"schema_type", "storage", "storage_integration", "external_write"} {
-		if !r.Schema[k].ForceNew {
-			t.Errorf("%s must be ForceNew", k)
+		if !r.Schema[k].ForceNew || r.Schema[k].Computed {
+			t.Errorf("%s must be ForceNew and not Computed, so an omitted backing plans a replace", k)
 		}
-		if r.Schema[k].Default != nil {
-			t.Errorf("%s must not have a Default", k)
-		}
+	}
+	if r.Schema["deletion_protection"].Default != true {
+		t.Errorf("deletion_protection must default to true")
 	}
 }
 
@@ -118,8 +120,51 @@ func TestSourceDatasetLegacyStateUpgrade(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "terraform state rm") {
 		t.Fatalf("expected legacy state error, got %v", err)
 	}
-	if up.Type.IsObjectType() == false || !up.Type.HasAttribute("table_name") {
-		t.Fatalf("upgrader type must be the legacy schema, got %#v", up.Type)
+}
+
+// applySourceDatasetUpdate plans config against prior state and applies the
+// plan through the SDK, returning the PATCH body the update would send.
+func applySourceDatasetUpdate(t *testing.T, prior, config map[string]interface{}) string {
+	t.Helper()
+	diff, err := planSourceDataset(t, prior, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff == nil || diff.RequiresNew() {
+		t.Fatalf("expected an in-place update, got %#v", diff)
+	}
+	var body []byte
+	r := resourceSourceDataset()
+	r.UpdateContext = func(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+		b, err := json.Marshal(sourceDatasetUpdateRequest(data))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		body = b
+		return nil
+	}
+	state := &terraform.InstanceState{
+		ID:         "41000001",
+		Attributes: flatStateAttributes(prior),
+		RawState:   sourceDatasetCtyObject(t, prior),
+		RawConfig:  sourceDatasetCtyObject(t, config),
+	}
+	state.Attributes["id"] = state.ID
+	if _, diags := r.Apply(context.Background(), state, diff, nil); diags.HasError() {
+		t.Fatalf("apply: %v", diags)
+	}
+	return string(body)
+}
+
+func TestSourceDatasetRetentionZeroFromInherited(t *testing.T) {
+	// Read stores the API's dataRetentionDays: null as -1.
+	prior := map[string]interface{}{
+		"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "Any", "external_write": false,
+		"force_destroy": false, "deletion_protection": true, "data_retention_days": -1,
+	}
+	config := map[string]interface{}{"label": "tf-pkg/Logs", "data_retention_days": 0}
+	if got, want := applySourceDatasetUpdate(t, prior, config), `{"dataRetentionDays":0}`; got != want {
+		t.Fatalf("PATCH body = %s, want %s", got, want)
 	}
 }
 
@@ -127,22 +172,6 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 	existing := map[string]interface{}{
 		"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "Any", "external_write": false,
 		"force_destroy": false,
-	}
-	existingIceberg := map[string]interface{}{
-		"label": "tf-pkg/Ice", "storage": "Iceberg", "schema_type": "Any", "external_write": false,
-		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
-	}
-	existingExternalWrite := map[string]interface{}{
-		"label": "tf-pkg/Ew", "storage": "Iceberg", "schema_type": "Any", "external_write": true,
-		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
-	}
-	existingTyped := map[string]interface{}{
-		"label": "tf-pkg/Prom", "storage": "Native", "schema_type": "Prometheus", "external_write": false,
-		"force_destroy": false,
-	}
-	existingTypedIceberg := map[string]interface{}{
-		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": false,
-		"storage_integration": testStorageIntegrationOID, "force_destroy": false,
 	}
 	cases := []struct {
 		name    string
@@ -158,36 +187,7 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 		{"iceberg external write", nil, map[string]interface{}{"label": "tf-pkg/a", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": true}, ""},
 		{"package change", existing, map[string]interface{}{"label": "tf-other/Logs"}, "package of a source dataset label cannot change"},
 		{"name change", existing, map[string]interface{}{"label": "tf-pkg/Renamed"}, ""},
-		// Replacing an Iceberg dataset with a Native one must not inherit the old
-		// storage_integration from state.
-		{"iceberg to native replace", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Native"}, ""},
-		// An existing Iceberg dataset must declare its backing in config on every
-		// plan, whether or not a config change forces a replace: -replace and
-		// replace_triggered_by replace without a config diff.
-		{"iceberg in place without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2"}, "would have Native storage"},
-		{"iceberg in place with storage only", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, "storage_integration is unset in configuration"},
-		{"iceberg in place with storage only names lost integration", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "storage": "Iceberg"}, "would have no storage integration and"},
-		{"iceberg in place with backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice2", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, ""},
-		{"iceberg replace without backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs"}, "Set storage, storage_integration explicitly"},
-		{"iceberg replace with backing in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": false}, ""},
-		// external_write = false in state is the default, so omitting it loses nothing.
-		{"iceberg replace external_write false in state omitted in config", existingIceberg, map[string]interface{}{"label": "tf-pkg/Ice", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, ""},
-		{"external write replace without external_write in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "schema_type": "OtelLogs", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, "Set external_write explicitly"},
-		{"external write missing says external write, not Native", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID}, "would have external write off and"},
-		{"external write without any backing in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew"}, "would have Native storage and external write off"},
-		{"external write in place with backing in config", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew2", "storage": "Iceberg", "storage_integration": testStorageIntegrationOID, "external_write": true}, ""},
-		{"external write to native replace", existingExternalWrite, map[string]interface{}{"label": "tf-pkg/Ew", "storage": "Native"}, ""},
-		{"native replace", existing, map[string]interface{}{"label": "tf-pkg/Logs", "schema_type": "OtelLogs"}, ""},
-		// A typed dataset left without schema_type in config would be recreated
-		// as Any, without its companion datasets, on any replace.
-		{"typed in place without schema_type in config", existingTyped, map[string]interface{}{"label": "tf-pkg/Prom2"}, "would have schema_type = \"Any\" instead of \"Prometheus\""},
-		{"typed in place with schema_type in config", existingTyped, map[string]interface{}{"label": "tf-pkg/Prom2", "schema_type": "Prometheus"}, ""},
-		{"typed iceberg integration change without schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg", "storage_integration": "o:::storageintegration:41008888"}, "Set schema_type explicitly"},
-		// Moving off Iceberg drops the integration on purpose, but not the type.
-		{"typed iceberg to native without schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Native"}, "Set schema_type explicitly"},
-		{"typed iceberg to native with schema_type", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "OtelLogs"}, ""},
-		{"typed iceberg without any backing names every missing key", existingTypedIceberg, map[string]interface{}{"label": "tf-pkg/Logs"}, "Set storage, storage_integration, schema_type explicitly"},
-		{"native to iceberg replace needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
+		{"native to iceberg needs integration", existing, map[string]interface{}{"label": "tf-pkg/Logs", "storage": "Iceberg"}, "requires storage_integration"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -205,10 +205,103 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 	}
 }
 
+// An existing dataset's backing must be in configuration: the backing
+// attributes default to Native, Any and no external write, so leaving one out
+// is an ordinary replacement, which deletion_protection then blocks.
+func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
+	existingTypedIceberg := map[string]interface{}{
+		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": true,
+		"storage_integration": testStorageIntegrationOID, "force_destroy": false, "deletion_protection": true,
+	}
+	backing := map[string]interface{}{
+		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": true,
+		"storage_integration": testStorageIntegrationOID,
+	}
+	without := func(keys ...string) map[string]interface{} {
+		out := map[string]interface{}{}
+		for k, v := range backing {
+			out[k] = v
+		}
+		for _, k := range keys {
+			delete(out, k)
+		}
+		return out
+	}
+	cases := []struct {
+		name        string
+		config      map[string]interface{}
+		wantReplace []string
+	}{
+		{"full backing in config", backing, nil},
+		{"schema_type omitted", without("schema_type"), []string{"schema_type"}},
+		{"external_write omitted", without("external_write"), []string{"external_write"}},
+		{"backing omitted", map[string]interface{}{"label": "tf-pkg/Logs"}, []string{"schema_type", "storage", "storage_integration", "external_write"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			diff, err := planSourceDataset(t, existingTypedIceberg, tc.config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(tc.wantReplace) == 0 {
+				if diff != nil && len(diff.Attributes) > 0 {
+					t.Fatalf("expected no changes, got %#v", diff.Attributes)
+				}
+				return
+			}
+			if diff == nil || !diff.RequiresNew() {
+				t.Fatalf("expected a replacement, got %#v", diff)
+			}
+			for _, k := range tc.wantReplace {
+				if a := diff.Attributes[k]; a == nil || !a.RequiresNew {
+					t.Errorf("%s: expected a change that forces replacement, got %#v", k, a)
+				}
+			}
+		})
+	}
+}
+
+func TestSourceDatasetDeletionProtection(t *testing.T) {
+	r := resourceSourceDataset()
+	cases := []struct {
+		deletionProtection, forceDestroy bool
+		wantBlocked                      bool
+	}{
+		{true, false, true},
+		{true, true, false},
+		{false, false, false},
+		{false, true, false},
+	}
+	for _, tc := range cases {
+		d := r.Data(&terraform.InstanceState{ID: "41000001", Attributes: map[string]string{
+			"id": "41000001", "deletion_protection": boolString(tc.deletionProtection), "force_destroy": boolString(tc.forceDestroy),
+		}})
+		err := checkSourceDatasetDeletionAllowed(d, d.Id())
+		if blocked := err != nil; blocked != tc.wantBlocked {
+			t.Errorf("deletion_protection=%t force_destroy=%t: blocked=%t (%v), want %t", tc.deletionProtection, tc.forceDestroy, blocked, err, tc.wantBlocked)
+		}
+	}
+	// The check runs before the API client is touched.
+	d := r.Data(&terraform.InstanceState{ID: "41000001", Attributes: map[string]string{"id": "41000001", "deletion_protection": "true"}})
+	if diags := resourceSourceDatasetDelete(context.Background(), d, nil); !diags.HasError() || !strings.Contains(diags[0].Summary, "deletion_protection is true") {
+		t.Fatalf("expected deletion_protection error, got %v", diags)
+	}
+	if d.Id() == "" {
+		t.Fatal("a refused delete must keep the resource in state")
+	}
+}
+
+func boolString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
 func TestSourceDatasetImportTypedNoReplace(t *testing.T) {
 	prior := map[string]interface{}{
 		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": false,
-		"storage_integration": testStorageIntegrationOID, "force_destroy": false, "data_retention_days": 30,
+		"storage_integration": testStorageIntegrationOID, "force_destroy": false, "deletion_protection": true, "data_retention_days": 30,
 	}
 	diff, err := planSourceDataset(t, prior, map[string]interface{}{
 		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs",
@@ -228,6 +321,16 @@ func TestSourceDatasetImportTypedNoReplace(t *testing.T) {
 
 func TestSourceDatasetCreateRequest(t *testing.T) {
 	r := resourceSourceDataset()
+	t.Run("explicit -1 sends no retention", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": -1})
+		req, err := sourceDatasetCreateRequest(d)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if req.DataRetentionDays != nil {
+			t.Fatalf("-1 must not be sent, got %d", *req.DataRetentionDays)
+		}
+	})
 	t.Run("defaults", func(t *testing.T) {
 		d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{"label": "tf-pkg/a"})
 		req, err := sourceDatasetCreateRequest(d)
@@ -262,79 +365,69 @@ func TestSourceDatasetCreateRequest(t *testing.T) {
 	})
 }
 
-// fakeSourceDatasetReader serves planned values and a set of changed keys.
-type fakeSourceDatasetReader struct {
-	values  map[string]interface{}
-	changed map[string]bool
-	raw     cty.Value
-}
-
-func (f fakeSourceDatasetReader) Get(k string) interface{} {
-	if v, ok := f.values[k]; ok {
-		return v
-	}
-	return resourceSourceDataset().Schema[k].ZeroValue()
-}
-func (f fakeSourceDatasetReader) GetOk(k string) (interface{}, bool) {
-	v, ok := f.values[k]
-	if m, isMap := v.(map[string]interface{}); isMap && len(m) == 0 {
-		return v, false
-	}
-	return v, ok && v != ""
-}
-func (f fakeSourceDatasetReader) GetOkExists(k string) (interface{}, bool) {
-	v, ok := f.values[k]
-	return v, ok
-}
-func (f fakeSourceDatasetReader) HasChange(k string) bool { return f.changed[k] }
-func (f fakeSourceDatasetReader) GetRawConfig() cty.Value { return f.raw }
-
 func TestSourceDatasetUpdateRequest(t *testing.T) {
+	prior := map[string]interface{}{
+		"label": "tf-pkg/a", "description": "old", "data_retention_days": 30, "object_tags": map[string]interface{}{"team": "a"},
+		"storage": "Native", "schema_type": "Any", "external_write": false, "force_destroy": false, "deletion_protection": true,
+	}
 	cases := []struct {
-		name    string
-		values  map[string]interface{}
-		config  map[string]interface{}
-		changed []string
-		want    string
+		name   string
+		config map[string]interface{}
+		want   string
 	}{
 		{
 			// No dataRetentionDays key, so a non-admin can edit metadata.
-			name:    "clear description and remove tags",
-			values:  map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30, "object_tags": map[string]interface{}{}},
-			config:  map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30},
-			changed: []string{"description", "object_tags"},
-			want:    `{"description":null,"objectTags":{}}`,
+			name:   "clear description and remove tags",
+			config: map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30},
+			want:   `{"description":null,"objectTags":{}}`,
 		},
 		{
-			name:    "rename and set retention",
-			values:  map[string]interface{}{"label": "tf-pkg/b", "data_retention_days": 0},
-			config:  map[string]interface{}{"label": "tf-pkg/b", "data_retention_days": 0},
-			changed: []string{"label", "data_retention_days"},
-			want:    `{"dataRetentionDays":0,"label":"tf-pkg/b"}`,
+			name:   "rename and set retention to zero",
+			config: map[string]interface{}{"label": "tf-pkg/b", "description": "old", "data_retention_days": 0, "object_tags": map[string]interface{}{"team": "a"}},
+			want:   `{"dataRetentionDays":0,"label":"tf-pkg/b"}`,
 		},
 		{
-			name:    "removing retention from config sends nothing",
-			values:  map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30},
-			config:  map[string]interface{}{"label": "tf-pkg/a"},
-			changed: []string{"data_retention_days"},
-			want:    `{}`,
+			name:   "removing retention from config sends nothing for it",
+			config: map[string]interface{}{"label": "tf-pkg/b", "description": "old", "object_tags": map[string]interface{}{"team": "a"}},
+			want:   `{"label":"tf-pkg/b"}`,
+		},
+		{
+			name:   "explicit -1 returns to inherited retention",
+			config: map[string]interface{}{"label": "tf-pkg/a", "description": "old", "data_retention_days": -1, "object_tags": map[string]interface{}{"team": "a"}},
+			want:   `{"dataRetentionDays":null}`,
+		},
+		{
+			name:   "deletion_protection only",
+			config: map[string]interface{}{"label": "tf-pkg/a", "description": "old", "data_retention_days": 30, "object_tags": map[string]interface{}{"team": "a"}, "deletion_protection": false},
+			want:   `{}`,
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			changed := map[string]bool{}
-			for _, k := range tc.changed {
-				changed[k] = true
-			}
-			r := fakeSourceDatasetReader{values: tc.values, changed: changed, raw: sourceDatasetCtyObject(t, tc.config)}
-			body, err := json.Marshal(sourceDatasetUpdateRequest(r))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if string(body) != tc.want {
-				t.Fatalf("body = %s, want %s", body, tc.want)
+			if got := applySourceDatasetUpdate(t, prior, tc.config); got != tc.want {
+				t.Fatalf("PATCH body = %s, want %s", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestSourceDatasetReadNullRetention(t *testing.T) {
+	r := resourceSourceDataset()
+	d := r.Data(&terraform.InstanceState{ID: "41000001", Attributes: map[string]string{"id": "41000001", "data_retention_days": "30"}})
+	ds := &rest.SourceDatasetResource{Id: "41000001", Label: "tf-pkg/a", EffectiveDataRetentionDays: 90}
+	if diags := sourceDatasetToResourceData(d, ds); diags.HasError() {
+		t.Fatal(diags)
+	}
+	if got := d.Get("data_retention_days").(int); got != sourceDatasetRetentionInherit {
+		t.Fatalf("a null retention from the API must be stored as -1, got %d", got)
+	}
+	// A retention reset outside Terraform shows as drift against a configured value.
+	prior := map[string]interface{}{
+		"label": "tf-pkg/a", "storage": "Native", "schema_type": "Any", "external_write": false,
+		"force_destroy": false, "deletion_protection": true, "data_retention_days": -1,
+	}
+	if got, want := applySourceDatasetUpdate(t, prior, map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30}), `{"dataRetentionDays":30}`; got != want {
+		t.Fatalf("PATCH body = %s, want %s", got, want)
 	}
 }
 

@@ -34,7 +34,8 @@ func TestAccObserveSourceDatasetNative(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 resource "observe_source_dataset" "native" {
-  label = "%[1]s/Logs"
+  label               = "%[1]s/Logs"
+  deletion_protection = false
 }`, prefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("observe_source_dataset.native", "label", prefix+"/Logs"),
@@ -51,6 +52,7 @@ resource "observe_source_dataset" "native" {
   label               = "%[1]s/Renamed"
   description         = "managed by terraform"
   data_retention_days = 7
+  deletion_protection = false
   object_tags = {
     team = "a,b"
   }
@@ -66,7 +68,7 @@ resource "observe_source_dataset" "native" {
 				ResourceName:            "observe_source_dataset.native",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"force_destroy"},
+				ImportStateVerifyIgnore: []string{"force_destroy", "deletion_protection"},
 			},
 		},
 	})
@@ -84,8 +86,9 @@ func TestAccObserveSourceDatasetIceberg(t *testing.T) {
 		}
 		return fmt.Sprintf(`
 resource "observe_source_dataset" "iceberg" {
-  label   = "%[1]s/Iceberg"
-  storage = %[2]q
+  label               = "%[1]s/Iceberg"
+  storage             = %[2]q
+  deletion_protection = false
   %[3]s
 }`, prefix, storage, integration)
 	}
@@ -108,7 +111,7 @@ resource "observe_source_dataset" "iceberg" {
 				ResourceName:            "observe_source_dataset.iceberg",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"force_destroy"},
+				ImportStateVerifyIgnore: []string{"force_destroy", "deletion_protection"},
 			},
 			{
 				// The SDK in use has no plancheck package; a changed ID shows
@@ -143,6 +146,7 @@ resource "observe_source_dataset" "ew" {
   storage             = "Iceberg"
   storage_integration = %[2]q
   external_write      = true
+  deletion_protection = false
 }`, prefix, si),
 				Check: resource.TestCheckResourceAttr("observe_source_dataset.ew", "external_write", "true"),
 			},
