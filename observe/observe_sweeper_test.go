@@ -21,7 +21,12 @@ func init() {
 			"observe_datastream",
 			"observe_app",
 			"observe_dataset_outbound_share",
+			"observe_source_dataset",
 		},
+	})
+	resource.AddTestSweepers("observe_source_dataset", &resource.Sweeper{
+		Name: "observe_source_dataset",
+		F:    sourceDatasetSweeperFunc,
 	})
 	resource.AddTestSweepers("observe_monitor", &resource.Sweeper{
 		Name: "observe_monitor",
@@ -858,4 +863,26 @@ func serviceAccountSweeper(pattern string) error {
 
 func TestMain(m *testing.M) {
 	resource.TestMain(m)
+}
+
+func sourceDatasetSweeperFunc(pattern string) error {
+	client, err := sharedClient(pattern)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	datasets, err := client.Rest.ListSourceDatasets(ctx, `label.matches("^tf-")`)
+	if err != nil {
+		return fmt.Errorf("failed to list source datasets: %w", err)
+	}
+	for _, ds := range datasets {
+		if !client.MatchName(ds.Label) {
+			continue
+		}
+		log.Printf("[WARN] Deleting source dataset %s [id=%s]\n", ds.Label, ds.Id)
+		if err := client.Rest.DeleteSourceDataset(ctx, ds.Id, true); err != nil {
+			log.Printf("[ERROR] failed to delete source dataset %s: %s\n", ds.Id, err)
+		}
+	}
+	return nil
 }

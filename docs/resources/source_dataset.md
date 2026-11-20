@@ -3,52 +3,87 @@
 page_title: "observe_source_dataset Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Deprecated and non-functional. observe_source_dataset is no longer supported and will be removed in a future release. It no longer calls the Observe API: existing resources are kept in state unchanged, updates are not applied, and destroying one only removes it from state without deleting the dataset. Remove it from your configuration, or run terraform state rm on it.
+  A source dataset is an ingest destination: the dataset that observations are written to before any transforms. This resource manages source datasets through the /v1/source-datasets REST API, including Observe-managed Iceberg storage and external write.
+  The source dataset API is in beta and must be enabled for your account (backend flag source_dataset_rest_api). Iceberg storage additionally requires Iceberg datasets to be enabled, and external_write requires external write to be enabled for the account.
+  Prometheus and OtelSpan source datasets also create companion datasets (a metadata dataset for Prometheus; span event and span link datasets for OtelSpan). Those are managed with the source dataset and deleted with it.
+  Changing schema_type, storage, storage_integration or external_write replaces the source dataset, which deletes its data. Those attributes default to Any, Native, no integration and false, so an existing Iceberg, external-write or typed dataset must set them in configuration; leaving one out plans a replacement. After importing a dataset, add its backing to configuration before applying.
+  deletion_protection (true by default) makes Terraform refuse every delete it would perform on the dataset: terraform destroy, removing it from configuration, and any replacement, including terraform apply -replace, replace_triggered_by and terraform taint. To delete or replace a protected dataset, first apply deletion_protection = false, then run the destroy or replacement. force_destroy = true overrides deletion_protection.
+  ~> Breaking change: this resource replaces the removed legacy observe_source_dataset, which registered raw Snowflake tables. State written by the legacy resource cannot be upgraded: run terraform state rm on it and remove it from configuration. The dataset it pointed to is unaffected.
 ---
 # observe_source_dataset
 
-Deprecated and non-functional. `observe_source_dataset` is no longer supported and will be removed in a future release. It no longer calls the Observe API: existing resources are kept in state unchanged, updates are not applied, and destroying one only removes it from state without deleting the dataset. Remove it from your configuration, or run `terraform state rm` on it.
+A source dataset is an ingest destination: the dataset that observations are written to before any transforms. This resource manages source datasets through the `/v1/source-datasets` REST API, including Observe-managed Iceberg storage and external write.
 
+The source dataset API is in beta and must be enabled for your account (backend flag `source_dataset_rest_api`). Iceberg storage additionally requires Iceberg datasets to be enabled, and `external_write` requires external write to be enabled for the account.
+
+`Prometheus` and `OtelSpan` source datasets also create companion datasets (a metadata dataset for `Prometheus`; span event and span link datasets for `OtelSpan`). Those are managed with the source dataset and deleted with it.
+
+Changing `schema_type`, `storage`, `storage_integration` or `external_write` replaces the source dataset, which deletes its data. Those attributes default to `Any`, `Native`, no integration and `false`, so an existing Iceberg, external-write or typed dataset must set them in configuration; leaving one out plans a replacement. After importing a dataset, add its backing to configuration before applying.
+
+`deletion_protection` (true by default) makes Terraform refuse every delete it would perform on the dataset: `terraform destroy`, removing it from configuration, and any replacement, including `terraform apply -replace`, `replace_triggered_by` and `terraform taint`. To delete or replace a protected dataset, first apply `deletion_protection = false`, then run the destroy or replacement. `force_destroy = true` overrides `deletion_protection`.
+
+~> **Breaking change:** this resource replaces the removed legacy `observe_source_dataset`, which registered raw Snowflake tables. State written by the legacy resource cannot be upgraded: run `terraform state rm` on it and remove it from configuration. The dataset it pointed to is unaffected.
+## Example Usage
+```terraform
+# Native (Observe-managed) storage. storage and schema_type default to Native and Any.
+resource "observe_source_dataset" "logs" {
+  label       = "myapp/Logs"
+  description = "Raw application logs"
+
+  object_tags = {
+    team = "platform"
+  }
+}
+
+# Observe-managed Iceberg table in a storage integration.
+resource "observe_source_dataset" "iceberg_logs" {
+  label               = "myapp/Iceberg Logs"
+  schema_type         = "OtelLogs"
+  storage             = "Iceberg"
+  storage_integration = "o:::storageintegration:41000123"
+}
+
+# External write: Observe provisions the Iceberg table, and you write rows
+# through Observe's Iceberg catalog.
+resource "observe_source_dataset" "external" {
+  label               = "myapp/External Events"
+  storage             = "Iceberg"
+  storage_integration = "o:::storageintegration:41000123"
+  external_write      = true
+}
+```
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-- `field` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--field))
-- `name` (String)
-- `schema` (String)
-- `source_update_table_name` (String)
-- `table_name` (String)
-- `valid_from_field` (String)
+- `label` (String) The dataset label, in `package/name` form. Only the name after the last `/` can be changed in place; changing the package fails the plan, because it would require replacing the dataset and deleting its data. Unique per workspace.
 
 ### Optional
 
-- `batch_seq_field` (String)
-- `description` (String)
-- `freshness` (String, Deprecated)
-- `icon_url` (String)
-- `is_insert_only` (Boolean)
-- `workspace` (String, Deprecated)
+- `data_retention_days` (Number) Data retention for this dataset, in days. `0` is accepted. `-1` means no retention is set on the dataset, so it inherits the workspace retention: the provider reports `-1` when the API returns none, and setting `-1` clears a retention set earlier. Setting or changing this attribute requires workspace admin. Removing the attribute from configuration leaves the current value unchanged, because the retention may be shared with other datasets on the same ingest backing and changing it can delete data; set `-1` to clear it.
+- `deletion_protection` (Boolean) When true, Terraform refuses to delete the source dataset: `terraform destroy`, removing the resource from configuration, and replacement (including `-replace`, `replace_triggered_by` and `taint`) all fail without calling the API. Set it to false and apply before deleting or replacing the dataset. `force_destroy = true` overrides it. This is a provider-side setting; changing it makes no API call. Defaults to true.
+- `description` (String) Description of the source dataset.
+- `external_write` (Boolean) When true, Observe provisions the Iceberg table and owns its schema but runs no ingest pipeline; you write rows through Observe's Iceberg catalog. Requires `storage = "Iceberg"`. Defaults to false. Changing it replaces the dataset.
+- `force_destroy` (Boolean) When true, destroying this resource deletes the source dataset even if other datasets depend on it. The dependent datasets are kept and rebuilt, but dashboards, worksheets, monitors and export jobs that read from the source dataset stop working. Deletion is still refused while an ingest token or a filedrop/poller is attached. Overrides `deletion_protection`. Defaults to false.
+- `icon_url` (String) Icon to be displayed for this object. Icons are sourced from the [fluency-filled](https://icons8.com/icons/fluency-systems-filled) icon set. When unset, the provider reports the icon the API assigns. Removing the attribute from configuration leaves the current icon unchanged; set it explicitly to change it.
+- `object_tags` (Map of String) Object tags for organizing and categorizing workspace objects. Map keys are tag names, values are comma-separated lists. Values are parsed as CSV format for proper escaping. Leading/trailing spaces are automatically trimmed, internal spaces are preserved. Values containing commas must be quoted using CSV escaping.
+- `schema_type` (String) The signal type of the dataset. Defaults to `Any`, which infers the type from the data. Changing it replaces the dataset.
+ Accepted values: `Any`, `OtelLogs`, `OtelMetrics`, `Prometheus`, `K8sEntity`, `OtelSpan`
+- `storage` (String) Where the dataset's table is stored: `Native` (Observe-managed storage, the default) or `Iceberg` (an Observe-managed Iceberg table in `storage_integration`). Changing it replaces the dataset.
+ Accepted values: `Native`, `Iceberg`
+- `storage_integration` (String) OID of the storage integration that holds the Iceberg table. Required when `storage` is `Iceberg`, and only allowed then. Changing it replaces the dataset.
 
 ### Read-Only
 
+- `effective_data_retention_days` (Number) The data retention, in days, that applies to this dataset after inheritance.
 - `id` (String) The ID of this resource.
-- `oid` (String)
-
-<a id="nestedblock--field"></a>
-### Nested Schema for `field`
-
-Required:
-
-- `name` (String)
-- `sql_type` (String)
-- `type` (String)
-
-Optional:
-
-- `is_const` (Boolean)
-- `is_enum` (Boolean)
-- `is_hidden` (Boolean)
-- `is_metric` (Boolean)
-- `is_searchable` (Boolean)
-
+- `oid` (String) OID (Observe ID) for this object. This is the canonical identifier that
+should be used when referring to this object in terraform manifests.
+## Import
+Import is supported using the following syntax:
+```shell
+# Import by numeric dataset id or by dataset OID.
+terraform import observe_source_dataset.logs 41000001
+terraform import observe_source_dataset.logs o:::dataset:41000001
+```
