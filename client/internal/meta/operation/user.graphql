@@ -3,6 +3,13 @@ fragment User on User {
 	email
 	comment
 	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
 }
 
 query getUser($id: UserId!) {
@@ -24,6 +31,45 @@ query listUsers {
 query currentUser {
 	# @genqlient(flatten: true)
 	user: currentUser {
+		...User
+	}
+}
+
+# @genqlient(for: "UserInput.email", omitempty: true)
+# @genqlient(for: "UserInput.label", omitempty: true)
+# @genqlient(for: "UserInput.timezone", omitempty: true)
+# @genqlient(for: "UserInput.locale", omitempty: true)
+# @genqlient(for: "UserInput.role", omitempty: true)
+# @genqlient(for: "UserInput.comment", omitempty: true)
+# @genqlient(for: "UserInput.expirationTime", omitempty: true)
+# @genqlient(for: "UserInput.status", omitempty: true)
+# @genqlient(for: "UserInput.rbacGroups", omitempty: true)
+# @genqlient(for: "UserInput.ssoIdentities", omitempty: true)
+mutation createSSOUser(
+	$user: UserInput!
+) {
+	# @genqlient(flatten: true)
+	user: createSSOUser(user: $user) {
+		...User
+	}
+}
+
+# @genqlient(for: "UserInput.email", omitempty: true)
+# @genqlient(for: "UserInput.label", omitempty: true)
+# @genqlient(for: "UserInput.timezone", omitempty: true)
+# @genqlient(for: "UserInput.locale", omitempty: true)
+# @genqlient(for: "UserInput.role", omitempty: true)
+# @genqlient(for: "UserInput.comment", omitempty: true)
+# @genqlient(for: "UserInput.expirationTime", omitempty: true)
+# @genqlient(for: "UserInput.status", omitempty: true)
+# @genqlient(for: "UserInput.rbacGroups", omitempty: true)
+# @genqlient(for: "UserInput.ssoIdentities", omitempty: true)
+mutation updateUser(
+	$id: UserId!,
+	$user: UserInput!
+) {
+	# @genqlient(flatten: true)
+	user: updateUser(id: $id, user: $user) {
 		...User
 	}
 }
