@@ -1309,6 +1309,26 @@ func (c *Client) ListUsers(ctx context.Context) ([]meta.User, error) {
 	return c.Meta.ListUsers(ctx)
 }
 
+// CreateSSOUser creates a user bound to an SSO identity before first login
+func (c *Client) CreateSSOUser(ctx context.Context, input *meta.UserInput) (*meta.User, error) {
+	return c.Meta.CreateSSOUser(ctx, input)
+}
+
+// UpdateUser updates a user by ID
+func (c *Client) UpdateUser(ctx context.Context, id string, input *meta.UserInput) (*meta.User, error) {
+	return c.Meta.UpdateUser(ctx, id, input)
+}
+
+// DisableUser disables a user by ID
+func (c *Client) DisableUser(ctx context.Context, id string) error {
+	return c.Meta.DisableUser(ctx, id)
+}
+
+// EnableUser re-activates a disabled user by ID
+func (c *Client) EnableUser(ctx context.Context, id string) (*meta.User, error) {
+	return c.Meta.EnableUser(ctx, id)
+}
+
 // CreateRbacGroupmember creates an rbacgroupmember
 func (c *Client) CreateRbacGroupmember(ctx context.Context, input *meta.RbacGroupmemberInput) (*meta.RbacGroupmember, error) {
 	if !c.Flags[flagObs2110] {
