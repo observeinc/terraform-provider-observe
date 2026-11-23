@@ -3,6 +3,8 @@ package observe
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	observeclient "github.com/observeinc/terraform-provider-observe/client"
 	"github.com/observeinc/terraform-provider-observe/client/rest"
 )
 
@@ -207,11 +210,13 @@ func TestValidateSourceDatasetPlan(t *testing.T) {
 
 // An existing dataset's backing must be in configuration: the backing
 // attributes default to Native, Any and no external write, so leaving one out
-// is an ordinary replacement, which deletion_protection then blocks.
+// plans a replacement, which deletion_protection fails at plan time.
 func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
-	existingTypedIceberg := map[string]interface{}{
-		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": true,
-		"storage_integration": testStorageIntegrationOID, "force_destroy": false, "deletion_protection": true,
+	existingTypedIceberg := func(deletionProtection, forceDestroy bool) map[string]interface{} {
+		return map[string]interface{}{
+			"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": true,
+			"storage_integration": testStorageIntegrationOID, "force_destroy": forceDestroy, "deletion_protection": deletionProtection,
+		}
 	}
 	backing := map[string]interface{}{
 		"label": "tf-pkg/Logs", "storage": "Iceberg", "schema_type": "OtelLogs", "external_write": true,
@@ -227,19 +232,42 @@ func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
 		}
 		return out
 	}
+	with := func(config map[string]interface{}, key string, value interface{}) map[string]interface{} {
+		out := map[string]interface{}{key: value}
+		for k, v := range config {
+			out[k] = v
+		}
+		return out
+	}
+	allBacking := []string{"schema_type", "storage", "storage_integration", "external_write"}
 	cases := []struct {
 		name        string
+		prior       map[string]interface{}
 		config      map[string]interface{}
 		wantReplace []string
+		wantErr     string
 	}{
-		{"full backing in config", backing, nil},
-		{"schema_type omitted", without("schema_type"), []string{"schema_type"}},
-		{"external_write omitted", without("external_write"), []string{"external_write"}},
-		{"backing omitted", map[string]interface{}{"label": "tf-pkg/Logs"}, []string{"schema_type", "storage", "storage_integration", "external_write"}},
+		{"full backing in config", existingTypedIceberg(true, false), backing, nil, ""},
+		{"protected: schema_type omitted", existingTypedIceberg(true, false), without("schema_type"), nil,
+			`this plan replaces source dataset 41000001, which deletes its data, because of schema_type "OtelLogs" -> "Any"; deletion_protection is true`},
+		{"protected: external_write omitted", existingTypedIceberg(true, false), without("external_write"), nil, `external_write "true" -> "false"`},
+		{"protected: backing omitted", existingTypedIceberg(true, false), map[string]interface{}{"label": "tf-pkg/Logs"}, nil,
+			`schema_type "OtelLogs" -> "Any", storage "Iceberg" -> "Native", storage_integration "` + testStorageIntegrationOID + `" -> "", external_write "true" -> "false"`},
+		// Delete reads prior state, so turning protection off in the same plan
+		// must not let the replacement through.
+		{"protected: disabled in the same plan", existingTypedIceberg(true, false), with(without("schema_type"), "deletion_protection", false), nil, "deletion_protection is true"},
+		{"unprotected: backing omitted", existingTypedIceberg(false, false), map[string]interface{}{"label": "tf-pkg/Logs", "deletion_protection": false}, allBacking, ""},
+		{"force_destroy overrides", existingTypedIceberg(true, true), map[string]interface{}{"label": "tf-pkg/Logs", "force_destroy": true}, allBacking, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			diff, err := planSourceDataset(t, existingTypedIceberg, tc.config)
+			diff, err := planSourceDataset(t, tc.prior, tc.config)
+			if tc.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
+					t.Fatalf("expected error containing %q, got %v", tc.wantErr, err)
+				}
+				return
+			}
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -261,6 +289,16 @@ func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
 	}
 }
 
+func newSourceDatasetTestClient(t *testing.T, handler http.HandlerFunc) *observeclient.Client {
+	t.Helper()
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+	return &observeclient.Client{Config: &observeclient.Config{}, Rest: rest.New(server.URL, server.Client())}
+}
+
+const testSourceDatasetResponse = `{"id":"41000001","label":"tf-pkg/a","description":"written","objectTags":{},` +
+	`"dataRetentionDays":30,"effectiveDataRetentionDays":30,"dataSource":{"kind":"Ingest","ingest":{"storage":"Native","schemaType":"Any"}}}`
+
 func TestSourceDatasetDeletionProtection(t *testing.T) {
 	r := resourceSourceDataset()
 	cases := []struct {
@@ -281,13 +319,87 @@ func TestSourceDatasetDeletionProtection(t *testing.T) {
 			t.Errorf("deletion_protection=%t force_destroy=%t: blocked=%t (%v), want %t", tc.deletionProtection, tc.forceDestroy, blocked, err, tc.wantBlocked)
 		}
 	}
-	// The check runs before the API client is touched.
-	d := r.Data(&terraform.InstanceState{ID: "41000001", Attributes: map[string]string{"id": "41000001", "deletion_protection": "true"}})
-	if diags := resourceSourceDatasetDelete(context.Background(), d, nil); !diags.HasError() || !strings.Contains(diags[0].Summary, "deletion_protection is true") {
-		t.Fatalf("expected deletion_protection error, got %v", diags)
+	protected := func() *schema.ResourceData {
+		return r.Data(&terraform.InstanceState{ID: "41000001", Attributes: map[string]string{"id": "41000001", "deletion_protection": "true"}})
 	}
-	if d.Id() == "" {
-		t.Fatal("a refused delete must keep the resource in state")
+	t.Run("existing dataset is kept", func(t *testing.T) {
+		client := newSourceDatasetTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+			if req.Method != http.MethodGet {
+				t.Errorf("a protected delete must not call %s", req.Method)
+			}
+			_, _ = w.Write([]byte(testSourceDatasetResponse))
+		})
+		d := protected()
+		diags := resourceSourceDatasetDelete(context.Background(), d, client)
+		if !diags.HasError() || !strings.Contains(diags[0].Summary, "terraform untaint") {
+			t.Fatalf("expected deletion_protection error naming terraform untaint, got %v", diags)
+		}
+		if d.Id() == "" {
+			t.Fatal("a refused delete must keep the resource in state")
+		}
+	})
+	t.Run("dataset already deleted outside Terraform is cleared", func(t *testing.T) {
+		client := newSourceDatasetTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+			if req.Method != http.MethodGet {
+				t.Errorf("a protected delete must not call %s", req.Method)
+			}
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`{"type":"not_found","message":"source dataset not found"}`))
+		})
+		d := protected()
+		if diags := resourceSourceDatasetDelete(context.Background(), d, client); diags.HasError() {
+			t.Fatalf("unexpected error: %v", diags)
+		}
+		if d.Id() != "" {
+			t.Fatal("expected the deleted dataset to be removed from state")
+		}
+	})
+}
+
+// Create and update take state from the API response: a follow-up GET can
+// read the backend's caches before they refresh.
+func TestSourceDatasetWriteUsesResponse(t *testing.T) {
+	var methods []string
+	client := newSourceDatasetTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+		methods = append(methods, req.Method)
+		if req.Method == http.MethodGet {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if req.Method == http.MethodPost {
+			w.WriteHeader(http.StatusCreated)
+		}
+		_, _ = w.Write([]byte(testSourceDatasetResponse))
+	})
+	r := resourceSourceDataset()
+	d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{"label": "tf-pkg/a", "data_retention_days": 30})
+	if diags := resourceSourceDatasetCreate(context.Background(), d, client); diags.HasError() {
+		t.Fatalf("create: %v", diags)
+	}
+	if d.Id() != "41000001" || d.Get("description") != "written" || d.Get("data_retention_days") != 30 {
+		t.Fatalf("state not taken from the create response: id=%q description=%q retention=%v", d.Id(), d.Get("description"), d.Get("data_retention_days"))
+	}
+
+	prior := map[string]interface{}{
+		"label": "tf-pkg/a", "storage": "Native", "schema_type": "Any", "external_write": false,
+		"force_destroy": false, "deletion_protection": true, "data_retention_days": -1,
+	}
+	config := map[string]interface{}{"label": "tf-pkg/a", "description": "written", "data_retention_days": 30}
+	diff, err := planSourceDataset(t, prior, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := &terraform.InstanceState{ID: "41000001", Attributes: flatStateAttributes(prior), RawState: sourceDatasetCtyObject(t, prior), RawConfig: sourceDatasetCtyObject(t, config)}
+	state.Attributes["id"] = state.ID
+	newState, diags := r.Apply(context.Background(), state, diff, client)
+	if diags.HasError() {
+		t.Fatalf("update: %v", diags)
+	}
+	if got := newState.Attributes["data_retention_days"]; got != "30" {
+		t.Fatalf("state not taken from the update response: retention=%q", got)
+	}
+	if strings.Join(methods, ",") != "POST,PATCH" {
+		t.Fatalf("requests = %v, want POST then PATCH with no GET", methods)
 	}
 }
 

@@ -170,6 +170,9 @@ func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta
 	if d.NewValueKnown("storage") && d.NewValueKnown("external_write") && !isIceberg && d.Get("external_write").(bool) {
 		return fmt.Errorf("external_write = true requires storage = %q", sourceDatasetStorageIceberg)
 	}
+	if err := checkSourceDatasetReplaceAllowed(d); err != nil {
+		return err
+	}
 	if d.Id() != "" && d.HasChange("label") && d.NewValueKnown("label") {
 		o, n := d.GetChange("label")
 		oldPkg, newPkg := sourceDatasetLabelPackage(o.(string)), sourceDatasetLabelPackage(n.(string))
@@ -179,6 +182,43 @@ func validateSourceDatasetPlan(ctx context.Context, d *schema.ResourceDiff, meta
 		}
 	}
 	return nil
+}
+
+// checkSourceDatasetReplaceAllowed fails the plan, rather than the apply, when
+// a configuration change would replace a protected dataset. Replacements with
+// no configuration change (-replace, replace_triggered_by, taint) are only
+// caught by the delete-time check.
+func checkSourceDatasetReplaceAllowed(d *schema.ResourceDiff) error {
+	if d.Id() == "" {
+		return nil
+	}
+	protected, _ := d.GetChange("deletion_protection")
+	forced, _ := d.GetChange("force_destroy")
+	if !protected.(bool) || forced.(bool) {
+		return nil
+	}
+	var changes []string
+	for _, key := range []string{"schema_type", "storage", "storage_integration", "external_write"} {
+		if !d.HasChange(key) {
+			continue
+		}
+		o, n := d.GetChange(key)
+		// HasChange ignores DiffSuppressFunc.
+		if key == "storage_integration" && diffSuppressOIDVersion(key, o.(string), n.(string), nil) {
+			continue
+		}
+		if !d.NewValueKnown(key) {
+			n = "(known after apply)"
+		}
+		changes = append(changes, fmt.Sprintf("%s %q -> %q", key, fmt.Sprint(o), fmt.Sprint(n)))
+	}
+	if len(changes) == 0 {
+		return nil
+	}
+	return fmt.Errorf("this plan replaces source dataset %s, which deletes its data, because of %s; deletion_protection is true. "+
+		"If the dataset already has this backing (for example after an import), set those attributes in configuration to match it. "+
+		"To replace it on purpose, first apply deletion_protection = false without this change, then apply the change",
+		d.Id(), strings.Join(changes, ", "))
 }
 
 // rawConfigSet reports whether key is set in configuration, so that an
@@ -279,7 +319,10 @@ func resourceSourceDatasetCreate(ctx context.Context, data *schema.ResourceData,
 		return sourceDatasetAPIError("create", req.Label, err)
 	}
 	data.SetId(ds.Id)
-	return resourceSourceDatasetRead(ctx, data, meta)
+	// The response lays the written values over the backend's caches, which a
+	// follow-up GET may read before they refresh. A failed GET here would also
+	// leave the new dataset tainted.
+	return sourceDatasetToResourceData(data, ds)
 }
 
 func resourceSourceDatasetRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -352,25 +395,37 @@ func resourceSourceDatasetUpdate(ctx context.Context, data *schema.ResourceData,
 		// Only provider-side attributes such as deletion_protection changed.
 		return nil
 	}
-	if _, err := meta.(*observeclient.Client).Rest.UpdateSourceDataset(ctx, data.Id(), req); err != nil {
+	ds, err := meta.(*observeclient.Client).Rest.UpdateSourceDataset(ctx, data.Id(), req)
+	if err != nil {
 		return sourceDatasetAPIError("update", data.Id(), err)
 	}
-	return resourceSourceDatasetRead(ctx, data, meta)
+	// Like create, the response is fresher than a follow-up GET.
+	return sourceDatasetToResourceData(data, ds)
 }
 
 // checkSourceDatasetDeletionAllowed runs on every delete Terraform performs:
-// destroy, removal from configuration, and replacement (including -replace
-// and taint). force_destroy overrides deletion_protection.
+// destroy, removal from configuration, and replacement (including -replace,
+// replace_triggered_by and taint). It reads prior state, so a deletion_protection
+// = false in the same apply does not count. force_destroy overrides it.
 func checkSourceDatasetDeletionAllowed(data ResourceReader, id string) error {
 	if data.Get("deletion_protection").(bool) && !data.Get("force_destroy").(bool) {
-		return fmt.Errorf("cannot delete source dataset %s: deletion_protection is true. Deleting a source dataset deletes its data. "+
-			"To delete or replace it, first apply deletion_protection = false, then run the destroy or replace again", id)
+		return fmt.Errorf("cannot delete source dataset %s: deletion_protection is true, and deleting a source dataset deletes its data. "+
+			"To delete or replace it, first apply deletion_protection = false on its own: if the dataset is tainted, run "+
+			"`terraform untaint` on it first, and revert any change that forces replacement for that apply. "+
+			"Then run the destroy or replacement again", id)
 	}
 	return nil
 }
 
 func resourceSourceDatasetDelete(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	if err := checkSourceDatasetDeletionAllowed(data, data.Id()); err != nil {
+		// A deposed object (left by create_before_destroy) keeps its prior
+		// state forever, so deleting the dataset outside Terraform is its only
+		// way out; let that clear it.
+		if _, getErr := meta.(*observeclient.Client).Rest.GetSourceDataset(ctx, data.Id()); rest.HasStatusCode(getErr, http.StatusNotFound) {
+			data.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 	err := meta.(*observeclient.Client).Rest.DeleteSourceDataset(ctx, data.Id(), data.Get("force_destroy").(bool))
