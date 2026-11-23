@@ -2,11 +2,14 @@ package meta
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
 	oid "github.com/observeinc/terraform-provider-observe/client/oid"
 )
+
+// ErrUserNotFound is returned by LookupUser when no user has the given email.
+var ErrUserNotFound = errors.New("user not found")
 
 type userResponse interface {
 	GetUser() *User
@@ -40,7 +43,7 @@ func (client *Client) LookupUser(ctx context.Context, email string) (*User, erro
 			}
 		}
 	}
-	return nil, fmt.Errorf("user not found")
+	return nil, ErrUserNotFound
 }
 
 func (client *Client) ListUsers(ctx context.Context) ([]User, error) {

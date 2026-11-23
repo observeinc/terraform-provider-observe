@@ -1,11 +1,15 @@
 package observe
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	gql "github.com/observeinc/terraform-provider-observe/client/meta"
 	"github.com/observeinc/terraform-provider-observe/client/meta/types"
@@ -119,5 +123,80 @@ func TestUserResourceToResourceData(t *testing.T) {
 		if got := data.Get(k); got != want {
 			t.Errorf("%s = %v, want %v", k, got, want)
 		}
+	}
+}
+
+// userDiff plans config against an existing user's state, running CustomizeDiff.
+func userDiff(t *testing.T, state, config map[string]interface{}) (*terraform.InstanceDiff, error) {
+	t.Helper()
+	r := resourceUser()
+	attrs := map[string]string{}
+	for k, v := range state {
+		attrs[k] = fmt.Sprint(v)
+	}
+	is := &terraform.InstanceState{ID: "123", Attributes: attrs}
+	return r.Diff(context.Background(), is, terraform.NewResourceConfigRaw(config), nil)
+}
+
+var userBaseConfig = map[string]interface{}{
+	"email":             "jane@example.com",
+	"label":             "Jane Doe",
+	"identity_provider": "SAML2",
+	"identity":          "jane@example.com",
+}
+
+func userConfig(overrides map[string]interface{}) map[string]interface{} {
+	c := map[string]interface{}{}
+	for k, v := range userBaseConfig {
+		c[k] = v
+	}
+	for k, v := range overrides {
+		c[k] = v
+	}
+	return c
+}
+
+func TestUserIdentityProviderChangeIsInPlace(t *testing.T) {
+	state := userConfig(map[string]interface{}{"disabled": false})
+	d, err := userDiff(t, state, userConfig(map[string]interface{}{"identity_provider": "GOOGLE"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.RequiresNew() {
+		t.Error("changing identity_provider must update in place, not replace")
+	}
+}
+
+func TestUserExpirationRemovalRejectedAtPlan(t *testing.T) {
+	state := userConfig(map[string]interface{}{"disabled": false, "expiration_time": "2027-01-01T00:00:00Z"})
+	if _, err := userDiff(t, state, userConfig(nil)); err == nil || !strings.Contains(err.Error(), "expiration_time") {
+		t.Errorf("err = %v, want expiration_time removal error", err)
+	}
+	// Changing it to a new value is fine.
+	if _, err := userDiff(t, state, userConfig(map[string]interface{}{"expiration_time": "2028-01-01T00:00:00Z"})); err != nil {
+		t.Errorf("updating expiration_time: %v", err)
+	}
+}
+
+func TestNewUserUpdateInputSendsIdentityOnProviderChange(t *testing.T) {
+	r := resourceUser()
+	state := &terraform.InstanceState{ID: "123", Attributes: map[string]string{
+		"email": "jane@example.com", "label": "Jane Doe", "identity_provider": "SAML2",
+		"identity": "jane@example.com", "disabled": "false",
+	}}
+	d, err := userDiff(t, userConfig(map[string]interface{}{"disabled": false}), userConfig(map[string]interface{}{"identity_provider": "GOOGLE"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := schema.InternalMap(r.Schema).Data(state, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	input, changed, diags := newUserUpdateInput(data)
+	if diags.HasError() || !changed {
+		t.Fatalf("changed=%v diags=%v", changed, diags)
+	}
+	if len(input.SsoIdentities) != 1 || input.SsoIdentities[0].IdentityProvider != gql.SSOIdentityProviderGoogle {
+		t.Errorf("ssoIdentities = %+v, want GOOGLE", input.SsoIdentities)
 	}
 }

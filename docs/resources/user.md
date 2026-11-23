@@ -36,7 +36,7 @@ resource "observe_rbac_group_member" "example" {
 
 - `email` (String) User email. Cannot be changed after creation; changing it forces a new user.
 - `identity` (String) SSO identity the user is matched on at login. For `SAML2` this must equal the NameID the IdP sends; for `GOOGLE` it is the OAuth2 subject.
-- `identity_provider` (String) SSO identity provider the user logs in with. Changing it forces a new user. Accepted values: `SAML2`, `GOOGLE`.
+- `identity_provider` (String) SSO identity provider the user logs in with. Accepted values: `SAML2`, `GOOGLE`.
 - `label` (String) User display name.
 
 ### Optional

@@ -2,6 +2,8 @@ package observe
 
 import (
 	"context"
+	"errors"
+
 	"fmt"
 	"strings"
 	"time"
@@ -17,7 +19,7 @@ import (
 const (
 	schemaUserResourceEmailDescription            = "User email. Cannot be changed after creation; changing it forces a new user."
 	schemaUserResourceLabelDescription            = "User display name."
-	schemaUserResourceIdentityProviderDescription = "SSO identity provider the user logs in with. Changing it forces a new user."
+	schemaUserResourceIdentityProviderDescription = "SSO identity provider the user logs in with."
 	schemaUserResourceIdentityDescription         = "SSO identity the user is matched on at login. For `SAML2` this must equal the NameID the IdP sends; for `GOOGLE` it is the OAuth2 subject."
 	schemaUserResourceRoleDescription             = "Legacy user role. Defaults to `reader` when unset. Prefer `observe_rbac_group_member` for access control."
 	schemaUserResourceExpirationTimeDescription   = "Time (RFC3339) at which the user expires."
@@ -42,6 +44,7 @@ func resourceUser() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceUserImport,
 		},
+		CustomizeDiff: resourceUserCustomizeDiff,
 		Schema: map[string]*schema.Schema{
 			"email": {
 				Type:        schema.TypeString,
@@ -55,9 +58,9 @@ func resourceUser() *schema.Resource {
 				Description: schemaUserResourceLabelDescription,
 			},
 			"identity_provider": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
+				Type:     schema.TypeString,
+				Required: true,
+
 				ValidateDiagFunc: validateStringInSlice(userIdentityProviders, false),
 				Description:      fmt.Sprintf("%s Accepted values: `%s`.", schemaUserResourceIdentityProviderDescription, strings.Join(userIdentityProviders, "`, `")),
 			},
@@ -154,7 +157,7 @@ func newUserUpdateInput(data *schema.ResourceData) (*gql.UserInput, bool, diag.D
 		input.Label = stringPtr(data.Get("label").(string))
 		changed = true
 	}
-	if data.HasChange("identity") {
+	if data.HasChange("identity") || data.HasChange("identity_provider") {
 		input.SsoIdentities = userSsoIdentityInput(data)
 		changed = true
 	}
@@ -173,14 +176,26 @@ func newUserUpdateInput(data *schema.ResourceData) (*gql.UserInput, bool, diag.D
 		if err != nil {
 			return nil, false, diag.FromErr(err)
 		}
-		if exp == nil {
-			// UserInput fields are omitempty, so null cannot be sent to clear it.
-			return nil, false, diag.Errorf("removing expiration_time is not supported; set a new value instead")
+		// Removal is rejected at plan time by resourceUserCustomizeDiff; if a nil
+		// gets here anyway, skip it rather than block the other changes.
+		if exp != nil {
+			input.ExpirationTime = exp
+			changed = true
 		}
-		input.ExpirationTime = exp
-		changed = true
 	}
 	return input, changed, nil
+}
+
+// resourceUserCustomizeDiff rejects removing expiration_time at plan time:
+// UserInput fields are omitempty, so null cannot be sent to clear it.
+func resourceUserCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if d.Id() == "" || !d.HasChange("expiration_time") {
+		return nil
+	}
+	if old, new := d.GetChange("expiration_time"); old.(string) != "" && new.(string) == "" {
+		return fmt.Errorf("removing expiration_time is not supported; keep the current value (%s) or set a new one", old)
+	}
+	return nil
 }
 
 func resourceUserCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) (diags diag.Diagnostics) {
@@ -191,6 +206,29 @@ func resourceUserCreate(ctx context.Context, data *schema.ResourceData, meta int
 		return diags
 	}
 
+	// There is no user delete, so a destroyed (or replaced) user still exists
+	// as disabled. Adopt it rather than creating a second user for one email.
+	existing, err := client.LookupUser(ctx, data.Get("email").(string))
+	switch {
+	case err == nil && existing.Status == gql.UserStatusUserstatusdisabled:
+		data.SetId(existing.Id.String())
+		// updateUser rejects email, and it is unchanged anyway.
+		input.Email = nil
+		if _, err := client.UpdateUser(ctx, data.Id(), input); err != nil {
+			return diag.Errorf("failed to update existing disabled user %s: %s", data.Id(), err.Error())
+		}
+		if !data.Get("disabled").(bool) {
+			if _, err := client.EnableUser(ctx, data.Id()); err != nil {
+				return diag.Errorf("failed to re-enable existing user %s: %s", data.Id(), err.Error())
+			}
+		}
+		return append(diags, resourceUserRead(ctx, data, meta)...)
+	case err == nil:
+		return diag.Errorf("user with email %q already exists (id %s); import it instead", existing.Email, existing.Id.String())
+	case !errors.Is(err, gql.ErrUserNotFound):
+		return diag.Errorf("failed to check for existing user: %s", err.Error())
+	}
+
 	result, err := client.CreateSSOUser(ctx, input)
 	if err != nil {
 		return diag.Errorf("failed to create user: %s", err.Error())
@@ -198,8 +236,15 @@ func resourceUserCreate(ctx context.Context, data *schema.ResourceData, meta int
 	data.SetId(result.Id.String())
 
 	if data.Get("disabled").(bool) {
+		// Don't fail Create: that taints a user that exists, and the replacement
+		// would collide with it. Read records disabled = false, so the next plan
+		// retries only the disable.
 		if err := client.DisableUser(ctx, data.Id()); err != nil {
-			return diag.Errorf("user created but failed to disable: %s", err.Error())
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "user created but failed to disable",
+				Detail:   err.Error(),
+			})
 		}
 	}
 	return append(diags, resourceUserRead(ctx, data, meta)...)
@@ -287,7 +332,15 @@ func resourceUserDelete(ctx context.Context, data *schema.ResourceData, meta int
 	client := meta.(*observe.Client)
 
 	// No delete mutation exists for users; disabling is the removal path.
-	if data.Get("status").(string) == string(gql.UserStatusUserstatusdisabled) {
+	// Decide from live status: state may be stale (-refresh=false, saved plans).
+	u, err := client.GetUser(ctx, data.Id())
+	if err != nil {
+		if gql.HasErrorCode(err, gql.ErrNotFound) {
+			return nil
+		}
+		return diag.Errorf("failed to read user: %s", err.Error())
+	}
+	if u == nil || u.Status == gql.UserStatusUserstatusdisabled || u.Status == gql.UserStatusUserstatusdeleted {
 		return nil
 	}
 	if err := client.DisableUser(ctx, data.Id()); err != nil {
