@@ -200,3 +200,12 @@ func TestNewUserUpdateInputSendsIdentityOnProviderChange(t *testing.T) {
 		t.Errorf("ssoIdentities = %+v, want GOOGLE", input.SsoIdentities)
 	}
 }
+
+func TestUserExpirationUnknownIsNotRemoval(t *testing.T) {
+	const unknown = "74D93920-ED26-11E3-AC10-0800200C9A66" // hcl2shim.UnknownVariableValue
+	state := userConfig(map[string]interface{}{"disabled": false, "expiration_time": "2027-01-01T00:00:00Z"})
+	cfg := userConfig(map[string]interface{}{"expiration_time": unknown})
+	if _, err := userDiff(t, state, cfg); err != nil {
+		t.Errorf("unknown expiration_time must not be treated as removal: %v", err)
+	}
+}

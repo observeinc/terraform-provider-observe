@@ -3,11 +3,11 @@
 page_title: "observe_user Resource - terraform-provider-observe"
 subcategory: ""
 description: |-
-  Manages an Observe user bound to an SSO identity, so the user can be provisioned before their first login. Observe has no user delete operation: destroying this resource disables the user. Requires an admin token; disabling needs user:delete and re-enabling needs user:invite.
+  Manages an Observe user bound to an SSO identity, so the user can be provisioned before their first login. Observe has no user delete operation: destroying this resource disables the user, and re-creating it requires terraform import. Requires an admin token; disabling needs user:delete and re-enabling needs user:invite.
 ---
 # observe_user
 
-Manages an Observe user bound to an SSO identity, so the user can be provisioned before their first login. Observe has no user delete operation: destroying this resource disables the user. Requires an admin token; disabling needs `user:delete` and re-enabling needs `user:invite`.
+Manages an Observe user bound to an SSO identity, so the user can be provisioned before their first login. Observe has no user delete operation: destroying this resource disables the user, and re-creating it requires `terraform import`. Requires an admin token; disabling needs `user:delete` and re-enabling needs `user:invite`.
 ## Example Usage
 ```terraform
 resource "observe_user" "example" {

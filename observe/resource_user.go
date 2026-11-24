@@ -35,7 +35,7 @@ var userIdentityProviders = []string{
 func resourceUser() *schema.Resource {
 	return &schema.Resource{
 		Description: "Manages an Observe user bound to an SSO identity, so the user can be provisioned " +
-			"before their first login. Observe has no user delete operation: destroying this resource disables the user. " +
+			"before their first login. Observe has no user delete operation: destroying this resource disables the user, and re-creating it requires `terraform import`. " +
 			"Requires an admin token; disabling needs `user:delete` and re-enabling needs `user:invite`.",
 		CreateContext: resourceUserCreate,
 		ReadContext:   resourceUserRead,
@@ -189,7 +189,8 @@ func newUserUpdateInput(data *schema.ResourceData) (*gql.UserInput, bool, diag.D
 // resourceUserCustomizeDiff rejects removing expiration_time at plan time:
 // UserInput fields are omitempty, so null cannot be sent to clear it.
 func resourceUserCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	if d.Id() == "" || !d.HasChange("expiration_time") {
+	// An unknown new value (computed at apply) is not a removal.
+	if d.Id() == "" || !d.HasChange("expiration_time") || !d.NewValueKnown("expiration_time") {
 		return nil
 	}
 	if old, new := d.GetChange("expiration_time"); old.(string) != "" && new.(string) == "" {
@@ -206,25 +207,16 @@ func resourceUserCreate(ctx context.Context, data *schema.ResourceData, meta int
 		return diags
 	}
 
-	// There is no user delete, so a destroyed (or replaced) user still exists
-	// as disabled. Adopt it rather than creating a second user for one email.
+	// There is no user delete, so a destroyed user still exists as disabled.
+	// Never adopt an existing user, even a disabled one: it may have been
+	// disabled at offboarding, and adopting would silently restore its access
+	// and keep settings the config omits. Import makes the takeover explicit
+	// and re-enabling a visible plan change.
 	existing, err := client.LookupUser(ctx, data.Get("email").(string))
 	switch {
-	case err == nil && existing.Status == gql.UserStatusUserstatusdisabled:
-		data.SetId(existing.Id.String())
-		// updateUser rejects email, and it is unchanged anyway.
-		input.Email = nil
-		if _, err := client.UpdateUser(ctx, data.Id(), input); err != nil {
-			return diag.Errorf("failed to update existing disabled user %s: %s", data.Id(), err.Error())
-		}
-		if !data.Get("disabled").(bool) {
-			if _, err := client.EnableUser(ctx, data.Id()); err != nil {
-				return diag.Errorf("failed to re-enable existing user %s: %s", data.Id(), err.Error())
-			}
-		}
-		return append(diags, resourceUserRead(ctx, data, meta)...)
 	case err == nil:
-		return diag.Errorf("user with email %q already exists (id %s); import it instead", existing.Email, existing.Id.String())
+		return diag.Errorf("user with email %q already exists (id %s, status %s); import it with `terraform import <address> %s`",
+			existing.Email, existing.Id.String(), existing.Status, existing.Id.String())
 	case !errors.Is(err, gql.ErrUserNotFound):
 		return diag.Errorf("failed to check for existing user: %s", err.Error())
 	}
