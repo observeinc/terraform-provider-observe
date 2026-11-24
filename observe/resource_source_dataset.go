@@ -199,16 +199,18 @@ func checkSourceDatasetReplaceAllowed(d *schema.ResourceDiff) error {
 	}
 	var changes []string
 	for _, key := range []string{"schema_type", "storage", "storage_integration", "external_write"} {
-		if !d.HasChange(key) {
+		// An unknown value reads as the zero value, so HasChange misses
+		// false -> unknown and "" -> unknown; SDKv2 still plans a replace.
+		known := d.NewValueKnown(key)
+		if known && !d.HasChange(key) {
 			continue
 		}
 		o, n := d.GetChange(key)
-		// HasChange ignores DiffSuppressFunc.
-		if key == "storage_integration" && diffSuppressOIDVersion(key, o.(string), n.(string), nil) {
-			continue
-		}
-		if !d.NewValueKnown(key) {
+		if !known {
 			n = "(known after apply)"
+		} else if key == "storage_integration" && diffSuppressOIDVersion(key, o.(string), n.(string), nil) {
+			// HasChange ignores DiffSuppressFunc.
+			continue
 		}
 		changes = append(changes, fmt.Sprintf("%s %q -> %q", key, fmt.Sprint(o), fmt.Sprint(n)))
 	}

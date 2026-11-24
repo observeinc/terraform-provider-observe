@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -161,3 +162,31 @@ func TestSourceDatasetErrorType(t *testing.T) {
 }
 
 func stringPointer(s string) *string { return &s }
+
+func TestSourceDatasetClientHonorsContext(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("a canceled context must not reach the server: %s %s", r.Method, r.URL.Path)
+	}))
+	defer server.Close()
+	client := New(server.URL, server.Client())
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	calls := map[string]func() error{
+		"create": func() error {
+			_, err := client.CreateSourceDataset(ctx, &SourceDatasetCreateRequest{Label: "tf-pkg/a"})
+			return err
+		},
+		"get": func() error { _, err := client.GetSourceDataset(ctx, "1"); return err },
+		"update": func() error {
+			_, err := client.UpdateSourceDataset(ctx, "1", &SourceDatasetUpdateRequest{})
+			return err
+		},
+		"delete": func() error { return client.DeleteSourceDataset(ctx, "1", true) },
+		"list":   func() error { _, err := client.ListSourceDatasets(ctx, ""); return err },
+	}
+	for name, call := range calls {
+		if err := call(); !errors.Is(err, context.Canceled) {
+			t.Errorf("%s: expected context.Canceled, got %v", name, err)
+		}
+	}
+}

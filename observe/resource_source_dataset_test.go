@@ -18,6 +18,8 @@ import (
 
 const testStorageIntegrationOID = "o:::storageintegration:41009999"
 
+const testUnknownValue = "74D93920-ED26-11E3-AC10-0800200C9A66" // hcl2shim.UnknownVariableValue
+
 // sourceDatasetCtyObject builds a cty object of the resource's implied type
 // from simple Go values; attributes not in values are null.
 func sourceDatasetCtyObject(t *testing.T, values map[string]interface{}) cty.Value {
@@ -28,6 +30,10 @@ func sourceDatasetCtyObject(t *testing.T, values map[string]interface{}) cty.Val
 		v, ok := values[name]
 		if !ok {
 			attrs[name] = cty.NullVal(attrTy)
+			continue
+		}
+		if v == testUnknownValue {
+			attrs[name] = cty.UnknownVal(attrTy)
 			continue
 		}
 		switch x := v.(type) {
@@ -239,6 +245,12 @@ func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
 		}
 		return out
 	}
+	existingIceberg := existingTypedIceberg(true, false)
+	existingIceberg["external_write"] = false
+	existingNative := map[string]interface{}{
+		"label": "tf-pkg/Logs", "storage": "Native", "schema_type": "OtelLogs", "external_write": false,
+		"force_destroy": false, "deletion_protection": true,
+	}
 	allBacking := []string{"schema_type", "storage", "storage_integration", "external_write"}
 	cases := []struct {
 		name        string
@@ -256,6 +268,12 @@ func TestSourceDatasetBackingDefaultsPlanReplace(t *testing.T) {
 		// Delete reads prior state, so turning protection off in the same plan
 		// must not let the replacement through.
 		{"protected: disabled in the same plan", existingTypedIceberg(true, false), with(without("schema_type"), "deletion_protection", false), nil, "deletion_protection is true"},
+		// ResourceDiff reads an unknown value as the zero value, so false ->
+		// unknown and "" -> unknown look unchanged to HasChange.
+		{"protected: external_write unknown", existingIceberg, with(without("external_write"), "external_write", testUnknownValue), nil,
+			`external_write "false" -> "(known after apply)"`},
+		{"protected: storage and storage_integration unknown", existingNative, map[string]interface{}{"label": "tf-pkg/Logs", "schema_type": "OtelLogs", "storage": testUnknownValue, "storage_integration": testUnknownValue}, nil,
+			`storage_integration "" -> "(known after apply)"`},
 		{"unprotected: backing omitted", existingTypedIceberg(false, false), map[string]interface{}{"label": "tf-pkg/Logs", "deletion_protection": false}, allBacking, ""},
 		{"force_destroy overrides", existingTypedIceberg(true, true), map[string]interface{}{"label": "tf-pkg/Logs", "force_destroy": true}, allBacking, ""},
 	}

@@ -137,7 +137,7 @@ func (client *Client) CreateSourceDataset(ctx context.Context, req *SourceDatase
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Post(sourceDatasetsPath, "application/json", bytes.NewReader(body))
+	resp, err := client.requestWithContext(ctx, http.MethodPost, sourceDatasetsPath, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (client *Client) CreateSourceDataset(ctx context.Context, req *SourceDatase
 }
 
 func (client *Client) GetSourceDataset(ctx context.Context, id string) (*SourceDatasetResource, error) {
-	resp, err := client.Get(sourceDatasetPath(id))
+	resp, err := client.requestWithContext(ctx, http.MethodGet, sourceDatasetPath(id), "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (client *Client) UpdateSourceDataset(ctx context.Context, id string, req *S
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Patch(sourceDatasetPath(id), "application/json", bytes.NewReader(body))
+	resp, err := client.requestWithContext(ctx, http.MethodPatch, sourceDatasetPath(id), "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (client *Client) DeleteSourceDataset(ctx context.Context, id string, force 
 	if force {
 		path += "?force=true"
 	}
-	resp, err := client.Delete(path)
+	resp, err := client.requestWithContext(ctx, http.MethodDelete, path, "", nil)
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func (client *Client) ListSourceDatasets(ctx context.Context, filter string) ([]
 	if filter != "" {
 		path += "?" + url.Values{"filter": []string{filter}}.Encode()
 	}
-	resp, err := client.Get(path)
+	resp, err := client.requestWithContext(ctx, http.MethodGet, path, "", nil)
 	if err != nil {
 		return nil, err
 	}
