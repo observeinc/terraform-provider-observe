@@ -9685,6 +9685,27 @@ func (v *RollupOptionInput) GetUnrollColumns() []string { return v.UnrollColumns
 // GetForceNoRollup returns RollupOptionInput.ForceNoRollup, and is useful for accessing the field via an interface.
 func (v *RollupOptionInput) GetForceNoRollup() *bool { return v.ForceNoRollup }
 
+type SSOIdentityInput struct {
+	IdentityProvider SSOIdentityProvider `json:"identityProvider"`
+	Identity         string              `json:"identity"`
+}
+
+// GetIdentityProvider returns SSOIdentityInput.IdentityProvider, and is useful for accessing the field via an interface.
+func (v *SSOIdentityInput) GetIdentityProvider() SSOIdentityProvider { return v.IdentityProvider }
+
+// GetIdentity returns SSOIdentityInput.Identity, and is useful for accessing the field via an interface.
+func (v *SSOIdentityInput) GetIdentity() string { return v.Identity }
+
+// The oauth2/saml2 identity provider backing an SSO identity. SAML2 is the bucket
+// for all saml2 based SSO config.
+type SSOIdentityProvider string
+
+const (
+	SSOIdentityProviderGoogle  SSOIdentityProvider = "GOOGLE"
+	SSOIdentityProviderSaml2   SSOIdentityProvider = "SAML2"
+	SSOIdentityProviderUnknown SSOIdentityProvider = "UNKNOWN"
+)
+
 type SaveMode string
 
 const (
@@ -10303,10 +10324,14 @@ func (v *UpdateRbacStatementInput) GetVersion() *int { return v.Version }
 
 // User includes the GraphQL fields of User requested by the fragment User.
 type User struct {
-	Id      types.UserIdScalar `json:"id"`
-	Email   string             `json:"email"`
-	Comment *string            `json:"comment"`
-	Label   string             `json:"label"`
+	Id             types.UserIdScalar             `json:"id"`
+	Email          string                         `json:"email"`
+	Comment        *string                        `json:"comment"`
+	Label          string                         `json:"label"`
+	Role           string                         `json:"role"`
+	Status         UserStatus                     `json:"status"`
+	ExpirationTime *types.TimeScalar              `json:"expirationTime"`
+	SsoIdentities  []UserSsoIdentitiesSSOIdentity `json:"ssoIdentities"`
 }
 
 // GetId returns User.Id, and is useful for accessing the field via an interface.
@@ -10320,6 +10345,91 @@ func (v *User) GetComment() *string { return v.Comment }
 
 // GetLabel returns User.Label, and is useful for accessing the field via an interface.
 func (v *User) GetLabel() string { return v.Label }
+
+// GetRole returns User.Role, and is useful for accessing the field via an interface.
+func (v *User) GetRole() string { return v.Role }
+
+// GetStatus returns User.Status, and is useful for accessing the field via an interface.
+func (v *User) GetStatus() UserStatus { return v.Status }
+
+// GetExpirationTime returns User.ExpirationTime, and is useful for accessing the field via an interface.
+func (v *User) GetExpirationTime() *types.TimeScalar { return v.ExpirationTime }
+
+// GetSsoIdentities returns User.SsoIdentities, and is useful for accessing the field via an interface.
+func (v *User) GetSsoIdentities() []UserSsoIdentitiesSSOIdentity { return v.SsoIdentities }
+
+type UserInput struct {
+	// cannot update
+	Email *string `json:"email,omitempty"`
+	// self or admin privilege required to update
+	Label    *string `json:"label,omitempty"`
+	Timezone *string `json:"timezone,omitempty"`
+	Locale   *string `json:"locale,omitempty"`
+	// admin privilege required to update
+	Role           *string           `json:"role,omitempty"`
+	Comment        *string           `json:"comment,omitempty"`
+	ExpirationTime *types.TimeScalar `json:"expirationTime,omitempty"`
+	Status         *UserStatus       `json:"status,omitempty"`
+	RbacGroups     []string          `json:"rbacGroups,omitempty"`
+	// admin privilege required to update sso identity of a user. Only a single
+	// entry is currently supported; providing more than one is rejected.
+	SsoIdentities []SSOIdentityInput `json:"ssoIdentities,omitempty"`
+}
+
+// GetEmail returns UserInput.Email, and is useful for accessing the field via an interface.
+func (v *UserInput) GetEmail() *string { return v.Email }
+
+// GetLabel returns UserInput.Label, and is useful for accessing the field via an interface.
+func (v *UserInput) GetLabel() *string { return v.Label }
+
+// GetTimezone returns UserInput.Timezone, and is useful for accessing the field via an interface.
+func (v *UserInput) GetTimezone() *string { return v.Timezone }
+
+// GetLocale returns UserInput.Locale, and is useful for accessing the field via an interface.
+func (v *UserInput) GetLocale() *string { return v.Locale }
+
+// GetRole returns UserInput.Role, and is useful for accessing the field via an interface.
+func (v *UserInput) GetRole() *string { return v.Role }
+
+// GetComment returns UserInput.Comment, and is useful for accessing the field via an interface.
+func (v *UserInput) GetComment() *string { return v.Comment }
+
+// GetExpirationTime returns UserInput.ExpirationTime, and is useful for accessing the field via an interface.
+func (v *UserInput) GetExpirationTime() *types.TimeScalar { return v.ExpirationTime }
+
+// GetStatus returns UserInput.Status, and is useful for accessing the field via an interface.
+func (v *UserInput) GetStatus() *UserStatus { return v.Status }
+
+// GetRbacGroups returns UserInput.RbacGroups, and is useful for accessing the field via an interface.
+func (v *UserInput) GetRbacGroups() []string { return v.RbacGroups }
+
+// GetSsoIdentities returns UserInput.SsoIdentities, and is useful for accessing the field via an interface.
+func (v *UserInput) GetSsoIdentities() []SSOIdentityInput { return v.SsoIdentities }
+
+// UserSsoIdentitiesSSOIdentity includes the requested fields of the GraphQL type SSOIdentity.
+type UserSsoIdentitiesSSOIdentity struct {
+	// The oauth2 identity provider. Fixed to SAML2 for saml2 users.
+	IdentityProvider SSOIdentityProvider `json:"identityProvider"`
+	Identity         string              `json:"identity"`
+}
+
+// GetIdentityProvider returns UserSsoIdentitiesSSOIdentity.IdentityProvider, and is useful for accessing the field via an interface.
+func (v *UserSsoIdentitiesSSOIdentity) GetIdentityProvider() SSOIdentityProvider {
+	return v.IdentityProvider
+}
+
+// GetIdentity returns UserSsoIdentitiesSSOIdentity.Identity, and is useful for accessing the field via an interface.
+func (v *UserSsoIdentitiesSSOIdentity) GetIdentity() string { return v.Identity }
+
+type UserStatus string
+
+const (
+	UserStatusUserstatusdeleted     UserStatus = "UserStatusDeleted"
+	UserStatusUserstatusdisabled    UserStatus = "UserStatusDisabled"
+	UserStatusUserstatusidpdisabled UserStatus = "UserStatusIdpDisabled"
+	UserStatusUserstatuscreated     UserStatus = "UserStatusCreated"
+	UserStatusUserstatusactive      UserStatus = "UserStatusActive"
+)
 
 // These are the OPAL native types that can go into worksheet parameters.  Some
 // of the native OPAL types aren't (currently?) exposed to the worksheet
@@ -10923,6 +11033,14 @@ type __createRbacStatementInput struct {
 
 // GetConfig returns __createRbacStatementInput.Config, and is useful for accessing the field via an interface.
 func (v *__createRbacStatementInput) GetConfig() RbacStatementInput { return v.Config }
+
+// __createSSOUserInput is used internally by genqlient
+type __createSSOUserInput struct {
+	User UserInput `json:"user"`
+}
+
+// GetUser returns __createSSOUserInput.User, and is useful for accessing the field via an interface.
+func (v *__createSSOUserInput) GetUser() UserInput { return v.User }
 
 // __createSnowflakeOutboundShareInput is used internally by genqlient
 type __createSnowflakeOutboundShareInput struct {
@@ -12162,6 +12280,18 @@ func (v *__updateSnowflakeOutboundShareInput) GetId() string { return v.Id }
 // GetInput returns __updateSnowflakeOutboundShareInput.Input, and is useful for accessing the field via an interface.
 func (v *__updateSnowflakeOutboundShareInput) GetInput() SnowflakeOutboundShareInput { return v.Input }
 
+// __updateUserInput is used internally by genqlient
+type __updateUserInput struct {
+	Id   types.UserIdScalar `json:"id"`
+	User UserInput          `json:"user"`
+}
+
+// GetId returns __updateUserInput.Id, and is useful for accessing the field via an interface.
+func (v *__updateUserInput) GetId() types.UserIdScalar { return v.Id }
+
+// GetUser returns __updateUserInput.User, and is useful for accessing the field via an interface.
+func (v *__updateUserInput) GetUser() UserInput { return v.User }
+
 // __updateWorkspaceInput is used internally by genqlient
 type __updateWorkspaceInput struct {
 	Id     string         `json:"id"`
@@ -12563,6 +12693,16 @@ type createRbacStatementResponse struct {
 
 // GetRbacStatement returns createRbacStatementResponse.RbacStatement, and is useful for accessing the field via an interface.
 func (v *createRbacStatementResponse) GetRbacStatement() RbacStatement { return v.RbacStatement }
+
+// createSSOUserResponse is returned by createSSOUser on success.
+type createSSOUserResponse struct {
+	// Creates a new user bound to an SSO identity (SAML2 or OAuth2). Admin
+	// privilege required. user.ssoIdentities must contain exactly one entry.
+	User User `json:"user"`
+}
+
+// GetUser returns createSSOUserResponse.User, and is useful for accessing the field via an interface.
+func (v *createSSOUserResponse) GetUser() User { return v.User }
 
 // createSnowflakeOutboundShareResponse is returned by createSnowflakeOutboundShare on success.
 type createSnowflakeOutboundShareResponse struct {
@@ -14241,6 +14381,14 @@ type updateSnowflakeOutboundShareResponse struct {
 
 // GetShare returns updateSnowflakeOutboundShareResponse.Share, and is useful for accessing the field via an interface.
 func (v *updateSnowflakeOutboundShareResponse) GetShare() SnowflakeOutboundShare { return v.Share }
+
+// updateUserResponse is returned by updateUser on success.
+type updateUserResponse struct {
+	User User `json:"user"`
+}
+
+// GetUser returns updateUserResponse.User, and is useful for accessing the field via an interface.
+func (v *updateUserResponse) GetUser() User { return v.User }
 
 // updateWorkspaceResponse is returned by updateWorkspace on success.
 type updateWorkspaceResponse struct {
@@ -16164,6 +16312,54 @@ func createRbacStatement(
 	return &data, err
 }
 
+// The query or mutation executed by createSSOUser.
+const createSSOUser_Operation = `
+mutation createSSOUser ($user: UserInput!) {
+	user: createSSOUser(user: $user) {
+		... User
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
+}
+`
+
+func createSSOUser(
+	ctx context.Context,
+	client graphql.Client,
+	user UserInput,
+) (*createSSOUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "createSSOUser",
+		Query:  createSSOUser_Operation,
+		Variables: &__createSSOUserInput{
+			User: user,
+		},
+	}
+	var err error
+
+	var data createSSOUserResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by createSnowflakeOutboundShare.
 const createSnowflakeOutboundShare_Operation = `
 mutation createSnowflakeOutboundShare ($workspaceId: ObjectId!, $input: SnowflakeOutboundShareInput!) {
@@ -16227,6 +16423,13 @@ fragment User on User {
 	email
 	comment
 	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
 }
 `
 
@@ -17848,6 +18051,13 @@ fragment User on User {
 	email
 	comment
 	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
 }
 `
 
@@ -20072,6 +20282,13 @@ fragment User on User {
 	email
 	comment
 	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
 }
 `
 
@@ -20343,6 +20560,13 @@ fragment User on User {
 	email
 	comment
 	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
 }
 `
 
@@ -24738,6 +24962,56 @@ func updateSnowflakeOutboundShare(
 	var err error
 
 	var data updateSnowflakeOutboundShareResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by updateUser.
+const updateUser_Operation = `
+mutation updateUser ($id: UserId!, $user: UserInput!) {
+	user: updateUser(id: $id, user: $user) {
+		... User
+	}
+}
+fragment User on User {
+	id
+	email
+	comment
+	label
+	role
+	status
+	expirationTime
+	ssoIdentities {
+		identityProvider
+		identity
+	}
+}
+`
+
+func updateUser(
+	ctx context.Context,
+	client graphql.Client,
+	id types.UserIdScalar,
+	user UserInput,
+) (*updateUserResponse, error) {
+	req := &graphql.Request{
+		OpName: "updateUser",
+		Query:  updateUser_Operation,
+		Variables: &__updateUserInput{
+			Id:   id,
+			User: user,
+		},
+	}
+	var err error
+
+	var data updateUserResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
