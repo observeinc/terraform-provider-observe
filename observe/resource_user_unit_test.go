@@ -156,17 +156,6 @@ func userConfig(overrides map[string]interface{}) map[string]interface{} {
 	return c
 }
 
-func TestUserIdentityProviderChangeIsInPlace(t *testing.T) {
-	state := userConfig(map[string]interface{}{"disabled": false})
-	d, err := userDiff(t, state, userConfig(map[string]interface{}{"identity_provider": "GOOGLE"}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if d.RequiresNew() {
-		t.Error("changing identity_provider must update in place, not replace")
-	}
-}
-
 func TestUserExpirationRemovalRejectedAtPlan(t *testing.T) {
 	state := userConfig(map[string]interface{}{"disabled": false, "expiration_time": "2027-01-01T00:00:00Z"})
 	if _, err := userDiff(t, state, userConfig(nil)); err == nil || !strings.Contains(err.Error(), "expiration_time") {
@@ -178,34 +167,32 @@ func TestUserExpirationRemovalRejectedAtPlan(t *testing.T) {
 	}
 }
 
-func TestNewUserUpdateInputSendsIdentityOnProviderChange(t *testing.T) {
-	r := resourceUser()
-	state := &terraform.InstanceState{ID: "123", Attributes: map[string]string{
-		"email": "jane@example.com", "label": "Jane Doe", "identity_provider": "SAML2",
-		"identity": "jane@example.com", "disabled": "false",
-	}}
-	d, err := userDiff(t, userConfig(map[string]interface{}{"disabled": false}), userConfig(map[string]interface{}{"identity_provider": "GOOGLE"}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err := schema.InternalMap(r.Schema).Data(state, d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	input, changed, diags := newUserUpdateInput(data)
-	if diags.HasError() || !changed {
-		t.Fatalf("changed=%v diags=%v", changed, diags)
-	}
-	if len(input.SsoIdentities) != 1 || input.SsoIdentities[0].IdentityProvider != gql.SSOIdentityProviderGoogle {
-		t.Errorf("ssoIdentities = %+v, want GOOGLE", input.SsoIdentities)
-	}
-}
-
 func TestUserExpirationUnknownIsNotRemoval(t *testing.T) {
 	const unknown = "74D93920-ED26-11E3-AC10-0800200C9A66" // hcl2shim.UnknownVariableValue
 	state := userConfig(map[string]interface{}{"disabled": false, "expiration_time": "2027-01-01T00:00:00Z"})
 	cfg := userConfig(map[string]interface{}{"expiration_time": unknown})
 	if _, err := userDiff(t, state, cfg); err != nil {
 		t.Errorf("unknown expiration_time must not be treated as removal: %v", err)
+	}
+}
+
+func TestUserLabelChangeIgnoredAfterCreate(t *testing.T) {
+	state := userConfig(map[string]interface{}{"disabled": false})
+	d, err := userDiff(t, state, userConfig(map[string]interface{}{"label": "Renamed"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d != nil && d.Attributes["label"] != nil {
+		t.Errorf("label diff = %+v, want suppressed (IdP owns the label)", d.Attributes["label"])
+	}
+}
+
+func TestUserIdentityChangeRejectedAtPlan(t *testing.T) {
+	state := userConfig(map[string]interface{}{"disabled": false})
+	for k, v := range map[string]string{"identity_provider": "GOOGLE", "identity": "someone-else@example.com"} {
+		_, err := userDiff(t, state, userConfig(map[string]interface{}{k: v}))
+		if err == nil || !strings.Contains(err.Error(), k+" cannot be changed") {
+			t.Errorf("%s change: err = %v, want plan-time rejection", k, err)
+		}
 	}
 }

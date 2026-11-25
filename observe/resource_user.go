@@ -18,9 +18,9 @@ import (
 
 const (
 	schemaUserResourceEmailDescription            = "User email. Cannot be changed after creation; changing it forces a new user."
-	schemaUserResourceLabelDescription            = "User display name."
-	schemaUserResourceIdentityProviderDescription = "SSO identity provider the user logs in with."
-	schemaUserResourceIdentityDescription         = "SSO identity the user is matched on at login. For `SAML2` this must equal the NameID the IdP sends; for `GOOGLE` it is the OAuth2 subject."
+	schemaUserResourceLabelDescription            = "User display name, set when the user is created. Afterwards the IdP manages it, so changes to this value are ignored."
+	schemaUserResourceIdentityProviderDescription = "SSO identity provider the user logs in with. Cannot be changed after creation."
+	schemaUserResourceIdentityDescription         = "SSO identity the user is matched on at login. For `SAML2` this must equal the NameID the IdP sends; for `GOOGLE` it is the OAuth2 subject. Cannot be changed after creation."
 	schemaUserResourceRoleDescription             = "Legacy user role. Defaults to `reader` when unset. Prefer `observe_rbac_group_member` for access control."
 	schemaUserResourceExpirationTimeDescription   = "Time (RFC3339) at which the user expires."
 	schemaUserResourceDisabledDescription         = "Whether the user is disabled. Destroying the resource also disables the user."
@@ -53,8 +53,14 @@ func resourceUser() *schema.Resource {
 				Description: schemaUserResourceEmailDescription,
 			},
 			"label": {
-				Type:        schema.TypeString,
-				Required:    true,
+				Type:     schema.TypeString,
+				Required: true,
+				// The IdP owns the name of an SSO user: updateUser rejects label
+				// changes with "name is managed by IdP", and logins can rename it.
+				// So label is only sent on create, and later diffs are ignored.
+				DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+					return d.Id() != ""
+				},
 				Description: schemaUserResourceLabelDescription,
 			},
 			"identity_provider": {
@@ -153,14 +159,7 @@ func newUserCreateInput(data *schema.ResourceData) (*gql.UserInput, diag.Diagnos
 func newUserUpdateInput(data *schema.ResourceData) (*gql.UserInput, bool, diag.Diagnostics) {
 	input := &gql.UserInput{}
 	changed := false
-	if data.HasChange("label") {
-		input.Label = stringPtr(data.Get("label").(string))
-		changed = true
-	}
-	if data.HasChange("identity") || data.HasChange("identity_provider") {
-		input.SsoIdentities = userSsoIdentityInput(data)
-		changed = true
-	}
+	// label is never sent: the IdP owns it after creation (see schema).
 	if data.HasChange("role") {
 		if v, ok := data.GetOk("role"); ok {
 			input.Role = stringPtr(v.(string))
@@ -186,11 +185,23 @@ func newUserUpdateInput(data *schema.ResourceData) (*gql.UserInput, bool, diag.D
 	return input, changed, nil
 }
 
-// resourceUserCustomizeDiff rejects removing expiration_time at plan time:
-// UserInput fields are omitempty, so null cannot be sent to clear it.
+// resourceUserCustomizeDiff rejects, at plan time, changes the API cannot
+// apply: SSO identity changes, and removing expiration_time (UserInput fields
+// are omitempty, so null cannot be sent to clear it).
 func resourceUserCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if d.Id() == "" {
+		return nil
+	}
+	// updateUser rejects any ssoIdentities input ("not yet implemented"), and
+	// replacing would collide with the existing user (destroy only disables).
+	for _, k := range []string{"identity_provider", "identity"} {
+		if d.HasChange(k) {
+			old, new := d.GetChange(k)
+			return fmt.Errorf("%s cannot be changed after the user is created (%q -> %q); Observe does not support updating SSO identities", k, old, new)
+		}
+	}
 	// An unknown new value (computed at apply) is not a removal.
-	if d.Id() == "" || !d.HasChange("expiration_time") || !d.NewValueKnown("expiration_time") {
+	if !d.HasChange("expiration_time") || !d.NewValueKnown("expiration_time") {
 		return nil
 	}
 	if old, new := d.GetChange("expiration_time"); old.(string) != "" && new.(string) == "" {
