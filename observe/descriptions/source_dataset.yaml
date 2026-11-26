@@ -12,6 +12,29 @@ description: |
   A tainted dataset is always planned for replacement, so `deletion_protection = false` cannot be applied while it is tainted: run `terraform untaint` first. With `create_before_destroy`, a protected dataset that is replaced by `-replace` or `replace_triggered_by` is kept as a deposed object whose state Terraform cannot change, and its delete keeps failing. Set `deletion_protection = false` before such a replacement; if a deposed dataset is already stuck, delete it in Observe, and the next apply removes it from state.
 
   ~> **Breaking change:** this resource replaces the removed legacy `observe_source_dataset`, which registered raw Snowflake tables. State written by the legacy resource cannot be upgraded: run `terraform state rm` on it and remove it from configuration. The dataset it pointed to is unaffected.
+data_source_description: |
+  Fetches an existing source dataset by `id` or `label` through the `/v1/source-datasets` REST API, so other configuration can read its storage, schema type and retention without importing it. Requires the same backend flag as the `observe_source_dataset` resource.
+data_source_schema:
+  id: |
+    The numeric ID of the source dataset. One of `id` or `label` must be set.
+  label: |
+    The exact label of the source dataset, in `package/name` form. One of `id` or `label` must be set. Labels are unique per workspace; if more than one source dataset matches, set `id` instead.
+  description: |
+    Description of the source dataset.
+  icon_url: |
+    Icon of the source dataset.
+  data_retention_days: |
+    Data retention set on the dataset, in days. `-1` means none is set and the dataset inherits the workspace retention.
+  effective_data_retention_days: |
+    The data retention, in days, that applies to this dataset after inheritance.
+  schema_type: |
+    The signal type of the dataset, such as `Any`, `OtelLogs` or `Prometheus`.
+  storage: |
+    Where the dataset's table is stored: `Native` or `Iceberg`.
+  storage_integration: |
+    OID of the storage integration that holds the Iceberg table. Empty unless `storage` is `Iceberg`.
+  external_write: |
+    Whether rows are written through Observe's Iceberg catalog instead of an Observe ingest pipeline.
 schema:
   label: |
     The dataset label, in `package/name` form. Only the name after the last `/` can be changed in place; changing the package fails the plan, because it would require replacing the dataset and deleting its data. Unique per workspace.

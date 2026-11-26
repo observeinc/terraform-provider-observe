@@ -207,6 +207,7 @@ func Provider() *schema.Provider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"observe_dataset":                   dataSourceDataset(),
+			"observe_source_dataset":            dataSourceSourceDataset(),
 			"observe_link":                      dataSourceLink(),
 			"observe_workspace":                 dataSourceWorkspace(),
 			"observe_query":                     dataSourceQuery(),
